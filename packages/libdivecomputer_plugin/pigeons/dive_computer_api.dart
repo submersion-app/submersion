@@ -9,8 +9,11 @@ import 'package:pigeon/pigeon.dart';
     kotlinOptions: KotlinOptions(
       package: 'com.submersion.libdivecomputer',
     ),
-    cppHeaderOut: 'linux/dive_computer_api.g.h',
-    cppSourceOut: 'linux/dive_computer_api.g.cc',
+    gobjectHeaderOut: 'linux/dive_computer_api.g.h',
+    gobjectSourceOut: 'linux/dive_computer_api.g.cc',
+    gobjectOptions: GObjectOptions(module: 'LibdivecomputerPlugin'),
+    cppHeaderOut: 'windows/dive_computer_api.g.h',
+    cppSourceOut: 'windows/dive_computer_api.g.cc',
     cppOptions: CppOptions(namespace: 'libdivecomputer_plugin'),
   ),
 )

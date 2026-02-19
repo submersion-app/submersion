@@ -94,17 +94,39 @@ CFLAGS=(
 SDKROOT=$(xcrun --show-sdk-path)
 CFLAGS+=(-isysroot "${SDKROOT}")
 
-echo "Building libdivecomputer for macOS..."
+# Determine architectures to build for.
+# ARCHS is set by Xcode during the build phase.
+if [ -z "${ARCHS:-}" ]; then
+    ARCHS="$(uname -m)"
+fi
 
-OBJECTS=()
-for src in "${SOURCES[@]}"; do
-    obj="${BUILD_DIR}/$(basename "${src}" .c).o"
-    echo "  CC ${src}"
-    xcrun clang "${CFLAGS[@]}" -c "${LIBDC_DIR}/src/${src}" -o "${obj}"
-    OBJECTS+=("${obj}")
+echo "Building libdivecomputer for macOS (architectures: ${ARCHS})..."
+
+ARCH_LIBS=()
+for arch in ${ARCHS}; do
+    ARCH_BUILD_DIR="${BUILD_DIR}/${arch}"
+    mkdir -p "${ARCH_BUILD_DIR}"
+
+    ARCH_CFLAGS=("${CFLAGS[@]}" -arch "${arch}")
+
+    OBJECTS=()
+    for src in "${SOURCES[@]}"; do
+        obj="${ARCH_BUILD_DIR}/$(basename "${src}" .c).o"
+        xcrun clang "${ARCH_CFLAGS[@]}" -c "${LIBDC_DIR}/src/${src}" -o "${obj}"
+        OBJECTS+=("${obj}")
+    done
+
+    ARCH_LIB="${ARCH_BUILD_DIR}/libdivecomputer.a"
+    xcrun ar rcs "${ARCH_LIB}" "${OBJECTS[@]}"
+    ARCH_LIBS+=("${ARCH_LIB}")
+    echo "  Built for ${arch}"
 done
 
-echo "  AR libdivecomputer.a"
-xcrun ar rcs "${OUTPUT_LIB}" "${OBJECTS[@]}"
+# Combine architectures into a universal binary if multiple
+if [ ${#ARCH_LIBS[@]} -eq 1 ]; then
+    cp "${ARCH_LIBS[0]}" "${OUTPUT_LIB}"
+else
+    xcrun lipo -create "${ARCH_LIBS[@]}" -output "${OUTPUT_LIB}"
+fi
 
 echo "libdivecomputer built successfully: ${OUTPUT_LIB}"

@@ -3,577 +3,1231 @@
 
 #ifndef PIGEON_DIVE_COMPUTER_API_G_H_
 #define PIGEON_DIVE_COMPUTER_API_G_H_
-#include <flutter/basic_message_channel.h>
-#include <flutter/binary_messenger.h>
-#include <flutter/encodable_value.h>
-#include <flutter/standard_message_codec.h>
-
-#include <map>
-#include <optional>
-#include <string>
-
-namespace libdivecomputer_plugin {
-
-
-// Generated class from Pigeon.
-
-class FlutterError {
- public:
-  explicit FlutterError(const std::string& code)
-    : code_(code) {}
-  explicit FlutterError(const std::string& code, const std::string& message)
-    : code_(code), message_(message) {}
-  explicit FlutterError(const std::string& code, const std::string& message, const flutter::EncodableValue& details)
-    : code_(code), message_(message), details_(details) {}
-
-  const std::string& code() const { return code_; }
-  const std::string& message() const { return message_; }
-  const flutter::EncodableValue& details() const { return details_; }
-
- private:
-  std::string code_;
-  std::string message_;
-  flutter::EncodableValue details_;
-};
-
-template<class T> class ErrorOr {
- public:
-  ErrorOr(const T& rhs) : v_(rhs) {}
-  ErrorOr(const T&& rhs) : v_(std::move(rhs)) {}
-  ErrorOr(const FlutterError& rhs) : v_(rhs) {}
-  ErrorOr(const FlutterError&& rhs) : v_(std::move(rhs)) {}
-
-  bool has_error() const { return std::holds_alternative<FlutterError>(v_); }
-  const T& value() const { return std::get<T>(v_); };
-  const FlutterError& error() const { return std::get<FlutterError>(v_); };
-
- private:
-  friend class DiveComputerHostApi;
-  friend class DiveComputerFlutterApi;
-  ErrorOr() = default;
-  T TakeValue() && { return std::get<T>(std::move(v_)); }
-
-  std::variant<T, FlutterError> v_;
-};
-
-
-enum class TransportType {
-  kBle = 0,
-  kUsb = 1,
-  kSerial = 2,
-  kInfrared = 3
-};
-
-
-// Generated class from Pigeon that represents data sent in messages.
-class DeviceDescriptor {
- public:
-  // Constructs an object setting all fields.
-  explicit DeviceDescriptor(
-    const std::string& vendor,
-    const std::string& product,
-    int64_t model,
-    const flutter::EncodableList& transports);
-
-  const std::string& vendor() const;
-  void set_vendor(std::string_view value_arg);
-
-  const std::string& product() const;
-  void set_product(std::string_view value_arg);
-
-  int64_t model() const;
-  void set_model(int64_t value_arg);
-
-  const flutter::EncodableList& transports() const;
-  void set_transports(const flutter::EncodableList& value_arg);
-
-
- private:
-  static DeviceDescriptor FromEncodableList(const flutter::EncodableList& list);
-  flutter::EncodableList ToEncodableList() const;
-  friend class DiveComputerHostApi;
-  friend class DiveComputerFlutterApi;
-  friend class PigeonInternalCodecSerializer;
-  std::string vendor_;
-  std::string product_;
-  int64_t model_;
-  flutter::EncodableList transports_;
-
-};
-
-
-// Generated class from Pigeon that represents data sent in messages.
-class DiscoveredDevice {
- public:
-  // Constructs an object setting all non-nullable fields.
-  explicit DiscoveredDevice(
-    const std::string& vendor,
-    const std::string& product,
-    int64_t model,
-    const std::string& address,
-    const TransportType& transport);
-
-  // Constructs an object setting all fields.
-  explicit DiscoveredDevice(
-    const std::string& vendor,
-    const std::string& product,
-    int64_t model,
-    const std::string& address,
-    const std::string* name,
-    const TransportType& transport);
-
-  const std::string& vendor() const;
-  void set_vendor(std::string_view value_arg);
-
-  const std::string& product() const;
-  void set_product(std::string_view value_arg);
-
-  int64_t model() const;
-  void set_model(int64_t value_arg);
-
-  const std::string& address() const;
-  void set_address(std::string_view value_arg);
-
-  const std::string* name() const;
-  void set_name(const std::string_view* value_arg);
-  void set_name(std::string_view value_arg);
-
-  const TransportType& transport() const;
-  void set_transport(const TransportType& value_arg);
-
-
- private:
-  static DiscoveredDevice FromEncodableList(const flutter::EncodableList& list);
-  flutter::EncodableList ToEncodableList() const;
-  friend class DiveComputerHostApi;
-  friend class DiveComputerFlutterApi;
-  friend class PigeonInternalCodecSerializer;
-  std::string vendor_;
-  std::string product_;
-  int64_t model_;
-  std::string address_;
-  std::optional<std::string> name_;
-  TransportType transport_;
-
-};
-
-
-// Generated class from Pigeon that represents data sent in messages.
-class ProfileSample {
- public:
-  // Constructs an object setting all non-nullable fields.
-  explicit ProfileSample(
-    int64_t time_seconds,
-    double depth_meters);
-
-  // Constructs an object setting all fields.
-  explicit ProfileSample(
-    int64_t time_seconds,
-    double depth_meters,
-    const double* temperature_celsius,
-    const double* pressure_bar,
-    const int64_t* tank_index,
-    const double* heart_rate);
-
-  int64_t time_seconds() const;
-  void set_time_seconds(int64_t value_arg);
-
-  double depth_meters() const;
-  void set_depth_meters(double value_arg);
-
-  const double* temperature_celsius() const;
-  void set_temperature_celsius(const double* value_arg);
-  void set_temperature_celsius(double value_arg);
-
-  const double* pressure_bar() const;
-  void set_pressure_bar(const double* value_arg);
-  void set_pressure_bar(double value_arg);
-
-  const int64_t* tank_index() const;
-  void set_tank_index(const int64_t* value_arg);
-  void set_tank_index(int64_t value_arg);
-
-  const double* heart_rate() const;
-  void set_heart_rate(const double* value_arg);
-  void set_heart_rate(double value_arg);
-
-
- private:
-  static ProfileSample FromEncodableList(const flutter::EncodableList& list);
-  flutter::EncodableList ToEncodableList() const;
-  friend class DiveComputerHostApi;
-  friend class DiveComputerFlutterApi;
-  friend class PigeonInternalCodecSerializer;
-  int64_t time_seconds_;
-  double depth_meters_;
-  std::optional<double> temperature_celsius_;
-  std::optional<double> pressure_bar_;
-  std::optional<int64_t> tank_index_;
-  std::optional<double> heart_rate_;
-
-};
-
-
-// Generated class from Pigeon that represents data sent in messages.
-class GasMix {
- public:
-  // Constructs an object setting all fields.
-  explicit GasMix(
-    int64_t index,
-    double o2_percent,
-    double he_percent);
-
-  int64_t index() const;
-  void set_index(int64_t value_arg);
-
-  double o2_percent() const;
-  void set_o2_percent(double value_arg);
-
-  double he_percent() const;
-  void set_he_percent(double value_arg);
-
-
- private:
-  static GasMix FromEncodableList(const flutter::EncodableList& list);
-  flutter::EncodableList ToEncodableList() const;
-  friend class DiveComputerHostApi;
-  friend class DiveComputerFlutterApi;
-  friend class PigeonInternalCodecSerializer;
-  int64_t index_;
-  double o2_percent_;
-  double he_percent_;
-
-};
-
-
-// Generated class from Pigeon that represents data sent in messages.
-class TankInfo {
- public:
-  // Constructs an object setting all non-nullable fields.
-  explicit TankInfo(
-    int64_t index,
-    int64_t gas_mix_index);
-
-  // Constructs an object setting all fields.
-  explicit TankInfo(
-    int64_t index,
-    int64_t gas_mix_index,
-    const double* volume_liters,
-    const double* start_pressure_bar,
-    const double* end_pressure_bar);
-
-  int64_t index() const;
-  void set_index(int64_t value_arg);
-
-  int64_t gas_mix_index() const;
-  void set_gas_mix_index(int64_t value_arg);
-
-  const double* volume_liters() const;
-  void set_volume_liters(const double* value_arg);
-  void set_volume_liters(double value_arg);
-
-  const double* start_pressure_bar() const;
-  void set_start_pressure_bar(const double* value_arg);
-  void set_start_pressure_bar(double value_arg);
-
-  const double* end_pressure_bar() const;
-  void set_end_pressure_bar(const double* value_arg);
-  void set_end_pressure_bar(double value_arg);
-
-
- private:
-  static TankInfo FromEncodableList(const flutter::EncodableList& list);
-  flutter::EncodableList ToEncodableList() const;
-  friend class DiveComputerHostApi;
-  friend class DiveComputerFlutterApi;
-  friend class PigeonInternalCodecSerializer;
-  int64_t index_;
-  int64_t gas_mix_index_;
-  std::optional<double> volume_liters_;
-  std::optional<double> start_pressure_bar_;
-  std::optional<double> end_pressure_bar_;
-
-};
-
-
-// Generated class from Pigeon that represents data sent in messages.
-class DiveEvent {
- public:
-  // Constructs an object setting all non-nullable fields.
-  explicit DiveEvent(
-    int64_t time_seconds,
-    const std::string& type);
-
-  // Constructs an object setting all fields.
-  explicit DiveEvent(
-    int64_t time_seconds,
-    const std::string& type,
-    const flutter::EncodableMap* data);
-
-  int64_t time_seconds() const;
-  void set_time_seconds(int64_t value_arg);
-
-  const std::string& type() const;
-  void set_type(std::string_view value_arg);
-
-  const flutter::EncodableMap* data() const;
-  void set_data(const flutter::EncodableMap* value_arg);
-  void set_data(const flutter::EncodableMap& value_arg);
-
-
- private:
-  static DiveEvent FromEncodableList(const flutter::EncodableList& list);
-  flutter::EncodableList ToEncodableList() const;
-  friend class DiveComputerHostApi;
-  friend class DiveComputerFlutterApi;
-  friend class PigeonInternalCodecSerializer;
-  int64_t time_seconds_;
-  std::string type_;
-  std::optional<flutter::EncodableMap> data_;
-
-};
-
-
-// Generated class from Pigeon that represents data sent in messages.
-class ParsedDive {
- public:
-  // Constructs an object setting all non-nullable fields.
-  explicit ParsedDive(
-    const std::string& fingerprint,
-    int64_t date_time_epoch,
-    double max_depth_meters,
-    double avg_depth_meters,
-    int64_t duration_seconds,
-    const flutter::EncodableList& samples,
-    const flutter::EncodableList& tanks,
-    const flutter::EncodableList& gas_mixes,
-    const flutter::EncodableList& events);
-
-  // Constructs an object setting all fields.
-  explicit ParsedDive(
-    const std::string& fingerprint,
-    int64_t date_time_epoch,
-    double max_depth_meters,
-    double avg_depth_meters,
-    int64_t duration_seconds,
-    const double* min_temperature_celsius,
-    const double* max_temperature_celsius,
-    const flutter::EncodableList& samples,
-    const flutter::EncodableList& tanks,
-    const flutter::EncodableList& gas_mixes,
-    const flutter::EncodableList& events,
-    const std::string* dive_mode);
-
-  const std::string& fingerprint() const;
-  void set_fingerprint(std::string_view value_arg);
-
-  int64_t date_time_epoch() const;
-  void set_date_time_epoch(int64_t value_arg);
-
-  double max_depth_meters() const;
-  void set_max_depth_meters(double value_arg);
-
-  double avg_depth_meters() const;
-  void set_avg_depth_meters(double value_arg);
-
-  int64_t duration_seconds() const;
-  void set_duration_seconds(int64_t value_arg);
-
-  const double* min_temperature_celsius() const;
-  void set_min_temperature_celsius(const double* value_arg);
-  void set_min_temperature_celsius(double value_arg);
-
-  const double* max_temperature_celsius() const;
-  void set_max_temperature_celsius(const double* value_arg);
-  void set_max_temperature_celsius(double value_arg);
-
-  const flutter::EncodableList& samples() const;
-  void set_samples(const flutter::EncodableList& value_arg);
-
-  const flutter::EncodableList& tanks() const;
-  void set_tanks(const flutter::EncodableList& value_arg);
-
-  const flutter::EncodableList& gas_mixes() const;
-  void set_gas_mixes(const flutter::EncodableList& value_arg);
-
-  const flutter::EncodableList& events() const;
-  void set_events(const flutter::EncodableList& value_arg);
-
-  const std::string* dive_mode() const;
-  void set_dive_mode(const std::string_view* value_arg);
-  void set_dive_mode(std::string_view value_arg);
-
-
- private:
-  static ParsedDive FromEncodableList(const flutter::EncodableList& list);
-  flutter::EncodableList ToEncodableList() const;
-  friend class DiveComputerHostApi;
-  friend class DiveComputerFlutterApi;
-  friend class PigeonInternalCodecSerializer;
-  std::string fingerprint_;
-  int64_t date_time_epoch_;
-  double max_depth_meters_;
-  double avg_depth_meters_;
-  int64_t duration_seconds_;
-  std::optional<double> min_temperature_celsius_;
-  std::optional<double> max_temperature_celsius_;
-  flutter::EncodableList samples_;
-  flutter::EncodableList tanks_;
-  flutter::EncodableList gas_mixes_;
-  flutter::EncodableList events_;
-  std::optional<std::string> dive_mode_;
-
-};
-
-
-// Generated class from Pigeon that represents data sent in messages.
-class DownloadProgress {
- public:
-  // Constructs an object setting all fields.
-  explicit DownloadProgress(
-    int64_t current,
-    int64_t total,
-    const std::string& status);
-
-  int64_t current() const;
-  void set_current(int64_t value_arg);
-
-  int64_t total() const;
-  void set_total(int64_t value_arg);
-
-  const std::string& status() const;
-  void set_status(std::string_view value_arg);
-
-
- private:
-  static DownloadProgress FromEncodableList(const flutter::EncodableList& list);
-  flutter::EncodableList ToEncodableList() const;
-  friend class DiveComputerHostApi;
-  friend class DiveComputerFlutterApi;
-  friend class PigeonInternalCodecSerializer;
-  int64_t current_;
-  int64_t total_;
-  std::string status_;
-
-};
-
-
-// Generated class from Pigeon that represents data sent in messages.
-class DiveComputerError {
- public:
-  // Constructs an object setting all fields.
-  explicit DiveComputerError(
-    const std::string& code,
-    const std::string& message);
-
-  const std::string& code() const;
-  void set_code(std::string_view value_arg);
-
-  const std::string& message() const;
-  void set_message(std::string_view value_arg);
-
-
- private:
-  static DiveComputerError FromEncodableList(const flutter::EncodableList& list);
-  flutter::EncodableList ToEncodableList() const;
-  friend class DiveComputerHostApi;
-  friend class DiveComputerFlutterApi;
-  friend class PigeonInternalCodecSerializer;
-  std::string code_;
-  std::string message_;
-
-};
-
-
-class PigeonInternalCodecSerializer : public flutter::StandardCodecSerializer {
- public:
-  PigeonInternalCodecSerializer();
-  inline static PigeonInternalCodecSerializer& GetInstance() {
-    static PigeonInternalCodecSerializer sInstance;
-    return sInstance;
-  }
-
-  void WriteValue(
-    const flutter::EncodableValue& value,
-    flutter::ByteStreamWriter* stream) const override;
-
- protected:
-  flutter::EncodableValue ReadValueOfType(
-    uint8_t type,
-    flutter::ByteStreamReader* stream) const override;
-
-};
-
-// Generated interface from Pigeon that represents a handler of messages from Flutter.
-class DiveComputerHostApi {
- public:
-  DiveComputerHostApi(const DiveComputerHostApi&) = delete;
-  DiveComputerHostApi& operator=(const DiveComputerHostApi&) = delete;
-  virtual ~DiveComputerHostApi() {}
-  virtual void GetDeviceDescriptors(std::function<void(ErrorOr<flutter::EncodableList> reply)> result) = 0;
-  virtual void StartDiscovery(
-    const TransportType& transport,
-    std::function<void(std::optional<FlutterError> reply)> result) = 0;
-  virtual std::optional<FlutterError> StopDiscovery() = 0;
-  virtual void StartDownload(
-    const DiscoveredDevice& device,
-    std::function<void(std::optional<FlutterError> reply)> result) = 0;
-  virtual std::optional<FlutterError> CancelDownload() = 0;
-  virtual ErrorOr<std::string> GetLibdivecomputerVersion() = 0;
-
-  // The codec used by DiveComputerHostApi.
-  static const flutter::StandardMessageCodec& GetCodec();
-  // Sets up an instance of `DiveComputerHostApi` to handle messages through the `binary_messenger`.
-  static void SetUp(
-    flutter::BinaryMessenger* binary_messenger,
-    DiveComputerHostApi* api);
-  static void SetUp(
-    flutter::BinaryMessenger* binary_messenger,
-    DiveComputerHostApi* api,
-    const std::string& message_channel_suffix);
-  static flutter::EncodableValue WrapError(std::string_view error_message);
-  static flutter::EncodableValue WrapError(const FlutterError& error);
-
- protected:
-  DiveComputerHostApi() = default;
-
-};
-// Generated class from Pigeon that represents Flutter messages that can be called from C++.
-class DiveComputerFlutterApi {
- public:
-  DiveComputerFlutterApi(flutter::BinaryMessenger* binary_messenger);
-  DiveComputerFlutterApi(
-    flutter::BinaryMessenger* binary_messenger,
-    const std::string& message_channel_suffix);
-  static const flutter::StandardMessageCodec& GetCodec();
-  void OnDeviceDiscovered(
-    const DiscoveredDevice& device,
-    std::function<void(void)>&& on_success,
-    std::function<void(const FlutterError&)>&& on_error);
-  void OnDiscoveryComplete(
-    std::function<void(void)>&& on_success,
-    std::function<void(const FlutterError&)>&& on_error);
-  void OnDownloadProgress(
-    const DownloadProgress& progress,
-    std::function<void(void)>&& on_success,
-    std::function<void(const FlutterError&)>&& on_error);
-  void OnDiveDownloaded(
-    const ParsedDive& dive,
-    std::function<void(void)>&& on_success,
-    std::function<void(const FlutterError&)>&& on_error);
-  void OnDownloadComplete(
-    int64_t total_dives,
-    std::function<void(void)>&& on_success,
-    std::function<void(const FlutterError&)>&& on_error);
-  void OnError(
-    const DiveComputerError& error,
-    std::function<void(void)>&& on_success,
-    std::function<void(const FlutterError&)>&& on_error);
-
- private:
-  flutter::BinaryMessenger* binary_messenger_;
-  std::string message_channel_suffix_;
-};
-
-}  // namespace libdivecomputer_plugin
+
+#include <flutter_linux/flutter_linux.h>
+
+G_BEGIN_DECLS
+
+/**
+ * LibdivecomputerPluginTransportType:
+ * LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_BLE:
+ * LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_USB:
+ * LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_SERIAL:
+ * LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_INFRARED:
+ *
+ */
+typedef enum {
+  LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_BLE = 0,
+  LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_USB = 1,
+  LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_SERIAL = 2,
+  LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_INFRARED = 3
+} LibdivecomputerPluginTransportType;
+
+/**
+ * LibdivecomputerPluginDeviceDescriptor:
+ *
+ */
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDeviceDescriptor, libdivecomputer_plugin_device_descriptor, LIBDIVECOMPUTER_PLUGIN, DEVICE_DESCRIPTOR, GObject)
+
+/**
+ * libdivecomputer_plugin_device_descriptor_new:
+ * vendor: field in this object.
+ * product: field in this object.
+ * model: field in this object.
+ * transports: field in this object.
+ *
+ * Creates a new #DeviceDescriptor object.
+ *
+ * Returns: a new #LibdivecomputerPluginDeviceDescriptor
+ */
+LibdivecomputerPluginDeviceDescriptor* libdivecomputer_plugin_device_descriptor_new(const gchar* vendor, const gchar* product, int64_t model, FlValue* transports);
+
+/**
+ * libdivecomputer_plugin_device_descriptor_get_vendor
+ * @object: a #LibdivecomputerPluginDeviceDescriptor.
+ *
+ * Gets the value of the vendor field of @object.
+ *
+ * Returns: the field value.
+ */
+const gchar* libdivecomputer_plugin_device_descriptor_get_vendor(LibdivecomputerPluginDeviceDescriptor* object);
+
+/**
+ * libdivecomputer_plugin_device_descriptor_get_product
+ * @object: a #LibdivecomputerPluginDeviceDescriptor.
+ *
+ * Gets the value of the product field of @object.
+ *
+ * Returns: the field value.
+ */
+const gchar* libdivecomputer_plugin_device_descriptor_get_product(LibdivecomputerPluginDeviceDescriptor* object);
+
+/**
+ * libdivecomputer_plugin_device_descriptor_get_model
+ * @object: a #LibdivecomputerPluginDeviceDescriptor.
+ *
+ * Gets the value of the model field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_device_descriptor_get_model(LibdivecomputerPluginDeviceDescriptor* object);
+
+/**
+ * libdivecomputer_plugin_device_descriptor_get_transports
+ * @object: a #LibdivecomputerPluginDeviceDescriptor.
+ *
+ * Gets the value of the transports field of @object.
+ *
+ * Returns: the field value.
+ */
+FlValue* libdivecomputer_plugin_device_descriptor_get_transports(LibdivecomputerPluginDeviceDescriptor* object);
+
+/**
+ * LibdivecomputerPluginDiscoveredDevice:
+ *
+ */
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiscoveredDevice, libdivecomputer_plugin_discovered_device, LIBDIVECOMPUTER_PLUGIN, DISCOVERED_DEVICE, GObject)
+
+/**
+ * libdivecomputer_plugin_discovered_device_new:
+ * vendor: field in this object.
+ * product: field in this object.
+ * model: field in this object.
+ * address: field in this object.
+ * name: field in this object.
+ * transport: field in this object.
+ *
+ * Creates a new #DiscoveredDevice object.
+ *
+ * Returns: a new #LibdivecomputerPluginDiscoveredDevice
+ */
+LibdivecomputerPluginDiscoveredDevice* libdivecomputer_plugin_discovered_device_new(const gchar* vendor, const gchar* product, int64_t model, const gchar* address, const gchar* name, LibdivecomputerPluginTransportType transport);
+
+/**
+ * libdivecomputer_plugin_discovered_device_get_vendor
+ * @object: a #LibdivecomputerPluginDiscoveredDevice.
+ *
+ * Gets the value of the vendor field of @object.
+ *
+ * Returns: the field value.
+ */
+const gchar* libdivecomputer_plugin_discovered_device_get_vendor(LibdivecomputerPluginDiscoveredDevice* object);
+
+/**
+ * libdivecomputer_plugin_discovered_device_get_product
+ * @object: a #LibdivecomputerPluginDiscoveredDevice.
+ *
+ * Gets the value of the product field of @object.
+ *
+ * Returns: the field value.
+ */
+const gchar* libdivecomputer_plugin_discovered_device_get_product(LibdivecomputerPluginDiscoveredDevice* object);
+
+/**
+ * libdivecomputer_plugin_discovered_device_get_model
+ * @object: a #LibdivecomputerPluginDiscoveredDevice.
+ *
+ * Gets the value of the model field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_discovered_device_get_model(LibdivecomputerPluginDiscoveredDevice* object);
+
+/**
+ * libdivecomputer_plugin_discovered_device_get_address
+ * @object: a #LibdivecomputerPluginDiscoveredDevice.
+ *
+ * Gets the value of the address field of @object.
+ *
+ * Returns: the field value.
+ */
+const gchar* libdivecomputer_plugin_discovered_device_get_address(LibdivecomputerPluginDiscoveredDevice* object);
+
+/**
+ * libdivecomputer_plugin_discovered_device_get_name
+ * @object: a #LibdivecomputerPluginDiscoveredDevice.
+ *
+ * Gets the value of the name field of @object.
+ *
+ * Returns: the field value.
+ */
+const gchar* libdivecomputer_plugin_discovered_device_get_name(LibdivecomputerPluginDiscoveredDevice* object);
+
+/**
+ * libdivecomputer_plugin_discovered_device_get_transport
+ * @object: a #LibdivecomputerPluginDiscoveredDevice.
+ *
+ * Gets the value of the transport field of @object.
+ *
+ * Returns: the field value.
+ */
+LibdivecomputerPluginTransportType libdivecomputer_plugin_discovered_device_get_transport(LibdivecomputerPluginDiscoveredDevice* object);
+
+/**
+ * LibdivecomputerPluginProfileSample:
+ *
+ */
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginProfileSample, libdivecomputer_plugin_profile_sample, LIBDIVECOMPUTER_PLUGIN, PROFILE_SAMPLE, GObject)
+
+/**
+ * libdivecomputer_plugin_profile_sample_new:
+ * time_seconds: field in this object.
+ * depth_meters: field in this object.
+ * temperature_celsius: field in this object.
+ * pressure_bar: field in this object.
+ * tank_index: field in this object.
+ * heart_rate: field in this object.
+ *
+ * Creates a new #ProfileSample object.
+ *
+ * Returns: a new #LibdivecomputerPluginProfileSample
+ */
+LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(int64_t time_seconds, double depth_meters, double* temperature_celsius, double* pressure_bar, int64_t* tank_index, double* heart_rate);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_time_seconds
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the timeSeconds field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_profile_sample_get_time_seconds(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_depth_meters
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the depthMeters field of @object.
+ *
+ * Returns: the field value.
+ */
+double libdivecomputer_plugin_profile_sample_get_depth_meters(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_temperature_celsius
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the temperatureCelsius field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_profile_sample_get_temperature_celsius(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_pressure_bar
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the pressureBar field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_profile_sample_get_pressure_bar(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_tank_index
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the tankIndex field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t* libdivecomputer_plugin_profile_sample_get_tank_index(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_heart_rate
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the heartRate field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_profile_sample_get_heart_rate(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * LibdivecomputerPluginGasMix:
+ *
+ */
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginGasMix, libdivecomputer_plugin_gas_mix, LIBDIVECOMPUTER_PLUGIN, GAS_MIX, GObject)
+
+/**
+ * libdivecomputer_plugin_gas_mix_new:
+ * index: field in this object.
+ * o2_percent: field in this object.
+ * he_percent: field in this object.
+ *
+ * Creates a new #GasMix object.
+ *
+ * Returns: a new #LibdivecomputerPluginGasMix
+ */
+LibdivecomputerPluginGasMix* libdivecomputer_plugin_gas_mix_new(int64_t index, double o2_percent, double he_percent);
+
+/**
+ * libdivecomputer_plugin_gas_mix_get_index
+ * @object: a #LibdivecomputerPluginGasMix.
+ *
+ * Gets the value of the index field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_gas_mix_get_index(LibdivecomputerPluginGasMix* object);
+
+/**
+ * libdivecomputer_plugin_gas_mix_get_o2_percent
+ * @object: a #LibdivecomputerPluginGasMix.
+ *
+ * Gets the value of the o2Percent field of @object.
+ *
+ * Returns: the field value.
+ */
+double libdivecomputer_plugin_gas_mix_get_o2_percent(LibdivecomputerPluginGasMix* object);
+
+/**
+ * libdivecomputer_plugin_gas_mix_get_he_percent
+ * @object: a #LibdivecomputerPluginGasMix.
+ *
+ * Gets the value of the hePercent field of @object.
+ *
+ * Returns: the field value.
+ */
+double libdivecomputer_plugin_gas_mix_get_he_percent(LibdivecomputerPluginGasMix* object);
+
+/**
+ * LibdivecomputerPluginTankInfo:
+ *
+ */
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginTankInfo, libdivecomputer_plugin_tank_info, LIBDIVECOMPUTER_PLUGIN, TANK_INFO, GObject)
+
+/**
+ * libdivecomputer_plugin_tank_info_new:
+ * index: field in this object.
+ * gas_mix_index: field in this object.
+ * volume_liters: field in this object.
+ * start_pressure_bar: field in this object.
+ * end_pressure_bar: field in this object.
+ *
+ * Creates a new #TankInfo object.
+ *
+ * Returns: a new #LibdivecomputerPluginTankInfo
+ */
+LibdivecomputerPluginTankInfo* libdivecomputer_plugin_tank_info_new(int64_t index, int64_t gas_mix_index, double* volume_liters, double* start_pressure_bar, double* end_pressure_bar);
+
+/**
+ * libdivecomputer_plugin_tank_info_get_index
+ * @object: a #LibdivecomputerPluginTankInfo.
+ *
+ * Gets the value of the index field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_tank_info_get_index(LibdivecomputerPluginTankInfo* object);
+
+/**
+ * libdivecomputer_plugin_tank_info_get_gas_mix_index
+ * @object: a #LibdivecomputerPluginTankInfo.
+ *
+ * Gets the value of the gasMixIndex field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_tank_info_get_gas_mix_index(LibdivecomputerPluginTankInfo* object);
+
+/**
+ * libdivecomputer_plugin_tank_info_get_volume_liters
+ * @object: a #LibdivecomputerPluginTankInfo.
+ *
+ * Gets the value of the volumeLiters field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_tank_info_get_volume_liters(LibdivecomputerPluginTankInfo* object);
+
+/**
+ * libdivecomputer_plugin_tank_info_get_start_pressure_bar
+ * @object: a #LibdivecomputerPluginTankInfo.
+ *
+ * Gets the value of the startPressureBar field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_tank_info_get_start_pressure_bar(LibdivecomputerPluginTankInfo* object);
+
+/**
+ * libdivecomputer_plugin_tank_info_get_end_pressure_bar
+ * @object: a #LibdivecomputerPluginTankInfo.
+ *
+ * Gets the value of the endPressureBar field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_tank_info_get_end_pressure_bar(LibdivecomputerPluginTankInfo* object);
+
+/**
+ * LibdivecomputerPluginDiveEvent:
+ *
+ */
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveEvent, libdivecomputer_plugin_dive_event, LIBDIVECOMPUTER_PLUGIN, DIVE_EVENT, GObject)
+
+/**
+ * libdivecomputer_plugin_dive_event_new:
+ * time_seconds: field in this object.
+ * type_: field in this object.
+ * data: field in this object.
+ *
+ * Creates a new #DiveEvent object.
+ *
+ * Returns: a new #LibdivecomputerPluginDiveEvent
+ */
+LibdivecomputerPluginDiveEvent* libdivecomputer_plugin_dive_event_new(int64_t time_seconds, const gchar* type_, FlValue* data);
+
+/**
+ * libdivecomputer_plugin_dive_event_get_time_seconds
+ * @object: a #LibdivecomputerPluginDiveEvent.
+ *
+ * Gets the value of the timeSeconds field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_dive_event_get_time_seconds(LibdivecomputerPluginDiveEvent* object);
+
+/**
+ * libdivecomputer_plugin_dive_event_get_type_
+ * @object: a #LibdivecomputerPluginDiveEvent.
+ *
+ * Gets the value of the type field of @object.
+ *
+ * Returns: the field value.
+ */
+const gchar* libdivecomputer_plugin_dive_event_get_type_(LibdivecomputerPluginDiveEvent* object);
+
+/**
+ * libdivecomputer_plugin_dive_event_get_data
+ * @object: a #LibdivecomputerPluginDiveEvent.
+ *
+ * Gets the value of the data field of @object.
+ *
+ * Returns: the field value.
+ */
+FlValue* libdivecomputer_plugin_dive_event_get_data(LibdivecomputerPluginDiveEvent* object);
+
+/**
+ * LibdivecomputerPluginParsedDive:
+ *
+ */
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginParsedDive, libdivecomputer_plugin_parsed_dive, LIBDIVECOMPUTER_PLUGIN, PARSED_DIVE, GObject)
+
+/**
+ * libdivecomputer_plugin_parsed_dive_new:
+ * fingerprint: field in this object.
+ * date_time_epoch: field in this object.
+ * max_depth_meters: field in this object.
+ * avg_depth_meters: field in this object.
+ * duration_seconds: field in this object.
+ * min_temperature_celsius: field in this object.
+ * max_temperature_celsius: field in this object.
+ * samples: field in this object.
+ * tanks: field in this object.
+ * gas_mixes: field in this object.
+ * events: field in this object.
+ * dive_mode: field in this object.
+ *
+ * Creates a new #ParsedDive object.
+ *
+ * Returns: a new #LibdivecomputerPluginParsedDive
+ */
+LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new(const gchar* fingerprint, int64_t date_time_epoch, double max_depth_meters, double avg_depth_meters, int64_t duration_seconds, double* min_temperature_celsius, double* max_temperature_celsius, FlValue* samples, FlValue* tanks, FlValue* gas_mixes, FlValue* events, const gchar* dive_mode);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_fingerprint
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the fingerprint field of @object.
+ *
+ * Returns: the field value.
+ */
+const gchar* libdivecomputer_plugin_parsed_dive_get_fingerprint(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_date_time_epoch
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the dateTimeEpoch field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_parsed_dive_get_date_time_epoch(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_max_depth_meters
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the maxDepthMeters field of @object.
+ *
+ * Returns: the field value.
+ */
+double libdivecomputer_plugin_parsed_dive_get_max_depth_meters(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_avg_depth_meters
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the avgDepthMeters field of @object.
+ *
+ * Returns: the field value.
+ */
+double libdivecomputer_plugin_parsed_dive_get_avg_depth_meters(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_duration_seconds
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the durationSeconds field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_parsed_dive_get_duration_seconds(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_min_temperature_celsius
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the minTemperatureCelsius field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_parsed_dive_get_min_temperature_celsius(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_max_temperature_celsius
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the maxTemperatureCelsius field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_parsed_dive_get_max_temperature_celsius(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_samples
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the samples field of @object.
+ *
+ * Returns: the field value.
+ */
+FlValue* libdivecomputer_plugin_parsed_dive_get_samples(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_tanks
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the tanks field of @object.
+ *
+ * Returns: the field value.
+ */
+FlValue* libdivecomputer_plugin_parsed_dive_get_tanks(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_gas_mixes
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the gasMixes field of @object.
+ *
+ * Returns: the field value.
+ */
+FlValue* libdivecomputer_plugin_parsed_dive_get_gas_mixes(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_events
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the events field of @object.
+ *
+ * Returns: the field value.
+ */
+FlValue* libdivecomputer_plugin_parsed_dive_get_events(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_dive_mode
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the diveMode field of @object.
+ *
+ * Returns: the field value.
+ */
+const gchar* libdivecomputer_plugin_parsed_dive_get_dive_mode(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * LibdivecomputerPluginDownloadProgress:
+ *
+ */
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDownloadProgress, libdivecomputer_plugin_download_progress, LIBDIVECOMPUTER_PLUGIN, DOWNLOAD_PROGRESS, GObject)
+
+/**
+ * libdivecomputer_plugin_download_progress_new:
+ * current: field in this object.
+ * total: field in this object.
+ * status: field in this object.
+ *
+ * Creates a new #DownloadProgress object.
+ *
+ * Returns: a new #LibdivecomputerPluginDownloadProgress
+ */
+LibdivecomputerPluginDownloadProgress* libdivecomputer_plugin_download_progress_new(int64_t current, int64_t total, const gchar* status);
+
+/**
+ * libdivecomputer_plugin_download_progress_get_current
+ * @object: a #LibdivecomputerPluginDownloadProgress.
+ *
+ * Gets the value of the current field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_download_progress_get_current(LibdivecomputerPluginDownloadProgress* object);
+
+/**
+ * libdivecomputer_plugin_download_progress_get_total
+ * @object: a #LibdivecomputerPluginDownloadProgress.
+ *
+ * Gets the value of the total field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_download_progress_get_total(LibdivecomputerPluginDownloadProgress* object);
+
+/**
+ * libdivecomputer_plugin_download_progress_get_status
+ * @object: a #LibdivecomputerPluginDownloadProgress.
+ *
+ * Gets the value of the status field of @object.
+ *
+ * Returns: the field value.
+ */
+const gchar* libdivecomputer_plugin_download_progress_get_status(LibdivecomputerPluginDownloadProgress* object);
+
+/**
+ * LibdivecomputerPluginDiveComputerError:
+ *
+ */
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerError, libdivecomputer_plugin_dive_computer_error, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_ERROR, GObject)
+
+/**
+ * libdivecomputer_plugin_dive_computer_error_new:
+ * code: field in this object.
+ * message: field in this object.
+ *
+ * Creates a new #DiveComputerError object.
+ *
+ * Returns: a new #LibdivecomputerPluginDiveComputerError
+ */
+LibdivecomputerPluginDiveComputerError* libdivecomputer_plugin_dive_computer_error_new(const gchar* code, const gchar* message);
+
+/**
+ * libdivecomputer_plugin_dive_computer_error_get_code
+ * @object: a #LibdivecomputerPluginDiveComputerError.
+ *
+ * Gets the value of the code field of @object.
+ *
+ * Returns: the field value.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_error_get_code(LibdivecomputerPluginDiveComputerError* object);
+
+/**
+ * libdivecomputer_plugin_dive_computer_error_get_message
+ * @object: a #LibdivecomputerPluginDiveComputerError.
+ *
+ * Gets the value of the message field of @object.
+ *
+ * Returns: the field value.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_error_get_message(LibdivecomputerPluginDiveComputerError* object);
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginMessageCodec, libdivecomputer_plugin_message_codec, LIBDIVECOMPUTER_PLUGIN, MESSAGE_CODEC, FlStandardMessageCodec)
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerHostApi, libdivecomputer_plugin_dive_computer_host_api, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_HOST_API, GObject)
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerHostApiResponseHandle, libdivecomputer_plugin_dive_computer_host_api_response_handle, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_HOST_API_RESPONSE_HANDLE, GObject)
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerHostApiStopDiscoveryResponse, libdivecomputer_plugin_dive_computer_host_api_stop_discovery_response, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_HOST_API_STOP_DISCOVERY_RESPONSE, GObject)
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_stop_discovery_response_new:
+ *
+ * Creates a new response to DiveComputerHostApi.stopDiscovery.
+ *
+ * Returns: a new #LibdivecomputerPluginDiveComputerHostApiStopDiscoveryResponse
+ */
+LibdivecomputerPluginDiveComputerHostApiStopDiscoveryResponse* libdivecomputer_plugin_dive_computer_host_api_stop_discovery_response_new();
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_stop_discovery_response_new_error:
+ * @code: error code.
+ * @message: error message.
+ * @details: (allow-none): error details or %NULL.
+ *
+ * Creates a new error response to DiveComputerHostApi.stopDiscovery.
+ *
+ * Returns: a new #LibdivecomputerPluginDiveComputerHostApiStopDiscoveryResponse
+ */
+LibdivecomputerPluginDiveComputerHostApiStopDiscoveryResponse* libdivecomputer_plugin_dive_computer_host_api_stop_discovery_response_new_error(const gchar* code, const gchar* message, FlValue* details);
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerHostApiCancelDownloadResponse, libdivecomputer_plugin_dive_computer_host_api_cancel_download_response, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_HOST_API_CANCEL_DOWNLOAD_RESPONSE, GObject)
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_cancel_download_response_new:
+ *
+ * Creates a new response to DiveComputerHostApi.cancelDownload.
+ *
+ * Returns: a new #LibdivecomputerPluginDiveComputerHostApiCancelDownloadResponse
+ */
+LibdivecomputerPluginDiveComputerHostApiCancelDownloadResponse* libdivecomputer_plugin_dive_computer_host_api_cancel_download_response_new();
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_cancel_download_response_new_error:
+ * @code: error code.
+ * @message: error message.
+ * @details: (allow-none): error details or %NULL.
+ *
+ * Creates a new error response to DiveComputerHostApi.cancelDownload.
+ *
+ * Returns: a new #LibdivecomputerPluginDiveComputerHostApiCancelDownloadResponse
+ */
+LibdivecomputerPluginDiveComputerHostApiCancelDownloadResponse* libdivecomputer_plugin_dive_computer_host_api_cancel_download_response_new_error(const gchar* code, const gchar* message, FlValue* details);
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerHostApiGetLibdivecomputerVersionResponse, libdivecomputer_plugin_dive_computer_host_api_get_libdivecomputer_version_response, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_HOST_API_GET_LIBDIVECOMPUTER_VERSION_RESPONSE, GObject)
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_get_libdivecomputer_version_response_new:
+ *
+ * Creates a new response to DiveComputerHostApi.getLibdivecomputerVersion.
+ *
+ * Returns: a new #LibdivecomputerPluginDiveComputerHostApiGetLibdivecomputerVersionResponse
+ */
+LibdivecomputerPluginDiveComputerHostApiGetLibdivecomputerVersionResponse* libdivecomputer_plugin_dive_computer_host_api_get_libdivecomputer_version_response_new(const gchar* return_value);
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_get_libdivecomputer_version_response_new_error:
+ * @code: error code.
+ * @message: error message.
+ * @details: (allow-none): error details or %NULL.
+ *
+ * Creates a new error response to DiveComputerHostApi.getLibdivecomputerVersion.
+ *
+ * Returns: a new #LibdivecomputerPluginDiveComputerHostApiGetLibdivecomputerVersionResponse
+ */
+LibdivecomputerPluginDiveComputerHostApiGetLibdivecomputerVersionResponse* libdivecomputer_plugin_dive_computer_host_api_get_libdivecomputer_version_response_new_error(const gchar* code, const gchar* message, FlValue* details);
+
+/**
+ * LibdivecomputerPluginDiveComputerHostApiVTable:
+ *
+ * Table of functions exposed by DiveComputerHostApi to be implemented by the API provider.
+ */
+typedef struct {
+  void (*get_device_descriptors)(LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle, gpointer user_data);
+  void (*start_discovery)(LibdivecomputerPluginTransportType transport, LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle, gpointer user_data);
+  LibdivecomputerPluginDiveComputerHostApiStopDiscoveryResponse* (*stop_discovery)(gpointer user_data);
+  void (*start_download)(LibdivecomputerPluginDiscoveredDevice* device, LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle, gpointer user_data);
+  LibdivecomputerPluginDiveComputerHostApiCancelDownloadResponse* (*cancel_download)(gpointer user_data);
+  LibdivecomputerPluginDiveComputerHostApiGetLibdivecomputerVersionResponse* (*get_libdivecomputer_version)(gpointer user_data);
+} LibdivecomputerPluginDiveComputerHostApiVTable;
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_set_method_handlers:
+ *
+ * @messenger: an #FlBinaryMessenger.
+ * @suffix: (allow-none): a suffix to add to the API or %NULL for none.
+ * @vtable: implementations of the methods in this API.
+ * @user_data: (closure): user data to pass to the functions in @vtable.
+ * @user_data_free_func: (allow-none): a function which gets called to free @user_data, or %NULL.
+ *
+ * Connects the method handlers in the DiveComputerHostApi API.
+ */
+void libdivecomputer_plugin_dive_computer_host_api_set_method_handlers(FlBinaryMessenger* messenger, const gchar* suffix, const LibdivecomputerPluginDiveComputerHostApiVTable* vtable, gpointer user_data, GDestroyNotify user_data_free_func);
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_clear_method_handlers:
+ *
+ * @messenger: an #FlBinaryMessenger.
+ * @suffix: (allow-none): a suffix to add to the API or %NULL for none.
+ *
+ * Clears the method handlers in the DiveComputerHostApi API.
+ */
+void libdivecomputer_plugin_dive_computer_host_api_clear_method_handlers(FlBinaryMessenger* messenger, const gchar* suffix);
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_respond_get_device_descriptors:
+ * @response_handle: a #LibdivecomputerPluginDiveComputerHostApiResponseHandle.
+ * @return_value: location to write the value returned by this method.
+ *
+ * Responds to DiveComputerHostApi.getDeviceDescriptors. 
+ */
+void libdivecomputer_plugin_dive_computer_host_api_respond_get_device_descriptors(LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle, FlValue* return_value);
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_respond_error_get_device_descriptors:
+ * @response_handle: a #LibdivecomputerPluginDiveComputerHostApiResponseHandle.
+ * @code: error code.
+ * @message: error message.
+ * @details: (allow-none): error details or %NULL.
+ *
+ * Responds with an error to DiveComputerHostApi.getDeviceDescriptors. 
+ */
+void libdivecomputer_plugin_dive_computer_host_api_respond_error_get_device_descriptors(LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle, const gchar* code, const gchar* message, FlValue* details);
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_respond_start_discovery:
+ * @response_handle: a #LibdivecomputerPluginDiveComputerHostApiResponseHandle.
+ *
+ * Responds to DiveComputerHostApi.startDiscovery. 
+ */
+void libdivecomputer_plugin_dive_computer_host_api_respond_start_discovery(LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle);
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_respond_error_start_discovery:
+ * @response_handle: a #LibdivecomputerPluginDiveComputerHostApiResponseHandle.
+ * @code: error code.
+ * @message: error message.
+ * @details: (allow-none): error details or %NULL.
+ *
+ * Responds with an error to DiveComputerHostApi.startDiscovery. 
+ */
+void libdivecomputer_plugin_dive_computer_host_api_respond_error_start_discovery(LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle, const gchar* code, const gchar* message, FlValue* details);
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_respond_start_download:
+ * @response_handle: a #LibdivecomputerPluginDiveComputerHostApiResponseHandle.
+ *
+ * Responds to DiveComputerHostApi.startDownload. 
+ */
+void libdivecomputer_plugin_dive_computer_host_api_respond_start_download(LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle);
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_respond_error_start_download:
+ * @response_handle: a #LibdivecomputerPluginDiveComputerHostApiResponseHandle.
+ * @code: error code.
+ * @message: error message.
+ * @details: (allow-none): error details or %NULL.
+ *
+ * Responds with an error to DiveComputerHostApi.startDownload. 
+ */
+void libdivecomputer_plugin_dive_computer_host_api_respond_error_start_download(LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle, const gchar* code, const gchar* message, FlValue* details);
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerFlutterApiOnDeviceDiscoveredResponse, libdivecomputer_plugin_dive_computer_flutter_api_on_device_discovered_response, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_FLUTTER_API_ON_DEVICE_DISCOVERED_RESPONSE, GObject)
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_device_discovered_response_is_error:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDeviceDiscoveredResponse.
+ *
+ * Checks if a response to DiveComputerFlutterApi.onDeviceDiscovered is an error.
+ *
+ * Returns: a %TRUE if this response is an error.
+ */
+gboolean libdivecomputer_plugin_dive_computer_flutter_api_on_device_discovered_response_is_error(LibdivecomputerPluginDiveComputerFlutterApiOnDeviceDiscoveredResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_device_discovered_response_get_error_code:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDeviceDiscoveredResponse.
+ *
+ * Get the error code for this response.
+ *
+ * Returns: an error code or %NULL if not an error.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_flutter_api_on_device_discovered_response_get_error_code(LibdivecomputerPluginDiveComputerFlutterApiOnDeviceDiscoveredResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_device_discovered_response_get_error_message:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDeviceDiscoveredResponse.
+ *
+ * Get the error message for this response.
+ *
+ * Returns: an error message.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_flutter_api_on_device_discovered_response_get_error_message(LibdivecomputerPluginDiveComputerFlutterApiOnDeviceDiscoveredResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_device_discovered_response_get_error_details:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDeviceDiscoveredResponse.
+ *
+ * Get the error details for this response.
+ *
+ * Returns: (allow-none): an error details or %NULL.
+ */
+FlValue* libdivecomputer_plugin_dive_computer_flutter_api_on_device_discovered_response_get_error_details(LibdivecomputerPluginDiveComputerFlutterApiOnDeviceDiscoveredResponse* response);
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerFlutterApiOnDiscoveryCompleteResponse, libdivecomputer_plugin_dive_computer_flutter_api_on_discovery_complete_response, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_FLUTTER_API_ON_DISCOVERY_COMPLETE_RESPONSE, GObject)
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_discovery_complete_response_is_error:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDiscoveryCompleteResponse.
+ *
+ * Checks if a response to DiveComputerFlutterApi.onDiscoveryComplete is an error.
+ *
+ * Returns: a %TRUE if this response is an error.
+ */
+gboolean libdivecomputer_plugin_dive_computer_flutter_api_on_discovery_complete_response_is_error(LibdivecomputerPluginDiveComputerFlutterApiOnDiscoveryCompleteResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_discovery_complete_response_get_error_code:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDiscoveryCompleteResponse.
+ *
+ * Get the error code for this response.
+ *
+ * Returns: an error code or %NULL if not an error.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_flutter_api_on_discovery_complete_response_get_error_code(LibdivecomputerPluginDiveComputerFlutterApiOnDiscoveryCompleteResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_discovery_complete_response_get_error_message:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDiscoveryCompleteResponse.
+ *
+ * Get the error message for this response.
+ *
+ * Returns: an error message.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_flutter_api_on_discovery_complete_response_get_error_message(LibdivecomputerPluginDiveComputerFlutterApiOnDiscoveryCompleteResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_discovery_complete_response_get_error_details:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDiscoveryCompleteResponse.
+ *
+ * Get the error details for this response.
+ *
+ * Returns: (allow-none): an error details or %NULL.
+ */
+FlValue* libdivecomputer_plugin_dive_computer_flutter_api_on_discovery_complete_response_get_error_details(LibdivecomputerPluginDiveComputerFlutterApiOnDiscoveryCompleteResponse* response);
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerFlutterApiOnDownloadProgressResponse, libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress_response, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_FLUTTER_API_ON_DOWNLOAD_PROGRESS_RESPONSE, GObject)
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress_response_is_error:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDownloadProgressResponse.
+ *
+ * Checks if a response to DiveComputerFlutterApi.onDownloadProgress is an error.
+ *
+ * Returns: a %TRUE if this response is an error.
+ */
+gboolean libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress_response_is_error(LibdivecomputerPluginDiveComputerFlutterApiOnDownloadProgressResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress_response_get_error_code:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDownloadProgressResponse.
+ *
+ * Get the error code for this response.
+ *
+ * Returns: an error code or %NULL if not an error.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress_response_get_error_code(LibdivecomputerPluginDiveComputerFlutterApiOnDownloadProgressResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress_response_get_error_message:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDownloadProgressResponse.
+ *
+ * Get the error message for this response.
+ *
+ * Returns: an error message.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress_response_get_error_message(LibdivecomputerPluginDiveComputerFlutterApiOnDownloadProgressResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress_response_get_error_details:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDownloadProgressResponse.
+ *
+ * Get the error details for this response.
+ *
+ * Returns: (allow-none): an error details or %NULL.
+ */
+FlValue* libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress_response_get_error_details(LibdivecomputerPluginDiveComputerFlutterApiOnDownloadProgressResponse* response);
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerFlutterApiOnDiveDownloadedResponse, libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded_response, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_FLUTTER_API_ON_DIVE_DOWNLOADED_RESPONSE, GObject)
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded_response_is_error:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDiveDownloadedResponse.
+ *
+ * Checks if a response to DiveComputerFlutterApi.onDiveDownloaded is an error.
+ *
+ * Returns: a %TRUE if this response is an error.
+ */
+gboolean libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded_response_is_error(LibdivecomputerPluginDiveComputerFlutterApiOnDiveDownloadedResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded_response_get_error_code:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDiveDownloadedResponse.
+ *
+ * Get the error code for this response.
+ *
+ * Returns: an error code or %NULL if not an error.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded_response_get_error_code(LibdivecomputerPluginDiveComputerFlutterApiOnDiveDownloadedResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded_response_get_error_message:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDiveDownloadedResponse.
+ *
+ * Get the error message for this response.
+ *
+ * Returns: an error message.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded_response_get_error_message(LibdivecomputerPluginDiveComputerFlutterApiOnDiveDownloadedResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded_response_get_error_details:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDiveDownloadedResponse.
+ *
+ * Get the error details for this response.
+ *
+ * Returns: (allow-none): an error details or %NULL.
+ */
+FlValue* libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded_response_get_error_details(LibdivecomputerPluginDiveComputerFlutterApiOnDiveDownloadedResponse* response);
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerFlutterApiOnDownloadCompleteResponse, libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete_response, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_FLUTTER_API_ON_DOWNLOAD_COMPLETE_RESPONSE, GObject)
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete_response_is_error:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDownloadCompleteResponse.
+ *
+ * Checks if a response to DiveComputerFlutterApi.onDownloadComplete is an error.
+ *
+ * Returns: a %TRUE if this response is an error.
+ */
+gboolean libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete_response_is_error(LibdivecomputerPluginDiveComputerFlutterApiOnDownloadCompleteResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete_response_get_error_code:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDownloadCompleteResponse.
+ *
+ * Get the error code for this response.
+ *
+ * Returns: an error code or %NULL if not an error.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete_response_get_error_code(LibdivecomputerPluginDiveComputerFlutterApiOnDownloadCompleteResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete_response_get_error_message:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDownloadCompleteResponse.
+ *
+ * Get the error message for this response.
+ *
+ * Returns: an error message.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete_response_get_error_message(LibdivecomputerPluginDiveComputerFlutterApiOnDownloadCompleteResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete_response_get_error_details:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnDownloadCompleteResponse.
+ *
+ * Get the error details for this response.
+ *
+ * Returns: (allow-none): an error details or %NULL.
+ */
+FlValue* libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete_response_get_error_details(LibdivecomputerPluginDiveComputerFlutterApiOnDownloadCompleteResponse* response);
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerFlutterApiOnErrorResponse, libdivecomputer_plugin_dive_computer_flutter_api_on_error_response, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_FLUTTER_API_ON_ERROR_RESPONSE, GObject)
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_error_response_is_error:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnErrorResponse.
+ *
+ * Checks if a response to DiveComputerFlutterApi.onError is an error.
+ *
+ * Returns: a %TRUE if this response is an error.
+ */
+gboolean libdivecomputer_plugin_dive_computer_flutter_api_on_error_response_is_error(LibdivecomputerPluginDiveComputerFlutterApiOnErrorResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_error_response_get_error_code:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnErrorResponse.
+ *
+ * Get the error code for this response.
+ *
+ * Returns: an error code or %NULL if not an error.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_flutter_api_on_error_response_get_error_code(LibdivecomputerPluginDiveComputerFlutterApiOnErrorResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_error_response_get_error_message:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnErrorResponse.
+ *
+ * Get the error message for this response.
+ *
+ * Returns: an error message.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_flutter_api_on_error_response_get_error_message(LibdivecomputerPluginDiveComputerFlutterApiOnErrorResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_error_response_get_error_details:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnErrorResponse.
+ *
+ * Get the error details for this response.
+ *
+ * Returns: (allow-none): an error details or %NULL.
+ */
+FlValue* libdivecomputer_plugin_dive_computer_flutter_api_on_error_response_get_error_details(LibdivecomputerPluginDiveComputerFlutterApiOnErrorResponse* response);
+
+/**
+ * LibdivecomputerPluginDiveComputerFlutterApi:
+ *
+ */
+
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerFlutterApi, libdivecomputer_plugin_dive_computer_flutter_api, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_FLUTTER_API, GObject)
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_new:
+ * @messenger: an #FlBinaryMessenger.
+ * @suffix: (allow-none): a suffix to add to the API or %NULL for none.
+ *
+ * Creates a new object to access the DiveComputerFlutterApi API.
+ *
+ * Returns: a new #LibdivecomputerPluginDiveComputerFlutterApi
+ */
+LibdivecomputerPluginDiveComputerFlutterApi* libdivecomputer_plugin_dive_computer_flutter_api_new(FlBinaryMessenger* messenger, const gchar* suffix);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_device_discovered:
+ * @api: a #LibdivecomputerPluginDiveComputerFlutterApi.
+ * @device: parameter for this method.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): (allow-none): a #GAsyncReadyCallback to call when the call is complete or %NULL to ignore the response.
+ * @user_data: (closure): user data to pass to @callback.
+ *
+ */
+void libdivecomputer_plugin_dive_computer_flutter_api_on_device_discovered(LibdivecomputerPluginDiveComputerFlutterApi* api, LibdivecomputerPluginDiscoveredDevice* device, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_device_discovered_finish:
+ * @api: a #LibdivecomputerPluginDiveComputerFlutterApi.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Completes a libdivecomputer_plugin_dive_computer_flutter_api_on_device_discovered() call.
+ *
+ * Returns: a #LibdivecomputerPluginDiveComputerFlutterApiOnDeviceDiscoveredResponse or %NULL on error.
+ */
+LibdivecomputerPluginDiveComputerFlutterApiOnDeviceDiscoveredResponse* libdivecomputer_plugin_dive_computer_flutter_api_on_device_discovered_finish(LibdivecomputerPluginDiveComputerFlutterApi* api, GAsyncResult* result, GError** error);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_discovery_complete:
+ * @api: a #LibdivecomputerPluginDiveComputerFlutterApi.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): (allow-none): a #GAsyncReadyCallback to call when the call is complete or %NULL to ignore the response.
+ * @user_data: (closure): user data to pass to @callback.
+ *
+ */
+void libdivecomputer_plugin_dive_computer_flutter_api_on_discovery_complete(LibdivecomputerPluginDiveComputerFlutterApi* api, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_discovery_complete_finish:
+ * @api: a #LibdivecomputerPluginDiveComputerFlutterApi.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Completes a libdivecomputer_plugin_dive_computer_flutter_api_on_discovery_complete() call.
+ *
+ * Returns: a #LibdivecomputerPluginDiveComputerFlutterApiOnDiscoveryCompleteResponse or %NULL on error.
+ */
+LibdivecomputerPluginDiveComputerFlutterApiOnDiscoveryCompleteResponse* libdivecomputer_plugin_dive_computer_flutter_api_on_discovery_complete_finish(LibdivecomputerPluginDiveComputerFlutterApi* api, GAsyncResult* result, GError** error);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress:
+ * @api: a #LibdivecomputerPluginDiveComputerFlutterApi.
+ * @progress: parameter for this method.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): (allow-none): a #GAsyncReadyCallback to call when the call is complete or %NULL to ignore the response.
+ * @user_data: (closure): user data to pass to @callback.
+ *
+ */
+void libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress(LibdivecomputerPluginDiveComputerFlutterApi* api, LibdivecomputerPluginDownloadProgress* progress, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress_finish:
+ * @api: a #LibdivecomputerPluginDiveComputerFlutterApi.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Completes a libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress() call.
+ *
+ * Returns: a #LibdivecomputerPluginDiveComputerFlutterApiOnDownloadProgressResponse or %NULL on error.
+ */
+LibdivecomputerPluginDiveComputerFlutterApiOnDownloadProgressResponse* libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress_finish(LibdivecomputerPluginDiveComputerFlutterApi* api, GAsyncResult* result, GError** error);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded:
+ * @api: a #LibdivecomputerPluginDiveComputerFlutterApi.
+ * @dive: parameter for this method.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): (allow-none): a #GAsyncReadyCallback to call when the call is complete or %NULL to ignore the response.
+ * @user_data: (closure): user data to pass to @callback.
+ *
+ */
+void libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded(LibdivecomputerPluginDiveComputerFlutterApi* api, LibdivecomputerPluginParsedDive* dive, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded_finish:
+ * @api: a #LibdivecomputerPluginDiveComputerFlutterApi.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Completes a libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded() call.
+ *
+ * Returns: a #LibdivecomputerPluginDiveComputerFlutterApiOnDiveDownloadedResponse or %NULL on error.
+ */
+LibdivecomputerPluginDiveComputerFlutterApiOnDiveDownloadedResponse* libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded_finish(LibdivecomputerPluginDiveComputerFlutterApi* api, GAsyncResult* result, GError** error);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete:
+ * @api: a #LibdivecomputerPluginDiveComputerFlutterApi.
+ * @total_dives: parameter for this method.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): (allow-none): a #GAsyncReadyCallback to call when the call is complete or %NULL to ignore the response.
+ * @user_data: (closure): user data to pass to @callback.
+ *
+ */
+void libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(LibdivecomputerPluginDiveComputerFlutterApi* api, int64_t total_dives, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete_finish:
+ * @api: a #LibdivecomputerPluginDiveComputerFlutterApi.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Completes a libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete() call.
+ *
+ * Returns: a #LibdivecomputerPluginDiveComputerFlutterApiOnDownloadCompleteResponse or %NULL on error.
+ */
+LibdivecomputerPluginDiveComputerFlutterApiOnDownloadCompleteResponse* libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete_finish(LibdivecomputerPluginDiveComputerFlutterApi* api, GAsyncResult* result, GError** error);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_error:
+ * @api: a #LibdivecomputerPluginDiveComputerFlutterApi.
+ * @error: parameter for this method.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): (allow-none): a #GAsyncReadyCallback to call when the call is complete or %NULL to ignore the response.
+ * @user_data: (closure): user data to pass to @callback.
+ *
+ */
+void libdivecomputer_plugin_dive_computer_flutter_api_on_error(LibdivecomputerPluginDiveComputerFlutterApi* api, LibdivecomputerPluginDiveComputerError* error, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_error_finish:
+ * @api: a #LibdivecomputerPluginDiveComputerFlutterApi.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Completes a libdivecomputer_plugin_dive_computer_flutter_api_on_error() call.
+ *
+ * Returns: a #LibdivecomputerPluginDiveComputerFlutterApiOnErrorResponse or %NULL on error.
+ */
+LibdivecomputerPluginDiveComputerFlutterApiOnErrorResponse* libdivecomputer_plugin_dive_computer_flutter_api_on_error_finish(LibdivecomputerPluginDiveComputerFlutterApi* api, GAsyncResult* result, GError** error);
+
+G_END_DECLS
+
 #endif  // PIGEON_DIVE_COMPUTER_API_G_H_
