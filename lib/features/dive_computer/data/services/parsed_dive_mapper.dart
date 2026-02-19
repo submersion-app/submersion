@@ -1,5 +1,5 @@
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
-import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
+import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 
 /// Convert a Pigeon ParsedDive to the app's DownloadedDive format.
 DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {

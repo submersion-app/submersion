@@ -1,4 +1,14 @@
-import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+/// Phases of the download process.
+enum DownloadPhase {
+  initializing,
+  connecting,
+  enumerating,
+  downloading,
+  processing,
+  complete,
+  error,
+  cancelled,
+}
 
 /// Progress information during dive download.
 class DownloadProgress {
@@ -64,18 +74,6 @@ class DownloadProgress {
 
   /// Whether the download is complete
   bool get isComplete => phase == DownloadPhase.complete;
-}
-
-/// Phases of the download process.
-enum DownloadPhase {
-  initializing,
-  connecting,
-  enumerating,
-  downloading,
-  processing,
-  complete,
-  error,
-  cancelled,
 }
 
 /// A dive as downloaded from the dive computer.
@@ -250,102 +248,4 @@ class GasSwitchEvent {
     required this.depth,
     required this.toTankIndex,
   });
-}
-
-/// Result of a download operation.
-class DownloadResult {
-  /// Whether the download completed successfully
-  final bool success;
-
-  /// List of downloaded dives
-  final List<DownloadedDive> dives;
-
-  /// Error message if download failed
-  final String? errorMessage;
-
-  /// Time taken for the download
-  final Duration duration;
-
-  /// Device fingerprint for tracking last download
-  final String? fingerprint;
-
-  const DownloadResult({
-    required this.success,
-    required this.dives,
-    this.errorMessage,
-    required this.duration,
-    this.fingerprint,
-  });
-
-  /// Create a successful result
-  factory DownloadResult.success(
-    List<DownloadedDive> dives,
-    Duration duration, {
-    String? fingerprint,
-  }) => DownloadResult(
-    success: true,
-    dives: dives,
-    duration: duration,
-    fingerprint: fingerprint,
-  );
-
-  /// Create a failed result
-  factory DownloadResult.failure(String error, Duration duration) =>
-      DownloadResult(
-        success: false,
-        dives: [],
-        errorMessage: error,
-        duration: duration,
-      );
-
-  /// Number of dives downloaded
-  int get diveCount => dives.length;
-}
-
-/// Abstract interface for downloading dives from connected dive computers.
-abstract class DownloadManager {
-  /// Stream of download progress updates
-  Stream<DownloadProgress> get progress;
-
-  /// Stream of individual dives as they are downloaded
-  Stream<DownloadedDive> get dives;
-
-  /// Current download progress
-  DownloadProgress get currentProgress;
-
-  /// Whether a download is in progress
-  bool get isDownloading;
-
-  /// Download dives from the connected device.
-  ///
-  /// [device] - The connected device to download from.
-  /// [newDivesOnly] - If true, only download dives since last download.
-  /// [sinceTimestamp] - Optional timestamp to download dives after.
-  Future<DownloadResult> downloadDives({
-    required DiscoveredDevice device,
-    bool newDivesOnly = true,
-    DateTime? sinceTimestamp,
-  });
-
-  /// Cancel an ongoing download
-  Future<void> cancel();
-
-  /// Dispose of resources
-  void dispose();
-}
-
-/// Exception thrown when download fails.
-class DownloadException implements Exception {
-  final String message;
-  final DownloadPhase phase;
-  final dynamic originalError;
-
-  const DownloadException(
-    this.message, {
-    this.phase = DownloadPhase.error,
-    this.originalError,
-  });
-
-  @override
-  String toString() => 'DownloadException: $message (phase: ${phase.name})';
 }
