@@ -355,8 +355,7 @@ class O2ToxicityCard extends StatelessWidget {
 
 /// Compact panel showing all O2 toxicity data in a condensed card format.
 ///
-/// Designed to fit alongside the dive profile chart (~150px height)
-/// and is tappable to expand to the full [O2ToxicityCard] view.
+/// Designed to fit alongside the dive profile chart (~150px height).
 class CompactO2ToxicityPanel extends StatelessWidget {
   /// Oxygen exposure data
   final O2Exposure exposure;
@@ -364,14 +363,10 @@ class CompactO2ToxicityPanel extends StatelessWidget {
   /// Currently selected ppO2 value from the dive profile cursor
   final double? selectedPpO2;
 
-  /// Callback when the panel is tapped (to expand to full view)
-  final VoidCallback? onTap;
-
   const CompactO2ToxicityPanel({
     super.key,
     required this.exposure,
     this.selectedPpO2,
-    this.onTap,
   });
 
   @override
@@ -380,39 +375,35 @@ class CompactO2ToxicityPanel extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header row
-              _buildHeader(context, colorScheme, textTheme),
-              const SizedBox(height: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header row
+            _buildHeader(context, colorScheme, textTheme),
+            const SizedBox(height: 8),
 
-              // CNS progress section
-              _buildCnsProgress(context, colorScheme, textTheme),
-              const SizedBox(height: 6),
+            // CNS progress section
+            _buildCnsProgress(context, colorScheme, textTheme),
+            const SizedBox(height: 6),
 
-              // OTU + details row
-              _buildOtuRow(context, colorScheme, textTheme),
+            // OTU + details row
+            _buildOtuRow(context, colorScheme, textTheme),
 
-              // Time above thresholds (only if > 0)
-              if (exposure.timeAboveWarning > 0 ||
-                  exposure.timeAboveCritical > 0) ...[
-                const SizedBox(height: 4),
-                _buildTimeAboveThresholds(context, colorScheme, textTheme),
-              ],
-
-              // Selected ppO2 row (only when present)
-              if (selectedPpO2 != null) ...[
-                const SizedBox(height: 6),
-                _buildSelectedPpO2(context, colorScheme, textTheme),
-              ],
+            // Time above thresholds (only if > 0)
+            if (exposure.timeAboveWarning > 0 ||
+                exposure.timeAboveCritical > 0) ...[
+              const SizedBox(height: 4),
+              _buildTimeAboveThresholds(context, colorScheme, textTheme),
             ],
-          ),
+
+            // Selected ppO2 row (only when present)
+            if (selectedPpO2 != null) ...[
+              const SizedBox(height: 6),
+              _buildSelectedPpO2(context, colorScheme, textTheme),
+            ],
+          ],
         ),
       ),
     );
@@ -461,14 +452,6 @@ class CompactO2ToxicityPanel extends StatelessWidget {
             ),
           ),
         ],
-        const Spacer(),
-        ExcludeSemantics(
-          child: Icon(
-            Icons.chevron_right,
-            size: 18,
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
       ],
     );
   }

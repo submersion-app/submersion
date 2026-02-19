@@ -411,15 +411,7 @@ class CompactDecoPanel extends StatelessWidget {
   /// Optional subtitle text (e.g. "at 3:42")
   final String? subtitle;
 
-  /// Callback when the panel is tapped to expand
-  final VoidCallback? onTap;
-
-  const CompactDecoPanel({
-    super.key,
-    required this.status,
-    this.subtitle,
-    this.onTap,
-  });
+  const CompactDecoPanel({super.key, required this.status, this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -427,30 +419,26 @@ class CompactDecoPanel extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header row
-              _buildHeaderRow(context, colorScheme, textTheme),
-              const SizedBox(height: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header row
+            _buildHeaderRow(context, colorScheme, textTheme),
+            const SizedBox(height: 8),
 
-              // Metrics row
-              _buildMetricsRow(context, colorScheme, textTheme),
-              const SizedBox(height: 8),
+            // Metrics row
+            _buildMetricsRow(context, colorScheme, textTheme),
+            const SizedBox(height: 8),
 
-              // Tissue chart
-              _buildTissueChart(context),
-              const SizedBox(height: 6),
+            // Tissue chart
+            _buildTissueChart(context),
+            const SizedBox(height: 6),
 
-              // Bottom row: GF values and deco stops
-              _buildBottomRow(context, colorScheme, textTheme),
-            ],
-          ),
+            // Bottom row: GF values and deco stops
+            _buildBottomRow(context, colorScheme, textTheme),
+          ],
         ),
       ),
     );
@@ -507,14 +495,6 @@ class CompactDecoPanel extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-          ),
-        ),
-        const SizedBox(width: 4),
-        ExcludeSemantics(
-          child: Icon(
-            Icons.expand_more,
-            size: 18,
-            color: colorScheme.onSurfaceVariant,
           ),
         ),
       ],

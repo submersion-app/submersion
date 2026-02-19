@@ -153,17 +153,22 @@ class DiveComputerNotifier
         : computer;
     final created = await _repository.createComputer(computerWithDiver);
     await _load();
+    _ref.invalidate(allDiveComputersProvider);
     return created;
   }
 
   Future<void> update(DiveComputer computer) async {
     await _repository.updateComputer(computer);
     await _load();
+    _ref.invalidate(allDiveComputersProvider);
+    _ref.invalidate(favoriteDiveComputerProvider);
   }
 
   Future<void> delete(String id) async {
     await _repository.deleteComputer(id);
     await _load();
+    _ref.invalidate(allDiveComputersProvider);
+    _ref.invalidate(favoriteDiveComputerProvider);
   }
 
   Future<void> setFavorite(String id) async {

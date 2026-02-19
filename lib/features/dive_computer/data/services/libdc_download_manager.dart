@@ -544,7 +544,42 @@ class LibdcDownloadManager implements DownloadManager {
       );
     }
 
-    final protocol = AqualungBleProtocol(bluetoothDevice);
+    final protocol = AqualungBleProtocol(
+      bluetoothDevice,
+      deviceName: device.name,
+    );
+    var lastReportedPage = 0;
+
+    protocol.onMemoryReadProgress = (pagesRead, totalPages) {
+      if (_isCancelled) {
+        throw const DownloadException(
+          'Download cancelled',
+          phase: DownloadPhase.cancelled,
+        );
+      }
+
+      if (pagesRead != 1 &&
+          pagesRead != totalPages &&
+          pagesRead - lastReportedPage < 16) {
+        return;
+      }
+      lastReportedPage = pagesRead;
+
+      final fraction = totalPages > 0 ? pagesRead / totalPages : 0.0;
+      final clampedFraction = fraction < 0
+          ? 0.0
+          : (fraction > 1.0 ? 1.0 : fraction);
+
+      _updateProgress(
+        DownloadProgress(
+          currentDive: 0,
+          totalDives: 0,
+          percentage: 0.2 + (0.7 * clampedFraction),
+          status: 'Reading device memory ($pagesRead/$totalPages pages)...',
+          phase: DownloadPhase.downloading,
+        ),
+      );
+    };
 
     // Set up PIN callback using the external handler
     protocol.onPinRequired = () async {
@@ -605,9 +640,27 @@ class LibdcDownloadManager implements DownloadManager {
       );
 
       // Aqualung downloads all dives at once from memory
-      final dives = await protocol.downloadDives();
+      List<DownloadedDive> dives;
+      try {
+        dives = await protocol.downloadDives();
+      } on DownloadException catch (e) {
+        if (_isCancelled && e.phase == DownloadPhase.cancelled) {
+          return [];
+        }
+        rethrow;
+      }
 
       if (_isCancelled) return [];
+
+      _updateProgress(
+        const DownloadProgress(
+          currentDive: 0,
+          totalDives: 0,
+          percentage: 0.92,
+          status: 'Processing downloaded dive data...',
+          phase: DownloadPhase.processing,
+        ),
+      );
 
       // Filter by timestamp if needed
       var filteredDives = dives;

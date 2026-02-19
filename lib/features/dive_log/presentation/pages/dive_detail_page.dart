@@ -14,8 +14,6 @@ import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
-import 'package:submersion/core/deco/entities/deco_status.dart';
-import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -1063,9 +1061,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ? analysis.ppO2Curve[_selectedPointIndex!]
         : null;
 
-    final decoExpanded = ref.watch(decoSectionExpandedProvider);
-    final o2Expanded = ref.watch(o2ToxicitySectionExpandedProvider);
-
     // Build "at time" subtitle when a point is selected
     final String? timeSubtitle = _selectedPointIndex != null
         ? context.l10n.diveLog_detail_collapsed_atTime(
@@ -1073,40 +1068,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           )
         : null;
 
-    // Build the deco widget
-    final Widget decoWidget = decoExpanded
-        ? _buildExpandedDecoCard(context, ref, dive, status, timeSubtitle)
-        : CompactDecoPanel(
-            status: status,
-            subtitle: timeSubtitle,
-            onTap: () {
-              ref
-                  .read(collapsibleSectionProvider.notifier)
-                  .setDecoExpanded(true);
-            },
-          );
+    final Widget decoWidget = CompactDecoPanel(
+      status: status,
+      subtitle: timeSubtitle,
+    );
 
-    // Build the O2 widget
-    final Widget o2Widget = o2Expanded
-        ? _buildExpandedO2Card(context, ref, dive, exposure, selectedPpO2)
-        : CompactO2ToxicityPanel(
-            exposure: exposure,
-            selectedPpO2: selectedPpO2,
-            onTap: () {
-              ref
-                  .read(collapsibleSectionProvider.notifier)
-                  .setO2ToxicityExpanded(true);
-            },
-          );
+    final Widget o2Widget = CompactO2ToxicityPanel(
+      exposure: exposure,
+      selectedPpO2: selectedPpO2,
+    );
 
-    // If either is expanded, stack vertically
-    if (decoExpanded || o2Expanded) {
-      return Column(
-        children: [decoWidget, const SizedBox(height: 8), o2Widget],
-      );
-    }
-
-    // Both compact: side-by-side on desktop, stacked on phone
+    // Side-by-side on desktop, stacked on phone
     if (ResponsiveBreakpoints.isDesktop(context)) {
       return IntrinsicHeight(
         child: Row(
@@ -1121,219 +1093,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     }
 
     return Column(children: [decoWidget, const SizedBox(height: 8), o2Widget]);
-  }
-
-  Widget _buildExpandedDecoCard(
-    BuildContext context,
-    WidgetRef ref,
-    Dive dive,
-    DecoStatus status,
-    String? timeSubtitle,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InkWell(
-            onTap: () {
-              ref
-                  .read(collapsibleSectionProvider.notifier)
-                  .setDecoExpanded(false);
-            },
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  Icon(
-                    status.inDeco ? Icons.warning : Icons.check_circle,
-                    size: 20,
-                    color: status.inDeco ? Colors.orange : Colors.green,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      context.l10n.diveLog_detail_section_decoStatus,
-                      style: textTheme.titleMedium,
-                    ),
-                  ),
-                  AnimatedRotation(
-                    turns: 0.5,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      Icons.expand_more,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (_selectedPointIndex != null && timeSubtitle != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Icon(Icons.timeline, size: 16, color: colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Text(
-                    timeSubtitle,
-                    style: textTheme.labelMedium?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
-                  TextButton.icon(
-                    onPressed: () => setState(() => _selectedPointIndex = null),
-                    icon: const Icon(Icons.clear, size: 16),
-                    label: Text(context.l10n.diveLog_detail_button_showEnd),
-                    style: TextButton.styleFrom(
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          DecoInfoPanel(
-            status: status,
-            showTissueChart: true,
-            showDecoStops: true,
-            showHeader: false,
-            useCard: false,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildExpandedO2Card(
-    BuildContext context,
-    WidgetRef ref,
-    Dive dive,
-    O2Exposure exposure,
-    double? selectedPpO2,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    // Build optional warning/critical badge
-    Widget? badge;
-    if (exposure.cnsWarning || exposure.ppO2Warning) {
-      final isCritical = exposure.cnsCritical || exposure.ppO2Critical;
-      badge = Container(
-        margin: const EdgeInsets.only(left: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        decoration: BoxDecoration(
-          color: isCritical ? colorScheme.error : Colors.orange,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          isCritical
-              ? context.l10n.diveLog_detail_badge_critical
-              : context.l10n.diveLog_detail_badge_warning,
-          style: textTheme.labelSmall?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      );
-    }
-
-    return Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InkWell(
-            onTap: () {
-              ref
-                  .read(collapsibleSectionProvider.notifier)
-                  .setO2ToxicityExpanded(false);
-            },
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  const Icon(Icons.air, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Text(
-                          context.l10n.diveLog_detail_section_oxygenToxicity,
-                          style: textTheme.titleMedium,
-                        ),
-                        if (badge != null) badge,
-                      ],
-                    ),
-                  ),
-                  AnimatedRotation(
-                    turns: 0.5,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      Icons.expand_more,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (selectedPpO2 != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.air,
-                      size: 20,
-                      color: _getPpO2Color(selectedPpO2),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      context.l10n.diveLog_detail_label_ppO2AtPoint,
-                      style: textTheme.bodyMedium,
-                    ),
-                    const Spacer(),
-                    Text(
-                      '${selectedPpO2.toStringAsFixed(2)} bar',
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: _getPpO2Color(selectedPpO2),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          O2ToxicityCard(
-            exposure: exposure,
-            showDetails: true,
-            showHeader: false,
-            useCard: false,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _getPpO2Color(double ppO2) {
-    if (ppO2 >= 1.6) return Colors.red;
-    if (ppO2 >= 1.4) return Colors.orange;
-    return Colors.green;
   }
 
   Widget _buildSacSegmentsSection(

@@ -94,6 +94,71 @@ void main() {
         final model = library.findByName('Unknown Device XYZ123');
         expect(model, isNull);
       });
+
+      test('finds Aqualung i300C by exact name', () {
+        final model = library.findByName('Aqualung i300C');
+        expect(model, isNotNull);
+        expect(model!.manufacturer, equals('Aqualung'));
+        expect(model.model, equals('i300C'));
+      });
+
+      test('finds Aqualung i300C by model name only', () {
+        final model = library.findByName('i300C');
+        expect(model, isNotNull);
+        expect(model!.manufacturer, equals('Aqualung'));
+        expect(model.model, equals('i300C'));
+      });
+
+      test('finds Aqualung device via Pelagic alias with model', () {
+        final model = library.findByName('Pelagic i300C');
+        expect(model, isNotNull);
+        expect(model!.manufacturer, equals('Aqualung'));
+        expect(model.model, equals('i300C'));
+      });
+
+      test('finds Aqualung device via Pelagic alias with i330R', () {
+        final model = library.findByName('Pelagic i330R');
+        expect(model, isNotNull);
+        expect(model!.manufacturer, equals('Aqualung'));
+        expect(model.model, equals('i330R'));
+      });
+
+      test('finds Aqualung device via bare Pelagic name', () {
+        final model = library.findByName('Pelagic');
+        expect(model, isNotNull);
+        expect(model!.manufacturer, equals('Aqualung'));
+      });
+
+      test('finds Aqualung device via AQLNG prefix', () {
+        final model = library.findByName('AQLNG-i300C-1234');
+        expect(model, isNotNull);
+        expect(model!.manufacturer, equals('Aqualung'));
+        expect(model.model, equals('i300C'));
+      });
+
+      test('finds Aqualung i300C by Pelagic serial number', () {
+        final model = library.findByName('FH025918');
+        expect(model, isNotNull);
+        expect(model!.manufacturer, equals('Aqualung'));
+        expect(model.model, equals('i300C'));
+      });
+
+      test('finds Aqualung i330R by Pelagic serial number', () {
+        final model = library.findByName('FL123456');
+        expect(model, isNotNull);
+        expect(model!.manufacturer, equals('Aqualung'));
+        expect(model.model, equals('i330R'));
+      });
+
+      test('does not match non-Pelagic serial patterns', () {
+        final model = library.findByName('AB123456');
+        expect(model, isNull);
+      });
+
+      test('does not match names that look like serials but wrong length', () {
+        final model = library.findByName('FH12345');
+        expect(model, isNull);
+      });
     });
 
     group('findByBleServiceUuid', () {
@@ -111,6 +176,40 @@ void main() {
       test('returns null for unknown UUID', () {
         final model = library.findByBleServiceUuid('0000-0000-0000-0000');
         expect(model, isNull);
+      });
+
+      test('matches long UUID against short-form stored UUID', () {
+        // Shearwater stores 'fe25'; flutter_blue_plus may report full form
+        final model = library.findByBleServiceUuid(
+          '0000fe25-0000-1000-8000-00805f9b34fb',
+        );
+        expect(model, isNotNull);
+        expect(model!.manufacturer, equals('Shearwater'));
+      });
+
+      test('finds Aqualung by Pelagic Gen1 service UUID', () {
+        final model = library.findByBleServiceUuid(
+          'cb3c4555-d670-4670-bc20-b61dbc851e9a',
+        );
+        expect(model, isNotNull);
+        expect(model!.manufacturer, equals('Aqualung'));
+      });
+
+      test('finds Aqualung i330R by Pelagic Gen2 service UUID', () {
+        final model = library.findByBleServiceUuid(
+          'ca7b0001-f785-4c38-b599-c7c5fbadb034',
+        );
+        expect(model, isNotNull);
+        expect(model!.manufacturer, equals('Aqualung'));
+        expect(model.model, equals('i330R'));
+      });
+
+      test('finds Pelagic UUID case-insensitively', () {
+        final model = library.findByBleServiceUuid(
+          'CB3C4555-D670-4670-BC20-B61DBC851E9A',
+        );
+        expect(model, isNotNull);
+        expect(model!.manufacturer, equals('Aqualung'));
       });
     });
 
@@ -232,6 +331,37 @@ void main() {
         final model = library.matchDevice(device);
         expect(model, isNotNull);
         expect(model!.manufacturer, equals('Shearwater'));
+      });
+
+      test('matches Aqualung device by Pelagic service UUID', () {
+        final device = DiscoveredDevice(
+          id: 'test-id',
+          name: 'Pelagic',
+          address: '00:11:22:33:44:55',
+          connectionType: DeviceConnectionType.ble,
+          serviceUuids: const ['cb3c4555-d670-4670-bc20-b61dbc851e9a'],
+          discoveredAt: DateTime.now(),
+        );
+
+        final model = library.matchDevice(device);
+        expect(model, isNotNull);
+        expect(model!.manufacturer, equals('Aqualung'));
+      });
+
+      test('matches Aqualung device by Pelagic name alias', () {
+        final device = DiscoveredDevice(
+          id: 'test-id',
+          name: 'Pelagic i300C',
+          address: '00:11:22:33:44:55',
+          connectionType: DeviceConnectionType.ble,
+          serviceUuids: const [],
+          discoveredAt: DateTime.now(),
+        );
+
+        final model = library.matchDevice(device);
+        expect(model, isNotNull);
+        expect(model!.manufacturer, equals('Aqualung'));
+        expect(model.model, equals('i300C'));
       });
 
       test('returns null for unrecognized device', () {

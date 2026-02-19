@@ -2,10 +2,13 @@ import 'dart:async';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/services/connection_manager.dart';
 import 'package:submersion/features/dive_computer/data/device_library.dart';
 import 'package:submersion/features/dive_computer/data/services/permissions_service.dart';
+
+final _log = LoggerService.forClass(BluetoothConnectionManager);
 
 /// Implementation of [ConnectionManager] for Bluetooth devices.
 ///
@@ -129,13 +132,19 @@ class BluetoothConnectionManager implements ConnectionManager {
         ? result.advertisementData.advName
         : device.platformName;
 
-    // Skip devices without names (usually not dive computers)
-    if (name.isEmpty) return;
-
     // Get service UUIDs from advertisement
     final serviceUuids = result.advertisementData.serviceUuids
         .map((g) => g.str.toLowerCase())
         .toList();
+
+    _log.info(
+      'Scan result: name="$name", '
+      'advName="${result.advertisementData.advName}", '
+      'platformName="${device.platformName}", '
+      'id=${device.remoteId.str}, '
+      'serviceUuids=$serviceUuids, '
+      'rssi=${result.rssi}',
+    );
 
     // Try to match against known device models
     DeviceModel? recognizedModel;
@@ -143,16 +152,34 @@ class BluetoothConnectionManager implements ConnectionManager {
     // First check by service UUID
     for (final uuid in serviceUuids) {
       recognizedModel = _deviceLibrary.findByBleServiceUuid(uuid);
-      if (recognizedModel != null) break;
+      if (recognizedModel != null) {
+        _log.info('  -> Matched by UUID: ${recognizedModel.fullName}');
+        break;
+      }
     }
 
-    // Then try by name
-    recognizedModel ??= _deviceLibrary.findByName(name);
+    // Then try by name (if device has one)
+    if (name.isNotEmpty && recognizedModel == null) {
+      recognizedModel = _deviceLibrary.findByName(name);
+      if (recognizedModel != null) {
+        _log.info('  -> Matched by name: ${recognizedModel.fullName}');
+      } else {
+        _log.info('  -> No match for name "$name"');
+      }
+    }
+
+    // Skip nameless devices unless they matched a known service UUID
+    if (name.isEmpty && recognizedModel == null) return;
+
+    // Use recognized model name as fallback for nameless devices
+    final displayName = name.isNotEmpty
+        ? name
+        : (recognizedModel?.fullName ?? '');
 
     // Create discovered device
     final discovered = DiscoveredDevice(
       id: device.remoteId.str,
-      name: name,
+      name: displayName,
       connectionType: DeviceConnectionType.ble,
       address: device.remoteId.str,
       signalStrength: result.rssi,
