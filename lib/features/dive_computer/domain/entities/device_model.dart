@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
 /// Connection types supported by dive computers.
 enum DeviceConnectionType {
@@ -65,6 +66,34 @@ class DeviceModel extends Equatable {
     this.dcFamily,
     this.dcModel,
   });
+
+  /// Creates a DeviceModel from a Pigeon DeviceDescriptor.
+  factory DeviceModel.fromDescriptor(pigeon.DeviceDescriptor descriptor) {
+    return DeviceModel(
+      id: '${descriptor.vendor}_${descriptor.product}_${descriptor.model}',
+      manufacturer: descriptor.vendor,
+      model: descriptor.product,
+      connectionTypes: descriptor.transports
+          .map(_transportToConnectionType)
+          .toList(),
+      dcModel: descriptor.model,
+    );
+  }
+
+  static DeviceConnectionType _transportToConnectionType(
+    pigeon.TransportType transport,
+  ) {
+    switch (transport) {
+      case pigeon.TransportType.ble:
+        return DeviceConnectionType.ble;
+      case pigeon.TransportType.usb:
+        return DeviceConnectionType.usb;
+      case pigeon.TransportType.serial:
+        return DeviceConnectionType.usb;
+      case pigeon.TransportType.infrared:
+        return DeviceConnectionType.infrared;
+    }
+  }
 
   /// Full display name combining manufacturer and model
   String get fullName => '$manufacturer $model';
@@ -136,6 +165,26 @@ class DiscoveredDevice extends Equatable {
     this.serviceUuids = const [],
     required this.discoveredAt,
   });
+
+  /// Creates a DiscoveredDevice from a Pigeon DiscoveredDevice.
+  factory DiscoveredDevice.fromPigeon(pigeon.DiscoveredDevice device) {
+    final descriptor = pigeon.DeviceDescriptor(
+      vendor: device.vendor,
+      product: device.product,
+      model: device.model,
+      transports: [device.transport],
+    );
+    final model = DeviceModel.fromDescriptor(descriptor);
+
+    return DiscoveredDevice(
+      id: '${device.address}_${device.model}',
+      name: device.name ?? '${device.vendor} ${device.product}',
+      connectionType: DeviceModel._transportToConnectionType(device.transport),
+      address: device.address,
+      recognizedModel: model,
+      discoveredAt: DateTime.now(),
+    );
+  }
 
   /// Whether this device was recognized as a known dive computer model
   bool get isRecognized => recognizedModel != null;
