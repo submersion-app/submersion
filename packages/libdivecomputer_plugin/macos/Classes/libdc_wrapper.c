@@ -68,3 +68,43 @@ void libdc_descriptor_iterator_free(libdc_descriptor_iterator_t *iter) {
     dc_iterator_free(iter->dc_iter);
     free(iter);
 }
+
+int libdc_descriptor_match(const char *name, unsigned int transport,
+                           libdc_descriptor_info_t *info) {
+    if (name == NULL || info == NULL) {
+        return 0;
+    }
+
+    dc_iterator_t *iter = NULL;
+    dc_status_t status = dc_descriptor_iterator(&iter);
+    if (status != DC_STATUS_SUCCESS || iter == NULL) {
+        return 0;
+    }
+
+    dc_descriptor_t *desc = NULL;
+    int found = 0;
+    while (dc_iterator_next(iter, &desc) == DC_STATUS_SUCCESS) {
+        if (dc_descriptor_filter(desc, (dc_transport_t)transport, name)) {
+            // vendor/product point to string literals (valid for program lifetime)
+            info->vendor = dc_descriptor_get_vendor(desc);
+            info->product = dc_descriptor_get_product(desc);
+            info->model = dc_descriptor_get_model(desc);
+            info->transports = dc_descriptor_get_transports(desc);
+            found = 1;
+            dc_descriptor_free(desc);
+            break;
+        }
+        dc_descriptor_free(desc);
+    }
+
+    dc_iterator_free(iter);
+    return found;
+}
+
+void libdc_parsed_dive_free(libdc_parsed_dive_t *dive) {
+    if (dive == NULL) {
+        return;
+    }
+    free(dive->samples);
+    free(dive);
+}
