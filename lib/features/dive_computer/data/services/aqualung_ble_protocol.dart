@@ -1412,7 +1412,8 @@ class _AqualungMemoryLayout {
   /// Address of the pointer page containing logbook/profile ringbuffer state.
   /// Bytes 4-5 (LE): oldest logbook entry address.
   /// Bytes 6-7 (LE): newest logbook entry address.
-  final int cfPointers;
+  /// All Oceanic/Aqualung models use 0x0040 for cf_pointers.
+  final int cfPointers = 0x0040;
 
   /// Start address of the logbook ringbuffer.
   final int logbookBegin;
@@ -1442,7 +1443,6 @@ class _AqualungMemoryLayout {
 
   const _AqualungMemoryLayout({
     required this.memorySize,
-    this.cfPointers = 0x0040,
     this.logbookBegin = 0x0240,
     this.logbookEntrySize = 8,
     required this.profileBegin,
