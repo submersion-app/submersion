@@ -31,6 +31,11 @@ build/
 /macos/Pods/
 /windows/flutter/ephemeral/
 
+# Plugin build artifacts
+packages/libdivecomputer_plugin/android/.cxx/
+packages/libdivecomputer_plugin/macos/build/
+packages/libdivecomputer_plugin/ios/build/
+
 # Local dev
 *.db
 *.log

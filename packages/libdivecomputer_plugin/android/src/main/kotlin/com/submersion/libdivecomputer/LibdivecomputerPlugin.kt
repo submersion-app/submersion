@@ -4,10 +4,13 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 
 class LibdivecomputerPlugin : FlutterPlugin {
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        // TODO: Set up HostApi with binding.binaryMessenger
+        val context = binding.applicationContext
+        val messenger = binding.binaryMessenger
+        val api = DiveComputerHostApiImpl(context, messenger)
+        DiveComputerHostApi.setUp(messenger, api)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        // TODO: Tear down HostApi
+        DiveComputerHostApi.setUp(binding.binaryMessenger, null)
     }
 }
