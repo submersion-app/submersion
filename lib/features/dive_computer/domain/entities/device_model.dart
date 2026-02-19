@@ -186,6 +186,33 @@ class DiscoveredDevice extends Equatable {
     );
   }
 
+  /// Converts this device to a Pigeon DiscoveredDevice for native calls.
+  pigeon.DiscoveredDevice toPigeon() {
+    return pigeon.DiscoveredDevice(
+      vendor: recognizedModel?.manufacturer ?? '',
+      product: recognizedModel?.model ?? name,
+      model: recognizedModel?.dcModel ?? 0,
+      address: address,
+      name: name,
+      transport: _connectionTypeToTransport(connectionType),
+    );
+  }
+
+  static pigeon.TransportType _connectionTypeToTransport(
+    DeviceConnectionType type,
+  ) {
+    switch (type) {
+      case DeviceConnectionType.ble:
+        return pigeon.TransportType.ble;
+      case DeviceConnectionType.bluetoothClassic:
+        return pigeon.TransportType.ble;
+      case DeviceConnectionType.usb:
+        return pigeon.TransportType.usb;
+      case DeviceConnectionType.infrared:
+        return pigeon.TransportType.infrared;
+    }
+  }
+
   /// Whether this device was recognized as a known dive computer model
   bool get isRecognized => recognizedModel != null;
 

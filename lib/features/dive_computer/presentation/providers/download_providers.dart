@@ -1,28 +1,20 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
-import 'package:submersion/features/dive_computer/data/services/libdc_download_manager.dart';
+import 'package:submersion/features/dive_computer/data/services/parsed_dive_mapper.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
-import 'package:submersion/features/dive_computer/presentation/widgets/pin_entry_dialog.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 
 /// Provider for the dive computer repository.
 final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
   return DiveComputerRepository();
-});
-
-/// Provider for the download manager.
-///
-/// Currently uses MockDownloadManager. Task 15 will rewrite this
-/// to use DiveComputerService for real downloads via libdivecomputer.
-final downloadManagerProvider = Provider<DownloadManager>((ref) {
-  return MockDownloadManager(
-    mockDiveCount: 5,
-    downloadDelay: const Duration(milliseconds: 800),
-  );
 });
 
 /// Provider for the dive import service.
@@ -31,16 +23,10 @@ final diveImportServiceProvider = Provider<DiveImportService>((ref) {
   return DiveImportService(repository: repository);
 });
 
-/// Stream provider for download progress.
-final downloadProgressProvider = StreamProvider<DownloadProgress>((ref) {
-  final manager = ref.watch(downloadManagerProvider);
-  return manager.progress;
-});
-
-/// Stream provider for individual downloaded dives.
-final downloadedDivesStreamProvider = StreamProvider<DownloadedDive>((ref) {
-  final manager = ref.watch(downloadManagerProvider);
-  return manager.dives;
+/// Stream provider for download events from the service.
+final downloadEventsProvider = StreamProvider<pigeon.DownloadEvent>((ref) {
+  final service = ref.watch(diveComputerServiceProvider);
+  return service.downloadEvents;
 });
 
 /// State for the download process.
@@ -97,30 +83,31 @@ class DownloadState {
 }
 
 /// Notifier for managing the download process.
+///
+/// Uses DiveComputerService to start downloads via libdivecomputer's
+/// native platform backends. Listens to downloadEvents stream for
+/// progress, dives, completion, and errors.
 class DownloadNotifier extends StateNotifier<DownloadState> {
-  final DownloadManager _downloadManager;
+  final pigeon.DiveComputerService _service;
   final DiveImportService _importService;
   final DiveComputerRepository _repository;
-
-  /// BuildContext for showing dialogs (e.g., PIN entry).
-  /// Must be set before starting download for devices that require PIN.
-  BuildContext? _dialogContext;
+  StreamSubscription<pigeon.DownloadEvent>? _downloadSubscription;
 
   DownloadNotifier({
-    required DownloadManager downloadManager,
+    required pigeon.DiveComputerService service,
     required DiveImportService importService,
     required DiveComputerRepository repository,
-  }) : _downloadManager = downloadManager,
+  }) : _service = service,
        _importService = importService,
        _repository = repository,
        super(const DownloadState());
 
   /// Set the context to use for showing dialogs during download.
   ///
-  /// Must be called before [startDownload] for devices that may
-  /// require user interaction (e.g., Aqualung PIN entry).
+  /// Currently a no-op. PIN entry will be handled natively by
+  /// libdivecomputer when needed.
   void setDialogContext(BuildContext context) {
-    _dialogContext = context;
+    // PIN entry handled natively by libdivecomputer.
   }
 
   /// Set whether to download new dives only.
@@ -128,11 +115,8 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
     state = state.copyWith(newDivesOnly: value);
   }
 
-  /// Start downloading dives from the connected device.
-  ///
-  /// If [computer] is provided and [newDivesOnly] is true, uses the
-  /// computer's last download timestamp for incremental downloads.
-  Future<DownloadResult> startDownload(
+  /// Start downloading dives from the selected device.
+  Future<void> startDownload(
     DiscoveredDevice device, {
     DiveComputer? computer,
   }) async {
@@ -144,70 +128,55 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         downloadedDives: [],
       );
 
-      // Set up PIN callback for devices that require it (e.g., Aqualung)
-      if (_downloadManager is LibdcDownloadManager) {
-        _downloadManager.onPinRequired = () async {
-          if (_dialogContext == null || !_dialogContext!.mounted) {
-            return null;
-          }
-          return PinEntryDialog.show(
-            _dialogContext!,
-            deviceName: device.recognizedModel?.fullName,
-          );
-        };
-      }
+      _downloadSubscription?.cancel();
+      _downloadSubscription = _service.downloadEvents.listen(_onDownloadEvent);
 
-      // Listen to progress updates
-      _downloadManager.progress.listen((progress) {
-        state = state.copyWith(phase: progress.phase, progress: progress);
-      });
-
-      // Listen to individual dives
-      _downloadManager.dives.listen((dive) {
-        state = state.copyWith(
-          downloadedDives: [...state.downloadedDives, dive],
-        );
-      });
-
-      // Get the last download timestamp for incremental downloads
-      DateTime? sinceTimestamp;
-      if (state.newDivesOnly && computer?.lastDownload != null) {
-        sinceTimestamp = computer!.lastDownload;
-      }
-
-      // Start download with optional timestamp filter
-      final result = await _downloadManager.downloadDives(
-        device: device,
-        newDivesOnly: state.newDivesOnly,
-        sinceTimestamp: sinceTimestamp,
-      );
-
-      if (result.success) {
-        state = state.copyWith(
-          phase: DownloadPhase.complete,
-          downloadedDives: result.dives,
-        );
-      } else {
-        state = state.copyWith(
-          phase: DownloadPhase.error,
-          errorMessage: result.errorMessage,
-        );
-      }
-
-      return result;
+      await _service.startDownload(device.toPigeon());
     } catch (e) {
       state = state.copyWith(
         phase: DownloadPhase.error,
         errorMessage: 'Download failed: $e',
       );
+    }
+  }
 
-      return DownloadResult.failure('$e', Duration.zero);
+  void _onDownloadEvent(pigeon.DownloadEvent event) {
+    switch (event) {
+      case pigeon.DownloadProgressEvent(:final progress):
+        state = state.copyWith(
+          phase: DownloadPhase.downloading,
+          progress: DownloadProgress.downloading(
+            progress.current,
+            progress.total,
+          ),
+        );
+      case pigeon.DiveDownloadedEvent(:final dive):
+        final downloaded = parsedDiveToDownloaded(dive);
+        state = state.copyWith(
+          downloadedDives: [...state.downloadedDives, downloaded],
+        );
+      case pigeon.DownloadCompleteEvent(:final totalDives):
+        state = state.copyWith(
+          phase: DownloadPhase.complete,
+          progress: DownloadProgress.complete(totalDives),
+        );
+        _downloadSubscription?.cancel();
+        _downloadSubscription = null;
+      case pigeon.DownloadErrorEvent(:final error):
+        state = state.copyWith(
+          phase: DownloadPhase.error,
+          errorMessage: error.message,
+        );
+        _downloadSubscription?.cancel();
+        _downloadSubscription = null;
     }
   }
 
   /// Cancel the current download.
   Future<void> cancelDownload() async {
-    await _downloadManager.cancel();
+    _downloadSubscription?.cancel();
+    _downloadSubscription = null;
+    await _service.cancelDownload();
     state = state.copyWith(phase: DownloadPhase.cancelled);
   }
 
@@ -251,19 +220,27 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
 
   /// Reset the download state.
   void reset() {
+    _downloadSubscription?.cancel();
+    _downloadSubscription = null;
     state = const DownloadState();
+  }
+
+  @override
+  void dispose() {
+    _downloadSubscription?.cancel();
+    super.dispose();
   }
 }
 
 /// Provider for the download notifier.
 final downloadNotifierProvider =
     StateNotifierProvider<DownloadNotifier, DownloadState>((ref) {
-      final downloadManager = ref.watch(downloadManagerProvider);
+      final service = ref.watch(diveComputerServiceProvider);
       final importService = ref.watch(diveImportServiceProvider);
       final repository = ref.watch(diveComputerRepositoryProvider);
 
       return DownloadNotifier(
-        downloadManager: downloadManager,
+        service: service,
         importService: importService,
         repository: repository,
       );

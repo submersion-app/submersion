@@ -166,13 +166,15 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     // Set dialog context for PIN entry (Aqualung devices)
     notifier.setDialogContext(context);
 
-    final result = await notifier.startDownload(_discoveredDevice!);
+    await notifier.startDownload(_discoveredDevice!);
 
     if (!mounted) {
       return;
     }
 
-    if (!result.success || _hasStartedImport) {
+    // Check state for completion (events update state asynchronously)
+    final downloadState = ref.read(downloadNotifierProvider);
+    if (!downloadState.isComplete || _hasStartedImport) {
       return;
     }
 

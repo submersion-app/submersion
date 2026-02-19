@@ -45,13 +45,18 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     // Set dialog context for PIN entry (Aqualung devices)
     notifier.setDialogContext(context);
 
-    final result = await notifier.startDownload(widget.device!);
+    await notifier.startDownload(widget.device!);
 
-    if (result.success) {
+    if (!mounted) return;
+
+    // Check state for completion (events update state asynchronously)
+    final downloadState = ref.read(downloadNotifierProvider);
+    if (downloadState.isComplete) {
       widget.onComplete();
-    } else {
+    } else if (downloadState.hasError) {
       widget.onError(
-        result.errorMessage ?? l10n.diveComputer_downloadStep_downloadFailed,
+        downloadState.errorMessage ??
+            l10n.diveComputer_downloadStep_downloadFailed,
       );
     }
   }
