@@ -137,4 +137,57 @@ void main() {
       }
     });
   });
+
+  group('DiscoveredDevice.toPigeon', () {
+    test('round-trips through fromPigeon and toPigeon', () {
+      final original = pigeon.DiscoveredDevice(
+        vendor: 'Shearwater',
+        product: 'Perdix',
+        model: 42,
+        address: 'AA:BB:CC:DD:EE:FF',
+        name: 'Perdix 12345',
+        transport: pigeon.TransportType.ble,
+      );
+
+      final appDevice = DiscoveredDevice.fromPigeon(original);
+      final roundTripped = appDevice.toPigeon();
+
+      expect(roundTripped.vendor, 'Shearwater');
+      expect(roundTripped.product, 'Perdix');
+      expect(roundTripped.model, 42);
+      expect(roundTripped.address, 'AA:BB:CC:DD:EE:FF');
+      expect(roundTripped.name, 'Perdix 12345');
+      expect(roundTripped.transport, pigeon.TransportType.ble);
+    });
+
+    test('maps USB connection type back to USB transport', () {
+      final device = DiscoveredDevice(
+        id: 'test_usb',
+        name: 'USB Device',
+        connectionType: DeviceConnectionType.usb,
+        address: '0001:0002',
+        discoveredAt: DateTime(2024),
+      );
+
+      final pigeonDevice = device.toPigeon();
+
+      expect(pigeonDevice.transport, pigeon.TransportType.usb);
+    });
+
+    test('uses fallback values when recognizedModel is null', () {
+      final device = DiscoveredDevice(
+        id: 'unknown_device',
+        name: 'Unknown Device',
+        connectionType: DeviceConnectionType.ble,
+        address: 'XX:YY:ZZ',
+        discoveredAt: DateTime(2024),
+      );
+
+      final pigeonDevice = device.toPigeon();
+
+      expect(pigeonDevice.vendor, '');
+      expect(pigeonDevice.product, 'Unknown Device');
+      expect(pigeonDevice.model, 0);
+    });
+  });
 }
