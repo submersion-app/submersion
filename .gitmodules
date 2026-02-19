@@ -1,0 +1,3 @@
+[submodule "packages/libdivecomputer_plugin/third_party/libdivecomputer"]
+	path = packages/libdivecomputer_plugin/third_party/libdivecomputer
+	url = https://github.com/libdivecomputer/libdivecomputer.git
