@@ -6,9 +6,7 @@ import 'package:pigeon/pigeon.dart';
     swiftOut: 'ios/Classes/DiveComputerApi.g.swift',
     kotlinOut:
         'android/src/main/kotlin/com/submersion/libdivecomputer/DiveComputerApi.g.kt',
-    kotlinOptions: KotlinOptions(
-      package: 'com.submersion.libdivecomputer',
-    ),
+    kotlinOptions: KotlinOptions(package: 'com.submersion.libdivecomputer'),
     gobjectHeaderOut: 'linux/dive_computer_api.g.h',
     gobjectSourceOut: 'linux/dive_computer_api.g.cc',
     gobjectOptions: GObjectOptions(module: 'LibdivecomputerPlugin'),
@@ -17,9 +15,7 @@ import 'package:pigeon/pigeon.dart';
     cppOptions: CppOptions(namespace: 'libdivecomputer_plugin'),
   ),
 )
-
 // === Enums ===
-
 enum TransportType { ble, usb, serial, infrared }
 
 // === Data Classes ===
@@ -98,11 +94,7 @@ class TankInfo {
 }
 
 class DiveEvent {
-  const DiveEvent({
-    required this.timeSeconds,
-    required this.type,
-    this.data,
-  });
+  const DiveEvent({required this.timeSeconds, required this.type, this.data});
   final int timeSeconds;
   final String type;
   final Map<String, String>? data;
@@ -149,10 +141,7 @@ class DownloadProgress {
 }
 
 class DiveComputerError {
-  const DiveComputerError({
-    required this.code,
-    required this.message,
-  });
+  const DiveComputerError({required this.code, required this.message});
   final String code;
   final String message;
 }
