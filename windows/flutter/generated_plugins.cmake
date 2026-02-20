@@ -5,10 +5,10 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   auto_updater_windows
   file_selector_windows
-  flutter_blue_plus_winrt
   flutter_secure_storage_windows
   gal
   geolocator_windows
+  libdivecomputer_plugin
   objectbox_flutter_libs
   permission_handler_windows
   printing
@@ -18,7 +18,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
-  dive_computer
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

@@ -1,6 +1,6 @@
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
-import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
+import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
 
 /// Mode for importing dives.

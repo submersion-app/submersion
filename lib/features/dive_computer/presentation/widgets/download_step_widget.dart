@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
-import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
+import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -45,13 +45,18 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     // Set dialog context for PIN entry (Aqualung devices)
     notifier.setDialogContext(context);
 
-    final result = await notifier.startDownload(widget.device!);
+    await notifier.startDownload(widget.device!);
 
-    if (result.success) {
+    if (!mounted) return;
+
+    // Check state for completion (events update state asynchronously)
+    final downloadState = ref.read(downloadNotifierProvider);
+    if (downloadState.isComplete) {
       widget.onComplete();
-    } else {
+    } else if (downloadState.hasError) {
       widget.onError(
-        result.errorMessage ?? l10n.diveComputer_downloadStep_downloadFailed,
+        downloadState.errorMessage ??
+            l10n.diveComputer_downloadStep_downloadFailed,
       );
     }
   }

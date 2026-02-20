@@ -1,5 +1,5 @@
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
-import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
+import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 export '../../../../features/dive_log/data/repositories/dive_computer_repository_impl.dart'
     show TankData;
 

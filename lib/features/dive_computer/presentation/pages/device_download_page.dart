@@ -10,7 +10,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
-import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
+import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -66,11 +66,9 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
       final discoveryNotifier = ref.read(discoveryNotifierProvider.notifier);
       await discoveryNotifier.startScan();
 
-      // Subscribe to the discovered devices stream directly
-      // This is necessary because ref.read() on a StreamProvider doesn't
-      // create an active subscription, so broadcast stream events are missed
-      final connectionManager = ref.read(bluetoothConnectionManagerProvider);
-      StreamSubscription<List<DiscoveredDevice>>? subscription;
+      // Subscribe to the discovery notifier's accumulated devices
+      final service = ref.read(diveComputerServiceProvider);
+      StreamSubscription<dynamic>? subscription;
       final completer = Completer<DiscoveredDevice?>();
 
       // Set up timeout
@@ -80,17 +78,14 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
         }
       });
 
-      // Listen for discovered devices
-      subscription = connectionManager.discoveredDevices.listen((devices) {
+      // Listen for discovered devices via the service stream
+      subscription = service.discoveredDevices.listen((pigeonDevice) {
         if (completer.isCompleted) return;
 
-        // Look for a device that matches our saved computer
-        for (final device in devices) {
-          if (_deviceMatchesComputer(device, computer)) {
-            if (!completer.isCompleted) {
-              completer.complete(device);
-            }
-            return;
+        final device = DiscoveredDevice.fromPigeon(pigeonDevice);
+        if (_deviceMatchesComputer(device, computer)) {
+          if (!completer.isCompleted) {
+            completer.complete(device);
           }
         }
       });
@@ -171,13 +166,15 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     // Set dialog context for PIN entry (Aqualung devices)
     notifier.setDialogContext(context);
 
-    final result = await notifier.startDownload(_discoveredDevice!);
+    await notifier.startDownload(_discoveredDevice!);
 
     if (!mounted) {
       return;
     }
 
-    if (!result.success || _hasStartedImport) {
+    // Check state for completion (events update state asynchronously)
+    final downloadState = ref.read(downloadNotifierProvider);
+    if (!downloadState.isComplete || _hasStartedImport) {
       return;
     }
 

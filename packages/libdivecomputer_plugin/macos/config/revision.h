@@ -1,0 +1,1 @@
+#define DC_VERSION_REVISION ""

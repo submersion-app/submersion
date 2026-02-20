@@ -99,6 +99,8 @@ PODS:
     - Flutter
   - integration_test (0.0.1):
     - Flutter
+  - libdivecomputer_plugin (0.1.0):
+    - Flutter
   - native_exif (0.0.1):
     - Flutter
   - ObjectBox (4.4.1)
@@ -179,6 +181,7 @@ DEPENDENCIES:
   - health (from `.symlinks/plugins/health/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
+  - libdivecomputer_plugin (from `.symlinks/plugins/libdivecomputer_plugin/ios`)
   - native_exif (from `.symlinks/plugins/native_exif/ios`)
   - objectbox_flutter_libs (from `.symlinks/plugins/objectbox_flutter_libs/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
@@ -241,6 +244,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   integration_test:
     :path: ".symlinks/plugins/integration_test/ios"
+  libdivecomputer_plugin:
+    :path: ".symlinks/plugins/libdivecomputer_plugin/ios"
   native_exif:
     :path: ".symlinks/plugins/native_exif/ios"
   objectbox_flutter_libs:
@@ -294,6 +299,7 @@ SPEC CHECKSUMS:
   health: d72bb14c7451445f41141cc3e9dfdb03d25f70ed
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
+  libdivecomputer_plugin: 5876d08dd98fc04a06421cbaa7ad70e4c01d3f94
   native_exif: 0eb73d3d5b3ca892719228df8d2d1b13d1ae396c
   ObjectBox: 7da4aceb5013d041bfafdbc6d744a26918b09757
   objectbox_flutter_libs: 09b1dec1b4cd27bf1a5f9bae7ccaa7e43588bf31

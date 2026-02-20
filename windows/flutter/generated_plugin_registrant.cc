@@ -8,10 +8,10 @@
 
 #include <auto_updater_windows/auto_updater_windows_plugin_c_api.h>
 #include <file_selector_windows/file_selector_windows.h>
-#include <flutter_blue_plus_winrt/flutter_blue_plus_plugin.h>
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
 #include <gal/gal_plugin_c_api.h>
 #include <geolocator_windows/geolocator_windows.h>
+#include <libdivecomputer_plugin/libdivecomputer_plugin.h>
 #include <objectbox_flutter_libs/objectbox_flutter_libs_plugin.h>
 #include <permission_handler_windows/permission_handler_windows_plugin.h>
 #include <printing/printing_plugin.h>
@@ -24,14 +24,14 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("AutoUpdaterWindowsPluginCApi"));
   FileSelectorWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FileSelectorWindows"));
-  FlutterBluePlusPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("FlutterBluePlusPlugin"));
   FlutterSecureStorageWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FlutterSecureStorageWindowsPlugin"));
   GalPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("GalPluginCApi"));
   GeolocatorWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("GeolocatorWindows"));
+  LibdivecomputerPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("LibdivecomputerPlugin"));
   ObjectboxFlutterLibsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("ObjectboxFlutterLibsPlugin"));
   PermissionHandlerWindowsPluginRegisterWithRegistrar(
