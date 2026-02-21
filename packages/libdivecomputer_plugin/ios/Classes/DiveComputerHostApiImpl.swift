@@ -8,10 +8,6 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
     private var downloadSession: OpaquePointer?  // libdc_download_session_t*
     private var activeBleStream: BleIoStream?
 
-    // Shared CBCentralManager for both scanning and connecting
-    private var centralManager: CBCentralManager?
-    private let centralManagerDelegate = CentralManagerDelegate()
-
     init(messenger: FlutterBinaryMessenger) {
         self.messenger = messenger
         self.flutterApi = DiveComputerFlutterApi(binaryMessenger: messenger)
@@ -86,6 +82,7 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
     }
 
     private func startBleDiscovery() {
+        bleScanner?.stop()
         let scanner = BleScanner()
         scanner.onDeviceDiscovered = { [weak self] device in
             DispatchQueue.main.async {
@@ -126,10 +123,6 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         }
         self.downloadSession = session
 
-        // Set up BLE connection.
-        let queue = DispatchQueue(label: "com.submersion.ble-download", qos: .userInitiated)
-        let centralMgr = CBCentralManager(delegate: centralManagerDelegate, queue: queue)
-
         guard let uuid = UUID(uuidString: device.address) else {
             reportError(code: "invalid_address", message: "Invalid device address")
             libdc_download_session_free(session)
@@ -137,30 +130,68 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             return
         }
 
-        let peripherals = centralMgr.retrievePeripherals(withIdentifiers: [uuid])
-        guard let peripheral = peripherals.first else {
-            reportError(code: "not_found", message: "Device not found")
-            libdc_download_session_free(session)
-            self.downloadSession = nil
-            return
+        if let scanner = bleScanner {
+            NSLog("[BleHost] Stopping BLE scan before download connect")
+            scanner.stop()
+            bleScanner = nil
         }
 
-        // Create BLE iostream bridge.
-        let bleStream = BleIoStream(peripheral: peripheral, centralManager: centralMgr)
-        self.activeBleStream = bleStream
+        // Resolve/connect with a fallback retry:
+        // 1) cached-or-scan for speed
+        // 2) scan-only to avoid stale cached peripheral state.
+        let resolvePlans: [(label: String, allowCachedPeripherals: Bool, timeout: TimeInterval)] = [
+            ("cached-or-scan", true, 15),
+            ("scan-only", false, 20),
+        ]
+        var connectedStream: BleIoStream?
 
-        guard bleStream.connectAndDiscover() else {
+        for (index, plan) in resolvePlans.enumerated() {
+            NSLog("[BleHost] Resolve/connect attempt %ld (%@) for %@ (%@ %@)",
+                  index + 1, plan.label, device.address, device.vendor, device.product)
+            let queue = DispatchQueue(
+                label: "com.submersion.ble-download.\(index + 1)",
+                qos: .userInitiated
+            )
+            let resolver = BlePeripheralResolver(
+                targetIdentifier: uuid,
+                queue: queue,
+                allowCachedPeripherals: plan.allowCachedPeripherals
+            )
+            guard let peripheral = resolver.resolve(timeout: plan.timeout),
+                  let centralMgr = resolver.centralManager else {
+                NSLog("[BleHost] Peripheral resolve failed on attempt %ld", index + 1)
+                continue
+            }
+            NSLog("[BleHost] Peripheral resolved: %@ (%@)",
+                  peripheral.identifier.uuidString, peripheral.name ?? "unknown")
+
+            let stream = BleIoStream(peripheral: peripheral, centralManager: centralMgr)
+            if stream.connectAndDiscover() {
+                connectedStream = stream
+                break
+            }
+
+            NSLog("[BleHost] connectAndDiscover failed on attempt %ld for %@",
+                  index + 1, peripheral.identifier.uuidString)
+            if peripheral.state != .disconnected {
+                centralMgr.cancelPeripheralConnection(peripheral)
+            }
+        }
+
+        guard let bleStream = connectedStream else {
             reportError(code: "connect_failed", message: "Failed to connect to device")
             libdc_download_session_free(session)
             self.downloadSession = nil
             self.activeBleStream = nil
             return
         }
+        self.activeBleStream = bleStream
 
         // Build I/O callbacks.
         var ioCallbacks = bleStream.makeCallbacks()
 
         // Build download callbacks.
+        // We pass self as userdata via Unmanaged to receive dive/progress events.
         let selfPtr = Unmanaged.passUnretained(self).toOpaque()
 
         var downloadCallbacks = libdc_download_callbacks_t()
@@ -179,6 +210,9 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             let hostApi = Unmanaged<DiveComputerHostApiImpl>.fromOpaque(userdata!).takeUnretainedValue()
             guard let dive = divePtr else { return }
             let parsedDive = hostApi.convertParsedDive(dive.pointee)
+            NSLog("[DownloadHost] Dive parsed: depth=%.1fm, duration=%ds, samples=%d",
+                  parsedDive.maxDepthMeters, parsedDive.durationSeconds,
+                  parsedDive.samples.count)
             DispatchQueue.main.async {
                 hostApi.flutterApi.onDiveDownloaded(dive: parsedDive) { _ in }
             }
@@ -199,6 +233,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         }
 
         // Run the download (blocks until complete).
+        var serial: UInt32 = 0
+        var firmware: UInt32 = 0
         var errorBuf = [CChar](repeating: 0, count: 256)
         let result = libdc_download_run(
             session,
@@ -207,16 +243,41 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             &ioCallbacks,
             nil, 0,  // No fingerprint for now (download all dives)
             &downloadCallbacks,
+            &serial,
+            &firmware,
             &errorBuf, errorBuf.count
         )
 
+        // Format device info as strings for Dart.
+        let serialStr: String? = serial > 0 ? String(serial) : nil
+        let firmwareStr: String? = firmware > 0 ? String(firmware) : nil
+        NSLog("[DownloadHost] Device info: serial=%u, firmware=%u", serial, firmware)
+
         // Report completion or error.
+        NSLog("[DownloadHost] libdc_download_run returned result=%d", result)
         if result == 0 {
+            NSLog("[DownloadHost] Download succeeded, sending onDownloadComplete")
             DispatchQueue.main.async { [weak self] in
-                self?.flutterApi.onDownloadComplete(totalDives: 0) { _ in }
+                self?.flutterApi.onDownloadComplete(
+                    totalDives: 0,
+                    serialNumber: serialStr,
+                    firmwareVersion: firmwareStr
+                ) { _ in }
             }
-        } else if result != Int32(LIBDC_STATUS_CANCELLED) {
+        } else if result == Int32(LIBDC_STATUS_CANCELLED) {
+            NSLog("[DownloadHost] Download cancelled, sending onDownloadComplete")
+            // Still send completion so the Dart side can import any dives
+            // that were downloaded before cancellation.
+            DispatchQueue.main.async { [weak self] in
+                self?.flutterApi.onDownloadComplete(
+                    totalDives: 0,
+                    serialNumber: serialStr,
+                    firmwareVersion: firmwareStr
+                ) { _ in }
+            }
+        } else {
             let errorMsg = String(cString: errorBuf)
+            NSLog("[DownloadHost] Download error (result=%d): %@", result, errorMsg)
             reportError(code: "download_error", message: errorMsg)
         }
 
@@ -230,6 +291,7 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
 
     private func convertParsedDive(_ dive: libdc_parsed_dive_t) -> ParsedDive {
         // Convert fingerprint to hex string.
+        // C fixed-size arrays import as tuples in Swift - use withUnsafeBytes.
         var mutableDive = dive
         let fingerprintHex = withUnsafeBytes(of: &mutableDive.fingerprint) { rawBuffer in
             let bytes = rawBuffer.bindMemory(to: UInt8.self)
@@ -252,7 +314,7 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             Int64($0.timeIntervalSince1970)
         } ?? 0
 
-        // Convert samples.
+        // Convert samples (samples is a pointer, not a tuple - subscript works).
         var samples: [ProfileSample] = []
         if let samplesPtr = dive.samples {
             for i in 0..<Int(dive.sample_count) {
@@ -346,7 +408,97 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
     }
 }
 
-// Simple delegate for CBCentralManager used during download connections.
-private class CentralManagerDelegate: NSObject, CBCentralManagerDelegate {
-    func centralManagerDidUpdateState(_ central: CBCentralManager) {}
+private final class BlePeripheralResolver: NSObject, CBCentralManagerDelegate {
+    let targetIdentifier: UUID
+    let queue: DispatchQueue
+    private let allowCachedPeripherals: Bool
+    private let semaphore = DispatchSemaphore(value: 0)
+
+    private(set) var centralManager: CBCentralManager?
+    private var foundPeripheral: CBPeripheral?
+    private var isScanning = false
+    private var resolved = false
+
+    init(targetIdentifier: UUID, queue: DispatchQueue, allowCachedPeripherals: Bool = true) {
+        self.targetIdentifier = targetIdentifier
+        self.queue = queue
+        self.allowCachedPeripherals = allowCachedPeripherals
+        super.init()
+        self.centralManager = CBCentralManager(delegate: self, queue: queue)
+    }
+
+    func resolve(timeout: TimeInterval) -> CBPeripheral? {
+        queue.async { [weak self] in
+            self?.attemptResolveIfReady()
+        }
+
+        let waitResult = semaphore.wait(timeout: .now() + timeout)
+        if waitResult == .timedOut {
+            queue.async { [weak self] in
+                self?.finish(peripheral: nil)
+            }
+            return nil
+        }
+
+        return queue.sync { foundPeripheral }
+    }
+
+    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        guard !resolved else { return }
+
+        switch central.state {
+        case .poweredOn:
+            NSLog("[BleResolver] Central powered on, resolving %@", targetIdentifier.uuidString)
+            attemptResolveIfReady()
+        case .poweredOff, .unauthorized, .unsupported:
+            NSLog("[BleResolver] Central unavailable (state=%ld)", central.state.rawValue)
+            finish(peripheral: nil)
+        default:
+            break
+        }
+    }
+
+    func centralManager(
+        _ central: CBCentralManager,
+        didDiscover peripheral: CBPeripheral,
+        advertisementData: [String: Any],
+        rssi RSSI: NSNumber
+    ) {
+        guard !resolved else { return }
+        guard peripheral.identifier == targetIdentifier else { return }
+        finish(peripheral: peripheral)
+    }
+
+    private func attemptResolveIfReady() {
+        guard !resolved else { return }
+        guard let central = centralManager, central.state == .poweredOn else { return }
+
+        if allowCachedPeripherals {
+            if let cached = central.retrievePeripherals(withIdentifiers: [targetIdentifier]).first {
+                NSLog("[BleResolver] Found cached peripheral %@", targetIdentifier.uuidString)
+                finish(peripheral: cached)
+                return
+            }
+        }
+
+        if !isScanning {
+            NSLog("[BleResolver] Scanning for %@", targetIdentifier.uuidString)
+            central.scanForPeripherals(
+                withServices: nil,
+                options: [CBCentralManagerScanOptionAllowDuplicatesKey: false]
+            )
+            isScanning = true
+        }
+    }
+
+    private func finish(peripheral: CBPeripheral?) {
+        guard !resolved else { return }
+        resolved = true
+        foundPeripheral = peripheral
+        if isScanning, let central = centralManager {
+            central.stopScan()
+            isScanning = false
+        }
+        semaphore.signal()
+    }
 }
