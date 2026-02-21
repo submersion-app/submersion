@@ -22,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - name: Read Flutter version
         id: flutter-ver
@@ -61,6 +63,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - name: Read Flutter version
         id: flutter-ver
@@ -106,6 +110,8 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - name: Read Flutter version
         id: flutter-ver
@@ -157,6 +163,8 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - name: Read Flutter version
         id: flutter-ver
@@ -219,6 +227,8 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - name: Read Flutter version
         id: flutter-ver
@@ -307,6 +317,8 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - name: Read Flutter version
         id: flutter-ver
@@ -367,6 +379,8 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - name: Read Flutter version
         id: flutter-ver
@@ -424,6 +438,8 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - name: Read Flutter version
         id: flutter-ver
