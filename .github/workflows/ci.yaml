@@ -34,7 +34,7 @@ jobs:
           cache: true
 
       - name: Cache pub dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.pub-cache
@@ -73,7 +73,7 @@ jobs:
           cache: true
 
       - name: Cache pub dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.pub-cache
@@ -123,7 +123,7 @@ jobs:
           cache: true
 
       - name: Cache pub dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.pub-cache
@@ -174,7 +174,7 @@ jobs:
           cache: true
 
       - name: Cache pub dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.pub-cache
@@ -184,7 +184,7 @@ jobs:
             pub-${{ runner.os }}-
 
       - name: Cache CocoaPods
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ios/Pods
@@ -236,7 +236,7 @@ jobs:
           cache: true
 
       - name: Cache pub dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.pub-cache
@@ -246,7 +246,7 @@ jobs:
             pub-${{ runner.os }}-
 
       - name: Cache CocoaPods
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             macos/Pods
@@ -256,7 +256,7 @@ jobs:
             pods-macos-${{ runner.os }}-
 
       - name: Cache Xcode DerivedData
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
@@ -325,7 +325,7 @@ jobs:
           cache: true
 
       - name: Cache pub dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.pub-cache
@@ -335,7 +335,7 @@ jobs:
             pub-${{ runner.os }}-
 
       - name: Cache Gradle
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -379,7 +379,7 @@ jobs:
           cache: true
 
       - name: Cache pub dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.pub-cache
@@ -436,7 +436,7 @@ jobs:
           cache: true
 
       - name: Cache pub dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~\.pub-cache
@@ -446,7 +446,7 @@ jobs:
             pub-${{ runner.os }}-
 
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             C:\Users\runneradmin\.nuget\packages
