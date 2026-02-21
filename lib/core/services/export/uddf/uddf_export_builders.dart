@@ -1181,6 +1181,12 @@ class UddfExportBuilders {
                             nest: computer.serialNumber,
                           );
                         }
+                        if (computer.firmwareVersion != null) {
+                          builder.element(
+                            'firmwareversion',
+                            nest: computer.firmwareVersion,
+                          );
+                        }
                         if (computer.connectionType != null) {
                           builder.element(
                             'connectiontype',

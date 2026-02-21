@@ -180,7 +180,7 @@ void main() {
     test('downloadEvents stream emits completion', () async {
       expectLater(service.downloadEvents, emits(isA<DownloadCompleteEvent>()));
 
-      service.onDownloadComplete(5);
+      service.onDownloadComplete(5, null, null);
     });
 
     test('downloadEvents stream emits errors', () async {

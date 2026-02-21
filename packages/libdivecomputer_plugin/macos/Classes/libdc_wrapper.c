@@ -135,6 +135,21 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
                 dc_descriptor_free(desc);
                 break;
             }
+
+            // For non-Pelagic names (e.g. "Teric", "Perdix 2"), prefer the
+            // descriptor whose product name exactly matches the BLE name.
+            // Without this, the first family-level match wins (often wrong).
+            if (!has_name_model) {
+                const char *product = dc_descriptor_get_product(desc);
+                if (product && strcasecmp(name, product) == 0) {
+                    info->vendor = dc_descriptor_get_vendor(desc);
+                    info->product = product;
+                    info->model = dc_descriptor_get_model(desc);
+                    info->transports = dc_descriptor_get_transports(desc);
+                    dc_descriptor_free(desc);
+                    break;
+                }
+            }
         }
         dc_descriptor_free(desc);
     }

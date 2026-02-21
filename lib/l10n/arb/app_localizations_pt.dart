@@ -2787,6 +2787,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_detail_label_diveComputer => 'Computador de Mergulho';
 
   @override
+  String get diveLog_detail_label_serialNumber => 'Serial Number';
+
+  @override
+  String get diveLog_detail_label_firmwareVersion => 'Firmware Version';
+
+  @override
   String get diveLog_detail_label_diveMaster => 'Dive Master';
 
   @override

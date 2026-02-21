@@ -617,7 +617,11 @@ abstract class DiveComputerFlutterApi {
 
   void onDiveDownloaded(ParsedDive dive);
 
-  void onDownloadComplete(int totalDives);
+  void onDownloadComplete(
+    int totalDives,
+    String? serialNumber,
+    String? firmwareVersion,
+  );
 
   void onError(DiveComputerError error);
 
@@ -776,8 +780,14 @@ abstract class DiveComputerFlutterApi {
             arg_totalDives != null,
             'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadComplete was null, expected non-null int.',
           );
+          final String? arg_serialNumber = (args[1] as String?);
+          final String? arg_firmwareVersion = (args[2] as String?);
           try {
-            api.onDownloadComplete(arg_totalDives!);
+            api.onDownloadComplete(
+              arg_totalDives!,
+              arg_serialNumber,
+              arg_firmwareVersion,
+            );
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);

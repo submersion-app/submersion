@@ -37,6 +37,8 @@ class DownloadState {
   final ImportResult? importResult;
   final String? errorMessage;
   final bool newDivesOnly;
+  final String? serialNumber;
+  final String? firmwareVersion;
 
   const DownloadState({
     this.phase = DownloadPhase.initializing,
@@ -45,6 +47,8 @@ class DownloadState {
     this.importResult,
     this.errorMessage,
     this.newDivesOnly = true,
+    this.serialNumber,
+    this.firmwareVersion,
   });
 
   DownloadState copyWith({
@@ -54,6 +58,8 @@ class DownloadState {
     ImportResult? importResult,
     String? errorMessage,
     bool? newDivesOnly,
+    String? serialNumber,
+    String? firmwareVersion,
     bool clearError = false,
     bool clearImportResult = false,
   }) {
@@ -66,6 +72,8 @@ class DownloadState {
           : (importResult ?? this.importResult),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       newDivesOnly: newDivesOnly ?? this.newDivesOnly,
+      serialNumber: serialNumber ?? this.serialNumber,
+      firmwareVersion: firmwareVersion ?? this.firmwareVersion,
     );
   }
 
@@ -171,15 +179,21 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         state = state.copyWith(
           downloadedDives: [...state.downloadedDives, downloaded],
         );
-      case pigeon.DownloadCompleteEvent(:final totalDives):
+      case pigeon.DownloadCompleteEvent(
+        :final totalDives,
+        :final serialNumber,
+        :final firmwareVersion,
+      ):
         state = state.copyWith(
           phase: DownloadPhase.complete,
           progress: DownloadProgress.complete(totalDives),
+          serialNumber: serialNumber,
+          firmwareVersion: firmwareVersion,
         );
         _downloadSubscription?.cancel();
         _downloadSubscription = null;
-        // Auto-import if computer was provided and dives were downloaded.
-        _tryAutoImport();
+        // Persist device info on computer, then auto-import.
+        _persistDeviceInfoAndImport(serialNumber, firmwareVersion);
       case pigeon.DownloadErrorEvent(:final error):
         state = state.copyWith(
           phase: DownloadPhase.error,
@@ -190,20 +204,40 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
     }
   }
 
-  /// Automatically import downloaded dives after download completes.
-  Future<void> _tryAutoImport() async {
+  /// Persist device info on the computer record, then auto-import dives.
+  ///
+  /// The computer record must be updated BEFORE import so that
+  /// `importProfile()` can read the serial/firmware and copy them
+  /// onto each dive record for self-contained data.
+  Future<void> _persistDeviceInfoAndImport(
+    String? serialNumber,
+    String? firmwareVersion,
+  ) async {
     final computer = _autoImportComputer;
-    if (computer == null || state.downloadedDives.isEmpty) return;
+    if (computer == null) return;
 
     try {
-      await importDives(
-        computer: computer,
-        mode: ImportMode.newOnly,
-        defaultResolution: ConflictResolution.skip,
-        diverId: _autoImportDiverId,
-      );
+      // Update computer with device info from DC_EVENT_DEVINFO.
+      if (serialNumber != null || firmwareVersion != null) {
+        final updated = computer.copyWith(
+          serialNumber: serialNumber ?? computer.serialNumber,
+          firmwareVersion: firmwareVersion ?? computer.firmwareVersion,
+        );
+        await _repository.updateComputer(updated);
+        _autoImportComputer = updated;
+      }
+
+      // Auto-import dives if any were downloaded.
+      if (state.downloadedDives.isNotEmpty) {
+        await importDives(
+          computer: _autoImportComputer!,
+          mode: ImportMode.newOnly,
+          defaultResolution: ConflictResolution.skip,
+          diverId: _autoImportDiverId,
+        );
+      }
     } catch (e) {
-      debugPrint('[DownloadNotifier] Auto-import failed: $e');
+      debugPrint('[DownloadNotifier] Device info persist/import failed: $e');
     }
   }
 

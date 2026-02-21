@@ -109,6 +109,7 @@ class Dives extends Table {
   // Dive computer that logged this dive (for display/export, separate from computerId relation)
   TextColumn get diveComputerModel => text().nullable()();
   TextColumn get diveComputerSerial => text().nullable()();
+  TextColumn get diveComputerFirmware => text().nullable()();
   // Weight system fields
   RealColumn get weightAmount => real().nullable()(); // kg
   TextColumn get weightType => text().nullable()();
@@ -790,6 +791,7 @@ class DiveComputers extends Table {
   TextColumn get manufacturer => text().nullable()(); // e.g., "Shearwater"
   TextColumn get model => text().nullable()(); // e.g., "Perdix AI"
   TextColumn get serialNumber => text().nullable()();
+  TextColumn get firmwareVersion => text().nullable()();
   TextColumn get connectionType =>
       text().nullable()(); // "bluetooth", "usb", "ble"
   TextColumn get bluetoothAddress => text().nullable()(); // MAC address
@@ -1084,7 +1086,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 36;
+  int get schemaVersion => 37;
 
   @override
   MigrationStrategy get migration {
@@ -1861,6 +1863,14 @@ class AppDatabase extends _$AppDatabase {
               AND dive_profiles.temperature <= 40
             ) WHERE water_temp IS NULL
           ''');
+        }
+        if (from < 37) {
+          await customStatement(
+            'ALTER TABLE dive_computers ADD COLUMN firmware_version TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN dive_computer_firmware TEXT',
+          );
         }
       },
       beforeOpen: (details) async {

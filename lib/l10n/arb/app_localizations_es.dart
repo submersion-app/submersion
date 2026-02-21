@@ -2786,6 +2786,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_detail_label_diveComputer => 'Ordenador de buceo';
 
   @override
+  String get diveLog_detail_label_serialNumber => 'Serial Number';
+
+  @override
+  String get diveLog_detail_label_firmwareVersion => 'Firmware Version';
+
+  @override
   String get diveLog_detail_label_diveMaster => 'Dive Master';
 
   @override

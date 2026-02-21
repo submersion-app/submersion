@@ -508,6 +508,7 @@ class DiveRepository {
               gradientFactorHigh: Value(dive.gradientFactorHigh),
               diveComputerModel: Value(dive.diveComputerModel),
               diveComputerSerial: Value(dive.diveComputerSerial),
+              diveComputerFirmware: Value(dive.diveComputerFirmware),
               // Weight system fields
               weightAmount: Value(dive.weightAmount),
               weightType: Value(dive.weightType?.name),
@@ -697,6 +698,7 @@ class DiveRepository {
           gradientFactorHigh: Value(dive.gradientFactorHigh),
           diveComputerModel: Value(dive.diveComputerModel),
           diveComputerSerial: Value(dive.diveComputerSerial),
+          diveComputerFirmware: Value(dive.diveComputerFirmware),
           // Weight system fields
           weightAmount: Value(dive.weightAmount),
           weightType: Value(dive.weightType?.name),
@@ -1853,6 +1855,7 @@ class DiveRepository {
       gradientFactorHigh: row.gradientFactorHigh,
       diveComputerModel: row.diveComputerModel,
       diveComputerSerial: row.diveComputerSerial,
+      diveComputerFirmware: row.diveComputerFirmware,
       weightAmount: row.weightAmount,
       weightType: row.weightType != null
           ? WeightType.values.firstWhere(
@@ -2145,6 +2148,7 @@ class DiveRepository {
       gradientFactorHigh: row.gradientFactorHigh,
       diveComputerModel: row.diveComputerModel,
       diveComputerSerial: row.diveComputerSerial,
+      diveComputerFirmware: row.diveComputerFirmware,
       // Weight system fields
       weightAmount: row.weightAmount,
       weightType: row.weightType != null

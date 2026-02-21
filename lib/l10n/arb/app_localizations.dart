@@ -4714,6 +4714,18 @@ abstract class AppLocalizations {
   /// **'Dive Computer'**
   String get diveLog_detail_label_diveComputer;
 
+  /// No description provided for @diveLog_detail_label_serialNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial Number'**
+  String get diveLog_detail_label_serialNumber;
+
+  /// No description provided for @diveLog_detail_label_firmwareVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware Version'**
+  String get diveLog_detail_label_firmwareVersion;
+
   /// No description provided for @diveLog_detail_label_diveMaster.
   ///
   /// In en, this message translates to:

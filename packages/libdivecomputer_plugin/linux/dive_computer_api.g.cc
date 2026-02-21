@@ -2058,9 +2058,11 @@ static void libdivecomputer_plugin_dive_computer_flutter_api_on_download_complet
   g_task_return_pointer(task, result, g_object_unref);
 }
 
-void libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(LibdivecomputerPluginDiveComputerFlutterApi* self, int64_t total_dives, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data) {
+void libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(LibdivecomputerPluginDiveComputerFlutterApi* self, int64_t total_dives, const gchar* serial_number, const gchar* firmware_version, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data) {
   g_autoptr(FlValue) args = fl_value_new_list();
   fl_value_append_take(args, fl_value_new_int(total_dives));
+  fl_value_append_take(args, serial_number != nullptr ? fl_value_new_string(serial_number) : fl_value_new_null());
+  fl_value_append_take(args, firmware_version != nullptr ? fl_value_new_string(firmware_version) : fl_value_new_null());
   g_autofree gchar* channel_name = g_strdup_printf("dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadComplete%s", self->suffix);
   g_autoptr(LibdivecomputerPluginMessageCodec) codec = libdivecomputer_plugin_message_codec_new();
   FlBasicMessageChannel* channel = fl_basic_message_channel_new(self->messenger, channel_name, FL_MESSAGE_CODEC(codec));

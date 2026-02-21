@@ -563,6 +563,8 @@ class DiveComputerFlutterApi {
     std::function<void(const FlutterError&)>&& on_error);
   void OnDownloadComplete(
     int64_t total_dives,
+    const std::string* serial_number,
+    const std::string* firmware_version,
     std::function<void(void)>&& on_success,
     std::function<void(const FlutterError&)>&& on_error);
   void OnError(

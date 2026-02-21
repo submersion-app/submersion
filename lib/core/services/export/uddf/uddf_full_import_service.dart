@@ -139,9 +139,14 @@ class UddfFullImportService {
                 computerElement,
                 'serialnumber',
               );
+              final firmware = UddfImportParsers.getElementText(
+                computerElement,
+                'firmwareversion',
+              );
               diveComputersMap[computerId] = {
                 'model': model ?? '',
                 'serial': serial ?? '',
+                'firmware': firmware ?? '',
               };
             }
           }
@@ -1202,6 +1207,9 @@ class UddfFullImportService {
             if (computer['serial']?.isNotEmpty == true) {
               diveData['diveComputerSerial'] = computer['serial'];
             }
+            if (computer['firmware']?.isNotEmpty == true) {
+              diveData['diveComputerFirmware'] = computer['firmware'];
+            }
           }
         }
       }
@@ -1217,6 +1225,9 @@ class UddfFullImportService {
             }
             if (computer['serial']?.isNotEmpty == true) {
               diveData['diveComputerSerial'] = computer['serial'];
+            }
+            if (computer['firmware']?.isNotEmpty == true) {
+              diveData['diveComputerFirmware'] = computer['firmware'];
             }
           }
         }

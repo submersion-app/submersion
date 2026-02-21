@@ -17,7 +17,13 @@ class DiveDownloadedEvent extends DownloadEvent {
 
 class DownloadCompleteEvent extends DownloadEvent {
   final int totalDives;
-  DownloadCompleteEvent(this.totalDives);
+  final String? serialNumber;
+  final String? firmwareVersion;
+  DownloadCompleteEvent(
+    this.totalDives, {
+    this.serialNumber,
+    this.firmwareVersion,
+  });
 }
 
 class DownloadErrorEvent extends DownloadEvent {
@@ -104,8 +110,18 @@ class DiveComputerService implements DiveComputerFlutterApi {
   }
 
   @override
-  void onDownloadComplete(int totalDives) {
-    _downloadEventsController.add(DownloadCompleteEvent(totalDives));
+  void onDownloadComplete(
+    int totalDives,
+    String? serialNumber,
+    String? firmwareVersion,
+  ) {
+    _downloadEventsController.add(
+      DownloadCompleteEvent(
+        totalDives,
+        serialNumber: serialNumber,
+        firmwareVersion: firmwareVersion,
+      ),
+    );
   }
 
   @override

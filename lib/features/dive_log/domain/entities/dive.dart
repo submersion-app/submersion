@@ -59,6 +59,7 @@ class Dive extends Equatable {
   // Dive computer that logged this dive
   final String? diveComputerModel;
   final String? diveComputerSerial;
+  final String? diveComputerFirmware;
   // Weight system fields (legacy single weight - kept for backward compatibility)
   final double? weightAmount; // kg
   final WeightType? weightType;
@@ -150,6 +151,7 @@ class Dive extends Equatable {
     this.gradientFactorHigh,
     this.diveComputerModel,
     this.diveComputerSerial,
+    this.diveComputerFirmware,
     this.weightAmount,
     this.weightType,
     this.weights = const [],
@@ -403,6 +405,7 @@ class Dive extends Equatable {
     int? gradientFactorHigh,
     String? diveComputerModel,
     String? diveComputerSerial,
+    String? diveComputerFirmware,
     double? weightAmount,
     WeightType? weightType,
     List<DiveWeight>? weights,
@@ -476,6 +479,7 @@ class Dive extends Equatable {
       gradientFactorHigh: gradientFactorHigh ?? this.gradientFactorHigh,
       diveComputerModel: diveComputerModel ?? this.diveComputerModel,
       diveComputerSerial: diveComputerSerial ?? this.diveComputerSerial,
+      diveComputerFirmware: diveComputerFirmware ?? this.diveComputerFirmware,
       weightAmount: weightAmount ?? this.weightAmount,
       weightType: weightType ?? this.weightType,
       weights: weights ?? this.weights,
@@ -552,6 +556,7 @@ class Dive extends Equatable {
     gradientFactorHigh,
     diveComputerModel,
     diveComputerSerial,
+    diveComputerFirmware,
     weightAmount,
     weightType,
     weights,

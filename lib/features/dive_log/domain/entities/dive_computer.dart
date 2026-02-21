@@ -22,6 +22,9 @@ class DiveComputer extends Equatable {
   /// Serial number
   final String? serialNumber;
 
+  /// Firmware version reported by the device
+  final String? firmwareVersion;
+
   /// Connection type (e.g., "bluetooth", "usb", "infrared")
   final String? connectionType;
 
@@ -53,6 +56,7 @@ class DiveComputer extends Equatable {
     this.manufacturer,
     this.model,
     this.serialNumber,
+    this.firmwareVersion,
     this.connectionType,
     this.bluetoothAddress,
     this.lastDownload,
@@ -130,6 +134,7 @@ class DiveComputer extends Equatable {
     String? manufacturer,
     String? model,
     String? serialNumber,
+    String? firmwareVersion,
     String? connectionType,
     String? bluetoothAddress,
     DateTime? lastDownload,
@@ -146,6 +151,7 @@ class DiveComputer extends Equatable {
       manufacturer: manufacturer ?? this.manufacturer,
       model: model ?? this.model,
       serialNumber: serialNumber ?? this.serialNumber,
+      firmwareVersion: firmwareVersion ?? this.firmwareVersion,
       connectionType: connectionType ?? this.connectionType,
       bluetoothAddress: bluetoothAddress ?? this.bluetoothAddress,
       lastDownload: lastDownload ?? this.lastDownload,
@@ -165,6 +171,7 @@ class DiveComputer extends Equatable {
     manufacturer,
     model,
     serialNumber,
+    firmwareVersion,
     connectionType,
     bluetoothAddress,
     lastDownload,

@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_log/data/services/profile_markers_servi
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
@@ -2021,17 +2022,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 context.l10n.diveLog_detail_label_gradientFactors,
                 'GF ${dive.gradientFactorLow}/${dive.gradientFactorHigh}',
               ),
-            // Dive computer info
-            if (dive.diveComputerModel != null &&
-                dive.diveComputerModel!.isNotEmpty)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_diveComputer,
-                dive.diveComputerSerial != null &&
-                        dive.diveComputerSerial!.isNotEmpty
-                    ? '${dive.diveComputerModel} (${dive.diveComputerSerial})'
-                    : dive.diveComputerModel!,
-              ),
+            // Dive computer info (from profile link or string fields)
+            ..._buildDiveComputerRows(context, ref, dive),
             // Surface interval - prefer imported value, fall back to calculated
             if (dive.surfaceInterval != null)
               Builder(
@@ -2707,6 +2699,76 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ],
       ),
     );
+  }
+
+  /// Build dive computer rows from profile-linked computers or string fields.
+  List<Widget> _buildDiveComputerRows(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+  ) {
+    final computersAsync = ref.watch(computersForDiveProvider(dive.id));
+
+    return computersAsync.when(
+      data: (computers) {
+        if (computers.isNotEmpty) {
+          final computer = computers.first;
+          return [
+            _buildDetailRow(
+              context,
+              context.l10n.diveLog_detail_label_diveComputer,
+              computer.displayName,
+            ),
+            if (computer.serialNumber != null &&
+                computer.serialNumber!.isNotEmpty)
+              _buildDetailRow(
+                context,
+                context.l10n.diveLog_detail_label_serialNumber,
+                computer.serialNumber!,
+              ),
+            if (computer.firmwareVersion != null &&
+                computer.firmwareVersion!.isNotEmpty)
+              _buildDetailRow(
+                context,
+                context.l10n.diveLog_detail_label_firmwareVersion,
+                computer.firmwareVersion!,
+              ),
+          ];
+        }
+        // Fall back to string fields on Dive entity
+        return _buildDiveComputerStringRows(context, dive);
+      },
+      loading: () => _buildDiveComputerStringRows(context, dive),
+      error: (_, _) => _buildDiveComputerStringRows(context, dive),
+    );
+  }
+
+  /// Fallback: build computer rows from the Dive entity's string fields.
+  List<Widget> _buildDiveComputerStringRows(BuildContext context, Dive dive) {
+    if (dive.diveComputerModel == null || dive.diveComputerModel!.isEmpty) {
+      return [];
+    }
+    return [
+      _buildDetailRow(
+        context,
+        context.l10n.diveLog_detail_label_diveComputer,
+        dive.diveComputerModel!,
+      ),
+      if (dive.diveComputerSerial != null &&
+          dive.diveComputerSerial!.isNotEmpty)
+        _buildDetailRow(
+          context,
+          context.l10n.diveLog_detail_label_serialNumber,
+          dive.diveComputerSerial!,
+        ),
+      if (dive.diveComputerFirmware != null &&
+          dive.diveComputerFirmware!.isNotEmpty)
+        _buildDetailRow(
+          context,
+          context.l10n.diveLog_detail_label_firmwareVersion,
+          dive.diveComputerFirmware!,
+        ),
+    ];
   }
 
   Widget _buildTripRow(BuildContext context, Dive dive) {

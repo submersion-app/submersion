@@ -174,6 +174,10 @@ abstract class DiveComputerFlutterApi {
   void onDiscoveryComplete();
   void onDownloadProgress(DownloadProgress progress);
   void onDiveDownloaded(ParsedDive dive);
-  void onDownloadComplete(int totalDives);
+  void onDownloadComplete(
+    int totalDives,
+    String? serialNumber,
+    String? firmwareVersion,
+  );
   void onError(DiveComputerError error);
 }

@@ -2723,6 +2723,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_label_diveComputer => 'حاسوب الغوص';
 
   @override
+  String get diveLog_detail_label_serialNumber => 'Serial Number';
+
+  @override
+  String get diveLog_detail_label_firmwareVersion => 'Firmware Version';
+
+  @override
   String get diveLog_detail_label_diveMaster => 'مدرب الغوص الرئيسي';
 
   @override

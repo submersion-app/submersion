@@ -2775,6 +2775,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_detail_label_diveComputer => 'Merulesszamitogep';
 
   @override
+  String get diveLog_detail_label_serialNumber => 'Serial Number';
+
+  @override
+  String get diveLog_detail_label_firmwareVersion => 'Firmware Version';
+
+  @override
   String get diveLog_detail_label_diveMaster => 'Divemaster';
 
   @override

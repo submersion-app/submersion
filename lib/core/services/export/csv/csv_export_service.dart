@@ -132,6 +132,9 @@ class CsvExportService {
       'End Pressure (bar)',
       'Tank Volume (L)',
       'O2 %',
+      'Dive Computer',
+      'Serial Number',
+      'Firmware Version',
       'Notes',
       ...sortedCustomKeys.map((key) => sanitizeCsvField('custom:$key')),
     ];
@@ -161,6 +164,9 @@ class CsvExportService {
         tank?.endPressure ?? '',
         tank?.volume?.toStringAsFixed(0) ?? '',
         tank?.gasMix.o2.toStringAsFixed(0) ?? '',
+        dive.diveComputerModel ?? '',
+        dive.diveComputerSerial ?? '',
+        dive.diveComputerFirmware ?? '',
         dive.notes.replaceAll('\n', ' '),
         ...sortedCustomKeys.map((key) {
           final field = dive.customFields

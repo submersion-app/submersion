@@ -84,6 +84,14 @@ class CsvImportService {
           diveData['tankVolume'] = _parseDouble(value);
         } else if (header.contains('o2') || header.contains('oxygen')) {
           diveData['o2Percent'] = _parseDouble(value);
+        } else if (header.contains('dive') && header.contains('computer') ||
+            header == 'computer') {
+          diveData['diveComputerModel'] = value;
+        } else if (header.contains('serial') && header.contains('number') ||
+            header == 'serial') {
+          diveData['diveComputerSerial'] = value;
+        } else if (header.contains('firmware')) {
+          diveData['diveComputerFirmware'] = value;
         } else if (header.startsWith('custom:')) {
           // Extract key from original (non-lowercased) header to preserve case
           final customKey = originalHeaders[i].substring(7).trim();

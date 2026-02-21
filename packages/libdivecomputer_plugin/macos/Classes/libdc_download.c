@@ -32,6 +32,8 @@ typedef struct {
     dc_descriptor_t *descriptor;
     dc_device_t *device;
     int dive_count;
+    unsigned int serial;
+    unsigned int firmware;
     char *error_buf;
     size_t error_buf_size;
 } download_state_t;
@@ -120,6 +122,10 @@ static void event_callback(dc_device_t *device, dc_event_type_t event,
         const dc_event_progress_t *progress = (const dc_event_progress_t *)data;
         state->callbacks->on_progress(progress->current, progress->maximum,
                                       state->callbacks->userdata);
+    } else if (event == DC_EVENT_DEVINFO) {
+        const dc_event_devinfo_t *devinfo = (const dc_event_devinfo_t *)data;
+        state->serial = devinfo->serial;
+        state->firmware = devinfo->firmware;
     }
 }
 
@@ -382,6 +388,8 @@ int libdc_download_run(
     const libdc_io_callbacks_t *io_callbacks,
     const unsigned char *fingerprint, unsigned int fsize,
     const libdc_download_callbacks_t *callbacks,
+    unsigned int *serial_out,
+    unsigned int *firmware_out,
     char *error_buf, size_t error_buf_size)
 {
     if (session == NULL || vendor == NULL || product == NULL ||
@@ -442,8 +450,9 @@ int libdc_download_run(
     // 4. Set cancel callback.
     dc_device_set_cancel(device, cancel_callback, &state);
 
-    // 5. Set progress event callback.
-    dc_device_set_events(device, DC_EVENT_PROGRESS, event_callback, &state);
+    // 5. Set event callbacks (progress + device info).
+    dc_device_set_events(device, DC_EVENT_PROGRESS | DC_EVENT_DEVINFO,
+                         event_callback, &state);
 
     // 6. Set fingerprint for incremental downloads.
     if (fingerprint != NULL && fsize > 0) {
@@ -464,7 +473,15 @@ int libdc_download_run(
         }
     }
 
-    // 8. Cleanup.
+    // 8. Write device info output parameters.
+    if (serial_out != NULL) {
+        *serial_out = state.serial;
+    }
+    if (firmware_out != NULL) {
+        *firmware_out = state.firmware;
+    }
+
+    // 9. Cleanup.
     dc_device_close(device);
     dc_iostream_close(iostream);
     dc_descriptor_free(state.descriptor);

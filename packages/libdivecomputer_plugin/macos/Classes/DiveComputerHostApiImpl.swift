@@ -233,6 +233,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         }
 
         // Run the download (blocks until complete).
+        var serial: UInt32 = 0
+        var firmware: UInt32 = 0
         var errorBuf = [CChar](repeating: 0, count: 256)
         let result = libdc_download_run(
             session,
@@ -241,22 +243,37 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             &ioCallbacks,
             nil, 0,  // No fingerprint for now (download all dives)
             &downloadCallbacks,
+            &serial,
+            &firmware,
             &errorBuf, errorBuf.count
         )
+
+        // Format device info as strings for Dart.
+        let serialStr: String? = serial > 0 ? String(serial) : nil
+        let firmwareStr: String? = firmware > 0 ? String(firmware) : nil
+        NSLog("[DownloadHost] Device info: serial=%u, firmware=%u", serial, firmware)
 
         // Report completion or error.
         NSLog("[DownloadHost] libdc_download_run returned result=%d", result)
         if result == 0 {
             NSLog("[DownloadHost] Download succeeded, sending onDownloadComplete")
             DispatchQueue.main.async { [weak self] in
-                self?.flutterApi.onDownloadComplete(totalDives: 0) { _ in }
+                self?.flutterApi.onDownloadComplete(
+                    totalDives: 0,
+                    serialNumber: serialStr,
+                    firmwareVersion: firmwareStr
+                ) { _ in }
             }
         } else if result == Int32(LIBDC_STATUS_CANCELLED) {
             NSLog("[DownloadHost] Download cancelled, sending onDownloadComplete")
             // Still send completion so the Dart side can import any dives
             // that were downloaded before cancellation.
             DispatchQueue.main.async { [weak self] in
-                self?.flutterApi.onDownloadComplete(totalDives: 0) { _ in }
+                self?.flutterApi.onDownloadComplete(
+                    totalDives: 0,
+                    serialNumber: serialStr,
+                    firmwareVersion: firmwareStr
+                ) { _ in }
             }
         } else {
             let errorMsg = String(cString: errorBuf)

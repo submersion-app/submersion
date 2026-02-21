@@ -1570,6 +1570,8 @@
   "diveLog_detail_label_currentDirection": "Current Direction",
   "diveLog_detail_label_currentStrength": "Current Strength",
   "diveLog_detail_label_diveComputer": "Dive Computer",
+  "diveLog_detail_label_serialNumber": "Serial Number",
+  "diveLog_detail_label_firmwareVersion": "Firmware Version",
   "diveLog_detail_label_diveMaster": "Dive Master",
   "diveLog_detail_label_diveType": "Dive Type",
   "diveLog_detail_label_elevation": "Elevation",

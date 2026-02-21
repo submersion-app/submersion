@@ -2710,6 +2710,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_label_diveComputer => 'מחשב צלילה';
 
   @override
+  String get diveLog_detail_label_serialNumber => 'Serial Number';
+
+  @override
+  String get diveLog_detail_label_firmwareVersion => 'Firmware Version';
+
+  @override
   String get diveLog_detail_label_diveMaster => 'דייבמאסטר';
 
   @override

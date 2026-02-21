@@ -632,12 +632,12 @@ class DiveComputerFlutterApi(private val binaryMessenger: BinaryMessenger, priva
       } 
     }
   }
-  fun onDownloadComplete(totalDivesArg: Long, callback: (Result<Unit>) -> Unit)
+  fun onDownloadComplete(totalDivesArg: Long, serialNumberArg: String?, firmwareVersionArg: String?, callback: (Result<Unit>) -> Unit)
 {
     val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
     val channelName = "dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadComplete$separatedMessageChannelSuffix"
     val channel = BasicMessageChannel<Any?>(binaryMessenger, channelName, codec)
-    channel.send(listOf(totalDivesArg)) {
+    channel.send(listOf(totalDivesArg, serialNumberArg, firmwareVersionArg)) {
       if (it is List<*>) {
         if (it.size > 1) {
           callback(Result.failure(FlutterError(it[0] as String, it[1] as String, it[2] as String?)))

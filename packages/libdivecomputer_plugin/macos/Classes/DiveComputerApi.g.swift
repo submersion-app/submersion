@@ -593,7 +593,7 @@ protocol DiveComputerFlutterApiProtocol {
   func onDiscoveryComplete(completion: @escaping (Result<Void, PigeonError>) -> Void)
   func onDownloadProgress(progress progressArg: DownloadProgress, completion: @escaping (Result<Void, PigeonError>) -> Void)
   func onDiveDownloaded(dive diveArg: ParsedDive, completion: @escaping (Result<Void, PigeonError>) -> Void)
-  func onDownloadComplete(totalDives totalDivesArg: Int64, completion: @escaping (Result<Void, PigeonError>) -> Void)
+  func onDownloadComplete(totalDives totalDivesArg: Int64, serialNumber serialNumberArg: String?, firmwareVersion firmwareVersionArg: String?, completion: @escaping (Result<Void, PigeonError>) -> Void)
   func onError(error errorArg: DiveComputerError, completion: @escaping (Result<Void, PigeonError>) -> Void)
 }
 class DiveComputerFlutterApi: DiveComputerFlutterApiProtocol {
@@ -678,10 +678,10 @@ class DiveComputerFlutterApi: DiveComputerFlutterApiProtocol {
       }
     }
   }
-  func onDownloadComplete(totalDives totalDivesArg: Int64, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+  func onDownloadComplete(totalDives totalDivesArg: Int64, serialNumber serialNumberArg: String?, firmwareVersion firmwareVersionArg: String?, completion: @escaping (Result<Void, PigeonError>) -> Void) {
     let channelName: String = "dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadComplete\(messageChannelSuffix)"
     let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
-    channel.sendMessage([totalDivesArg] as [Any?]) { response in
+    channel.sendMessage([totalDivesArg, serialNumberArg, firmwareVersionArg] as [Any?]) { response in
       guard let listResponse = response as? [Any?] else {
         completion(.failure(createConnectionError(withChannelName: channelName)))
         return

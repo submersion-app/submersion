@@ -208,6 +208,10 @@ class UddfImportParsers {
     computer['manufacturer'] = getElementText(computerElement, 'manufacturer');
     computer['model'] = getElementText(computerElement, 'model');
     computer['serialNumber'] = getElementText(computerElement, 'serialnumber');
+    computer['firmwareVersion'] = getElementText(
+      computerElement,
+      'firmwareversion',
+    );
     computer['connectionType'] = getElementText(
       computerElement,
       'connectiontype',

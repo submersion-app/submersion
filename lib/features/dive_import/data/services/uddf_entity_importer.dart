@@ -1022,6 +1022,7 @@ class UddfEntityImporter {
         gradientFactorHigh: diveData['gradientFactorHigh'] as int?,
         diveComputerModel: diveData['diveComputerModel'] as String?,
         diveComputerSerial: diveData['diveComputerSerial'] as String?,
+        diveComputerFirmware: diveData['diveComputerFirmware'] as String?,
         buddy: diveData['buddy'] as String?,
         diveMaster: diveData['diveMaster'] as String?,
         rating: diveData['rating'] as int?,

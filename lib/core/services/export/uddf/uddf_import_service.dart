@@ -115,9 +115,14 @@ class UddfImportService {
             if (computerId != null) {
               final model = _getElementText(computerElement, 'model');
               final serial = _getElementText(computerElement, 'serialnumber');
+              final firmware = _getElementText(
+                computerElement,
+                'firmwareversion',
+              );
               diveComputers[computerId] = {
                 'model': model ?? '',
                 'serial': serial ?? '',
+                'firmware': firmware ?? '',
               };
             }
           }
@@ -326,6 +331,9 @@ class UddfImportService {
             if (computer['serial']?.isNotEmpty == true) {
               diveData['diveComputerSerial'] = computer['serial'];
             }
+            if (computer['firmware']?.isNotEmpty == true) {
+              diveData['diveComputerFirmware'] = computer['firmware'];
+            }
           }
         }
       }
@@ -341,6 +349,9 @@ class UddfImportService {
             }
             if (computer['serial']?.isNotEmpty == true) {
               diveData['diveComputerSerial'] = computer['serial'];
+            }
+            if (computer['firmware']?.isNotEmpty == true) {
+              diveData['diveComputerFirmware'] = computer['firmware'];
             }
           }
         }

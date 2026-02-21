@@ -1263,12 +1263,16 @@ void DiveComputerFlutterApi::OnDiveDownloaded(
 
 void DiveComputerFlutterApi::OnDownloadComplete(
   int64_t total_dives_arg,
+  const std::string* serial_number_arg,
+  const std::string* firmware_version_arg,
   std::function<void(void)>&& on_success,
   std::function<void(const FlutterError&)>&& on_error) {
   const std::string channel_name = "dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadComplete" + message_channel_suffix_;
   BasicMessageChannel<> channel(binary_messenger_, channel_name, &GetCodec());
   EncodableValue encoded_api_arguments = EncodableValue(EncodableList{
     EncodableValue(total_dives_arg),
+    serial_number_arg ? EncodableValue(*serial_number_arg) : EncodableValue(),
+    firmware_version_arg ? EncodableValue(*firmware_version_arg) : EncodableValue(),
   });
   channel.Send(encoded_api_arguments, [channel_name, on_success = std::move(on_success), on_error = std::move(on_error)](const uint8_t* reply, size_t reply_size) {
     std::unique_ptr<EncodableValue> response = GetCodec().DecodeMessage(reply, reply_size);

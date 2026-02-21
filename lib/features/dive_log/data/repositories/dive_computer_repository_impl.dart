@@ -104,6 +104,7 @@ class DiveComputerRepository {
               manufacturer: Value(computer.manufacturer),
               model: Value(computer.model),
               serialNumber: Value(computer.serialNumber),
+              firmwareVersion: Value(computer.firmwareVersion),
               connectionType: Value(computer.connectionType),
               bluetoothAddress: Value(computer.bluetoothAddress),
               lastDownloadTimestamp: Value(
@@ -150,6 +151,7 @@ class DiveComputerRepository {
           manufacturer: Value(computer.manufacturer),
           model: Value(computer.model),
           serialNumber: Value(computer.serialNumber),
+          firmwareVersion: Value(computer.firmwareVersion),
           connectionType: Value(computer.connectionType),
           bluetoothAddress: Value(computer.bluetoothAddress),
           lastDownloadTimestamp: Value(
@@ -695,6 +697,9 @@ class DiveComputerRepository {
         final entryTimeMs = profileStartTime.millisecondsSinceEpoch;
         final exitTimeMs = entryTimeMs + (durationSeconds * 1000);
 
+        // Look up computer details to store on the dive record
+        final computer = await getComputerById(computerId);
+
         await _db
             .into(_db.dives)
             .insert(
@@ -706,6 +711,9 @@ class DiveComputerRepository {
                 exitTime: Value(exitTimeMs),
                 duration: Value(durationSeconds),
                 maxDepth: Value(maxDepth),
+                diveComputerModel: Value(computer?.fullName),
+                diveComputerSerial: Value(computer?.serialNumber),
+                diveComputerFirmware: Value(computer?.firmwareVersion),
                 createdAt: Value(now),
                 updatedAt: Value(now),
               ),
@@ -1045,6 +1053,7 @@ class DiveComputerRepository {
       manufacturer: row.manufacturer,
       model: row.model,
       serialNumber: row.serialNumber,
+      firmwareVersion: row.firmwareVersion,
       connectionType: row.connectionType,
       bluetoothAddress: row.bluetoothAddress,
       lastDownload: row.lastDownloadTimestamp != null

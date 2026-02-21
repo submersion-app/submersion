@@ -188,6 +188,7 @@ libdc_download_session_t *libdc_download_session_new(void);
 
 // Run the download. Blocks until complete or cancelled.
 // Returns 0 on success, non-zero on error.
+// serial_out/firmware_out receive device info from DC_EVENT_DEVINFO (may be NULL).
 // error_buf receives a human-readable error message (optional, may be NULL).
 int libdc_download_run(
     libdc_download_session_t *session,
@@ -196,6 +197,8 @@ int libdc_download_run(
     const libdc_io_callbacks_t *io_callbacks,
     const unsigned char *fingerprint, unsigned int fsize,
     const libdc_download_callbacks_t *callbacks,
+    unsigned int *serial_out,
+    unsigned int *firmware_out,
     char *error_buf, size_t error_buf_size);
 
 // Cancel a running download (thread-safe).
