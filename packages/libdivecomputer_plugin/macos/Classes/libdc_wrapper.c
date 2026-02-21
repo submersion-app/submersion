@@ -1,6 +1,8 @@
 #include "libdc_wrapper.h"
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include <libdivecomputer/version.h>
 #include <libdivecomputer/descriptor.h>
 #include <libdivecomputer/iterator.h>
@@ -81,11 +83,83 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
         return 0;
     }
 
+    // Pelagic BLE names are usually 2 letters + serial digits (e.g. FH025918),
+    // where the first two letters encode the model id.
+    unsigned int name_model = 0;
+    int has_name_model = 0;
+    if ((transport & LIBDC_TRANSPORT_BLE) && strlen(name) >= 8) {
+        unsigned char c0 = (unsigned char)name[0];
+        unsigned char c1 = (unsigned char)name[1];
+        if (isalpha(c0) && isalpha(c1)) {
+            int digits = 0;
+            int valid = 1;
+            for (size_t i = 2; name[i] != '\0'; i++) {
+                unsigned char c = (unsigned char)name[i];
+                if (isdigit(c)) {
+                    digits++;
+                } else if (c == ' ' || c == '-' || c == '_') {
+                    continue;
+                } else {
+                    valid = 0;
+                    break;
+                }
+            }
+            if (valid && digits >= 6) {
+                c0 = (unsigned char)toupper(c0);
+                c1 = (unsigned char)toupper(c1);
+                name_model = ((unsigned int)c0 << 8) | (unsigned int)c1;
+                has_name_model = 1;
+            }
+        }
+    }
+
     dc_descriptor_t *desc = NULL;
     int found = 0;
     while (dc_iterator_next(iter, &desc) == DC_STATUS_SUCCESS) {
         if (dc_descriptor_filter(desc, (dc_transport_t)transport, name)) {
-            // vendor/product point to string literals (valid for program lifetime)
+            // Keep first family-level match as fallback.
+            if (!found) {
+                info->vendor = dc_descriptor_get_vendor(desc);
+                info->product = dc_descriptor_get_product(desc);
+                info->model = dc_descriptor_get_model(desc);
+                info->transports = dc_descriptor_get_transports(desc);
+                found = 1;
+            }
+
+            // If model code is present in the BLE name, prefer exact model match.
+            if (has_name_model && dc_descriptor_get_model(desc) == name_model) {
+                info->vendor = dc_descriptor_get_vendor(desc);
+                info->product = dc_descriptor_get_product(desc);
+                info->model = dc_descriptor_get_model(desc);
+                info->transports = dc_descriptor_get_transports(desc);
+                dc_descriptor_free(desc);
+                break;
+            }
+        }
+        dc_descriptor_free(desc);
+    }
+
+    dc_iterator_free(iter);
+    return found;
+}
+
+int libdc_descriptor_lookup_model(unsigned int transport, unsigned int model,
+                                  libdc_descriptor_info_t *info) {
+    if (info == NULL) {
+        return 0;
+    }
+
+    dc_iterator_t *iter = NULL;
+    dc_status_t status = dc_descriptor_iterator(&iter);
+    if (status != DC_STATUS_SUCCESS || iter == NULL) {
+        return 0;
+    }
+
+    dc_descriptor_t *desc = NULL;
+    int found = 0;
+    while (dc_iterator_next(iter, &desc) == DC_STATUS_SUCCESS) {
+        if ((dc_descriptor_get_transports(desc) & transport) != 0 &&
+            dc_descriptor_get_model(desc) == model) {
             info->vendor = dc_descriptor_get_vendor(desc);
             info->product = dc_descriptor_get_product(desc);
             info->model = dc_descriptor_get_model(desc);
@@ -94,6 +168,7 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
             dc_descriptor_free(desc);
             break;
         }
+
         dc_descriptor_free(desc);
     }
 

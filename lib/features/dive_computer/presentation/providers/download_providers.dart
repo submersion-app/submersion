@@ -87,11 +87,19 @@ class DownloadState {
 /// Uses DiveComputerService to start downloads via libdivecomputer's
 /// native platform backends. Listens to downloadEvents stream for
 /// progress, dives, completion, and errors.
+///
+/// When [startDownload] is called with a [DiveComputer] and diverId,
+/// the notifier automatically imports dives into the database when the
+/// download completes. This eliminates widget lifecycle dependencies.
 class DownloadNotifier extends StateNotifier<DownloadState> {
   final pigeon.DiveComputerService _service;
   final DiveImportService _importService;
   final DiveComputerRepository _repository;
   StreamSubscription<pigeon.DownloadEvent>? _downloadSubscription;
+
+  // Stored for auto-import after download completes.
+  DiveComputer? _autoImportComputer;
+  String? _autoImportDiverId;
 
   DownloadNotifier({
     required pigeon.DiveComputerService service,
@@ -116,10 +124,18 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   }
 
   /// Start downloading dives from the selected device.
+  ///
+  /// When [computer] and [diverId] are provided, the notifier will
+  /// automatically import dives into the database when the download
+  /// completes. This eliminates widget lifecycle dependencies.
   Future<void> startDownload(
     DiscoveredDevice device, {
     DiveComputer? computer,
+    String? diverId,
   }) async {
+    _autoImportComputer = computer;
+    _autoImportDiverId = diverId;
+
     try {
       state = state.copyWith(
         phase: DownloadPhase.connecting,
@@ -162,6 +178,8 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         );
         _downloadSubscription?.cancel();
         _downloadSubscription = null;
+        // Auto-import if computer was provided and dives were downloaded.
+        _tryAutoImport();
       case pigeon.DownloadErrorEvent(:final error):
         state = state.copyWith(
           phase: DownloadPhase.error,
@@ -169,6 +187,23 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         );
         _downloadSubscription?.cancel();
         _downloadSubscription = null;
+    }
+  }
+
+  /// Automatically import downloaded dives after download completes.
+  Future<void> _tryAutoImport() async {
+    final computer = _autoImportComputer;
+    if (computer == null || state.downloadedDives.isEmpty) return;
+
+    try {
+      await importDives(
+        computer: computer,
+        mode: ImportMode.newOnly,
+        defaultResolution: ConflictResolution.skip,
+        diverId: _autoImportDiverId,
+      );
+    } catch (e) {
+      debugPrint('[DownloadNotifier] Auto-import failed: $e');
     }
   }
 

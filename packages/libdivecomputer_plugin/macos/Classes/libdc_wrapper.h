@@ -69,6 +69,11 @@ void libdc_descriptor_iterator_free(libdc_descriptor_iterator_t *iter);
 int libdc_descriptor_match(const char *name, unsigned int transport,
                            libdc_descriptor_info_t *info);
 
+// Lookup a descriptor by exact model + transport.
+// Returns 1 if found (fills info), 0 otherwise.
+int libdc_descriptor_lookup_model(unsigned int transport, unsigned int model,
+                                  libdc_descriptor_info_t *info);
+
 // ============================================================
 // Custom I/O Callbacks (for BLE bridge)
 // ============================================================
@@ -84,6 +89,7 @@ typedef int (*libdc_io_ioctl_fn)(void *userdata, unsigned int request,
                                  void *data, size_t size);
 typedef int (*libdc_io_close_fn)(void *userdata);
 typedef int (*libdc_io_poll_fn)(void *userdata, int timeout);
+typedef int (*libdc_io_purge_fn)(void *userdata, unsigned int direction);
 typedef int (*libdc_io_sleep_fn)(void *userdata, unsigned int milliseconds);
 
 typedef struct {
@@ -93,6 +99,7 @@ typedef struct {
     libdc_io_ioctl_fn ioctl;              // may be NULL
     libdc_io_close_fn close;              // required
     libdc_io_poll_fn poll;                // may be NULL
+    libdc_io_purge_fn purge;              // may be NULL
     libdc_io_sleep_fn sleep;              // may be NULL
     void *userdata;
 } libdc_io_callbacks_t;

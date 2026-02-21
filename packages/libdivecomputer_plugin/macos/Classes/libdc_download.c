@@ -322,6 +322,12 @@ static dc_status_t bridge_poll(void *userdata, int timeout) {
     return (dc_status_t)cbs->poll(cbs->userdata, timeout);
 }
 
+static dc_status_t bridge_purge(void *userdata, dc_direction_t direction) {
+    libdc_io_callbacks_t *cbs = (libdc_io_callbacks_t *)userdata;
+    if (cbs->purge == NULL) return DC_STATUS_SUCCESS;
+    return (dc_status_t)cbs->purge(cbs->userdata, (unsigned int)direction);
+}
+
 static dc_status_t bridge_sleep(void *userdata, unsigned int milliseconds) {
     libdc_io_callbacks_t *cbs = (libdc_io_callbacks_t *)userdata;
     if (cbs->sleep == NULL) {
@@ -404,6 +410,7 @@ int libdc_download_run(
     custom_cbs.ioctl = bridge_ioctl;
     custom_cbs.close = bridge_close;
     custom_cbs.poll = bridge_poll;
+    custom_cbs.purge = bridge_purge;
     custom_cbs.sleep = bridge_sleep;
 
     // The io_callbacks struct is passed as userdata to the bridge functions.

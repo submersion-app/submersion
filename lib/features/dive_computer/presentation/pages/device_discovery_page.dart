@@ -5,11 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
-import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/scan_step_widget.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/download_step_widget.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/summary_step_widget.dart';
@@ -89,6 +86,7 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
                   // Download step
                   DownloadStepWidget(
                     device: discoveryState.selectedDevice,
+                    computer: _savedComputer,
                     onComplete: _onDownloadComplete,
                     onError: _onDownloadError,
                   ),
@@ -466,27 +464,10 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
   }
 
   Future<void> _onDownloadComplete() async {
-    // Import downloaded dives into the database
-    if (_savedComputer != null) {
-      final downloadNotifier = ref.read(downloadNotifierProvider.notifier);
-
-      // Use validatedCurrentDiverIdProvider to ensure we have a valid diver ID
-      // (falls back to default diver if no diver is selected)
-      final validatedDiverId = await ref.read(
-        validatedCurrentDiverIdProvider.future,
-      );
-
-      await downloadNotifier.importDives(
-        computer: _savedComputer!,
-        mode: ImportMode.newOnly,
-        defaultResolution: ConflictResolution.skip,
-        diverId: validatedDiverId,
-      );
-
-      // Invalidate the dive list so it refreshes with the new dives
-      ref.invalidate(diveListNotifierProvider);
-      ref.invalidate(paginatedDiveListProvider);
-    }
+    // Import is handled automatically by the DownloadNotifier's auto-import.
+    // Just invalidate the dive list so the Dives page refreshes.
+    ref.invalidate(diveListNotifierProvider);
+    ref.invalidate(paginatedDiveListProvider);
 
     ref.read(discoveryNotifierProvider.notifier).goToSummary();
   }

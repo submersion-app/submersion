@@ -1,23 +1,25 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Page for downloading dives from a known/saved dive computer.
 ///
 /// This page handles reconnecting to the device and downloading dives.
+/// Import is triggered automatically by the [DownloadNotifier] when
+/// the download completes — no widget-side import logic needed.
 class DeviceDownloadPage extends ConsumerStatefulWidget {
   final String computerId;
 
@@ -31,7 +33,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
   DiscoveredDevice? _discoveredDevice;
   bool _isScanning = false;
   bool _hasStartedDownload = false;
-  bool _hasStartedImport = false;
+  bool _hasInvalidatedDiveList = false;
   String? _scanError;
   DiveComputer? _computer;
 
@@ -157,63 +159,31 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     return false;
   }
 
+  /// Start downloading dives from the device.
+  ///
+  /// Resolves the diver ID and passes it along with the computer to
+  /// the [DownloadNotifier], which will auto-import when the download
+  /// completes. No widget-side import logic needed.
   Future<void> _startDownload() async {
     if (_hasStartedDownload || _discoveredDevice == null) return;
     _hasStartedDownload = true;
 
-    final notifier = ref.read(downloadNotifierProvider.notifier);
+    final computer = _computer;
+    if (computer == null) return;
 
-    // Set dialog context for PIN entry (Aqualung devices)
+    final notifier = ref.read(downloadNotifierProvider.notifier);
     notifier.setDialogContext(context);
 
-    await notifier.startDownload(_discoveredDevice!);
-
-    if (!mounted) {
-      return;
-    }
-
-    // Check state for completion (events update state asynchronously)
-    final downloadState = ref.read(downloadNotifierProvider);
-    if (!downloadState.isComplete || _hasStartedImport) {
-      return;
-    }
-
-    final computer =
-        _computer ??
-        ref.read(diveComputerByIdProvider(widget.computerId)).value;
-    if (computer == null) {
-      return;
-    }
-
-    _hasStartedImport = true;
-
+    // Resolve the diver ID before starting the download so the notifier
+    // can auto-import with the correct owner.
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    final importResult = await notifier.importDives(
+
+    // The notifier stores computer + diverId and auto-imports when done.
+    await notifier.startDownload(
+      _discoveredDevice!,
       computer: computer,
-      mode: ImportMode.newOnly,
-      defaultResolution: ConflictResolution.skip,
       diverId: diverId,
     );
-
-    if (!mounted) {
-      return;
-    }
-
-    if (!importResult.isSuccess) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            importResult.errorMessage ??
-                context.l10n.diveComputer_download_importFailed,
-          ),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-      return;
-    }
-
-    ref.invalidate(diveListNotifierProvider);
-    ref.invalidate(paginatedDiveListProvider);
   }
 
   @override
@@ -224,6 +194,18 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     final downloadState = ref.watch(downloadNotifierProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    // When import completes, invalidate the dive list providers so the
+    // Dives page shows the newly imported dives.
+    if (!_hasInvalidatedDiveList &&
+        downloadState.importResult != null &&
+        downloadState.importResult!.imported > 0) {
+      _hasInvalidatedDiveList = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.invalidate(diveListNotifierProvider);
+        ref.invalidate(paginatedDiveListProvider);
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -400,16 +382,14 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Progress indicator
           _buildProgressIndicator(state, colorScheme),
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
 
           // Status text
           Text(
-            state.progress?.status ??
-                context.l10n.diveComputer_download_preparing,
+            _statusText(context, state),
             style: theme.textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
@@ -427,10 +407,11 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
               ),
             ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
 
           // Downloaded dives count
-          if (state.downloadedDives.isNotEmpty) _buildDivesList(context, state),
+          if (state.downloadedDives.isNotEmpty)
+            _buildDivesList(context, state),
 
           // Import results (shown after import completes)
           if (state.importResult != null)
@@ -495,9 +476,10 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
                       onPressed: () {
                         setState(() {
                           _hasStartedDownload = false;
-                          _hasStartedImport = false;
+                          _hasInvalidatedDiveList = false;
                           _discoveredDevice = null;
                         });
+                        ref.read(downloadNotifierProvider.notifier).reset();
                         _startScanAndConnect();
                       },
                       icon: const Icon(Icons.refresh),
@@ -510,6 +492,15 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
         ],
       ),
     );
+  }
+
+  /// Build a human-readable status string from the download state.
+  String _statusText(BuildContext context, DownloadState state) {
+    if (state.phase == DownloadPhase.processing) {
+      return 'Importing ${state.downloadedDives.length} dives...';
+    }
+    return state.progress?.status ??
+        context.l10n.diveComputer_download_preparing;
   }
 
   Widget _buildProgressIndicator(DownloadState state, ColorScheme colorScheme) {

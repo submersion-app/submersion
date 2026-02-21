@@ -4,17 +4,23 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Widget for the download step of the discovery wizard.
 class DownloadStepWidget extends ConsumerStatefulWidget {
   final DiscoveredDevice? device;
+
+  /// The saved dive computer — passed to the notifier for auto-import.
+  final DiveComputer? computer;
   final VoidCallback onComplete;
   final void Function(String error) onError;
 
   const DownloadStepWidget({
     super.key,
     required this.device,
+    this.computer,
     required this.onComplete,
     required this.onError,
   });
@@ -25,6 +31,8 @@ class DownloadStepWidget extends ConsumerStatefulWidget {
 
 class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
   bool _hasStarted = false;
+  bool _hasCalledComplete = false;
+  bool _hasCalledError = false;
 
   @override
   void initState() {
@@ -40,25 +48,19 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     _hasStarted = true;
 
     final notifier = ref.read(downloadNotifierProvider.notifier);
-    final l10n = context.l10n;
 
     // Set dialog context for PIN entry (Aqualung devices)
     notifier.setDialogContext(context);
 
-    await notifier.startDownload(widget.device!);
+    // Resolve the diver ID so auto-import assigns the correct owner.
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
 
-    if (!mounted) return;
-
-    // Check state for completion (events update state asynchronously)
-    final downloadState = ref.read(downloadNotifierProvider);
-    if (downloadState.isComplete) {
-      widget.onComplete();
-    } else if (downloadState.hasError) {
-      widget.onError(
-        downloadState.errorMessage ??
-            l10n.diveComputer_downloadStep_downloadFailed,
-      );
-    }
+    // Pass computer + diverId so the notifier can auto-import when done.
+    await notifier.startDownload(
+      widget.device!,
+      computer: widget.computer,
+      diverId: diverId,
+    );
   }
 
   @override
@@ -67,9 +69,31 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final statusText =
-        downloadState.progress?.status ??
-        context.l10n.diveComputer_downloadStep_preparing;
+    // Reactively detect when the download+import finishes and fire the
+    // onComplete/onError callbacks. importResult being set means the
+    // auto-import has finished (the notifier sets it after importDives).
+    if (!_hasCalledComplete &&
+        downloadState.importResult != null &&
+        downloadState.importResult!.isSuccess) {
+      _hasCalledComplete = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onComplete();
+      });
+    }
+    if (!_hasCalledError && downloadState.hasError && _hasStarted) {
+      _hasCalledError = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onError(
+          downloadState.errorMessage ??
+              context.l10n.diveComputer_downloadStep_downloadFailed,
+        );
+      });
+    }
+
+    final statusText = downloadState.phase == DownloadPhase.processing
+        ? 'Importing ${downloadState.downloadedDives.length} dives...'
+        : downloadState.progress?.status ??
+              context.l10n.diveComputer_downloadStep_preparing;
     final percentText =
         downloadState.progress != null && downloadState.progress!.totalDives > 0
         ? context.l10n.diveComputer_downloadStep_percentAccessibility(
