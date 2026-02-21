@@ -410,8 +410,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
           const SizedBox(height: 16),
 
           // Downloaded dives count
-          if (state.downloadedDives.isNotEmpty)
-            _buildDivesList(context, state),
+          if (state.downloadedDives.isNotEmpty) _buildDivesList(context, state),
 
           // Import results (shown after import completes)
           if (state.importResult != null)
