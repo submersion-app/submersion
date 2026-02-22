@@ -49,6 +49,10 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
 
     final notifier = ref.read(downloadNotifierProvider.notifier);
 
+    // Clear stale state from any previous download immediately so the
+    // next build() cycle does not see old importResult / progress.
+    notifier.reset();
+
     // Set dialog context for PIN entry (Aqualung devices)
     notifier.setDialogContext(context);
 
@@ -73,6 +77,7 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     // onComplete/onError callbacks. importResult being set means the
     // auto-import has finished (the notifier sets it after importDives).
     if (!_hasCalledComplete &&
+        _hasStarted &&
         downloadState.importResult != null &&
         downloadState.importResult!.isSuccess) {
       _hasCalledComplete = true;

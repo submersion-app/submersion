@@ -53,13 +53,16 @@ class DownloadProgress {
     phase: DownloadPhase.connecting,
   );
 
-  /// Create a downloading progress state
+  /// Create a downloading progress state.
+  ///
+  /// [current] and [total] are byte-level progress values from
+  /// libdivecomputer's DC_EVENT_PROGRESS (NOT dive counts).
   factory DownloadProgress.downloading(int current, int total) =>
       DownloadProgress(
         currentDive: current,
         totalDives: total,
         percentage: total > 0 ? current / total : 0.0,
-        status: 'Downloading dive $current of $total...',
+        status: 'Downloading dives...',
         phase: DownloadPhase.downloading,
       );
 

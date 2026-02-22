@@ -150,6 +150,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         clearError: true,
         clearImportResult: true,
         downloadedDives: [],
+        progress: DownloadProgress.connecting(),
       );
 
       _downloadSubscription?.cancel();
