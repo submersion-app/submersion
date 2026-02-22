@@ -134,7 +134,7 @@ target_include_directories(divecomputer PRIVATE
     ${LIBDC_DIR}/src
     ${CONFIG_DIR}
 )
-target_compile_definitions(divecomputer PRIVATE HAVE_CONFIG_H)
+target_compile_definitions(divecomputer PRIVATE HAVE_CONFIG_H _GNU_SOURCE)
 target_compile_options(divecomputer PRIVATE
     -include ${CONFIG_DIR}/config.h
     -std=c11
@@ -158,6 +158,7 @@ set_target_properties(${PLUGIN_NAME} PROPERTIES
 target_compile_definitions(${PLUGIN_NAME} PRIVATE
     FLUTTER_PLUGIN_IMPL
     HAVE_CONFIG_H
+    _GNU_SOURCE
 )
 
 target_include_directories(${PLUGIN_NAME} INTERFACE

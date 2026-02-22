@@ -187,7 +187,7 @@ class DiveComputerHostApiImpl(
 
         // Report completion or error.
         if (result == 0) {
-            flutterApi.onDownloadComplete(0) { }
+            flutterApi.onDownloadComplete(0, null, null) { }
         } else if (result != LIBDC_STATUS_CANCELLED) {
             val errorMsg = String(errorBuf).trim('\u0000')
             reportError("download_error", errorMsg)

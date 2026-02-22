@@ -15,3 +15,4 @@ pubspec.lock
 # Native build artifacts
 macos/build/
 ios/build/
+android/.gradle/

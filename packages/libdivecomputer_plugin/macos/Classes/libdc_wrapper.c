@@ -7,6 +7,10 @@
 #include <libdivecomputer/descriptor.h>
 #include <libdivecomputer/iterator.h>
 
+#ifdef _WIN32
+#define strcasecmp _stricmp
+#endif
+
 const char *libdc_get_version(void) {
     return dc_version(NULL);
 }

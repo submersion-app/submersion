@@ -7,6 +7,10 @@
 #include <math.h>
 #include <time.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include <libdivecomputer/context.h>
 #include <libdivecomputer/descriptor.h>
 #include <libdivecomputer/device.h>
@@ -337,10 +341,14 @@ static dc_status_t bridge_purge(void *userdata, dc_direction_t direction) {
 static dc_status_t bridge_sleep(void *userdata, unsigned int milliseconds) {
     libdc_io_callbacks_t *cbs = (libdc_io_callbacks_t *)userdata;
     if (cbs->sleep == NULL) {
+#ifdef _WIN32
+        Sleep(milliseconds);
+#else
         struct timespec ts;
         ts.tv_sec = milliseconds / 1000;
         ts.tv_nsec = (milliseconds % 1000) * 1000000L;
         nanosleep(&ts, NULL);
+#endif
         return DC_STATUS_SUCCESS;
     }
     return (dc_status_t)cbs->sleep(cbs->userdata, milliseconds);
