@@ -106,7 +106,7 @@ void main() {
     BackupRecord createRecord(String id, {int diveCount = 10}) {
       return BackupRecord(
         id: id,
-        filename: 'submersion_backup_$id.sqlite',
+        filename: 'submersion_backup_$id.db',
         timestamp: DateTime(2025, 6, 15),
         sizeBytes: 1000,
         location: BackupLocation.local,

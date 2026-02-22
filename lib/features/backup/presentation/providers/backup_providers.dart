@@ -60,7 +60,7 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
 
   Future<void> setBackupLocation(String? path) async {
     await _prefs.setBackupLocation(path);
-    state = state.copyWith(backupLocation: path);
+    state = _prefs.getSettings();
   }
 
   /// Refresh state from SharedPreferences (e.g. after a backup updates lastBackupTime)

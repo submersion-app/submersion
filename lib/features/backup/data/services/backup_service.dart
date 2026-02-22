@@ -200,7 +200,7 @@ class BackupService {
     final ext = p.extension(filePath).toLowerCase();
     if (ext != '.sqlite' && ext != '.db') {
       return BackupValidationResult.invalid(
-        'Invalid file extension "$ext". Expected .sqlite or .db',
+        'Invalid file extension "$ext". Expected .db or .sqlite',
       );
     }
 
@@ -305,8 +305,7 @@ class BackupService {
   /// Get all backup records sorted by timestamp descending.
   List<BackupRecord> getBackupHistory() {
     final history = _preferences.getHistory();
-    history.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    return history;
+    return [...history]..sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
   /// Get backup history with stale entry pruning.
@@ -337,8 +336,8 @@ class BackupService {
       await _preferences.setHistory(validRecords);
     }
 
-    validRecords.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    return validRecords;
+    return [...validRecords]
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
   /// Delete a specific backup (local file + cloud file + metadata).
@@ -445,7 +444,7 @@ class BackupService {
   String _generateFilename() {
     final dateFormat = DateFormat('yyyy-MM-dd_HHmmss');
     final timestamp = dateFormat.format(DateTime.now());
-    return 'submersion_backup_$timestamp.sqlite';
+    return 'submersion_backup_$timestamp.db';
   }
 
   Future<({int diveCount, int siteCount})> _getDiveSiteCounts() async {

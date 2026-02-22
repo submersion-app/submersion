@@ -55,11 +55,11 @@ class BackupSettingsPage extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           const Divider(),
-          // History section
-          _buildHistorySection(context, ref, historyAsync),
-          const Divider(),
           // Auto-backup section
           _buildAutoBackupSection(context, ref, settings, cloudProvider),
+          const Divider(),
+          // History section
+          _buildHistorySection(context, ref, historyAsync),
         ],
       ),
     );
@@ -162,10 +162,10 @@ class BackupSettingsPage extends ConsumerWidget {
         final result = await FilePicker.platform.saveFile(
           dialogTitle: context.l10n.backup_export_title,
           fileName: _generateDefaultFilename(),
-          allowedExtensions: ['sqlite'],
+          allowedExtensions: ['db', 'sqlite'],
           type: FileType.custom,
         );
-        if (result != null) {
+        if (result != null && context.mounted) {
           ref.read(backupOperationProvider.notifier).exportToPath(result);
         }
       },
@@ -173,7 +173,7 @@ class BackupSettingsPage extends ConsumerWidget {
         final file = await ref
             .read(backupOperationProvider.notifier)
             .exportForSharing();
-        if (file != null) {
+        if (file != null && context.mounted) {
           await SharePlus.instance.share(
             ShareParams(files: [XFile(file.path)]),
           );
@@ -186,7 +186,7 @@ class BackupSettingsPage extends ConsumerWidget {
     final now = DateTime.now();
     final formatted =
         '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-    return 'submersion_backup_$formatted.sqlite';
+    return 'submersion_backup_$formatted.db';
   }
 
   // ===========================================================================
@@ -388,14 +388,24 @@ class BackupSettingsPage extends ConsumerWidget {
     BackupSettings settings,
     dynamic cloudProvider,
   ) {
-    return ExpansionTile(
-      title: Text(context.l10n.backup_section_auto),
-      trailing: Switch(
-        value: settings.enabled,
-        onChanged: (value) =>
-            ref.read(backupSettingsProvider.notifier).setEnabled(value),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            context.l10n.backup_section_auto,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ),
+        SwitchListTile(
+          title: Text(context.l10n.backup_schedule_enabled),
+          value: settings.enabled,
+          onChanged: (value) =>
+              ref.read(backupSettingsProvider.notifier).setEnabled(value),
+        ),
         // Backup location
         ListTile(
           title: Text(context.l10n.backup_location_title),
@@ -468,7 +478,7 @@ class BackupSettingsPage extends ConsumerWidget {
                 .read(backupSettingsProvider.notifier)
                 .setCloudBackupEnabled(value),
           ),
-        // Backup Now button (for manual trigger of auto-backup)
+        // Backup Now button
         Padding(
           padding: const EdgeInsets.all(16),
           child: SizedBox(

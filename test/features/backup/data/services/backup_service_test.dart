@@ -175,7 +175,7 @@ void main() {
           await preferences.addRecord(
             BackupRecord(
               id: 'r$i',
-              filename: 'backup_$i.sqlite',
+              filename: 'backup_$i.db',
               timestamp: DateTime(2025, 6, i + 1),
               sizeBytes: 1000,
               location: BackupLocation.local,
@@ -201,7 +201,7 @@ void main() {
           await preferences.addRecord(
             BackupRecord(
               id: 'r$i',
-              filename: 'backup_$i.sqlite',
+              filename: 'backup_$i.db',
               timestamp: DateTime(2025, 6, i + 1),
               sizeBytes: 1000,
               location: BackupLocation.local,
@@ -235,7 +235,7 @@ void main() {
           await preferences.addRecord(
             BackupRecord(
               id: 'r$i',
-              filename: 'backup_$i.sqlite',
+              filename: 'backup_$i.db',
               timestamp: DateTime(2025, 6, i + 1),
               sizeBytes: 1000,
               location: BackupLocation.both,
@@ -264,7 +264,7 @@ void main() {
           await preferences.addRecord(
             BackupRecord(
               id: 'r$i',
-              filename: 'backup_$i.sqlite',
+              filename: 'backup_$i.db',
               timestamp: DateTime(2025, 6, i + 1),
               sizeBytes: 1000,
               location: BackupLocation.both,
@@ -294,7 +294,7 @@ void main() {
       test('removes record from preferences', () async {
         final record = BackupRecord(
           id: 'r1',
-          filename: 'backup.sqlite',
+          filename: 'backup.db',
           timestamp: DateTime(2025, 6, 15),
           sizeBytes: 1000,
           location: BackupLocation.local,
@@ -317,7 +317,7 @@ void main() {
       test('attempts cloud file deletion for cloud backups', () async {
         final record = BackupRecord(
           id: 'r1',
-          filename: 'backup.sqlite',
+          filename: 'backup.db',
           timestamp: DateTime(2025, 6, 15),
           sizeBytes: 1000,
           location: BackupLocation.both,
@@ -341,7 +341,7 @@ void main() {
       test('skips cloud deletion when no cloud provider', () async {
         final record = BackupRecord(
           id: 'r1',
-          filename: 'backup.sqlite',
+          filename: 'backup.db',
           timestamp: DateTime(2025, 6, 15),
           sizeBytes: 1000,
           location: BackupLocation.both,
@@ -370,7 +370,7 @@ void main() {
         await preferences.addRecord(
           BackupRecord(
             id: 'old',
-            filename: 'old.sqlite',
+            filename: 'old.db',
             timestamp: DateTime(2025, 1, 1),
             sizeBytes: 1000,
             location: BackupLocation.local,
@@ -381,7 +381,7 @@ void main() {
         await preferences.addRecord(
           BackupRecord(
             id: 'new',
-            filename: 'new.sqlite',
+            filename: 'new.db',
             timestamp: DateTime(2025, 12, 1),
             sizeBytes: 1000,
             location: BackupLocation.local,
@@ -392,7 +392,7 @@ void main() {
         await preferences.addRecord(
           BackupRecord(
             id: 'mid',
-            filename: 'mid.sqlite',
+            filename: 'mid.db',
             timestamp: DateTime(2025, 6, 1),
             sizeBytes: 1000,
             location: BackupLocation.local,
@@ -431,9 +431,7 @@ void main() {
           preferences: preferences,
         );
 
-        final result = await service.validateBackupFile(
-          '/nonexistent/file.sqlite',
-        );
+        final result = await service.validateBackupFile('/nonexistent/file.db');
         expect(result.isValid, false);
         expect(result.error, contains('not found'));
       });
@@ -459,7 +457,7 @@ void main() {
 
       test('returns invalid for empty file', () async {
         final tempDir = await Directory.systemTemp.createTemp('backup_test_');
-        final emptyFile = File('${tempDir.path}/empty.sqlite');
+        final emptyFile = File('${tempDir.path}/empty.db');
         await emptyFile.create();
 
         final service = BackupService(
@@ -492,7 +490,7 @@ void main() {
     group('exportBackupToPath', () {
       test('copies database to specified path', () async {
         final tempDir = await Directory.systemTemp.createTemp('backup_test_');
-        final destPath = '${tempDir.path}/my_backup.sqlite';
+        final destPath = '${tempDir.path}/my_backup.db';
 
         final service = BackupService(
           dbAdapter: fakeDb,
@@ -505,7 +503,7 @@ void main() {
           expect(fakeDb.lastBackupPath, destPath);
           expect(fakeDb.backupCallCount, 1);
           expect(record.localPath, destPath);
-          expect(record.filename, 'my_backup.sqlite');
+          expect(record.filename, 'my_backup.db');
         } finally {
           await tempDir.delete(recursive: true);
         }
@@ -513,7 +511,7 @@ void main() {
 
       test('records export in history', () async {
         final tempDir = await Directory.systemTemp.createTemp('backup_test_');
-        final destPath = '${tempDir.path}/my_backup.sqlite';
+        final destPath = '${tempDir.path}/my_backup.db';
 
         final service = BackupService(
           dbAdapter: fakeDb,
@@ -543,7 +541,7 @@ void main() {
 
         expect(fakeDb.backupCallCount, 1);
         expect(fakeDb.lastBackupPath, contains('submersion_backup_'));
-        expect(fakeDb.lastBackupPath, endsWith('.sqlite'));
+        expect(fakeDb.lastBackupPath, endsWith('.db'));
         expect(tempFile.path, fakeDb.lastBackupPath);
       });
 
@@ -568,14 +566,14 @@ void main() {
         );
 
         expect(
-          () => service.restoreFromFile('/nonexistent/file.sqlite'),
+          () => service.restoreFromFile('/nonexistent/file.db'),
           throwsA(isA<BackupException>()),
         );
       });
 
       test('creates safety backup before restoring', () async {
         final tempDir = await Directory.systemTemp.createTemp('backup_test_');
-        final backupFile = File('${tempDir.path}/test.sqlite');
+        final backupFile = File('${tempDir.path}/test.db');
         await backupFile.writeAsString('fake db content');
 
         final service = BackupService(
@@ -637,25 +635,25 @@ void main() {
           await preferences.addRecord(
             BackupRecord(
               id: 'gone',
-              filename: 'gone.sqlite',
+              filename: 'gone.db',
               timestamp: DateTime(2025, 6, 1),
               sizeBytes: 1000,
               location: BackupLocation.local,
               diveCount: 5,
               siteCount: 2,
-              localPath: '/this/file/does/not/exist.sqlite',
+              localPath: '/this/file/does/not/exist.db',
             ),
           );
           await preferences.addRecord(
             BackupRecord(
               id: 'has-cloud',
-              filename: 'cloud.sqlite',
+              filename: 'cloud.db',
               timestamp: DateTime(2025, 7, 1),
               sizeBytes: 1000,
               location: BackupLocation.both,
               diveCount: 10,
               siteCount: 3,
-              localPath: '/also/missing.sqlite',
+              localPath: '/also/missing.db',
               cloudFileId: 'cloud-123',
             ),
           );
@@ -676,13 +674,13 @@ void main() {
 
       test('keeps records where local file exists', () async {
         final tempDir = await Directory.systemTemp.createTemp('backup_test_');
-        final realFile = File('${tempDir.path}/real.sqlite');
+        final realFile = File('${tempDir.path}/real.db');
         await realFile.writeAsString('data');
 
         await preferences.addRecord(
           BackupRecord(
             id: 'real',
-            filename: 'real.sqlite',
+            filename: 'real.db',
             timestamp: DateTime(2025, 6, 1),
             sizeBytes: 1000,
             location: BackupLocation.local,
@@ -710,7 +708,7 @@ void main() {
         await preferences.addRecord(
           BackupRecord(
             id: 'legacy',
-            filename: 'legacy.sqlite',
+            filename: 'legacy.db',
             timestamp: DateTime(2025, 6, 1),
             sizeBytes: 1000,
             location: BackupLocation.local,
@@ -732,13 +730,13 @@ void main() {
         await preferences.addRecord(
           BackupRecord(
             id: 'stale',
-            filename: 'stale.sqlite',
+            filename: 'stale.db',
             timestamp: DateTime(2025, 6, 1),
             sizeBytes: 1000,
             location: BackupLocation.local,
             diveCount: 5,
             siteCount: 2,
-            localPath: '/nonexistent/stale.sqlite',
+            localPath: '/nonexistent/stale.db',
           ),
         );
 

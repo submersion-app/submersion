@@ -8,14 +8,14 @@ void main() {
 
     final record = BackupRecord(
       id: 'test-id-123',
-      filename: 'submersion_backup_2025-06-15_143000.sqlite',
+      filename: 'submersion_backup_2025-06-15_143000.db',
       timestamp: timestamp,
       sizeBytes: 2500000,
       location: BackupLocation.both,
       diveCount: 42,
       siteCount: 15,
       cloudFileId: 'cloud-file-abc',
-      localPath: '/path/to/backup.sqlite',
+      localPath: '/path/to/backup.db',
       isAutomatic: true,
     );
 
@@ -24,14 +24,14 @@ void main() {
         final json = record.toJson();
 
         expect(json['id'], 'test-id-123');
-        expect(json['filename'], 'submersion_backup_2025-06-15_143000.sqlite');
+        expect(json['filename'], 'submersion_backup_2025-06-15_143000.db');
         expect(json['timestamp'], timestamp.millisecondsSinceEpoch);
         expect(json['sizeBytes'], 2500000);
         expect(json['location'], 'both');
         expect(json['diveCount'], 42);
         expect(json['siteCount'], 15);
         expect(json['cloudFileId'], 'cloud-file-abc');
-        expect(json['localPath'], '/path/to/backup.sqlite');
+        expect(json['localPath'], '/path/to/backup.db');
         expect(json['isAutomatic'], true);
       });
 
@@ -45,7 +45,7 @@ void main() {
       test('fromJson handles null optional fields', () {
         final json = {
           'id': 'minimal-id',
-          'filename': 'backup.sqlite',
+          'filename': 'backup.db',
           'timestamp': timestamp.millisecondsSinceEpoch,
           'sizeBytes': 1000,
           'location': 'local',
