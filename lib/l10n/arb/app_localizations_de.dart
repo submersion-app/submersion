@@ -1302,6 +1302,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Als abgeschlossen markieren?';
 
   @override
+  String get courses_empty_button => 'Ersten Ausbildungskurs hinzufügen';
+
+  @override
   String get courses_empty_noCompleted => 'Keine abgeschlossenen Kurse';
 
   @override
@@ -1974,6 +1977,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveCenters_dialog_keepEditing => 'Weiter bearbeiten';
+
+  @override
+  String get diveCenters_empty_button => 'Erstes Tauchcenter hinzufügen';
 
   @override
   String get diveCenters_empty_subtitle =>

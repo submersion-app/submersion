@@ -2310,6 +2310,12 @@ abstract class AppLocalizations {
   /// **'Mark as Completed?'**
   String get courses_dialog_markCompletedTitle;
 
+  /// No description provided for @courses_empty_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Your First Training Course'**
+  String get courses_empty_button;
+
   /// No description provided for @courses_empty_noCompleted.
   ///
   /// In en, this message translates to:
@@ -3448,6 +3454,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keep Editing'**
   String get diveCenters_dialog_keepEditing;
+
+  /// No description provided for @diveCenters_empty_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Your First Dive Center'**
+  String get diveCenters_empty_button;
 
   /// No description provided for @diveCenters_empty_subtitle.
   ///

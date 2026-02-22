@@ -1285,6 +1285,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_dialog_markCompletedTitle => 'Megjelölés befejezettként?';
 
   @override
+  String get courses_empty_button => 'Első képzési tanfolyam hozzáadása';
+
+  @override
   String get courses_empty_noCompleted => 'Nincsenek befejezett tanfolyamok';
 
   @override
@@ -1952,6 +1955,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveCenters_dialog_keepEditing => 'Szerkesztés folytatása';
+
+  @override
+  String get diveCenters_empty_button => 'Első búvárközpont hozzáadása';
 
   @override
   String get diveCenters_empty_subtitle =>

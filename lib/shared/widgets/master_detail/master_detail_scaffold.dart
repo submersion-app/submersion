@@ -309,7 +309,7 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
   /// If [onFabPressed] is provided, it replaces the default create behavior.
   Widget _wrapFabForCreate(Widget fab) {
     final handler = widget.onFabPressed ?? _onCreate;
-    if (fab is FloatingActionButton) {
+    if (fab is FloatingActionButton && !fab.isExtended) {
       return FloatingActionButton(
         onPressed: handler,
         tooltip: fab.tooltip,
@@ -318,7 +318,8 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
         child: fab.child,
       );
     }
-    // For FloatingActionButton.extended, wrap in a GestureDetector
+    // For FloatingActionButton.extended (or other widgets), wrap to intercept
+    // taps while preserving the original appearance (icon + label).
     return Semantics(
       button: true,
       label: context.l10n.accessibility_label_createNewItem,

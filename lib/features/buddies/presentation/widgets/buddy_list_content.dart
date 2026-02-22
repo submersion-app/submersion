@@ -394,7 +394,14 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
-            onPressed: () => context.push('/buddies/new'),
+            onPressed: () {
+              if (ResponsiveBreakpoints.isMasterDetail(context)) {
+                final routerState = GoRouterState.of(context);
+                context.go('${routerState.uri.path}?mode=new');
+              } else {
+                context.push('/buddies/new');
+              }
+            },
             icon: const Icon(Icons.person_add),
             label: Text(context.l10n.buddies_action_addFirst),
           ),

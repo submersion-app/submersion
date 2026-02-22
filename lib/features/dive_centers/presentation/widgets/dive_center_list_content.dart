@@ -6,6 +6,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -351,9 +352,16 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               FilledButton.icon(
-                onPressed: () => context.push('/dive-centers/new'),
+                onPressed: () {
+                  if (ResponsiveBreakpoints.isMasterDetail(context)) {
+                    final routerState = GoRouterState.of(context);
+                    context.go('${routerState.uri.path}?mode=new');
+                  } else {
+                    context.push('/dive-centers/new');
+                  }
+                },
                 icon: const Icon(Icons.add),
-                label: Text(context.l10n.diveCenters_action_addNew),
+                label: Text(context.l10n.diveCenters_empty_button),
               ),
               const SizedBox(width: 12),
               OutlinedButton.icon(

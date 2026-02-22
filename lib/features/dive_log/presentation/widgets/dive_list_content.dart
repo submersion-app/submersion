@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -1462,7 +1463,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           FilledButton.icon(
             onPressed: () => showAddDiveBottomSheet(
               context: context,
-              onLogManually: () => context.go('/dives/new'),
+              onLogManually: () {
+                if (ResponsiveBreakpoints.isMasterDetail(context)) {
+                  final routerState = GoRouterState.of(context);
+                  context.go('${routerState.uri.path}?mode=new');
+                } else {
+                  context.push('/dives/new');
+                }
+              },
             ),
             icon: const Icon(Icons.add),
             label: Text(context.l10n.diveLog_empty_logFirstDive),

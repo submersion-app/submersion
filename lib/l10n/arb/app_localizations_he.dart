@@ -1248,6 +1248,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_dialog_markCompletedTitle => 'לסמן כהושלם?';
 
   @override
+  String get courses_empty_button => 'הוסף את קורס האימון הראשון שלך';
+
+  @override
   String get courses_empty_noCompleted => 'אין קורסים שהושלמו';
 
   @override
@@ -1895,6 +1898,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveCenters_dialog_keepEditing => 'המשך עריכה';
+
+  @override
+  String get diveCenters_empty_button => 'הוסף את מרכז הצלילה הראשון שלך';
 
   @override
   String get diveCenters_empty_subtitle =>

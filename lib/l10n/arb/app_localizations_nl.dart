@@ -1287,6 +1287,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get courses_dialog_markCompletedTitle => 'Markeren als voltooid?';
 
   @override
+  String get courses_empty_button => 'Voeg je eerste trainingscursus toe';
+
+  @override
   String get courses_empty_noCompleted => 'Geen voltooide cursussen';
 
   @override
@@ -1949,6 +1952,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveCenters_dialog_keepEditing => 'Doorgaan met bewerken';
+
+  @override
+  String get diveCenters_empty_button => 'Voeg je eerste duikcentrum toe';
 
   @override
   String get diveCenters_empty_subtitle =>

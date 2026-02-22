@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -349,7 +350,14 @@ class _CertificationListContentState
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
-            onPressed: () => context.push('/certifications/new'),
+            onPressed: () {
+              if (ResponsiveBreakpoints.isMasterDetail(context)) {
+                final routerState = GoRouterState.of(context);
+                context.go('${routerState.uri.path}?mode=new');
+              } else {
+                context.push('/certifications/new');
+              }
+            },
             icon: const Icon(Icons.add_card),
             label: Text(context.l10n.certifications_list_empty_button),
           ),

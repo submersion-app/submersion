@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -348,7 +349,14 @@ class _TripListContentState extends ConsumerState<TripListContent> {
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
-            onPressed: () => context.push('/trips/new'),
+            onPressed: () {
+              if (ResponsiveBreakpoints.isMasterDetail(context)) {
+                final routerState = GoRouterState.of(context);
+                context.go('${routerState.uri.path}?mode=new');
+              } else {
+                context.push('/trips/new');
+              }
+            },
             icon: const Icon(Icons.add),
             label: Text(context.l10n.trips_list_empty_button),
           ),

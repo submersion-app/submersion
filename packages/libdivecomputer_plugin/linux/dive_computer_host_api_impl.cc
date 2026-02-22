@@ -1,9 +1,5 @@
 #include "dive_computer_host_api_impl.h"
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
-
 extern "C" {
 #include "libdc_wrapper.h"
 }
@@ -57,36 +53,6 @@ static FlValue* transports_to_fl_value(unsigned int transports) {
             (GDestroyNotify)fl_value_unref));
   }
   return list;
-}
-
-// Converts a fingerprint byte array to a hex string.
-static gchar* fingerprint_to_hex(const unsigned char* fp, unsigned int size) {
-  if (size == 0) {
-    return g_strdup("");
-  }
-  gchar* hex = static_cast<gchar*>(g_malloc(size * 2 + 1));
-  for (unsigned int i = 0; i < size; i++) {
-    snprintf(hex + i * 2, 3, "%02x", fp[i]);
-  }
-  return hex;
-}
-
-// Returns a human-readable dive mode string.
-static const char* dive_mode_string(unsigned int mode) {
-  switch (mode) {
-    case 0:
-      return "freedive";
-    case 1:
-      return "gauge";
-    case 2:
-      return "opencircuit";
-    case 3:
-      return "closedcircuit";
-    case 4:
-      return "semiclosedcircuit";
-    default:
-      return nullptr;
-  }
 }
 
 // --- VTable implementations ---

@@ -1296,6 +1296,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get courses_dialog_markCompletedTitle => 'Segnare come Completato?';
 
   @override
+  String get courses_empty_button =>
+      'Aggiungi il tuo primo corso di addestramento';
+
+  @override
   String get courses_empty_noCompleted => 'Nessun corso completato';
 
   @override
@@ -1968,6 +1972,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveCenters_dialog_keepEditing => 'Continua Modifica';
+
+  @override
+  String get diveCenters_empty_button =>
+      'Aggiungi il tuo primo centro immersioni';
 
   @override
   String get diveCenters_empty_subtitle =>

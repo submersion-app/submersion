@@ -1257,6 +1257,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_dialog_markCompletedTitle => 'وضع علامة كمكتمل؟';
 
   @override
+  String get courses_empty_button => 'أضف أول دورة تدريبية';
+
+  @override
   String get courses_empty_noCompleted => 'لا توجد دورات مكتملة';
 
   @override
@@ -1907,6 +1910,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveCenters_dialog_keepEditing => 'متابعة التعديل';
+
+  @override
+  String get diveCenters_empty_button => 'أضف أول مركز غوص';
 
   @override
   String get diveCenters_empty_subtitle =>

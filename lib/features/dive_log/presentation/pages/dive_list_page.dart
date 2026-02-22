@@ -113,10 +113,11 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     // Use desktop breakpoint (800px) to show master-detail when NavigationRail appears
     final showMasterDetail = ResponsiveBreakpoints.isMasterDetail(context);
 
-    final fab = FloatingActionButton(
+    final fab = FloatingActionButton.extended(
       onPressed: () => _showAddDiveSheet(context),
-      tooltip: context.l10n.diveLog_listPage_fab_addDive,
-      child: const Icon(Icons.add),
+      tooltip: context.l10n.diveLog_listPage_fab_logDive,
+      icon: const Icon(Icons.add),
+      label: Text(context.l10n.diveLog_listPage_fab_logDive),
     );
 
     if (showMasterDetail) {

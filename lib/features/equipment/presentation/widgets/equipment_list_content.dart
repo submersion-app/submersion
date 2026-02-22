@@ -8,6 +8,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 
 /// Special filter value for computed "service due" items
@@ -382,7 +383,14 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           if (_selectedFilter == null) ...[
             const SizedBox(height: 24),
             FilledButton.icon(
-              onPressed: () => context.push('/equipment/new'),
+              onPressed: () {
+                if (ResponsiveBreakpoints.isMasterDetail(context)) {
+                  final routerState = GoRouterState.of(context);
+                  context.go('${routerState.uri.path}?mode=new');
+                } else {
+                  context.push('/equipment/new');
+                }
+              },
               icon: const Icon(Icons.add),
               label: Text(
                 context.l10n.equipment_list_emptyState_addFirstButton,

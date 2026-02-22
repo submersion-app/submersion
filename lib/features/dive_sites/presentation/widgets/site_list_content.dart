@@ -9,6 +9,7 @@ import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -666,7 +667,14 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
-            onPressed: () => context.push('/sites/new'),
+            onPressed: () {
+              if (ResponsiveBreakpoints.isMasterDetail(context)) {
+                final routerState = GoRouterState.of(context);
+                context.go('${routerState.uri.path}?mode=new');
+              } else {
+                context.push('/sites/new');
+              }
+            },
             icon: const Icon(Icons.add_location),
             label: Text(context.l10n.diveSites_list_empty_addFirstSite),
           ),
