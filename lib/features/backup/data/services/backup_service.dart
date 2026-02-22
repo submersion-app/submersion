@@ -166,6 +166,24 @@ class BackupService {
     return record;
   }
 
+  /// Export a backup to a temporary file for sharing.
+  ///
+  /// The file is NOT recorded in backup history since its destination
+  /// is ephemeral (share sheet, AirDrop, email, etc.).
+  /// Returns the temporary [File] for use with share sheet.
+  Future<File> exportBackupToTemp() async {
+    _log.info('Exporting backup to temp for sharing');
+
+    final filename = _generateFilename();
+    final tempDir = await getTemporaryDirectory();
+    final tempPath = p.join(tempDir.path, filename);
+
+    await _dbAdapter.backup(tempPath);
+
+    _log.info('Temp export completed: $filename');
+    return File(tempPath);
+  }
+
   /// Validate whether a file is a valid Submersion backup.
   ///
   /// Checks: file exists, has correct extension, is a valid SQLite database,

@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -139,6 +139,20 @@ void main() {
     late BackupPreferences preferences;
     late FakeCloudStorageProvider fakeCloud;
     late FakeBackupDatabaseAdapter fakeDb;
+
+    setUpAll(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            (MethodCall methodCall) async {
+              if (methodCall.method == 'getTemporaryDirectory') {
+                return Directory.systemTemp.path;
+              }
+              return null;
+            },
+          );
+    });
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
@@ -508,6 +522,34 @@ void main() {
         } finally {
           await tempDir.delete(recursive: true);
         }
+      });
+    });
+
+    group('exportBackupToTemp', () {
+      test('copies database to temp directory', () async {
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        final tempFile = await service.exportBackupToTemp();
+
+        expect(fakeDb.backupCallCount, 1);
+        expect(fakeDb.lastBackupPath, contains('submersion_backup_'));
+        expect(fakeDb.lastBackupPath, endsWith('.sqlite'));
+        expect(tempFile.path, fakeDb.lastBackupPath);
+      });
+
+      test('does not record in history', () async {
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        await service.exportBackupToTemp();
+
+        final history = preferences.getHistory();
+        expect(history, isEmpty);
       });
     });
 
