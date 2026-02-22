@@ -26,8 +26,19 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
   String? _customName;
   DiveComputer? _savedComputer;
 
+  /// Stored eagerly so we can call reset() in dispose() without relying on
+  /// ref, which may already be invalidated in Riverpod 3.x lifecycle.
+  late final DiscoveryNotifier _discoveryNotifier;
+
+  @override
+  void initState() {
+    super.initState();
+    _discoveryNotifier = ref.read(discoveryNotifierProvider.notifier);
+  }
+
   @override
   void dispose() {
+    _discoveryNotifier.reset();
     _pageController.dispose();
     super.dispose();
   }
@@ -488,13 +499,13 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
   }
 
   void _handleBack() {
-    final notifier = ref.read(discoveryNotifierProvider.notifier);
     final state = ref.read(discoveryNotifierProvider);
 
     if (state.currentStep == DiscoveryStep.scan) {
+      _discoveryNotifier.reset();
       context.pop();
     } else {
-      notifier.goBack();
+      _discoveryNotifier.goBack();
     }
   }
 
@@ -502,6 +513,7 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
     final state = ref.read(discoveryNotifierProvider);
 
     if (state.currentStep == DiscoveryStep.scan) {
+      _discoveryNotifier.reset();
       context.pop();
       return;
     }

@@ -201,10 +201,11 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
     }
   }
 
-  /// Reset the wizard to the initial state.
+  /// Reset the wizard to the initial state and stop any active scan.
   void reset() {
     _discoverySubscription?.cancel();
     _discoverySubscription = null;
+    _service.stopDiscovery();
     state = const DiscoveryState();
   }
 

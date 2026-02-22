@@ -12,6 +12,9 @@ import 'package:submersion/features/settings/presentation/providers/export_provi
 import 'package:submersion/features/settings/presentation/widgets/import_progress_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/csv_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
+import 'package:submersion/features/dive_computer/presentation/pages/device_discovery_page.dart';
+import 'package:submersion/features/dive_computer/presentation/pages/device_list_page.dart';
+import 'package:submersion/features/dive_import/presentation/pages/healthkit_import_page.dart';
 import 'package:submersion/features/transfer/presentation/widgets/transfer_list_content.dart';
 
 /// Main transfer page with master-detail layout on desktop.
@@ -694,7 +697,11 @@ class _ComputersSectionContent extends ConsumerWidget {
                     context.l10n.transfer_computers_connectSubtitle,
                   ),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/dive-computers/discover'),
+                  onTap: () => _showFullScreenOrPush(
+                    context,
+                    '/dive-computers/discover',
+                    const DeviceDiscoveryPage(),
+                  ),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -714,7 +721,11 @@ class _ComputersSectionContent extends ConsumerWidget {
                         Text(context.l10n.transfer_computers_errorLoading),
                   ),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/dive-computers'),
+                  onTap: () => _showFullScreenOrPush(
+                    context,
+                    '/dive-computers',
+                    const DeviceListPage(),
+                  ),
                 ),
               ],
             ),
@@ -733,7 +744,11 @@ class _ComputersSectionContent extends ConsumerWidget {
                 context.l10n.transfer_computers_appleWatchSubtitle,
               ),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/settings/wearable-import'),
+              onTap: () => _showFullScreenOrPush(
+                context,
+                '/settings/wearable-import',
+                const HealthKitImportPage(),
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -789,6 +804,26 @@ class _TransferSummaryWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// ============================================================================
+// NAVIGATION HELPERS
+// ============================================================================
+
+/// On desktop master-detail, shows [page] as a full-screen dialog so the
+/// Transfer page stays visible underneath. On mobile, pushes [route] via
+/// go_router as normal.
+void _showFullScreenOrPush(BuildContext context, String route, Widget page) {
+  if (ResponsiveBreakpoints.isMasterDetail(context)) {
+    showDialog<void>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: false,
+      builder: (_) => Dialog.fullscreen(child: page),
+    );
+  } else {
+    context.push(route);
   }
 }
 
