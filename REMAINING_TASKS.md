@@ -25,6 +25,7 @@ This document contains only the features and tasks that are **not yet completed*
 | Feature | Notes |
 |---------|-------|
 | Liveaboard tracking | Specialized trip type |
+- [ ] Trip auto-add dives from trip time range
 
 ---
 
@@ -90,6 +91,7 @@ This document contains only the features and tasks that are **not yet completed*
 | Feature | Notes |
 |---------|-------|
 | Photos of gear | Deferred with photos |
+- [ ] Make Equipmenet Sets more visible and easier to access
 
 ### 6.3 Maintenance
 **Tasks:**

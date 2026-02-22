@@ -202,6 +202,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
         downloadState.importResult!.imported > 0) {
       _hasInvalidatedDiveList = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.invalidate(divesProvider);
         ref.invalidate(diveListNotifierProvider);
         ref.invalidate(paginatedDiveListProvider);
       });

@@ -211,6 +211,9 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     try {
       final dives = await _repository.getAllDives(diverId: _currentDiverId);
       state = AsyncValue.data(dives);
+      // Keep divesProvider in sync so downstream FutureProviders
+      // (recentDivesProvider, dashboard stats, etc.) automatically refresh.
+      _ref.invalidate(divesProvider);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -513,8 +516,10 @@ class PaginatedDiveListNotifier
   }
 
   /// Also invalidate the old diveListNotifierProvider so legacy consumers
-  /// (export, map views) stay in sync.
+  /// (export, map views) stay in sync, and divesProvider so downstream
+  /// FutureProviders (recentDivesProvider, dashboard stats) refresh.
   void _invalidateOldProvider() {
+    _ref.invalidate(divesProvider);
     _ref.invalidate(diveListNotifierProvider);
   }
 

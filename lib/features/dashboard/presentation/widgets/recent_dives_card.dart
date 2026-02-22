@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A section showing recent dives with the same tile format as the dive list
@@ -145,7 +146,10 @@ class RecentDivesCard extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             FilledButton.icon(
-              onPressed: () => context.go('/dives/new'),
+              onPressed: () => showAddDiveBottomSheet(
+                context: context,
+                onLogManually: () => context.push('/dives/new'),
+              ),
               icon: const Icon(Icons.add),
               label: Text(context.l10n.dashboard_recentDives_logFirst),
             ),

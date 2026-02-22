@@ -20,6 +20,22 @@ final allDiveComputersProvider = FutureProvider<List<DiveComputer>>((
   return repository.getAllComputers(diverId: validatedDiverId);
 });
 
+/// Lookup map of saved dive computers keyed by Bluetooth address.
+///
+/// Used by the discovery wizard to show serial number and firmware version
+/// for previously-downloaded devices during scan and confirm steps.
+final savedComputersByAddressProvider =
+    FutureProvider<Map<String, DiveComputer>>((ref) async {
+      final computers = await ref.watch(allDiveComputersProvider.future);
+      final map = <String, DiveComputer>{};
+      for (final computer in computers) {
+        if (computer.bluetoothAddress != null) {
+          map[computer.bluetoothAddress!] = computer;
+        }
+      }
+      return map;
+    });
+
 /// Get a dive computer by ID
 final diveComputerByIdProvider = FutureProvider.family<DiveComputer?, String>((
   ref,

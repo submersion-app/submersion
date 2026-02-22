@@ -17,6 +17,7 @@ import 'package:submersion/features/tags/presentation/providers/tag_providers.da
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -61,6 +62,22 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     return state.uri.queryParameters['view'] == 'map';
   }
 
+  void _showAddDiveSheet(BuildContext context) {
+    final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
+    showAddDiveBottomSheet(
+      context: context,
+      onLogManually: () {
+        if (isDesktop) {
+          final state = GoRouterState.of(context);
+          final currentPath = state.uri.path;
+          context.go('$currentPath?mode=new');
+        } else {
+          context.push('/dives/new');
+        }
+      },
+    );
+  }
+
   void _toggleMapView() {
     final router = GoRouter.of(context);
     final state = GoRouterState.of(context);
@@ -96,18 +113,10 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     // Use desktop breakpoint (800px) to show master-detail when NavigationRail appears
     final showMasterDetail = ResponsiveBreakpoints.isMasterDetail(context);
 
-    final fab = FloatingActionButton.extended(
-      onPressed: () {
-        if (showMasterDetail) {
-          final state = GoRouterState.of(context);
-          final currentPath = state.uri.path;
-          context.go('$currentPath?mode=new');
-        } else {
-          context.push('/dives/new');
-        }
-      },
-      icon: const Icon(Icons.add),
-      label: Text(context.l10n.diveLog_listPage_fab_logDive),
+    final fab = FloatingActionButton(
+      onPressed: () => _showAddDiveSheet(context),
+      tooltip: context.l10n.diveLog_listPage_fab_addDive,
+      child: const Icon(Icons.add),
     );
 
     if (showMasterDetail) {
@@ -151,6 +160,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
         createBuilder: (context, onSaved, onCancel) =>
             DiveEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
         floatingActionButton: fab,
+        onFabPressed: () => _showAddDiveSheet(context),
       );
     }
 

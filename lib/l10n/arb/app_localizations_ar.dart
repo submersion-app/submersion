@@ -2723,10 +2723,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_label_diveComputer => 'حاسوب الغوص';
 
   @override
-  String get diveLog_detail_label_serialNumber => 'Serial Number';
+  String get diveLog_detail_label_serialNumber => 'الرقم التسلسلي';
 
   @override
-  String get diveLog_detail_label_firmwareVersion => 'Firmware Version';
+  String get diveLog_detail_label_firmwareVersion => 'إصدار البرنامج الثابت';
 
   @override
   String get diveLog_detail_label_diveMaster => 'مدرب الغوص الرئيسي';
@@ -3638,6 +3638,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String diveLog_listPage_errorLoading(Object error) {
     return 'خطأ: $error';
   }
+
+  @override
+  String get diveLog_listPage_bottomSheet_importFromComputer =>
+      'استيراد من حاسوب الغوص';
+
+  @override
+  String get diveLog_listPage_bottomSheet_logManually => 'تسجيل غوصة يدويا';
+
+  @override
+  String get diveLog_listPage_fab_addDive => 'اضافة غوصة';
 
   @override
   String get diveLog_listPage_fab_logDive => 'تسجيل غوصة';
@@ -12777,7 +12787,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_downloadStep_cancel => 'إلغاء';
 
   @override
-  String get diveComputer_downloadStep_cancelled => 'Download cancelled';
+  String get diveComputer_downloadStep_cancelled => 'تم إلغاء التنزيل';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {

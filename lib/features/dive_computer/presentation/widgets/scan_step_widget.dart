@@ -3,6 +3,9 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Widget for the scan/select step of the discovery wizard.
 ///
@@ -173,7 +176,7 @@ class _BluetoothScanTab extends ConsumerWidget {
         Expanded(
           child: devices.isEmpty && !discoveryState.isScanning
               ? _buildEmptyState(context, colorScheme)
-              : _buildDeviceList(context, devices),
+              : _buildDeviceList(context, ref, devices),
         ),
 
         // Scan controls
@@ -244,8 +247,12 @@ class _BluetoothScanTab extends ConsumerWidget {
 
   Widget _buildDeviceList(
     BuildContext context,
+    WidgetRef ref,
     List<DiscoveredDevice> devices,
   ) {
+    final savedComputers = ref.watch(savedComputersByAddressProvider);
+    final computerMap = savedComputers.valueOrNull ?? {};
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: devices.length,
@@ -253,6 +260,7 @@ class _BluetoothScanTab extends ConsumerWidget {
         final device = devices[index];
         return _DeviceListTile(
           device: device,
+          savedComputer: computerMap[device.address],
           onTap: () => onDeviceSelected(device),
         );
       },
@@ -441,9 +449,14 @@ class _UsbDeviceListTile extends StatelessWidget {
 /// List tile for a discovered device.
 class _DeviceListTile extends StatelessWidget {
   final DiscoveredDevice device;
+  final DiveComputer? savedComputer;
   final VoidCallback onTap;
 
-  const _DeviceListTile({required this.device, required this.onTap});
+  const _DeviceListTile({
+    required this.device,
+    this.savedComputer,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -533,6 +546,23 @@ class _DeviceListTile extends StatelessWidget {
                           ],
                         ],
                       ),
+                      if (savedComputer?.serialNumber != null ||
+                          savedComputer?.firmwareVersion != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          [
+                            if (savedComputer?.serialNumber != null)
+                              '${context.l10n.diveLog_detail_label_serialNumber}: ${savedComputer!.serialNumber}',
+                            if (savedComputer?.firmwareVersion != null)
+                              '${context.l10n.diveLog_detail_label_firmwareVersion}: ${savedComputer!.firmwareVersion}',
+                          ].join(' · '),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ],
                   ),
                 ),

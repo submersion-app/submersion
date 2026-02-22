@@ -2775,10 +2775,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_detail_label_diveComputer => 'Merulesszamitogep';
 
   @override
-  String get diveLog_detail_label_serialNumber => 'Serial Number';
+  String get diveLog_detail_label_serialNumber => 'Sorozatszam';
 
   @override
-  String get diveLog_detail_label_firmwareVersion => 'Firmware Version';
+  String get diveLog_detail_label_firmwareVersion => 'Firmware verzio';
 
   @override
   String get diveLog_detail_label_diveMaster => 'Divemaster';
@@ -3717,6 +3717,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String diveLog_listPage_errorLoading(Object error) {
     return 'Hiba: $error';
   }
+
+  @override
+  String get diveLog_listPage_bottomSheet_importFromComputer =>
+      'Importalas meruloszamitogebol';
+
+  @override
+  String get diveLog_listPage_bottomSheet_logManually =>
+      'Merules manualis rogzitese';
+
+  @override
+  String get diveLog_listPage_fab_addDive => 'Merules hozzaadasa';
 
   @override
   String get diveLog_listPage_fab_logDive => 'Merules rogzitese';
@@ -13007,7 +13018,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveComputer_downloadStep_cancel => 'Megse';
 
   @override
-  String get diveComputer_downloadStep_cancelled => 'Download cancelled';
+  String get diveComputer_downloadStep_cancelled => 'Letoltes megszakitva';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {

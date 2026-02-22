@@ -3668,6 +3668,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_listPage_bottomSheet_importFromComputer =>
+      'Import from Computer';
+
+  @override
+  String get diveLog_listPage_bottomSheet_logManually => 'Log Dive Manually';
+
+  @override
+  String get diveLog_listPage_fab_addDive => 'Add Dive';
+
+  @override
   String get diveLog_listPage_fab_logDive => 'Log Dive';
 
   @override

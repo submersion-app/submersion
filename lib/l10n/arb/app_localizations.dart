@@ -6376,6 +6376,24 @@ abstract class AppLocalizations {
   /// **'Error: {error}'**
   String diveLog_listPage_errorLoading(Object error);
 
+  /// No description provided for @diveLog_listPage_bottomSheet_importFromComputer.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from Computer'**
+  String get diveLog_listPage_bottomSheet_importFromComputer;
+
+  /// No description provided for @diveLog_listPage_bottomSheet_logManually.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Dive Manually'**
+  String get diveLog_listPage_bottomSheet_logManually;
+
+  /// No description provided for @diveLog_listPage_fab_addDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Dive'**
+  String get diveLog_listPage_fab_addDive;
+
   /// No description provided for @diveLog_listPage_fab_logDive.
   ///
   /// In en, this message translates to:

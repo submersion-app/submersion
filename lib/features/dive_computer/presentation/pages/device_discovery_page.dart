@@ -251,6 +251,10 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    // Look up previously saved computer for serial/firmware info
+    final savedComputers = ref.watch(savedComputersByAddressProvider);
+    final savedComputer = savedComputers.valueOrNull?[device.address];
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -290,6 +294,24 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
+                  if (savedComputer?.serialNumber != null ||
+                      savedComputer?.firmwareVersion != null) ...[
+                    const SizedBox(height: 8),
+                    if (savedComputer?.serialNumber != null)
+                      Text(
+                        '${context.l10n.diveLog_detail_label_serialNumber}: ${savedComputer!.serialNumber}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    if (savedComputer?.firmwareVersion != null)
+                      Text(
+                        '${context.l10n.diveLog_detail_label_firmwareVersion}: ${savedComputer!.firmwareVersion}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
                   const SizedBox(height: 24),
                   // Custom name field
                   TextField(
@@ -489,6 +511,7 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
   Future<void> _onDownloadComplete() async {
     // Import is handled automatically by the DownloadNotifier's auto-import.
     // Just invalidate the dive list so the Dives page refreshes.
+    ref.invalidate(divesProvider);
     ref.invalidate(diveListNotifierProvider);
     ref.invalidate(paginatedDiveListProvider);
 

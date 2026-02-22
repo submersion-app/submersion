@@ -111,6 +111,10 @@ class MasterDetailScaffold extends ConsumerStatefulWidget {
   /// Floating action button for the master pane.
   final Widget? floatingActionButton;
 
+  /// Optional callback invoked when the FAB is pressed.
+  /// When provided, this replaces the default create-mode navigation.
+  final VoidCallback? onFabPressed;
+
   /// Fixed width of the master pane in pixels (default 440).
   final double masterWidth;
 
@@ -133,6 +137,7 @@ class MasterDetailScaffold extends ConsumerStatefulWidget {
     this.editBuilder,
     this.createBuilder,
     this.floatingActionButton,
+    this.onFabPressed,
     this.masterWidth = 440,
     this.mobileDetailRoute,
     this.mobileEditRoute,
@@ -300,11 +305,13 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
     );
   }
 
-  /// Wrap the FAB to use our create handler instead of direct navigation
+  /// Wrap the FAB to use our create handler instead of direct navigation.
+  /// If [onFabPressed] is provided, it replaces the default create behavior.
   Widget _wrapFabForCreate(Widget fab) {
+    final handler = widget.onFabPressed ?? _onCreate;
     if (fab is FloatingActionButton) {
       return FloatingActionButton(
-        onPressed: _onCreate,
+        onPressed: handler,
         tooltip: fab.tooltip,
         backgroundColor: fab.backgroundColor,
         foregroundColor: fab.foregroundColor,
@@ -316,7 +323,7 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
       button: true,
       label: context.l10n.accessibility_label_createNewItem,
       child: GestureDetector(
-        onTap: _onCreate,
+        onTap: handler,
         child: AbsorbPointer(child: fab),
       ),
     );

@@ -2768,10 +2768,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_detail_label_diveComputer => 'Duikcomputer';
 
   @override
-  String get diveLog_detail_label_serialNumber => 'Serial Number';
+  String get diveLog_detail_label_serialNumber => 'Serienummer';
 
   @override
-  String get diveLog_detail_label_firmwareVersion => 'Firmware Version';
+  String get diveLog_detail_label_firmwareVersion => 'Firmwareversie';
 
   @override
   String get diveLog_detail_label_diveMaster => 'Divemaster';
@@ -3704,6 +3704,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String diveLog_listPage_errorLoading(Object error) {
     return 'Fout: $error';
   }
+
+  @override
+  String get diveLog_listPage_bottomSheet_importFromComputer =>
+      'Importeren van duikcomputer';
+
+  @override
+  String get diveLog_listPage_bottomSheet_logManually =>
+      'Duik handmatig loggen';
+
+  @override
+  String get diveLog_listPage_fab_addDive => 'Duik toevoegen';
 
   @override
   String get diveLog_listPage_fab_logDive => 'Duik loggen';
@@ -12935,7 +12946,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveComputer_downloadStep_cancel => 'Annuleren';
 
   @override
-  String get diveComputer_downloadStep_cancelled => 'Download cancelled';
+  String get diveComputer_downloadStep_cancelled => 'Download geannuleerd';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {

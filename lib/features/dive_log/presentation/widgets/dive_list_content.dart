@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -1459,7 +1460,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
-            onPressed: () => context.go('/dives/new'),
+            onPressed: () => showAddDiveBottomSheet(
+              context: context,
+              onLogManually: () => context.go('/dives/new'),
+            ),
             icon: const Icon(Icons.add),
             label: Text(context.l10n.diveLog_empty_logFirstDive),
           ),

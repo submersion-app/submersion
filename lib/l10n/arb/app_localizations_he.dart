@@ -2710,10 +2710,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_label_diveComputer => 'מחשב צלילה';
 
   @override
-  String get diveLog_detail_label_serialNumber => 'Serial Number';
+  String get diveLog_detail_label_serialNumber => 'מספר סידורי';
 
   @override
-  String get diveLog_detail_label_firmwareVersion => 'Firmware Version';
+  String get diveLog_detail_label_firmwareVersion => 'גרסת קושחה';
 
   @override
   String get diveLog_detail_label_diveMaster => 'דייבמאסטר';
@@ -3624,6 +3624,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String diveLog_listPage_errorLoading(Object error) {
     return 'שגיאה: $error';
   }
+
+  @override
+  String get diveLog_listPage_bottomSheet_importFromComputer =>
+      'ייבוא ממחשב צלילה';
+
+  @override
+  String get diveLog_listPage_bottomSheet_logManually => 'רישום צלילה ידנית';
+
+  @override
+  String get diveLog_listPage_fab_addDive => 'הוספת צלילה';
 
   @override
   String get diveLog_listPage_fab_logDive => 'רישום צלילה';
@@ -12687,7 +12697,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_downloadStep_cancel => 'ביטול';
 
   @override
-  String get diveComputer_downloadStep_cancelled => 'Download cancelled';
+  String get diveComputer_downloadStep_cancelled => 'ההורדה בוטלה';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {

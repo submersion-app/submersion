@@ -113,7 +113,7 @@ static void handle_get_device_descriptors(
             static_cast<int64_t>(info.model), transports);
     fl_value_unref(transports);
     fl_value_append_take(descriptors,
-                         fl_value_new_custom_object(G_OBJECT(desc)));
+                         fl_value_new_custom_object(130, G_OBJECT(desc)));
     g_object_unref(desc);
   }
   libdc_descriptor_iterator_free(iter);
