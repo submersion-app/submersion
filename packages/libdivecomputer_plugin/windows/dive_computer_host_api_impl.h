@@ -2,6 +2,7 @@
 #define DIVE_COMPUTER_HOST_API_IMPL_H_
 
 #include <flutter/binary_messenger.h>
+#include <flutter/plugin_registrar.h>
 
 #include <memory>
 
@@ -9,7 +10,8 @@
 
 namespace libdivecomputer_plugin {
 
-class DiveComputerHostApiImpl : public DiveComputerHostApi {
+class DiveComputerHostApiImpl : public DiveComputerHostApi,
+                                public flutter::Plugin {
  public:
   explicit DiveComputerHostApiImpl(flutter::BinaryMessenger* messenger);
   ~DiveComputerHostApiImpl() override;

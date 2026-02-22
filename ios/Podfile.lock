@@ -11,8 +11,6 @@ PODS:
     - PromisesObjC (~> 2.4)
   - device_info_plus (0.0.1):
     - Flutter
-  - dive_computer (0.0.1):
-    - Flutter
   - DKImagePickerController/Core (4.3.9):
     - DKImagePickerController/ImageDataManager
     - DKImagePickerController/Resource
@@ -48,9 +46,6 @@ PODS:
     - DKImagePickerController/PhotoGallery
     - Flutter
   - Flutter (1.0.0)
-  - flutter_blue_plus_darwin (0.0.2):
-    - Flutter
-    - FlutterMacOS
   - flutter_contacts (0.0.1):
     - Flutter
   - flutter_local_notifications (0.0.1):
@@ -167,10 +162,8 @@ PODS:
 
 DEPENDENCIES:
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
-  - dive_computer (from `.symlinks/plugins/dive_computer/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
-  - flutter_blue_plus_darwin (from `.symlinks/plugins/flutter_blue_plus_darwin/darwin`)
   - flutter_contacts (from `.symlinks/plugins/flutter_contacts/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - flutter_secure_storage_darwin (from `.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
@@ -216,14 +209,10 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
-  dive_computer:
-    :path: ".symlinks/plugins/dive_computer/ios"
   file_picker:
     :path: ".symlinks/plugins/file_picker/ios"
   Flutter:
     :path: Flutter
-  flutter_blue_plus_darwin:
-    :path: ".symlinks/plugins/flutter_blue_plus_darwin/darwin"
   flutter_contacts:
     :path: ".symlinks/plugins/flutter_contacts/ios"
   flutter_local_notifications:
@@ -279,12 +268,10 @@ SPEC CHECKSUMS:
   AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
-  dive_computer: 3dd7b756593e38ea5eb4e1baac8f500906b50cf8
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_blue_plus_darwin: 20a08bfeaa0f7804d524858d3d8744bcc1b6dbc3
   flutter_contacts: 5383945387e7ca37cf963d4be57c21f2fc15ca9f
   flutter_local_notifications: 395056b3175ba4f08480a7c5de30cd36d69827e4
   flutter_secure_storage_darwin: acdb3f316ed05a3e68f856e0353b133eec373a23

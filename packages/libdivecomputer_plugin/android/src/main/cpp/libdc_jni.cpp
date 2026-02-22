@@ -318,6 +318,7 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
         &io_callbacks,
         nullptr, 0,  // No fingerprint
         &dl_callbacks,
+        nullptr, nullptr,  // serial_out, firmware_out (not yet wired on Android)
         error_buf, sizeof(error_buf));
 
     // Copy error message to output buffer.

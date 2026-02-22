@@ -9,6 +9,8 @@
 // Android/Linux headers
 #define HAVE_PTHREAD_H 1
 #define HAVE_UNISTD_H 1
+#define HAVE_STRINGS_H 1
+#include <strings.h>
 #define HAVE_SYS_PARAM_H 1
 
 // Time functions available on Android
