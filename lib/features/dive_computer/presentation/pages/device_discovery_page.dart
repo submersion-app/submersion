@@ -440,28 +440,40 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
 
     if (device == null) return;
 
-    // Save the computer first
-    final name = _customName?.trim().isNotEmpty == true
-        ? _customName!.trim()
-        : device.displayName;
+    final hasCustomName = _customName?.trim().isNotEmpty == true;
+    final name = hasCustomName ? _customName!.trim() : device.displayName;
 
-    final computer = DiveComputer(
-      id: '',
-      name: name,
-      manufacturer: device.manufacturer,
-      model: device.model,
-      connectionType: device.connectionType.name,
-      bluetoothAddress: device.address,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
+    // Reuse existing computer if one matches this bluetooth address
+    final repo = ref.read(diveComputerRepositoryProvider);
+    final existing = await repo.findByBluetoothAddress(device.address);
 
-    // Create in database
-    final saved = await ref
-        .read(diveComputerNotifierProvider.notifier)
-        .create(computer);
+    if (existing != null) {
+      if (hasCustomName && existing.name != name) {
+        final updated = existing.copyWith(
+          name: name,
+          updatedAt: DateTime.now(),
+        );
+        await ref.read(diveComputerNotifierProvider.notifier).update(updated);
+        _savedComputer = updated;
+      } else {
+        _savedComputer = existing;
+      }
+    } else {
+      final computer = DiveComputer(
+        id: '',
+        name: name,
+        manufacturer: device.manufacturer,
+        model: device.model,
+        connectionType: device.connectionType.name,
+        bluetoothAddress: device.address,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
-    _savedComputer = saved;
+      _savedComputer = await ref
+          .read(diveComputerNotifierProvider.notifier)
+          .create(computer);
+    }
 
     // Try to connect
     final connected = await notifier.connectToDevice();
