@@ -182,6 +182,32 @@ class AppLocalizationsEs extends AppLocalizations {
   String get backup_delete_dialog_title => 'Eliminar Copia';
 
   @override
+  String get backup_export_bottomSheet_title => 'Export Backup';
+
+  @override
+  String get backup_export_saveToFile => 'Save to File';
+
+  @override
+  String get backup_export_saveToFile_subtitle =>
+      'Choose where to save the backup file';
+
+  @override
+  String get backup_export_share => 'Share';
+
+  @override
+  String get backup_export_share_subtitle =>
+      'Send via AirDrop, email, or other apps';
+
+  @override
+  String get backup_export_subtitle => 'Save your dive data to a file';
+
+  @override
+  String get backup_export_success => 'Backup exported successfully';
+
+  @override
+  String get backup_export_title => 'Export Backup';
+
+  @override
   String get backup_frequency_daily => 'Diaria';
 
   @override
@@ -203,6 +229,28 @@ class AppLocalizationsEs extends AppLocalizations {
   String backup_history_error(Object error) {
     return 'Error al cargar historial: $error';
   }
+
+  @override
+  String get backup_import_invalidFile =>
+      'This file does not appear to be a valid Submersion backup';
+
+  @override
+  String get backup_import_subtitle => 'Import a backup from any location';
+
+  @override
+  String get backup_import_title => 'Restore from File';
+
+  @override
+  String get backup_import_validating => 'Validating backup file...';
+
+  @override
+  String get backup_location_change => 'Change';
+
+  @override
+  String get backup_location_default => 'Default location';
+
+  @override
+  String get backup_location_title => 'Backup Location';
 
   @override
   String get backup_restore_dialog_cancel => 'Cancelar';
@@ -237,6 +285,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get backup_schedule_retention_subtitle =>
       'Las copias más antiguas se eliminan automáticamente';
+
+  @override
+  String get backup_section_auto => 'Automatic Backups';
 
   @override
   String get backup_section_cloud => 'Nube';

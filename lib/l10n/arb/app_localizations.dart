@@ -426,6 +426,54 @@ abstract class AppLocalizations {
   /// **'Delete Backup'**
   String get backup_delete_dialog_title;
 
+  /// No description provided for @backup_export_bottomSheet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Backup'**
+  String get backup_export_bottomSheet_title;
+
+  /// No description provided for @backup_export_saveToFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to File'**
+  String get backup_export_saveToFile;
+
+  /// No description provided for @backup_export_saveToFile_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose where to save the backup file'**
+  String get backup_export_saveToFile_subtitle;
+
+  /// No description provided for @backup_export_share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get backup_export_share;
+
+  /// No description provided for @backup_export_share_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send via AirDrop, email, or other apps'**
+  String get backup_export_share_subtitle;
+
+  /// No description provided for @backup_export_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save your dive data to a file'**
+  String get backup_export_subtitle;
+
+  /// No description provided for @backup_export_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup exported successfully'**
+  String get backup_export_success;
+
+  /// No description provided for @backup_export_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Backup'**
+  String get backup_export_title;
+
   /// No description provided for @backup_frequency_daily.
   ///
   /// In en, this message translates to:
@@ -467,6 +515,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load history: {error}'**
   String backup_history_error(Object error);
+
+  /// No description provided for @backup_import_invalidFile.
+  ///
+  /// In en, this message translates to:
+  /// **'This file does not appear to be a valid Submersion backup'**
+  String get backup_import_invalidFile;
+
+  /// No description provided for @backup_import_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import a backup from any location'**
+  String get backup_import_subtitle;
+
+  /// No description provided for @backup_import_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from File'**
+  String get backup_import_title;
+
+  /// No description provided for @backup_import_validating.
+  ///
+  /// In en, this message translates to:
+  /// **'Validating backup file...'**
+  String get backup_import_validating;
+
+  /// No description provided for @backup_location_change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get backup_location_change;
+
+  /// No description provided for @backup_location_default.
+  ///
+  /// In en, this message translates to:
+  /// **'Default location'**
+  String get backup_location_default;
+
+  /// No description provided for @backup_location_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup Location'**
+  String get backup_location_title;
 
   /// No description provided for @backup_restore_dialog_cancel.
   ///
@@ -527,6 +617,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Older backups are automatically removed'**
   String get backup_schedule_retention_subtitle;
+
+  /// No description provided for @backup_section_auto.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic Backups'**
+  String get backup_section_auto;
 
   /// No description provided for @backup_section_cloud.
   ///
