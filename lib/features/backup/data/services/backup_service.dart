@@ -275,6 +275,29 @@ class BackupService {
     _log.info('Restore completed from: ${record.filename}');
   }
 
+  /// Restore the database from an arbitrary file path.
+  ///
+  /// Creates a safety backup of the current database first,
+  /// then replaces the database with the specified file.
+  /// Throws [BackupException] if the file is not found.
+  Future<void> restoreFromFile(String filePath) async {
+    _log.info('Starting restore from file: $filePath');
+
+    final file = File(filePath);
+    if (!await file.exists()) {
+      throw const BackupException('Backup file not found');
+    }
+
+    // Create safety backup first
+    _log.info('Creating safety backup before file restore');
+    await performBackup(isAutomatic: true);
+
+    // Restore using DatabaseService
+    await _dbAdapter.restore(filePath);
+
+    _log.info('Restore from file completed: ${p.basename(filePath)}');
+  }
+
   // ===========================================================================
   // History & Management
   // ===========================================================================

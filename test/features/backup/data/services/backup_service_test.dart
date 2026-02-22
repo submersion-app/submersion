@@ -26,6 +26,10 @@ class FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   Future<void> backup(String destinationPath) async {
     backupCallCount++;
     lastBackupPath = destinationPath;
+    // Create the file so callers that check size don't throw
+    final file = File(destinationPath);
+    await file.parent.create(recursive: true);
+    await file.writeAsString('fake backup data');
   }
 
   @override
@@ -147,6 +151,9 @@ void main() {
             const MethodChannel('plugins.flutter.io/path_provider'),
             (MethodCall methodCall) async {
               if (methodCall.method == 'getTemporaryDirectory') {
+                return Directory.systemTemp.path;
+              }
+              if (methodCall.method == 'getApplicationDocumentsDirectory') {
                 return Directory.systemTemp.path;
               }
               return null;
@@ -550,6 +557,42 @@ void main() {
 
         final history = preferences.getHistory();
         expect(history, isEmpty);
+      });
+    });
+
+    group('restoreFromFile', () {
+      test('throws BackupException for non-existent file', () async {
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        expect(
+          () => service.restoreFromFile('/nonexistent/file.sqlite'),
+          throwsA(isA<BackupException>()),
+        );
+      });
+
+      test('creates safety backup before restoring', () async {
+        final tempDir = await Directory.systemTemp.createTemp('backup_test_');
+        final backupFile = File('${tempDir.path}/test.sqlite');
+        await backupFile.writeAsString('fake db content');
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        try {
+          await service.restoreFromFile(backupFile.path);
+
+          // Safety backup is created via performBackup, then restore is called
+          expect(fakeDb.backupCallCount, 1); // safety backup
+          expect(fakeDb.restoreCallCount, 1); // restore
+          expect(fakeDb.lastRestorePath, backupFile.path);
+        } finally {
+          await tempDir.delete(recursive: true);
+        }
       });
     });
 
