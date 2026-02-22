@@ -12935,6 +12935,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveComputer_downloadStep_cancel => 'Annuleren';
 
   @override
+  String get diveComputer_downloadStep_cancelled => 'Download cancelled';
+
+  @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
     return '${depth}m';
   }

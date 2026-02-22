@@ -22283,6 +22283,12 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get diveComputer_downloadStep_cancel;
 
+  /// No description provided for @diveComputer_downloadStep_cancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Download cancelled'**
+  String get diveComputer_downloadStep_cancelled;
+
   /// No description provided for @diveComputer_downloadStep_depthMeters.
   ///
   /// In en, this message translates to:

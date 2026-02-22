@@ -7889,6 +7889,7 @@
     }
   },
   "diveComputer_downloadStep_cancel": "Cancel",
+  "diveComputer_downloadStep_cancelled": "Download cancelled",
   "diveComputer_downloadStep_depthMeters": "{depth}m",
   "@diveComputer_downloadStep_depthMeters": {
     "placeholders": {

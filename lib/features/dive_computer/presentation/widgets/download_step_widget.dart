@@ -95,12 +95,20 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
       });
     }
 
-    final statusText = downloadState.phase == DownloadPhase.processing
-        ? 'Importing ${downloadState.downloadedDives.length} dives...'
-        : downloadState.progress?.status ??
-              context.l10n.diveComputer_downloadStep_preparing;
-    final percentText =
-        downloadState.progress != null && downloadState.progress!.totalDives > 0
+    final statusText = switch (downloadState.phase) {
+      DownloadPhase.processing =>
+        'Importing ${downloadState.downloadedDives.length} dives...',
+      DownloadPhase.cancelled =>
+        context.l10n.diveComputer_downloadStep_cancelled,
+      _ =>
+        downloadState.progress?.status ??
+            context.l10n.diveComputer_downloadStep_preparing,
+    };
+    final showPercent =
+        downloadState.isDownloading &&
+        downloadState.progress != null &&
+        downloadState.progress!.totalDives > 0;
+    final percentText = showPercent
         ? context.l10n.diveComputer_downloadStep_percentAccessibility(
             (downloadState.progress!.percentage * 100).toStringAsFixed(0),
           )
@@ -132,8 +140,7 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
             const SizedBox(height: 8),
 
             // Progress percentage
-            if (downloadState.progress != null &&
-                downloadState.progress!.totalDives > 0)
+            if (showPercent)
               Text(
                 context.l10n.diveComputer_downloadStep_progressPercent(
                   (downloadState.progress!.percentage * 100).toStringAsFixed(0),
@@ -215,6 +222,22 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
                   ),
                 ],
               ),
+
+            // Cancelled state
+            if (downloadState.isCancelled)
+              Column(
+                children: [
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: () {
+                      _hasStarted = false;
+                      _startDownload();
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: Text(context.l10n.diveComputer_downloadStep_retry),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -233,6 +256,22 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
           color: colorScheme.errorContainer,
         ),
         child: Icon(Icons.error_outline, size: 64, color: colorScheme.error),
+      );
+    }
+
+    if (state.isCancelled) {
+      return Container(
+        width: 120,
+        height: 120,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: colorScheme.surfaceContainerHighest,
+        ),
+        child: Icon(
+          Icons.cancel_outlined,
+          size: 64,
+          color: colorScheme.onSurfaceVariant,
+        ),
       );
     }
 

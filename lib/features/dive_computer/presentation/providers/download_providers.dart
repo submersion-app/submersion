@@ -86,6 +86,9 @@ class DownloadState {
   /// Whether download completed successfully.
   bool get isComplete => phase == DownloadPhase.complete;
 
+  /// Whether download was cancelled.
+  bool get isCancelled => phase == DownloadPhase.cancelled;
+
   /// Whether there was an error.
   bool get hasError => phase == DownloadPhase.error || errorMessage != null;
 }
