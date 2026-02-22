@@ -309,6 +309,38 @@ class BackupService {
     return history;
   }
 
+  /// Get backup history with stale entry pruning.
+  ///
+  /// Checks each record's local file existence. Removes records where:
+  /// - localPath is set but file no longer exists
+  /// - AND there is no cloud backup (cloudFileId is null)
+  ///
+  /// Records with no localPath (legacy) or with cloud backups are kept.
+  Future<List<BackupRecord>> getValidatedBackupHistory() async {
+    final history = _preferences.getHistory();
+    final validRecords = <BackupRecord>[];
+    var pruned = false;
+
+    for (final record in history) {
+      if (record.localPath != null && record.cloudFileId == null) {
+        final file = File(record.localPath!);
+        if (!await file.exists()) {
+          _log.info('Pruning stale backup record: ${record.filename}');
+          pruned = true;
+          continue;
+        }
+      }
+      validRecords.add(record);
+    }
+
+    if (pruned) {
+      await _preferences.setHistory(validRecords);
+    }
+
+    validRecords.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    return validRecords;
+  }
+
   /// Delete a specific backup (local file + cloud file + metadata).
   Future<void> deleteBackup(BackupRecord record) async {
     _log.info('Deleting backup: ${record.filename}');

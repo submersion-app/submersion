@@ -630,6 +630,131 @@ void main() {
       });
     });
 
+    group('getValidatedBackupHistory', () {
+      test(
+        'removes records where local file is gone and no cloud backup',
+        () async {
+          await preferences.addRecord(
+            BackupRecord(
+              id: 'gone',
+              filename: 'gone.sqlite',
+              timestamp: DateTime(2025, 6, 1),
+              sizeBytes: 1000,
+              location: BackupLocation.local,
+              diveCount: 5,
+              siteCount: 2,
+              localPath: '/this/file/does/not/exist.sqlite',
+            ),
+          );
+          await preferences.addRecord(
+            BackupRecord(
+              id: 'has-cloud',
+              filename: 'cloud.sqlite',
+              timestamp: DateTime(2025, 7, 1),
+              sizeBytes: 1000,
+              location: BackupLocation.both,
+              diveCount: 10,
+              siteCount: 3,
+              localPath: '/also/missing.sqlite',
+              cloudFileId: 'cloud-123',
+            ),
+          );
+
+          final service = BackupService(
+            dbAdapter: fakeDb,
+            preferences: preferences,
+          );
+
+          final history = await service.getValidatedBackupHistory();
+
+          // 'gone' should be pruned (local-only, file missing)
+          // 'has-cloud' should be kept (has cloud backup)
+          expect(history, hasLength(1));
+          expect(history.first.id, 'has-cloud');
+        },
+      );
+
+      test('keeps records where local file exists', () async {
+        final tempDir = await Directory.systemTemp.createTemp('backup_test_');
+        final realFile = File('${tempDir.path}/real.sqlite');
+        await realFile.writeAsString('data');
+
+        await preferences.addRecord(
+          BackupRecord(
+            id: 'real',
+            filename: 'real.sqlite',
+            timestamp: DateTime(2025, 6, 1),
+            sizeBytes: 1000,
+            location: BackupLocation.local,
+            diveCount: 5,
+            siteCount: 2,
+            localPath: realFile.path,
+          ),
+        );
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        try {
+          final history = await service.getValidatedBackupHistory();
+          expect(history, hasLength(1));
+          expect(history.first.id, 'real');
+        } finally {
+          await tempDir.delete(recursive: true);
+        }
+      });
+
+      test('keeps records with no localPath (legacy)', () async {
+        await preferences.addRecord(
+          BackupRecord(
+            id: 'legacy',
+            filename: 'legacy.sqlite',
+            timestamp: DateTime(2025, 6, 1),
+            sizeBytes: 1000,
+            location: BackupLocation.local,
+            diveCount: 5,
+            siteCount: 2,
+          ),
+        );
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        final history = await service.getValidatedBackupHistory();
+        expect(history, hasLength(1));
+      });
+
+      test('persists pruning to preferences', () async {
+        await preferences.addRecord(
+          BackupRecord(
+            id: 'stale',
+            filename: 'stale.sqlite',
+            timestamp: DateTime(2025, 6, 1),
+            sizeBytes: 1000,
+            location: BackupLocation.local,
+            diveCount: 5,
+            siteCount: 2,
+            localPath: '/nonexistent/stale.sqlite',
+          ),
+        );
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        await service.getValidatedBackupHistory();
+
+        // Stale record should be removed from preferences
+        final rawHistory = preferences.getHistory();
+        expect(rawHistory, isEmpty);
+      });
+    });
+
     group('BackupSettings integration', () {
       test('isBackupDue returns true when never backed up', () {
         const settings = BackupSettings(enabled: true);
