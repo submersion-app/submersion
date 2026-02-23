@@ -13,13 +13,21 @@ class ImportResult {
   /// Asset IDs that failed to import, with error messages.
   final Map<String, String> failures;
 
-  const ImportResult({required this.imported, required this.failures});
+  /// Number of assets skipped because they were already linked to the dive.
+  final int skippedDuplicates;
+
+  const ImportResult({
+    required this.imported,
+    required this.failures,
+    this.skippedDuplicates = 0,
+  });
 
   /// Total number of items attempted.
-  int get totalAttempted => imported.length + failures.length;
+  int get totalAttempted =>
+      imported.length + failures.length + skippedDuplicates;
 
   /// Whether all imports succeeded.
-  bool get allSucceeded => failures.isEmpty;
+  bool get allSucceeded => failures.isEmpty && skippedDuplicates == 0;
 }
 
 /// Service for importing photos from the device gallery into the app.
@@ -56,7 +64,22 @@ class MediaImportService {
       'Starting import of ${selectedAssets.length} assets for dive ${dive.id}',
     );
 
-    for (final asset in selectedAssets) {
+    // Fetch already-linked asset IDs for this dive
+    final existingAssetIds = await _mediaRepository.getLinkedAssetIdsForDive(
+      dive.id,
+    );
+
+    // Filter out duplicates before processing
+    final newAssets = selectedAssets
+        .where((a) => !existingAssetIds.contains(a.id))
+        .toList();
+    final skippedCount = selectedAssets.length - newAssets.length;
+
+    if (skippedCount > 0) {
+      _log.info('Skipped $skippedCount duplicate assets for dive ${dive.id}');
+    }
+
+    for (final asset in newAssets) {
       try {
         // Create MediaItem
         final mediaItem = _createMediaItemFromAsset(asset, dive.id);
@@ -88,7 +111,11 @@ class MediaImportService {
       'Import complete: ${imported.length} succeeded, ${failures.length} failed',
     );
 
-    return ImportResult(imported: imported, failures: failures);
+    return ImportResult(
+      imported: imported,
+      failures: failures,
+      skippedDuplicates: skippedCount,
+    );
   }
 
   MediaItem _createMediaItemFromAsset(AssetInfo asset, String diveId) {
