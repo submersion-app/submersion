@@ -413,6 +413,31 @@ class MediaRepository {
     }
   }
 
+  /// Get the set of platformAssetIds already linked to a specific dive.
+  ///
+  /// Returns only non-null platformAssetIds for gallery photos.
+  /// Used to prevent duplicate linking.
+  Future<Set<String>> getLinkedAssetIdsForDive(String diveId) async {
+    try {
+      final result = await _db
+          .customSelect(
+            'SELECT platform_asset_id FROM media WHERE dive_id = ? AND platform_asset_id IS NOT NULL',
+            variables: [Variable.withString(diveId)],
+          )
+          .get();
+      return result
+          .map((row) => row.data['platform_asset_id'] as String)
+          .toSet();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get linked asset IDs for dive: $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get GPS coordinates from media attached to a dive.
   ///
   /// Returns a list of (latitude, longitude, takenAt) tuples from photos

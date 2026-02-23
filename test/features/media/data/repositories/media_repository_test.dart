@@ -456,6 +456,114 @@ void main() {
       });
     });
 
+    group('getLinkedAssetIdsForDive', () {
+      test('should return asset IDs for dive with gallery photos', () async {
+        final dive = await createTestDiveInDb(diveNumber: 1);
+
+        await repository.createMedia(
+          createTestMediaItem(
+            diveId: dive.id,
+            filePath: '/photos/a.jpg',
+            platformAssetId: 'asset-aaa',
+          ),
+        );
+        await repository.createMedia(
+          createTestMediaItem(
+            diveId: dive.id,
+            filePath: '/photos/b.jpg',
+            platformAssetId: 'asset-bbb',
+          ),
+        );
+
+        final result = await repository.getLinkedAssetIdsForDive(dive.id);
+
+        expect(result, isA<Set<String>>());
+        expect(result, containsAll(['asset-aaa', 'asset-bbb']));
+        expect(result.length, equals(2));
+      });
+
+      test('should exclude null platformAssetIds', () async {
+        final dive = await createTestDiveInDb(diveNumber: 1);
+
+        // Gallery photo with platformAssetId
+        await repository.createMedia(
+          createTestMediaItem(
+            diveId: dive.id,
+            filePath: '/photos/gallery.jpg',
+            platformAssetId: 'asset-gallery',
+          ),
+        );
+        // Signature without platformAssetId (null)
+        await repository.createMedia(
+          createTestMediaItem(
+            diveId: dive.id,
+            filePath: '/signatures/sig.png',
+            mediaType: MediaType.instructorSignature,
+            platformAssetId: null,
+          ),
+        );
+        // Photo without platformAssetId (null)
+        await repository.createMedia(
+          createTestMediaItem(
+            diveId: dive.id,
+            filePath: '/photos/manual.jpg',
+            platformAssetId: null,
+          ),
+        );
+
+        final result = await repository.getLinkedAssetIdsForDive(dive.id);
+
+        expect(result.length, equals(1));
+        expect(result, contains('asset-gallery'));
+      });
+
+      test('should return empty set when no media exists for dive', () async {
+        final dive = await createTestDiveInDb(diveNumber: 1);
+
+        final result = await repository.getLinkedAssetIdsForDive(dive.id);
+
+        expect(result, isA<Set<String>>());
+        expect(result, isEmpty);
+      });
+
+      test('should return different sets for different dives', () async {
+        final dive1 = await createTestDiveInDb(diveNumber: 1);
+        final dive2 = await createTestDiveInDb(diveNumber: 2);
+
+        await repository.createMedia(
+          createTestMediaItem(
+            diveId: dive1.id,
+            filePath: '/photos/d1.jpg',
+            platformAssetId: 'asset-dive1',
+          ),
+        );
+        await repository.createMedia(
+          createTestMediaItem(
+            diveId: dive2.id,
+            filePath: '/photos/d2a.jpg',
+            platformAssetId: 'asset-dive2a',
+          ),
+        );
+        await repository.createMedia(
+          createTestMediaItem(
+            diveId: dive2.id,
+            filePath: '/photos/d2b.jpg',
+            platformAssetId: 'asset-dive2b',
+          ),
+        );
+
+        final result1 = await repository.getLinkedAssetIdsForDive(dive1.id);
+        final result2 = await repository.getLinkedAssetIdsForDive(dive2.id);
+
+        expect(result1.length, equals(1));
+        expect(result1, contains('asset-dive1'));
+        expect(result2.length, equals(2));
+        expect(result2, containsAll(['asset-dive2a', 'asset-dive2b']));
+        // No overlap
+        expect(result1.intersection(result2), isEmpty);
+      });
+    });
+
     group('pending suggestions', () {
       test('should return 0 when no pending suggestions exist', () async {
         final dive = await createTestDiveInDb(diveNumber: 1);
