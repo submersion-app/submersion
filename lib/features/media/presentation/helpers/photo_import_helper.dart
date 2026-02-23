@@ -93,6 +93,7 @@ class PhotoImportHelper {
           context,
           result.imported.length,
           result.failures.length,
+          result.skippedDuplicates,
         );
       }
 
@@ -151,11 +152,16 @@ class PhotoImportHelper {
     BuildContext context,
     int imported,
     int failed,
+    int skipped,
   ) {
     String message;
-    if (failed == 0) {
+    if (failed == 0 && skipped == 0) {
       message = context.l10n.media_import_importedPhotos(imported);
-    } else if (imported == 0) {
+    } else if (imported == 0 && skipped > 0 && failed == 0) {
+      message = context.l10n.media_import_allAlreadyLinked(skipped);
+    } else if (imported > 0 && skipped > 0 && failed == 0) {
+      message = context.l10n.media_import_importedAndSkipped(imported, skipped);
+    } else if (imported == 0 && failed > 0) {
       message = context.l10n.media_import_failedToImport(failed);
     } else {
       message = context.l10n.media_import_importedAndFailed(imported, failed);

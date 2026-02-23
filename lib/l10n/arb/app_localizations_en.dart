@@ -8392,8 +8392,30 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String media_import_allAlreadyLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos already linked to this dive',
+      one: '1 photo already linked to this dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_import_importedAndFailed(Object imported, Object failed) {
     return 'Imported $imported, failed $failed';
+  }
+
+  @override
+  String media_import_importedAndSkipped(int imported, Object skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      imported,
+      locale: localeName,
+      other: 'Imported $imported photos',
+      one: 'Imported 1 photo',
+    );
+    return '$_temp0 ($skipped already linked)';
   }
 
   @override
@@ -8495,6 +8517,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get media_photoPicker_thumbnailToggleSelectedLabel =>
       'Toggle selection for photo, selected';
+
+  @override
+  String get media_photoPicker_thumbnailAlreadyLinkedLabel =>
+      'Photo already linked to this dive';
 
   @override
   String get media_photoViewer_cannotShare => 'Cannot share this photo';

@@ -14773,11 +14773,23 @@ abstract class AppLocalizations {
   /// **'Failed to import photos: {error}'**
   String media_import_failedToImportError(Object error);
 
+  /// No description provided for @media_import_allAlreadyLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo already linked to this dive} other{{count} photos already linked to this dive}}'**
+  String media_import_allAlreadyLinked(int count);
+
   /// No description provided for @media_import_importedAndFailed.
   ///
   /// In en, this message translates to:
   /// **'Imported {imported}, failed {failed}'**
   String media_import_importedAndFailed(Object imported, Object failed);
+
+  /// No description provided for @media_import_importedAndSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{imported, plural, =1{Imported 1 photo} other{Imported {imported} photos}} ({skipped} already linked)'**
+  String media_import_importedAndSkipped(int imported, Object skipped);
 
   /// No description provided for @media_import_importedPhotos.
   ///
@@ -14915,6 +14927,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Toggle selection for photo, selected'**
   String get media_photoPicker_thumbnailToggleSelectedLabel;
+
+  /// No description provided for @media_photoPicker_thumbnailAlreadyLinkedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo already linked to this dive'**
+  String get media_photoPicker_thumbnailAlreadyLinkedLabel;
 
   /// No description provided for @media_photoViewer_cannotShare.
   ///

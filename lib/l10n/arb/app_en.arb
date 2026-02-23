@@ -4502,7 +4502,9 @@
   "media_gpsBanner_title": "GPS found in photos",
   "media_import_failedToImport": "Failed to import {count, plural, =1{photo} other{photos}}",
   "media_import_failedToImportError": "Failed to import photos: {error}",
+  "media_import_allAlreadyLinked": "{count, plural, =1{1 photo already linked to this dive} other{{count} photos already linked to this dive}}",
   "media_import_importedAndFailed": "Imported {imported}, failed {failed}",
+  "media_import_importedAndSkipped": "{imported, plural, =1{Imported 1 photo} other{Imported {imported} photos}} ({skipped} already linked)",
   "media_import_importedPhotos": "Imported {count} {count, plural, =1{photo} other{photos}}",
   "media_import_importingPhotos": "Importing {count} {count, plural, =1{photo} other{photos}}...",
   "media_miniProfile_headerLabel": "Dive Profile",
@@ -4525,6 +4527,7 @@
   "media_photoPicker_showingPhotosFromRange": "Showing photos from {rangeText}",
   "media_photoPicker_thumbnailToggleLabel": "Toggle selection for photo",
   "media_photoPicker_thumbnailToggleSelectedLabel": "Toggle selection for photo, selected",
+  "media_photoPicker_thumbnailAlreadyLinkedLabel": "Photo already linked to this dive",
   "media_photoViewer_cannotShare": "Cannot share this photo",
   "media_photoViewer_cannotWriteMetadata": "Cannot write metadata - media not linked to library",
   "media_photoViewer_closeTooltip": "Close photo viewer",
@@ -4645,12 +4648,29 @@
       }
     }
   },
+  "@media_import_allAlreadyLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "@media_import_importedAndFailed": {
     "placeholders": {
       "imported": {
         "type": "Object"
       },
       "failed": {
+        "type": "Object"
+      }
+    }
+  },
+  "@media_import_importedAndSkipped": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
         "type": "Object"
       }
     }
