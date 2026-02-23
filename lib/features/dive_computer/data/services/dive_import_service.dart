@@ -342,6 +342,7 @@ class DiveImportService {
       points: profilePoints,
       durationSeconds: dive.durationSeconds,
       maxDepth: dive.maxDepth,
+      avgDepth: dive.avgDepth,
       isPrimary: true,
       diverId: diverId,
       tanks: tanks,

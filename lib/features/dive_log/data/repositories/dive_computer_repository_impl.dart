@@ -692,6 +692,7 @@ class DiveComputerRepository {
     required List<ProfilePointData> points,
     required int durationSeconds,
     double? maxDepth,
+    double? avgDepth,
     bool isPrimary = false,
     String? diverId,
     List<TankData>? tanks,
@@ -720,6 +721,14 @@ class DiveComputerRepository {
         // Look up computer details to store on the dive record
         final computer = await getComputerById(computerId);
 
+        // Use provided avgDepth, or calculate from profile points
+        final effectiveAvgDepth =
+            avgDepth ??
+            (points.isNotEmpty
+                ? points.map((p) => p.depth).reduce((a, b) => a + b) /
+                      points.length
+                : null);
+
         await _db
             .into(_db.dives)
             .insert(
@@ -731,6 +740,7 @@ class DiveComputerRepository {
                 exitTime: Value(exitTimeMs),
                 duration: Value(durationSeconds),
                 maxDepth: Value(maxDepth),
+                avgDepth: Value(effectiveAvgDepth),
                 diveComputerModel: Value(computer?.fullName),
                 diveComputerSerial: Value(computer?.serialNumber),
                 diveComputerFirmware: Value(computer?.firmwareVersion),

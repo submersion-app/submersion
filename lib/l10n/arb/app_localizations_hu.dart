@@ -9267,6 +9267,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_appearance_metric_tts => 'TTS (Ido a felszinig)';
 
   @override
+  String get settings_appearance_metric_cns => 'CNS% (O2 Toxicity)';
+
+  @override
+  String get settings_appearance_metric_otu => 'OTU (O2 Tolerance Units)';
+
+  @override
   String get settings_appearance_pressureThresholdMarkers =>
       'Nyomas küszöbértek jelolok';
 

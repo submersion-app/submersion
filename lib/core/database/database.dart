@@ -575,7 +575,7 @@ class DiverSettings extends Table {
   BoolColumn get defaultShowTemperature =>
       boolean().withDefault(const Constant(true))();
   BoolColumn get defaultShowPressure =>
-      boolean().withDefault(const Constant(false))();
+      boolean().withDefault(const Constant(true))();
   BoolColumn get defaultShowHeartRate =>
       boolean().withDefault(const Constant(false))();
   BoolColumn get defaultShowSac =>
@@ -597,6 +597,10 @@ class DiverSettings extends Table {
   BoolColumn get defaultShowMeanDepth =>
       boolean().withDefault(const Constant(false))();
   BoolColumn get defaultShowTts =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get defaultShowCns =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get defaultShowOtu =>
       boolean().withDefault(const Constant(false))();
   BoolColumn get defaultShowGasSwitchMarkers =>
       boolean().withDefault(const Constant(true))();
@@ -1086,7 +1090,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 38;
+  int get schemaVersion => 39;
 
   @override
   MigrationStrategy get migration {
@@ -1898,6 +1902,42 @@ class AppDatabase extends _$AppDatabase {
             ON media(platform_asset_id, dive_id)
             WHERE platform_asset_id IS NOT NULL AND dive_id IS NOT NULL
           ''');
+        }
+        if (from < 39) {
+          // Backfill avg_depth from profile data for dives that have
+          // profile points but no avg_depth recorded.
+          await customStatement('''
+            UPDATE dives SET avg_depth = (
+              SELECT AVG(depth) FROM dive_profiles
+              WHERE dive_profiles.dive_id = dives.id
+              AND dive_profiles.is_primary = 1
+              AND dive_profiles.depth IS NOT NULL
+            )
+            WHERE avg_depth IS NULL
+            AND EXISTS (
+              SELECT 1 FROM dive_profiles
+              WHERE dive_profiles.dive_id = dives.id
+              AND dive_profiles.is_primary = 1
+              AND dive_profiles.depth IS NOT NULL
+            )
+          ''');
+          // Add CNS/OTU default visibility columns to settings
+          final tableInfo = await customSelect(
+            "PRAGMA table_info('diver_settings')",
+          ).get();
+          final existingColumns = tableInfo
+              .map((row) => row.data['name'] as String)
+              .toSet();
+          if (!existingColumns.contains('default_show_cns')) {
+            await customStatement(
+              'ALTER TABLE diver_settings ADD COLUMN default_show_cns INTEGER NOT NULL DEFAULT 0',
+            );
+          }
+          if (!existingColumns.contains('default_show_otu')) {
+            await customStatement(
+              'ALTER TABLE diver_settings ADD COLUMN default_show_otu INTEGER NOT NULL DEFAULT 0',
+            );
+          }
         }
       },
       beforeOpen: (details) async {

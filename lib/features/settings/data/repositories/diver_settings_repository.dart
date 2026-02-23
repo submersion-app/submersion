@@ -103,6 +103,8 @@ class DiverSettingsRepository {
               defaultShowSurfaceGf: Value(s.defaultShowSurfaceGf),
               defaultShowMeanDepth: Value(s.defaultShowMeanDepth),
               defaultShowTts: Value(s.defaultShowTts),
+              defaultShowCns: Value(s.defaultShowCns),
+              defaultShowOtu: Value(s.defaultShowOtu),
               defaultShowGasSwitchMarkers: Value(s.defaultShowGasSwitchMarkers),
               notificationsEnabled: Value(s.notificationsEnabled),
               serviceReminderDays: Value(
@@ -200,6 +202,8 @@ class DiverSettingsRepository {
           defaultShowSurfaceGf: Value(settings.defaultShowSurfaceGf),
           defaultShowMeanDepth: Value(settings.defaultShowMeanDepth),
           defaultShowTts: Value(settings.defaultShowTts),
+          defaultShowCns: Value(settings.defaultShowCns),
+          defaultShowOtu: Value(settings.defaultShowOtu),
           defaultShowGasSwitchMarkers: Value(
             settings.defaultShowGasSwitchMarkers,
           ),
@@ -326,6 +330,8 @@ class DiverSettingsRepository {
       defaultShowSurfaceGf: row.defaultShowSurfaceGf,
       defaultShowMeanDepth: row.defaultShowMeanDepth,
       defaultShowTts: row.defaultShowTts,
+      defaultShowCns: row.defaultShowCns,
+      defaultShowOtu: row.defaultShowOtu,
       defaultShowGasSwitchMarkers: row.defaultShowGasSwitchMarkers,
       notificationsEnabled: row.notificationsEnabled,
       serviceReminderDays: _parseReminderDays(row.serviceReminderDays),

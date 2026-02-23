@@ -16038,6 +16038,18 @@ abstract class AppLocalizations {
   /// **'TTS (Time to Surface)'**
   String get settings_appearance_metric_tts;
 
+  /// No description provided for @settings_appearance_metric_cns.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS% (O2 Toxicity)'**
+  String get settings_appearance_metric_cns;
+
+  /// No description provided for @settings_appearance_metric_otu.
+  ///
+  /// In en, this message translates to:
+  /// **'OTU (O2 Tolerance Units)'**
+  String get settings_appearance_metric_otu;
+
   /// No description provided for @settings_appearance_pressureThresholdMarkers.
   ///
   /// In en, this message translates to:

@@ -293,6 +293,22 @@ class AppearancePage extends ConsumerWidget {
               ref.read(settingsProvider.notifier).setDefaultShowTts(value);
             },
           ),
+          SwitchListTile(
+            title: Text(context.l10n.settings_appearance_metric_cns),
+            dense: true,
+            value: settings.defaultShowCns,
+            onChanged: (value) {
+              ref.read(settingsProvider.notifier).setDefaultShowCns(value);
+            },
+          ),
+          SwitchListTile(
+            title: Text(context.l10n.settings_appearance_metric_otu),
+            dense: true,
+            value: settings.defaultShowOtu,
+            onChanged: (value) {
+              ref.read(settingsProvider.notifier).setDefaultShowOtu(value);
+            },
+          ),
           const SizedBox(height: 8),
           _buildSubsectionHeader(
             context,

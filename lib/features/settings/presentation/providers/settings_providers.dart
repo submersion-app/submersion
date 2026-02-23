@@ -177,6 +177,12 @@ class AppSettings {
   /// Default visibility for TTS on dive profile
   final bool defaultShowTts;
 
+  /// Default visibility for CNS% on dive profile
+  final bool defaultShowCns;
+
+  /// Default visibility for OTU on dive profile
+  final bool defaultShowOtu;
+
   /// Default visibility for gas switch markers on dive profile
   final bool defaultShowGasSwitchMarkers;
 
@@ -226,7 +232,7 @@ class AppSettings {
     // Dive profile chart defaults
     this.defaultRightAxisMetric = ProfileRightAxisMetric.temperature,
     this.defaultShowTemperature = true,
-    this.defaultShowPressure = false,
+    this.defaultShowPressure = true,
     this.defaultShowHeartRate = false,
     this.defaultShowSac = false,
     this.defaultShowEvents = true,
@@ -238,6 +244,8 @@ class AppSettings {
     this.defaultShowSurfaceGf = false,
     this.defaultShowMeanDepth = false,
     this.defaultShowTts = false,
+    this.defaultShowCns = false,
+    this.defaultShowOtu = false,
     this.defaultShowGasSwitchMarkers = true,
     // Notification defaults
     this.notificationsEnabled = true,
@@ -329,6 +337,8 @@ class AppSettings {
     bool? defaultShowSurfaceGf,
     bool? defaultShowMeanDepth,
     bool? defaultShowTts,
+    bool? defaultShowCns,
+    bool? defaultShowOtu,
     bool? defaultShowGasSwitchMarkers,
     bool? notificationsEnabled,
     List<int>? serviceReminderDays,
@@ -394,6 +404,8 @@ class AppSettings {
       defaultShowSurfaceGf: defaultShowSurfaceGf ?? this.defaultShowSurfaceGf,
       defaultShowMeanDepth: defaultShowMeanDepth ?? this.defaultShowMeanDepth,
       defaultShowTts: defaultShowTts ?? this.defaultShowTts,
+      defaultShowCns: defaultShowCns ?? this.defaultShowCns,
+      defaultShowOtu: defaultShowOtu ?? this.defaultShowOtu,
       defaultShowGasSwitchMarkers:
           defaultShowGasSwitchMarkers ?? this.defaultShowGasSwitchMarkers,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
@@ -784,6 +796,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setDefaultShowCns(bool value) async {
+    state = state.copyWith(defaultShowCns: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowOtu(bool value) async {
+    state = state.copyWith(defaultShowOtu: value);
+    await _saveSettings();
+  }
+
   Future<void> setDefaultShowGasSwitchMarkers(bool value) async {
     state = state.copyWith(defaultShowGasSwitchMarkers: value);
     await _saveSettings();
@@ -1050,6 +1072,14 @@ final defaultShowMeanDepthProvider = Provider<bool>((ref) {
 
 final defaultShowTtsProvider = Provider<bool>((ref) {
   return ref.watch(settingsProvider.select((s) => s.defaultShowTts));
+});
+
+final defaultShowCnsProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultShowCns));
+});
+
+final defaultShowOtuProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultShowOtu));
 });
 
 final defaultShowGasSwitchMarkersProvider = Provider<bool>((ref) {
