@@ -12,12 +12,11 @@ import 'package:submersion/features/notifications/presentation/providers/notific
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
-import 'package:submersion/features/divers/domain/entities/diver.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/gradient_preset_picker.dart';
@@ -79,7 +78,7 @@ class SettingsPage extends ConsumerWidget {
   ) {
     switch (sectionId) {
       case 'profile':
-        return _ProfileSectionContent(ref: ref);
+        return const DiverProfileHubPage();
       case 'units':
         return _UnitsSectionContent(ref: ref);
       case 'decompression':
@@ -155,7 +154,7 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
   Widget _buildContent(BuildContext context, WidgetRef ref) {
     switch (sectionId) {
       case 'profile':
-        return _ProfileSectionContent(ref: ref);
+        return const DiverProfileHubPage();
       case 'units':
         return _UnitsSectionContent(ref: ref);
       case 'decompression':
@@ -218,7 +217,7 @@ class _MobileSettingsTile extends StatelessWidget {
     // Navigate to the appropriate page based on section
     switch (sectionId) {
       case 'profile':
-        context.push('/divers');
+        context.push('/settings/diver-profile');
         break;
       case 'appearance':
         context.push('/settings/appearance');
@@ -236,232 +235,6 @@ class _MobileSettingsTile extends StatelessWidget {
 // ============================================================================
 // SECTION CONTENT WIDGETS
 // ============================================================================
-
-/// Profile section content
-class _ProfileSectionContent extends ConsumerWidget {
-  final WidgetRef ref;
-
-  const _ProfileSectionContent({required this.ref});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final currentDiverAsync = ref.watch(currentDiverProvider);
-    final allDiversAsync = ref.watch(diverListNotifierProvider);
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_profile_header_activeDiver,
-          ),
-          const SizedBox(height: 8),
-          currentDiverAsync.when(
-            data: (diver) =>
-                _buildDiverCard(context, ref, diver, allDiversAsync),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Card(
-              child: ListTile(
-                leading: const Icon(Icons.error, color: Colors.red),
-                title: Text(context.l10n.settings_profile_error_loadingDiver),
-                subtitle: Text('$error'),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_profile_header_manageDivers,
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.manage_accounts),
-                  title: Text(context.l10n.settings_profile_viewAllDivers),
-                  subtitle: Text(
-                    context.l10n.settings_profile_viewAllDivers_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/divers'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.person_add),
-                  title: Text(context.l10n.settings_profile_addNewDiver),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/divers/new'),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDiverCard(
-    BuildContext context,
-    WidgetRef ref,
-    Diver? diver,
-    AsyncValue<List<Diver>> allDiversAsync,
-  ) {
-    if (diver == null) {
-      return Card(
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            child: const Icon(Icons.person_add),
-          ),
-          title: Text(context.l10n.settings_profile_noDiverProfile),
-          subtitle: Text(context.l10n.settings_profile_noDiverProfile_subtitle),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.push('/divers/new'),
-        ),
-      );
-    }
-
-    return Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          backgroundImage: diver.photoPath != null
-              ? AssetImage(diver.photoPath!)
-              : null,
-          child: diver.photoPath == null
-              ? Text(
-                  diver.initials,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
-                )
-              : null,
-        ),
-        title: Text(diver.name),
-        subtitle: Text(context.l10n.settings_profile_activeDiver_subtitle),
-        trailing: const Icon(Icons.swap_horiz),
-        onTap: () => _showDiverSwitcher(context, ref, allDiversAsync),
-      ),
-    );
-  }
-
-  void _showDiverSwitcher(
-    BuildContext context,
-    WidgetRef ref,
-    AsyncValue<List<Diver>> diversAsync,
-  ) {
-    final currentDiverId = ref.read(currentDiverIdProvider);
-
-    showModalBottomSheet(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                context.l10n.settings_profile_switchDiver_title,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-            ),
-            const Divider(height: 1),
-            diversAsync.when(
-              data: (divers) => ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.4,
-                ),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: divers.length,
-                  itemBuilder: (context, index) {
-                    final diver = divers[index];
-                    final isCurrentDiver = diver.id == currentDiverId;
-
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.primaryContainer,
-                        backgroundImage: diver.photoPath != null
-                            ? AssetImage(diver.photoPath!)
-                            : null,
-                        child: diver.photoPath == null
-                            ? Text(
-                                diver.initials,
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimaryContainer,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              )
-                            : null,
-                      ),
-                      title: Text(diver.name),
-                      trailing: isCurrentDiver
-                          ? Icon(
-                              Icons.check,
-                              color: Theme.of(context).colorScheme.primary,
-                            )
-                          : null,
-                      onTap: () async {
-                        if (!isCurrentDiver) {
-                          await ref
-                              .read(currentDiverIdProvider.notifier)
-                              .setCurrentDiver(diver.id);
-                        }
-                        if (sheetContext.mounted) {
-                          Navigator.of(sheetContext).pop();
-                        }
-                        if (context.mounted && !isCurrentDiver) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                context.l10n.settings_profile_switchedTo(
-                                  diver.name,
-                                ),
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                    );
-                  },
-                ),
-              ),
-              loading: () => const Padding(
-                padding: EdgeInsets.all(32),
-                child: CircularProgressIndicator(),
-              ),
-              error: (error, _) => Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text('Error: $error'),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.of(sheetContext).pop();
-                  context.push('/divers/new');
-                },
-                icon: const Icon(Icons.person_add),
-                label: Text(context.l10n.settings_profile_addNewDiver),
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 /// Units section content
 class _UnitsSectionContent extends ConsumerWidget {

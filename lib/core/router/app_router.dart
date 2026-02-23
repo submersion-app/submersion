@@ -65,6 +65,12 @@ import 'package:submersion/features/settings/presentation/pages/appearance_page.
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
+import 'package:submersion/features/settings/presentation/pages/personal_info_edit_page.dart';
+import 'package:submersion/features/settings/presentation/pages/emergency_contacts_edit_page.dart';
+import 'package:submersion/features/settings/presentation/pages/medical_info_edit_page.dart';
+import 'package:submersion/features/settings/presentation/pages/insurance_edit_page.dart';
+import 'package:submersion/features/settings/presentation/pages/notes_edit_page.dart';
 import 'package:submersion/features/transfer/presentation/pages/transfer_page.dart';
 import 'package:submersion/features/dive_types/presentation/pages/dive_types_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_presets_page.dart';
@@ -728,6 +734,45 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'backup',
                 name: 'backupSettings',
                 builder: (context, state) => const BackupSettingsPage(),
+              ),
+              GoRoute(
+                path: 'diver-profile',
+                name: 'diverProfile',
+                builder: (context, state) => const DiverProfileHubPage(),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    name: 'newDiverProfile',
+                    builder: (context, state) =>
+                        const PersonalInfoEditPage(isNewDiver: true),
+                  ),
+                  GoRoute(
+                    path: 'personal',
+                    name: 'editPersonalInfo',
+                    builder: (context, state) => const PersonalInfoEditPage(),
+                  ),
+                  GoRoute(
+                    path: 'emergency',
+                    name: 'editEmergencyContacts',
+                    builder: (context, state) =>
+                        const EmergencyContactsEditPage(),
+                  ),
+                  GoRoute(
+                    path: 'medical',
+                    name: 'editMedicalInfo',
+                    builder: (context, state) => const MedicalInfoEditPage(),
+                  ),
+                  GoRoute(
+                    path: 'insurance',
+                    name: 'editInsurance',
+                    builder: (context, state) => const InsuranceEditPage(),
+                  ),
+                  GoRoute(
+                    path: 'notes',
+                    name: 'editNotes',
+                    builder: (context, state) => const NotesEditPage(),
+                  ),
+                ],
               ),
             ],
           ),

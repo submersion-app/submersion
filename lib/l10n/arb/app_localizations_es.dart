@@ -10080,6 +10080,78 @@ class AppLocalizationsEs extends AppLocalizations {
       'Agregar o editar perfiles de buceadores';
 
   @override
+  String get settings_profileHub_addNewDiver => 'Add New Diver';
+
+  @override
+  String get settings_profileHub_cannotDeleteOnly =>
+      'Cannot delete the only diver profile';
+
+  @override
+  String get settings_profileHub_createDiverTitle => 'Create Diver';
+
+  @override
+  String settings_profileHub_deleteConfirmContent(String name) {
+    return 'Are you sure you want to delete $name? All associated dive logs will be unassigned.';
+  }
+
+  @override
+  String get settings_profileHub_deleteConfirmTitle => 'Delete Diver?';
+
+  @override
+  String get settings_profileHub_deleteDiver => 'Delete Diver';
+
+  @override
+  String get settings_profileHub_deleted => 'Diver deleted';
+
+  @override
+  String get settings_profileHub_emergencyContacts => 'Emergency Contacts';
+
+  @override
+  String settings_profileHub_emergencyContacts_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count contacts set',
+      one: '1 contact set',
+      zero: 'Not set',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_profileHub_insurance => 'Insurance';
+
+  @override
+  String get settings_profileHub_insurance_expired => 'Expired';
+
+  @override
+  String get settings_profileHub_insurance_notSet => 'Not set';
+
+  @override
+  String get settings_profileHub_medicalInfo => 'Medical Information';
+
+  @override
+  String get settings_profileHub_medicalInfo_notSet => 'Not set';
+
+  @override
+  String get settings_profileHub_notes => 'Notes';
+
+  @override
+  String get settings_profileHub_notes_notSet => 'Not set';
+
+  @override
+  String get settings_profileHub_personalInfo => 'Personal Info';
+
+  @override
+  String get settings_profileHub_personalInfo_notSet => 'Not set';
+
+  @override
+  String get settings_profileHub_saved => 'Changes saved';
+
+  @override
+  String get settings_profileHub_switchDiver => 'Switch Diver';
+
+  @override
   String get settings_section_about_subtitle =>
       'Informacion de la app y licencias';
 

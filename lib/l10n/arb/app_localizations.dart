@@ -17293,6 +17293,126 @@ abstract class AppLocalizations {
   /// **'Add or edit diver profiles'**
   String get settings_profile_viewAllDivers_subtitle;
 
+  /// No description provided for @settings_profileHub_addNewDiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Diver'**
+  String get settings_profileHub_addNewDiver;
+
+  /// No description provided for @settings_profileHub_cannotDeleteOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete the only diver profile'**
+  String get settings_profileHub_cannotDeleteOnly;
+
+  /// No description provided for @settings_profileHub_createDiverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Diver'**
+  String get settings_profileHub_createDiverTitle;
+
+  /// No description provided for @settings_profileHub_deleteConfirmContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete {name}? All associated dive logs will be unassigned.'**
+  String settings_profileHub_deleteConfirmContent(String name);
+
+  /// No description provided for @settings_profileHub_deleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Diver?'**
+  String get settings_profileHub_deleteConfirmTitle;
+
+  /// No description provided for @settings_profileHub_deleteDiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Diver'**
+  String get settings_profileHub_deleteDiver;
+
+  /// No description provided for @settings_profileHub_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Diver deleted'**
+  String get settings_profileHub_deleted;
+
+  /// No description provided for @settings_profileHub_emergencyContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency Contacts'**
+  String get settings_profileHub_emergencyContacts;
+
+  /// No description provided for @settings_profileHub_emergencyContacts_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Not set} =1{1 contact set} other{{count} contacts set}}'**
+  String settings_profileHub_emergencyContacts_count(int count);
+
+  /// No description provided for @settings_profileHub_insurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get settings_profileHub_insurance;
+
+  /// No description provided for @settings_profileHub_insurance_expired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get settings_profileHub_insurance_expired;
+
+  /// No description provided for @settings_profileHub_insurance_notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get settings_profileHub_insurance_notSet;
+
+  /// No description provided for @settings_profileHub_medicalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical Information'**
+  String get settings_profileHub_medicalInfo;
+
+  /// No description provided for @settings_profileHub_medicalInfo_notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get settings_profileHub_medicalInfo_notSet;
+
+  /// No description provided for @settings_profileHub_notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get settings_profileHub_notes;
+
+  /// No description provided for @settings_profileHub_notes_notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get settings_profileHub_notes_notSet;
+
+  /// No description provided for @settings_profileHub_personalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Info'**
+  String get settings_profileHub_personalInfo;
+
+  /// No description provided for @settings_profileHub_personalInfo_notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get settings_profileHub_personalInfo_notSet;
+
+  /// No description provided for @settings_profileHub_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes saved'**
+  String get settings_profileHub_saved;
+
+  /// No description provided for @settings_profileHub_switchDiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch Diver'**
+  String get settings_profileHub_switchDiver;
+
   /// No description provided for @settings_section_about_subtitle.
   ///
   /// In en, this message translates to:

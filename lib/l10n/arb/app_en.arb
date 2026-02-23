@@ -5211,6 +5211,26 @@
   "settings_profile_switchedTo": "Switched to {diverName}",
   "settings_profile_viewAllDivers": "View All Divers",
   "settings_profile_viewAllDivers_subtitle": "Add or edit diver profiles",
+  "settings_profileHub_addNewDiver": "Add New Diver",
+  "settings_profileHub_cannotDeleteOnly": "Cannot delete the only diver profile",
+  "settings_profileHub_createDiverTitle": "Create Diver",
+  "settings_profileHub_deleteConfirmContent": "Are you sure you want to delete {name}? All associated dive logs will be unassigned.",
+  "settings_profileHub_deleteConfirmTitle": "Delete Diver?",
+  "settings_profileHub_deleteDiver": "Delete Diver",
+  "settings_profileHub_deleted": "Diver deleted",
+  "settings_profileHub_emergencyContacts": "Emergency Contacts",
+  "settings_profileHub_emergencyContacts_count": "{count, plural, =0{Not set} =1{1 contact set} other{{count} contacts set}}",
+  "settings_profileHub_insurance": "Insurance",
+  "settings_profileHub_insurance_expired": "Expired",
+  "settings_profileHub_insurance_notSet": "Not set",
+  "settings_profileHub_medicalInfo": "Medical Information",
+  "settings_profileHub_medicalInfo_notSet": "Not set",
+  "settings_profileHub_notes": "Notes",
+  "settings_profileHub_notes_notSet": "Not set",
+  "settings_profileHub_personalInfo": "Personal Info",
+  "settings_profileHub_personalInfo_notSet": "Not set",
+  "settings_profileHub_saved": "Changes saved",
+  "settings_profileHub_switchDiver": "Switch Diver",
   "settings_section_about_subtitle": "App info & licenses",
   "settings_section_about_title": "About",
   "settings_section_appearance_subtitle": "Theme & display",
@@ -5519,6 +5539,20 @@
     "placeholders": {
       "diverName": {
         "type": "Object"
+      }
+    }
+  },
+  "@settings_profileHub_deleteConfirmContent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@settings_profileHub_emergencyContacts_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },
