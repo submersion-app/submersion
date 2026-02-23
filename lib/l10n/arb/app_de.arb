@@ -2987,7 +2987,7 @@
   "settings_conflict_resolved": "{count, plural, =1{1 Konflikt} other{{count} Konflikte}} geloest",
   "settings_conflict_title": "Konflikte loesen",
   "settings_data_appDefaultLocation": "Standard-App-Speicherort",
-  "settings_data_backup": "Sicherung",
+  "settings_data_backup": "Sicherung und Wiederherstellung",
   "settings_data_backup_subtitle": "Sicherung Ihrer Daten erstellen",
   "settings_data_cloudSync": "Cloud-Synchronisierung",
   "settings_data_customFolder": "Benutzerdefinierter Ordner",

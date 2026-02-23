@@ -9380,7 +9380,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'מיקום ברירת מחדל של האפליקציה';
 
   @override
-  String get settings_data_backup => 'גיבוי';
+  String get settings_data_backup => 'גיבוי ושחזור';
 
   @override
   String get settings_data_backup_subtitle => 'צור גיבוי של הנתונים שלך';

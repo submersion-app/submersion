@@ -9606,7 +9606,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Alkalmazas alapertelmezett helye';
 
   @override
-  String get settings_data_backup => 'Biztonsagi mentes';
+  String get settings_data_backup => 'Biztonsagi mentes es visszaallitas';
 
   @override
   String get settings_data_backup_subtitle =>

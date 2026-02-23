@@ -9479,7 +9479,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_data_appDefaultLocation => 'App default location';
 
   @override
-  String get settings_data_backup => 'Backup';
+  String get settings_data_backup => 'Backup and Restore';
 
   @override
   String get settings_data_backup_subtitle => 'Create a backup of your data';

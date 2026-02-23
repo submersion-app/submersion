@@ -7,6 +7,8 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
@@ -117,6 +119,40 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
 
   BackupService get _service => _ref.read(backupServiceProvider);
 
+  /// After a restore, read the active diver ID from the restored database's
+  /// Settings table and push it into SharedPreferences so the app picks up
+  /// the correct diver on restart.
+  Future<void> _syncActiveDiverAfterRestore() async {
+    try {
+      final repository = DiverRepository();
+      final prefs = _ref.read(sharedPreferencesProvider);
+
+      // Read the active diver ID that was stored in the restored DB
+      var restoredId = await repository.getActiveDiverIdFromSettings();
+
+      // Validate it actually exists in the restored divers table
+      if (restoredId != null) {
+        final diver = await repository.getDiverById(restoredId);
+        if (diver == null) {
+          restoredId = null;
+        }
+      }
+
+      // Fall back to the default diver if the stored ID was invalid
+      if (restoredId == null) {
+        final defaultDiver = await repository.getDefaultDiver();
+        restoredId = defaultDiver?.id;
+      }
+
+      // Sync to SharedPreferences so startup picks up the right diver
+      if (restoredId != null) {
+        await prefs.setString(currentDiverIdKey, restoredId);
+      }
+    } catch (_) {
+      // Non-fatal: startup validation in CurrentDiverIdNotifier will handle it
+    }
+  }
+
   /// Perform a manual backup
   Future<void> performBackup() async {
     if (state.status == BackupOperationStatus.inProgress) return;
@@ -154,6 +190,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
 
     try {
       await _service.restoreFromBackup(record);
+      await _syncActiveDiverAfterRestore();
       state = const BackupOperationState(
         status: BackupOperationStatus.success,
         message: 'Restore completed. Please restart the app.',
@@ -268,6 +305,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       );
 
       await _service.restoreFromFile(filePath);
+      await _syncActiveDiverAfterRestore();
       state = const BackupOperationState(
         status: BackupOperationStatus.success,
         message: 'Restore completed. Please restart the app.',

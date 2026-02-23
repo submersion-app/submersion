@@ -1638,45 +1638,20 @@ class _DataSectionContent extends ConsumerWidget {
         children: [
           _buildSectionHeader(
             context,
-            context.l10n.settings_data_header_storage,
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.folder),
-                  title: Text(context.l10n.settings_data_databaseStorage),
-                  subtitle: Text(
-                    isCustomFolder
-                        ? context.l10n.settings_data_customFolder
-                        : context.l10n.settings_data_appDefaultLocation,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/storage'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.cloud_download),
-                  title: Text(context.l10n.settings_data_offlineMaps),
-                  subtitle: Text(
-                    context.l10n.settings_data_offlineMaps_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/offline-maps'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildSectionHeader(
-            context,
             context.l10n.settings_data_header_backupSync,
           ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
+                ListTile(
+                  leading: const Icon(Icons.backup),
+                  title: Text(context.l10n.settings_data_backup),
+                  subtitle: _buildBackupSubtitle(context, ref),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/backup'),
+                ),
+                const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.cloud_sync),
                   title: Text(context.l10n.settings_data_cloudSync),
@@ -1707,13 +1682,38 @@ class _DataSectionContent extends ConsumerWidget {
                   ),
                   onTap: () => context.push('/settings/cloud-sync'),
                 ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_data_header_storage,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.folder),
+                  title: Text(context.l10n.settings_data_databaseStorage),
+                  subtitle: Text(
+                    isCustomFolder
+                        ? context.l10n.settings_data_customFolder
+                        : context.l10n.settings_data_appDefaultLocation,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/storage'),
+                ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: const Icon(Icons.backup),
-                  title: Text(context.l10n.settings_data_backup),
-                  subtitle: _buildBackupSubtitle(context, ref),
+                  leading: const Icon(Icons.cloud_download),
+                  title: Text(context.l10n.settings_data_offlineMaps),
+                  subtitle: Text(
+                    context.l10n.settings_data_offlineMaps_subtitle,
+                  ),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/backup'),
+                  onTap: () => context.push('/settings/offline-maps'),
                 ),
               ],
             ),

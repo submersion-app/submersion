@@ -9645,7 +9645,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Posizione predefinita dell\'app';
 
   @override
-  String get settings_data_backup => 'Backup';
+  String get settings_data_backup => 'Backup e ripristino';
 
   @override
   String get settings_data_backup_subtitle => 'Crea un backup dei tuoi dati';

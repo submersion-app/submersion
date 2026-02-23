@@ -9642,7 +9642,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_data_appDefaultLocation => 'Local padrao do aplicativo';
 
   @override
-  String get settings_data_backup => 'Backup';
+  String get settings_data_backup => 'Backup e restauracao';
 
   @override
   String get settings_data_backup_subtitle => 'Criar um backup dos seus dados';

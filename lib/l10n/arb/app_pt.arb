@@ -2987,7 +2987,7 @@
   "settings_conflict_resolved": "{count, plural, =1{1 conflito resolvido} other{{count} conflitos resolvidos}}",
   "settings_conflict_title": "Resolver Conflitos",
   "settings_data_appDefaultLocation": "Local padrao do aplicativo",
-  "settings_data_backup": "Backup",
+  "settings_data_backup": "Backup e restauracao",
   "settings_data_backup_subtitle": "Criar um backup dos seus dados",
   "settings_data_cloudSync": "Sincronizacao na Nuvem",
   "settings_data_customFolder": "Pasta personalizada",

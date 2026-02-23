@@ -2987,7 +2987,7 @@
   "settings_conflict_resolved": "تم حل {count, plural, =1{تعارض واحد} other{{count} تعارضات}}",
   "settings_conflict_title": "حل التعارضات",
   "settings_data_appDefaultLocation": "موقع التطبيق الافتراضي",
-  "settings_data_backup": "نسخ احتياطي",
+  "settings_data_backup": "نسخ احتياطي واستعادة",
   "settings_data_backup_subtitle": "إنشاء نسخة احتياطية من بياناتك",
   "settings_data_cloudSync": "المزامنة السحابية",
   "settings_data_customFolder": "مجلد مخصص",

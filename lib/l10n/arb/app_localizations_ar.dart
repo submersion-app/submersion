@@ -9447,7 +9447,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_data_appDefaultLocation => 'موقع التطبيق الافتراضي';
 
   @override
-  String get settings_data_backup => 'نسخ احتياطي';
+  String get settings_data_backup => 'نسخ احتياطي واستعادة';
 
   @override
   String get settings_data_backup_subtitle => 'إنشاء نسخة احتياطية من بياناتك';

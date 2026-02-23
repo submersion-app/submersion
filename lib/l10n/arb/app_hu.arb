@@ -2987,7 +2987,7 @@
   "settings_conflict_resolved": "{count, plural, =1{1 ütközes} other{{count} ütközes}} feloldva",
   "settings_conflict_title": "Ütközesek feloldasa",
   "settings_data_appDefaultLocation": "Alkalmazas alapertelmezett helye",
-  "settings_data_backup": "Biztonsagi mentes",
+  "settings_data_backup": "Biztonsagi mentes es visszaallitas",
   "settings_data_backup_subtitle": "Biztonsagi mentes keszitese az adatokrol",
   "settings_data_cloudSync": "Felho szinkronizalas",
   "settings_data_customFolder": "Egyedi mappa",

@@ -5083,7 +5083,7 @@
   "settings_conflict_resolved": "Resolved {count, plural, =1{1 conflict} other{{count} conflicts}}",
   "settings_conflict_title": "Resolve Conflicts",
   "settings_data_appDefaultLocation": "App default location",
-  "settings_data_backup": "Backup",
+  "settings_data_backup": "Backup and Restore",
   "settings_data_backup_subtitle": "Create a backup of your data",
   "settings_data_cloudSync": "Cloud Sync",
   "settings_data_customFolder": "Custom folder",

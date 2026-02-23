@@ -2987,7 +2987,7 @@
   "settings_conflict_resolved": "נפתרו {count, plural, =1{התנגשות אחת} other{{count} התנגשויות}}",
   "settings_conflict_title": "פתרון התנגשויות",
   "settings_data_appDefaultLocation": "מיקום ברירת מחדל של האפליקציה",
-  "settings_data_backup": "גיבוי",
+  "settings_data_backup": "גיבוי ושחזור",
   "settings_data_backup_subtitle": "צור גיבוי של הנתונים שלך",
   "settings_data_cloudSync": "סנכרון ענן",
   "settings_data_customFolder": "תיקייה מותאמת אישית",

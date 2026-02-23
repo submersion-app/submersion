@@ -9563,7 +9563,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_data_appDefaultLocation => 'Standaard app-locatie';
 
   @override
-  String get settings_data_backup => 'Back-up';
+  String get settings_data_backup => 'Back-up en herstel';
 
   @override
   String get settings_data_backup_subtitle =>

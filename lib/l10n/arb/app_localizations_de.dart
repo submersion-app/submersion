@@ -9627,7 +9627,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_data_appDefaultLocation => 'Standard-App-Speicherort';
 
   @override
-  String get settings_data_backup => 'Sicherung';
+  String get settings_data_backup => 'Sicherung und Wiederherstellung';
 
   @override
   String get settings_data_backup_subtitle => 'Sicherung Ihrer Daten erstellen';

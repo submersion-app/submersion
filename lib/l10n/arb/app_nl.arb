@@ -2987,7 +2987,7 @@
   "settings_conflict_resolved": "{count, plural, =1{1 conflict} other{{count} conflicten}} opgelost",
   "settings_conflict_title": "Conflicten oplossen",
   "settings_data_appDefaultLocation": "Standaard app-locatie",
-  "settings_data_backup": "Back-up",
+  "settings_data_backup": "Back-up en herstel",
   "settings_data_backup_subtitle": "Maak een back-up van je gegevens",
   "settings_data_cloudSync": "Cloudsynchronisatie",
   "settings_data_customFolder": "Aangepaste map",

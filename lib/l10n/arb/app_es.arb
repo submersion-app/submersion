@@ -2987,7 +2987,7 @@
   "settings_conflict_resolved": "Se resolvieron {count, plural, =1{1 conflicto} other{{count} conflictos}}",
   "settings_conflict_title": "Resolver conflictos",
   "settings_data_appDefaultLocation": "Ubicacion predeterminada de la app",
-  "settings_data_backup": "Respaldo",
+  "settings_data_backup": "Respaldo y Restauracion",
   "settings_data_backup_subtitle": "Crear un respaldo de tus datos",
   "settings_data_cloudSync": "Sincronizacion en la nube",
   "settings_data_customFolder": "Carpeta personalizada",

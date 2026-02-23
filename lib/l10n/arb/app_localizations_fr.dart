@@ -9665,7 +9665,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Emplacement par defaut de l\'application';
 
   @override
-  String get settings_data_backup => 'Sauvegarde';
+  String get settings_data_backup => 'Sauvegarde et restauration';
 
   @override
   String get settings_data_backup_subtitle =>

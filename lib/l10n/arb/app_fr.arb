@@ -2987,7 +2987,7 @@
   "settings_conflict_resolved": "{count, plural, =1{1 conflit resolu} other{{count} conflits resolus}}",
   "settings_conflict_title": "Resoudre les conflits",
   "settings_data_appDefaultLocation": "Emplacement par defaut de l'application",
-  "settings_data_backup": "Sauvegarde",
+  "settings_data_backup": "Sauvegarde et restauration",
   "settings_data_backup_subtitle": "Creer une sauvegarde de vos donnees",
   "settings_data_cloudSync": "Synchronisation cloud",
   "settings_data_customFolder": "Dossier personnalise",

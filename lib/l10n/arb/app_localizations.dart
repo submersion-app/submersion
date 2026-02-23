@@ -16524,7 +16524,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_data_backup.
   ///
   /// In en, this message translates to:
-  /// **'Backup'**
+  /// **'Backup and Restore'**
   String get settings_data_backup;
 
   /// No description provided for @settings_data_backup_subtitle.

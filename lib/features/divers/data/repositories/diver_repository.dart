@@ -16,6 +16,7 @@ class DiverRepository {
   final SyncRepository _syncRepository = SyncRepository();
   static const _uuid = Uuid();
   static final _log = LoggerService.forClass(DiverRepository);
+  static const _activeDiverIdKey = 'active_diver_id';
 
   /// Get all divers ordered by name
   Future<List<domain.Diver>> getAllDivers() async {
@@ -314,6 +315,45 @@ class DiverRepository {
         stackTrace,
       );
       rethrow;
+    }
+  }
+
+  /// Read the active diver ID from the Settings key-value table.
+  /// Returns null if not set (e.g., older database without this key).
+  Future<String?> getActiveDiverIdFromSettings() async {
+    try {
+      final query = _db.select(_db.settings)
+        ..where((t) => t.key.equals(_activeDiverIdKey));
+      final row = await query.getSingleOrNull();
+      return row?.value;
+    } catch (e, stackTrace) {
+      _log.error('Failed to read active_diver_id from settings', e, stackTrace);
+      return null;
+    }
+  }
+
+  /// Write the active diver ID to the Settings key-value table.
+  /// Pass null to clear it.
+  Future<void> setActiveDiverIdInSettings(String? diverId) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      if (diverId == null) {
+        await (_db.delete(
+          _db.settings,
+        )..where((t) => t.key.equals(_activeDiverIdKey))).go();
+      } else {
+        await _db
+            .into(_db.settings)
+            .insertOnConflictUpdate(
+              SettingsCompanion(
+                key: const Value(_activeDiverIdKey),
+                value: Value(diverId),
+                updatedAt: Value(now),
+              ),
+            );
+      }
+    } catch (e, stackTrace) {
+      _log.error('Failed to write active_diver_id to settings', e, stackTrace);
     }
   }
 
