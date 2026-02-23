@@ -61,10 +61,7 @@ void main() {
           ],
         );
 
-        final dive = converter.convert(
-          importedDive,
-          diverId: 'diver-1',
-        );
+        final dive = converter.convert(importedDive, diverId: 'diver-1');
 
         // Runtime = 30 min (endTime - startTime)
         expect(dive.runtime, equals(const Duration(minutes: 30)));
