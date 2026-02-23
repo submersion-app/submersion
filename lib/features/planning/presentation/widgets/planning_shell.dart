@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shell widget that provides master/detail layout for Planning section.
@@ -46,188 +47,170 @@ class _PlanningSidebar extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final location = GoRouterState.of(context).uri.path;
 
+    final tools = [
+      _SidebarItem(
+        icon: Icons.edit_calendar,
+        iconColor: colorScheme.primary,
+        title: context.l10n.planning_sidebar_divePlanner_title,
+        subtitle: context.l10n.planning_sidebar_divePlanner_subtitle,
+        isSelected: location.contains('/dive-planner'),
+        route: '/planning/dive-planner',
+      ),
+      _SidebarItem(
+        icon: Icons.calculate,
+        iconColor: colorScheme.secondary,
+        title: context.l10n.planning_sidebar_decoCalculator_title,
+        subtitle: context.l10n.planning_sidebar_decoCalculator_subtitle,
+        isSelected: location.contains('/deco-calculator'),
+        route: '/planning/deco-calculator',
+      ),
+      _SidebarItem(
+        icon: Icons.science,
+        iconColor: colorScheme.tertiary,
+        title: context.l10n.planning_sidebar_gasCalculators_title,
+        subtitle: context.l10n.planning_sidebar_gasCalculators_subtitle,
+        isSelected: location.contains('/gas-calculators'),
+        route: '/planning/gas-calculators',
+      ),
+      _SidebarItem(
+        icon: Icons.fitness_center,
+        iconColor: colorScheme.primary.withValues(alpha: 0.8),
+        title: context.l10n.planning_sidebar_weightCalculator_title,
+        subtitle: context.l10n.planning_sidebar_weightCalculator_subtitle,
+        isSelected: location.contains('/weight-calculator'),
+        route: '/planning/weight-calculator',
+      ),
+      _SidebarItem(
+        icon: Icons.timer,
+        iconColor: Colors.teal,
+        title: context.l10n.planning_sidebar_surfaceInterval_title,
+        subtitle: context.l10n.planning_sidebar_surfaceInterval_subtitle,
+        isSelected: location.contains('/surface-interval'),
+        route: '/planning/surface-interval',
+      ),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.planning_sidebar_appBar_title),
         automaticallyImplyLeading: false,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(12),
         children: [
-          _SidebarTile(
-            icon: Icons.edit_calendar,
-            iconColor: colorScheme.primary,
-            title: context.l10n.planning_sidebar_divePlanner_title,
-            subtitle: context.l10n.planning_sidebar_divePlanner_subtitle,
-            isSelected: location.contains('/dive-planner'),
-            onTap: () => context.go('/planning/dive-planner'),
-          ),
           const SizedBox(height: 8),
-          _SidebarTile(
-            icon: Icons.calculate,
-            iconColor: colorScheme.secondary,
-            title: context.l10n.planning_sidebar_decoCalculator_title,
-            subtitle: context.l10n.planning_sidebar_decoCalculator_subtitle,
-            isSelected: location.contains('/deco-calculator'),
-            onTap: () => context.go('/planning/deco-calculator'),
-          ),
-          const SizedBox(height: 8),
-          _SidebarTile(
-            icon: Icons.science,
-            iconColor: colorScheme.tertiary,
-            title: context.l10n.planning_sidebar_gasCalculators_title,
-            subtitle: context.l10n.planning_sidebar_gasCalculators_subtitle,
-            isSelected: location.contains('/gas-calculators'),
-            onTap: () => context.go('/planning/gas-calculators'),
-          ),
-          const SizedBox(height: 8),
-          _SidebarTile(
-            icon: Icons.fitness_center,
-            iconColor: colorScheme.primary.withValues(alpha: 0.8),
-            title: context.l10n.planning_sidebar_weightCalculator_title,
-            subtitle: context.l10n.planning_sidebar_weightCalculator_subtitle,
-            isSelected: location.contains('/weight-calculator'),
-            onTap: () => context.go('/planning/weight-calculator'),
-          ),
-          const SizedBox(height: 8),
-          _SidebarTile(
-            icon: Icons.timer,
-            iconColor: Colors.teal,
-            title: context.l10n.planning_sidebar_surfaceInterval_title,
-            subtitle: context.l10n.planning_sidebar_surfaceInterval_subtitle,
-            isSelected: location.contains('/surface-interval'),
-            onTap: () => context.go('/planning/surface-interval'),
-          ),
-          const SizedBox(height: 24),
+          ...List.generate(tools.length * 2 - 1, (index) {
+            if (index.isOdd) return const Divider(height: 1);
+            final tool = tools[index ~/ 2];
+            return _SidebarTile(item: tool);
+          }),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
           // Info card
-          Card(
-            color: colorScheme.surfaceContainerHighest,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ExcludeSemantics(
-                    child: Icon(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Card(
+              color: colorScheme.surfaceContainerHighest,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
                       Icons.info_outline,
                       size: 18,
                       color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      context.l10n.planning_sidebar_info_disclaimer,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                    ).excludeFromSemantics(),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        context.l10n.planning_sidebar_info_disclaimer,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 }
 
-/// A compact tile for the planning sidebar.
-class _SidebarTile extends StatelessWidget {
+/// Data for a sidebar navigation item.
+class _SidebarItem {
   final IconData icon;
   final Color iconColor;
   final String title;
   final String subtitle;
   final bool isSelected;
-  final VoidCallback onTap;
+  final String route;
 
-  const _SidebarTile({
+  const _SidebarItem({
     required this.icon,
     required this.iconColor,
     required this.title,
     required this.subtitle,
     required this.isSelected,
-    required this.onTap,
+    required this.route,
   });
+}
+
+/// A compact list tile for the planning sidebar, matching the Statistics style.
+class _SidebarTile extends StatelessWidget {
+  final _SidebarItem item;
+
+  const _SidebarTile({required this.item});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final iconColor = item.isSelected ? colorScheme.primary : item.iconColor;
 
-    return Card(
-      elevation: isSelected ? 2 : 0,
-      color: isSelected
-          ? colorScheme.primaryContainer
-          : colorScheme.surfaceContainerLow,
-      clipBehavior: Clip.antiAlias,
-      child: Semantics(
-        button: true,
-        label: '$title: $subtitle',
-        selected: isSelected,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                ExcludeSemantics(
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? colorScheme.primary.withValues(alpha: 0.2)
-                          : iconColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      icon,
-                      size: 22,
-                      color: isSelected ? colorScheme.primary : iconColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.w500,
-                          color: isSelected
-                              ? colorScheme.onPrimaryContainer
-                              : colorScheme.onSurface,
-                        ),
-                      ),
-                      Text(
-                        subtitle,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: isSelected
-                              ? colorScheme.onPrimaryContainer.withValues(
-                                  alpha: 0.8,
-                                )
-                              : colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (isSelected)
-                  ExcludeSemantics(
-                    child: Icon(
-                      Icons.chevron_right,
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-              ],
+    return Semantics(
+      button: true,
+      label: '${item.title}, ${item.subtitle}',
+      selected: item.isSelected,
+      child: ListTile(
+        selected: item.isSelected,
+        selectedTileColor: colorScheme.primaryContainer.withValues(alpha: 0.4),
+        leading: ExcludeSemantics(
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: item.isSelected
+                  ? colorScheme.primary.withValues(alpha: 0.2)
+                  : iconColor.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
             ),
+            child: Icon(item.icon, color: iconColor, size: 24),
           ),
         ),
+        title: Text(
+          item.title,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            fontWeight: item.isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
+        subtitle: Text(
+          item.subtitle,
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+        ),
+        trailing: item.isSelected
+            ? Icon(
+                Icons.chevron_right,
+                color: colorScheme.primary,
+              ).excludeFromSemantics()
+            : null,
+        onTap: () => context.go(item.route),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       ),
     );
   }

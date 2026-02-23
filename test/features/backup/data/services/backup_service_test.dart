@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -473,6 +474,121 @@ void main() {
           await tempDir.delete(recursive: true);
         }
       });
+
+      test('returns valid for SQLite database with expected tables', () async {
+        final tempDir = await Directory.systemTemp.createTemp('backup_test_');
+        final dbFile = File('${tempDir.path}/valid.db');
+
+        final db = sqlite3.sqlite3.open(dbFile.path);
+        db.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
+        db.execute('CREATE TABLE dive_sites (id TEXT PRIMARY KEY)');
+        db.dispose();
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        try {
+          final result = await service.validateBackupFile(dbFile.path);
+          expect(result.isValid, true);
+          expect(result.sizeBytes, greaterThan(0));
+        } finally {
+          await tempDir.delete(recursive: true);
+        }
+      });
+
+      test(
+        'returns valid for older-schema database without triggering migrations',
+        () async {
+          final tempDir = await Directory.systemTemp.createTemp('backup_test_');
+          final dbFile = File('${tempDir.path}/old_schema.db');
+
+          // Simulate a backup from an older app version (schema < 30)
+          // that does NOT have the wearable_source column
+          final db = sqlite3.sqlite3.open(dbFile.path);
+          db.execute(
+            'CREATE TABLE dives (id TEXT PRIMARY KEY, dive_date_time INTEGER)',
+          );
+          db.execute(
+            'CREATE TABLE dive_sites (id TEXT PRIMARY KEY, name TEXT)',
+          );
+          db.execute('PRAGMA user_version = 20');
+          db.dispose();
+
+          final service = BackupService(
+            dbAdapter: fakeDb,
+            preferences: preferences,
+          );
+
+          try {
+            final result = await service.validateBackupFile(dbFile.path);
+            expect(result.isValid, true);
+            expect(result.sizeBytes, greaterThan(0));
+
+            // Verify the backup file was NOT modified (no migration ran)
+            final verifyDb = sqlite3.sqlite3.open(
+              dbFile.path,
+              mode: sqlite3.OpenMode.readOnly,
+            );
+            try {
+              final columns = verifyDb.select("PRAGMA table_info('dives')");
+              final columnNames = columns
+                  .map((row) => row['name'] as String)
+                  .toList();
+              expect(columnNames, isNot(contains('wearable_source')));
+            } finally {
+              verifyDb.dispose();
+            }
+          } finally {
+            await tempDir.delete(recursive: true);
+          }
+        },
+      );
+
+      test('returns invalid for non-SQLite file with .db extension', () async {
+        final tempDir = await Directory.systemTemp.createTemp('backup_test_');
+        final fakeDbFile = File('${tempDir.path}/fake.db');
+        await fakeDbFile.writeAsString('this is not a sqlite database');
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        try {
+          final result = await service.validateBackupFile(fakeDbFile.path);
+          expect(result.isValid, false);
+          expect(result.error, contains('not a valid database'));
+        } finally {
+          await tempDir.delete(recursive: true);
+        }
+      });
+
+      test(
+        'returns invalid for SQLite database missing expected tables',
+        () async {
+          final tempDir = await Directory.systemTemp.createTemp('backup_test_');
+          final dbFile = File('${tempDir.path}/wrong_tables.db');
+
+          final db = sqlite3.sqlite3.open(dbFile.path);
+          db.execute('CREATE TABLE some_other_table (id TEXT PRIMARY KEY)');
+          db.dispose();
+
+          final service = BackupService(
+            dbAdapter: fakeDb,
+            preferences: preferences,
+          );
+
+          try {
+            final result = await service.validateBackupFile(dbFile.path);
+            expect(result.isValid, false);
+            expect(result.error, contains('missing expected tables'));
+          } finally {
+            await tempDir.delete(recursive: true);
+          }
+        },
+      );
     });
 
     group('getCloudBackups', () {
@@ -571,7 +687,7 @@ void main() {
         );
       });
 
-      test('creates safety backup before restoring', () async {
+      test('creates pre-restore backup with history entry', () async {
         final tempDir = await Directory.systemTemp.createTemp('backup_test_');
         final backupFile = File('${tempDir.path}/test.db');
         await backupFile.writeAsString('fake db content');
@@ -584,12 +700,46 @@ void main() {
         try {
           await service.restoreFromFile(backupFile.path);
 
-          // Safety backup is created via performBackup, then restore is called
-          expect(fakeDb.backupCallCount, 1); // safety backup
+          // performBackup() creates a backup, then restore replaces the db
+          expect(fakeDb.backupCallCount, 1); // pre-restore backup
           expect(fakeDb.restoreCallCount, 1); // restore
           expect(fakeDb.lastRestorePath, backupFile.path);
+
+          // Pre-restore backup should appear in history
+          final history = preferences.getHistory();
+          expect(history, hasLength(1));
+          expect(history.first.filename, contains('submersion_backup_'));
         } finally {
           await tempDir.delete(recursive: true);
+        }
+      });
+
+      test('pre-restore backup uses configured backup location', () async {
+        final tempDir = await Directory.systemTemp.createTemp('backup_test_');
+        final customDir = await Directory.systemTemp.createTemp('custom_');
+        final backupFile = File('${tempDir.path}/test.db');
+        await backupFile.writeAsString('fake db content');
+
+        await preferences.setBackupLocation(customDir.path);
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        try {
+          await service.restoreFromFile(backupFile.path);
+
+          // Pre-restore backup should go to the custom location
+          expect(fakeDb.lastBackupPath, startsWith(customDir.path));
+
+          // And be recorded in history
+          final history = preferences.getHistory();
+          expect(history, hasLength(1));
+          expect(history.first.localPath, startsWith(customDir.path));
+        } finally {
+          await tempDir.delete(recursive: true);
+          await customDir.delete(recursive: true);
         }
       });
     });

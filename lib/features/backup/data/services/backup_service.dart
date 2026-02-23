@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:drift/native.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/database/database.dart';
@@ -210,19 +210,22 @@ class BackupService {
       return const BackupValidationResult.invalid('File is empty');
     }
 
-    // Try opening as SQLite and check for expected tables
+    // Use sqlite3 directly in read-only mode to avoid Drift's migration
+    // system triggering ALTER TABLE on older-schema backups. The backup file
+    // may also be in a read-only sandboxed directory (iOS/macOS file picker).
     try {
-      final testDb = AppDatabase(NativeDatabase(file, logStatements: false));
+      final testDb = sqlite3.sqlite3.open(
+        filePath,
+        mode: sqlite3.OpenMode.readOnly,
+      );
       try {
         // Verify it's a valid SQLite database
-        await testDb.customSelect('SELECT 1').getSingle();
+        testDb.execute('SELECT 1');
 
         // Check for expected Submersion tables
-        final tables = await testDb
-            .customSelect(
-              "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('dives', 'dive_sites')",
-            )
-            .get();
+        final tables = testDb.select(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('dives', 'dive_sites')",
+        );
 
         if (tables.isEmpty) {
           return const BackupValidationResult.invalid(
@@ -232,7 +235,7 @@ class BackupService {
 
         return BackupValidationResult.valid(sizeBytes: sizeBytes);
       } finally {
-        await testDb.close();
+        testDb.dispose();
       }
     } catch (e) {
       return BackupValidationResult.invalid('File is not a valid database: $e');
@@ -245,14 +248,15 @@ class BackupService {
 
   /// Restore the database from a backup record.
   ///
-  /// Creates a safety backup of the current database first,
-  /// then replaces the database with the backup.
+  /// Creates a full backup of the current database first (saved to the
+  /// configured backup location with a history entry), then replaces
+  /// the database with the backup.
   Future<void> restoreFromBackup(BackupRecord record) async {
     _log.info('Starting restore from: ${record.filename}');
 
-    // Create safety backup first
-    _log.info('Creating safety backup before restore');
-    await performBackup(isAutomatic: true);
+    // Create a proper backup before restoring so the user can find it
+    // in their configured backup location and in the history list.
+    await performBackup();
 
     // Determine backup source path
     String sourcePath;
@@ -277,8 +281,9 @@ class BackupService {
 
   /// Restore the database from an arbitrary file path.
   ///
-  /// Creates a safety backup of the current database first,
-  /// then replaces the database with the specified file.
+  /// Creates a full backup of the current database first (saved to the
+  /// configured backup location with a history entry), then replaces
+  /// the database with the specified file.
   /// Throws [BackupException] if the file is not found.
   Future<void> restoreFromFile(String filePath) async {
     _log.info('Starting restore from file: $filePath');
@@ -288,9 +293,9 @@ class BackupService {
       throw const BackupException('Backup file not found');
     }
 
-    // Create safety backup first
-    _log.info('Creating safety backup before file restore');
-    await performBackup(isAutomatic: true);
+    // Create a proper backup before restoring so the user can find it
+    // in their configured backup location and in the history list.
+    await performBackup();
 
     // Restore using DatabaseService
     await _dbAdapter.restore(filePath);

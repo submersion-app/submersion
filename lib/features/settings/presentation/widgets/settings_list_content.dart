@@ -25,24 +25,28 @@ const settingsSections = [
     icon: Icons.person,
     title: 'Diver Profile',
     subtitle: 'Active diver & profiles',
+    color: Colors.blue,
   ),
   SettingsSection(
     id: 'units',
     icon: Icons.straighten,
     title: 'Units',
     subtitle: 'Measurement preferences',
+    color: Colors.teal,
   ),
   SettingsSection(
     id: 'decompression',
     icon: Icons.timeline,
     title: 'Decompression',
     subtitle: 'Gradient factors',
+    color: Colors.deepPurple,
   ),
   SettingsSection(
     id: 'appearance',
     icon: Icons.palette,
     title: 'Appearance',
     subtitle: 'Theme & display',
+    color: Colors.pink,
   ),
   SettingsSection(
     id: 'notifications',
@@ -56,18 +60,21 @@ const settingsSections = [
     icon: Icons.folder_shared,
     title: 'Manage',
     subtitle: 'Dive types & tank presets',
+    color: Colors.indigo,
   ),
   SettingsSection(
     id: 'data',
     icon: Icons.storage,
     title: 'Data',
     subtitle: 'Backup, restore & storage',
+    color: Colors.green,
   ),
   SettingsSection(
     id: 'about',
     icon: Icons.info_outline,
     title: 'About',
     subtitle: 'App info & licenses',
+    color: Colors.blueGrey,
   ),
 ];
 

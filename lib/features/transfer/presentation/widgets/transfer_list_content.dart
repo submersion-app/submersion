@@ -25,12 +25,14 @@ final transferSections = [
     icon: Icons.file_download,
     titleBuilder: (context) => context.l10n.transfer_section_importTitle,
     subtitleBuilder: (context) => context.l10n.transfer_section_importSubtitle,
+    color: Colors.green,
   ),
   TransferSection(
     id: 'export',
     icon: Icons.file_upload,
     titleBuilder: (context) => context.l10n.transfer_section_exportTitle,
     subtitleBuilder: (context) => context.l10n.transfer_section_exportSubtitle,
+    color: Colors.blue,
   ),
   TransferSection(
     id: 'computers',
@@ -38,6 +40,7 @@ final transferSections = [
     titleBuilder: (context) => context.l10n.transfer_section_computersTitle,
     subtitleBuilder: (context) =>
         context.l10n.transfer_section_computersSubtitle,
+    color: Colors.indigo,
   ),
 ];
 
