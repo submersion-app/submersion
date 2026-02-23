@@ -43,7 +43,7 @@ final exportServiceProvider = Provider<ExportService>((ref) {
 });
 
 /// Export state for tracking export operations
-enum ExportStatus { idle, exporting, success, error }
+enum ExportStatus { idle, exporting, success, restoreComplete, error }
 
 /// Import phases for progress tracking
 enum ImportPhase {
@@ -1342,17 +1342,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(message: 'Restoring from backup...');
       await DatabaseService.instance.restore(filePath);
 
-      // Invalidate all providers to refresh data
-      _ref.invalidate(diveListNotifierProvider);
-      _ref.invalidate(paginatedDiveListProvider);
-      _ref.invalidate(sitesProvider);
-      _ref.invalidate(sitesWithCountsProvider);
-      _ref.invalidate(siteListNotifierProvider);
-      _ref.invalidate(allEquipmentProvider);
-
       state = state.copyWith(
-        status: ExportStatus.success,
-        message: 'Backup restored successfully. Please restart the app.',
+        status: ExportStatus.restoreComplete,
+        message: 'Restore complete',
       );
     } catch (e) {
       state = state.copyWith(

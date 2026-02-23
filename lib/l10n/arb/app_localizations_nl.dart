@@ -270,6 +270,16 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dit vervangt ALLE huidige gegevens door de back-upgegevens. Deze actie kan niet ongedaan worden gemaakt.';
 
   @override
+  String get backup_restoreComplete_continue => 'Doorgaan';
+
+  @override
+  String get backup_restoreComplete_description =>
+      'Uw gegevens zijn succesvol hersteld. Tik op doorgaan om de app opnieuw te laden met uw herstelde gegevens.';
+
+  @override
+  String get backup_restoreComplete_title => 'Herstel Voltooid';
+
+  @override
   String get backup_schedule_enabled => 'Automatische back-ups';
 
   @override

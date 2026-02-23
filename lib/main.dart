@@ -99,10 +99,35 @@ Future<void> main() async {
   final speciesRepository = SpeciesRepository();
   await speciesRepository.seedBuiltInSpecies();
 
-  runApp(
-    ProviderScope(
-      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
-      child: const SubmersionApp(),
-    ),
-  );
+  runApp(SubmersionRestart(prefs: prefs));
+}
+
+/// Global key notifier. Changing the value forces ProviderScope to rebuild,
+/// disposing all providers and re-fetching from the current database.
+final _restartKey = ValueNotifier<Key>(UniqueKey());
+
+/// Trigger a soft restart by rebuilding the entire ProviderScope.
+/// Call this after a database restore to refresh all cached data.
+void restartApp() {
+  _restartKey.value = UniqueKey();
+}
+
+class SubmersionRestart extends StatelessWidget {
+  final SharedPreferences prefs;
+
+  const SubmersionRestart({super.key, required this.prefs});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<Key>(
+      valueListenable: _restartKey,
+      builder: (context, key, _) {
+        return ProviderScope(
+          key: key,
+          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+          child: const SubmersionApp(),
+        );
+      },
+    );
+  }
 }

@@ -271,6 +271,16 @@ class AppLocalizationsPt extends AppLocalizations {
       'Isso substituirá TODOS os dados atuais pelos dados do backup. Esta ação não pode ser desfeita.';
 
   @override
+  String get backup_restoreComplete_continue => 'Continuar';
+
+  @override
+  String get backup_restoreComplete_description =>
+      'Seus dados foram restaurados com sucesso. Toque em continuar para recarregar o app com seus dados restaurados.';
+
+  @override
+  String get backup_restoreComplete_title => 'Restauracao Concluida';
+
+  @override
   String get backup_schedule_enabled => 'Backups automáticos';
 
   @override

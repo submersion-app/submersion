@@ -269,6 +269,16 @@ class AppLocalizationsHe extends AppLocalizations {
       'פעולה זו תחליף את כל הנתונים הנוכחיים בנתוני הגיבוי. לא ניתן לבטל פעולה זו.';
 
   @override
+  String get backup_restoreComplete_continue => 'המשך';
+
+  @override
+  String get backup_restoreComplete_description =>
+      'הנתונים שלך שוחזרו בהצלחה. הקש על המשך כדי לטעון מחדש את האפליקציה עם הנתונים המשוחזרים.';
+
+  @override
+  String get backup_restoreComplete_title => 'השחזור הושלם';
+
+  @override
   String get backup_schedule_enabled => 'גיבויים אוטומטיים';
 
   @override

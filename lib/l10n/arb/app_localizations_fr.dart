@@ -271,6 +271,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cela remplacera TOUTES les données actuelles par les données de la sauvegarde. Cette action est irréversible.';
 
   @override
+  String get backup_restoreComplete_continue => 'Continuer';
+
+  @override
+  String get backup_restoreComplete_description =>
+      'Vos donnees ont ete restaurees avec succes. Appuyez sur continuer pour recharger l\'application avec vos donnees restaurees.';
+
+  @override
+  String get backup_restoreComplete_title => 'Restauration terminee';
+
+  @override
   String get backup_schedule_enabled => 'Sauvegardes automatiques';
 
   @override

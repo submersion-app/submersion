@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
+import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/export_bottom_sheet.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
@@ -21,6 +22,12 @@ class BackupSettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(backupSettingsProvider);
     final operationState = ref.watch(backupOperationProvider);
+    ref.listen<BackupOperationState>(backupOperationProvider, (previous, next) {
+      if (next.status == BackupOperationStatus.restoreComplete &&
+          context.mounted) {
+        RestoreCompletePage.show(context);
+      }
+    });
     final historyAsync = ref.watch(backupHistoryProvider);
     final cloudProvider = ref.watch(cloudStorageProviderProvider);
     final isInProgress =
@@ -76,6 +83,7 @@ class BackupSettingsPage extends ConsumerWidget {
       case BackupOperationStatus.error:
         color = theme.colorScheme.error;
       case BackupOperationStatus.success:
+      case BackupOperationStatus.restoreComplete:
         color = Colors.green;
       default:
         color = theme.colorScheme.onSurfaceVariant;

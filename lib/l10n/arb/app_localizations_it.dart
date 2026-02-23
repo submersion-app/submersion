@@ -272,6 +272,16 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questo sostituirà TUTTI i dati correnti con i dati del backup. Questa azione non può essere annullata.';
 
   @override
+  String get backup_restoreComplete_continue => 'Continua';
+
+  @override
+  String get backup_restoreComplete_description =>
+      'I tuoi dati sono stati ripristinati con successo. Tocca continua per ricaricare l\'app con i dati ripristinati.';
+
+  @override
+  String get backup_restoreComplete_title => 'Ripristino Completato';
+
+  @override
   String get backup_schedule_enabled => 'Backup automatici';
 
   @override

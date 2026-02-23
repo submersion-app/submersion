@@ -270,6 +270,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'This will replace ALL current data with the backup data. This action cannot be undone.';
 
   @override
+  String get backup_restoreComplete_continue => 'Continue';
+
+  @override
+  String get backup_restoreComplete_description =>
+      'Your data has been restored successfully. Tap continue to reload the app with your restored data.';
+
+  @override
+  String get backup_restoreComplete_title => 'Restore Complete';
+
+  @override
   String get backup_schedule_enabled => 'Automatic backups';
 
   @override

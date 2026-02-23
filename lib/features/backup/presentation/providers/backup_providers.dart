@@ -81,7 +81,7 @@ final backupSettingsProvider =
 // =============================================================================
 
 /// Status of a backup operation
-enum BackupOperationStatus { idle, inProgress, success, error }
+enum BackupOperationStatus { idle, inProgress, success, restoreComplete, error }
 
 /// State for backup/restore operations
 class BackupOperationState {
@@ -192,8 +192,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       await _service.restoreFromBackup(record);
       await _syncActiveDiverAfterRestore();
       state = const BackupOperationState(
-        status: BackupOperationStatus.success,
-        message: 'Restore completed. Please restart the app.',
+        status: BackupOperationStatus.restoreComplete,
       );
       _ref.invalidate(backupHistoryProvider);
     } catch (e) {
@@ -307,8 +306,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       await _service.restoreFromFile(filePath);
       await _syncActiveDiverAfterRestore();
       state = const BackupOperationState(
-        status: BackupOperationStatus.success,
-        message: 'Restore completed. Please restart the app.',
+        status: BackupOperationStatus.restoreComplete,
       );
       _ref.invalidate(backupHistoryProvider);
     } catch (e) {

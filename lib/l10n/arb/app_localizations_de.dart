@@ -271,6 +271,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dies ersetzt ALLE aktuellen Daten durch die Sicherungsdaten. Diese Aktion kann nicht rückgängig gemacht werden.';
 
   @override
+  String get backup_restoreComplete_continue => 'Weiter';
+
+  @override
+  String get backup_restoreComplete_description =>
+      'Ihre Daten wurden erfolgreich wiederhergestellt. Tippen Sie auf Weiter, um die App mit Ihren wiederhergestellten Daten neu zu laden.';
+
+  @override
+  String get backup_restoreComplete_title => 'Wiederherstellung abgeschlossen';
+
+  @override
   String get backup_schedule_enabled => 'Automatische Sicherungen';
 
   @override

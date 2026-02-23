@@ -272,6 +272,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'سيؤدي هذا إلى استبدال جميع البيانات الحالية ببيانات النسخة الاحتياطية. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
+  String get backup_restoreComplete_continue => 'متابعة';
+
+  @override
+  String get backup_restoreComplete_description =>
+      'تمت استعادة بياناتك بنجاح. اضغط على متابعة لإعادة تحميل التطبيق ببياناتك المستعادة.';
+
+  @override
+  String get backup_restoreComplete_title => 'اكتملت الاستعادة';
+
+  @override
   String get backup_schedule_enabled => 'نسخ احتياطي تلقائي';
 
   @override

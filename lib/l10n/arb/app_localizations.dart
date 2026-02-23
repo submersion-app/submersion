@@ -588,6 +588,24 @@ abstract class AppLocalizations {
   /// **'This will replace ALL current data with the backup data. This action cannot be undone.'**
   String get backup_restore_dialog_warning;
 
+  /// No description provided for @backup_restoreComplete_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get backup_restoreComplete_continue;
+
+  /// No description provided for @backup_restoreComplete_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data has been restored successfully. Tap continue to reload the app with your restored data.'**
+  String get backup_restoreComplete_description;
+
+  /// No description provided for @backup_restoreComplete_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Complete'**
+  String get backup_restoreComplete_title;
+
   /// No description provided for @backup_schedule_enabled.
   ///
   /// In en, this message translates to:

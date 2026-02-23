@@ -270,6 +270,16 @@ class AppLocalizationsEs extends AppLocalizations {
       'Esto reemplazará TODOS los datos actuales con los datos de la copia. Esta acción no se puede deshacer.';
 
   @override
+  String get backup_restoreComplete_continue => 'Continuar';
+
+  @override
+  String get backup_restoreComplete_description =>
+      'Sus datos han sido restaurados exitosamente. Toque continuar para recargar la app con sus datos restaurados.';
+
+  @override
+  String get backup_restoreComplete_title => 'Restauracion Completa';
+
+  @override
   String get backup_schedule_enabled => 'Copias automáticas';
 
   @override

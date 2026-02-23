@@ -271,6 +271,16 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez MINDEN jelenlegi adatot lecserél a mentés adataival. Ez a művelet nem vonható vissza.';
 
   @override
+  String get backup_restoreComplete_continue => 'Tovabb';
+
+  @override
+  String get backup_restoreComplete_description =>
+      'Az adatok sikeresen visszaallitva. Koppintson a Tovabb gombra az alkalmazas ujratoltésehez a visszaallitott adatokkal.';
+
+  @override
+  String get backup_restoreComplete_title => 'Visszaallitas befejezve';
+
+  @override
   String get backup_schedule_enabled => 'Automatikus mentések';
 
   @override
