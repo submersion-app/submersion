@@ -26,8 +26,8 @@ class ImportResult {
   int get totalAttempted =>
       imported.length + failures.length + skippedDuplicates;
 
-  /// Whether all imports succeeded.
-  bool get allSucceeded => failures.isEmpty && skippedDuplicates == 0;
+  /// Whether all imports succeeded (skipped duplicates are not failures).
+  bool get allSucceeded => failures.isEmpty;
 }
 
 /// Service for importing photos from the device gallery into the app.
@@ -108,7 +108,7 @@ class MediaImportService {
     }
 
     _log.info(
-      'Import complete: ${imported.length} succeeded, ${failures.length} failed',
+      'Import complete: ${imported.length} succeeded, ${failures.length} failed, $skippedCount skipped',
     );
 
     return ImportResult(

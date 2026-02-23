@@ -149,14 +149,11 @@ This document contains only the features and tasks that are **not yet completed*
 | Shareable dive cards | Generate visual summary for social media |
 
 **Tasks:**
-- [ ] Caption and datetime editing per photo
 - [ ] Export dive with photos (ZIP archive)
 - [ ] Bulk photo import with auto-match to dives
 - [ ] GPS extraction from photos (suggest site creation)
 - [ ] Species tagging in photos (tap to tag, bounding box)
 - [ ] Species recognition suggestions (ML model)
-- [ ] Blue/green color cast removal filter
-- [ ] Underwater white balance correction
 
 ---
 
@@ -171,6 +168,7 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Save filter configurations as "Smart Logs"
 - [ ] Smart Log management (name, description, icon)
 - [ ] Quick access to Smart Logs from home page
+- [ ] Filter dives based on Dive Computer
 
 ### 10.2 Statistics
 **Tasks:**

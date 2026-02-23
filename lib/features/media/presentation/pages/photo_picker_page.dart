@@ -147,6 +147,17 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
     return indices;
   }
 
+  Set<int> _computeDisabledIndices(Set<String> alreadyLinkedIds) {
+    if (_assets == null) return {};
+    final indices = <int>{};
+    for (var i = 0; i < _assets!.length; i++) {
+      if (alreadyLinkedIds.contains(_assets![i].id)) {
+        indices.add(i);
+      }
+    }
+    return indices;
+  }
+
   void _syncSelectionToNotifier(Set<int> indices) {
     if (_assets == null) return;
     final state = ref.read(photoPickerNotifierProvider);
@@ -217,6 +228,7 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
             items: _assets!,
             startInSelectionMode: state.selectionCount > 0,
             initialSelection: _computeSelectedIndices(state.selectedIds),
+            disabledIndices: _computeDisabledIndices(state.alreadyLinkedIds),
             onSelectionChanged: (indices) {
               _syncSelectionToNotifier(indices);
             },
@@ -365,7 +377,9 @@ class _PhotoThumbnail extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Semantics(
-      label: isSelected
+      label: alreadyLinked
+          ? context.l10n.media_photoPicker_thumbnailAlreadyLinkedLabel
+          : isSelected
           ? context.l10n.media_photoPicker_thumbnailToggleSelectedLabel
           : context.l10n.media_photoPicker_thumbnailToggleLabel,
       child: Stack(

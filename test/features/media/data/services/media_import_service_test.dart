@@ -71,7 +71,7 @@ void main() {
       },
     );
 
-    test('allSucceeded is true only when no failures and no duplicates', () {
+    test('allSucceeded is true when no failures', () {
       final success = ImportResult(
         imported: [
           _savedMediaItem(id: 'm1', diveId: 'dive-1', platformAssetId: 'a1'),
@@ -93,14 +93,14 @@ void main() {
       expect(withFailures.allSucceeded, isFalse);
     });
 
-    test('allSucceeded is false when there are skipped duplicates', () {
+    test('allSucceeded is true even when there are skipped duplicates', () {
       const withDuplicates = ImportResult(
         imported: [],
         failures: {},
         skippedDuplicates: 2,
       );
 
-      expect(withDuplicates.allSucceeded, isFalse);
+      expect(withDuplicates.allSucceeded, isTrue);
     });
 
     test('skippedDuplicates defaults to 0', () {
@@ -216,7 +216,7 @@ void main() {
           expect(result.skippedDuplicates, 1);
           expect(result.failures.length, 0);
           expect(result.totalAttempted, 4);
-          expect(result.allSucceeded, isFalse);
+          expect(result.allSucceeded, isTrue);
 
           verify(mockMediaRepository.createMedia(any)).called(3);
         },
@@ -241,7 +241,7 @@ void main() {
           expect(result.skippedDuplicates, 2);
           expect(result.failures.length, 0);
           expect(result.totalAttempted, 2);
-          expect(result.allSucceeded, isFalse);
+          expect(result.allSucceeded, isTrue);
 
           // createMedia should never be called
           verifyNever(mockMediaRepository.createMedia(any));

@@ -8547,7 +8547,7 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String media_import_importedAndSkipped(int imported, Object skipped) {
+  String media_import_importedAndSkipped(int imported, int skipped) {
     String _temp0 = intl.Intl.pluralLogic(
       imported,
       locale: localeName,

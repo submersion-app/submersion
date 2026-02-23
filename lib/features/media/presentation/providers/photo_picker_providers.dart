@@ -200,9 +200,12 @@ class PhotoPickerNotifier extends StateNotifier<PhotoPickerState> {
     state = state.copyWith(selectedIds: newSelection);
   }
 
-  /// Select all provided assets.
+  /// Select all provided assets, excluding any already-linked IDs.
   void selectAll(List<String> assetIds) {
-    state = state.copyWith(selectedIds: assetIds.toSet());
+    final filtered = assetIds
+        .where((id) => !state.alreadyLinkedIds.contains(id))
+        .toSet();
+    state = state.copyWith(selectedIds: filtered);
   }
 
   /// Clear all selections.

@@ -57,6 +57,9 @@ class DragSelectGridView<T> extends StatefulWidget {
   /// Whether to start in selection mode.
   final bool startInSelectionMode;
 
+  /// Indices of items that cannot be selected (e.g., already-linked items).
+  final Set<int> disabledIndices;
+
   const DragSelectGridView({
     super.key,
     required this.items,
@@ -70,6 +73,7 @@ class DragSelectGridView<T> extends StatefulWidget {
     this.shrinkWrap = false,
     this.physics,
     this.startInSelectionMode = false,
+    this.disabledIndices = const {},
   });
 
   @override
@@ -119,6 +123,7 @@ class _DragSelectGridViewState<T> extends State<DragSelectGridView<T>> {
   }
 
   void _enterSelectionMode(int anchorIndex) {
+    if (widget.disabledIndices.contains(anchorIndex)) return;
     setState(() {
       _isSelectionMode = true;
       _dragAnchorIndex = anchorIndex;
@@ -131,6 +136,7 @@ class _DragSelectGridViewState<T> extends State<DragSelectGridView<T>> {
   }
 
   void _toggleSelection(int index) {
+    if (widget.disabledIndices.contains(index)) return;
     final newSelection = Set<int>.from(_selectedIndices);
     if (newSelection.contains(index)) {
       newSelection.remove(index);
@@ -172,7 +178,10 @@ class _DragSelectGridViewState<T> extends State<DragSelectGridView<T>> {
     final rangeStart = min(_dragAnchorIndex!, currentIndex);
     final rangeEnd = max(_dragAnchorIndex!, currentIndex);
     final dragRangeIndices = Set<int>.from(
-      List.generate(rangeEnd - rangeStart + 1, (i) => rangeStart + i),
+      List.generate(
+        rangeEnd - rangeStart + 1,
+        (i) => rangeStart + i,
+      ).where((i) => !widget.disabledIndices.contains(i)),
     );
 
     final newSelection = Set<int>.from(_preDragSelection)

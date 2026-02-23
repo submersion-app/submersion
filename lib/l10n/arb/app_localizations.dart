@@ -14789,7 +14789,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{imported, plural, =1{Imported 1 photo} other{Imported {imported} photos}} ({skipped} already linked)'**
-  String media_import_importedAndSkipped(int imported, Object skipped);
+  String media_import_importedAndSkipped(int imported, int skipped);
 
   /// No description provided for @media_import_importedPhotos.
   ///
