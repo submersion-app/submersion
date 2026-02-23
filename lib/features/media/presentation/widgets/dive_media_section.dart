@@ -8,17 +8,111 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 
-/// Section widget displaying media (photos/videos) for a dive
-class DiveMediaSection extends ConsumerWidget {
+/// Section widget displaying media (photos/videos) for a dive.
+///
+/// Supports multi-select mode via long-press and drag, with bulk unlink.
+class DiveMediaSection extends ConsumerStatefulWidget {
   final String diveId;
   final VoidCallback? onAddPressed;
 
   const DiveMediaSection({super.key, required this.diveId, this.onAddPressed});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final mediaAsync = ref.watch(mediaForDiveProvider(diveId));
+  ConsumerState<DiveMediaSection> createState() => _DiveMediaSectionState();
+}
+
+class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
+  bool _isSelectionMode = false;
+  Set<int> _selectedIndices = {};
+
+  void _exitSelectionMode() {
+    setState(() {
+      _isSelectionMode = false;
+      _selectedIndices = {};
+    });
+  }
+
+  void _selectAll(int totalCount) {
+    setState(() {
+      _selectedIndices = Set<int>.from(List.generate(totalCount, (i) => i));
+    });
+  }
+
+  Future<void> _unlinkSelected(
+    BuildContext context,
+    List<MediaItem> media,
+  ) async {
+    final selectedIds = _selectedIndices
+        .where((i) => i < media.length)
+        .map((i) => media[i].id)
+        .toList();
+
+    if (selectedIds.isEmpty) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          context.l10n.media_diveMediaSection_unlinkSelectedTitle(
+            selectedIds.length,
+          ),
+        ),
+        content: Text(
+          context.l10n.media_diveMediaSection_unlinkSelectedContent(
+            selectedIds.length,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(context.l10n.media_diveMediaSection_cancelButton),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(context.l10n.media_diveMediaSection_unlinkButton),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        await ref
+            .read(mediaListNotifierProvider(widget.diveId).notifier)
+            .deleteMultipleMedia(selectedIds);
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                context.l10n.media_diveMediaSection_unlinkSelectedSuccess(
+                  selectedIds.length,
+                ),
+              ),
+            ),
+          );
+          _exitSelectionMode();
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                context.l10n.media_diveMediaSection_unlinkError(e.toString()),
+              ),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaAsync = ref.watch(mediaForDiveProvider(widget.diveId));
     final settings = ref.watch(settingsProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -29,29 +123,45 @@ class DiveMediaSection extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header row
-            Row(
-              children: [
-                Icon(Icons.photo_library, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    context.l10n.media_diveMediaSection_title,
-                    style: textTheme.titleMedium,
-                  ),
-                ),
-                if (onAddPressed != null)
-                  IconButton(
-                    icon: Icon(
-                      Icons.add_photo_alternate,
-                      color: colorScheme.primary,
+            // Header: selection mode or normal
+            if (_isSelectionMode)
+              mediaAsync.whenOrNull(
+                    data: (media) => _SelectionHeader(
+                      selectedCount: _selectedIndices.length,
+                      totalCount: media.length,
+                      onSelectAll: () => _selectAll(media.length),
+                      onCancel: _exitSelectionMode,
+                      onUnlinkSelected: () => _unlinkSelected(context, media),
                     ),
-                    visualDensity: VisualDensity.compact,
-                    tooltip: context.l10n.media_diveMediaSection_addTooltip,
-                    onPressed: onAddPressed,
+                  ) ??
+                  const SizedBox.shrink()
+            else
+              Row(
+                children: [
+                  Icon(
+                    Icons.photo_library,
+                    size: 20,
+                    color: colorScheme.primary,
                   ),
-              ],
-            ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      context.l10n.media_diveMediaSection_title,
+                      style: textTheme.titleMedium,
+                    ),
+                  ),
+                  if (widget.onAddPressed != null)
+                    IconButton(
+                      icon: Icon(
+                        Icons.add_photo_alternate,
+                        color: colorScheme.primary,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      tooltip: context.l10n.media_diveMediaSection_addTooltip,
+                      onPressed: widget.onAddPressed,
+                    ),
+                ],
+              ),
             const SizedBox(height: 16),
             // Content
             mediaAsync.when(
@@ -59,10 +169,46 @@ class DiveMediaSection extends ConsumerWidget {
                 if (media.isEmpty) {
                   return const _EmptyMediaState();
                 }
-                return _MediaGrid(
-                  media: media,
-                  settings: settings,
-                  diveId: diveId,
+                return DragSelectGridView<MediaItem>(
+                  items: media,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  startInSelectionMode: _isSelectionMode,
+                  initialSelection: _selectedIndices,
+                  onSelectionChanged: (indices) {
+                    setState(() {
+                      _selectedIndices = indices;
+                    });
+                  },
+                  onSelectionModeChanged: (isSelecting) {
+                    setState(() {
+                      _isSelectionMode = isSelecting;
+                    });
+                  },
+                  onItemTap: (index) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        fullscreenDialog: true,
+                        builder: (_) => PhotoViewerPage(
+                          diveId: widget.diveId,
+                          initialMediaId: media[index].id,
+                        ),
+                      ),
+                    );
+                  },
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemBuilder: (context, item, isSelected) {
+                    return _MediaThumbnailContent(
+                      item: item,
+                      settings: settings,
+                      isSelectionMode: _isSelectionMode,
+                      isSelected: isSelected,
+                    );
+                  },
                 );
               },
               loading: () => const SizedBox(
@@ -77,6 +223,56 @@ class DiveMediaSection extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Header shown during multi-select mode with count, select all, and unlink.
+class _SelectionHeader extends StatelessWidget {
+  final int selectedCount;
+  final int totalCount;
+  final VoidCallback onSelectAll;
+  final VoidCallback onCancel;
+  final VoidCallback onUnlinkSelected;
+
+  const _SelectionHeader({
+    required this.selectedCount,
+    required this.totalCount,
+    required this.onSelectAll,
+    required this.onCancel,
+    required this.onUnlinkSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Row(
+      children: [
+        IconButton(
+          icon: const Icon(Icons.close),
+          tooltip: context.l10n.media_diveMediaSection_cancelSelectionButton,
+          onPressed: onCancel,
+        ),
+        Text(
+          context.l10n.media_diveMediaSection_selectedCount(selectedCount),
+          style: textTheme.titleMedium,
+        ),
+        const Spacer(),
+        if (selectedCount < totalCount)
+          TextButton(
+            onPressed: onSelectAll,
+            child: Text(context.l10n.media_diveMediaSection_selectAllButton),
+          ),
+        IconButton(
+          icon: Icon(Icons.delete_outline, color: colorScheme.error),
+          tooltip: context.l10n.media_diveMediaSection_unlinkSelectedButton(
+            selectedCount,
+          ),
+          onPressed: selectedCount > 0 ? onUnlinkSelected : null,
+        ),
+      ],
     );
   }
 }
@@ -118,50 +314,20 @@ class _EmptyMediaState extends StatelessWidget {
   }
 }
 
-/// Grid of media thumbnails
-class _MediaGrid extends StatelessWidget {
-  final List<MediaItem> media;
-  final AppSettings settings;
-  final String diveId;
-
-  const _MediaGrid({
-    required this.media,
-    required this.settings,
-    required this.diveId,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      itemCount: media.length,
-      itemBuilder: (context, index) {
-        return _MediaThumbnail(
-          item: media[index],
-          settings: settings,
-          diveId: diveId,
-        );
-      },
-    );
-  }
-}
-
-/// Individual media thumbnail with badges
-class _MediaThumbnail extends ConsumerWidget {
+/// Purely visual thumbnail content for media items.
+///
+/// Gestures (tap, long-press, drag) are handled by [DragSelectGridView].
+class _MediaThumbnailContent extends ConsumerWidget {
   final MediaItem item;
   final AppSettings settings;
-  final String diveId;
+  final bool isSelectionMode;
+  final bool isSelected;
 
-  const _MediaThumbnail({
+  const _MediaThumbnailContent({
     required this.item,
     required this.settings,
-    required this.diveId,
+    required this.isSelectionMode,
+    required this.isSelected,
   });
 
   @override
@@ -170,80 +336,101 @@ class _MediaThumbnail extends ConsumerWidget {
     final formatter = UnitFormatter(settings);
 
     return Semantics(
-      button: true,
       label: context.l10n.media_diveMediaSection_thumbnailLabel,
-      child: GestureDetector(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              fullscreenDialog: true,
-              builder: (_) =>
-                  PhotoViewerPage(diveId: diveId, initialMediaId: item.id),
-            ),
-          );
-        },
-        onLongPress: () => _showUnlinkDialog(context, ref),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Thumbnail or placeholder
-              if (item.isOrphaned)
-                const _OrphanedPlaceholder()
-              else if (item.platformAssetId != null)
-                _buildAssetThumbnail(ref, colorScheme)
-              else
-                _buildPlaceholder(colorScheme),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Thumbnail or placeholder
+            if (item.isOrphaned)
+              const _OrphanedPlaceholder()
+            else if (item.platformAssetId != null)
+              _buildAssetThumbnail(ref, colorScheme)
+            else
+              _buildPlaceholder(colorScheme),
 
-              // Video icon (top-right)
-              if (item.isVideo)
-                Positioned(
-                  top: 4,
-                  right: 4,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(4),
+            // Dimming overlay for unselected items in selection mode
+            if (isSelectionMode && !isSelected)
+              Container(color: Colors.black.withValues(alpha: 0.3)),
+
+            // Selection overlay with primary border and tint
+            if (isSelected)
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: colorScheme.primary, width: 3),
+                  color: colorScheme.primary.withValues(alpha: 0.2),
+                ),
+              ),
+
+            // Checkmark circle on selected items
+            if (isSelected)
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.check,
+                    size: 16,
+                    color: colorScheme.onPrimary,
+                  ),
+                ),
+              ),
+
+            // Video icon (top-right when no checkmark, hidden when checkmark)
+            if (item.isVideo && !isSelected)
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Icon(
+                    Icons.videocam,
+                    size: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+
+            // Depth badge (bottom-left)
+            if (item.enrichment?.depthMeters != null)
+              Positioned(
+                bottom: 4,
+                left: 4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    formatter.formatDepth(
+                      item.enrichment!.depthMeters,
+                      decimals: 0,
                     ),
-                    child: const Icon(
-                      Icons.videocam,
-                      size: 16,
+                    style: const TextStyle(
                       color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
-
-              // Depth badge (bottom-left)
-              if (item.enrichment?.depthMeters != null)
-                Positioned(
-                  bottom: 4,
-                  left: 4,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      formatter.formatDepth(
-                        item.enrichment!.depthMeters,
-                        decimals: 0,
-                      ),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
@@ -281,53 +468,6 @@ class _MediaThumbnail extends ConsumerWidget {
       ),
       error: (error, stack) => _buildPlaceholder(colorScheme),
     );
-  }
-
-  Future<void> _showUnlinkDialog(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.media_diveMediaSection_unlinkDialogTitle),
-        content: Text(context.l10n.media_diveMediaSection_unlinkDialogContent),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.l10n.media_diveMediaSection_cancelButton),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(context.l10n.media_diveMediaSection_unlinkButton),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && context.mounted) {
-      try {
-        await ref
-            .read(mediaListNotifierProvider(diveId).notifier)
-            .deleteMedia(item.id);
-
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.l10n.media_diveMediaSection_unlinkSuccess),
-            ),
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                context.l10n.media_diveMediaSection_unlinkError(e.toString()),
-              ),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
-        }
-      }
-    }
   }
 
   Widget _buildPlaceholder(ColorScheme colorScheme) {
