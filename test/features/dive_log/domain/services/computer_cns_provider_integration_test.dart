@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -45,7 +46,7 @@ List<DiveProfilePoint> _generateSquareProfile({
 }
 
 void main() {
-  group('overlayComputerDecoData - includeComputerCns parameter', () {
+  group('overlayComputerDecoData - per-metric source selection', () {
     late ProfileAnalysisService service;
     late List<DiveProfilePoint> baseProfile;
     late ProfileAnalysis baseAnalysis;
@@ -64,8 +65,8 @@ void main() {
       );
     });
 
-    test('includeComputerCns: false excludes CNS curve from overlay '
-        'while NDL/ceiling/TTS are still overlaid', () {
+    test('cnsSource: calculated excludes CNS from overlay '
+        'while NDL/ceiling/TTS are overlaid', () {
       // Build a profile with computer NDL, ceiling, TTS, AND CNS data
       final profileWithAll = <DiveProfilePoint>[];
       for (int i = 0; i < baseProfile.length; i++) {
@@ -78,10 +79,13 @@ void main() {
         }
       }
 
-      final result = overlayComputerDecoData(
+      final (result, sourceInfo) = overlayComputerDecoData(
         baseAnalysis,
         profileWithAll,
-        includeComputerCns: false,
+        ndlSource: MetricDataSource.computer,
+        ceilingSource: MetricDataSource.computer,
+        ttsSource: MetricDataSource.computer,
+        cnsSource: MetricDataSource.calculated,
       );
 
       // NDL, ceiling, and TTS should be overlaid
@@ -95,13 +99,17 @@ void main() {
         result.cnsCurve![150],
         closeTo(baseAnalysis.cnsCurve![150], 0.001),
         reason:
-            'With includeComputerCns: false, the CNS curve should '
+            'With cnsSource: calculated, the CNS curve should '
             'retain the calculated values, not computer-reported values',
       );
+
+      expect(sourceInfo.ndlActual, MetricDataSource.computer);
+      expect(sourceInfo.ceilingActual, MetricDataSource.computer);
+      expect(sourceInfo.ttsActual, MetricDataSource.computer);
+      expect(sourceInfo.cnsActual, MetricDataSource.calculated);
     });
 
-    test('includeComputerCns: true overlays computer CNS curve '
-        '(existing default behavior)', () {
+    test('cnsSource: computer overlays computer CNS curve', () {
       final profileWithCns = <DiveProfilePoint>[];
       for (int i = 0; i < baseProfile.length; i++) {
         if (i >= 100 && i < 300) {
@@ -111,10 +119,10 @@ void main() {
         }
       }
 
-      final result = overlayComputerDecoData(
+      final (result, sourceInfo) = overlayComputerDecoData(
         baseAnalysis,
         profileWithCns,
-        includeComputerCns: true,
+        cnsSource: MetricDataSource.computer,
       );
 
       // Computer CNS values should appear at the overlaid indices
@@ -122,9 +130,11 @@ void main() {
 
       // Non-overlaid indices should fall back to calculated values
       expect(result.cnsCurve![50], closeTo(baseAnalysis.cnsCurve![50], 0.001));
+
+      expect(sourceInfo.cnsActual, MetricDataSource.computer);
     });
 
-    test('includeComputerCns defaults to true (backward-compatible)', () {
+    test('defaults to calculated for all metrics', () {
       final profileWithCns = <DiveProfilePoint>[];
       for (int i = 0; i < baseProfile.length; i++) {
         if (i >= 100 && i < 200) {
@@ -134,19 +144,28 @@ void main() {
         }
       }
 
-      // Call without specifying includeComputerCns (should default to true)
-      final result = overlayComputerDecoData(baseAnalysis, profileWithCns);
+      // Call without specifying any source params (all default to calculated)
+      final (result, sourceInfo) = overlayComputerDecoData(
+        baseAnalysis,
+        profileWithCns,
+      );
 
+      // Default is calculated, so computer data should NOT be overlaid
       expect(
         result.cnsCurve![150],
-        closeTo(55.0, 0.001),
+        closeTo(baseAnalysis.cnsCurve![150], 0.001),
         reason:
-            'Default includeComputerCns should be true, '
-            'overlaying computer CNS data',
+            'Default source is calculated, '
+            'so computer CNS data should be ignored',
       );
+
+      expect(sourceInfo.cnsActual, MetricDataSource.calculated);
+      expect(sourceInfo.ndlActual, MetricDataSource.calculated);
+      expect(sourceInfo.ceilingActual, MetricDataSource.calculated);
+      expect(sourceInfo.ttsActual, MetricDataSource.calculated);
     });
 
-    test('includeComputerCns: false with only CNS computer data '
+    test('cnsSource: calculated with only CNS computer data '
         'returns original analysis unchanged', () {
       // Profile that ONLY has computer CNS (no NDL, ceiling, or TTS)
       final profileCnsOnly = <DiveProfilePoint>[];
@@ -158,15 +177,16 @@ void main() {
         }
       }
 
-      final result = overlayComputerDecoData(
+      final (result, sourceInfo) = overlayComputerDecoData(
         baseAnalysis,
         profileCnsOnly,
-        includeComputerCns: false,
+        cnsSource: MetricDataSource.calculated,
       );
 
-      // With includeComputerCns: false and no other computer data,
-      // the function should return the original analysis unchanged
+      // With cnsSource: calculated and no other metric sources requesting
+      // computer, the function should return the original analysis unchanged
       expect(result, same(baseAnalysis));
+      expect(sourceInfo.cnsActual, MetricDataSource.calculated);
     });
   });
 
@@ -506,11 +526,14 @@ void main() {
         startCns: startCns,
       );
 
-      // Step 5: overlay computer deco data (includeComputerCns: true)
-      final overlaid = overlayComputerDecoData(
+      // Step 5: overlay computer deco data (cnsSource: computer)
+      final (overlaid, _) = overlayComputerDecoData(
         analysis,
         profile,
-        includeComputerCns: true,
+        ndlSource: MetricDataSource.computer,
+        ceilingSource: MetricDataSource.computer,
+        ttsSource: MetricDataSource.computer,
+        cnsSource: MetricDataSource.computer,
       );
 
       // Step 6: override o2Exposure with computer CNS
@@ -553,10 +576,13 @@ void main() {
       );
 
       // Step 5: overlay (no computer data, returns analysis unchanged)
-      final overlaid = overlayComputerDecoData(
+      final (overlaid, _) = overlayComputerDecoData(
         analysis,
         profile,
-        includeComputerCns: true,
+        ndlSource: MetricDataSource.computer,
+        ceilingSource: MetricDataSource.computer,
+        ttsSource: MetricDataSource.computer,
+        cnsSource: MetricDataSource.computer,
       );
 
       // Step 6: computerCns is null, so no override -- use overlaid as-is
@@ -594,11 +620,14 @@ void main() {
         startCns: startCns,
       );
 
-      // Step 5: overlay with includeComputerCns: false
-      final overlaid = overlayComputerDecoData(
+      // Step 5: overlay with cnsSource: calculated (setting OFF)
+      final (overlaid, _) = overlayComputerDecoData(
         analysis,
         profile,
-        includeComputerCns: false,
+        ndlSource: MetricDataSource.computer,
+        ceilingSource: MetricDataSource.computer,
+        ttsSource: MetricDataSource.computer,
+        cnsSource: MetricDataSource.calculated,
       );
 
       // Step 6: computerCns is null (setting OFF), so no override
@@ -660,10 +689,13 @@ void main() {
       );
 
       // Step 5: overlay (no computer data on current dive)
-      final overlaid = overlayComputerDecoData(
+      final (overlaid, _) = overlayComputerDecoData(
         analysis,
         currentProfile,
-        includeComputerCns: true,
+        ndlSource: MetricDataSource.computer,
+        ceilingSource: MetricDataSource.computer,
+        ttsSource: MetricDataSource.computer,
+        cnsSource: MetricDataSource.computer,
       );
 
       // Step 6: computerCns is null for current dive, no override

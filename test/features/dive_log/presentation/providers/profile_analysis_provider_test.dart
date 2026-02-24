@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -213,8 +214,15 @@ void main() {
 
     test('returns original analysis when no computer data present', () {
       // Profile with no computer deco data (all ndl/ceiling/tts/cns null)
-      final result = overlayComputerDecoData(baseAnalysis, baseProfile);
+      final (result, sourceInfo) = overlayComputerDecoData(
+        baseAnalysis,
+        baseProfile,
+      );
       expect(result, same(baseAnalysis));
+      expect(sourceInfo.ndlActual, MetricDataSource.calculated);
+      expect(sourceInfo.ceilingActual, MetricDataSource.calculated);
+      expect(sourceInfo.ttsActual, MetricDataSource.calculated);
+      expect(sourceInfo.cnsActual, MetricDataSource.calculated);
     });
 
     test('overlays computer NDL when available', () {
@@ -228,13 +236,19 @@ void main() {
         }
       }
 
-      final result = overlayComputerDecoData(baseAnalysis, profileWithNdl);
+      final (result, sourceInfo) = overlayComputerDecoData(
+        baseAnalysis,
+        profileWithNdl,
+        ndlSource: MetricDataSource.computer,
+      );
 
       // Points with computer NDL should use computer value
       expect(result.ndlCurve[150], equals(600));
 
       // Points without computer NDL should use calculated value
       expect(result.ndlCurve[50], equals(baseAnalysis.ndlCurve[50]));
+
+      expect(sourceInfo.ndlActual, MetricDataSource.computer);
     });
 
     test('overlays computer ceiling when available', () {
@@ -247,7 +261,11 @@ void main() {
         }
       }
 
-      final result = overlayComputerDecoData(baseAnalysis, profileWithCeiling);
+      final (result, sourceInfo) = overlayComputerDecoData(
+        baseAnalysis,
+        profileWithCeiling,
+        ceilingSource: MetricDataSource.computer,
+      );
 
       // Points with computer ceiling should use computer value
       expect(result.ceilingCurve[250], closeTo(3.0, 0.001));
@@ -257,6 +275,8 @@ void main() {
         result.ceilingCurve[50],
         closeTo(baseAnalysis.ceilingCurve[50], 0.001),
       );
+
+      expect(sourceInfo.ceilingActual, MetricDataSource.computer);
     });
 
     test('overlays computer TTS when available', () {
@@ -269,13 +289,19 @@ void main() {
         }
       }
 
-      final result = overlayComputerDecoData(baseAnalysis, profileWithTts);
+      final (result, sourceInfo) = overlayComputerDecoData(
+        baseAnalysis,
+        profileWithTts,
+        ttsSource: MetricDataSource.computer,
+      );
 
       // Points with computer TTS should use computer value
       expect(result.ttsCurve![200], equals(120));
 
       // Points without computer TTS should use calculated value
       expect(result.ttsCurve![50], equals(baseAnalysis.ttsCurve![50]));
+
+      expect(sourceInfo.ttsActual, MetricDataSource.computer);
     });
 
     test('overlays computer CNS when available', () {
@@ -288,13 +314,19 @@ void main() {
         }
       }
 
-      final result = overlayComputerDecoData(baseAnalysis, profileWithCns);
+      final (result, sourceInfo) = overlayComputerDecoData(
+        baseAnalysis,
+        profileWithCns,
+        cnsSource: MetricDataSource.computer,
+      );
 
       // Points with computer CNS should use computer value
       expect(result.cnsCurve![150], closeTo(25.0, 0.001));
 
       // Points without computer CNS should use calculated value
       expect(result.cnsCurve![50], closeTo(baseAnalysis.cnsCurve![50], 0.001));
+
+      expect(sourceInfo.cnsActual, MetricDataSource.computer);
     });
 
     test(
@@ -310,13 +342,22 @@ void main() {
           }
         }
 
-        final result = overlayComputerDecoData(baseAnalysis, profileMixed);
+        final (result, sourceInfo) = overlayComputerDecoData(
+          baseAnalysis,
+          profileMixed,
+          ndlSource: MetricDataSource.computer,
+          ceilingSource: MetricDataSource.computer,
+          ttsSource: MetricDataSource.computer,
+          cnsSource: MetricDataSource.computer,
+        );
 
         // Even indices in range should have computer value
         expect(result.ndlCurve[100], equals(777));
 
         // Odd indices should use calculated value
         expect(result.ndlCurve[101], equals(baseAnalysis.ndlCurve[101]));
+
+        expect(sourceInfo.ndlActual, MetricDataSource.computer);
       },
     );
 
@@ -332,13 +373,25 @@ void main() {
         }
       }
 
-      final result = overlayComputerDecoData(baseAnalysis, profileMulti);
+      final (result, sourceInfo) = overlayComputerDecoData(
+        baseAnalysis,
+        profileMulti,
+        ndlSource: MetricDataSource.computer,
+        ceilingSource: MetricDataSource.computer,
+        ttsSource: MetricDataSource.computer,
+        cnsSource: MetricDataSource.computer,
+      );
 
       // All four curves should be overlaid at index 150
       expect(result.ndlCurve[150], equals(500));
       expect(result.ceilingCurve[150], closeTo(6.0, 0.001));
       expect(result.ttsCurve![150], equals(90));
       expect(result.cnsCurve![150], closeTo(15.0, 0.001));
+
+      expect(sourceInfo.ndlActual, MetricDataSource.computer);
+      expect(sourceInfo.ceilingActual, MetricDataSource.computer);
+      expect(sourceInfo.ttsActual, MetricDataSource.computer);
+      expect(sourceInfo.cnsActual, MetricDataSource.computer);
     });
 
     test('handles empty analysis curves gracefully', () {
@@ -371,7 +424,14 @@ void main() {
         }
       }
 
-      final result = overlayComputerDecoData(emptyAnalysis, profileWithTts);
+      final (result, sourceInfo) = overlayComputerDecoData(
+        emptyAnalysis,
+        profileWithTts,
+        ndlSource: MetricDataSource.computer,
+        ceilingSource: MetricDataSource.computer,
+        ttsSource: MetricDataSource.computer,
+        cnsSource: MetricDataSource.computer,
+      );
 
       // Even with null base curves, computer data should produce curves
       // with computer values where available and 0 fallback elsewhere
@@ -382,6 +442,33 @@ void main() {
       expect(result.cnsCurve, isNotNull);
       expect(result.cnsCurve![150], closeTo(20.0, 0.001));
       expect(result.cnsCurve![50], closeTo(0.0, 0.001));
+
+      expect(sourceInfo.ttsActual, MetricDataSource.computer);
+      expect(sourceInfo.cnsActual, MetricDataSource.computer);
+    });
+
+    test('source=calculated ignores available computer NDL data', () {
+      final profileWithNdl = List.generate(baseProfile.length, (i) {
+        return baseProfile[i].copyWith(ndl: i < 5 ? 12 : null);
+      });
+
+      final (result, sourceInfo) = overlayComputerDecoData(
+        baseAnalysis,
+        profileWithNdl,
+        ndlSource: MetricDataSource.calculated,
+      );
+      expect(result.ndlCurve, equals(baseAnalysis.ndlCurve));
+      expect(sourceInfo.ndlActual, MetricDataSource.calculated);
+    });
+
+    test('source=computer without data falls back to calculated', () {
+      final (result, sourceInfo) = overlayComputerDecoData(
+        baseAnalysis,
+        baseProfile,
+        ndlSource: MetricDataSource.computer,
+      );
+      expect(result.ndlCurve, equals(baseAnalysis.ndlCurve));
+      expect(sourceInfo.ndlActual, MetricDataSource.calculated);
     });
   });
 }

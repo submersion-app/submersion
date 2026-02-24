@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/providers/provider.dart';
 
@@ -131,31 +132,51 @@ ProfileAnalysisService _resolveAnalysisService(
 /// Overlays computer-reported decompression data onto a calculated
 /// [ProfileAnalysis].
 ///
-/// When profile points contain computer-reported values for NDL, ceiling,
-/// TTS, or CNS, those values take priority over the Buhlmann-calculated
-/// values. Points without computer data fall back to the calculated values.
+/// Each metric (NDL, ceiling, TTS, CNS) is independently controlled by its
+/// own [MetricDataSource] parameter. When a source is [MetricDataSource.computer]
+/// and computer data exists in the profile, those values take priority over
+/// the Buhlmann-calculated values. Points without computer data fall back to
+/// the calculated values.
 ///
-/// Returns the original [analysis] unchanged if no computer data is present.
-ProfileAnalysis overlayComputerDecoData(
+/// Returns a tuple of the (possibly overlaid) [ProfileAnalysis] and a
+/// [MetricSourceInfo] reporting the actual source used per metric after
+/// fallback resolution.
+(ProfileAnalysis, MetricSourceInfo) overlayComputerDecoData(
   ProfileAnalysis analysis,
   List<DiveProfilePoint> profile, {
-  bool includeComputerCns = true,
+  MetricDataSource ndlSource = MetricDataSource.calculated,
+  MetricDataSource ceilingSource = MetricDataSource.calculated,
+  MetricDataSource ttsSource = MetricDataSource.calculated,
+  MetricDataSource cnsSource = MetricDataSource.calculated,
 }) {
   final hasComputerNdl = profile.any((p) => p.ndl != null);
   final hasComputerCeiling = profile.any((p) => p.ceiling != null);
   final hasComputerTts = profile.any((p) => p.tts != null);
-  final hasComputerCns =
-      includeComputerCns && profile.any((p) => p.cns != null);
+  final hasComputerCns = profile.any((p) => p.cns != null);
 
-  if (!hasComputerNdl &&
-      !hasComputerCeiling &&
-      !hasComputerTts &&
-      !hasComputerCns) {
-    return analysis;
+  // Decide per-metric: overlay only when source=computer AND data exists
+  final useNdl = ndlSource == MetricDataSource.computer && hasComputerNdl;
+  final useCeiling =
+      ceilingSource == MetricDataSource.computer && hasComputerCeiling;
+  final useTts = ttsSource == MetricDataSource.computer && hasComputerTts;
+  final useCns = cnsSource == MetricDataSource.computer && hasComputerCns;
+
+  // Report actual source used (fallback to calculated if no data)
+  final sourceInfo = (
+    ndlActual: useNdl ? MetricDataSource.computer : MetricDataSource.calculated,
+    ceilingActual: useCeiling
+        ? MetricDataSource.computer
+        : MetricDataSource.calculated,
+    ttsActual: useTts ? MetricDataSource.computer : MetricDataSource.calculated,
+    cnsActual: useCns ? MetricDataSource.computer : MetricDataSource.calculated,
+  );
+
+  if (!useNdl && !useCeiling && !useTts && !useCns) {
+    return (analysis, sourceInfo);
   }
 
-  return analysis.copyWith(
-    ndlCurve: hasComputerNdl
+  final overlaid = analysis.copyWith(
+    ndlCurve: useNdl
         ? List<int>.generate(
             profile.length,
             (i) =>
@@ -163,7 +184,7 @@ ProfileAnalysis overlayComputerDecoData(
                 (i < analysis.ndlCurve.length ? analysis.ndlCurve[i] : 0),
           )
         : null,
-    ceilingCurve: hasComputerCeiling
+    ceilingCurve: useCeiling
         ? List<double>.generate(
             profile.length,
             (i) =>
@@ -173,7 +194,7 @@ ProfileAnalysis overlayComputerDecoData(
                     : 0.0),
           )
         : null,
-    ttsCurve: hasComputerTts
+    ttsCurve: useTts
         ? List<int>.generate(
             profile.length,
             (i) =>
@@ -183,7 +204,7 @@ ProfileAnalysis overlayComputerDecoData(
                     : 0),
           )
         : null,
-    cnsCurve: hasComputerCns
+    cnsCurve: useCns
         ? List<double>.generate(
             profile.length,
             (i) =>
@@ -194,6 +215,8 @@ ProfileAnalysis overlayComputerDecoData(
           )
         : null,
   );
+
+  return (overlaid, sourceInfo);
 }
 
 /// Provider for the ProfileAnalysisService configured with user settings
@@ -342,10 +365,15 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
       );
 
       // Overlay computer-reported deco data where available
-      final overlaid = overlayComputerDecoData(
+      final (overlaid, _) = overlayComputerDecoData(
         analysis,
         dive.profile,
-        includeComputerCns: useComputerCns,
+        cnsSource: useComputerCns
+            ? MetricDataSource.computer
+            : MetricDataSource.calculated,
+        ndlSource: MetricDataSource.computer,
+        ceilingSource: MetricDataSource.computer,
+        ttsSource: MetricDataSource.computer,
       );
 
       // Override o2Exposure with computer-reported CNS start/end
@@ -502,7 +530,15 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
     );
 
     // Overlay computer-reported deco data where available
-    return overlayComputerDecoData(analysis, dive.profile);
+    final (overlaid, _) = overlayComputerDecoData(
+      analysis,
+      dive.profile,
+      ndlSource: MetricDataSource.computer,
+      ceilingSource: MetricDataSource.computer,
+      ttsSource: MetricDataSource.computer,
+      cnsSource: MetricDataSource.computer,
+    );
+    return overlaid;
   } catch (e, stackTrace) {
     _log.error('Failed to analyze profile for dive: ${dive.id}', e, stackTrace);
     return null;
