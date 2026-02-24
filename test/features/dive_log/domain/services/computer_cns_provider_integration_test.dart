@@ -711,4 +711,127 @@ void main() {
       );
     });
   });
+
+  group('Per-metric source selection', () {
+    late ProfileAnalysisService service;
+    late List<DiveProfilePoint> profile;
+    late ProfileAnalysis baseAnalysis;
+
+    setUp(() {
+      service = ProfileAnalysisService(gfLow: 0.30, gfHigh: 0.70);
+      // Profile with ALL computer data types
+      profile = List.generate(20, (i) {
+        final depth = i < 10 ? (i * 3.0) : ((20 - i) * 3.0);
+        final timestamp = i * 30;
+        return DiveProfilePoint(
+          depth: depth,
+          timestamp: timestamp,
+          temperature: 20.0,
+          ndl: depth > 5 ? (99 - i) : null,
+          ceiling: depth > 15 ? (depth * 0.1) : null,
+          tts: depth > 15 ? (i * 2) : null,
+          cns: depth > 0 ? (i * 1.5) : null,
+        );
+      });
+
+      final depths = profile.map((p) => p.depth).toList();
+      final timestamps = profile.map((p) => p.timestamp).toList();
+      baseAnalysis = service.analyze(
+        diveId: 'test-per-metric',
+        depths: depths,
+        timestamps: timestamps,
+      );
+    });
+
+    test('all sources=computer overlays everything', () {
+      final (result, sourceInfo) = overlayComputerDecoData(
+        baseAnalysis,
+        profile,
+        ndlSource: MetricDataSource.computer,
+        ceilingSource: MetricDataSource.computer,
+        ttsSource: MetricDataSource.computer,
+        cnsSource: MetricDataSource.computer,
+      );
+
+      expect(sourceInfo.ndlActual, MetricDataSource.computer);
+      expect(sourceInfo.ceilingActual, MetricDataSource.computer);
+      expect(sourceInfo.ttsActual, MetricDataSource.computer);
+      expect(sourceInfo.cnsActual, MetricDataSource.computer);
+
+      // Verify NDL curve uses computer values where available
+      final ndlPoint = profile.indexWhere((p) => p.ndl != null);
+      expect(result.ndlCurve[ndlPoint], profile[ndlPoint].ndl);
+    });
+
+    test('mixed sources: NDL=computer, ceiling=calculated, '
+        'TTS=computer, CNS=calculated', () {
+      final (result, sourceInfo) = overlayComputerDecoData(
+        baseAnalysis,
+        profile,
+        ndlSource: MetricDataSource.computer,
+        ceilingSource: MetricDataSource.calculated,
+        ttsSource: MetricDataSource.computer,
+        cnsSource: MetricDataSource.calculated,
+      );
+
+      expect(sourceInfo.ndlActual, MetricDataSource.computer);
+      expect(sourceInfo.ceilingActual, MetricDataSource.calculated);
+      expect(sourceInfo.ttsActual, MetricDataSource.computer);
+      expect(sourceInfo.cnsActual, MetricDataSource.calculated);
+
+      // Ceiling should be unchanged from base analysis
+      expect(result.ceilingCurve, equals(baseAnalysis.ceilingCurve));
+    });
+
+    test('source=computer with missing data falls back', () {
+      // Profile with ONLY NDL data, no ceiling/TTS/CNS
+      final ndlOnlyProfile = List.generate(10, (i) {
+        return DiveProfilePoint(
+          depth: i * 3.0,
+          timestamp: i * 30,
+          temperature: 20.0,
+          ndl: 99 - i,
+        );
+      });
+
+      final depths = ndlOnlyProfile.map((p) => p.depth).toList();
+      final timestamps = ndlOnlyProfile.map((p) => p.timestamp).toList();
+      final analysis = service.analyze(
+        diveId: 'test-fallback',
+        depths: depths,
+        timestamps: timestamps,
+      );
+
+      final (_, sourceInfo) = overlayComputerDecoData(
+        analysis,
+        ndlOnlyProfile,
+        ndlSource: MetricDataSource.computer,
+        ceilingSource: MetricDataSource.computer,
+        ttsSource: MetricDataSource.computer,
+        cnsSource: MetricDataSource.computer,
+      );
+
+      expect(sourceInfo.ndlActual, MetricDataSource.computer);
+      expect(sourceInfo.ceilingActual, MetricDataSource.calculated); // Fallback
+      expect(sourceInfo.ttsActual, MetricDataSource.calculated); // Fallback
+      expect(sourceInfo.cnsActual, MetricDataSource.calculated); // Fallback
+    });
+
+    test('all sources=calculated ignores all computer data', () {
+      final (result, sourceInfo) = overlayComputerDecoData(
+        baseAnalysis,
+        profile,
+        // All defaults to calculated
+      );
+
+      expect(sourceInfo.ndlActual, MetricDataSource.calculated);
+      expect(sourceInfo.ceilingActual, MetricDataSource.calculated);
+      expect(sourceInfo.ttsActual, MetricDataSource.calculated);
+      expect(sourceInfo.cnsActual, MetricDataSource.calculated);
+
+      // Analysis should be unchanged
+      expect(result.ndlCurve, equals(baseAnalysis.ndlCurve));
+      expect(result.ceilingCurve, equals(baseAnalysis.ceilingCurve));
+    });
+  });
 }
