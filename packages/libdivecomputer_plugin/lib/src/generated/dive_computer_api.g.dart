@@ -15,11 +15,7 @@ PlatformException _createConnectionError(String channelName) {
   );
 }
 
-List<Object?> wrapResponse({
-  Object? result,
-  PlatformException? error,
-  bool empty = false,
-}) {
+List<Object?> wrapResponse({Object? result, PlatformException? error, bool empty = false}) {
   if (empty) {
     return <Object?>[];
   }
@@ -29,7 +25,12 @@ List<Object?> wrapResponse({
   return <Object?>[error.code, error.message, error.details];
 }
 
-enum TransportType { ble, usb, serial, infrared }
+enum TransportType {
+  ble,
+  usb,
+  serial,
+  infrared,
+}
 
 class DeviceDescriptor {
   DeviceDescriptor({
@@ -48,7 +49,12 @@ class DeviceDescriptor {
   List<TransportType> transports;
 
   Object encode() {
-    return <Object?>[vendor, product, model, transports];
+    return <Object?>[
+      vendor,
+      product,
+      model,
+      transports,
+    ];
   }
 
   static DeviceDescriptor decode(Object result) {
@@ -85,7 +91,14 @@ class DiscoveredDevice {
   TransportType transport;
 
   Object encode() {
-    return <Object?>[vendor, product, model, address, name, transport];
+    return <Object?>[
+      vendor,
+      product,
+      model,
+      address,
+      name,
+      transport,
+    ];
   }
 
   static DiscoveredDevice decode(Object result) {
@@ -109,6 +122,14 @@ class ProfileSample {
     this.pressureBar,
     this.tankIndex,
     this.heartRate,
+    this.setpoint,
+    this.ppo2,
+    this.cns,
+    this.rbt,
+    this.decoType,
+    this.decoTime,
+    this.decoDepth,
+    this.tts,
   });
 
   int timeSeconds;
@@ -121,7 +142,23 @@ class ProfileSample {
 
   int? tankIndex;
 
-  double? heartRate;
+  int? heartRate;
+
+  double? setpoint;
+
+  double? ppo2;
+
+  double? cns;
+
+  int? rbt;
+
+  int? decoType;
+
+  int? decoTime;
+
+  double? decoDepth;
+
+  int? tts;
 
   Object encode() {
     return <Object?>[
@@ -131,6 +168,14 @@ class ProfileSample {
       pressureBar,
       tankIndex,
       heartRate,
+      setpoint,
+      ppo2,
+      cns,
+      rbt,
+      decoType,
+      decoTime,
+      decoDepth,
+      tts,
     ];
   }
 
@@ -142,7 +187,15 @@ class ProfileSample {
       temperatureCelsius: result[2] as double?,
       pressureBar: result[3] as double?,
       tankIndex: result[4] as int?,
-      heartRate: result[5] as double?,
+      heartRate: result[5] as int?,
+      setpoint: result[6] as double?,
+      ppo2: result[7] as double?,
+      cns: result[8] as double?,
+      rbt: result[9] as int?,
+      decoType: result[10] as int?,
+      decoTime: result[11] as int?,
+      decoDepth: result[12] as double?,
+      tts: result[13] as int?,
     );
   }
 }
@@ -161,7 +214,11 @@ class GasMix {
   double hePercent;
 
   Object encode() {
-    return <Object?>[index, o2Percent, hePercent];
+    return <Object?>[
+      index,
+      o2Percent,
+      hePercent,
+    ];
   }
 
   static GasMix decode(Object result) {
@@ -216,7 +273,11 @@ class TankInfo {
 }
 
 class DiveEvent {
-  DiveEvent({required this.timeSeconds, required this.type, this.data});
+  DiveEvent({
+    required this.timeSeconds,
+    required this.type,
+    this.data,
+  });
 
   int timeSeconds;
 
@@ -225,7 +286,11 @@ class DiveEvent {
   Map<String, String>? data;
 
   Object encode() {
-    return <Object?>[timeSeconds, type, data];
+    return <Object?>[
+      timeSeconds,
+      type,
+      data,
+    ];
   }
 
   static DiveEvent decode(Object result) {
@@ -252,6 +317,10 @@ class ParsedDive {
     required this.gasMixes,
     required this.events,
     this.diveMode,
+    this.decoAlgorithm,
+    this.gfLow,
+    this.gfHigh,
+    this.decoConservatism,
   });
 
   String fingerprint;
@@ -278,6 +347,14 @@ class ParsedDive {
 
   String? diveMode;
 
+  String? decoAlgorithm;
+
+  int? gfLow;
+
+  int? gfHigh;
+
+  int? decoConservatism;
+
   Object encode() {
     return <Object?>[
       fingerprint,
@@ -292,6 +369,10 @@ class ParsedDive {
       gasMixes,
       events,
       diveMode,
+      decoAlgorithm,
+      gfLow,
+      gfHigh,
+      decoConservatism,
     ];
   }
 
@@ -310,6 +391,10 @@ class ParsedDive {
       gasMixes: (result[9] as List<Object?>?)!.cast<GasMix>(),
       events: (result[10] as List<Object?>?)!.cast<DiveEvent>(),
       diveMode: result[11] as String?,
+      decoAlgorithm: result[12] as String?,
+      gfLow: result[13] as int?,
+      gfHigh: result[14] as int?,
+      decoConservatism: result[15] as int?,
     );
   }
 }
@@ -328,7 +413,11 @@ class DownloadProgress {
   String status;
 
   Object encode() {
-    return <Object?>[current, total, status];
+    return <Object?>[
+      current,
+      total,
+      status,
+    ];
   }
 
   static DownloadProgress decode(Object result) {
@@ -342,14 +431,20 @@ class DownloadProgress {
 }
 
 class DiveComputerError {
-  DiveComputerError({required this.code, required this.message});
+  DiveComputerError({
+    required this.code,
+    required this.message,
+  });
 
   String code;
 
   String message;
 
   Object encode() {
-    return <Object?>[code, message];
+    return <Object?>[
+      code,
+      message,
+    ];
   }
 
   static DiveComputerError decode(Object result) {
@@ -361,6 +456,7 @@ class DiveComputerError {
   }
 }
 
+
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
   @override
@@ -368,34 +464,34 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    } else if (value is TransportType) {
+    }    else if (value is TransportType) {
       buffer.putUint8(129);
       writeValue(buffer, value.index);
-    } else if (value is DeviceDescriptor) {
+    }    else if (value is DeviceDescriptor) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    } else if (value is DiscoveredDevice) {
+    }    else if (value is DiscoveredDevice) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    } else if (value is ProfileSample) {
+    }    else if (value is ProfileSample) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    } else if (value is GasMix) {
+    }    else if (value is GasMix) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    } else if (value is TankInfo) {
+    }    else if (value is TankInfo) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    } else if (value is DiveEvent) {
+    }    else if (value is DiveEvent) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    } else if (value is ParsedDive) {
+    }    else if (value is ParsedDive) {
       buffer.putUint8(136);
       writeValue(buffer, value.encode());
-    } else if (value is DownloadProgress) {
+    }    else if (value is DownloadProgress) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
-    } else if (value is DiveComputerError) {
+    }    else if (value is DiveComputerError) {
       buffer.putUint8(138);
       writeValue(buffer, value.encode());
     } else {
@@ -406,26 +502,26 @@ class _PigeonCodec extends StandardMessageCodec {
   @override
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
-      case 129:
+      case 129: 
         final int? value = readValue(buffer) as int?;
         return value == null ? null : TransportType.values[value];
-      case 130:
+      case 130: 
         return DeviceDescriptor.decode(readValue(buffer)!);
-      case 131:
+      case 131: 
         return DiscoveredDevice.decode(readValue(buffer)!);
-      case 132:
+      case 132: 
         return ProfileSample.decode(readValue(buffer)!);
-      case 133:
+      case 133: 
         return GasMix.decode(readValue(buffer)!);
-      case 134:
+      case 134: 
         return TankInfo.decode(readValue(buffer)!);
-      case 135:
+      case 135: 
         return DiveEvent.decode(readValue(buffer)!);
-      case 136:
+      case 136: 
         return ParsedDive.decode(readValue(buffer)!);
-      case 137:
+      case 137: 
         return DownloadProgress.decode(readValue(buffer)!);
-      case 138:
+      case 138: 
         return DiveComputerError.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -437,13 +533,9 @@ class DiveComputerHostApi {
   /// Constructor for [DiveComputerHostApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  DiveComputerHostApi({
-    BinaryMessenger? binaryMessenger,
-    String messageChannelSuffix = '',
-  }) : pigeonVar_binaryMessenger = binaryMessenger,
-       pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty
-           ? '.$messageChannelSuffix'
-           : '';
+  DiveComputerHostApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+      : pigeonVar_binaryMessenger = binaryMessenger,
+        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -451,14 +543,12 @@ class DiveComputerHostApi {
   final String pigeonVar_messageChannelSuffix;
 
   Future<List<DeviceDescriptor>> getDeviceDescriptors() async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.getDeviceDescriptors$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.getDeviceDescriptors$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(null) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -475,20 +565,17 @@ class DiveComputerHostApi {
         message: 'Host platform returned null value for non-null return value.',
       );
     } else {
-      return (pigeonVar_replyList[0] as List<Object?>?)!
-          .cast<DeviceDescriptor>();
+      return (pigeonVar_replyList[0] as List<Object?>?)!.cast<DeviceDescriptor>();
     }
   }
 
   Future<void> startDiscovery(TransportType transport) async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.startDiscovery$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.startDiscovery$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[transport]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -505,14 +592,12 @@ class DiveComputerHostApi {
   }
 
   Future<void> stopDiscovery() async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.stopDiscovery$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.stopDiscovery$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(null) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -529,14 +614,12 @@ class DiveComputerHostApi {
   }
 
   Future<void> startDownload(DiscoveredDevice device) async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.startDownload$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.startDownload$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[device]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -553,14 +636,12 @@ class DiveComputerHostApi {
   }
 
   Future<void> cancelDownload() async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.cancelDownload$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.cancelDownload$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(null) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -577,14 +658,12 @@ class DiveComputerHostApi {
   }
 
   Future<String> getLibdivecomputerVersion() async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.getLibdivecomputerVersion$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.getLibdivecomputerVersion$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(null) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -617,63 +696,41 @@ abstract class DiveComputerFlutterApi {
 
   void onDiveDownloaded(ParsedDive dive);
 
-  void onDownloadComplete(
-    int totalDives,
-    String? serialNumber,
-    String? firmwareVersion,
-  );
+  void onDownloadComplete(int totalDives, String? serialNumber, String? firmwareVersion);
 
   void onError(DiveComputerError error);
 
-  static void setUp(
-    DiveComputerFlutterApi? api, {
-    BinaryMessenger? binaryMessenger,
-    String messageChannelSuffix = '',
-  }) {
-    messageChannelSuffix = messageChannelSuffix.isNotEmpty
-        ? '.$messageChannelSuffix'
-        : '';
+  static void setUp(DiveComputerFlutterApi? api, {BinaryMessenger? binaryMessenger, String messageChannelSuffix = '',}) {
+    messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
     {
-      final BasicMessageChannel<Object?>
-      pigeonVar_channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDeviceDiscovered$messageChannelSuffix',
-        pigeonChannelCodec,
-        binaryMessenger: binaryMessenger,
-      );
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDeviceDiscovered$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
         pigeonVar_channel.setMessageHandler((Object? message) async {
-          assert(
-            message != null,
-            'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDeviceDiscovered was null.',
-          );
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDeviceDiscovered was null.');
           final List<Object?> args = (message as List<Object?>?)!;
           final DiscoveredDevice? arg_device = (args[0] as DiscoveredDevice?);
-          assert(
-            arg_device != null,
-            'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDeviceDiscovered was null, expected non-null DiscoveredDevice.',
-          );
+          assert(arg_device != null,
+              'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDeviceDiscovered was null, expected non-null DiscoveredDevice.');
           try {
             api.onDeviceDiscovered(arg_device!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          } catch (e) {
-            return wrapResponse(
-              error: PlatformException(code: 'error', message: e.toString()),
-            );
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
           }
         });
       }
     }
     {
-      final BasicMessageChannel<Object?>
-      pigeonVar_channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDiscoveryComplete$messageChannelSuffix',
-        pigeonChannelCodec,
-        binaryMessenger: binaryMessenger,
-      );
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDiscoveryComplete$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
@@ -683,152 +740,110 @@ abstract class DiveComputerFlutterApi {
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          } catch (e) {
-            return wrapResponse(
-              error: PlatformException(code: 'error', message: e.toString()),
-            );
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
           }
         });
       }
     }
     {
-      final BasicMessageChannel<Object?>
-      pigeonVar_channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadProgress$messageChannelSuffix',
-        pigeonChannelCodec,
-        binaryMessenger: binaryMessenger,
-      );
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadProgress$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
         pigeonVar_channel.setMessageHandler((Object? message) async {
-          assert(
-            message != null,
-            'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadProgress was null.',
-          );
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadProgress was null.');
           final List<Object?> args = (message as List<Object?>?)!;
           final DownloadProgress? arg_progress = (args[0] as DownloadProgress?);
-          assert(
-            arg_progress != null,
-            'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadProgress was null, expected non-null DownloadProgress.',
-          );
+          assert(arg_progress != null,
+              'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadProgress was null, expected non-null DownloadProgress.');
           try {
             api.onDownloadProgress(arg_progress!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          } catch (e) {
-            return wrapResponse(
-              error: PlatformException(code: 'error', message: e.toString()),
-            );
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
           }
         });
       }
     }
     {
-      final BasicMessageChannel<Object?>
-      pigeonVar_channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDiveDownloaded$messageChannelSuffix',
-        pigeonChannelCodec,
-        binaryMessenger: binaryMessenger,
-      );
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDiveDownloaded$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
         pigeonVar_channel.setMessageHandler((Object? message) async {
-          assert(
-            message != null,
-            'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDiveDownloaded was null.',
-          );
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDiveDownloaded was null.');
           final List<Object?> args = (message as List<Object?>?)!;
           final ParsedDive? arg_dive = (args[0] as ParsedDive?);
-          assert(
-            arg_dive != null,
-            'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDiveDownloaded was null, expected non-null ParsedDive.',
-          );
+          assert(arg_dive != null,
+              'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDiveDownloaded was null, expected non-null ParsedDive.');
           try {
             api.onDiveDownloaded(arg_dive!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          } catch (e) {
-            return wrapResponse(
-              error: PlatformException(code: 'error', message: e.toString()),
-            );
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
           }
         });
       }
     }
     {
-      final BasicMessageChannel<Object?>
-      pigeonVar_channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadComplete$messageChannelSuffix',
-        pigeonChannelCodec,
-        binaryMessenger: binaryMessenger,
-      );
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadComplete$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
         pigeonVar_channel.setMessageHandler((Object? message) async {
-          assert(
-            message != null,
-            'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadComplete was null.',
-          );
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadComplete was null.');
           final List<Object?> args = (message as List<Object?>?)!;
           final int? arg_totalDives = (args[0] as int?);
-          assert(
-            arg_totalDives != null,
-            'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadComplete was null, expected non-null int.',
-          );
+          assert(arg_totalDives != null,
+              'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadComplete was null, expected non-null int.');
           final String? arg_serialNumber = (args[1] as String?);
           final String? arg_firmwareVersion = (args[2] as String?);
           try {
-            api.onDownloadComplete(
-              arg_totalDives!,
-              arg_serialNumber,
-              arg_firmwareVersion,
-            );
+            api.onDownloadComplete(arg_totalDives!, arg_serialNumber, arg_firmwareVersion);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          } catch (e) {
-            return wrapResponse(
-              error: PlatformException(code: 'error', message: e.toString()),
-            );
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
           }
         });
       }
     }
     {
-      final BasicMessageChannel<Object?>
-      pigeonVar_channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onError$messageChannelSuffix',
-        pigeonChannelCodec,
-        binaryMessenger: binaryMessenger,
-      );
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onError$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
         pigeonVar_channel.setMessageHandler((Object? message) async {
-          assert(
-            message != null,
-            'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onError was null.',
-          );
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onError was null.');
           final List<Object?> args = (message as List<Object?>?)!;
           final DiveComputerError? arg_error = (args[0] as DiveComputerError?);
-          assert(
-            arg_error != null,
-            'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onError was null, expected non-null DiveComputerError.',
-          );
+          assert(arg_error != null,
+              'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onError was null, expected non-null DiveComputerError.');
           try {
             api.onError(arg_error!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          } catch (e) {
-            return wrapResponse(
-              error: PlatformException(code: 'error', message: e.toString()),
-            );
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
           }
         });
       }

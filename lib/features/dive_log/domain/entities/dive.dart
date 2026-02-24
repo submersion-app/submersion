@@ -56,6 +56,9 @@ class Dive extends Equatable {
   // Decompression gradient factors
   final int? gradientFactorLow; // GF Lo (0-100)
   final int? gradientFactorHigh; // GF Hi (0-100)
+  // Decompression algorithm and conservatism
+  final String? decoAlgorithm; // "buhlmann", "vpm", "rgbm", "dciem"
+  final int? decoConservatism; // Personal adjustment (0=neutral)
   // Dive computer that logged this dive
   final String? diveComputerModel;
   final String? diveComputerSerial;
@@ -149,6 +152,8 @@ class Dive extends Equatable {
     this.surfaceInterval,
     this.gradientFactorLow,
     this.gradientFactorHigh,
+    this.decoAlgorithm,
+    this.decoConservatism,
     this.diveComputerModel,
     this.diveComputerSerial,
     this.diveComputerFirmware,
@@ -452,6 +457,8 @@ class Dive extends Equatable {
     Duration? surfaceInterval,
     int? gradientFactorLow,
     int? gradientFactorHigh,
+    String? decoAlgorithm,
+    int? decoConservatism,
     String? diveComputerModel,
     String? diveComputerSerial,
     String? diveComputerFirmware,
@@ -526,6 +533,8 @@ class Dive extends Equatable {
       surfaceInterval: surfaceInterval ?? this.surfaceInterval,
       gradientFactorLow: gradientFactorLow ?? this.gradientFactorLow,
       gradientFactorHigh: gradientFactorHigh ?? this.gradientFactorHigh,
+      decoAlgorithm: decoAlgorithm ?? this.decoAlgorithm,
+      decoConservatism: decoConservatism ?? this.decoConservatism,
       diveComputerModel: diveComputerModel ?? this.diveComputerModel,
       diveComputerSerial: diveComputerSerial ?? this.diveComputerSerial,
       diveComputerFirmware: diveComputerFirmware ?? this.diveComputerFirmware,
@@ -603,6 +612,8 @@ class Dive extends Equatable {
     surfaceInterval,
     gradientFactorLow,
     gradientFactorHigh,
+    decoAlgorithm,
+    decoConservatism,
     diveComputerModel,
     diveComputerSerial,
     diveComputerFirmware,
@@ -651,6 +662,14 @@ class DiveProfilePoint extends Equatable {
   final double? ppO2; // Measured/calculated ppO2 (bar)
   // Wearable integration (v2.0)
   final String? heartRateSource; // 'diveComputer', 'appleWatch', 'garmin'
+  // Decompression data
+  final double? cns; // CNS percentage 0-100
+  final int? ndl; // No Decompression Limit in seconds
+  final double? ceiling; // Deco ceiling in meters
+  final double? ascentRate; // Ascent rate in m/min
+  final int? rbt; // Remaining Bottom Time in seconds
+  final int? decoType; // 0=NDL, 1=safety stop, 2=deco stop, 3=deep stop
+  final int? tts; // Time To Surface in seconds
 
   const DiveProfilePoint({
     required this.timestamp,
@@ -661,6 +680,13 @@ class DiveProfilePoint extends Equatable {
     this.setpoint,
     this.ppO2,
     this.heartRateSource,
+    this.cns,
+    this.ndl,
+    this.ceiling,
+    this.ascentRate,
+    this.rbt,
+    this.decoType,
+    this.tts,
   });
 
   DiveProfilePoint copyWith({
@@ -672,6 +698,13 @@ class DiveProfilePoint extends Equatable {
     double? setpoint,
     double? ppO2,
     String? heartRateSource,
+    double? cns,
+    int? ndl,
+    double? ceiling,
+    double? ascentRate,
+    int? rbt,
+    int? decoType,
+    int? tts,
   }) {
     return DiveProfilePoint(
       timestamp: timestamp ?? this.timestamp,
@@ -682,6 +715,13 @@ class DiveProfilePoint extends Equatable {
       setpoint: setpoint ?? this.setpoint,
       ppO2: ppO2 ?? this.ppO2,
       heartRateSource: heartRateSource ?? this.heartRateSource,
+      cns: cns ?? this.cns,
+      ndl: ndl ?? this.ndl,
+      ceiling: ceiling ?? this.ceiling,
+      ascentRate: ascentRate ?? this.ascentRate,
+      rbt: rbt ?? this.rbt,
+      decoType: decoType ?? this.decoType,
+      tts: tts ?? this.tts,
     );
   }
 
@@ -695,6 +735,13 @@ class DiveProfilePoint extends Equatable {
     setpoint,
     ppO2,
     heartRateSource,
+    cns,
+    ndl,
+    ceiling,
+    ascentRate,
+    rbt,
+    decoType,
+    tts,
   ];
 }
 

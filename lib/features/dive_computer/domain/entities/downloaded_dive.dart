@@ -116,6 +116,21 @@ class DownloadedDive {
   /// Raw fingerprint for duplicate detection
   final String? fingerprint;
 
+  /// Deco algorithm name: "buhlmann", "vpm", "rgbm", "dciem"
+  final String? decoAlgorithm;
+
+  /// Gradient factor low (0-100)
+  final int? gfLow;
+
+  /// Gradient factor high (0-100)
+  final int? gfHigh;
+
+  /// Personal deco conservatism adjustment
+  final int? decoConservatism;
+
+  /// Dive events from the computer
+  final List<DownloadedEvent> events;
+
   const DownloadedDive({
     this.diveNumber,
     required this.startTime,
@@ -128,6 +143,11 @@ class DownloadedDive {
     this.tanks = const [],
     this.gasSwitches = const [],
     this.fingerprint,
+    this.decoAlgorithm,
+    this.gfLow,
+    this.gfHigh,
+    this.decoConservatism,
+    this.events = const [],
   });
 
   /// Duration as a Duration object
@@ -157,6 +177,9 @@ class ProfileSample {
   /// Heart rate in bpm (if available)
   final int? heartRate;
 
+  /// CCR setpoint in bar (if available)
+  final double? setpoint;
+
   /// ppO2 in bar (for CCR)
   final double? ppo2;
 
@@ -172,6 +195,21 @@ class ProfileSample {
   /// Ascent rate in m/min
   final double? ascentRate;
 
+  /// Remaining bottom time in seconds
+  final int? rbt;
+
+  /// Deco type: 0=NDL, 1=safety, 2=deco, 3=deep
+  final int? decoType;
+
+  /// NDL seconds or deco stop time remaining
+  final int? decoTime;
+
+  /// Deco stop depth in meters
+  final double? decoDepth;
+
+  /// Time to surface in seconds
+  final int? tts;
+
   const ProfileSample({
     required this.timeSeconds,
     required this.depth,
@@ -179,11 +217,17 @@ class ProfileSample {
     this.pressure,
     this.tankIndex,
     this.heartRate,
+    this.setpoint,
     this.ppo2,
     this.cns,
     this.ndl,
     this.ceiling,
     this.ascentRate,
+    this.rbt,
+    this.decoType,
+    this.decoTime,
+    this.decoDepth,
+    this.tts,
   });
 }
 
@@ -250,5 +294,27 @@ class GasSwitchEvent {
     required this.timeSeconds,
     required this.depth,
     required this.toTankIndex,
+  });
+}
+
+/// A dive event from the dive computer.
+class DownloadedEvent {
+  /// Time offset from dive start in seconds
+  final int timeSeconds;
+
+  /// Event type string from libdivecomputer
+  final String type;
+
+  /// Event flags (if available)
+  final int? flags;
+
+  /// Event value (if available)
+  final int? value;
+
+  const DownloadedEvent({
+    required this.timeSeconds,
+    required this.type,
+    this.flags,
+    this.value,
   });
 }

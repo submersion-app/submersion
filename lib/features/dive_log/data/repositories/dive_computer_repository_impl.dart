@@ -696,6 +696,11 @@ class DiveComputerRepository {
     bool isPrimary = false,
     String? diverId,
     List<TankData>? tanks,
+    String? decoAlgorithm,
+    int? gfLow,
+    int? gfHigh,
+    int? decoConservatism,
+    List<EventData>? events,
   }) async {
     try {
       _log.info('Importing profile from computer $computerId');
@@ -749,6 +754,10 @@ class DiveComputerRepository {
                 diveComputerModel: Value(computer?.fullName),
                 diveComputerSerial: Value(computer?.serialNumber),
                 diveComputerFirmware: Value(computer?.firmwareVersion),
+                gradientFactorLow: Value(gfLow),
+                gradientFactorHigh: Value(gfHigh),
+                decoAlgorithm: Value(decoAlgorithm),
+                decoConservatism: Value(decoConservatism),
                 createdAt: Value(now),
                 updatedAt: Value(now),
               ),
@@ -813,6 +822,16 @@ class DiveComputerRepository {
               temperature: Value(point.temperature),
               heartRate: Value(point.heartRate),
               isPrimary: Value(isPrimary),
+              // Decompression and rebreather data
+              setpoint: Value(point.setpoint),
+              ppO2: Value(point.ppO2),
+              cns: Value(point.cns),
+              ndl: Value(point.ndl),
+              ceiling: Value(point.ceiling),
+              ascentRate: Value(point.ascentRate),
+              rbt: Value(point.rbt),
+              decoType: Value(point.decoType),
+              tts: Value(point.tts),
             ),
           );
         }
@@ -907,9 +926,43 @@ class DiveComputerRepository {
         }
       }
 
+      // Batch insert dive events
+      if (events != null && events.isNotEmpty) {
+        await _db.batch((batch) {
+          for (final event in events) {
+            final eventType = _mapEventTypeString(event.type);
+            if (eventType == null) continue;
+
+            // Find depth at event time from profile points
+            final depthAtEvent = _findDepthAtTime(points, event.timestamp);
+
+            batch.insert(
+              _db.diveProfileEvents,
+              DiveProfileEventsCompanion(
+                id: Value(_uuid.v4()),
+                diveId: Value(diveId),
+                timestamp: Value(event.timestamp),
+                eventType: Value(eventType),
+                severity: Value(_eventSeverity(eventType)),
+                depth: Value(depthAtEvent),
+                value: Value(event.value?.toDouble()),
+                createdAt: Value(now),
+              ),
+            );
+          }
+        });
+        _log.info('Imported events for dive $diveId');
+      }
+
       if (!isNewDive) {
         await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-          DivesCompanion(updatedAt: Value(now)),
+          DivesCompanion(
+            updatedAt: Value(now),
+            gradientFactorLow: Value(gfLow),
+            gradientFactorHigh: Value(gfHigh),
+            decoAlgorithm: Value(decoAlgorithm),
+            decoConservatism: Value(decoConservatism),
+          ),
         );
         await _syncRepository.markRecordPending(
           entityType: 'dives',
@@ -1154,6 +1207,98 @@ class DiveComputerRepository {
 
     return ascentStartTimestamp - descentEndTimestamp;
   }
+
+  /// Map libdivecomputer event type strings to ProfileEventType enum names.
+  ///
+  /// Only maps to values that exist in [ProfileEventType]. Returns null for
+  /// unknown event types that should be skipped.
+  String? _mapEventTypeString(String type) {
+    switch (type) {
+      case 'safetystop':
+      case 'safetystop_voluntary':
+      case 'safetystop_mandatory':
+        return 'safetyStopStart';
+      case 'deco':
+      case 'deepstop':
+        return 'decoStopStart';
+      case 'violation':
+        return 'decoViolation';
+      case 'gaschange':
+      case 'gaschange2':
+        return 'gasSwitch';
+      case 'bookmark':
+        return 'bookmark';
+      case 'ascent':
+        return 'ascentRateWarning';
+      case 'ceiling':
+      case 'ceiling_safetystop':
+        // Ceiling violation = ascending above deco ceiling
+        return 'decoViolation';
+      case 'PO2':
+        return 'ppO2High';
+      default:
+        return null;
+    }
+  }
+
+  /// Determine severity for a mapped event type.
+  ///
+  /// Uses the default severity from [ProfileEventType] where possible.
+  String _eventSeverity(String eventType) {
+    switch (eventType) {
+      case 'decoViolation':
+      case 'ppO2High':
+        return 'alert';
+      case 'ascentRateWarning':
+        return 'warning';
+      case 'safetyStopStart':
+      case 'decoStopStart':
+      case 'gasSwitch':
+      case 'bookmark':
+      default:
+        return 'info';
+    }
+  }
+
+  /// Find the depth at a given timestamp by interpolating between profile
+  /// points.
+  ///
+  /// Returns the depth of the closest point, or null if no points exist.
+  double? _findDepthAtTime(List<ProfilePointData> points, int timestamp) {
+    if (points.isEmpty) return null;
+
+    // Find the two bracketing points
+    ProfilePointData? before;
+    ProfilePointData? after;
+
+    for (final point in points) {
+      if (point.timestamp <= timestamp) {
+        before = point;
+      }
+      if (point.timestamp >= timestamp && after == null) {
+        after = point;
+      }
+    }
+
+    // Exact match or only one side available
+    if (before != null && before.timestamp == timestamp) {
+      return before.depth;
+    }
+    if (after != null && after.timestamp == timestamp) {
+      return after.depth;
+    }
+
+    // Interpolate between the two points
+    if (before != null && after != null) {
+      final timeDelta = after.timestamp - before.timestamp;
+      if (timeDelta == 0) return before.depth;
+      final fraction = (timestamp - before.timestamp) / timeDelta;
+      return before.depth + (after.depth - before.depth) * fraction;
+    }
+
+    // Only one side available
+    return (before ?? after)?.depth;
+  }
 }
 
 /// Data class for importing profile points
@@ -1167,6 +1312,39 @@ class ProfilePointData {
   /// Tank index for pressure (0-based), used for multi-tank pressure tracking
   final int? tankIndex;
 
+  /// CCR setpoint in bar
+  final double? setpoint;
+
+  /// Partial pressure O2 in bar
+  final double? ppO2;
+
+  /// CNS percentage 0-100
+  final double? cns;
+
+  /// No-deco limit in seconds
+  final int? ndl;
+
+  /// Deco ceiling in meters
+  final double? ceiling;
+
+  /// Ascent rate in m/min
+  final double? ascentRate;
+
+  /// Remaining bottom time in seconds
+  final int? rbt;
+
+  /// Deco type: 0=NDL, 1=safety, 2=deco, 3=deep
+  final int? decoType;
+
+  /// NDL seconds or deco stop time remaining
+  final int? decoTime;
+
+  /// Deco stop depth in meters
+  final double? decoDepth;
+
+  /// Time to surface in seconds
+  final int? tts;
+
   const ProfilePointData({
     required this.timestamp,
     required this.depth,
@@ -1174,6 +1352,39 @@ class ProfilePointData {
     this.temperature,
     this.heartRate,
     this.tankIndex,
+    this.setpoint,
+    this.ppO2,
+    this.cns,
+    this.ndl,
+    this.ceiling,
+    this.ascentRate,
+    this.rbt,
+    this.decoType,
+    this.decoTime,
+    this.decoDepth,
+    this.tts,
+  });
+}
+
+/// Data class for importing dive events from dive computers
+class EventData {
+  /// Time offset from dive start in seconds
+  final int timestamp;
+
+  /// Event type string from libdivecomputer
+  final String type;
+
+  /// Event flags (if available)
+  final int? flags;
+
+  /// Event value (if available)
+  final int? value;
+
+  const EventData({
+    required this.timestamp,
+    required this.type,
+    this.flags,
+    this.value,
   });
 }
 

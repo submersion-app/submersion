@@ -173,7 +173,15 @@ class ProfileSample {
     const double* temperature_celsius,
     const double* pressure_bar,
     const int64_t* tank_index,
-    const double* heart_rate);
+    const int64_t* heart_rate,
+    const double* setpoint,
+    const double* ppo2,
+    const double* cns,
+    const int64_t* rbt,
+    const int64_t* deco_type,
+    const int64_t* deco_time,
+    const double* deco_depth,
+    const int64_t* tts);
 
   int64_t time_seconds() const;
   void set_time_seconds(int64_t value_arg);
@@ -193,9 +201,41 @@ class ProfileSample {
   void set_tank_index(const int64_t* value_arg);
   void set_tank_index(int64_t value_arg);
 
-  const double* heart_rate() const;
-  void set_heart_rate(const double* value_arg);
-  void set_heart_rate(double value_arg);
+  const int64_t* heart_rate() const;
+  void set_heart_rate(const int64_t* value_arg);
+  void set_heart_rate(int64_t value_arg);
+
+  const double* setpoint() const;
+  void set_setpoint(const double* value_arg);
+  void set_setpoint(double value_arg);
+
+  const double* ppo2() const;
+  void set_ppo2(const double* value_arg);
+  void set_ppo2(double value_arg);
+
+  const double* cns() const;
+  void set_cns(const double* value_arg);
+  void set_cns(double value_arg);
+
+  const int64_t* rbt() const;
+  void set_rbt(const int64_t* value_arg);
+  void set_rbt(int64_t value_arg);
+
+  const int64_t* deco_type() const;
+  void set_deco_type(const int64_t* value_arg);
+  void set_deco_type(int64_t value_arg);
+
+  const int64_t* deco_time() const;
+  void set_deco_time(const int64_t* value_arg);
+  void set_deco_time(int64_t value_arg);
+
+  const double* deco_depth() const;
+  void set_deco_depth(const double* value_arg);
+  void set_deco_depth(double value_arg);
+
+  const int64_t* tts() const;
+  void set_tts(const int64_t* value_arg);
+  void set_tts(int64_t value_arg);
 
 
  private:
@@ -209,7 +249,15 @@ class ProfileSample {
   std::optional<double> temperature_celsius_;
   std::optional<double> pressure_bar_;
   std::optional<int64_t> tank_index_;
-  std::optional<double> heart_rate_;
+  std::optional<int64_t> heart_rate_;
+  std::optional<double> setpoint_;
+  std::optional<double> ppo2_;
+  std::optional<double> cns_;
+  std::optional<int64_t> rbt_;
+  std::optional<int64_t> deco_type_;
+  std::optional<int64_t> deco_time_;
+  std::optional<double> deco_depth_;
+  std::optional<int64_t> tts_;
 
 };
 
@@ -362,7 +410,11 @@ class ParsedDive {
     const flutter::EncodableList& tanks,
     const flutter::EncodableList& gas_mixes,
     const flutter::EncodableList& events,
-    const std::string* dive_mode);
+    const std::string* dive_mode,
+    const std::string* deco_algorithm,
+    const int64_t* gf_low,
+    const int64_t* gf_high,
+    const int64_t* deco_conservatism);
 
   const std::string& fingerprint() const;
   void set_fingerprint(std::string_view value_arg);
@@ -403,6 +455,22 @@ class ParsedDive {
   void set_dive_mode(const std::string_view* value_arg);
   void set_dive_mode(std::string_view value_arg);
 
+  const std::string* deco_algorithm() const;
+  void set_deco_algorithm(const std::string_view* value_arg);
+  void set_deco_algorithm(std::string_view value_arg);
+
+  const int64_t* gf_low() const;
+  void set_gf_low(const int64_t* value_arg);
+  void set_gf_low(int64_t value_arg);
+
+  const int64_t* gf_high() const;
+  void set_gf_high(const int64_t* value_arg);
+  void set_gf_high(int64_t value_arg);
+
+  const int64_t* deco_conservatism() const;
+  void set_deco_conservatism(const int64_t* value_arg);
+  void set_deco_conservatism(int64_t value_arg);
+
 
  private:
   static ParsedDive FromEncodableList(const flutter::EncodableList& list);
@@ -422,6 +490,10 @@ class ParsedDive {
   flutter::EncodableList gas_mixes_;
   flutter::EncodableList events_;
   std::optional<std::string> dive_mode_;
+  std::optional<std::string> deco_algorithm_;
+  std::optional<int64_t> gf_low_;
+  std::optional<int64_t> gf_high_;
+  std::optional<int64_t> deco_conservatism_;
 
 };
 

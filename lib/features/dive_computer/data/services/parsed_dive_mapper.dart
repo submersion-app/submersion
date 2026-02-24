@@ -11,6 +11,10 @@ DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
     minTemperature: parsed.minTemperatureCelsius,
     maxTemperature: parsed.maxTemperatureCelsius,
     fingerprint: parsed.fingerprint,
+    decoAlgorithm: parsed.decoAlgorithm,
+    gfLow: parsed.gfLow,
+    gfHigh: parsed.gfHigh,
+    decoConservatism: parsed.decoConservatism,
     profile: parsed.samples
         .map(
           (s) => ProfileSample(
@@ -19,7 +23,17 @@ DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
             temperature: s.temperatureCelsius,
             pressure: s.pressureBar,
             tankIndex: s.tankIndex,
-            heartRate: s.heartRate?.toInt(),
+            heartRate: s.heartRate,
+            setpoint: s.setpoint,
+            ppo2: s.ppo2,
+            cns: s.cns,
+            rbt: s.rbt,
+            decoType: s.decoType,
+            decoTime: s.decoTime,
+            decoDepth: s.decoDepth,
+            tts: s.tts,
+            ndl: s.decoType == 0 ? s.decoTime : null,
+            ceiling: s.decoType != null && s.decoType != 0 ? s.decoDepth : null,
           ),
         )
         .toList(),
@@ -37,5 +51,15 @@ DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
         volumeLiters: t.volumeLiters,
       );
     }).toList(),
+    events: parsed.events
+        .map(
+          (e) => DownloadedEvent(
+            timeSeconds: e.timeSeconds,
+            type: e.type,
+            flags: e.data != null ? int.tryParse(e.data!['flags'] ?? '') : null,
+            value: e.data != null ? int.tryParse(e.data!['value'] ?? '') : null,
+          ),
+        )
+        .toList(),
   );
 }

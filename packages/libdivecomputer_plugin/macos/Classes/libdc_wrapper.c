@@ -200,5 +200,6 @@ void libdc_parsed_dive_free(libdc_parsed_dive_t *dive) {
         return;
     }
     free(dive->samples);
+    free(dive->events);
     free(dive);
 }

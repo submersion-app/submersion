@@ -325,7 +325,15 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                     temperatureCelsius: s.temperature.isNaN ? nil : s.temperature,
                     pressureBar: s.pressure.isNaN ? nil : s.pressure,
                     tankIndex: s.tank == UInt32.max ? nil : Int64(s.tank),
-                    heartRate: nil
+                    heartRate: s.heartbeat == UInt32.max ? nil : Int64(s.heartbeat),
+                    setpoint: s.setpoint.isNaN ? nil : s.setpoint,
+                    ppo2: s.ppo2.isNaN ? nil : s.ppo2,
+                    cns: s.cns.isNaN ? nil : s.cns,
+                    rbt: s.rbt == UInt32.max ? nil : Int64(s.rbt),
+                    decoType: s.deco_type == UInt32.max ? nil : Int64(s.deco_type),
+                    decoTime: s.deco_time == UInt32.max ? nil : Int64(s.deco_time),
+                    decoDepth: s.deco_depth.isNaN ? nil : s.deco_depth,
+                    tts: s.deco_tts == UInt32.max ? nil : Int64(s.deco_tts)
                 ))
             }
         }
@@ -371,6 +379,35 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         default: diveModeStr = nil
         }
 
+        // Convert events.
+        var events: [DiveEvent] = []
+        if let eventsPtr = dive.events {
+            for i in 0..<Int(dive.event_count) {
+                let e = eventsPtr[i]
+                guard e.type != 0 else { continue }  // skip SAMPLE_EVENT_NONE
+                let typeName = Self.mapEventType(e.type)
+                let data: [String: String] = [
+                    "flags": String(e.flags),
+                    "value": String(e.value),
+                ]
+                events.append(DiveEvent(
+                    timeSeconds: Int64(e.time_ms / 1000),
+                    type: typeName,
+                    data: data
+                ))
+            }
+        }
+
+        // Map decompression model.
+        let decoAlgorithm: String?
+        switch dive.deco_model_type {
+        case 1: decoAlgorithm = "buhlmann"
+        case 2: decoAlgorithm = "vpm"
+        case 3: decoAlgorithm = "rgbm"
+        case 4: decoAlgorithm = "dciem"
+        default: decoAlgorithm = nil
+        }
+
         return ParsedDive(
             fingerprint: fingerprintHex,
             dateTimeEpoch: epoch,
@@ -382,9 +419,48 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             samples: samples,
             tanks: tanks,
             gasMixes: gasMixes,
-            events: [],
-            diveMode: diveModeStr
+            events: events,
+            diveMode: diveModeStr,
+            decoAlgorithm: decoAlgorithm,
+            // GF values use 0 as "unknown" sentinel per C struct contract.
+            // Valid GF values are always 20-100% in practice.
+            gfLow: dive.gf_low == 0 ? nil : Int64(dive.gf_low),
+            gfHigh: dive.gf_high == 0 ? nil : Int64(dive.gf_high),
+            // Note: deco_conservatism uses 0 for both "neutral" and "not reported".
+            // Cannot distinguish these without a C layer change.
+            decoConservatism: dive.deco_conservatism == 0 ? nil : Int64(dive.deco_conservatism)
         )
+    }
+
+    private static func mapEventType(_ type: UInt32) -> String {
+        switch type {
+        case 0: return "none"
+        case 1: return "deco"
+        case 2: return "ascent"
+        case 3: return "ceiling"
+        case 4: return "workload"
+        case 5: return "transmitter"
+        case 6: return "violation"
+        case 7: return "bookmark"
+        case 8: return "surface"
+        case 9: return "safetystop"
+        case 10: return "gaschange"
+        case 11: return "safetystop_voluntary"
+        case 12: return "safetystop_mandatory"
+        case 13: return "deepstop"
+        case 14: return "ceiling_safetystop"
+        case 15: return "floor"
+        case 16: return "divetime"
+        case 17: return "maxdepth"
+        case 18: return "OLF"
+        case 19: return "PO2"
+        case 20: return "airtime"
+        case 21: return "rgbm"
+        case 22: return "heading"
+        case 23: return "tissuelevel"
+        case 24: return "gaschange2"
+        default: return "unknown_\(type)"
+        }
     }
 
     // MARK: - Version

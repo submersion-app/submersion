@@ -404,7 +404,10 @@ enum ProfileEventType {
   }
 }
 
-/// Event severity levels
+/// Event severity levels.
+///
+/// Declaration order matters: [index] is used for severity comparison
+/// (higher index = more severe). Do not reorder without checking usages.
 enum EventSeverity {
   info('Info'),
   warning('Warning'),

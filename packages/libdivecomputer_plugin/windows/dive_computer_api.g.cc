@@ -221,13 +221,29 @@ ProfileSample::ProfileSample(
   const double* temperature_celsius,
   const double* pressure_bar,
   const int64_t* tank_index,
-  const double* heart_rate)
+  const int64_t* heart_rate,
+  const double* setpoint,
+  const double* ppo2,
+  const double* cns,
+  const int64_t* rbt,
+  const int64_t* deco_type,
+  const int64_t* deco_time,
+  const double* deco_depth,
+  const int64_t* tts)
  : time_seconds_(time_seconds),
     depth_meters_(depth_meters),
     temperature_celsius_(temperature_celsius ? std::optional<double>(*temperature_celsius) : std::nullopt),
     pressure_bar_(pressure_bar ? std::optional<double>(*pressure_bar) : std::nullopt),
     tank_index_(tank_index ? std::optional<int64_t>(*tank_index) : std::nullopt),
-    heart_rate_(heart_rate ? std::optional<double>(*heart_rate) : std::nullopt) {}
+    heart_rate_(heart_rate ? std::optional<int64_t>(*heart_rate) : std::nullopt),
+    setpoint_(setpoint ? std::optional<double>(*setpoint) : std::nullopt),
+    ppo2_(ppo2 ? std::optional<double>(*ppo2) : std::nullopt),
+    cns_(cns ? std::optional<double>(*cns) : std::nullopt),
+    rbt_(rbt ? std::optional<int64_t>(*rbt) : std::nullopt),
+    deco_type_(deco_type ? std::optional<int64_t>(*deco_type) : std::nullopt),
+    deco_time_(deco_time ? std::optional<int64_t>(*deco_time) : std::nullopt),
+    deco_depth_(deco_depth ? std::optional<double>(*deco_depth) : std::nullopt),
+    tts_(tts ? std::optional<int64_t>(*tts) : std::nullopt) {}
 
 int64_t ProfileSample::time_seconds() const {
   return time_seconds_;
@@ -286,28 +302,140 @@ void ProfileSample::set_tank_index(int64_t value_arg) {
 }
 
 
-const double* ProfileSample::heart_rate() const {
+const int64_t* ProfileSample::heart_rate() const {
   return heart_rate_ ? &(*heart_rate_) : nullptr;
 }
 
-void ProfileSample::set_heart_rate(const double* value_arg) {
-  heart_rate_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+void ProfileSample::set_heart_rate(const int64_t* value_arg) {
+  heart_rate_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
 }
 
-void ProfileSample::set_heart_rate(double value_arg) {
+void ProfileSample::set_heart_rate(int64_t value_arg) {
   heart_rate_ = value_arg;
+}
+
+
+const double* ProfileSample::setpoint() const {
+  return setpoint_ ? &(*setpoint_) : nullptr;
+}
+
+void ProfileSample::set_setpoint(const double* value_arg) {
+  setpoint_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_setpoint(double value_arg) {
+  setpoint_ = value_arg;
+}
+
+
+const double* ProfileSample::ppo2() const {
+  return ppo2_ ? &(*ppo2_) : nullptr;
+}
+
+void ProfileSample::set_ppo2(const double* value_arg) {
+  ppo2_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_ppo2(double value_arg) {
+  ppo2_ = value_arg;
+}
+
+
+const double* ProfileSample::cns() const {
+  return cns_ ? &(*cns_) : nullptr;
+}
+
+void ProfileSample::set_cns(const double* value_arg) {
+  cns_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_cns(double value_arg) {
+  cns_ = value_arg;
+}
+
+
+const int64_t* ProfileSample::rbt() const {
+  return rbt_ ? &(*rbt_) : nullptr;
+}
+
+void ProfileSample::set_rbt(const int64_t* value_arg) {
+  rbt_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_rbt(int64_t value_arg) {
+  rbt_ = value_arg;
+}
+
+
+const int64_t* ProfileSample::deco_type() const {
+  return deco_type_ ? &(*deco_type_) : nullptr;
+}
+
+void ProfileSample::set_deco_type(const int64_t* value_arg) {
+  deco_type_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_deco_type(int64_t value_arg) {
+  deco_type_ = value_arg;
+}
+
+
+const int64_t* ProfileSample::deco_time() const {
+  return deco_time_ ? &(*deco_time_) : nullptr;
+}
+
+void ProfileSample::set_deco_time(const int64_t* value_arg) {
+  deco_time_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_deco_time(int64_t value_arg) {
+  deco_time_ = value_arg;
+}
+
+
+const double* ProfileSample::deco_depth() const {
+  return deco_depth_ ? &(*deco_depth_) : nullptr;
+}
+
+void ProfileSample::set_deco_depth(const double* value_arg) {
+  deco_depth_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_deco_depth(double value_arg) {
+  deco_depth_ = value_arg;
+}
+
+
+const int64_t* ProfileSample::tts() const {
+  return tts_ ? &(*tts_) : nullptr;
+}
+
+void ProfileSample::set_tts(const int64_t* value_arg) {
+  tts_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_tts(int64_t value_arg) {
+  tts_ = value_arg;
 }
 
 
 EncodableList ProfileSample::ToEncodableList() const {
   EncodableList list;
-  list.reserve(6);
+  list.reserve(14);
   list.push_back(EncodableValue(time_seconds_));
   list.push_back(EncodableValue(depth_meters_));
   list.push_back(temperature_celsius_ ? EncodableValue(*temperature_celsius_) : EncodableValue());
   list.push_back(pressure_bar_ ? EncodableValue(*pressure_bar_) : EncodableValue());
   list.push_back(tank_index_ ? EncodableValue(*tank_index_) : EncodableValue());
   list.push_back(heart_rate_ ? EncodableValue(*heart_rate_) : EncodableValue());
+  list.push_back(setpoint_ ? EncodableValue(*setpoint_) : EncodableValue());
+  list.push_back(ppo2_ ? EncodableValue(*ppo2_) : EncodableValue());
+  list.push_back(cns_ ? EncodableValue(*cns_) : EncodableValue());
+  list.push_back(rbt_ ? EncodableValue(*rbt_) : EncodableValue());
+  list.push_back(deco_type_ ? EncodableValue(*deco_type_) : EncodableValue());
+  list.push_back(deco_time_ ? EncodableValue(*deco_time_) : EncodableValue());
+  list.push_back(deco_depth_ ? EncodableValue(*deco_depth_) : EncodableValue());
+  list.push_back(tts_ ? EncodableValue(*tts_) : EncodableValue());
   return list;
 }
 
@@ -329,7 +457,39 @@ ProfileSample ProfileSample::FromEncodableList(const EncodableList& list) {
   }
   auto& encodable_heart_rate = list[5];
   if (!encodable_heart_rate.IsNull()) {
-    decoded.set_heart_rate(std::get<double>(encodable_heart_rate));
+    decoded.set_heart_rate(std::get<int64_t>(encodable_heart_rate));
+  }
+  auto& encodable_setpoint = list[6];
+  if (!encodable_setpoint.IsNull()) {
+    decoded.set_setpoint(std::get<double>(encodable_setpoint));
+  }
+  auto& encodable_ppo2 = list[7];
+  if (!encodable_ppo2.IsNull()) {
+    decoded.set_ppo2(std::get<double>(encodable_ppo2));
+  }
+  auto& encodable_cns = list[8];
+  if (!encodable_cns.IsNull()) {
+    decoded.set_cns(std::get<double>(encodable_cns));
+  }
+  auto& encodable_rbt = list[9];
+  if (!encodable_rbt.IsNull()) {
+    decoded.set_rbt(std::get<int64_t>(encodable_rbt));
+  }
+  auto& encodable_deco_type = list[10];
+  if (!encodable_deco_type.IsNull()) {
+    decoded.set_deco_type(std::get<int64_t>(encodable_deco_type));
+  }
+  auto& encodable_deco_time = list[11];
+  if (!encodable_deco_time.IsNull()) {
+    decoded.set_deco_time(std::get<int64_t>(encodable_deco_time));
+  }
+  auto& encodable_deco_depth = list[12];
+  if (!encodable_deco_depth.IsNull()) {
+    decoded.set_deco_depth(std::get<double>(encodable_deco_depth));
+  }
+  auto& encodable_tts = list[13];
+  if (!encodable_tts.IsNull()) {
+    decoded.set_tts(std::get<int64_t>(encodable_tts));
   }
   return decoded;
 }
@@ -596,7 +756,11 @@ ParsedDive::ParsedDive(
   const EncodableList& tanks,
   const EncodableList& gas_mixes,
   const EncodableList& events,
-  const std::string* dive_mode)
+  const std::string* dive_mode,
+  const std::string* deco_algorithm,
+  const int64_t* gf_low,
+  const int64_t* gf_high,
+  const int64_t* deco_conservatism)
  : fingerprint_(fingerprint),
     date_time_epoch_(date_time_epoch),
     max_depth_meters_(max_depth_meters),
@@ -608,7 +772,11 @@ ParsedDive::ParsedDive(
     tanks_(tanks),
     gas_mixes_(gas_mixes),
     events_(events),
-    dive_mode_(dive_mode ? std::optional<std::string>(*dive_mode) : std::nullopt) {}
+    dive_mode_(dive_mode ? std::optional<std::string>(*dive_mode) : std::nullopt),
+    deco_algorithm_(deco_algorithm ? std::optional<std::string>(*deco_algorithm) : std::nullopt),
+    gf_low_(gf_low ? std::optional<int64_t>(*gf_low) : std::nullopt),
+    gf_high_(gf_high ? std::optional<int64_t>(*gf_high) : std::nullopt),
+    deco_conservatism_(deco_conservatism ? std::optional<int64_t>(*deco_conservatism) : std::nullopt) {}
 
 const std::string& ParsedDive::fingerprint() const {
   return fingerprint_;
@@ -730,9 +898,61 @@ void ParsedDive::set_dive_mode(std::string_view value_arg) {
 }
 
 
+const std::string* ParsedDive::deco_algorithm() const {
+  return deco_algorithm_ ? &(*deco_algorithm_) : nullptr;
+}
+
+void ParsedDive::set_deco_algorithm(const std::string_view* value_arg) {
+  deco_algorithm_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
+}
+
+void ParsedDive::set_deco_algorithm(std::string_view value_arg) {
+  deco_algorithm_ = value_arg;
+}
+
+
+const int64_t* ParsedDive::gf_low() const {
+  return gf_low_ ? &(*gf_low_) : nullptr;
+}
+
+void ParsedDive::set_gf_low(const int64_t* value_arg) {
+  gf_low_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
+}
+
+void ParsedDive::set_gf_low(int64_t value_arg) {
+  gf_low_ = value_arg;
+}
+
+
+const int64_t* ParsedDive::gf_high() const {
+  return gf_high_ ? &(*gf_high_) : nullptr;
+}
+
+void ParsedDive::set_gf_high(const int64_t* value_arg) {
+  gf_high_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
+}
+
+void ParsedDive::set_gf_high(int64_t value_arg) {
+  gf_high_ = value_arg;
+}
+
+
+const int64_t* ParsedDive::deco_conservatism() const {
+  return deco_conservatism_ ? &(*deco_conservatism_) : nullptr;
+}
+
+void ParsedDive::set_deco_conservatism(const int64_t* value_arg) {
+  deco_conservatism_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
+}
+
+void ParsedDive::set_deco_conservatism(int64_t value_arg) {
+  deco_conservatism_ = value_arg;
+}
+
+
 EncodableList ParsedDive::ToEncodableList() const {
   EncodableList list;
-  list.reserve(12);
+  list.reserve(16);
   list.push_back(EncodableValue(fingerprint_));
   list.push_back(EncodableValue(date_time_epoch_));
   list.push_back(EncodableValue(max_depth_meters_));
@@ -745,6 +965,10 @@ EncodableList ParsedDive::ToEncodableList() const {
   list.push_back(EncodableValue(gas_mixes_));
   list.push_back(EncodableValue(events_));
   list.push_back(dive_mode_ ? EncodableValue(*dive_mode_) : EncodableValue());
+  list.push_back(deco_algorithm_ ? EncodableValue(*deco_algorithm_) : EncodableValue());
+  list.push_back(gf_low_ ? EncodableValue(*gf_low_) : EncodableValue());
+  list.push_back(gf_high_ ? EncodableValue(*gf_high_) : EncodableValue());
+  list.push_back(deco_conservatism_ ? EncodableValue(*deco_conservatism_) : EncodableValue());
   return list;
 }
 
@@ -770,6 +994,22 @@ ParsedDive ParsedDive::FromEncodableList(const EncodableList& list) {
   auto& encodable_dive_mode = list[11];
   if (!encodable_dive_mode.IsNull()) {
     decoded.set_dive_mode(std::get<std::string>(encodable_dive_mode));
+  }
+  auto& encodable_deco_algorithm = list[12];
+  if (!encodable_deco_algorithm.IsNull()) {
+    decoded.set_deco_algorithm(std::get<std::string>(encodable_deco_algorithm));
+  }
+  auto& encodable_gf_low = list[13];
+  if (!encodable_gf_low.IsNull()) {
+    decoded.set_gf_low(std::get<int64_t>(encodable_gf_low));
+  }
+  auto& encodable_gf_high = list[14];
+  if (!encodable_gf_high.IsNull()) {
+    decoded.set_gf_high(std::get<int64_t>(encodable_gf_high));
+  }
+  auto& encodable_deco_conservatism = list[15];
+  if (!encodable_deco_conservatism.IsNull()) {
+    decoded.set_deco_conservatism(std::get<int64_t>(encodable_deco_conservatism));
   }
   return decoded;
 }

@@ -5,7 +5,19 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+
+/// Provider that loads dive computer events from the database and maps them
+/// to domain [ProfileEvent] instances.
+final diveComputerEventsProvider =
+    FutureProvider.family<List<ProfileEvent>, String>((ref, diveId) async {
+      final repository = ref.watch(diveComputerRepositoryProvider);
+      final dbEvents = await repository.getEventsForDive(diveId);
+      return dbEvents.map(mapDiveProfileEventToProfileEvent).toList();
+    });
 
 /// Combines pressure data from multiple tanks into a single pressure series.
 ///
@@ -93,6 +105,94 @@ class _ProfileAnalysisProvider {}
 
 final _log = LoggerService.forClass(_ProfileAnalysisProvider);
 
+/// Creates a ProfileAnalysisService using dive-specific GF when available,
+/// falling back to user settings.
+ProfileAnalysisService _resolveAnalysisService(
+  Ref ref,
+  int? gradientFactorLow,
+  int? gradientFactorHigh,
+) {
+  if (gradientFactorLow != null && gradientFactorHigh != null) {
+    return ProfileAnalysisService(
+      gfLow: (gradientFactorLow / 100.0).clamp(0.0, 1.0),
+      gfHigh: (gradientFactorHigh / 100.0).clamp(0.0, 1.0),
+      ppO2WarningThreshold: ref.watch(ppO2MaxWorkingProvider),
+      ppO2CriticalThreshold: ref.watch(ppO2MaxDecoProvider),
+      cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
+      ascentRateWarning: ref.watch(ascentRateWarningProvider),
+      ascentRateCritical: ref.watch(ascentRateCriticalProvider),
+      lastStopDepth: ref.watch(lastStopDepthProvider),
+    );
+  }
+  return ref.watch(profileAnalysisServiceProvider);
+}
+
+/// Overlays computer-reported decompression data onto a calculated
+/// [ProfileAnalysis].
+///
+/// When profile points contain computer-reported values for NDL, ceiling,
+/// TTS, or CNS, those values take priority over the Buhlmann-calculated
+/// values. Points without computer data fall back to the calculated values.
+///
+/// Returns the original [analysis] unchanged if no computer data is present.
+ProfileAnalysis overlayComputerDecoData(
+  ProfileAnalysis analysis,
+  List<DiveProfilePoint> profile,
+) {
+  final hasComputerNdl = profile.any((p) => p.ndl != null);
+  final hasComputerCeiling = profile.any((p) => p.ceiling != null);
+  final hasComputerTts = profile.any((p) => p.tts != null);
+  final hasComputerCns = profile.any((p) => p.cns != null);
+
+  if (!hasComputerNdl &&
+      !hasComputerCeiling &&
+      !hasComputerTts &&
+      !hasComputerCns) {
+    return analysis;
+  }
+
+  return analysis.copyWith(
+    ndlCurve: hasComputerNdl
+        ? List<int>.generate(
+            profile.length,
+            (i) =>
+                profile[i].ndl ??
+                (i < analysis.ndlCurve.length ? analysis.ndlCurve[i] : 0),
+          )
+        : null,
+    ceilingCurve: hasComputerCeiling
+        ? List<double>.generate(
+            profile.length,
+            (i) =>
+                profile[i].ceiling ??
+                (i < analysis.ceilingCurve.length
+                    ? analysis.ceilingCurve[i]
+                    : 0.0),
+          )
+        : null,
+    ttsCurve: hasComputerTts
+        ? List<int>.generate(
+            profile.length,
+            (i) =>
+                profile[i].tts ??
+                (analysis.ttsCurve != null && i < analysis.ttsCurve!.length
+                    ? analysis.ttsCurve![i]
+                    : 0),
+          )
+        : null,
+    cnsCurve: hasComputerCns
+        ? List<double>.generate(
+            profile.length,
+            (i) =>
+                profile[i].cns ??
+                (analysis.cnsCurve != null && i < analysis.cnsCurve!.length
+                    ? analysis.cnsCurve![i]
+                    : 0.0),
+          )
+        : null,
+  );
+}
+
 /// Provider for the ProfileAnalysisService configured with user settings
 final profileAnalysisServiceProvider = Provider<ProfileAnalysisService>((ref) {
   // Get decompression settings
@@ -144,7 +244,19 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
         return null;
       }
 
-      final service = ref.watch(profileAnalysisServiceProvider);
+      // Use dive-specific GF if the dive computer provided them,
+      // otherwise fall back to user settings
+      if (dive.gradientFactorLow != null && dive.gradientFactorHigh != null) {
+        _log.debug(
+          'Using dive-specific GF ${dive.gradientFactorLow}/'
+          '${dive.gradientFactorHigh} for dive $diveId',
+        );
+      }
+      final service = _resolveAnalysisService(
+        ref,
+        dive.gradientFactorLow,
+        dive.gradientFactorHigh,
+      );
 
       // Extract profile data
       final depths = dive.profile.map((p) => p.depth).toList();
@@ -200,7 +312,7 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
         'pressures: ${pressures?.length ?? 0}, mode: ${dive.diveMode}, '
         'startCns: ${startCns.toStringAsFixed(1)}',
       );
-      return service.analyze(
+      final analysis = service.analyze(
         diveId: diveId,
         depths: depths,
         timestamps: timestamps,
@@ -217,6 +329,19 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
             dive.diluentGas?.o2, // For SCR, diluent is the supply gas
         scrVo2: dive.assumedVo2 ?? 1.3,
       );
+
+      // Overlay computer-reported deco data where available
+      final overlaid = overlayComputerDecoData(analysis, dive.profile);
+
+      // Merge DB events (dive computer events) with auto-detected events
+      final dbEvents = await ref.watch(
+        diveComputerEventsProvider(diveId).future,
+      );
+      if (dbEvents.isEmpty) {
+        return overlaid;
+      }
+      final merged = mergeEvents(overlaid.events, dbEvents);
+      return overlaid.copyWith(events: merged);
     } catch (e, stackTrace) {
       _log.error('Failed to analyze profile for dive: $diveId', e, stackTrace);
       return null;
@@ -269,7 +394,11 @@ final residualCnsProvider = FutureProvider.family<double, String>((
   return analysis?.o2Exposure.cnsStart ?? 0.0;
 });
 
-/// Provider for profile analysis using a Dive object directly
+/// Provider for profile analysis using a Dive object directly.
+///
+/// Note: This synchronous provider does NOT merge DB events (dive computer
+/// imported events). Use [profileAnalysisProvider] (by diveId) for the full
+/// event set including dive-computer-imported events.
 final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
   ref,
   dive,
@@ -279,7 +408,19 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
   }
 
   try {
-    final service = ref.watch(profileAnalysisServiceProvider);
+    // Use dive-specific GF if the dive computer provided them,
+    // otherwise fall back to user settings
+    if (dive.gradientFactorLow != null && dive.gradientFactorHigh != null) {
+      _log.debug(
+        'Using dive-specific GF ${dive.gradientFactorLow}/'
+        '${dive.gradientFactorHigh} for dive ${dive.id}',
+      );
+    }
+    final service = _resolveAnalysisService(
+      ref,
+      dive.gradientFactorLow,
+      dive.gradientFactorHigh,
+    );
 
     // Extract profile data
     final depths = dive.profile.map((p) => p.depth).toList();
@@ -301,7 +442,7 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
     // Get residual CNS from previous dive (0.0 while loading or if unavailable)
     final startCns = ref.watch(residualCnsProvider(dive.id)).valueOrNull ?? 0.0;
 
-    return service.analyze(
+    final analysis = service.analyze(
       diveId: dive.id,
       depths: depths,
       timestamps: timestamps,
@@ -317,6 +458,9 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       scrSupplyO2Percent: dive.diluentGas?.o2,
       scrVo2: dive.assumedVo2 ?? 1.3,
     );
+
+    // Overlay computer-reported deco data where available
+    return overlayComputerDecoData(analysis, dive.profile);
   } catch (e, stackTrace) {
     _log.error('Failed to analyze profile for dive: ${dive.id}', e, stackTrace);
     return null;

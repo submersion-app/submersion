@@ -987,10 +987,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ),
             ],
             extraLinesData: ExtraLinesData(
-              horizontalLines: _showEvents && widget.events != null
-                  ? _buildEventLines(colorScheme)
-                  : [],
-              verticalLines: _buildPlaybackCursor(colorScheme),
+              verticalLines: [
+                ..._buildPlaybackCursor(colorScheme),
+                if (_showEvents && widget.events != null)
+                  ..._buildEventVerticalLines(colorScheme),
+              ],
             ),
             lineTouchData: LineTouchData(
               enabled: true,
@@ -2474,14 +2475,56 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     ];
   }
 
-  /// Build vertical lines for events
-  List<HorizontalLine> _buildEventLines(ColorScheme colorScheme) {
-    // We use vertical lines at event timestamps, but fl_chart's extraLinesData
-    // uses HorizontalLine/VerticalLine. Since we want vertical markers at
-    // specific times, we'd need VerticalLine. However, the current fl_chart API
-    // might not support this well in lineBarsData context.
-    // For now, return empty - events will be shown differently
-    return [];
+  /// Build vertical lines for event markers on the dive profile.
+  ///
+  /// Groups events by timestamp and shows only the most severe event at each
+  /// timestamp to avoid overlapping labels. Lines are colored by severity:
+  /// info = primary, warning = orange, alert = red.
+  List<VerticalLine> _buildEventVerticalLines(ColorScheme colorScheme) {
+    final events = widget.events;
+    if (events == null || events.isEmpty) return [];
+
+    // Group events by timestamp, keeping only the most severe at each time
+    final byTimestamp = <int, ProfileEvent>{};
+    for (final event in events) {
+      final existing = byTimestamp[event.timestamp];
+      if (existing == null || event.severity.index > existing.severity.index) {
+        byTimestamp[event.timestamp] = event;
+      }
+    }
+
+    return byTimestamp.values.map((event) {
+      final color = _eventSeverityColor(event.severity, colorScheme);
+      return VerticalLine(
+        x: event.timestamp.toDouble(),
+        color: color,
+        strokeWidth: 1,
+        dashArray: [3, 3],
+        label: VerticalLineLabel(
+          show: true,
+          alignment: Alignment.topCenter,
+          padding: const EdgeInsets.only(bottom: 2),
+          style: TextStyle(
+            color: color,
+            fontSize: 9,
+            backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
+          ),
+          labelResolver: (line) => event.displayName,
+        ),
+      );
+    }).toList();
+  }
+
+  /// Returns the color for an event based on its severity level.
+  Color _eventSeverityColor(EventSeverity severity, ColorScheme colorScheme) {
+    switch (severity) {
+      case EventSeverity.info:
+        return colorScheme.primary.withValues(alpha: 0.5);
+      case EventSeverity.warning:
+        return Colors.orange;
+      case EventSeverity.alert:
+        return Colors.red;
+    }
   }
 
   /// Build marker lines for max depth and pressure thresholds

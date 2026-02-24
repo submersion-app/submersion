@@ -335,6 +335,9 @@ class DiveImportService {
     // Convert tanks to TankData
     final tanks = _parser.parseTanks(dive);
 
+    // Convert events to EventData
+    final events = _convertEvents(dive.events);
+
     // Import using repository
     final diveId = await _repository.importProfile(
       computerId: computerId,
@@ -346,6 +349,11 @@ class DiveImportService {
       isPrimary: true,
       diverId: diverId,
       tanks: tanks,
+      decoAlgorithm: dive.decoAlgorithm,
+      gfLow: dive.gfLow,
+      gfHigh: dive.gfHigh,
+      decoConservatism: dive.decoConservatism,
+      events: events,
     );
 
     return diveId;
@@ -360,6 +368,9 @@ class DiveImportService {
     // Parse profile data
     final profilePoints = _parser.parseProfile(dive);
 
+    // Convert events to EventData
+    final events = _convertEvents(dive.events);
+
     // Clear existing profile for this computer and add new one
     // Note: This is a simplified implementation
     // A full implementation would update dive metadata as well
@@ -372,6 +383,11 @@ class DiveImportService {
       durationSeconds: dive.durationSeconds,
       maxDepth: dive.maxDepth,
       isPrimary: false, // Keep existing primary
+      decoAlgorithm: dive.decoAlgorithm,
+      gfLow: dive.gfLow,
+      gfHigh: dive.gfHigh,
+      decoConservatism: dive.decoConservatism,
+      events: events,
     );
   }
 
@@ -403,5 +419,18 @@ class DiveImportService {
         // This shouldn't be called with askUser
         return null;
     }
+  }
+
+  List<EventData> _convertEvents(List<DownloadedEvent> events) {
+    return events
+        .map(
+          (e) => EventData(
+            timestamp: e.timeSeconds,
+            type: e.type,
+            flags: e.flags,
+            value: e.value,
+          ),
+        )
+        .toList();
   }
 }

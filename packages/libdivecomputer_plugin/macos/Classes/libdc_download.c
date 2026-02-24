@@ -108,6 +108,35 @@ static void push_sample(sample_state_t *state) {
     state->has_pending_sample = 0;
 }
 
+static void push_event(libdc_parsed_dive_t *dive,
+                        unsigned int time_ms,
+                        unsigned int type,
+                        unsigned int flags,
+                        unsigned int value) {
+    if (dive->event_count >= dive->event_capacity) {
+        unsigned int new_cap = dive->event_capacity == 0 ? 64 :
+                               dive->event_capacity * 2;
+        if (new_cap > LIBDC_MAX_EVENTS) {
+            new_cap = LIBDC_MAX_EVENTS;
+        }
+        if (dive->event_count >= new_cap) {
+            return;  // at capacity
+        }
+        libdc_event_t *new_buf = realloc(dive->events,
+                                          new_cap * sizeof(libdc_event_t));
+        if (new_buf == NULL) {
+            return;
+        }
+        dive->events = new_buf;
+        dive->event_capacity = new_cap;
+    }
+    libdc_event_t *evt = &dive->events[dive->event_count++];
+    evt->time_ms = time_ms;
+    evt->type = type;
+    evt->flags = flags;
+    evt->value = value;
+}
+
 // ============================================================
 // Callbacks
 // ============================================================
@@ -147,6 +176,15 @@ static void sample_callback(dc_sample_type_t type,
         state->current_sample.temperature = NAN;
         state->current_sample.pressure = NAN;
         state->current_sample.tank = UINT32_MAX;
+        state->current_sample.heartbeat = UINT32_MAX;
+        state->current_sample.setpoint = NAN;
+        state->current_sample.ppo2 = NAN;
+        state->current_sample.cns = NAN;
+        state->current_sample.rbt = UINT32_MAX;
+        state->current_sample.deco_type = UINT32_MAX;
+        state->current_sample.deco_time = 0;
+        state->current_sample.deco_depth = NAN;
+        state->current_sample.deco_tts = UINT32_MAX;
         break;
     case DC_SAMPLE_DEPTH:
         state->current_sample.depth = value->depth;
@@ -157,6 +195,34 @@ static void sample_callback(dc_sample_type_t type,
     case DC_SAMPLE_PRESSURE:
         state->current_sample.pressure = value->pressure.value;
         state->current_sample.tank = value->pressure.tank;
+        break;
+    case DC_SAMPLE_HEARTBEAT:
+        state->current_sample.heartbeat = value->heartbeat;
+        break;
+    case DC_SAMPLE_SETPOINT:
+        state->current_sample.setpoint = value->setpoint;
+        break;
+    case DC_SAMPLE_PPO2:
+        state->current_sample.ppo2 = value->ppo2.value;
+        break;
+    case DC_SAMPLE_CNS:
+        state->current_sample.cns = value->cns * 100.0;  // fraction to percentage
+        break;
+    case DC_SAMPLE_RBT:
+        state->current_sample.rbt = value->rbt;
+        break;
+    case DC_SAMPLE_DECO:
+        state->current_sample.deco_type = value->deco.type;
+        state->current_sample.deco_time = value->deco.time;
+        state->current_sample.deco_depth = value->deco.depth;
+        state->current_sample.deco_tts = value->deco.tts;
+        break;
+    case DC_SAMPLE_EVENT:
+        push_event(state->dive,
+                   state->current_sample.time_ms,
+                   value->event.type,
+                   value->event.flags,
+                   value->event.value);
         break;
     default:
         break;
@@ -170,6 +236,13 @@ static int parse_dive(download_state_t *state,
     memset(dive, 0, sizeof(*dive));
     dive->min_temp = NAN;
     dive->max_temp = NAN;
+    dive->deco_model_type = 0;  // DC_DECOMODEL_NONE
+    dive->deco_conservatism = 0;
+    dive->gf_low = 0;
+    dive->gf_high = 0;
+    dive->events = NULL;
+    dive->event_count = 0;
+    dive->event_capacity = 0;
 
     // Store fingerprint.
     if (fingerprint != NULL && fsize > 0) {
@@ -219,6 +292,15 @@ static int parse_dive(download_state_t *state,
     }
     if (dc_parser_get_field(parser, DC_FIELD_DIVEMODE, 0, &uval) == DC_STATUS_SUCCESS) {
         dive->dive_mode = uval;
+    }
+
+    // Extract decompression model.
+    dc_decomodel_t decomodel = {0};
+    if (dc_parser_get_field(parser, DC_FIELD_DECOMODEL, 0, &decomodel) == DC_STATUS_SUCCESS) {
+        dive->deco_model_type = decomodel.type;  // DC_DECOMODEL_NONE=0, BUHLMANN=1, VPM=2, RGBM=3, DCIEM=4
+        dive->deco_conservatism = decomodel.conservatism;
+        dive->gf_low = decomodel.params.gf.low;
+        dive->gf_high = decomodel.params.gf.high;
     }
 
     // Extract gas mixes.
@@ -283,8 +365,9 @@ static int dive_callback(const unsigned char *data, unsigned int size,
         state->dive_count++;
     }
 
-    // Free dynamically allocated samples.
+    // Free dynamically allocated data.
     free(dive.samples);
+    free(dive.events);
 
     return 1;  // continue
 }

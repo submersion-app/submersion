@@ -118,6 +118,17 @@ typedef struct {
     double temperature;        // celsius (NAN if unavailable)
     double pressure;           // bar (NAN if unavailable)
     unsigned int tank;         // tank index (UINT32_MAX if unavailable)
+    // New fields for full sample capture
+    unsigned int heartbeat;    // bpm (UINT32_MAX if unavailable)
+    double setpoint;           // bar (NAN if unavailable)
+    double ppo2;               // bar (NAN if unavailable, first sensor)
+    double cns;                // percentage 0-100 (NAN if unavailable)
+    unsigned int rbt;          // remaining bottom time in seconds (UINT32_MAX if unavailable)
+    // Decompression status at this sample
+    unsigned int deco_type;    // 0=NDL, 1=safetystop, 2=decostop, 3=deepstop (UINT32_MAX if unavailable)
+    unsigned int deco_time;    // seconds (NDL seconds or stop time remaining)
+    double deco_depth;         // stop depth in meters (NAN if unavailable)
+    unsigned int deco_tts;     // Time To Surface in seconds (UINT32_MAX if unavailable)
 } libdc_sample_t;
 
 typedef struct {
@@ -132,6 +143,15 @@ typedef struct {
     double beginpressure;      // bar
     double endpressure;        // bar
 } libdc_tank_t;
+
+#define LIBDC_MAX_EVENTS 256
+
+typedef struct {
+    unsigned int time_ms;      // milliseconds since dive start
+    unsigned int type;         // parser_sample_event_t enum value
+    unsigned int flags;        // event-specific flags
+    unsigned int value;        // event-specific value
+} libdc_event_t;
 
 typedef struct {
     // DateTime
@@ -161,6 +181,17 @@ typedef struct {
     // Tanks (fixed-size arrays)
     libdc_tank_t tanks[LIBDC_MAX_TANKS];
     unsigned int tank_count;
+
+    // Decompression model from dive computer
+    unsigned int deco_model_type;  // 0=none, 1=buhlmann, 2=vpm, 3=rgbm, 4=dciem
+    int deco_conservatism;         // personal adjustment (0 = neutral)
+    unsigned int gf_low;           // gradient factor low 0-100 (0 if unknown)
+    unsigned int gf_high;          // gradient factor high 0-100 (0 if unknown)
+
+    // Events (dynamically allocated)
+    libdc_event_t *events;
+    unsigned int event_count;
+    unsigned int event_capacity;
 } libdc_parsed_dive_t;
 
 // Free a parsed dive (frees the samples array).

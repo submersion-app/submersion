@@ -58,13 +58,29 @@ class ProfileSample {
     this.pressureBar,
     this.tankIndex,
     this.heartRate,
+    this.setpoint,
+    this.ppo2,
+    this.cns,
+    this.rbt,
+    this.decoType,
+    this.decoTime,
+    this.decoDepth,
+    this.tts,
   });
   final int timeSeconds;
   final double depthMeters;
   final double? temperatureCelsius;
   final double? pressureBar;
   final int? tankIndex;
-  final double? heartRate;
+  final int? heartRate;
+  final double? setpoint;
+  final double? ppo2;
+  final double? cns;
+  final int? rbt;
+  final int? decoType;
+  final int? decoTime;
+  final double? decoDepth;
+  final int? tts;
 }
 
 class GasMix {
@@ -114,6 +130,10 @@ class ParsedDive {
     required this.gasMixes,
     required this.events,
     this.diveMode,
+    this.decoAlgorithm,
+    this.gfLow,
+    this.gfHigh,
+    this.decoConservatism,
   });
   final String fingerprint;
   final int dateTimeEpoch;
@@ -127,6 +147,10 @@ class ParsedDive {
   final List<GasMix> gasMixes;
   final List<DiveEvent> events;
   final String? diveMode;
+  final String? decoAlgorithm;
+  final int? gfLow;
+  final int? gfHigh;
+  final int? decoConservatism;
 }
 
 class DownloadProgress {

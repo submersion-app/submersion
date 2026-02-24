@@ -106,6 +106,11 @@ class Dives extends Table {
   // Decompression gradient factors
   IntColumn get gradientFactorLow => integer().nullable()(); // 0-100
   IntColumn get gradientFactorHigh => integer().nullable()(); // 0-100
+  // Deco model metadata
+  TextColumn get decoAlgorithm =>
+      text().nullable()(); // "buhlmann", "vpm", "rgbm", "dciem"
+  IntColumn get decoConservatism =>
+      integer().nullable()(); // Personal adjustment (0=neutral)
   // Dive computer that logged this dive (for display/export, separate from computerId relation)
   TextColumn get diveComputerModel => text().nullable()();
   TextColumn get diveComputerSerial => text().nullable()();
@@ -206,6 +211,14 @@ class DiveProfiles extends Table {
   RealColumn get setpoint =>
       real().nullable()(); // Current setpoint at sample (bar)
   RealColumn get ppO2 => real().nullable()(); // Measured/calculated ppO2 (bar)
+
+  // Per-sample decompression data (v1.5)
+  RealColumn get cns => real().nullable()(); // CNS percentage 0-100
+  IntColumn get tts => integer().nullable()(); // Time to surface in seconds
+  IntColumn get rbt =>
+      integer().nullable()(); // Remaining bottom time in seconds
+  IntColumn get decoType =>
+      integer().nullable()(); // 0=NDL, 1=safety, 2=deco, 3=deep
 
   // Wearable integration (v2.0) - tracks source of heart rate data
   TextColumn get heartRateSource =>
@@ -1090,7 +1103,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 39;
+  int get schemaVersion => 40;
 
   @override
   MigrationStrategy get migration {
@@ -1938,6 +1951,28 @@ class AppDatabase extends _$AppDatabase {
               'ALTER TABLE diver_settings ADD COLUMN default_show_otu INTEGER NOT NULL DEFAULT 0',
             );
           }
+        }
+        if (from < 40) {
+          // Add per-sample decompression data columns to dive_profiles
+          await customStatement(
+            'ALTER TABLE dive_profiles ADD COLUMN cns REAL',
+          );
+          await customStatement(
+            'ALTER TABLE dive_profiles ADD COLUMN tts INTEGER',
+          );
+          await customStatement(
+            'ALTER TABLE dive_profiles ADD COLUMN rbt INTEGER',
+          );
+          await customStatement(
+            'ALTER TABLE dive_profiles ADD COLUMN deco_type INTEGER',
+          );
+          // Add deco model fields to dives
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN deco_algorithm TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN deco_conservatism INTEGER',
+          );
         }
       },
       beforeOpen: (details) async {

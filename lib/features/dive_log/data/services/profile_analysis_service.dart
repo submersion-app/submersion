@@ -352,6 +352,65 @@ class ProfileAnalysis {
   /// Whether OTU curve data is available
   bool get hasOtuData => otuCurve != null && otuCurve!.isNotEmpty;
 
+  /// Create a copy with optional field overrides.
+  ProfileAnalysis copyWith({
+    List<AscentRatePoint>? ascentRates,
+    AscentRateStats? ascentRateStats,
+    List<AscentRateViolation>? ascentRateViolations,
+    List<ProfileEvent>? events,
+    List<double>? ceilingCurve,
+    List<int>? ndlCurve,
+    List<DecoStatus>? decoStatuses,
+    O2Exposure? o2Exposure,
+    List<double>? ppO2Curve,
+    List<double>? sacCurve,
+    List<double>? smoothedSacCurve,
+    List<SacSegment>? sacSegments,
+    List<double>? ppN2Curve,
+    List<double>? ppHeCurve,
+    List<double>? modCurve,
+    List<double>? densityCurve,
+    List<double>? gfCurve,
+    List<double>? surfaceGfCurve,
+    List<double>? meanDepthCurve,
+    List<int>? ttsCurve,
+    List<double>? cnsCurve,
+    List<double>? otuCurve,
+    double? maxDepth,
+    double? averageDepth,
+    int? maxDepthTimestamp,
+    int? durationSeconds,
+  }) {
+    return ProfileAnalysis(
+      ascentRates: ascentRates ?? this.ascentRates,
+      ascentRateStats: ascentRateStats ?? this.ascentRateStats,
+      ascentRateViolations: ascentRateViolations ?? this.ascentRateViolations,
+      events: events ?? this.events,
+      ceilingCurve: ceilingCurve ?? this.ceilingCurve,
+      ndlCurve: ndlCurve ?? this.ndlCurve,
+      decoStatuses: decoStatuses ?? this.decoStatuses,
+      o2Exposure: o2Exposure ?? this.o2Exposure,
+      ppO2Curve: ppO2Curve ?? this.ppO2Curve,
+      sacCurve: sacCurve ?? this.sacCurve,
+      smoothedSacCurve: smoothedSacCurve ?? this.smoothedSacCurve,
+      sacSegments: sacSegments ?? this.sacSegments,
+      ppN2Curve: ppN2Curve ?? this.ppN2Curve,
+      ppHeCurve: ppHeCurve ?? this.ppHeCurve,
+      modCurve: modCurve ?? this.modCurve,
+      densityCurve: densityCurve ?? this.densityCurve,
+      gfCurve: gfCurve ?? this.gfCurve,
+      surfaceGfCurve: surfaceGfCurve ?? this.surfaceGfCurve,
+      meanDepthCurve: meanDepthCurve ?? this.meanDepthCurve,
+      ttsCurve: ttsCurve ?? this.ttsCurve,
+      cnsCurve: cnsCurve ?? this.cnsCurve,
+      otuCurve: otuCurve ?? this.otuCurve,
+      maxDepth: maxDepth ?? this.maxDepth,
+      averageDepth: averageDepth ?? this.averageDepth,
+      maxDepthTimestamp: maxDepthTimestamp ?? this.maxDepthTimestamp,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
+    );
+  }
+
   /// Create an empty analysis
   factory ProfileAnalysis.empty() {
     return const ProfileAnalysis(

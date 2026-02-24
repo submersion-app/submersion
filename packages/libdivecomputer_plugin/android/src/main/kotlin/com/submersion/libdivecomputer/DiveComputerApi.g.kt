@@ -129,7 +129,15 @@ data class ProfileSample (
   val temperatureCelsius: Double? = null,
   val pressureBar: Double? = null,
   val tankIndex: Long? = null,
-  val heartRate: Double? = null
+  val heartRate: Long? = null,
+  val setpoint: Double? = null,
+  val ppo2: Double? = null,
+  val cns: Double? = null,
+  val rbt: Long? = null,
+  val decoType: Long? = null,
+  val decoTime: Long? = null,
+  val decoDepth: Double? = null,
+  val tts: Long? = null
 )
  {
   companion object {
@@ -139,8 +147,16 @@ data class ProfileSample (
       val temperatureCelsius = pigeonVar_list[2] as Double?
       val pressureBar = pigeonVar_list[3] as Double?
       val tankIndex = pigeonVar_list[4] as Long?
-      val heartRate = pigeonVar_list[5] as Double?
-      return ProfileSample(timeSeconds, depthMeters, temperatureCelsius, pressureBar, tankIndex, heartRate)
+      val heartRate = pigeonVar_list[5] as Long?
+      val setpoint = pigeonVar_list[6] as Double?
+      val ppo2 = pigeonVar_list[7] as Double?
+      val cns = pigeonVar_list[8] as Double?
+      val rbt = pigeonVar_list[9] as Long?
+      val decoType = pigeonVar_list[10] as Long?
+      val decoTime = pigeonVar_list[11] as Long?
+      val decoDepth = pigeonVar_list[12] as Double?
+      val tts = pigeonVar_list[13] as Long?
+      return ProfileSample(timeSeconds, depthMeters, temperatureCelsius, pressureBar, tankIndex, heartRate, setpoint, ppo2, cns, rbt, decoType, decoTime, decoDepth, tts)
     }
   }
   fun toList(): List<Any?> {
@@ -151,6 +167,14 @@ data class ProfileSample (
       pressureBar,
       tankIndex,
       heartRate,
+      setpoint,
+      ppo2,
+      cns,
+      rbt,
+      decoType,
+      decoTime,
+      decoDepth,
+      tts,
     )
   }
 }
@@ -246,7 +270,11 @@ data class ParsedDive (
   val tanks: List<TankInfo>,
   val gasMixes: List<GasMix>,
   val events: List<DiveEvent>,
-  val diveMode: String? = null
+  val diveMode: String? = null,
+  val decoAlgorithm: String? = null,
+  val gfLow: Long? = null,
+  val gfHigh: Long? = null,
+  val decoConservatism: Long? = null
 )
  {
   companion object {
@@ -263,7 +291,11 @@ data class ParsedDive (
       val gasMixes = pigeonVar_list[9] as List<GasMix>
       val events = pigeonVar_list[10] as List<DiveEvent>
       val diveMode = pigeonVar_list[11] as String?
-      return ParsedDive(fingerprint, dateTimeEpoch, maxDepthMeters, avgDepthMeters, durationSeconds, minTemperatureCelsius, maxTemperatureCelsius, samples, tanks, gasMixes, events, diveMode)
+      val decoAlgorithm = pigeonVar_list[12] as String?
+      val gfLow = pigeonVar_list[13] as Long?
+      val gfHigh = pigeonVar_list[14] as Long?
+      val decoConservatism = pigeonVar_list[15] as Long?
+      return ParsedDive(fingerprint, dateTimeEpoch, maxDepthMeters, avgDepthMeters, durationSeconds, minTemperatureCelsius, maxTemperatureCelsius, samples, tanks, gasMixes, events, diveMode, decoAlgorithm, gfLow, gfHigh, decoConservatism)
     }
   }
   fun toList(): List<Any?> {
@@ -280,6 +312,10 @@ data class ParsedDive (
       gasMixes,
       events,
       diveMode,
+      decoAlgorithm,
+      gfLow,
+      gfHigh,
+      decoConservatism,
     )
   }
 }

@@ -180,12 +180,20 @@ G_DECLARE_FINAL_TYPE(LibdivecomputerPluginProfileSample, libdivecomputer_plugin_
  * pressure_bar: field in this object.
  * tank_index: field in this object.
  * heart_rate: field in this object.
+ * setpoint: field in this object.
+ * ppo2: field in this object.
+ * cns: field in this object.
+ * rbt: field in this object.
+ * deco_type: field in this object.
+ * deco_time: field in this object.
+ * deco_depth: field in this object.
+ * tts: field in this object.
  *
  * Creates a new #ProfileSample object.
  *
  * Returns: a new #LibdivecomputerPluginProfileSample
  */
-LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(int64_t time_seconds, double depth_meters, double* temperature_celsius, double* pressure_bar, int64_t* tank_index, double* heart_rate);
+LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(int64_t time_seconds, double depth_meters, double* temperature_celsius, double* pressure_bar, int64_t* tank_index, int64_t* heart_rate, double* setpoint, double* ppo2, double* cns, int64_t* rbt, int64_t* deco_type, int64_t* deco_time, double* deco_depth, int64_t* tts);
 
 /**
  * libdivecomputer_plugin_profile_sample_get_time_seconds
@@ -245,7 +253,87 @@ int64_t* libdivecomputer_plugin_profile_sample_get_tank_index(LibdivecomputerPlu
  *
  * Returns: the field value.
  */
-double* libdivecomputer_plugin_profile_sample_get_heart_rate(LibdivecomputerPluginProfileSample* object);
+int64_t* libdivecomputer_plugin_profile_sample_get_heart_rate(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_setpoint
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the setpoint field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_profile_sample_get_setpoint(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_ppo2
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the ppo2 field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_profile_sample_get_ppo2(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_cns
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the cns field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_profile_sample_get_cns(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_rbt
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the rbt field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t* libdivecomputer_plugin_profile_sample_get_rbt(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_deco_type
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the decoType field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t* libdivecomputer_plugin_profile_sample_get_deco_type(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_deco_time
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the decoTime field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t* libdivecomputer_plugin_profile_sample_get_deco_time(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_deco_depth
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the decoDepth field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_profile_sample_get_deco_depth(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_tts
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the tts field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t* libdivecomputer_plugin_profile_sample_get_tts(LibdivecomputerPluginProfileSample* object);
 
 /**
  * LibdivecomputerPluginGasMix:
@@ -437,12 +525,16 @@ G_DECLARE_FINAL_TYPE(LibdivecomputerPluginParsedDive, libdivecomputer_plugin_par
  * gas_mixes: field in this object.
  * events: field in this object.
  * dive_mode: field in this object.
+ * deco_algorithm: field in this object.
+ * gf_low: field in this object.
+ * gf_high: field in this object.
+ * deco_conservatism: field in this object.
  *
  * Creates a new #ParsedDive object.
  *
  * Returns: a new #LibdivecomputerPluginParsedDive
  */
-LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new(const gchar* fingerprint, int64_t date_time_epoch, double max_depth_meters, double avg_depth_meters, int64_t duration_seconds, double* min_temperature_celsius, double* max_temperature_celsius, FlValue* samples, FlValue* tanks, FlValue* gas_mixes, FlValue* events, const gchar* dive_mode);
+LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new(const gchar* fingerprint, int64_t date_time_epoch, double max_depth_meters, double avg_depth_meters, int64_t duration_seconds, double* min_temperature_celsius, double* max_temperature_celsius, FlValue* samples, FlValue* tanks, FlValue* gas_mixes, FlValue* events, const gchar* dive_mode, const gchar* deco_algorithm, int64_t* gf_low, int64_t* gf_high, int64_t* deco_conservatism);
 
 /**
  * libdivecomputer_plugin_parsed_dive_get_fingerprint
@@ -563,6 +655,46 @@ FlValue* libdivecomputer_plugin_parsed_dive_get_events(LibdivecomputerPluginPars
  * Returns: the field value.
  */
 const gchar* libdivecomputer_plugin_parsed_dive_get_dive_mode(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_deco_algorithm
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the decoAlgorithm field of @object.
+ *
+ * Returns: the field value.
+ */
+const gchar* libdivecomputer_plugin_parsed_dive_get_deco_algorithm(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_gf_low
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the gfLow field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t* libdivecomputer_plugin_parsed_dive_get_gf_low(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_gf_high
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the gfHigh field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t* libdivecomputer_plugin_parsed_dive_get_gf_high(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_deco_conservatism
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the decoConservatism field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t* libdivecomputer_plugin_parsed_dive_get_deco_conservatism(LibdivecomputerPluginParsedDive* object);
 
 /**
  * LibdivecomputerPluginDownloadProgress:

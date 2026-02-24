@@ -154,7 +154,15 @@ struct ProfileSample {
   var temperatureCelsius: Double? = nil
   var pressureBar: Double? = nil
   var tankIndex: Int64? = nil
-  var heartRate: Double? = nil
+  var heartRate: Int64? = nil
+  var setpoint: Double? = nil
+  var ppo2: Double? = nil
+  var cns: Double? = nil
+  var rbt: Int64? = nil
+  var decoType: Int64? = nil
+  var decoTime: Int64? = nil
+  var decoDepth: Double? = nil
+  var tts: Int64? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -164,7 +172,15 @@ struct ProfileSample {
     let temperatureCelsius: Double? = nilOrValue(pigeonVar_list[2])
     let pressureBar: Double? = nilOrValue(pigeonVar_list[3])
     let tankIndex: Int64? = nilOrValue(pigeonVar_list[4])
-    let heartRate: Double? = nilOrValue(pigeonVar_list[5])
+    let heartRate: Int64? = nilOrValue(pigeonVar_list[5])
+    let setpoint: Double? = nilOrValue(pigeonVar_list[6])
+    let ppo2: Double? = nilOrValue(pigeonVar_list[7])
+    let cns: Double? = nilOrValue(pigeonVar_list[8])
+    let rbt: Int64? = nilOrValue(pigeonVar_list[9])
+    let decoType: Int64? = nilOrValue(pigeonVar_list[10])
+    let decoTime: Int64? = nilOrValue(pigeonVar_list[11])
+    let decoDepth: Double? = nilOrValue(pigeonVar_list[12])
+    let tts: Int64? = nilOrValue(pigeonVar_list[13])
 
     return ProfileSample(
       timeSeconds: timeSeconds,
@@ -172,7 +188,15 @@ struct ProfileSample {
       temperatureCelsius: temperatureCelsius,
       pressureBar: pressureBar,
       tankIndex: tankIndex,
-      heartRate: heartRate
+      heartRate: heartRate,
+      setpoint: setpoint,
+      ppo2: ppo2,
+      cns: cns,
+      rbt: rbt,
+      decoType: decoType,
+      decoTime: decoTime,
+      decoDepth: decoDepth,
+      tts: tts
     )
   }
   func toList() -> [Any?] {
@@ -183,6 +207,14 @@ struct ProfileSample {
       pressureBar,
       tankIndex,
       heartRate,
+      setpoint,
+      ppo2,
+      cns,
+      rbt,
+      decoType,
+      decoTime,
+      decoDepth,
+      tts,
     ]
   }
 }
@@ -293,6 +325,10 @@ struct ParsedDive {
   var gasMixes: [GasMix]
   var events: [DiveEvent]
   var diveMode: String? = nil
+  var decoAlgorithm: String? = nil
+  var gfLow: Int64? = nil
+  var gfHigh: Int64? = nil
+  var decoConservatism: Int64? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -309,6 +345,10 @@ struct ParsedDive {
     let gasMixes = pigeonVar_list[9] as! [GasMix]
     let events = pigeonVar_list[10] as! [DiveEvent]
     let diveMode: String? = nilOrValue(pigeonVar_list[11])
+    let decoAlgorithm: String? = nilOrValue(pigeonVar_list[12])
+    let gfLow: Int64? = nilOrValue(pigeonVar_list[13])
+    let gfHigh: Int64? = nilOrValue(pigeonVar_list[14])
+    let decoConservatism: Int64? = nilOrValue(pigeonVar_list[15])
 
     return ParsedDive(
       fingerprint: fingerprint,
@@ -322,7 +362,11 @@ struct ParsedDive {
       tanks: tanks,
       gasMixes: gasMixes,
       events: events,
-      diveMode: diveMode
+      diveMode: diveMode,
+      decoAlgorithm: decoAlgorithm,
+      gfLow: gfLow,
+      gfHigh: gfHigh,
+      decoConservatism: decoConservatism
     )
   }
   func toList() -> [Any?] {
@@ -339,6 +383,10 @@ struct ParsedDive {
       gasMixes,
       events,
       diveMode,
+      decoAlgorithm,
+      gfLow,
+      gfHigh,
+      decoConservatism,
     ]
   }
 }

@@ -1,7 +1,7 @@
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 export '../../../../features/dive_log/data/repositories/dive_computer_repository_impl.dart'
-    show TankData;
+    show EventData, TankData;
 
 /// Service for parsing downloaded dive data into app entities.
 ///
@@ -29,6 +29,18 @@ class DiveParser {
           heartRate: sample.heartRate,
           // Preserve tank index for multi-tank pressure tracking
           tankIndex: sample.tankIndex,
+          // Decompression and rebreather data
+          setpoint: sample.setpoint,
+          ppO2: sample.ppo2,
+          cns: sample.cns,
+          ndl: sample.ndl,
+          ceiling: sample.ceiling,
+          ascentRate: sample.ascentRate,
+          rbt: sample.rbt,
+          decoType: sample.decoType,
+          decoTime: sample.decoTime,
+          decoDepth: sample.decoDepth,
+          tts: sample.tts,
         ),
       );
     }
