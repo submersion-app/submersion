@@ -27,20 +27,24 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     final statsAsync = ref.watch(tagStatisticsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.tags_manage_title),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showCreateDialog(),
-        child: const Icon(Icons.add),
-      ),
+      appBar: _isSelectionMode
+          ? _buildSelectionAppBar()
+          : AppBar(
+              title: Text(context.l10n.tags_manage_title),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+      floatingActionButton: _isSelectionMode
+          ? null
+          : FloatingActionButton(
+              onPressed: () => _showCreateDialog(),
+              child: const Icon(Icons.add),
+            ),
       body: Column(
         children: [
-          _buildSearchBar(),
+          if (!_isSelectionMode) _buildSearchBar(),
           Expanded(
             child: statsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -245,7 +249,108 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     );
   }
 
-  // -- Selection mode stubs (Task 7 will flesh these out) --
+  // -- Selection mode --
+
+  AppBar _buildSelectionAppBar() {
+    return AppBar(
+      leading: IconButton(
+        icon: const Icon(Icons.close),
+        onPressed: _exitSelectionMode,
+      ),
+      title: Text(context.l10n.tags_manage_selectedCount(_selectedIds.length)),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.merge),
+          onPressed: _selectedIds.length >= 2
+              ? () =>
+                    _showMergeSheet(context) // Wired in Task 8
+              : null,
+          tooltip: context.l10n.tags_manage_mergeAction,
+        ),
+        IconButton(
+          icon: const Icon(Icons.delete),
+          onPressed: _selectedIds.isNotEmpty
+              ? () => _confirmDelete(context)
+              : null,
+          tooltip: context.l10n.common_action_delete,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final repository = ref.read(tagRepositoryProvider);
+    final statsAsync = ref.read(tagStatisticsProvider);
+    final stats = statsAsync.valueOrNull ?? [];
+
+    if (_selectedIds.length == 1) {
+      final tagId = _selectedIds.first;
+      final stat = stats.firstWhere((s) => s.tag.id == tagId);
+      final count = stat.diveCount;
+
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(ctx.l10n.tags_manage_deleteTitle),
+          content: Text(
+            ctx.l10n.tags_manage_deleteMessage(stat.tag.name, count),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(ctx.l10n.common_action_cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(ctx.l10n.common_action_delete),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true) {
+        await ref.read(tagListNotifierProvider.notifier).deleteTag(tagId);
+        _exitSelectionMode();
+      }
+    } else {
+      final totalDives = await repository.getMergedDiveCount(
+        _selectedIds.toList(),
+      );
+
+      if (!context.mounted) return;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(
+            ctx.l10n.tags_manage_bulkDeleteTitle(_selectedIds.length),
+          ),
+          content: Text(ctx.l10n.tags_manage_bulkDeleteMessage(totalDives)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(ctx.l10n.common_action_cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(ctx.l10n.common_action_delete),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true) {
+        await ref
+            .read(tagListNotifierProvider.notifier)
+            .deleteTags(_selectedIds.toList());
+        _exitSelectionMode();
+      }
+    }
+  }
+
+  // Merge sheet — implemented in Task 8
+  Future<void> _showMergeSheet(BuildContext context) async {}
 
   void _enterSelectionMode(String? initialId) {
     setState(() {
