@@ -5,8 +5,17 @@
 #include <flutter/plugin_registrar.h>
 
 #include <memory>
+#include <thread>
 
+#include "ble_io_stream.h"
+#include "ble_scanner.h"
 #include "dive_computer_api.g.h"
+#include "serial_io_stream.h"
+#include "serial_scanner.h"
+
+extern "C" {
+#include "libdc_wrapper.h"
+}
 
 namespace libdivecomputer_plugin {
 
@@ -35,7 +44,15 @@ class DiveComputerHostApiImpl : public DiveComputerHostApi,
   ErrorOr<std::string> GetLibdivecomputerVersion() override;
 
  private:
+  void PerformDownload(const DiscoveredDevice& device);
+
   std::unique_ptr<DiveComputerFlutterApi> flutter_api_;
+  std::unique_ptr<BleScanner> ble_scanner_;
+  std::unique_ptr<SerialScanner> serial_scanner_;
+  std::unique_ptr<BleIoStream> ble_stream_;
+  std::unique_ptr<SerialIoStream> serial_stream_;
+  libdc_download_session_t* download_session_ = nullptr;
+  std::thread download_thread_;
 };
 
 }  // namespace libdivecomputer_plugin

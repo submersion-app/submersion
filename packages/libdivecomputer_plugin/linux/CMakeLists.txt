@@ -140,10 +140,19 @@ target_compile_options(divecomputer PRIVATE
     -std=c11
 )
 
+# gio-2.0 for GDBusConnection (BLE scanner + BLE I/O stream)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GIO REQUIRED gio-2.0)
+
 # Plugin shared library (GObject-based for Linux)
 add_library(${PLUGIN_NAME} SHARED
     libdivecomputer_plugin.cc
     dive_computer_host_api_impl.cc
+    dive_converter.c
+    ble_scanner.c
+    ble_io_stream.c
+    serial_scanner.c
+    serial_io_stream.c
     dive_computer_api.g.cc
     ${WRAPPER_DIR}/libdc_wrapper.c
     ${WRAPPER_DIR}/libdc_download.c
@@ -170,6 +179,7 @@ target_include_directories(${PLUGIN_NAME} PRIVATE
     ${LIBDC_DIR}/src
     ${CONFIG_DIR}
     ${WRAPPER_DIR}
+    ${GIO_INCLUDE_DIRS}
 )
 
-target_link_libraries(${PLUGIN_NAME} PRIVATE flutter divecomputer)
+target_link_libraries(${PLUGIN_NAME} PRIVATE flutter divecomputer ${GIO_LIBRARIES})

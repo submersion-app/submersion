@@ -139,10 +139,18 @@ target_compile_definitions(divecomputer PRIVATE
     _CRT_SECURE_NO_WARNINGS
 )
 
+# C++/WinRT support for BLE APIs.
+set(CMAKE_CXX_STANDARD 20)
+
 # Plugin shared library (C++ Pigeon API for Windows)
 add_library(${PLUGIN_NAME} SHARED
     libdivecomputer_plugin_c_api.cc
     dive_computer_host_api_impl.cc
+    dive_converter.cc
+    ble_scanner.cc
+    ble_io_stream.cc
+    serial_scanner.cc
+    serial_io_stream.cc
     dive_computer_api.g.cc
     ${WRAPPER_DIR}/libdc_wrapper.c
     ${WRAPPER_DIR}/libdc_download.c
@@ -160,6 +168,8 @@ target_compile_definitions(${PLUGIN_NAME} PRIVATE
     _CRT_SECURE_NO_WARNINGS
 )
 
+target_compile_options(${PLUGIN_NAME} PRIVATE /await)
+
 target_include_directories(${PLUGIN_NAME} INTERFACE
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
@@ -171,4 +181,7 @@ target_include_directories(${PLUGIN_NAME} PRIVATE
     ${WRAPPER_DIR}
 )
 
-target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin divecomputer)
+target_link_libraries(${PLUGIN_NAME} PRIVATE
+    flutter flutter_wrapper_plugin divecomputer
+    WindowsApp.lib SetupAPI.lib
+)

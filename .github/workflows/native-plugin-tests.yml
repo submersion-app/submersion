@@ -1,0 +1,138 @@
+# Native Plugin Build Verification
+#
+# Validates that the libdivecomputer_plugin builds on all platforms
+# and that C wrapper unit tests pass.
+
+name: Native Plugin Tests
+
+on:
+  push:
+    paths:
+      - 'packages/libdivecomputer_plugin/**'
+  pull_request:
+    paths:
+      - 'packages/libdivecomputer_plugin/**'
+
+concurrency:
+  group: native-plugin-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION_FILE: '.github/flutter-version.txt'
+
+jobs:
+  # ==========================================================================
+  # C Wrapper Unit Tests (platform-independent)
+  # ==========================================================================
+  c-wrapper-tests:
+    name: C Wrapper Tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build and run C wrapper tests
+        run: |
+          cd packages/libdivecomputer_plugin
+          cmake -B build/test test/native
+          cmake --build build/test
+          ctest --test-dir build/test --output-on-failure
+
+  # ==========================================================================
+  # macOS Build
+  # ==========================================================================
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(cat $FLUTTER_VERSION_FILE)" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
+
+      - name: Build macOS debug
+        run: flutter build macos --debug
+
+  # ==========================================================================
+  # iOS Build
+  # ==========================================================================
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(cat $FLUTTER_VERSION_FILE)" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
+
+      - name: Build iOS simulator debug
+        run: flutter build ios --simulator --debug --no-codesign
+
+  # ==========================================================================
+  # Windows Build
+  # ==========================================================================
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Read Flutter version
+        id: flutter-version
+        shell: bash
+        run: echo "version=$(cat $FLUTTER_VERSION_FILE)" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
+
+      - name: Build Windows debug
+        run: flutter build windows --debug
+
+  # ==========================================================================
+  # Linux Build
+  # ==========================================================================
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(cat $FLUTTER_VERSION_FILE)" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            ninja-build \
+            libglib2.0-dev \
+            libdbus-1-dev
+
+      - name: Build Linux debug
+        run: flutter build linux --debug
