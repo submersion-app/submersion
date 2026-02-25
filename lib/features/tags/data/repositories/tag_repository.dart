@@ -258,12 +258,6 @@ class TagRepository {
     try {
       _log.info('Setting ${tags.length} tags for dive: $diveId');
 
-      // Get existing tag IDs before deletion to check for cleanup later
-      final existingTags = await getTagsForDive(diveId);
-      final existingTagIds = existingTags.map((t) => t.id).toSet();
-      final newTagIds = tags.map((t) => t.id).toSet();
-      final removedTagIds = existingTagIds.difference(newTagIds);
-
       final existingDiveTags = await (_db.select(
         _db.diveTags,
       )..where((t) => t.diveId.equals(diveId))).get();
@@ -309,11 +303,6 @@ class TagRepository {
         localUpdatedAt: now,
       );
       SyncEventBus.notifyLocalChange();
-
-      // Clean up any tags that are no longer used
-      for (final tagId in removedTagIds) {
-        await _deleteTagIfUnused(tagId);
-      }
 
       _log.info('Set ${tags.length} tags for dive: $diveId');
     } catch (e, stackTrace) {
@@ -389,59 +378,9 @@ class TagRepository {
       );
       SyncEventBus.notifyLocalChange();
 
-      // Clean up the tag if it's no longer used
-      await _deleteTagIfUnused(tagId);
-
       _log.info('Removed tag $tagId from dive: $diveId');
     } catch (e, stackTrace) {
       _log.error('Failed to remove tag from dive', e, stackTrace);
-      rethrow;
-    }
-  }
-
-  // ============================================================================
-  // Cleanup
-  // ============================================================================
-
-  /// Delete a tag if it's no longer used by any dive
-  Future<void> _deleteTagIfUnused(String tagId) async {
-    try {
-      final usageCount = await _getTagUsageCount(tagId);
-      if (usageCount == 0) {
-        _log.info('Deleting unused tag: $tagId');
-        await deleteTag(tagId);
-      }
-    } catch (e, stackTrace) {
-      _log.error('Failed to check/delete unused tag: $tagId', e, stackTrace);
-      // Don't rethrow - cleanup failure shouldn't break the main operation
-    }
-  }
-
-  /// Get the number of dives using a specific tag
-  Future<int> _getTagUsageCount(String tagId) async {
-    final result = await _db
-        .customSelect(
-          '''
-      SELECT COUNT(*) as count FROM dive_tags WHERE tag_id = ?
-    ''',
-          variables: [Variable.withString(tagId)],
-        )
-        .getSingle();
-    return result.data['count'] as int;
-  }
-
-  /// Delete all tags that are not used by any dive
-  Future<void> deleteUnusedTags() async {
-    try {
-      _log.info('Cleaning up unused tags');
-      await _db.customStatement('''
-        DELETE FROM tags WHERE id NOT IN (
-          SELECT DISTINCT tag_id FROM dive_tags
-        )
-      ''');
-      _log.info('Deleted unused tags');
-    } catch (e, stackTrace) {
-      _log.error('Failed to delete unused tags', e, stackTrace);
       rethrow;
     }
   }
@@ -492,6 +431,40 @@ class TagRepository {
     }
   }
 
+  /// Get the number of dives using a specific tag
+  Future<int> getTagUsageCount(String tagId) async {
+    try {
+      final result = await _db
+          .customSelect(
+            'SELECT COUNT(*) as count FROM dive_tags WHERE tag_id = ?',
+            variables: [Variable.withString(tagId)],
+          )
+          .getSingle();
+      return result.data['count'] as int;
+    } catch (e, stackTrace) {
+      _log.error('Failed to get tag usage count: $tagId', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Get combined dive count for multiple tags (union, not sum)
+  Future<int> getMergedDiveCount(List<String> tagIds) async {
+    if (tagIds.isEmpty) return 0;
+    try {
+      final placeholders = tagIds.map((_) => '?').join(',');
+      final result = await _db
+          .customSelect(
+            'SELECT COUNT(DISTINCT dive_id) as count FROM dive_tags WHERE tag_id IN ($placeholders)',
+            variables: tagIds.map((id) => Variable.withString(id)).toList(),
+          )
+          .getSingle();
+      return result.data['count'] as int;
+    } catch (e, stackTrace) {
+      _log.error('Failed to get merged dive count', e, stackTrace);
+      rethrow;
+    }
+  }
+
   /// Search tags by name (for autocomplete)
   Future<List<domain.Tag>> searchTags(String query, {String? diverId}) async {
     try {
@@ -509,6 +482,133 @@ class TagRepository {
       return rows.map(_mapRowToTag).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to search tags: $query', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  // ============================================================================
+  // Merge
+  // ============================================================================
+
+  /// Merge multiple tags into one surviving tag.
+  ///
+  /// [sourceTagIds] are the tags to merge away (will be deleted).
+  /// [survivingTagId] is the tag that remains, updated with [name] and [colorHex].
+  /// All dive associations from source tags move to the surviving tag.
+  /// Duplicate associations (dive already has surviving tag) are removed.
+  Future<void> mergeTags({
+    required List<String> sourceTagIds,
+    required String survivingTagId,
+    required String name,
+    required String? colorHex,
+  }) async {
+    // Input validation
+    if (sourceTagIds.contains(survivingTagId)) {
+      throw ArgumentError(
+        'survivingTagId ($survivingTagId) must not appear in sourceTagIds',
+      );
+    }
+    if (sourceTagIds.isEmpty) return;
+
+    try {
+      _log.info('Merging ${sourceTagIds.length} tags into $survivingTagId');
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      await _db.transaction(() async {
+        // Pre-fetch all diveIds that already have the surviving tag
+        final existingSurvivingDiveIds =
+            (await (_db.select(
+                  _db.diveTags,
+                )..where((t) => t.tagId.equals(survivingTagId))).get())
+                .map((dt) => dt.diveId)
+                .toSet();
+
+        // Collect all affected diveIds to batch-update updatedAt once
+        final affectedDiveIds = <String>{};
+        // Update surviving tag name and color
+        await (_db.update(
+          _db.tags,
+        )..where((t) => t.id.equals(survivingTagId))).write(
+          TagsCompanion(
+            name: Value(name),
+            color: Value(colorHex),
+            updatedAt: Value(now),
+          ),
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'tags',
+          recordId: survivingTagId,
+          localUpdatedAt: now,
+        );
+
+        for (final sourceId in sourceTagIds) {
+          // Get all dive associations for this source tag
+          final sourceDiveTags = await (_db.select(
+            _db.diveTags,
+          )..where((t) => t.tagId.equals(sourceId))).get();
+
+          for (final diveTag in sourceDiveTags) {
+            if (!existingSurvivingDiveIds.contains(diveTag.diveId)) {
+              // Move association to surviving tag
+              final newId = _uuid.v4();
+              await _db
+                  .into(_db.diveTags)
+                  .insert(
+                    DiveTagsCompanion(
+                      id: Value(newId),
+                      diveId: Value(diveTag.diveId),
+                      tagId: Value(survivingTagId),
+                      createdAt: Value(now),
+                    ),
+                  );
+              await _syncRepository.markRecordPending(
+                entityType: 'diveTags',
+                recordId: newId,
+                localUpdatedAt: now,
+              );
+              // Track so subsequent source tags see this dive as covered
+              existingSurvivingDiveIds.add(diveTag.diveId);
+            }
+
+            // Delete explicitly (not relying on CASCADE) so sync tracks
+            // each deletion
+            await (_db.delete(
+              _db.diveTags,
+            )..where((t) => t.id.equals(diveTag.id))).go();
+            await _syncRepository.logDeletion(
+              entityType: 'diveTags',
+              recordId: diveTag.id,
+            );
+
+            affectedDiveIds.add(diveTag.diveId);
+          }
+
+          // Delete the source tag (inlined to avoid SyncEventBus inside txn)
+          await (_db.delete(
+            _db.tags,
+          )..where((t) => t.id.equals(sourceId))).go();
+          await _syncRepository.logDeletion(
+            entityType: 'tags',
+            recordId: sourceId,
+          );
+        }
+
+        // Batch-update updatedAt for all affected dives
+        for (final diveId in affectedDiveIds) {
+          await (_db.update(_db.dives)..where((t) => t.id.equals(diveId)))
+              .write(DivesCompanion(updatedAt: Value(now)));
+          await _syncRepository.markRecordPending(
+            entityType: 'dives',
+            recordId: diveId,
+            localUpdatedAt: now,
+          );
+        }
+      });
+
+      SyncEventBus.notifyLocalChange();
+      _log.info('Merged ${sourceTagIds.length} tags into $survivingTagId');
+    } catch (e, stackTrace) {
+      _log.error('Failed to merge tags', e, stackTrace);
       rethrow;
     }
   }

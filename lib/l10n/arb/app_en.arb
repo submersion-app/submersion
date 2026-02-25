@@ -5212,6 +5212,8 @@
   "settings_manage_header_manageData": "Manage Data",
   "settings_manage_species": "Species",
   "settings_manage_species_subtitle": "Manage marine life species catalog",
+  "settings_manage_tags": "Tags",
+  "settings_manage_tags_subtitle": "Manage, merge, and delete tags",
   "settings_manage_tankPresets": "Tank Presets",
   "settings_manage_tankPresets_subtitle": "Manage custom tank configurations",
   "settings_migrationProgress_doNotClose": "Please do not close the app",
@@ -6602,6 +6604,77 @@
   "tags_empty": "No tags yet. Create tags when editing dives.",
   "tags_hint_addMoreTags": "Add more tags...",
   "tags_hint_addTags": "Add tags...",
+  "tags_manage_title": "Tags",
+  "tags_manage_searchHint": "Search tags...",
+  "tags_manage_diveCount": "{count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}",
+  "@tags_manage_diveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_emptyState": "No tags yet. Create one to get started.",
+  "tags_manage_selectedCount": "{count} selected",
+  "@tags_manage_selectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_createTitle": "Create Tag",
+  "tags_manage_editTitle": "Edit Tag",
+  "tags_manage_nameLabel": "Tag Name",
+  "tags_manage_colorLabel": "Color",
+  "tags_manage_nameRequired": "Tag name is required",
+  "tags_manage_deleteTitle": "Delete Tag?",
+  "tags_manage_deleteMessage": "\"{tagName}\" will be removed from {count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}. This cannot be undone.",
+  "@tags_manage_deleteMessage": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteTitle": "Delete {count} Tags?",
+  "@tags_manage_bulkDeleteTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage": "These tags will be removed from {diveCount, plural, =0{0 dives} =1{1 dive} other{{diveCount} dives}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeTitle": "Merge {count} Tags",
+  "@tags_manage_mergeTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeResultName": "Resulting tag name:",
+  "tags_manage_mergeKeepFrom": "Or keep name from:",
+  "tags_manage_mergeAffectedDives": "This will affect {count, plural, =0{0 dives} =1{1 dive} other{{count} dives}} total.",
+  "@tags_manage_mergeAffectedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAction": "Merge",
   "tags_title_manageTags": "Manage Tags",
   "tank_al30Stage_description": "Aluminum 30 cu ft stage tank",
   "tank_al30Stage_displayName": "AL30 Stage",

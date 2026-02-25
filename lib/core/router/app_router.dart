@@ -76,6 +76,7 @@ import 'package:submersion/features/dive_types/presentation/pages/dive_types_pag
 import 'package:submersion/features/tank_presets/presentation/pages/tank_presets_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_preset_edit_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_manage_page.dart';
+import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_edit_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
@@ -831,6 +832,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 ),
               ),
             ],
+          ),
+
+          // Tag Management
+          GoRoute(
+            path: '/tags',
+            name: 'tagManage',
+            builder: (context, state) => const TagManagePage(),
           ),
 
           // Dive Computers

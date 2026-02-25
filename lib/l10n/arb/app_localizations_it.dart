@@ -10027,6 +10027,12 @@ class AppLocalizationsIt extends AppLocalizations {
       'Gestisci catalogo specie marine';
 
   @override
+  String get settings_manage_tags => 'Tags';
+
+  @override
+  String get settings_manage_tags_subtitle => 'Manage, merge, and delete tags';
+
+  @override
   String get settings_manage_tankPresets => 'Preset bombole';
 
   @override
@@ -11825,6 +11831,106 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tags_hint_addTags => 'Aggiungi tag...';
+
+  @override
+  String get tags_manage_title => 'Tags';
+
+  @override
+  String get tags_manage_searchHint => 'Search tags...';
+
+  @override
+  String tags_manage_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+      zero: '0 dives',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_emptyState =>
+      'No tags yet. Create one to get started.';
+
+  @override
+  String tags_manage_selectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get tags_manage_createTitle => 'Create Tag';
+
+  @override
+  String get tags_manage_editTitle => 'Edit Tag';
+
+  @override
+  String get tags_manage_nameLabel => 'Tag Name';
+
+  @override
+  String get tags_manage_colorLabel => 'Color';
+
+  @override
+  String get tags_manage_nameRequired => 'Tag name is required';
+
+  @override
+  String get tags_manage_deleteTitle => 'Delete Tag?';
+
+  @override
+  String tags_manage_deleteMessage(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+      zero: '0 dives',
+    );
+    return '\"$tagName\" will be removed from $_temp0. This cannot be undone.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteTitle(int count) {
+    return 'Delete $count Tags?';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage(int diveCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount dives',
+      one: '1 dive',
+      zero: '0 dives',
+    );
+    return 'These tags will be removed from $_temp0 total. This cannot be undone.';
+  }
+
+  @override
+  String tags_manage_mergeTitle(int count) {
+    return 'Merge $count Tags';
+  }
+
+  @override
+  String get tags_manage_mergeResultName => 'Resulting tag name:';
+
+  @override
+  String get tags_manage_mergeKeepFrom => 'Or keep name from:';
+
+  @override
+  String tags_manage_mergeAffectedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+      zero: '0 dives',
+    );
+    return 'This will affect $_temp0 total.';
+  }
+
+  @override
+  String get tags_manage_mergeAction => 'Merge';
 
   @override
   String get tags_title_manageTags => 'Gestisci Tag';

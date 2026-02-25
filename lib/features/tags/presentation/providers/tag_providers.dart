@@ -139,6 +139,30 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
     _ref.invalidate(tagStatisticsProvider);
   }
 
+  Future<void> deleteTags(List<String> ids) async {
+    for (final id in ids) {
+      await _repository.deleteTag(id);
+    }
+    await _loadTags();
+    _ref.invalidate(tagStatisticsProvider);
+  }
+
+  Future<void> mergeTags({
+    required List<String> sourceTagIds,
+    required String survivingTagId,
+    required String name,
+    required String? colorHex,
+  }) async {
+    await _repository.mergeTags(
+      sourceTagIds: sourceTagIds,
+      survivingTagId: survivingTagId,
+      name: name,
+      colorHex: colorHex,
+    );
+    await _loadTags();
+    _ref.invalidate(tagStatisticsProvider);
+  }
+
   Future<void> setTagsForDive(String diveId, List<Tag> tags) async {
     await _repository.setTagsForDive(diveId, tags);
     _ref.invalidate(tagStatisticsProvider);

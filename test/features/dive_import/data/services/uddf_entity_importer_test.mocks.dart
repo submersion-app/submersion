@@ -1110,15 +1110,6 @@ class MockTagRepository extends _i1.Mock implements _i23.TagRepository {
           as _i17.Future<void>);
 
   @override
-  _i17.Future<void> deleteUnusedTags() =>
-      (super.noSuchMethod(
-            Invocation.method(#deleteUnusedTags, []),
-            returnValue: _i17.Future<void>.value(),
-            returnValueForMissingStub: _i17.Future<void>.value(),
-          )
-          as _i17.Future<void>);
-
-  @override
   _i17.Future<List<_i23.TagStatistic>> getTagStatistics({String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#getTagStatistics, [], {#diverId: diverId}),
@@ -1129,12 +1120,47 @@ class MockTagRepository extends _i1.Mock implements _i23.TagRepository {
           as _i17.Future<List<_i23.TagStatistic>>);
 
   @override
+  _i17.Future<int> getTagUsageCount(String? tagId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTagUsageCount, [tagId]),
+            returnValue: _i17.Future<int>.value(0),
+          )
+          as _i17.Future<int>);
+
+  @override
+  _i17.Future<int> getMergedDiveCount(List<String>? tagIds) =>
+      (super.noSuchMethod(
+            Invocation.method(#getMergedDiveCount, [tagIds]),
+            returnValue: _i17.Future<int>.value(0),
+          )
+          as _i17.Future<int>);
+
+  @override
   _i17.Future<List<_i9.Tag>> searchTags(String? query, {String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#searchTags, [query], {#diverId: diverId}),
             returnValue: _i17.Future<List<_i9.Tag>>.value(<_i9.Tag>[]),
           )
           as _i17.Future<List<_i9.Tag>>);
+
+  @override
+  _i17.Future<void> mergeTags({
+    required List<String>? sourceTagIds,
+    required String? survivingTagId,
+    required String? name,
+    required String? colorHex,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#mergeTags, [], {
+              #sourceTagIds: sourceTagIds,
+              #survivingTagId: survivingTagId,
+              #name: name,
+              #colorHex: colorHex,
+            }),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
 }
 
 /// A class which mocks [DiveTypeRepository].

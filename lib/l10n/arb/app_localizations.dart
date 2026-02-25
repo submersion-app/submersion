@@ -17173,6 +17173,18 @@ abstract class AppLocalizations {
   /// **'Manage marine life species catalog'**
   String get settings_manage_species_subtitle;
 
+  /// No description provided for @settings_manage_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get settings_manage_tags;
+
+  /// No description provided for @settings_manage_tags_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage, merge, and delete tags'**
+  String get settings_manage_tags_subtitle;
+
   /// No description provided for @settings_manage_tankPresets.
   ///
   /// In en, this message translates to:
@@ -20156,6 +20168,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add tags...'**
   String get tags_hint_addTags;
+
+  /// No description provided for @tags_manage_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get tags_manage_title;
+
+  /// No description provided for @tags_manage_searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search tags...'**
+  String get tags_manage_searchHint;
+
+  /// No description provided for @tags_manage_diveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}'**
+  String tags_manage_diveCount(int count);
+
+  /// No description provided for @tags_manage_emptyState.
+  ///
+  /// In en, this message translates to:
+  /// **'No tags yet. Create one to get started.'**
+  String get tags_manage_emptyState;
+
+  /// No description provided for @tags_manage_selectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String tags_manage_selectedCount(int count);
+
+  /// No description provided for @tags_manage_createTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Tag'**
+  String get tags_manage_createTitle;
+
+  /// No description provided for @tags_manage_editTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Tag'**
+  String get tags_manage_editTitle;
+
+  /// No description provided for @tags_manage_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag Name'**
+  String get tags_manage_nameLabel;
+
+  /// No description provided for @tags_manage_colorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get tags_manage_colorLabel;
+
+  /// No description provided for @tags_manage_nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag name is required'**
+  String get tags_manage_nameRequired;
+
+  /// No description provided for @tags_manage_deleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Tag?'**
+  String get tags_manage_deleteTitle;
+
+  /// No description provided for @tags_manage_deleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{tagName}\" will be removed from {count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}. This cannot be undone.'**
+  String tags_manage_deleteMessage(String tagName, int count);
+
+  /// No description provided for @tags_manage_bulkDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {count} Tags?'**
+  String tags_manage_bulkDeleteTitle(int count);
+
+  /// No description provided for @tags_manage_bulkDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'These tags will be removed from {diveCount, plural, =0{0 dives} =1{1 dive} other{{diveCount} dives}} total. This cannot be undone.'**
+  String tags_manage_bulkDeleteMessage(int diveCount);
+
+  /// No description provided for @tags_manage_mergeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge {count} Tags'**
+  String tags_manage_mergeTitle(int count);
+
+  /// No description provided for @tags_manage_mergeResultName.
+  ///
+  /// In en, this message translates to:
+  /// **'Resulting tag name:'**
+  String get tags_manage_mergeResultName;
+
+  /// No description provided for @tags_manage_mergeKeepFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Or keep name from:'**
+  String get tags_manage_mergeKeepFrom;
+
+  /// No description provided for @tags_manage_mergeAffectedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'This will affect {count, plural, =0{0 dives} =1{1 dive} other{{count} dives}} total.'**
+  String tags_manage_mergeAffectedDives(int count);
+
+  /// No description provided for @tags_manage_mergeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get tags_manage_mergeAction;
 
   /// No description provided for @tags_title_manageTags.
   ///
