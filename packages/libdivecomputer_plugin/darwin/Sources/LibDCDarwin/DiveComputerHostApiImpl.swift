@@ -11,6 +11,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
     private var bleScanner: BleScanner?
     private var downloadSession: OpaquePointer?  // libdc_download_session_t*
     private var activeBleStream: BleIoStream?
+    private var serialScanner: SerialScanner?
+    private var activeSerialStream: SerialIoStream?
 
     init(messenger: FlutterBinaryMessenger) {
         self.messenger = messenger
@@ -71,6 +73,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         switch transport {
         case .ble:
             startBleDiscovery()
+        case .serial:
+            startSerialDiscovery()
         default:
             let platformName: String
             #if os(iOS)
@@ -89,6 +93,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
     func stopDiscovery() throws {
         bleScanner?.stop()
         bleScanner = nil
+        serialScanner?.stop()
+        serialScanner = nil
     }
 
     private func startBleDiscovery() {
@@ -105,6 +111,23 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             }
         }
         self.bleScanner = scanner
+        scanner.start()
+    }
+
+    private func startSerialDiscovery() {
+        serialScanner?.stop()
+        let scanner = SerialScanner()
+        scanner.onDeviceDiscovered = { [weak self] device in
+            DispatchQueue.main.async {
+                self?.flutterApi.onDeviceDiscovered(device: device) { _ in }
+            }
+        }
+        scanner.onComplete = { [weak self] in
+            DispatchQueue.main.async {
+                self?.flutterApi.onDiscoveryComplete { _ in }
+            }
+        }
+        self.serialScanner = scanner
         scanner.start()
     }
 
@@ -133,72 +156,16 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         }
         self.downloadSession = session
 
-        guard let uuid = UUID(uuidString: device.address) else {
-            reportError(code: "invalid_address", message: "Invalid device address")
-            libdc_download_session_free(session)
-            self.downloadSession = nil
-            return
+        // Get I/O callbacks based on transport type.
+        var ioCallbacks: libdc_io_callbacks_t
+        switch device.transport {
+        case .serial:
+            guard let callbacks = connectSerial(device: device, session: session) else { return }
+            ioCallbacks = callbacks
+        default:
+            guard let callbacks = connectBle(device: device, session: session) else { return }
+            ioCallbacks = callbacks
         }
-
-        if let scanner = bleScanner {
-            NSLog("[BleHost] Stopping BLE scan before download connect")
-            scanner.stop()
-            bleScanner = nil
-        }
-
-        // Resolve/connect with a fallback retry:
-        // 1) cached-or-scan for speed
-        // 2) scan-only to avoid stale cached peripheral state.
-        let resolvePlans: [(label: String, allowCachedPeripherals: Bool, timeout: TimeInterval)] = [
-            ("cached-or-scan", true, 15),
-            ("scan-only", false, 20),
-        ]
-        var connectedStream: BleIoStream?
-
-        for (index, plan) in resolvePlans.enumerated() {
-            NSLog("[BleHost] Resolve/connect attempt %ld (%@) for %@ (%@ %@)",
-                  index + 1, plan.label, device.address, device.vendor, device.product)
-            let queue = DispatchQueue(
-                label: "com.submersion.ble-download.\(index + 1)",
-                qos: .userInitiated
-            )
-            let resolver = BlePeripheralResolver(
-                targetIdentifier: uuid,
-                queue: queue,
-                allowCachedPeripherals: plan.allowCachedPeripherals
-            )
-            guard let peripheral = resolver.resolve(timeout: plan.timeout),
-                  let centralMgr = resolver.centralManager else {
-                NSLog("[BleHost] Peripheral resolve failed on attempt %ld", index + 1)
-                continue
-            }
-            NSLog("[BleHost] Peripheral resolved: %@ (%@)",
-                  peripheral.identifier.uuidString, peripheral.name ?? "unknown")
-
-            let stream = BleIoStream(peripheral: peripheral, centralManager: centralMgr)
-            if stream.connectAndDiscover() {
-                connectedStream = stream
-                break
-            }
-
-            NSLog("[BleHost] connectAndDiscover failed on attempt %ld for %@",
-                  index + 1, peripheral.identifier.uuidString)
-            if peripheral.state != .disconnected {
-                centralMgr.cancelPeripheralConnection(peripheral)
-            }
-        }
-
-        guard let bleStream = connectedStream else {
-            reportError(code: "connect_failed", message: "Failed to connect to device")
-            libdc_download_session_free(session)
-            self.downloadSession = nil
-            self.activeBleStream = nil
-            return
-        }
-        self.activeBleStream = bleStream
-
-        // Build I/O callbacks.
-        var ioCallbacks = bleStream.makeCallbacks()
 
         // Build download callbacks.
         // We pass self as userdata via Unmanaged to receive dive/progress events.
@@ -295,6 +262,96 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         libdc_download_session_free(session)
         self.downloadSession = nil
         self.activeBleStream = nil
+        self.activeSerialStream = nil
+    }
+
+    // MARK: - Transport Connection
+
+    private func connectBle(
+        device: DiscoveredDevice, session: OpaquePointer
+    ) -> libdc_io_callbacks_t? {
+        guard let uuid = UUID(uuidString: device.address) else {
+            reportError(code: "invalid_address", message: "Invalid device address")
+            libdc_download_session_free(session)
+            self.downloadSession = nil
+            return nil
+        }
+
+        if let scanner = bleScanner {
+            NSLog("[BleHost] Stopping BLE scan before download connect")
+            scanner.stop()
+            bleScanner = nil
+        }
+
+        // Resolve/connect with a fallback retry:
+        // 1) cached-or-scan for speed
+        // 2) scan-only to avoid stale cached peripheral state.
+        let resolvePlans: [(label: String, allowCachedPeripherals: Bool, timeout: TimeInterval)] = [
+            ("cached-or-scan", true, 15),
+            ("scan-only", false, 20),
+        ]
+        var connectedStream: BleIoStream?
+
+        for (index, plan) in resolvePlans.enumerated() {
+            NSLog("[BleHost] Resolve/connect attempt %ld (%@) for %@ (%@ %@)",
+                  index + 1, plan.label, device.address, device.vendor, device.product)
+            let queue = DispatchQueue(
+                label: "com.submersion.ble-download.\(index + 1)",
+                qos: .userInitiated
+            )
+            let resolver = BlePeripheralResolver(
+                targetIdentifier: uuid,
+                queue: queue,
+                allowCachedPeripherals: plan.allowCachedPeripherals
+            )
+            guard let peripheral = resolver.resolve(timeout: plan.timeout),
+                  let centralMgr = resolver.centralManager else {
+                NSLog("[BleHost] Peripheral resolve failed on attempt %ld", index + 1)
+                continue
+            }
+            NSLog("[BleHost] Peripheral resolved: %@ (%@)",
+                  peripheral.identifier.uuidString, peripheral.name ?? "unknown")
+
+            let stream = BleIoStream(peripheral: peripheral, centralManager: centralMgr)
+            if stream.connectAndDiscover() {
+                connectedStream = stream
+                break
+            }
+
+            NSLog("[BleHost] connectAndDiscover failed on attempt %ld for %@",
+                  index + 1, peripheral.identifier.uuidString)
+            if peripheral.state != .disconnected {
+                centralMgr.cancelPeripheralConnection(peripheral)
+            }
+        }
+
+        guard let bleStream = connectedStream else {
+            reportError(code: "connect_failed", message: "Failed to connect to device")
+            libdc_download_session_free(session)
+            self.downloadSession = nil
+            self.activeBleStream = nil
+            return nil
+        }
+        self.activeBleStream = bleStream
+        return bleStream.makeCallbacks()
+    }
+
+    private func connectSerial(
+        device: DiscoveredDevice, session: OpaquePointer
+    ) -> libdc_io_callbacks_t? {
+        let serialStream = SerialIoStream()
+        guard serialStream.open(path: device.address) else {
+            reportError(
+                code: "connect_failed",
+                message: "Failed to open serial port: \(device.address)"
+            )
+            libdc_download_session_free(session)
+            self.downloadSession = nil
+            return nil
+        }
+        NSLog("[SerialHost] Opened serial port: %@", device.address)
+        self.activeSerialStream = serialStream
+        return serialStream.makeCallbacks()
     }
 
     // MARK: - Dive Conversion
