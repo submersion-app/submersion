@@ -6,6 +6,7 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class TagManagePage extends ConsumerStatefulWidget {
@@ -19,8 +20,15 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
   String _searchQuery = '';
   bool _isSelectionMode = false;
   final Set<String> _selectedIds = {};
+  final TextEditingController _searchController = TextEditingController();
 
   static const _uuid = Uuid();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +69,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: TextField(
+        controller: _searchController,
         decoration: InputDecoration(
           hintText: context.l10n.tags_manage_searchHint,
           prefixIcon: const Icon(Icons.search),
@@ -69,7 +78,10 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear),
-                  onPressed: () => setState(() => _searchQuery = ''),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() => _searchQuery = '');
+                  },
                 )
               : null,
         ),
@@ -262,8 +274,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
         IconButton(
           icon: const Icon(Icons.merge),
           onPressed: _selectedIds.length >= 2
-              ? () =>
-                    _showMergeSheet(context) // Wired in Task 8
+              ? () => _showMergeSheet(context)
               : null,
           tooltip: context.l10n.tags_manage_mergeAction,
         ),
@@ -349,8 +360,25 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     }
   }
 
-  // Merge sheet — implemented in Task 8
-  Future<void> _showMergeSheet(BuildContext context) async {}
+  Future<void> _showMergeSheet(BuildContext context) async {
+    final statsAsync = ref.read(tagStatisticsProvider);
+    final stats = statsAsync.valueOrNull ?? [];
+    final selectedStats = stats
+        .where((s) => _selectedIds.contains(s.tag.id))
+        .toList();
+
+    if (selectedStats.length < 2) return;
+
+    final merged = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => TagMergeSheet(selectedStats: selectedStats),
+    );
+
+    if (merged == true) {
+      _exitSelectionMode();
+    }
+  }
 
   void _enterSelectionMode(String? initialId) {
     setState(() {
