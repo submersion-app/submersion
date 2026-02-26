@@ -65,6 +65,60 @@ class DecoStatus extends Equatable {
   /// Leading compartment number (1-16)
   int get leadingCompartmentNumber => leadingCompartment.compartmentNumber;
 
+  /// GF99: The maximum gradient factor across all compartments at current
+  /// ambient pressure, expressed as a percentage (0-100+).
+  ///
+  /// This is the standard "GF99" metric used in dive computers. It shows
+  /// how close the most-loaded compartment is to its M-value at the
+  /// current depth. Values > 100 mean the M-value is being exceeded.
+  double get gf99 {
+    if (compartments.isEmpty) return 0.0;
+    double maxGf = double.negativeInfinity;
+    for (final comp in compartments) {
+      final gf = comp.gradientFactor(ambientPressureBar);
+      if (gf > maxGf) maxGf = gf;
+    }
+    // Clamp at 0: negative GF means undersaturation (ongassing),
+    // which is not meaningful to display.
+    return (maxGf * 100.0).clamp(0.0, double.infinity);
+  }
+
+  /// SurfGF: The maximum surface gradient factor across all compartments,
+  /// expressed as a percentage (0-100+).
+  ///
+  /// Shows what GF would be if the diver ascended directly to the surface
+  /// right now. Values > 100 indicate the diver cannot safely ascend
+  /// directly to the surface (decompression obligation).
+  double get surfGf {
+    if (compartments.isEmpty) return 0.0;
+    double maxGf = double.negativeInfinity;
+    for (final comp in compartments) {
+      final gf = comp.surfaceGradientFactor;
+      if (gf > maxGf) maxGf = gf;
+    }
+    // Clamp at 0: negative SurfGF means all tissues are below surface
+    // equilibrium, which is not meaningful to display.
+    return (maxGf * 100.0).clamp(0.0, double.infinity);
+  }
+
+  /// The compartment number that is leading by GF99 (at current depth).
+  ///
+  /// This may differ from [leadingCompartmentNumber] which uses surface
+  /// M-value-based percent loading.
+  int get gf99LeadingCompartmentNumber {
+    if (compartments.isEmpty) return 0;
+    int leadingIdx = 0;
+    double maxGf = double.negativeInfinity;
+    for (int i = 0; i < compartments.length; i++) {
+      final gf = compartments[i].gradientFactor(ambientPressureBar);
+      if (gf > maxGf) {
+        maxGf = gf;
+        leadingIdx = i;
+      }
+    }
+    return compartments[leadingIdx].compartmentNumber;
+  }
+
   /// NDL formatted as minutes:seconds string
   String get ndlFormatted {
     if (ndlSeconds < 0) return 'DECO';

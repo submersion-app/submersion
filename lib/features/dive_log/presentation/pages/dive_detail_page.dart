@@ -38,7 +38,8 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/deco_info_panel.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/playback_controls.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/playback_stats_panel.dart';
@@ -914,64 +915,72 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               builder: (context, constraints) {
                 return Stack(
                   children: [
-                    DiveProfileChart(
-                      exportKey: _profileChartExportKey,
-                      profile: dive.profile,
-                      diveDuration: dive.calculatedDuration,
-                      maxDepth: dive.maxDepth,
-                      ceilingCurve: analysis?.ceilingCurve,
-                      ascentRates: analysis?.ascentRates,
-                      events: analysis?.events,
-                      ndlCurve: analysis?.ndlCurve,
-                      sacCurve: analysis?.smoothedSacCurve,
-                      ppO2Curve: analysis?.ppO2Curve,
-                      ppN2Curve: analysis?.ppN2Curve,
-                      ppHeCurve: analysis?.ppHeCurve,
-                      modCurve: analysis?.modCurve,
-                      densityCurve: analysis?.densityCurve,
-                      gfCurve: analysis?.gfCurve,
-                      surfaceGfCurve: analysis?.surfaceGfCurve,
-                      meanDepthCurve: analysis?.meanDepthCurve,
-                      ttsCurve: analysis?.ttsCurve,
-                      cnsCurve: analysis?.cnsCurve,
-                      otuCurve: analysis?.otuCurve,
-                      tankVolume: dive.tanks
-                          .where((t) => t.volume != null && t.volume! > 0)
-                          .map((t) => t.volume!)
-                          .firstOrNull,
-                      sacNormalizationFactor: calculateSacNormalizationFactor(
-                        dive,
-                        analysis,
-                      ),
-                      markers: markers,
-                      showMaxDepthMarker: showMaxDepthMarker,
-                      showPressureThresholdMarkers:
-                          showPressureThresholdMarkers,
-                      tanks: dive.tanks,
-                      tankPressures: tankPressures,
-                      gasSwitches: gasSwitchesAsync.valueOrNull,
-                      playbackTimestamp: playbackState.isActive
-                          ? playbackState.currentTimestamp
-                          : null,
-                      highlightedTimestamp:
-                          _heatMapHoverIndex != null &&
-                              _heatMapHoverIndex! < dive.profile.length
-                          ? dive.profile[_heatMapHoverIndex!].timestamp
-                          : null,
-                      onPointSelected: (point) {
-                        if (point == null) {
-                          setState(() => _selectedPointIndex = null);
-                          return;
-                        }
-                        // Find the index of this point in the profile
-                        final index = dive.profile.indexWhere(
-                          (p) => p.timestamp == point.timestamp,
-                        );
+                    MouseRegion(
+                      onExit: (_) {
                         setState(() {
+                          _selectedPointIndex = null;
                           _heatMapHoverIndex = null;
-                          _selectedPointIndex = index >= 0 ? index : null;
                         });
                       },
+                      child: DiveProfileChart(
+                        exportKey: _profileChartExportKey,
+                        profile: dive.profile,
+                        diveDuration: dive.calculatedDuration,
+                        maxDepth: dive.maxDepth,
+                        ceilingCurve: analysis?.ceilingCurve,
+                        ascentRates: analysis?.ascentRates,
+                        events: analysis?.events,
+                        ndlCurve: analysis?.ndlCurve,
+                        sacCurve: analysis?.smoothedSacCurve,
+                        ppO2Curve: analysis?.ppO2Curve,
+                        ppN2Curve: analysis?.ppN2Curve,
+                        ppHeCurve: analysis?.ppHeCurve,
+                        modCurve: analysis?.modCurve,
+                        densityCurve: analysis?.densityCurve,
+                        gfCurve: analysis?.gfCurve,
+                        surfaceGfCurve: analysis?.surfaceGfCurve,
+                        meanDepthCurve: analysis?.meanDepthCurve,
+                        ttsCurve: analysis?.ttsCurve,
+                        cnsCurve: analysis?.cnsCurve,
+                        otuCurve: analysis?.otuCurve,
+                        tankVolume: dive.tanks
+                            .where((t) => t.volume != null && t.volume! > 0)
+                            .map((t) => t.volume!)
+                            .firstOrNull,
+                        sacNormalizationFactor: calculateSacNormalizationFactor(
+                          dive,
+                          analysis,
+                        ),
+                        markers: markers,
+                        showMaxDepthMarker: showMaxDepthMarker,
+                        showPressureThresholdMarkers:
+                            showPressureThresholdMarkers,
+                        tanks: dive.tanks,
+                        tankPressures: tankPressures,
+                        gasSwitches: gasSwitchesAsync.valueOrNull,
+                        playbackTimestamp: playbackState.isActive
+                            ? playbackState.currentTimestamp
+                            : null,
+                        highlightedTimestamp:
+                            _heatMapHoverIndex != null &&
+                                _heatMapHoverIndex! < dive.profile.length
+                            ? dive.profile[_heatMapHoverIndex!].timestamp
+                            : null,
+                        onPointSelected: (point) {
+                          if (point == null) {
+                            setState(() => _selectedPointIndex = null);
+                            return;
+                          }
+                          // Find the index of this point in the profile
+                          final index = dive.profile.indexWhere(
+                            (p) => p.timestamp == point.timestamp,
+                          );
+                          setState(() {
+                            _heatMapHoverIndex = null;
+                            _selectedPointIndex = index >= 0 ? index : null;
+                          });
+                        },
+                      ),
                     ),
                     // Range selection overlay (positioned on top of chart)
                     if (rangeState.isEnabled)
@@ -1037,6 +1046,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 diveId: dive.id,
                 profile: dive.profile,
                 units: units,
+                tanks: dive.tanks,
+                sacUnit: ref.watch(sacUnitProvider),
               ),
             ],
           ],
@@ -1074,50 +1085,58 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           )
         : null;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // O2 toxicity panel
-        Expanded(
-          child: CompactO2ToxicityPanel(
-            exposure: analysis.o2Exposure,
-            selectedPpO2:
-                _selectedPointIndex != null &&
-                    _selectedPointIndex! < analysis.ppO2Curve.length
-                ? analysis.ppO2Curve[_selectedPointIndex!]
-                : null,
-            selectedCns:
-                _selectedPointIndex != null &&
-                    analysis.cnsCurve != null &&
-                    _selectedPointIndex! < analysis.cnsCurve!.length
-                ? analysis.cnsCurve![_selectedPointIndex!]
-                : null,
-            selectedOtu:
-                _selectedPointIndex != null &&
-                    analysis.otuCurve != null &&
-                    _selectedPointIndex! < analysis.otuCurve!.length
-                ? analysis.otuCurve![_selectedPointIndex!]
-                : null,
-            subtitle: timeSubtitle,
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Left column: Deco Status + O2 Toxicity
+          Expanded(
+            child: Column(
+              children: [
+                CompactDecoStatusCard(status: status, subtitle: timeSubtitle),
+                const SizedBox(height: 8),
+                CompactO2ToxicityPanel(
+                  exposure: analysis.o2Exposure,
+                  selectedPpO2:
+                      _selectedPointIndex != null &&
+                          _selectedPointIndex! < analysis.ppO2Curve.length
+                      ? analysis.ppO2Curve[_selectedPointIndex!]
+                      : null,
+                  selectedCns:
+                      _selectedPointIndex != null &&
+                          analysis.cnsCurve != null &&
+                          _selectedPointIndex! < analysis.cnsCurve!.length
+                      ? analysis.cnsCurve![_selectedPointIndex!]
+                      : null,
+                  selectedOtu:
+                      _selectedPointIndex != null &&
+                          analysis.otuCurve != null &&
+                          _selectedPointIndex! < analysis.otuCurve!.length
+                      ? analysis.otuCurve![_selectedPointIndex!]
+                      : null,
+                  subtitle: timeSubtitle,
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(width: 8),
-        // Deco status panel
-        Expanded(
-          child: CompactDecoPanel(
-            status: status,
-            subtitle: timeSubtitle,
-            decoStatuses: analysis.decoStatuses,
-            selectedIndex: _selectedPointIndex,
-            onHeatMapHover: (index) {
-              setState(() {
-                _heatMapHoverIndex = index;
-                _selectedPointIndex = index;
-              });
-            },
+          const SizedBox(width: 8),
+          // Right column: Tissue Loading (stretches to match left column)
+          Expanded(
+            child: CompactTissueLoadingCard(
+              status: status,
+              decoStatuses: analysis.decoStatuses,
+              selectedIndex: _selectedPointIndex,
+              subtitle: timeSubtitle,
+              onHeatMapHover: (index) {
+                setState(() {
+                  _heatMapHoverIndex = index;
+                  _selectedPointIndex = index;
+                });
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

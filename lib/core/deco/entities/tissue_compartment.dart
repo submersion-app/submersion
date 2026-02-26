@@ -67,6 +67,37 @@ class TissueCompartment extends Equatable {
   /// Current tissue loading as percentage of surface M-value
   double get percentLoading => (totalInertGas / surfaceMValue) * 100;
 
+  /// M-value (maximum tolerated tissue tension) at a given ambient pressure.
+  ///
+  /// M_ambient = a + P_ambient / b
+  /// This is the general form; [surfaceMValue] is the special case where
+  /// P_ambient = 1.0 bar.
+  double mValueAtAmbient(double ambientPressureBar) {
+    return blendedA + (ambientPressureBar / blendedB);
+  }
+
+  /// Gradient Factor for this compartment at the given ambient pressure.
+  ///
+  /// GF = (P_tissue - P_ambient) / (M_ambient - P_ambient)
+  /// Returns the fraction (0.0 = no supersaturation, 1.0 = at M-value).
+  /// Can be negative (undersaturated) or >1.0 (M-value exceeded).
+  /// Returns 0.0 if M_ambient <= P_ambient (degenerate case).
+  double gradientFactor(double ambientPressureBar) {
+    final mAmbient = mValueAtAmbient(ambientPressureBar);
+    final denominator = mAmbient - ambientPressureBar;
+    if (denominator <= 0) return 0.0;
+    return (totalInertGas - ambientPressureBar) / denominator;
+  }
+
+  /// Surface Gradient Factor for this compartment.
+  ///
+  /// Same as [gradientFactor] evaluated at surface pressure (1.0 bar).
+  double get surfaceGradientFactor {
+    final denominator = surfaceMValue - 1.0;
+    if (denominator <= 0) return 0.0;
+    return (totalInertGas - 1.0) / denominator;
+  }
+
   /// Calculate ceiling (minimum safe depth) in meters for this compartment
   /// Using gradient factor to add conservatism
   double ceiling({double gf = 1.0}) {

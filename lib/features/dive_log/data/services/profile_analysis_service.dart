@@ -1393,41 +1393,23 @@ class ProfileAnalysisService {
     }).toList();
   }
 
-  /// Calculate Gradient Factor % curve at current depth.
+  /// Calculate GF99 curve at current depth.
   ///
-  /// GF% = (current_tissue_tension - ambient_pressure) / (M_value - ambient_pressure) × 100
-  /// This shows how close the leading compartment is to the M-value limit at current depth.
+  /// Uses DecoStatus.gf99 which correctly finds the maximum gradient factor
+  /// across all 16 compartments at the current ambient pressure.
   List<double> _calculateGfCurve(List<DecoStatus> decoStatuses) {
-    return decoStatuses.map((status) {
-      final leading = status.leadingCompartment;
-      final pTissue = leading.totalInertGas;
-      final pAmbient = status.ambientPressureBar;
-      final mValue = leading.blendedA + (pAmbient / leading.blendedB);
-
-      // GF% = how far toward M-value we are
-      if (mValue <= pAmbient) return 0.0;
-      final gfPercent = ((pTissue - pAmbient) / (mValue - pAmbient)) * 100.0;
-      return gfPercent.clamp(0.0, 200.0); // Clamp for safety
-    }).toList();
+    return decoStatuses.map((status) => status.gf99.clamp(0.0, 200.0)).toList();
   }
 
-  /// Calculate Surface GF% curve (what GF would be if surfaced now).
+  /// Calculate Surface GF curve (what GF would be if surfaced now).
   ///
-  /// This shows the theoretical GF% if the diver ascended directly to surface.
+  /// Uses DecoStatus.surfGf which correctly finds the maximum surface
+  /// gradient factor across all 16 compartments.
   /// Values >100% indicate deco obligation.
   List<double> _calculateSurfaceGfCurve(List<DecoStatus> decoStatuses) {
-    return decoStatuses.map((status) {
-      final leading = status.leadingCompartment;
-      final pTissue = leading.totalInertGas;
-      const pSurface = 1.0; // Surface pressure in bar
-      final mValueSurface = leading.blendedA + (pSurface / leading.blendedB);
-
-      // Surface GF% = tissue loading relative to surface M-value
-      if (mValueSurface <= pSurface) return 0.0;
-      final surfaceGf =
-          ((pTissue - pSurface) / (mValueSurface - pSurface)) * 100.0;
-      return surfaceGf.clamp(0.0, 200.0);
-    }).toList();
+    return decoStatuses
+        .map((status) => status.surfGf.clamp(0.0, 200.0))
+        .toList();
   }
 
   /// Calculate mean depth curve (running average from start).

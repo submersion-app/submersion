@@ -15,6 +15,7 @@ class DiveSummary extends Equatable {
   final DateTime? entryTime;
   final double? maxDepth;
   final Duration? duration;
+  final Duration? runtime;
   final double? waterTemp;
   final int? rating;
   final bool isFavorite;
@@ -38,6 +39,7 @@ class DiveSummary extends Equatable {
     this.entryTime,
     this.maxDepth,
     this.duration,
+    this.runtime,
     this.waterTemp,
     this.rating,
     this.isFavorite = false,
@@ -65,6 +67,7 @@ class DiveSummary extends Equatable {
       entryTime: dive.entryTime,
       maxDepth: dive.maxDepth,
       duration: dive.duration,
+      runtime: dive.runtime,
       waterTemp: dive.waterTemp,
       rating: dive.rating,
       isFavorite: dive.isFavorite,
@@ -98,6 +101,7 @@ class DiveSummary extends Equatable {
     DateTime? entryTime,
     double? maxDepth,
     Duration? duration,
+    Duration? runtime,
     double? waterTemp,
     int? rating,
     bool? isFavorite,
@@ -117,6 +121,7 @@ class DiveSummary extends Equatable {
       entryTime: entryTime ?? this.entryTime,
       maxDepth: maxDepth ?? this.maxDepth,
       duration: duration ?? this.duration,
+      runtime: runtime ?? this.runtime,
       waterTemp: waterTemp ?? this.waterTemp,
       rating: rating ?? this.rating,
       isFavorite: isFavorite ?? this.isFavorite,
@@ -139,6 +144,7 @@ class DiveSummary extends Equatable {
     entryTime,
     maxDepth,
     duration,
+    runtime,
     waterTemp,
     rating,
     isFavorite,

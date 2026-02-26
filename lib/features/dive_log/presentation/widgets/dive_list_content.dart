@@ -1188,7 +1188,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   siteName: dive.siteName,
                   siteLocation: dive.siteLocation,
                   maxDepth: dive.maxDepth,
-                  duration: dive.duration,
+                  duration: dive.runtime ?? dive.duration,
                   waterTemp: dive.waterTemp,
                   rating: dive.rating,
                   isFavorite: dive.isFavorite,

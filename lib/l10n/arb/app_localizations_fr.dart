@@ -2689,6 +2689,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_deco_label_leading => 'Dominant';
 
   @override
+  String get diveLog_deco_label_gf99 => 'GF99';
+
+  @override
+  String get diveLog_deco_label_surfGf => 'SurfGF';
+
+  @override
   String get diveLog_deco_label_ndl => 'NDL';
 
   @override
@@ -4200,25 +4206,46 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajuster la selection de plage';
 
   @override
-  String get diveLog_rangeStats_header_avg => 'Moy';
+  String get diveLog_rangeStats_label_avgDepth => 'Avg Depth';
 
   @override
-  String get diveLog_rangeStats_header_max => 'Max';
+  String get diveLog_rangeStats_label_avgVertSpeed => 'Avg Vert Speed';
 
   @override
-  String get diveLog_rangeStats_header_min => 'Min';
+  String get diveLog_rangeStats_label_depthDelta => 'Depth Delta';
 
   @override
-  String get diveLog_rangeStats_label_depth => 'Profondeur';
+  String get diveLog_rangeStats_label_elapsed => 'Elapsed';
 
   @override
-  String get diveLog_rangeStats_label_heartRate => 'Frequence cardiaque';
+  String get diveLog_rangeStats_label_gasConsumed => 'Gas Consumed';
 
   @override
-  String get diveLog_rangeStats_label_pressure => 'Pression';
+  String get diveLog_rangeStats_label_maxAscent => 'Max Ascent';
 
   @override
-  String get diveLog_rangeStats_label_temp => 'Temp';
+  String get diveLog_rangeStats_label_maxDepth => 'Max Depth';
+
+  @override
+  String get diveLog_rangeStats_label_maxDescent => 'Max Descent';
+
+  @override
+  String get diveLog_rangeStats_label_maxHR => 'Max HR';
+
+  @override
+  String get diveLog_rangeStats_label_maxTemp => 'Max Temp';
+
+  @override
+  String get diveLog_rangeStats_label_minDepth => 'Min Depth';
+
+  @override
+  String get diveLog_rangeStats_label_minHR => 'Min HR';
+
+  @override
+  String get diveLog_rangeStats_label_minTemp => 'Min Temp';
+
+  @override
+  String get diveLog_rangeStats_label_sacRate => 'SAC Rate';
 
   @override
   String get diveLog_rangeStats_title => 'Analyse de plage';

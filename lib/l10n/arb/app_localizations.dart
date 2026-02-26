@@ -4577,6 +4577,18 @@ abstract class AppLocalizations {
   /// **'Leading'**
   String get diveLog_deco_label_leading;
 
+  /// No description provided for @diveLog_deco_label_gf99.
+  ///
+  /// In en, this message translates to:
+  /// **'GF99'**
+  String get diveLog_deco_label_gf99;
+
+  /// No description provided for @diveLog_deco_label_surfGf.
+  ///
+  /// In en, this message translates to:
+  /// **'SurfGF'**
+  String get diveLog_deco_label_surfGf;
+
   /// No description provided for @diveLog_deco_label_ndl.
   ///
   /// In en, this message translates to:
@@ -7132,47 +7144,89 @@ abstract class AppLocalizations {
   /// **'Adjust range selection'**
   String get diveLog_rangeSelection_semantics_adjust;
 
-  /// No description provided for @diveLog_rangeStats_header_avg.
+  /// No description provided for @diveLog_rangeStats_label_avgDepth.
   ///
   /// In en, this message translates to:
-  /// **'Avg'**
-  String get diveLog_rangeStats_header_avg;
+  /// **'Avg Depth'**
+  String get diveLog_rangeStats_label_avgDepth;
 
-  /// No description provided for @diveLog_rangeStats_header_max.
+  /// No description provided for @diveLog_rangeStats_label_avgVertSpeed.
   ///
   /// In en, this message translates to:
-  /// **'Max'**
-  String get diveLog_rangeStats_header_max;
+  /// **'Avg Vert Speed'**
+  String get diveLog_rangeStats_label_avgVertSpeed;
 
-  /// No description provided for @diveLog_rangeStats_header_min.
+  /// No description provided for @diveLog_rangeStats_label_depthDelta.
   ///
   /// In en, this message translates to:
-  /// **'Min'**
-  String get diveLog_rangeStats_header_min;
+  /// **'Depth Delta'**
+  String get diveLog_rangeStats_label_depthDelta;
 
-  /// No description provided for @diveLog_rangeStats_label_depth.
+  /// No description provided for @diveLog_rangeStats_label_elapsed.
   ///
   /// In en, this message translates to:
-  /// **'Depth'**
-  String get diveLog_rangeStats_label_depth;
+  /// **'Elapsed'**
+  String get diveLog_rangeStats_label_elapsed;
 
-  /// No description provided for @diveLog_rangeStats_label_heartRate.
+  /// No description provided for @diveLog_rangeStats_label_gasConsumed.
   ///
   /// In en, this message translates to:
-  /// **'Heart Rate'**
-  String get diveLog_rangeStats_label_heartRate;
+  /// **'Gas Consumed'**
+  String get diveLog_rangeStats_label_gasConsumed;
 
-  /// No description provided for @diveLog_rangeStats_label_pressure.
+  /// No description provided for @diveLog_rangeStats_label_maxAscent.
   ///
   /// In en, this message translates to:
-  /// **'Pressure'**
-  String get diveLog_rangeStats_label_pressure;
+  /// **'Max Ascent'**
+  String get diveLog_rangeStats_label_maxAscent;
 
-  /// No description provided for @diveLog_rangeStats_label_temp.
+  /// No description provided for @diveLog_rangeStats_label_maxDepth.
   ///
   /// In en, this message translates to:
-  /// **'Temp'**
-  String get diveLog_rangeStats_label_temp;
+  /// **'Max Depth'**
+  String get diveLog_rangeStats_label_maxDepth;
+
+  /// No description provided for @diveLog_rangeStats_label_maxDescent.
+  ///
+  /// In en, this message translates to:
+  /// **'Max Descent'**
+  String get diveLog_rangeStats_label_maxDescent;
+
+  /// No description provided for @diveLog_rangeStats_label_maxHR.
+  ///
+  /// In en, this message translates to:
+  /// **'Max HR'**
+  String get diveLog_rangeStats_label_maxHR;
+
+  /// No description provided for @diveLog_rangeStats_label_maxTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Max Temp'**
+  String get diveLog_rangeStats_label_maxTemp;
+
+  /// No description provided for @diveLog_rangeStats_label_minDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Min Depth'**
+  String get diveLog_rangeStats_label_minDepth;
+
+  /// No description provided for @diveLog_rangeStats_label_minHR.
+  ///
+  /// In en, this message translates to:
+  /// **'Min HR'**
+  String get diveLog_rangeStats_label_minHR;
+
+  /// No description provided for @diveLog_rangeStats_label_minTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Min Temp'**
+  String get diveLog_rangeStats_label_minTemp;
+
+  /// No description provided for @diveLog_rangeStats_label_sacRate.
+  ///
+  /// In en, this message translates to:
+  /// **'SAC Rate'**
+  String get diveLog_rangeStats_label_sacRate;
 
   /// No description provided for @diveLog_rangeStats_title.
   ///

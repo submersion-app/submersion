@@ -1028,7 +1028,7 @@ class DiveRepository {
         final sql =
             'SELECT '
             'd.id, d.dive_number, d.dive_date_time, d.entry_time, '
-            'd.max_depth, d.duration, d.water_temp, d.rating, '
+            'd.max_depth, d.duration, d.runtime, d.water_temp, d.rating, '
             'd.is_favorite, d.dive_type, '
             'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
             's.name AS site_name, s.country AS site_country, '
@@ -1060,6 +1060,7 @@ class DiveRepository {
           final id = row.read<String>('id');
           final entryTime = row.readNullable<int>('entry_time');
           final duration = row.readNullable<int>('duration');
+          final runtime = row.readNullable<int>('runtime');
 
           return DiveSummary(
             id: id,
@@ -1072,6 +1073,7 @@ class DiveRepository {
                 : null,
             maxDepth: row.readNullable<double>('max_depth'),
             duration: duration != null ? Duration(seconds: duration) : null,
+            runtime: runtime != null ? Duration(seconds: runtime) : null,
             waterTemp: row.readNullable<double>('water_temp'),
             rating: row.readNullable<int>('rating'),
             isFavorite: row.read<int>('is_favorite') == 1,

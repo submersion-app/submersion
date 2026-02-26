@@ -104,12 +104,17 @@ class TissueHeatMapStrip extends StatefulWidget {
   /// Called when the user hovers over a time index, or null when hover ends.
   final ValueChanged<int?>? onHoverIndexChanged;
 
+  /// Called when the user hovers over a compartment, or null when hover ends.
+  /// The value is the compartment index (0-based).
+  final ValueChanged<int?>? onCompartmentHoverChanged;
+
   const TissueHeatMapStrip({
     super.key,
     required this.decoStatuses,
     this.selectedIndex,
     this.height = 32,
     this.onHoverIndexChanged,
+    this.onCompartmentHoverChanged,
   });
 
   @override
@@ -137,6 +142,7 @@ class _TissueHeatMapStripState extends State<TissueHeatMapStrip> {
     _hoveredCompIdx = null;
     if (hadHover) {
       widget.onHoverIndexChanged?.call(null);
+      widget.onCompartmentHoverChanged?.call(null);
     }
   }
 
@@ -177,15 +183,18 @@ class _TissueHeatMapStripState extends State<TissueHeatMapStrip> {
     _hoveredCompIdx = compIdx;
 
     widget.onHoverIndexChanged?.call(timeIdx);
+    widget.onCompartmentHoverChanged?.call(compIdx);
 
     final status = widget.decoStatuses[timeIdx];
     final comp = status.compartments[compIdx];
     final ambientPressure = status.ambientPressureBar;
     final isOffgassing = comp.totalInertGas > ambientPressure;
 
+    final gfAtDepth = comp.gradientFactor(ambientPressure);
     final lines = <String>[
       'Compartment ${comp.compartmentNumber}',
       '${comp.percentLoading.toStringAsFixed(1)}% loaded',
+      'GF: ${(gfAtDepth * 100).toStringAsFixed(0)}%',
       'N\u2082: ${comp.currentPN2.toStringAsFixed(2)} bar',
       if (comp.currentPHe > 0.001)
         'He: ${comp.currentPHe.toStringAsFixed(2)} bar',
@@ -308,7 +317,7 @@ class TissueHeatMapLegend extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('On', style: labelStyle),
+        Text('On-gassing', style: labelStyle),
         const SizedBox(width: 4),
         Container(
           width: 60,
@@ -319,7 +328,7 @@ class TissueHeatMapLegend extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 4),
-        Text('Off', style: labelStyle),
+        Text('Off-gassing', style: labelStyle),
       ],
     );
   }

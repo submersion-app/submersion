@@ -341,7 +341,10 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] PADI app integration (OAuth, fetch eCards)
 
 - [ ] Option to create and use a new database
-- [ ] Ruler on dive profile graph
+- [ ] Calcluate MND for tanks
+- [ ] Show tank name in dive details
+- [ ] Tank starting pressure in dive details should be read from DC when available
+- [ ] Dive list should show running time instead of bottom time in dive list cards
 
 
 ## Slogans

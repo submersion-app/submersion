@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -10,8 +11,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel showing statistics for a selected range of the dive profile.
 ///
-/// Displays min, max, and average values for depth, temperature,
-/// pressure, and heart rate within the selected time range.
+/// Displays depth, rate, temperature, gas consumption, and heart rate
+/// metrics within the selected time range using a Wrap-based grid.
 class RangeStatsPanel extends ConsumerWidget {
   /// The dive ID for scoping the range selection provider
   final String diveId;
@@ -22,6 +23,12 @@ class RangeStatsPanel extends ConsumerWidget {
   /// Unit formatter for displaying values
   final UnitFormatter units;
 
+  /// The dive's tanks (for SAC calculation)
+  final List<DiveTank> tanks;
+
+  /// SAC unit preference from settings
+  final SacUnit sacUnit;
+
   /// Callback when range is cleared/closed
   final VoidCallback? onClose;
 
@@ -30,6 +37,8 @@ class RangeStatsPanel extends ConsumerWidget {
     required this.diveId,
     required this.profile,
     required this.units,
+    required this.tanks,
+    required this.sacUnit,
     this.onClose,
   });
 
@@ -42,7 +51,7 @@ class RangeStatsPanel extends ConsumerWidget {
     }
 
     final colorScheme = Theme.of(context).colorScheme;
-    final stats = _calculateRangeStats(rangeState);
+    final stats = _calculateRangeStats(rangeState, tanks);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -88,13 +97,6 @@ class RangeStatsPanel extends ConsumerWidget {
                   ),
                 ),
                 const Spacer(),
-                Text(
-                  rangeState.formattedDuration,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(width: 8),
                 IconButton(
                   onPressed: () {
                     ref
@@ -109,154 +111,237 @@ class RangeStatsPanel extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 12),
-            // Stats table
-            _buildStatsTable(context, stats),
+            // Stats grid
+            _buildStatsGrid(context, stats),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatsTable(BuildContext context, _RangeStats stats) {
+  Widget _buildStatsGrid(BuildContext context, _RangeStats stats) {
     final colorScheme = Theme.of(context).colorScheme;
-    final headerStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
-      color: colorScheme.onSurfaceVariant,
-      fontWeight: FontWeight.bold,
-    );
 
-    return Table(
-      columnWidths: const {
-        0: FlexColumnWidth(2),
-        1: FlexColumnWidth(1.5),
-        2: FlexColumnWidth(1.5),
-        3: FlexColumnWidth(1.5),
-      },
-      children: [
-        // Header row
-        TableRow(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final chipWidth =
+            (constraints.maxWidth - 24) / 4; // 3 gaps x 8px spacing
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
-            const SizedBox.shrink(),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                context.l10n.diveLog_rangeStats_header_min,
-                style: headerStyle,
-                textAlign: TextAlign.center,
-              ),
+            // Row 1: Elapsed | Depth Delta | Min Depth | Max Depth
+            _buildStatChip(
+              context,
+              context.l10n.diveLog_rangeStats_label_elapsed,
+              _formatElapsed(stats.elapsedSeconds),
+              Icons.timer_outlined,
+              colorScheme.primary,
+              chipWidth,
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                context.l10n.diveLog_rangeStats_header_max,
-                style: headerStyle,
-                textAlign: TextAlign.center,
-              ),
+            _buildStatChip(
+              context,
+              context.l10n.diveLog_rangeStats_label_depthDelta,
+              _formatSignedDepth(stats.depthDelta),
+              Icons.swap_vert,
+              colorScheme.primary,
+              chipWidth,
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                context.l10n.diveLog_rangeStats_header_avg,
-                style: headerStyle,
-                textAlign: TextAlign.center,
-              ),
+            _buildStatChip(
+              context,
+              context.l10n.diveLog_rangeStats_label_minDepth,
+              units.formatDepth(stats.minDepth),
+              Icons.arrow_upward,
+              colorScheme.primary,
+              chipWidth,
             ),
-          ],
-        ),
-        // Depth row
-        _buildStatRow(
-          context,
-          context.l10n.diveLog_rangeStats_label_depth,
-          units.formatDepth(stats.minDepth),
-          units.formatDepth(stats.maxDepth),
-          units.formatDepth(stats.avgDepth),
-          Icons.arrow_downward,
-          colorScheme.primary,
-        ),
-        // Temperature row (if available)
-        if (stats.hasTemperature)
-          _buildStatRow(
-            context,
-            context.l10n.diveLog_rangeStats_label_temp,
-            units.formatTemperature(stats.minTemp!),
-            units.formatTemperature(stats.maxTemp!),
-            units.formatTemperature(stats.avgTemp!),
-            Icons.thermostat,
-            colorScheme.tertiary,
-          ),
-        // Pressure row (if available)
-        if (stats.hasPressure)
-          _buildStatRow(
-            context,
-            context.l10n.diveLog_rangeStats_label_pressure,
-            '${stats.minPressure!.toStringAsFixed(0)} bar',
-            '${stats.maxPressure!.toStringAsFixed(0)} bar',
-            '${stats.avgPressure!.toStringAsFixed(0)} bar',
-            Icons.speed,
-            Colors.orange,
-          ),
-        // Heart rate row (if available)
-        if (stats.hasHeartRate)
-          _buildStatRow(
-            context,
-            context.l10n.diveLog_rangeStats_label_heartRate,
-            '${stats.minHR} bpm',
-            '${stats.maxHR} bpm',
-            '${stats.avgHR!.toStringAsFixed(0)} bpm',
-            Icons.favorite,
-            Colors.red,
-          ),
-      ],
-    );
-  }
-
-  TableRow _buildStatRow(
-    BuildContext context,
-    String label,
-    String minValue,
-    String maxValue,
-    String avgValue,
-    IconData icon,
-    Color color,
-  ) {
-    final valueStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
-      fontFeatures: [const FontFeature.tabularFigures()],
-    );
-
-    return TableRow(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ExcludeSemantics(child: Icon(icon, size: 14, color: color)),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+            _buildStatChip(
+              context,
+              context.l10n.diveLog_rangeStats_label_maxDepth,
+              units.formatDepth(stats.maxDepth),
+              Icons.arrow_downward,
+              colorScheme.primary,
+              chipWidth,
+            ),
+            // Row 2: Avg Depth | Avg Vert Speed | Max Descent | Max Ascent
+            _buildStatChip(
+              context,
+              context.l10n.diveLog_rangeStats_label_avgDepth,
+              units.formatDepth(stats.avgDepth),
+              Icons.straighten,
+              colorScheme.primary,
+              chipWidth,
+            ),
+            _buildStatChip(
+              context,
+              context.l10n.diveLog_rangeStats_label_avgVertSpeed,
+              _formatSignedRate(stats.avgVerticalSpeed),
+              Icons.speed,
+              colorScheme.secondary,
+              chipWidth,
+            ),
+            _buildStatChip(
+              context,
+              context.l10n.diveLog_rangeStats_label_maxDescent,
+              _formatRate(stats.maxDescentRate),
+              Icons.trending_down,
+              Colors.orange,
+              chipWidth,
+            ),
+            _buildStatChip(
+              context,
+              context.l10n.diveLog_rangeStats_label_maxAscent,
+              _formatRate(stats.maxAscentRate),
+              Icons.trending_up,
+              Colors.orange,
+              chipWidth,
+            ),
+            // Conditional: Temp | Temp | Gas | SAC (flows into same row)
+            if (stats.hasTemperature) ...[
+              _buildStatChip(
+                context,
+                context.l10n.diveLog_rangeStats_label_minTemp,
+                units.formatTemperature(stats.minTemp!),
+                Icons.thermostat,
+                colorScheme.tertiary,
+                chipWidth,
+              ),
+              _buildStatChip(
+                context,
+                context.l10n.diveLog_rangeStats_label_maxTemp,
+                units.formatTemperature(stats.maxTemp!),
+                Icons.thermostat,
+                colorScheme.tertiary,
+                chipWidth,
               ),
             ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Text(minValue, style: valueStyle, textAlign: TextAlign.center),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Text(maxValue, style: valueStyle, textAlign: TextAlign.center),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Text(avgValue, style: valueStyle, textAlign: TextAlign.center),
-        ),
-      ],
+            if (stats.hasPressure) ...[
+              _buildStatChip(
+                context,
+                context.l10n.diveLog_rangeStats_label_gasConsumed,
+                units.formatPressure(stats.pressureConsumed!),
+                Icons.local_gas_station,
+                Colors.orange,
+                chipWidth,
+              ),
+              _buildStatChip(
+                context,
+                context.l10n.diveLog_rangeStats_label_sacRate,
+                _formatSacValue(stats),
+                Icons.air,
+                Colors.orange,
+                chipWidth,
+              ),
+            ],
+            // Conditional: Heart rate
+            if (stats.hasHeartRate) ...[
+              _buildStatChip(
+                context,
+                context.l10n.diveLog_rangeStats_label_minHR,
+                '${stats.minHR} bpm',
+                Icons.favorite,
+                Colors.red,
+                chipWidth,
+              ),
+              _buildStatChip(
+                context,
+                context.l10n.diveLog_rangeStats_label_maxHR,
+                '${stats.maxHR} bpm',
+                Icons.favorite,
+                Colors.red,
+                chipWidth,
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 
-  _RangeStats _calculateRangeStats(RangeSelectionState rangeState) {
+  Widget _buildStatChip(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+    double chipWidth,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SizedBox(
+      width: chipWidth,
+      child: Row(
+        children: [
+          ExcludeSemantics(child: Icon(icon, size: 14, color: color)),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontFeatures: [const FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatElapsed(int seconds) {
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  String _formatSignedDepth(double delta) {
+    final converted = units.convertDepth(delta);
+    final sign = converted > 0 ? '+' : '';
+    return '$sign${converted.toStringAsFixed(1)}${units.depthSymbol}';
+  }
+
+  String _formatRate(double rate) {
+    final converted = units.convertDepth(rate);
+    return '${converted.toStringAsFixed(1)} ${units.depthSymbol}/min';
+  }
+
+  String _formatSignedRate(double rate) {
+    final converted = units.convertDepth(rate);
+    final sign = converted > 0 ? '+' : '';
+    return '$sign${converted.toStringAsFixed(1)} ${units.depthSymbol}/min';
+  }
+
+  /// Format SAC value respecting user's SAC unit preference.
+  /// Falls back to pressure/min if volume/min is selected but no tank volume.
+  String _formatSacValue(_RangeStats stats) {
+    if (sacUnit == SacUnit.litersPerMin &&
+        stats.sacVolume != null &&
+        stats.hasTankVolume) {
+      final value = units.convertVolume(stats.sacVolume!);
+      return '${value.toStringAsFixed(1)} ${units.volumeSymbol}/min';
+    } else if (stats.sacRate != null) {
+      final value = units.convertPressure(stats.sacRate!);
+      return '${value.toStringAsFixed(1)} ${units.pressureSymbol}/min';
+    }
+    return '--';
+  }
+
+  _RangeStats _calculateRangeStats(
+    RangeSelectionState rangeState,
+    List<DiveTank> tanks,
+  ) {
     final rangePoints = profile
         .where(
           (p) =>
@@ -266,37 +351,112 @@ class RangeStatsPanel extends ConsumerWidget {
         .toList();
 
     if (rangePoints.isEmpty) {
-      return const _RangeStats(minDepth: 0, maxDepth: 0, avgDepth: 0);
+      return const _RangeStats(
+        elapsedSeconds: 0,
+        depthDelta: 0,
+        minDepth: 0,
+        maxDepth: 0,
+        avgDepth: 0,
+        maxDescentRate: 0,
+        maxAscentRate: 0,
+        avgVerticalSpeed: 0,
+      );
     }
 
-    // Depth stats
+    // Elapsed time
+    final elapsedSeconds =
+        rangePoints.last.timestamp - rangePoints.first.timestamp;
+
+    // Depth stats (needed even for zero-duration to populate min/max/avg)
     final depths = rangePoints.map((p) => p.depth).toList();
     final minDepth = depths.reduce(math.min);
     final maxDepth = depths.reduce(math.max);
     final avgDepth = depths.reduce((a, b) => a + b) / depths.length;
+
+    // Depth delta (signed: positive = deeper)
+    final depthDelta = rangePoints.last.depth - rangePoints.first.depth;
+
+    // Guard: zero-duration range has no meaningful rates
+    if (elapsedSeconds <= 0) {
+      return _RangeStats(
+        elapsedSeconds: 0,
+        depthDelta: depthDelta,
+        minDepth: minDepth,
+        maxDepth: maxDepth,
+        avgDepth: avgDepth,
+        maxDescentRate: 0,
+        maxAscentRate: 0,
+        avgVerticalSpeed: 0,
+      );
+    }
+
+    final elapsedMinutes = elapsedSeconds / 60.0;
+
+    // Average vertical speed (m/min, signed)
+    final avgVerticalSpeed = depthDelta / elapsedMinutes;
+
+    // Max descent and ascent rates from consecutive point pairs
+    double maxDescentRate = 0;
+    double maxAscentRate = 0;
+    for (int i = 0; i < rangePoints.length - 1; i++) {
+      final dt = rangePoints[i + 1].timestamp - rangePoints[i].timestamp;
+      if (dt <= 0) continue;
+      final dd = rangePoints[i + 1].depth - rangePoints[i].depth;
+      final rate = dd / (dt / 60.0); // m/min
+      if (rate > 0 && rate > maxDescentRate) {
+        maxDescentRate = rate;
+      } else if (rate < 0 && rate.abs() > maxAscentRate) {
+        maxAscentRate = rate.abs();
+      }
+    }
 
     // Temperature stats
     final temps = rangePoints
         .where((p) => p.temperature != null)
         .map((p) => p.temperature!)
         .toList();
-    double? minTemp, maxTemp, avgTemp;
+    double? minTemp, maxTemp;
     if (temps.isNotEmpty) {
       minTemp = temps.reduce(math.min);
       maxTemp = temps.reduce(math.max);
-      avgTemp = temps.reduce((a, b) => a + b) / temps.length;
     }
 
-    // Pressure stats
-    final pressures = rangePoints
+    // Pressure / gas consumption stats
+    final pressurePoints = rangePoints
         .where((p) => p.pressure != null)
-        .map((p) => p.pressure!)
         .toList();
-    double? minPressure, maxPressure, avgPressure;
-    if (pressures.isNotEmpty) {
-      minPressure = pressures.reduce(math.min);
-      maxPressure = pressures.reduce(math.max);
-      avgPressure = pressures.reduce((a, b) => a + b) / pressures.length;
+    double? pressureConsumed, sacRate, sacVolume;
+    double? primaryTankVolume;
+
+    if (pressurePoints.length >= 2) {
+      final firstPressure = pressurePoints.first.pressure!;
+      final lastPressure = pressurePoints.last.pressure!;
+      final rawConsumed = firstPressure - lastPressure;
+
+      if (rawConsumed <= 0) {
+        // Sensor noise or ascending from high-pressure zone — no meaningful consumption
+        pressureConsumed = null;
+      } else {
+        pressureConsumed = rawConsumed;
+      }
+
+      if (pressureConsumed != null) {
+        final consumptionRate = pressureConsumed / elapsedMinutes;
+
+        // SAC = consumption_rate / avg_ambient_pressure
+        final avgAmbientPressure = 1.0 + (avgDepth / 10.0);
+        if (avgAmbientPressure > 0) {
+          sacRate = consumptionRate / avgAmbientPressure;
+        }
+
+        // SAC volume (L/min) if tank volume is known
+        if (tanks.isNotEmpty && tanks.first.volume != null) {
+          primaryTankVolume = tanks.first.volume;
+          if (sacRate != null && primaryTankVolume! > 0) {
+            sacVolume = sacRate * primaryTankVolume;
+          }
+        }
+      }
     }
 
     // Heart rate stats
@@ -305,61 +465,72 @@ class RangeStatsPanel extends ConsumerWidget {
         .map((p) => p.heartRate!)
         .toList();
     int? minHR, maxHR;
-    double? avgHR;
     if (heartRates.isNotEmpty) {
       minHR = heartRates.reduce(math.min);
       maxHR = heartRates.reduce(math.max);
-      avgHR = heartRates.reduce((a, b) => a + b) / heartRates.length;
     }
 
     return _RangeStats(
+      elapsedSeconds: elapsedSeconds,
+      depthDelta: depthDelta,
       minDepth: minDepth,
       maxDepth: maxDepth,
       avgDepth: avgDepth,
+      maxDescentRate: maxDescentRate,
+      maxAscentRate: maxAscentRate,
+      avgVerticalSpeed: avgVerticalSpeed,
       minTemp: minTemp,
       maxTemp: maxTemp,
-      avgTemp: avgTemp,
-      minPressure: minPressure,
-      maxPressure: maxPressure,
-      avgPressure: avgPressure,
+      pressureConsumed: pressureConsumed,
+      sacRate: sacRate,
+      sacVolume: sacVolume,
+      tankVolume: primaryTankVolume,
       minHR: minHR,
       maxHR: maxHR,
-      avgHR: avgHR,
     );
   }
 }
 
 /// Internal class to hold range statistics
 class _RangeStats {
+  final int elapsedSeconds;
+  final double depthDelta;
   final double minDepth;
   final double maxDepth;
   final double avgDepth;
+  final double maxDescentRate;
+  final double maxAscentRate;
+  final double avgVerticalSpeed;
   final double? minTemp;
   final double? maxTemp;
-  final double? avgTemp;
-  final double? minPressure;
-  final double? maxPressure;
-  final double? avgPressure;
+  final double? pressureConsumed;
+  final double? sacRate;
+  final double? sacVolume;
+  final double? tankVolume;
   final int? minHR;
   final int? maxHR;
-  final double? avgHR;
 
   const _RangeStats({
+    required this.elapsedSeconds,
+    required this.depthDelta,
     required this.minDepth,
     required this.maxDepth,
     required this.avgDepth,
+    required this.maxDescentRate,
+    required this.maxAscentRate,
+    required this.avgVerticalSpeed,
     this.minTemp,
     this.maxTemp,
-    this.avgTemp,
-    this.minPressure,
-    this.maxPressure,
-    this.avgPressure,
+    this.pressureConsumed,
+    this.sacRate,
+    this.sacVolume,
+    this.tankVolume,
     this.minHR,
     this.maxHR,
-    this.avgHR,
   });
 
   bool get hasTemperature => minTemp != null;
-  bool get hasPressure => minPressure != null;
+  bool get hasPressure => pressureConsumed != null;
   bool get hasHeartRate => minHR != null;
+  bool get hasTankVolume => tankVolume != null && tankVolume! > 0;
 }
