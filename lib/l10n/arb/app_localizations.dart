@@ -15741,7 +15741,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_about_description.
   ///
   /// In en, this message translates to:
-  /// **'Track your dives, manage gear, and explore dive sites.'**
+  /// **'Your dives. Your data.'**
   String get settings_about_description;
 
   /// No description provided for @settings_about_header.
