@@ -341,3 +341,13 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] PADI app integration (OAuth, fetch eCards)
 
 - [ ] Option to create and use a new database
+
+
+
+## Slogans
+
+- "Engineered for depth."
+- "Go deeper."
+- "Dive deeper."
+- "For those who go deep."
+- "What happens below, stays logged."

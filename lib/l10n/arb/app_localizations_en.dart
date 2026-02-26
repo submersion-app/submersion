@@ -8988,7 +8988,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_about_appName => 'Submersion';
 
   @override
-  String get settings_about_description => 'Your dives. Your data.';
+  String get settings_about_description => 'Dive deeper.';
 
   @override
   String get settings_about_header => 'About';
