@@ -48,13 +48,24 @@ class O2ToxicityCalculator {
   ///
   /// [depthMeters] is the actual depth in meters.
   /// [n2Fraction] is the nitrogen fraction (0.0-1.0).
+  /// [heFraction] is the helium fraction (0.0-1.0), default 0.0.
+  /// [o2Narcotic] when true, treats O2 as narcotic (all non-He gas is
+  /// narcotic). When false (default), only N2 is considered narcotic.
   /// Returns END in meters.
-  static double calculateEnd(double depthMeters, double n2Fraction) {
-    // END = (depth + 10) * (N2 fraction / 0.79) - 10
-    // Using air narcosis as baseline (0.79 N2)
+  static double calculateEnd(
+    double depthMeters,
+    double n2Fraction, {
+    double heFraction = 0.0,
+    bool o2Narcotic = false,
+  }) {
     final ambientPressure = 1.0 + (depthMeters / 10.0);
-    final n2Pressure = ambientPressure * n2Fraction;
-    return (n2Pressure / 0.79 - 1.0) * 10.0;
+    if (o2Narcotic) {
+      final narcoticFraction = 1.0 - heFraction;
+      return ((ambientPressure * narcoticFraction) - 1.0) * 10.0;
+    } else {
+      final n2Pressure = ambientPressure * n2Fraction;
+      return (n2Pressure / 0.79 - 1.0) * 10.0;
+    }
   }
 
   /// Get CNS% accumulation rate per minute at given ppO2.
