@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/gradient_preset_picker.dart';
@@ -25,6 +26,13 @@ class AppearancePage extends ConsumerWidget {
           _buildSectionHeader(
             context,
             context.l10n.settings_appearance_header_theme,
+          ),
+          ListTile(
+            leading: const Icon(Icons.palette_outlined),
+            title: Text(context.l10n.settings_themes_current),
+            subtitle: Text(_resolveCurrentThemeName(context, ref)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/themes'),
           ),
           _buildThemeSelector(context, ref, settings.themeMode),
           const Divider(),
@@ -534,6 +542,26 @@ class AppearancePage extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  String _resolveCurrentThemeName(BuildContext context, WidgetRef ref) {
+    final presetId = ref.watch(settingsProvider.select((s) => s.themePresetId));
+    final preset = AppThemeRegistry.findById(presetId);
+    final l10n = context.l10n;
+    switch (preset.nameKey) {
+      case 'theme_submersion':
+        return l10n.theme_submersion;
+      case 'theme_console':
+        return l10n.theme_console;
+      case 'theme_tropical':
+        return l10n.theme_tropical;
+      case 'theme_minimalist':
+        return l10n.theme_minimalist;
+      case 'theme_deep':
+        return l10n.theme_deep;
+      default:
+        return preset.nameKey;
+    }
   }
 
   String _getAttributeDisplayName(
