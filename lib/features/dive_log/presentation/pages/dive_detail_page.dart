@@ -3052,10 +3052,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                           decimals: 1,
                         )
                       : null);
+              final displayName = tank.name != null && tank.name!.isNotEmpty
+                  ? '${tank.name} (${tank.gasMix.name})'
+                  : tank.gasMix.name;
               return ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.propane_tank),
-                title: Text(tank.gasMix.name),
+                title: Text(displayName),
                 subtitle: Text(
                   '$startP ${units.pressureSymbol} → $endP ${units.pressureSymbol}$used',
                 ),
