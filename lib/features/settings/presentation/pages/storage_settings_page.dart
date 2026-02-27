@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/database_migration_service.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/settings/presentation/pages/reset_complete_page.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/existing_database_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/migration_confirmation_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/migration_progress_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/reset_database_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class StorageSettingsPage extends ConsumerStatefulWidget {
@@ -136,6 +142,11 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
                   ),
                 ],
 
+                // Danger Zone
+                const SizedBox(height: 16),
+                const Divider(),
+                _buildDangerZoneSectionHeader(context),
+                _buildResetDatabaseTile(context, theme),
                 const SizedBox(height: 32),
               ],
             ),
@@ -374,6 +385,60 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
         ],
       ),
     );
+  }
+
+  Widget _buildDangerZoneSectionHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Text(
+        context.l10n.settings_storage_dangerZone,
+        style: theme.textTheme.titleSmall?.copyWith(
+          color: theme.colorScheme.error,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResetDatabaseTile(BuildContext context, ThemeData theme) {
+    return ListTile(
+      leading: Icon(
+        Icons.warning_amber_rounded,
+        color: theme.colorScheme.error,
+      ),
+      title: Text(context.l10n.settings_storage_resetDatabase),
+      subtitle: Text(context.l10n.settings_storage_resetDatabase_subtitle),
+      onTap: _handleResetDatabase,
+    );
+  }
+
+  Future<void> _handleResetDatabase() async {
+    final confirmed = await ResetDatabaseDialog.show(context);
+    if (!confirmed || !mounted) return;
+
+    // Generate a timestamped backup path
+    final appDir = await getApplicationDocumentsDirectory();
+    final backupDir = p.join(appDir.path, 'Submersion', 'Backups');
+    final timestamp = DateFormat('yyyy-MM-dd_HHmmss').format(DateTime.now());
+    final backupPath = p.join(backupDir, 'pre_reset_$timestamp.db');
+
+    try {
+      await DatabaseService.instance.resetDatabase(backupPath: backupPath);
+
+      if (!mounted) return;
+      ResetCompletePage.show(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.l10n.settings_storage_resetDialog_resetFailed(e.toString()),
+          ),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
   }
 
   String _truncatePath(String? path) {

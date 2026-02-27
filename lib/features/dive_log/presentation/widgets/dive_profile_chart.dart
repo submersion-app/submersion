@@ -231,6 +231,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool get _hasMultiTankPressure =>
       widget.tankPressures != null && widget.tankPressures!.isNotEmpty;
 
+  /// Whether tank pressure data is expected but hasn't loaded yet.
+  /// When tanks exist but tankPressures is still null (async loading),
+  /// suppress the legacy pressure line to prevent a flash during loading.
+  bool get _tankPressuresPending =>
+      widget.tanks != null &&
+      widget.tanks!.isNotEmpty &&
+      widget.tankPressures == null;
+
   /// Get tank by ID for display purposes
   DiveTank? _getTankById(String tankId) {
     final tanks = widget.tanks;
@@ -396,7 +404,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final hasTemperatureData = widget.profile.any((p) => p.temperature != null);
-    final hasPressureData = widget.profile.any((p) => p.pressure != null);
+    // Suppress legacy pressure when tank pressures are expected but still
+    // loading, to avoid a flash of the orange line during the async gap.
+    final hasPressureData =
+        widget.profile.any((p) => p.pressure != null) && !_tankPressuresPending;
     final hasHeartRateData = widget.profile.any((p) => p.heartRate != null);
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -1146,8 +1157,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       );
                     }
 
-                    // Pressure (if enabled - always show row)
-                    if (_showPressure) {
+                    // Legacy single-tank pressure (skip when multi-tank data
+                    // exists or is still loading to avoid duplicate rows)
+                    if (_showPressure &&
+                        !_hasMultiTankPressure &&
+                        !_tankPressuresPending) {
                       final pressValue = point.pressure != null
                           ? units.formatPressure(point.pressure)
                           : '—';

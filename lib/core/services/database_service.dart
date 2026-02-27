@@ -190,4 +190,35 @@ class DatabaseService {
 
     await initialize();
   }
+
+  /// Delete all data and recreate a fresh empty database.
+  ///
+  /// 1. Backs up the current database to [backupPath]
+  /// 2. Closes the database connection
+  /// 3. Deletes the .db, .db-wal, and .db-shm files
+  /// 4. Reinitializes a fresh database at the same path
+  ///
+  /// Throws if the backup step fails (reset is aborted to protect data).
+  /// If file deletion or reinitialize fails after backup succeeds,
+  /// the error propagates and the caller should handle recovery.
+  Future<void> resetDatabase({required String backupPath}) async {
+    final dbPath = await databasePath;
+
+    // Step 1: Backup first (throws on failure, aborting the reset)
+    await backup(backupPath);
+
+    // Step 2: Close the connection
+    await close();
+
+    // Step 3: Delete database files
+    for (final suffix in ['', '-wal', '-shm']) {
+      final file = File('$dbPath$suffix');
+      if (await file.exists()) {
+        await file.delete();
+      }
+    }
+
+    // Step 4: Reinitialize fresh database (Drift auto-creates tables)
+    await reinitializeAtPath(dbPath);
+  }
 }

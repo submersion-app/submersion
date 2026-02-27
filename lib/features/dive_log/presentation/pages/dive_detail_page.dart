@@ -234,7 +234,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             BuddySignaturesSection(diveId: diveId),
             const SizedBox(height: 24),
             if (dive.tanks.isNotEmpty) ...[
-              _buildTanksSection(context, dive, units),
+              _buildTanksSection(context, ref, dive, units),
             ],
             if (dive.equipment.isNotEmpty) ...[
               const SizedBox(height: 24),
@@ -3035,9 +3035,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   Widget _buildTanksSection(
     BuildContext context,
+    WidgetRef ref,
     Dive dive,
     UnitFormatter units,
   ) {
+    final tankPressuresAsync = ref.watch(tankPressuresProvider(dive.id));
+    final tankPressures = tankPressuresAsync.valueOrNull;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -3049,15 +3053,25 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const Divider(),
-            ...dive.tanks.map((tank) {
-              final startP = units.formatPressureValue(
-                tank.startPressure?.toDouble(),
+            ...dive.tanks.asMap().entries.map((entry) {
+              final index = entry.key;
+              final tank = entry.value;
+
+              // Derive start/end pressure from time-series data when available,
+              // falling back to stored tank metadata only as a last resort.
+              final pressures = _resolveTankPressures(
+                tank: tank,
+                tankPressures: tankPressures,
+                profile: dive.profile,
               );
-              final endP = units.formatPressureValue(
-                tank.endPressure?.toDouble(),
-              );
-              final used = tank.pressureUsed != null
-                  ? ' (${units.formatPressure(tank.pressureUsed!.toDouble())} used)'
+              final startP = units.formatPressureValue(pressures.$1);
+              final endP = units.formatPressureValue(pressures.$2);
+
+              final pressureUsed = pressures.$1 != null && pressures.$2 != null
+                  ? pressures.$1! - pressures.$2!
+                  : null;
+              final used = pressureUsed != null && pressureUsed > 0
+                  ? ' (${units.formatPressure(pressureUsed)} used)'
                   : '';
               // Get preset display name if available
               final preset = tank.presetName != null
@@ -3072,13 +3086,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                           decimals: 1,
                         )
                       : null);
-              final displayName = tank.name != null && tank.name!.isNotEmpty
-                  ? '${tank.name} (${tank.gasMix.name})'
-                  : tank.gasMix.name;
+              // Use same label as profile chart: dive computer name or "Tank N"
+              final tankTitle = tank.name != null && tank.name!.isNotEmpty
+                  ? tank.name!
+                  : context.l10n.diveLog_tank_title(index + 1);
               return ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.propane_tank),
-                title: Text(displayName),
+                title: Text('$tankTitle (${tank.gasMix.name})'),
                 subtitle: Text(
                   '$startP ${units.pressureSymbol} → $endP ${units.pressureSymbol}$used',
                 ),
@@ -3089,6 +3104,38 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ),
       ),
     );
+  }
+
+  /// Resolves the actual start and end pressure for a tank by checking
+  /// time-series data sources before falling back to stored metadata.
+  ///
+  /// Priority:
+  /// 1. Per-tank pressure time-series (TankPressurePoint) — most accurate
+  /// 2. Legacy profile pressure (DiveProfilePoint.pressure) — single-tank only
+  /// 3. Stored tank metadata (DiveTank.startPressure/endPressure) — fallback
+  (double?, double?) _resolveTankPressures({
+    required DiveTank tank,
+    required Map<String, List<TankPressurePoint>>? tankPressures,
+    required List<DiveProfilePoint> profile,
+  }) {
+    // 1. Per-tank pressure time-series
+    if (tankPressures != null && tankPressures.containsKey(tank.id)) {
+      final points = tankPressures[tank.id]!;
+      if (points.isNotEmpty) {
+        final startPressure = points.first.pressure;
+        final endPressure = points.last.pressure;
+        return (startPressure, endPressure);
+      }
+    }
+
+    // 2. Legacy profile pressure (only valid for single-tank dives)
+    final pressurePoints = profile.where((p) => p.pressure != null).toList();
+    if (pressurePoints.isNotEmpty) {
+      return (pressurePoints.first.pressure, pressurePoints.last.pressure);
+    }
+
+    // 3. Stored tank metadata (fallback)
+    return (tank.startPressure?.toDouble(), tank.endPressure?.toDouble());
   }
 
   Widget _buildEquipmentSection(

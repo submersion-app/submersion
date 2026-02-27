@@ -10206,6 +10206,46 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_storage_success_moved => 'تم نقل قاعدة البيانات بنجاح';
 
   @override
+  String get settings_storage_dangerZone => 'Danger Zone';
+
+  @override
+  String get settings_storage_resetDatabase => 'Reset Database';
+
+  @override
+  String get settings_storage_resetDatabase_subtitle =>
+      'Delete all data and start fresh';
+
+  @override
+  String get settings_storage_resetDialog_title => 'Reset Database?';
+
+  @override
+  String get settings_storage_resetDialog_body =>
+      'This will permanently delete all your data including dives, sites, gear, and settings. A backup will be created automatically before resetting.';
+
+  @override
+  String get settings_storage_resetDialog_confirmHint =>
+      'Type \"Delete\" to confirm';
+
+  @override
+  String get settings_storage_resetDialog_confirmButton => 'Reset';
+
+  @override
+  String get settings_storage_resetDialog_backupFailed =>
+      'Backup failed. Reset aborted to protect your data.';
+
+  @override
+  String settings_storage_resetDialog_resetFailed(Object error) {
+    return 'Reset failed: $error';
+  }
+
+  @override
+  String get settings_storage_resetComplete_title => 'Database Reset';
+
+  @override
+  String get settings_storage_resetComplete_description =>
+      'Your data has been cleared and a backup was saved. Tap continue to reload the app.';
+
+  @override
   String get settings_summary_activeDiver => 'الغواص النشط';
 
   @override

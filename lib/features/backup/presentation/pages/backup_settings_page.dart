@@ -202,10 +202,7 @@ class BackupSettingsPage extends ConsumerWidget {
   // ===========================================================================
 
   Future<void> _handleImport(BuildContext context, WidgetRef ref) async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['sqlite', 'db'],
-    );
+    final result = await FilePicker.platform.pickFiles(type: FileType.any);
 
     if (result == null || result.files.isEmpty) return;
 

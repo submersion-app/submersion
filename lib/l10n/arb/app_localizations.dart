@@ -17849,6 +17849,72 @@ abstract class AppLocalizations {
   /// **'Database moved successfully'**
   String get settings_storage_success_moved;
 
+  /// No description provided for @settings_storage_dangerZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Danger Zone'**
+  String get settings_storage_dangerZone;
+
+  /// No description provided for @settings_storage_resetDatabase.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Database'**
+  String get settings_storage_resetDatabase;
+
+  /// No description provided for @settings_storage_resetDatabase_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all data and start fresh'**
+  String get settings_storage_resetDatabase_subtitle;
+
+  /// No description provided for @settings_storage_resetDialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Database?'**
+  String get settings_storage_resetDialog_title;
+
+  /// No description provided for @settings_storage_resetDialog_body.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete all your data including dives, sites, gear, and settings. A backup will be created automatically before resetting.'**
+  String get settings_storage_resetDialog_body;
+
+  /// No description provided for @settings_storage_resetDialog_confirmHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type \"Delete\" to confirm'**
+  String get settings_storage_resetDialog_confirmHint;
+
+  /// No description provided for @settings_storage_resetDialog_confirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get settings_storage_resetDialog_confirmButton;
+
+  /// No description provided for @settings_storage_resetDialog_backupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup failed. Reset aborted to protect your data.'**
+  String get settings_storage_resetDialog_backupFailed;
+
+  /// No description provided for @settings_storage_resetDialog_resetFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset failed: {error}'**
+  String settings_storage_resetDialog_resetFailed(Object error);
+
+  /// No description provided for @settings_storage_resetComplete_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Database Reset'**
+  String get settings_storage_resetComplete_title;
+
+  /// No description provided for @settings_storage_resetComplete_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data has been cleared and a backup was saved. Tap continue to reload the app.'**
+  String get settings_storage_resetComplete_description;
+
   /// No description provided for @settings_summary_activeDiver.
   ///
   /// In en, this message translates to:
