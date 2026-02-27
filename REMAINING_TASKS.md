@@ -340,7 +340,6 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Shearwater Cloud API (import dives from cloud)
 - [ ] PADI app integration (OAuth, fetch eCards)
 
-- [ ] Option to create and use a new database
 - [ ] Calcluate MND for tanks
 
 ## Slogans
