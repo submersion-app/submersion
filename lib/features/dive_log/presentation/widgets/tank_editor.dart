@@ -563,7 +563,16 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }
 
   Widget _buildModInfo(GasMix gasMix, UnitFormatter units) {
+    final settings = ref.watch(settingsProvider);
     final modDepth = units.formatDepth(gasMix.mod(), decimals: 0);
+    final mndValue = gasMix.mnd(
+      endLimit: settings.endLimit,
+      o2Narcotic: settings.o2Narcotic,
+    );
+    final mndDepth = mndValue.isFinite
+        ? units.formatDepth(mndValue, decimals: 0)
+        : '--';
+
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: Row(
@@ -576,12 +585,16 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             ),
           ),
           const SizedBox(width: 8),
-          Semantics(
-            label: 'Maximum operating depth: $modDepth at ppO2 1.4',
-            child: Text(
-              context.l10n.diveLog_tank_modInfo(modDepth),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.tertiary,
+          Flexible(
+            child: Semantics(
+              label:
+                  'Maximum operating depth: $modDepth. '
+                  'Maximum narcotic depth: $mndDepth',
+              child: Text(
+                'MOD: $modDepth (ppO\u2082 1.4) | MND: $mndDepth',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.tertiary,
+                ),
               ),
             ),
           ),
