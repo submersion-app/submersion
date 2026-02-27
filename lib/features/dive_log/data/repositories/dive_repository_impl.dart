@@ -1973,6 +1973,18 @@ class DiveRepository {
       ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]);
     final tankRows = await tanksQuery.get();
 
+    // Get per-tank pressure profile data to derive start/end pressure
+    // when the dive computer provided time-series readings
+    final tankPressureRows =
+        await (_db.select(_db.tankPressureProfiles)
+              ..where((t) => t.diveId.equals(row.id))
+              ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+            .get();
+    final tankPressuresByTankId = <String, List<TankPressureProfile>>{};
+    for (final p in tankPressureRows) {
+      tankPressuresByTankId.putIfAbsent(p.tankId, () => []).add(p);
+    }
+
     // Get profile for this dive
     final profileQuery = _db.select(_db.diveProfiles)
       ..where((t) => t.diveId.equals(row.id))
@@ -2195,31 +2207,43 @@ class DiveRepository {
               orElse: () => WeightType.belt,
             )
           : null,
-      tanks: tankRows
-          .map(
-            (t) => domain.DiveTank(
-              id: t.id,
-              name: t.tankName,
-              volume: t.volume,
-              workingPressure: t.workingPressure,
-              startPressure: t.startPressure,
-              endPressure: t.endPressure,
-              gasMix: domain.GasMix(o2: t.o2Percent, he: t.hePercent),
-              role: TankRole.values.firstWhere(
-                (r) => r.name == t.tankRole,
-                orElse: () => TankRole.backGas,
-              ),
-              material: t.tankMaterial != null
-                  ? TankMaterial.values.firstWhere(
-                      (m) => m.name == t.tankMaterial,
-                      orElse: () => TankMaterial.aluminum,
-                    )
-                  : null,
-              order: t.tankOrder,
-              presetName: t.presetName,
-            ),
-          )
-          .toList(),
+      tanks: tankRows.map((t) {
+        // Derive start/end pressure from profile data when available.
+        // Profile time-series from AI transmitters is the authoritative
+        // source, preferred over stored values (which may be stale or
+        // defaulted from a tank preset's working pressure).
+        final profilePoints = tankPressuresByTankId[t.id];
+        final profileStartPressure =
+            profilePoints != null && profilePoints.isNotEmpty
+            ? profilePoints.first.pressure.round()
+            : null;
+        final profileEndPressure =
+            profilePoints != null && profilePoints.isNotEmpty
+            ? profilePoints.last.pressure.round()
+            : null;
+
+        return domain.DiveTank(
+          id: t.id,
+          name: t.tankName,
+          volume: t.volume,
+          workingPressure: t.workingPressure,
+          startPressure: profileStartPressure ?? t.startPressure,
+          endPressure: profileEndPressure ?? t.endPressure,
+          gasMix: domain.GasMix(o2: t.o2Percent, he: t.hePercent),
+          role: TankRole.values.firstWhere(
+            (r) => r.name == t.tankRole,
+            orElse: () => TankRole.backGas,
+          ),
+          material: t.tankMaterial != null
+              ? TankMaterial.values.firstWhere(
+                  (m) => m.name == t.tankMaterial,
+                  orElse: () => TankMaterial.aluminum,
+                )
+              : null,
+          order: t.tankOrder,
+          presetName: t.presetName,
+        );
+      }).toList(),
       profile: profileRows
           .map(
             (p) => domain.DiveProfilePoint(

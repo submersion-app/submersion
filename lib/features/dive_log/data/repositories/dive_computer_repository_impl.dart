@@ -924,6 +924,41 @@ class DiveComputerRepository {
             'Imported ${entry.value.length} pressure points for tank ${entry.key}',
           );
         }
+
+        // Backfill start/end pressure from profile data when the dive computer
+        // didn't provide explicit tank pressure values but did provide
+        // time-series readings (e.g. via AI transmitters).
+        if (isNewDive && tanks != null) {
+          for (final entry in insertEntries) {
+            final tankIndex = entry.key;
+            final pressurePoints = entry.value;
+            if (pressurePoints.isEmpty) continue;
+
+            final tank = tanks.firstWhere((t) => t.index == tankIndex);
+            if (tank.startPressure == null || tank.endPressure == null) {
+              final tankId = tankIdsByIndex[tankIndex]!;
+              final sorted = [...pressurePoints]
+                ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+              await (_db.update(
+                _db.diveTanks,
+              )..where((t) => t.id.equals(tankId))).write(
+                DiveTanksCompanion(
+                  startPressure: tank.startPressure == null
+                      ? Value(sorted.first.pressure.round())
+                      : const Value.absent(),
+                  endPressure: tank.endPressure == null
+                      ? Value(sorted.last.pressure.round())
+                      : const Value.absent(),
+                ),
+              );
+              _log.info(
+                'Derived tank $tankIndex pressures from profile: '
+                'start=${sorted.first.pressure.round()} bar, '
+                'end=${sorted.last.pressure.round()} bar',
+              );
+            }
+          }
+        }
       }
 
       // Batch insert dive events

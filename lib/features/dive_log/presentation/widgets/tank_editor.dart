@@ -607,9 +607,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       _workingPressureController.text = units
           .convertPressure(preset.workingPressureBar.toDouble())
           .toStringAsFixed(0);
-      _startPressureController.text = units
-          .convertPressure(preset.workingPressureBar.toDouble())
-          .toStringAsFixed(0);
+      // Don't overwrite startPressure with workingPressure — a tank's rated
+      // pressure is its physical spec, not the actual fill pressure for a dive.
+      // Profile data or user entry should set start pressure instead.
       _material = preset.material;
     });
     _notifyChange();
