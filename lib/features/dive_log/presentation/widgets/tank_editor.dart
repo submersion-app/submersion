@@ -44,6 +44,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   late TextEditingController _o2Controller;
   late TextEditingController _heController;
   late TextEditingController _mndController;
+  late FocusNode _mndFocusNode;
   bool _mndDriven = false;
   late TankRole _role;
   late TankMaterial? _material;
@@ -52,7 +53,15 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   @override
   void initState() {
     super.initState();
+    _mndFocusNode = FocusNode()..addListener(_onMndFocusChanged);
     _initializeControllers();
+  }
+
+  void _onMndFocusChanged() {
+    if (!_mndFocusNode.hasFocus && _mndDriven) {
+      _mndDriven = false;
+      setState(() {});
+    }
   }
 
   void _initializeControllers() {
@@ -118,6 +127,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   void didUpdateWidget(TankEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.tank.id != widget.tank.id) {
+      _mndDriven = false;
       _initializeControllers();
     }
   }
@@ -131,6 +141,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _o2Controller.dispose();
     _heController.dispose();
     _mndController.dispose();
+    _mndFocusNode.removeListener(_onMndFocusChanged);
+    _mndFocusNode.dispose();
     super.dispose();
   }
 
@@ -600,6 +612,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         Expanded(
           child: TextFormField(
             controller: _mndController,
+            focusNode: _mndFocusNode,
             decoration: InputDecoration(
               labelText: 'MND',
               suffixText: units.depthSymbol,
@@ -611,9 +624,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               final parsed = double.tryParse(value);
               if (parsed != null && parsed > 0) {
                 _mndDriven = true;
-                final mndMeters = settings.depthUnit == DepthUnit.meters
-                    ? parsed
-                    : parsed / 3.28084;
+                final mndMeters = units.depthToMeters(parsed);
                 final newHe = GasMix.heForMnd(
                   mndMeters,
                   gasMix.o2,
@@ -626,9 +637,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               } else {
                 _mndDriven = false;
               }
-            },
-            onEditingComplete: () {
-              _mndDriven = false;
             },
           ),
         ),

@@ -76,5 +76,16 @@ void main() {
       final he = GasMix.heForMnd(200.0, 50.0, endLimit: 30.0, o2Narcotic: true);
       expect(he, 50.0);
     });
+
+    test('calculates He needed with O2 NOT narcotic', () {
+      final he = GasMix.heForMnd(50.0, 21.0, endLimit: 30.0, o2Narcotic: false);
+      expect(he, closeTo(26.3, 0.5));
+    });
+
+    test('roundtrip: heForMnd result fed back into mnd returns target', () {
+      final he = GasMix.heForMnd(50.0, 21.0, endLimit: 30.0, o2Narcotic: true);
+      final mix = GasMix(o2: 21.0, he: he);
+      expect(mix.mnd(endLimit: 30.0, o2Narcotic: true), closeTo(50.0, 0.5));
+    });
   });
 }

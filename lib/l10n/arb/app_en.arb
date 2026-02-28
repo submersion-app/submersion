@@ -4331,6 +4331,7 @@
   "gasCalculators_mnd_hePercent": "He %",
   "gasCalculators_mnd_infoContent": "Maximum Narcotic Depth (MND) is the deepest you can go before narcosis exceeds your END limit. Equivalent Narcotic Depth (END) tells you the narcotic effect of your gas at a given depth.\n\nWhen 'O2 is narcotic' is enabled, both oxygen and nitrogen contribute to narcosis (more conservative). When disabled, only nitrogen is considered narcotic.",
   "gasCalculators_mnd_infoTitle": "About MND/END",
+  "gasCalculators_mnd_unlimited": "unlimited",
   "gasCalculators_mnd_inputParameters": "Gas Mix & Narcosis Settings",
   "gasCalculators_mnd_o2Narcotic": "O2 is narcotic",
   "gasCalculators_mnd_o2Percent": "O2 %",

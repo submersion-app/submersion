@@ -916,19 +916,11 @@ class GasMix extends Equatable {
     final targetPressure = (endLimit / 10) + 1;
     final maxPressure = (targetMnd / 10) + 1;
 
-    double he;
-    if (o2Narcotic) {
-      final narcoticFraction = targetPressure / maxPressure;
-      he = (1 - narcoticFraction) * 100;
-    } else {
-      final n2Fraction = targetPressure * 0.79 / maxPressure;
-      he = 100 - o2 - (n2Fraction * 100);
-    }
+    final he = o2Narcotic
+        ? (1 - targetPressure / maxPressure) * 100
+        : 100 - o2 - (targetPressure * 0.79 / maxPressure * 100);
 
-    final maxHe = 100 - o2;
-    if (he < 0) return 0.0;
-    if (he > maxHe) return maxHe;
-    return he;
+    return he.clamp(0.0, 100 - o2);
   }
 
   @override

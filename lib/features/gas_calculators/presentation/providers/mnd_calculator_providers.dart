@@ -9,18 +9,22 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// O2% for MND calculation (21-100%)
 final mndO2Provider = StateProvider<double>((ref) => 21.0);
 
-/// He% for MND calculation (0-79%)
+/// He% for MND calculation (0 to 100 - O2%, clamped in mndGasMixProvider)
 final mndHeProvider = StateProvider<double>((ref) => 35.0);
 
-/// END limit for MND calculation (meters), initialized from settings
+/// END limit for MND calculation (meters), initialized from settings.
+/// Uses ref.read (not ref.watch) so user overrides are not lost when
+/// unrelated settings change. Reset via ref.invalidate re-reads settings.
 final mndEndLimitProvider = StateProvider<double>((ref) {
-  final settings = ref.watch(settingsProvider);
+  final settings = ref.read(settingsProvider);
   return settings.endLimit;
 });
 
-/// Whether O2 is narcotic, initialized from settings
+/// Whether O2 is narcotic, initialized from settings.
+/// Uses ref.read (not ref.watch) so user overrides are not lost when
+/// unrelated settings change. Reset via ref.invalidate re-reads settings.
 final mndO2NarcoticProvider = StateProvider<bool>((ref) {
-  final settings = ref.watch(settingsProvider);
+  final settings = ref.read(settingsProvider);
   return settings.o2Narcotic;
 });
 

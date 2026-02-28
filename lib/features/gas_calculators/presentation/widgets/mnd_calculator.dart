@@ -37,9 +37,11 @@ class MndCalculator extends ConsumerWidget {
     final displayMnd = isInfinite ? 0.0 : units.convertDepth(mnd);
     final secondaryMnd = isInfinite ? 0.0 : (isMetric ? mnd * 3.28084 : mnd);
 
-    // END at depth display values
-    final displayEnd = units.convertDepth(endAtDepth);
-    final secondaryEnd = isMetric ? endAtDepth * 3.28084 : endAtDepth;
+    // END at depth display values (clamp to 0 -- negative END at shallow
+    // depths with helium mixes is mathematically valid but confusing to users)
+    final clampedEnd = endAtDepth.clamp(0.0, double.infinity);
+    final displayEnd = units.convertDepth(clampedEnd);
+    final secondaryEnd = isMetric ? clampedEnd * 3.28084 : clampedEnd;
 
     // END limit display value (always stored in meters)
     final displayEndLimit = units.convertDepth(endLimit);
@@ -71,6 +73,7 @@ class MndCalculator extends ConsumerWidget {
                 displayEndLimit: displayEndLimit,
                 o2Narcotic: o2Narcotic,
                 primaryUnit: primaryUnit,
+                convertDepth: units.convertDepth,
               ),
               const SizedBox(height: 16),
 
@@ -101,6 +104,7 @@ class MndCalculator extends ConsumerWidget {
                 secondaryEnd: secondaryEnd,
                 primaryUnit: primaryUnit,
                 secondaryUnit: secondaryUnit,
+                convertDepth: units.convertDepth,
               ),
               const SizedBox(height: 16),
 
@@ -133,6 +137,7 @@ class MndCalculator extends ConsumerWidget {
     required double displayEndLimit,
     required bool o2Narcotic,
     required String primaryUnit,
+    required double Function(double) convertDepth,
   }) {
     return Card(
       child: Padding(
@@ -190,6 +195,7 @@ class MndCalculator extends ConsumerWidget {
               label: context.l10n.gasCalculators_mnd_endLimit,
               value: endLimit,
               displayValue: displayEndLimit,
+              convertLabel: convertDepth,
               unit: primaryUnit,
               min: 20,
               max: 50,
@@ -252,7 +258,7 @@ class MndCalculator extends ConsumerWidget {
 
     return Semantics(
       label: isInfinite
-          ? '${context.l10n.gasCalculators_mnd_resultTitle}: unlimited'
+          ? '${context.l10n.gasCalculators_mnd_resultTitle}: ${context.l10n.gasCalculators_mnd_unlimited}'
           : '${context.l10n.gasCalculators_mnd_resultTitle}: '
                 '${displayMnd.toStringAsFixed(1)} $primaryUnit',
       child: Card(
@@ -311,6 +317,7 @@ class MndCalculator extends ConsumerWidget {
     required double secondaryEnd,
     required String primaryUnit,
     required String secondaryUnit,
+    required double Function(double) convertDepth,
   }) {
     // Warning coloring: green if END < 30m, orange if 30-40m, red if > 40m
     final Color endColor;
@@ -322,53 +329,60 @@ class MndCalculator extends ConsumerWidget {
       endColor = Colors.red;
     }
 
-    return Card(
-      color: colorScheme.primaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Text(
-              context.l10n.gasCalculators_mnd_endAtDepthTitle,
-              style: textTheme.titleMedium?.copyWith(
-                color: colorScheme.onPrimaryContainer,
+    return Semantics(
+      label:
+          '${context.l10n.gasCalculators_mnd_endAtDepthTitle}: '
+          '${displayEnd.toStringAsFixed(1)} $primaryUnit '
+          'at depth ${displayDepth.toStringAsFixed(0)} $primaryUnit',
+      child: Card(
+        color: colorScheme.primaryContainer,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              Text(
+                context.l10n.gasCalculators_mnd_endAtDepthTitle,
+                style: textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onPrimaryContainer,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Depth slider
-            _buildSliderSection(
-              context,
-              label: context.l10n.gasCalculators_mnd_depthInput,
-              value: depth,
-              displayValue: displayDepth,
-              unit: primaryUnit,
-              min: 0,
-              max: 100,
-              divisions: 100,
-              onChanged: (value) {
-                ref.read(mndDepthProvider.notifier).state = value;
-              },
-              onPrimaryContainer: true,
-              colorScheme: colorScheme,
-            ),
-            const SizedBox(height: 16),
+              // Depth slider
+              _buildSliderSection(
+                context,
+                label: context.l10n.gasCalculators_mnd_depthInput,
+                value: depth,
+                displayValue: displayDepth,
+                convertLabel: convertDepth,
+                unit: primaryUnit,
+                min: 0,
+                max: 100,
+                divisions: 100,
+                onChanged: (value) {
+                  ref.read(mndDepthProvider.notifier).state = value;
+                },
+                onPrimaryContainer: true,
+                colorScheme: colorScheme,
+              ),
+              const SizedBox(height: 16),
 
-            // END result
-            Text(
-              '${displayEnd.toStringAsFixed(1)} $primaryUnit',
-              style: textTheme.displayMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: endColor,
+              // END result
+              Text(
+                '${displayEnd.toStringAsFixed(1)} $primaryUnit',
+                style: textTheme.displayMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: endColor,
+                ),
               ),
-            ),
-            Text(
-              '(${secondaryEnd.toStringAsFixed(0)} $secondaryUnit)',
-              style: textTheme.titleMedium?.copyWith(
-                color: colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+              Text(
+                '(${secondaryEnd.toStringAsFixed(0)} $secondaryUnit)',
+                style: textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -428,6 +442,7 @@ class MndCalculator extends ConsumerWidget {
     required int divisions,
     required ValueChanged<double> onChanged,
     double? displayValue,
+    double Function(double)? convertLabel,
     bool onPrimaryContainer = false,
     ColorScheme? colorScheme,
   }) {
@@ -443,14 +458,12 @@ class MndCalculator extends ConsumerWidget {
         ? scheme.onPrimaryContainer.withValues(alpha: 0.7)
         : scheme.onSurfaceVariant;
 
-    // Displayed min/max in user units (if displayValue is provided, scale
-    // min/max proportionally so the labels match what the user sees)
+    // Displayed min/max in user units
     final String displayMin;
     final String displayMax;
-    if (displayValue != null && value != 0) {
-      final ratio = displayValue / value;
-      displayMin = '${(min * ratio).toStringAsFixed(0)}$unit';
-      displayMax = '${(max * ratio).toStringAsFixed(0)}$unit';
+    if (convertLabel != null) {
+      displayMin = '${convertLabel(min).toStringAsFixed(0)}$unit';
+      displayMax = '${convertLabel(max).toStringAsFixed(0)}$unit';
     } else {
       displayMin = '${min.toStringAsFixed(0)}$unit';
       displayMax = '${max.toStringAsFixed(0)}$unit';
@@ -489,9 +502,7 @@ class MndCalculator extends ConsumerWidget {
                 '${shown.toStringAsFixed(0)}$unit',
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: onPrimaryContainer
-                      ? scheme.onPrimaryContainer
-                      : scheme.onPrimaryContainer,
+                  color: scheme.onPrimaryContainer,
                 ),
               ),
             ),

@@ -8234,6 +8234,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gasCalculators_mnd_infoTitle => 'About MND/END';
 
   @override
+  String get gasCalculators_mnd_unlimited => 'unlimited';
+
+  @override
   String get gasCalculators_mnd_inputParameters =>
       'Gas Mix & Narcosis Settings';
 

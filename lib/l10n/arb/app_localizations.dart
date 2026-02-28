@@ -14290,6 +14290,12 @@ abstract class AppLocalizations {
   /// **'About MND/END'**
   String get gasCalculators_mnd_infoTitle;
 
+  /// No description provided for @gasCalculators_mnd_unlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'unlimited'**
+  String get gasCalculators_mnd_unlimited;
+
   /// No description provided for @gasCalculators_mnd_inputParameters.
   ///
   /// In en, this message translates to:
