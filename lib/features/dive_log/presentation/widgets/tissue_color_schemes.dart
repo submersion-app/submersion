@@ -25,7 +25,7 @@ enum TissueColorScheme {
     for (final scheme in values) {
       if (scheme.name == name) return scheme;
     }
-    return TissueColorScheme.classic;
+    return TissueColorScheme.thermal;
   }
 }
 
