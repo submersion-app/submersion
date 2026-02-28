@@ -31,17 +31,28 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        setState(() {}); // Rebuild to update FAB
-      }
-    });
+    _tabController.addListener(_onTabChanged);
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) return;
+    setState(() {});
+    // Clear selected item when switching tabs on desktop to prevent
+    // one tab's MasterDetailScaffold from receiving the other tab's ID
+    if (ResponsiveBreakpoints.isMasterDetail(context)) {
+      final state = GoRouterState.of(context);
+      if (state.uri.queryParameters.containsKey('selected') ||
+          state.uri.queryParameters.containsKey('mode')) {
+        context.go('/equipment');
+      }
+    }
   }
 
   bool get _isEquipmentTab => _tabController.index == 0;
