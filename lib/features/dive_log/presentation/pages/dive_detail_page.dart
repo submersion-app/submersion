@@ -957,18 +957,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                                 _heatMapHoverIndex! < dive.profile.length
                             ? dive.profile[_heatMapHoverIndex!].timestamp
                             : null,
-                        onPointSelected: (point) {
-                          if (point == null) {
+                        onPointSelected: (index) {
+                          if (index == null) {
                             setState(() => _selectedPointIndex = null);
                             return;
                           }
-                          // Find the index of this point in the profile
-                          final index = dive.profile.indexWhere(
-                            (p) => p.timestamp == point.timestamp,
-                          );
                           setState(() {
                             _heatMapHoverIndex = null;
-                            _selectedPointIndex = index >= 0 ? index : null;
+                            _selectedPointIndex = index;
                           });
                         },
                       ),
@@ -4026,19 +4022,12 @@ class _FullscreenProfilePageState
                       tanks: dive.tanks,
                       tankPressures: widget.tankPressures,
                       gasSwitches: widget.gasSwitches,
-                      onPointSelected: (point) {
+                      onPointSelected: (index) {
                         setState(() {
-                          _selectedPoint = point;
-                          if (point != null) {
-                            _selectedPointIndex = dive.profile.indexWhere(
-                              (p) => p.timestamp == point.timestamp,
-                            );
-                            if (_selectedPointIndex! < 0) {
-                              _selectedPointIndex = null;
-                            }
-                          } else {
-                            _selectedPointIndex = null;
-                          }
+                          _selectedPoint = index != null
+                              ? dive.profile[index]
+                              : null;
+                          _selectedPointIndex = index;
                         });
                       },
                     ),

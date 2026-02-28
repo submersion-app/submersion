@@ -28,7 +28,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   final double? maxDepth;
   final bool showTemperature;
   final bool showPressure;
-  final void Function(DiveProfilePoint? point)? onPointSelected;
+  final void Function(int? index)? onPointSelected;
 
   // Decompression visualization data (optional)
   /// Ceiling curve in meters, same length as profile
@@ -1038,7 +1038,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     final spot = response.lineBarSpots!.first;
                     if (spot.barIndex == 0 &&
                         spot.spotIndex < widget.profile.length) {
-                      widget.onPointSelected!(widget.profile[spot.spotIndex]);
+                      widget.onPointSelected!(spot.spotIndex);
                     }
                   }
                 }
