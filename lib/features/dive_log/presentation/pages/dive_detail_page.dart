@@ -110,7 +110,7 @@ class DiveDetailPage extends ConsumerStatefulWidget {
 
 class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// Currently selected point index on the profile timeline
-  int? _selectedPointIndex;
+  final ValueNotifier<int?> _selectedPointNotifier = ValueNotifier<int?>(null);
 
   /// Non-null when the selection came from heat map hover (drives chart cursor)
   int? _heatMapHoverIndex;
@@ -131,6 +131,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   bool _isExportingPage = false;
 
   String get diveId => widget.diveId;
+
+  @override
+  void dispose() {
+    _selectedPointNotifier.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -206,9 +212,29 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             if (dive.profile.isNotEmpty) ...[
               _buildProfileSection(context, ref, dive),
               const SizedBox(height: 24),
-              _buildDecoO2Panel(context, ref, dive),
+              ValueListenableBuilder<int?>(
+                valueListenable: _selectedPointNotifier,
+                builder: (context, selectedPointIndex, _) {
+                  return _buildDecoO2Panel(
+                    context,
+                    ref,
+                    dive,
+                    selectedPointIndex,
+                  );
+                },
+              ),
               const SizedBox(height: 24),
-              _buildSacSegmentsSection(context, ref, dive),
+              ValueListenableBuilder<int?>(
+                valueListenable: _selectedPointNotifier,
+                builder: (context, selectedPointIndex, _) {
+                  return _buildSacSegmentsSection(
+                    context,
+                    ref,
+                    dive,
+                    selectedPointIndex,
+                  );
+                },
+              ),
             ],
             _buildDetailsSection(context, ref, dive, units),
             if (_hasConditions(dive)) ...[
@@ -908,10 +934,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   children: [
                     MouseRegion(
                       onExit: (_) {
-                        setState(() {
-                          _selectedPointIndex = null;
-                          _heatMapHoverIndex = null;
-                        });
+                        _selectedPointNotifier.value = null;
+                        if (_heatMapHoverIndex != null) {
+                          setState(() {
+                            _heatMapHoverIndex = null;
+                          });
+                        }
                       },
                       child: DiveProfileChart(
                         exportKey: _profileChartExportKey,
@@ -959,13 +987,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                             : null,
                         onPointSelected: (index) {
                           if (index == null) {
-                            setState(() => _selectedPointIndex = null);
+                            _selectedPointNotifier.value = null;
                             return;
                           }
-                          setState(() {
-                            _heatMapHoverIndex = null;
-                            _selectedPointIndex = index;
-                          });
+                          _selectedPointNotifier.value = index;
+                          if (_heatMapHoverIndex != null) {
+                            setState(() {
+                              _heatMapHoverIndex = null;
+                            });
+                          }
                         },
                       ),
                     ),
@@ -1060,7 +1090,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     return '$minutes:${secs.toString().padLeft(2, '0')}';
   }
 
-  Widget _buildDecoO2Panel(BuildContext context, WidgetRef ref, Dive dive) {
+  Widget _buildDecoO2Panel(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+    int? selectedPointIndex,
+  ) {
     final analysis = ref.watch(diveProfileAnalysisProvider(dive));
 
     // Don't show if no analysis available
@@ -1070,28 +1105,29 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     // Use selected point or default to final status
     final index =
-        _selectedPointIndex != null &&
-            _selectedPointIndex! < analysis.decoStatuses.length
-        ? _selectedPointIndex!
+        selectedPointIndex != null &&
+            selectedPointIndex < analysis.decoStatuses.length
+        ? selectedPointIndex
         : analysis.decoStatuses.length - 1;
     final status = analysis.decoStatuses[index];
 
     // Build "at time" subtitle when a point is selected
-    final String? timeSubtitle = _selectedPointIndex != null
+    final String? timeSubtitle =
+        selectedPointIndex != null && selectedPointIndex < dive.profile.length
         ? context.l10n.diveLog_detail_collapsed_atTime(
-            _formatTimestamp(dive.profile[_selectedPointIndex!].timestamp),
+            _formatTimestamp(dive.profile[selectedPointIndex].timestamp),
           )
         : null;
 
     final tissueCard = CompactTissueLoadingCard(
       status: status,
       decoStatuses: analysis.decoStatuses,
-      selectedIndex: _selectedPointIndex,
+      selectedIndex: selectedPointIndex,
       subtitle: timeSubtitle,
       onHeatMapHover: (index) {
+        _selectedPointNotifier.value = index;
         setState(() {
           _heatMapHoverIndex = index;
-          _selectedPointIndex = index;
         });
       },
     );
@@ -1104,21 +1140,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final o2Card = CompactO2ToxicityPanel(
       exposure: analysis.o2Exposure,
       selectedPpO2:
-          _selectedPointIndex != null &&
-              _selectedPointIndex! < analysis.ppO2Curve.length
-          ? analysis.ppO2Curve[_selectedPointIndex!]
+          selectedPointIndex != null &&
+              selectedPointIndex < analysis.ppO2Curve.length
+          ? analysis.ppO2Curve[selectedPointIndex]
           : null,
       selectedCns:
-          _selectedPointIndex != null &&
+          selectedPointIndex != null &&
               analysis.cnsCurve != null &&
-              _selectedPointIndex! < analysis.cnsCurve!.length
-          ? analysis.cnsCurve![_selectedPointIndex!]
+              selectedPointIndex < analysis.cnsCurve!.length
+          ? analysis.cnsCurve![selectedPointIndex]
           : null,
       selectedOtu:
-          _selectedPointIndex != null &&
+          selectedPointIndex != null &&
               analysis.otuCurve != null &&
-              _selectedPointIndex! < analysis.otuCurve!.length
-          ? analysis.otuCurve![_selectedPointIndex!]
+              selectedPointIndex < analysis.otuCurve!.length
+          ? analysis.otuCurve![selectedPointIndex]
           : null,
       subtitle: timeSubtitle,
     );
@@ -1162,6 +1198,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     BuildContext context,
     WidgetRef ref,
     Dive dive,
+    int? selectedPointIndex,
   ) {
     final analysis = ref.watch(diveProfileAnalysisProvider(dive));
     final settings = ref.watch(settingsProvider);
@@ -1236,8 +1273,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     // Determine which segment the selected point falls into
     int? selectedSegmentIndex;
-    if (_selectedPointIndex != null && dive.profile.isNotEmpty) {
-      final selectedTimestamp = dive.profile[_selectedPointIndex!].timestamp;
+    if (selectedPointIndex != null &&
+        dive.profile.isNotEmpty &&
+        selectedPointIndex < dive.profile.length) {
+      final selectedTimestamp = dive.profile[selectedPointIndex].timestamp;
       for (int i = 0; i < displaySegments.length; i++) {
         if (selectedTimestamp >= displaySegments[i].startTimestamp &&
             selectedTimestamp <= displaySegments[i].endTimestamp) {
