@@ -26,6 +26,7 @@ class EquipmentListPage extends ConsumerStatefulWidget {
 class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _switchingTabProgrammatically = false;
 
   @override
   void initState() {
@@ -44,11 +45,18 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   void _onTabChanged() {
     if (_tabController.indexIsChanging) return;
     setState(() {});
+    // Skip URL clearing for programmatic tab switches (e.g., auto-switching
+    // to Equipment tab when EquipmentDetailPage's desktop redirect fires)
+    if (_switchingTabProgrammatically) {
+      _switchingTabProgrammatically = false;
+      return;
+    }
     // Clear selected item when switching tabs on desktop to prevent
     // one tab's MasterDetailScaffold from receiving the other tab's ID
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       final state = GoRouterState.of(context);
       if (state.uri.queryParameters.containsKey('selected') ||
+          state.uri.queryParameters.containsKey('setSelected') ||
           state.uri.queryParameters.containsKey('mode')) {
         context.go('/equipment');
       }
@@ -60,6 +68,20 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   @override
   Widget build(BuildContext context) {
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
+      // Auto-switch to Equipment tab when ?selected= is in URL but Sets
+      // tab is active. This handles the EquipmentDetailPage desktop redirect,
+      // which sets ?selected=<equipmentId> when navigating from a set detail.
+      if (!_isEquipmentTab) {
+        final state = GoRouterState.of(context);
+        if (state.uri.queryParameters.containsKey('selected')) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && !_isEquipmentTab) {
+              _switchingTabProgrammatically = true;
+              _tabController.index = 0;
+            }
+          });
+        }
+      }
       return _buildMasterDetailLayout(context);
     }
     return _buildMobileLayout(context);
@@ -122,15 +144,15 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
           unselectedLabelColor: colorScheme.onSurfaceVariant,
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [_buildEquipmentMasterDetail(), _buildSetsMasterDetail()],
-      ),
+      body: _isEquipmentTab
+          ? _buildEquipmentMasterDetail()
+          : _buildSetsMasterDetail(),
     );
   }
 
   Widget _buildEquipmentMasterDetail() {
     return MasterDetailScaffold(
+      key: const ValueKey('equipment-master-detail'),
       sectionId: 'equipment',
       masterBuilder: (context, onItemSelected, selectedId) =>
           EquipmentListContent(
@@ -167,7 +189,9 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
 
   Widget _buildSetsMasterDetail() {
     return MasterDetailScaffold(
+      key: const ValueKey('sets-master-detail'),
       sectionId: 'equipment-sets',
+      queryParamKey: 'setSelected',
       masterBuilder: (context, onItemSelected, selectedId) =>
           EquipmentSetListContent(
             onItemSelected: onItemSelected,

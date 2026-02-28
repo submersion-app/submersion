@@ -26,10 +26,13 @@ enum DetailPaneMode {
 /// detail pages handled by the caller.
 ///
 /// Supports multiple modes via URL query params:
-/// - `?selected=id` - View mode (detail)
-/// - `?selected=id&mode=edit` - Edit mode
+/// - `?<queryParamKey>=id` - View mode (detail)
+/// - `?<queryParamKey>=id&mode=edit` - Edit mode
 /// - `?mode=new` - Create mode
 /// - `?view=map` - Map view (requires mapBuilder)
+///
+/// The [queryParamKey] defaults to `'selected'` but can be customized
+/// to avoid collisions when multiple MasterDetailScaffolds share a route.
 ///
 /// Example usage:
 /// ```dart
@@ -128,6 +131,13 @@ class MasterDetailScaffold extends ConsumerStatefulWidget {
   /// Route path for mobile create page. Defaults to '/$sectionId/new'
   final String? mobileCreateRoute;
 
+  /// URL query parameter key used for the selected item ID.
+  ///
+  /// Defaults to `'selected'`. Customize this when multiple
+  /// MasterDetailScaffolds share the same route path to prevent
+  /// one scaffold's selection from being read by another.
+  final String queryParamKey;
+
   const MasterDetailScaffold({
     super.key,
     required this.sectionId,
@@ -143,6 +153,7 @@ class MasterDetailScaffold extends ConsumerStatefulWidget {
     this.mobileEditRoute,
     this.mobileCreateRoute,
     this.mapBuilder,
+    this.queryParamKey = 'selected',
   });
 
   @override
@@ -154,7 +165,7 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
   /// Get the currently selected item ID from URL query params
   String? get _selectedId {
     final state = GoRouterState.of(context);
-    return state.uri.queryParameters['selected'];
+    return state.uri.queryParameters[widget.queryParamKey];
   }
 
   /// Get the current mode from URL query params
@@ -185,12 +196,13 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
 
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       // Desktop: Update URL with query param, preserving map view state
+      final key = widget.queryParamKey;
       if (itemId != null) {
         if (_isMapView) {
           // Preserve map view when selecting from map
-          router.go('$currentPath?selected=$itemId&view=map');
+          router.go('$currentPath?$key=$itemId&view=map');
         } else {
-          router.go('$currentPath?selected=$itemId');
+          router.go('$currentPath?$key=$itemId');
         }
       } else {
         // Clear selection, but preserve map view state
@@ -233,7 +245,8 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
     final router = GoRouter.of(context);
     final state = GoRouterState.of(context);
     final currentPath = state.uri.path;
-    router.go('$currentPath?selected=$savedId');
+    final key = widget.queryParamKey;
+    router.go('$currentPath?$key=$savedId');
   }
 
   /// Handle cancel from edit/create mode - go back to previous state
@@ -245,7 +258,8 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
 
     if (selectedId != null) {
       // Was editing - go back to view mode
-      router.go('$currentPath?selected=$selectedId');
+      final key = widget.queryParamKey;
+      router.go('$currentPath?$key=$selectedId');
     } else {
       // Was creating - go back to summary
       router.go(currentPath);

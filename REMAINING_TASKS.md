@@ -32,10 +32,6 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Surface Interval Tool: Input previous dive (depth, time, gas) + desired next dive -> Output min surface interval
 - [ ] Display tissue loading chart showing saturation decreasing over time
 
-### Category 15: Layout & Customization
-- [ ] iOS 3D Touch shortcuts (Add Dive, View Last Dive)
-- [ ] Android home screen widgets (dive count, last dive, next service due)
-
 ### Release Criteria
 - [ ] Performance with 5000+ dives
 - [ ] App store submissions (iOS, Android)
@@ -100,7 +96,6 @@ This document contains only the features and tasks that are **not yet completed*
 | Feature | Notes |
 |---------|-------|
 | Photos of gear | Deferred with photos |
-- [ ] Make Equipment Sets more visible and easier to access
 
 ### 6.3 Maintenance
 **Tasks:**
@@ -152,7 +147,6 @@ This document contains only the features and tasks that are **not yet completed*
 ### 9.3 Underwater Photography
 | Feature | Notes |
 |---------|-------|
-| Video support in logs | Attach and play videos |
 | Tag species in photos | Image annotation |
 | Color correction | Blue filter removal |
 | Shareable dive cards | Generate visual summary for social media |
@@ -273,17 +267,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ## Category 15: UX, Customization & Quality-of-Life
 
-### 15.1 Layout & Customization
-| Feature | Notes |
-|---------|-------|
-| Customizable logbook columns | Show/hide fields |
-| Themes | Custom color schemes |
-
-**Tasks:**
-- [ ] Customizable dive list columns (user selects which fields to show)
-- [ ] Theme editor (custom colors, fonts)
-- [ ] Layout presets (Compact, Detailed, Photo-focused)
-
 ### 15.4 Gamification & Achievements
 | Feature | Notes |
 |---------|-------|
@@ -340,12 +323,3 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Shearwater Cloud API (import dives from cloud)
 - [ ] PADI app integration (OAuth, fetch eCards)
 
-- [ ] Calcluate MND for tanks
-
-## Slogans
-
-- "Engineered for depth."
-- "Go deeper."
-- "Dive deeper."
-- "For those who go deep."
-- "What happens below, stays logged."

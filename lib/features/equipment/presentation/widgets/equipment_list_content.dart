@@ -41,16 +41,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   Object? _selectedFilter;
 
   @override
-  void initState() {
-    super.initState();
-    if (widget.selectedId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToSelectedItem();
-      });
-    }
-  }
-
-  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
@@ -65,45 +55,31 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       if (_selectionFromList) {
         _selectionFromList = false;
         _lastScrolledToId = widget.selectedId;
-      } else {
-        _scrollToSelectedItem();
       }
+      // External selection changes are handled by _buildEquipmentList
+      // when the sorted data is available.
     }
   }
 
-  void _scrollToSelectedItem() {
-    if (widget.selectedId == null) return;
+  /// Scroll the list to bring the item at [index] into view.
+  ///
+  /// Uses an estimated item height (Card + ListTile ~ 80px) since
+  /// ListView.builder is lazy and off-screen items have no context.
+  void _scrollToIndex(int index) {
+    if (!mounted || !_scrollController.hasClients) return;
 
-    final AsyncValue<List<EquipmentItem>> equipmentAsync;
-    if (_selectedFilter == _serviceDueFilter) {
-      equipmentAsync = ref.read(serviceDueEquipmentProvider);
-    } else {
-      final status = _selectedFilter as EquipmentStatus?;
-      equipmentAsync = ref.read(equipmentByStatusProvider(status));
-    }
+    const estimatedItemHeight = 80.0;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final viewportHeight = _scrollController.position.viewportDimension;
+    final targetOffset = (index * estimatedItemHeight) - (viewportHeight / 3);
+    final clampedOffset = targetOffset.clamp(0.0, maxScroll);
 
-    equipmentAsync.whenData((equipment) {
-      final index = equipment.indexWhere((e) => e.id == widget.selectedId);
-      if (index >= 0 && _scrollController.hasClients) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!_scrollController.hasClients || equipment.isEmpty) return;
-
-          final maxScroll = _scrollController.position.maxScrollExtent;
-          final viewportHeight = _scrollController.position.viewportDimension;
-          final totalContentHeight = maxScroll + viewportHeight - 80;
-          final avgItemHeight = totalContentHeight / equipment.length;
-          final targetOffset = (index * avgItemHeight) - (viewportHeight / 3);
-          final clampedOffset = targetOffset.clamp(0.0, maxScroll);
-
-          _scrollController.animateTo(
-            clampedOffset,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-          _lastScrolledToId = widget.selectedId;
-        });
-      }
-    });
+    _scrollController.animateTo(
+      clampedOffset,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+    _lastScrolledToId = widget.selectedId;
   }
 
   void _handleItemTap(EquipmentItem equipment) {
@@ -311,6 +287,20 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     WidgetRef ref,
     List<EquipmentItem> equipment,
   ) {
+    // Scroll to selected item when data is available but we haven't
+    // scrolled yet (e.g., navigated from dive detail or set detail).
+    if (widget.selectedId != null &&
+        widget.selectedId != _lastScrolledToId &&
+        !_selectionFromList) {
+      final selectedIndex = equipment.indexWhere(
+        (e) => e.id == widget.selectedId,
+      );
+      if (selectedIndex >= 0) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToIndex(selectedIndex);
+        });
+      }
+    }
     return RefreshIndicator(
       onRefresh: () async {
         _invalidateCurrentProvider(ref);

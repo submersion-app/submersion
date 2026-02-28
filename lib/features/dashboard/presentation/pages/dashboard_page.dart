@@ -5,7 +5,6 @@ import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
-import 'package:submersion/features/certifications/presentation/widgets/certification_wallet_card.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -64,8 +63,6 @@ class DashboardPage extends ConsumerWidget {
                 // Personal Records Section
                 const PersonalRecordsCard(),
                 const SizedBox(height: 16),
-                // Certification Wallet
-                const CertificationWalletCard(),
                 // Quick Actions Section
                 const QuickActionsCard(),
                 const SizedBox(height: 24),
