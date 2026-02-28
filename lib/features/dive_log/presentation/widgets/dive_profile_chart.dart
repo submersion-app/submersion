@@ -355,6 +355,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   static const double _minZoom = 1.0;
   static const double _maxZoom = 10.0;
 
+  // Tooltip memoization
+  int? _lastTooltipSpotIndex;
+  List<LineTooltipItem?> _lastTooltipItems = [];
+
   @override
   void initState() {
     super.initState();
@@ -364,6 +368,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showCeiling = widget.showCeiling;
     _showAscentRateColors = widget.showAscentRateColors;
     _showEvents = widget.showEvents;
+  }
+
+  @override
+  void didUpdateWidget(covariant DiveProfileChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.profile != widget.profile) {
+      _lastTooltipSpotIndex = null;
+      _lastTooltipItems = [];
+    }
   }
 
   void _resetZoom() {
@@ -692,6 +705,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     required bool hasHeartRateData,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
+    final sacUnit = ref.read(sacUnitProvider);
     const pressureColor = Colors.orange;
     const heartRateColor = Colors.red;
 
@@ -1056,9 +1070,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 tooltipMargin: 0,
                 getTooltipColor: (spot) => colorScheme.inverseSurface,
                 getTooltipItems: (touchedSpots) {
+                  // Return cached result if the same spot index is touched again
+                  if (touchedSpots.isNotEmpty) {
+                    final firstDepthSpot = touchedSpots
+                        .where((s) => s.barIndex == 0)
+                        .firstOrNull;
+                    if (firstDepthSpot != null &&
+                        firstDepthSpot.spotIndex == _lastTooltipSpotIndex) {
+                      return _lastTooltipItems;
+                    }
+                  }
+
                   // Build tooltip showing all enabled metrics for the touched point
                   // Only process the depth line (barIndex 0) and build combined tooltip
-                  return touchedSpots.map((spot) {
+                  final result = touchedSpots.map((spot) {
                     final isDepth = spot.barIndex == 0;
                     if (!isDepth) {
                       return null;
@@ -1198,7 +1223,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         if (sacBarPerMin > 0) {
                           final normalizedSac =
                               sacBarPerMin * widget.sacNormalizationFactor;
-                          final sacUnit = ref.read(sacUnitProvider);
                           if (sacUnit == SacUnit.litersPerMin &&
                               widget.tankVolume != null) {
                             final sacLPerMin =
@@ -1548,6 +1572,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       textAlign: TextAlign.start,
                     );
                   }).toList();
+
+                  // Cache the result for next frame
+                  final depthSpot = touchedSpots
+                      .where((s) => s.barIndex == 0)
+                      .firstOrNull;
+                  if (depthSpot != null) {
+                    _lastTooltipSpotIndex = depthSpot.spotIndex;
+                    _lastTooltipItems = result;
+                  }
+
+                  return result;
                 },
               ),
             ),
