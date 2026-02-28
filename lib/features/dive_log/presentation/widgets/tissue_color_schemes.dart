@@ -12,7 +12,7 @@ typedef TissueColorFn = Color Function(double percentage);
 enum TissueColorScheme {
   thermal('Thermal'),
   diverging('Diverging'),
-  classic('Classic');
+  classic('Subsurface');
 
   final String displayName;
 
@@ -20,7 +20,7 @@ enum TissueColorScheme {
 
   /// Parse a [TissueColorScheme] from its [name] string.
   ///
-  /// Returns [TissueColorScheme.classic] if [name] is not recognized.
+  /// Returns [TissueColorScheme.thermal] if [name] is not recognized.
   static TissueColorScheme fromName(String name) {
     for (final scheme in values) {
       if (scheme.name == name) return scheme;
@@ -58,6 +58,8 @@ TissueColorFn colorFnForScheme(TissueColorScheme scheme) {
     case TissueColorScheme.diverging:
       return divergingColor;
     case TissueColorScheme.classic:
+      // subsurfaceHeatColor's optional inertFraction parameter is not
+      // accessible through TissueColorFn. Default 0.79 (air) is used.
       return subsurfaceHeatColor;
   }
 }
