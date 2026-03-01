@@ -1,5 +1,8 @@
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/deco/buhlmann_algorithm.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
@@ -355,6 +358,12 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
           ? computerCns.cnsStart
           : await _computeResidualCns(ref, diveId);
 
+      // Compute residual tissue state from previous dives (48h cutoff)
+      final startCompartments = await _computeResidualTissueState(ref, diveId);
+
+      // Compute cumulative OTU from earlier same-day dives
+      final startOtu = await _computeResidualOtu(ref, diveId);
+
       // Analyze the profile
       _log.debug(
         'Analyzing profile for dive $diveId with ${depths.length} points, '
@@ -368,6 +377,8 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
         o2Fraction: o2Fraction,
         heFraction: heFraction,
         startCns: startCns,
+        startCompartments: startCompartments,
+        startOtu: startOtu,
         pressures: pressures,
         // CCR/SCR parameters
         diveMode: dive.diveMode,
@@ -465,6 +476,107 @@ Future<double> _computeResidualCns(Ref ref, String diveId) async {
   }
 }
 
+/// Computes residual tissue compartment state from previous dives.
+///
+/// Mirrors the recursive CNS lookback pattern: fetches the previous dive's
+/// full analysis (which recursively accounts for even earlier dives), extracts
+/// end-of-dive compartments, then applies Schreiner off-gassing for the
+/// surface interval.
+///
+/// Returns null if no previous dive exists or surface interval >= 48 hours
+/// (tissues are effectively surface-saturated).
+Future<List<TissueCompartment>?> _computeResidualTissueState(
+  Ref ref,
+  String diveId,
+) async {
+  try {
+    final repository = ref.watch(diveRepositoryProvider);
+
+    final surfaceInterval = await repository.getSurfaceInterval(diveId);
+    if (surfaceInterval == null || surfaceInterval.inHours >= 48) return null;
+
+    final previousDive = await repository.getPreviousDive(diveId);
+    if (previousDive == null) return null;
+
+    // Recursively get the previous dive's full analysis (including its own
+    // residual tissue state from even earlier dives).
+    final previousAnalysis = await ref.watch(
+      profileAnalysisProvider(previousDive.id).future,
+    );
+    if (previousAnalysis == null || previousAnalysis.decoStatuses.isEmpty) {
+      return null;
+    }
+
+    // Extract end-of-dive compartment state
+    final endOfDiveCompartments =
+        previousAnalysis.decoStatuses.last.compartments;
+
+    // Apply Schreiner off-gassing for the surface interval
+    final gfLow = ref.watch(gfLowDecimalProvider);
+    final gfHigh = ref.watch(gfHighDecimalProvider);
+    final algorithm = BuhlmannAlgorithm(gfLow: gfLow, gfHigh: gfHigh);
+    algorithm.setCompartments(List.from(endOfDiveCompartments));
+    algorithm.calculateSegment(
+      depthMeters: 0,
+      durationSeconds: surfaceInterval.inSeconds,
+      fN2: airN2Fraction,
+      fHe: 0.0,
+    );
+
+    return algorithm.compartments;
+  } catch (e, stackTrace) {
+    _log.error(
+      'Failed to calculate residual tissue state for: $diveId',
+      e,
+      stackTrace,
+    );
+    return null;
+  }
+}
+
+/// Computes cumulative OTU from earlier dives on the same calendar day.
+///
+/// Non-recursive: queries all dives on the same day, gets each dive's
+/// profile analysis, and sums their per-dive OTU values.
+///
+/// Returns 0.0 if no earlier dives exist on the same day.
+Future<double> _computeResidualOtu(Ref ref, String diveId) async {
+  try {
+    final repository = ref.watch(diveRepositoryProvider);
+
+    // Get current dive's date
+    final currentDive = await repository.getDiveById(diveId);
+    if (currentDive == null) return 0.0;
+
+    final diveDate = currentDive.entryTime ?? currentDive.dateTime;
+    final startOfDay = DateTime(diveDate.year, diveDate.month, diveDate.day);
+    final endOfDay = startOfDay.add(const Duration(days: 1));
+
+    // Get all dives on the same day
+    final sameDayDives = await repository.getDivesInRange(startOfDay, endOfDay);
+
+    // Sum OTU from dives that occurred BEFORE this one
+    double totalOtu = 0.0;
+    for (final dive in sameDayDives) {
+      if (dive.id == diveId) continue;
+      final diveTime = dive.entryTime ?? dive.dateTime;
+      if (diveTime.isBefore(diveDate)) {
+        final analysis = await ref.watch(
+          profileAnalysisProvider(dive.id).future,
+        );
+        if (analysis != null) {
+          totalOtu += analysis.o2Exposure.otu;
+        }
+      }
+    }
+
+    return totalOtu;
+  } catch (e, stackTrace) {
+    _log.error('Failed to calculate residual OTU for: $diveId', e, stackTrace);
+    return 0.0;
+  }
+}
+
 /// Provider that exposes the residual CNS% for a dive.
 ///
 /// This is a convenience provider for synchronous consumers (like
@@ -476,6 +588,68 @@ final residualCnsProvider = FutureProvider.family<double, String>((
 ) async {
   final analysis = await ref.watch(profileAnalysisProvider(diveId).future);
   return analysis?.o2Exposure.cnsStart ?? 0.0;
+});
+
+/// Provider that exposes the residual tissue compartment state for a dive.
+///
+/// Convenience provider for synchronous consumers (like
+/// [diveProfileAnalysisProvider]) that need pre-loaded tissue compartments.
+final residualTissueStateProvider =
+    FutureProvider.family<List<TissueCompartment>?, String>((
+      ref,
+      diveId,
+    ) async {
+      return _computeResidualTissueState(ref, diveId);
+    });
+
+/// Provider that exposes the residual OTU from earlier same-day dives.
+///
+/// Convenience provider for synchronous consumers (like
+/// [diveProfileAnalysisProvider]) that need cumulative OTU.
+final residualOtuProvider = FutureProvider.family<double, String>((
+  ref,
+  diveId,
+) async {
+  return _computeResidualOtu(ref, diveId);
+});
+
+/// Weekly OTU rolling total for a given dive (7-day window ending on dive date).
+///
+/// Queries all dives in the 7 days leading up to (and including) the dive's
+/// date, sums their OTU. Used by O2ToxicityCard for REPEX compliance display.
+final weeklyOtuProvider = FutureProvider.family<double, String>((
+  ref,
+  diveId,
+) async {
+  try {
+    final repository = ref.watch(diveRepositoryProvider);
+
+    final currentDive = await repository.getDiveById(diveId);
+    if (currentDive == null) return 0.0;
+
+    final diveDate = currentDive.entryTime ?? currentDive.dateTime;
+    final endOfDay = DateTime(
+      diveDate.year,
+      diveDate.month,
+      diveDate.day,
+    ).add(const Duration(days: 1));
+    final sevenDaysAgo = endOfDay.subtract(const Duration(days: 7));
+
+    final weekDives = await repository.getDivesInRange(sevenDaysAgo, endOfDay);
+
+    double totalOtu = 0.0;
+    for (final dive in weekDives) {
+      final analysis = await ref.watch(profileAnalysisProvider(dive.id).future);
+      if (analysis != null) {
+        totalOtu += analysis.o2Exposure.otu;
+      }
+    }
+
+    return totalOtu;
+  } catch (e, stackTrace) {
+    _log.error('Failed to calculate weekly OTU for: $diveId', e, stackTrace);
+    return 0.0;
+  }
 });
 
 /// Provider for profile analysis using a Dive object directly.
@@ -527,6 +701,14 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
     // Get residual CNS from previous dive (0.0 while loading or if unavailable)
     final startCns = ref.watch(residualCnsProvider(dive.id)).valueOrNull ?? 0.0;
 
+    // Get residual tissue state from previous dives (null while loading)
+    final startCompartments = ref
+        .watch(residualTissueStateProvider(dive.id))
+        .valueOrNull;
+
+    // Get cumulative OTU from earlier same-day dives (0.0 while loading)
+    final startOtu = ref.watch(residualOtuProvider(dive.id)).valueOrNull ?? 0.0;
+
     final analysis = service.analyze(
       diveId: dive.id,
       depths: depths,
@@ -534,6 +716,8 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       o2Fraction: o2Fraction,
       heFraction: heFraction,
       startCns: startCns,
+      startCompartments: startCompartments,
+      startOtu: startOtu,
       pressures: pressures.length == depths.length ? pressures : null,
       // CCR/SCR parameters
       diveMode: dive.diveMode,

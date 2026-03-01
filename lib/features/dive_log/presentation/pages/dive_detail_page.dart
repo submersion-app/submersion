@@ -1137,6 +1137,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       subtitle: timeSubtitle,
     );
 
+    final weeklyOtuAsync = ref.watch(weeklyOtuProvider(dive.id));
+    final weeklyOtu = weeklyOtuAsync.valueOrNull;
+
     final o2Card = CompactO2ToxicityPanel(
       exposure: analysis.o2Exposure,
       selectedPpO2:
@@ -1157,6 +1160,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           ? analysis.otuCurve![selectedPointIndex]
           : null,
       subtitle: timeSubtitle,
+      weeklyOtu: weeklyOtu,
     );
 
     // Use LayoutBuilder to respond to actual panel width, not screen width.

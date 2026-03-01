@@ -18,12 +18,16 @@ class O2ToxicityCard extends StatelessWidget {
   /// Whether to wrap content in a Card
   final bool useCard;
 
+  /// Weekly OTU rolling total (7-day window, null if not yet loaded)
+  final double? weeklyOtu;
+
   const O2ToxicityCard({
     super.key,
     required this.exposure,
     this.showDetails = true,
     this.showHeader = true,
     this.useCard = true,
+    this.weeklyOtu,
   });
 
   @override
@@ -185,62 +189,135 @@ class O2ToxicityCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    // OTU color based on daily limit
-    Color getOtuColor() {
-      if (exposure.otuPercentOfDaily >= 100) return colorScheme.error;
-      if (exposure.otuPercentOfDaily >= 80) return Colors.orange;
-      if (exposure.otuPercentOfDaily >= 50) return Colors.amber;
+    Color otuLimitColor(double pct) {
+      if (pct >= 100) return colorScheme.error;
+      if (pct >= 80) return Colors.orange;
+      if (pct >= 50) return Colors.amber;
       return Colors.green;
     }
 
+    final dailyPct = exposure.otuDailyPercentOfLimit;
+    final weeklyTotal = weeklyOtu ?? exposure.otu;
+    final weeklyPct = (weeklyTotal / O2Exposure.weeklyOtuLimit) * 100;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.l10n.diveLog_o2tox_oxygenToleranceUnits,
+          style: textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 8),
+
+        // This Dive
+        _buildOtuRow(
+          context,
+          label: 'This Dive',
+          value: exposure.otu,
+          textTheme: textTheme,
+          colorScheme: colorScheme,
+        ),
+        const SizedBox(height: 6),
+
+        // Daily cumulative with progress bar
+        _buildOtuProgressRow(
+          context,
+          label: 'Daily',
+          value: exposure.otuDaily,
+          limit: O2Exposure.dailyOtuLimit,
+          percent: dailyPct,
+          color: otuLimitColor(dailyPct),
+          textTheme: textTheme,
+          colorScheme: colorScheme,
+        ),
+        const SizedBox(height: 6),
+
+        // Weekly rolling with progress bar
+        _buildOtuProgressRow(
+          context,
+          label: 'Weekly',
+          value: weeklyTotal,
+          limit: O2Exposure.weeklyOtuLimit,
+          percent: weeklyPct,
+          color: otuLimitColor(weeklyPct),
+          textTheme: textTheme,
+          colorScheme: colorScheme,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOtuRow(
+    BuildContext context, {
+    required String label,
+    required double value,
+    required TextTheme textTheme,
+    required ColorScheme colorScheme,
+  }) {
     return Semantics(
-      label: context.l10n.diveLog_o2tox_semantics_otu(
-        exposure.otuFormatted,
-        exposure.otuPercentOfDaily.toStringAsFixed(0),
-      ),
+      label: '$label: ${value.toStringAsFixed(0)} OTU',
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.l10n.diveLog_o2tox_oxygenToleranceUnits,
-                  style: textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  exposure.otuFormatted,
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: getOtuColor(),
-                  ),
-                ),
-              ],
+          Text(
+            label,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  '${exposure.otuPercentOfDaily.toStringAsFixed(0)}%',
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: getOtuColor(),
-                  ),
+          Text(
+            '${value.toStringAsFixed(0)} OTU',
+            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOtuProgressRow(
+    BuildContext context, {
+    required String label,
+    required double value,
+    required double limit,
+    required double percent,
+    required Color color,
+    required TextTheme textTheme,
+    required ColorScheme colorScheme,
+  }) {
+    return Semantics(
+      label:
+          '$label: ${value.toStringAsFixed(0)} of ${limit.toStringAsFixed(0)} OTU, '
+          '${percent.toStringAsFixed(0)} percent',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                 ),
-                Text(
-                  context.l10n.diveLog_o2tox_ofDailyLimit,
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+              ),
+              Text(
+                '${value.toStringAsFixed(0)} / ${limit.toStringAsFixed(0)} OTU '
+                '(${percent.toStringAsFixed(0)}%)',
+                style: textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: color,
                 ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: LinearProgressIndicator(
+              value: (percent / 100).clamp(0.0, 1.0),
+              minHeight: 6,
+              backgroundColor: colorScheme.surfaceContainerHighest,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
         ],
@@ -372,6 +449,9 @@ class CompactO2ToxicityPanel extends StatelessWidget {
   /// Optional subtitle text (e.g. "@3:42")
   final String? subtitle;
 
+  /// Weekly OTU rolling total (7-day window, null if not yet loaded)
+  final double? weeklyOtu;
+
   /// Whether to wrap content in a Card
   final bool useCard;
 
@@ -382,6 +462,7 @@ class CompactO2ToxicityPanel extends StatelessWidget {
     this.selectedCns,
     this.selectedOtu,
     this.subtitle,
+    this.weeklyOtu,
     this.useCard = true,
   });
 
@@ -401,8 +482,12 @@ class CompactO2ToxicityPanel extends StatelessWidget {
         _buildCnsProgress(context, colorScheme, textTheme),
         const SizedBox(height: 6),
 
-        // Metrics row (Time, OTU, Max ppO2, ppO2 at point)
-        _buildMetricsRow(context, colorScheme, textTheme),
+        // OTU breakdown (This Dive, Daily, Weekly)
+        _buildOtuBreakdown(context, colorScheme, textTheme),
+        const SizedBox(height: 4),
+
+        // ppO2 metrics row
+        _buildPpO2Row(context, colorScheme, textTheme),
 
         // Time above thresholds (only if > 0)
         if (exposure.timeAboveWarning > 0 ||
@@ -627,35 +712,80 @@ class CompactO2ToxicityPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildMetricsRow(
+  Widget _buildOtuBreakdown(
     BuildContext context,
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
-    // OTU: show selected value with total, or just total
-    final otuValue = selectedOtu != null
-        ? '${selectedOtu!.toStringAsFixed(0)} / ${exposure.otu.toStringAsFixed(0)}'
-        : exposure.otuFormatted;
+    // This dive OTU — show cursor value when scrubbing
+    final String diveOtuValue;
+    if (selectedOtu != null) {
+      diveOtuValue =
+          '${selectedOtu!.toStringAsFixed(0)} / ${exposure.otu.toStringAsFixed(0)}';
+    } else {
+      diveOtuValue = exposure.otu.toStringAsFixed(0);
+    }
 
-    // Abbreviate OTU label in live mode (more columns to fit)
-    final isLiveMode = subtitle != null;
-    final otuLabel = isLiveMode
-        ? context.l10n.diveLog_legend_label_otu
-        : context.l10n.diveLog_o2tox_oxygenToleranceUnits;
+    // Daily cumulative
+    final dailyPct = exposure.otuDailyPercentOfLimit;
+    final dailyValue =
+        '${exposure.otuDaily.toStringAsFixed(0)} / '
+        '${O2Exposure.dailyOtuLimit.toStringAsFixed(0)}';
+
+    // Weekly rolling total
+    final weeklyTotal = weeklyOtu ?? exposure.otu;
+    final weeklyPct = (weeklyTotal / O2Exposure.weeklyOtuLimit) * 100;
+    final weeklyValue =
+        '${weeklyTotal.toStringAsFixed(0)} / '
+        '${O2Exposure.weeklyOtuLimit.toStringAsFixed(0)}';
 
     return Row(
       children: [
-        // OTU (dynamic / total)
+        // This Dive
         Expanded(
-          child: _buildCompactMetric(
+          child: _buildOtuMetric(
             context,
-            value: otuValue,
-            label: otuLabel,
+            value: diveOtuValue,
+            label: 'This Dive',
             textTheme: textTheme,
             colorScheme: colorScheme,
           ),
         ),
 
+        // Daily
+        Expanded(
+          child: _buildOtuMetric(
+            context,
+            value: dailyValue,
+            label: 'Daily (${dailyPct.toStringAsFixed(0)}%)',
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+            valueColor: _getOtuLimitColor(dailyPct, colorScheme),
+          ),
+        ),
+
+        // Weekly
+        Expanded(
+          child: _buildOtuMetric(
+            context,
+            value: weeklyValue,
+            label: 'Weekly (${weeklyPct.toStringAsFixed(0)}%)',
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+            valueColor: _getOtuLimitColor(weeklyPct, colorScheme),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPpO2Row(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    return Row(
+      children: [
         // ppO2 at selected point
         if (selectedPpO2 != null)
           Expanded(
@@ -717,6 +847,49 @@ class CompactO2ToxicityPanel extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildOtuMetric(
+    BuildContext context, {
+    required String value,
+    required String label,
+    required TextTheme textTheme,
+    required ColorScheme colorScheme,
+    Color? valueColor,
+  }) {
+    return Semantics(
+      label: '$label: $value OTU',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: valueColor,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              label,
+              style: textTheme.labelSmall?.copyWith(
+                fontSize: 10,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _getOtuLimitColor(double percent, ColorScheme colorScheme) {
+    if (percent >= 100) return colorScheme.error;
+    if (percent >= 80) return Colors.orange;
+    if (percent >= 50) return Colors.amber;
+    return Colors.green;
   }
 
   Widget _buildTimeAboveThresholds(

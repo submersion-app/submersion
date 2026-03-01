@@ -16,6 +16,9 @@ class O2Exposure extends Equatable {
   /// OTU accumulated during this dive
   final double otu;
 
+  /// OTU accumulated from earlier dives on the same calendar day
+  final double otuStart;
+
   /// Maximum ppO2 reached during the dive
   final double maxPpO2;
 
@@ -32,6 +35,7 @@ class O2Exposure extends Equatable {
     this.cnsStart = 0.0,
     this.cnsEnd = 0.0,
     this.otu = 0.0,
+    this.otuStart = 0.0,
     this.maxPpO2 = 0.0,
     this.maxPpO2Depth = 0.0,
     this.timeAboveWarning = 0,
@@ -59,6 +63,15 @@ class O2Exposure extends Equatable {
   /// OTU as percentage of daily limit
   double get otuPercentOfDaily => (otu / dailyOtuLimit) * 100;
 
+  /// Total OTU for the day (prior dives + this dive)
+  double get otuDaily => otuStart + otu;
+
+  /// Weekly OTU limit (REPEX guidelines)
+  static const double weeklyOtuLimit = 850.0;
+
+  /// Daily OTU as percentage of daily limit (using cumulative daily total)
+  double get otuDailyPercentOfLimit => (otuDaily / dailyOtuLimit) * 100;
+
   /// CNS formatted as percentage string
   String get cnsFormatted => '${cnsEnd.toStringAsFixed(0)}%';
 
@@ -77,6 +90,7 @@ class O2Exposure extends Equatable {
     double? cnsStart,
     double? cnsEnd,
     double? otu,
+    double? otuStart,
     double? maxPpO2,
     double? maxPpO2Depth,
     int? timeAboveWarning,
@@ -86,6 +100,7 @@ class O2Exposure extends Equatable {
       cnsStart: cnsStart ?? this.cnsStart,
       cnsEnd: cnsEnd ?? this.cnsEnd,
       otu: otu ?? this.otu,
+      otuStart: otuStart ?? this.otuStart,
       maxPpO2: maxPpO2 ?? this.maxPpO2,
       maxPpO2Depth: maxPpO2Depth ?? this.maxPpO2Depth,
       timeAboveWarning: timeAboveWarning ?? this.timeAboveWarning,
@@ -98,6 +113,7 @@ class O2Exposure extends Equatable {
     cnsStart,
     cnsEnd,
     otu,
+    otuStart,
     maxPpO2,
     maxPpO2Depth,
     timeAboveWarning,

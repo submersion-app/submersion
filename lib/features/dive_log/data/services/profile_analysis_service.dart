@@ -9,6 +9,7 @@ import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -489,6 +490,9 @@ class ProfileAnalysisService {
   /// [scrInjectionRate] is the SCR injection rate (L/min at surface).
   /// [scrSupplyO2Percent] is the SCR supply gas O2 percentage.
   /// [scrVo2] is the assumed metabolic O2 consumption (L/min) for SCR.
+  /// [startCompartments] is optional pre-loaded tissue state from a previous
+  /// dive (must have exactly [zhl16CompartmentCount] elements if provided).
+  /// [startOtu] is cumulative OTU from earlier same-day dives (non-negative).
   ProfileAnalysis analyze({
     required String diveId,
     required List<double> depths,
@@ -504,9 +508,15 @@ class ProfileAnalysisService {
     double? scrInjectionRate,
     double? scrSupplyO2Percent,
     double scrVo2 = ScrCalculator.defaultVo2,
+    List<TissueCompartment>? startCompartments,
+    double startOtu = 0.0,
   }) {
     if (depths.isEmpty || depths.length != timestamps.length) {
       return ProfileAnalysis.empty();
+    }
+
+    if (startOtu < 0) {
+      throw ArgumentError('startOtu must be non-negative, got $startOtu');
     }
 
     final n2Fraction = 1.0 - o2Fraction - heFraction;
@@ -522,7 +532,17 @@ class ProfileAnalysisService {
     );
 
     // Calculate decompression data
-    _buhlmannAlgorithm.reset();
+    if (startCompartments != null) {
+      if (startCompartments.length != zhl16CompartmentCount) {
+        throw ArgumentError(
+          'startCompartments must have exactly $zhl16CompartmentCount '
+          'elements, got ${startCompartments.length}',
+        );
+      }
+      _buhlmannAlgorithm.setCompartments(startCompartments);
+    } else {
+      _buhlmannAlgorithm.reset();
+    }
     final decoStatuses = _buhlmannAlgorithm.processProfile(
       depths: depths,
       timestamps: timestamps,
@@ -577,9 +597,9 @@ class ProfileAnalysisService {
 
     // Calculate O2 exposure using the ppO2 curve
     // For CCR/SCR, we need to calculate based on actual ppO2 values
-    final O2Exposure o2Exposure;
+    final O2Exposure rawO2Exposure;
     if (diveMode == DiveMode.oc) {
-      o2Exposure = _o2ToxicityCalculator.calculateDiveExposure(
+      rawO2Exposure = _o2ToxicityCalculator.calculateDiveExposure(
         depths: depths,
         timestamps: timestamps,
         o2Fraction: o2Fraction,
@@ -587,13 +607,18 @@ class ProfileAnalysisService {
       );
     } else {
       // For CCR/SCR, calculate O2 exposure from ppO2 curve
-      o2Exposure = _calculateO2ExposureFromPpO2Curve(
+      rawO2Exposure = _calculateO2ExposureFromPpO2Curve(
         ppO2Curve: ppO2Curve,
         timestamps: timestamps,
         depths: depths,
         startCns: startCns,
       );
     }
+
+    // Apply cumulative OTU from earlier same-day dives
+    final o2Exposure = startOtu > 0
+        ? rawO2Exposure.copyWith(otuStart: startOtu)
+        : rawO2Exposure;
 
     // Calculate basic stats
     double maxDepth = 0;
