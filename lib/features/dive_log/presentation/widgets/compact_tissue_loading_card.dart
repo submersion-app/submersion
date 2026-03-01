@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_area_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Compact card displaying tissue loading visualizations and live data.
@@ -16,7 +20,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// This is the "visualization" half of the original CompactDecoPanel,
 /// now in its own card that spans the full height of the left column
 /// (Deco Status + O2 Toxicity).
-class CompactTissueLoadingCard extends StatefulWidget {
+class CompactTissueLoadingCard extends ConsumerStatefulWidget {
   /// Current decompression status (for bar chart + detail panel)
   final DecoStatus status;
 
@@ -42,11 +46,12 @@ class CompactTissueLoadingCard extends StatefulWidget {
   });
 
   @override
-  State<CompactTissueLoadingCard> createState() =>
+  ConsumerState<CompactTissueLoadingCard> createState() =>
       _CompactTissueLoadingCardState();
 }
 
-class _CompactTissueLoadingCardState extends State<CompactTissueLoadingCard> {
+class _CompactTissueLoadingCardState
+    extends ConsumerState<CompactTissueLoadingCard> {
   /// Index of the compartment currently hovered on either chart (0-based).
   /// When null, the detail panel shows the leading compartment (highest GF).
   int? _hoveredCompartmentIndex;
@@ -55,6 +60,7 @@ class _CompactTissueLoadingCardState extends State<CompactTissueLoadingCard> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final vizMode = ref.watch(tissueVizModeProvider);
 
     return Card(
       child: Padding(
@@ -62,17 +68,11 @@ class _CompactTissueLoadingCardState extends State<CompactTissueLoadingCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with M-value legend (hidden on narrow/phone screens)
-            // Uses MediaQuery instead of LayoutBuilder to avoid conflict
-            // with IntrinsicHeight ancestor in dive_detail_page.dart
             Row(
               children: [
-                Flexible(
-                  child: Text(
-                    context.l10n.diveLog_deco_sectionTissueLoading,
-                    style: textTheme.titleSmall,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                Text(
+                  context.l10n.diveLog_deco_sectionTissueLoading,
+                  style: textTheme.titleSmall,
                 ),
                 if (widget.subtitle != null) ...[
                   const SizedBox(width: 6),
@@ -84,23 +84,9 @@ class _CompactTissueLoadingCardState extends State<CompactTissueLoadingCard> {
                   ),
                 ],
                 const Spacer(),
-                // Hide M-value legend on phone screens (< 500px) where
-                // the two-column layout leaves insufficient card width
-                if (MediaQuery.sizeOf(context).width >= 500) ...[
-                  Container(
-                    width: 10,
-                    height: 1.5,
-                    color: colorScheme.error.withValues(alpha: 0.5),
-                  ),
-                  const SizedBox(width: 3),
-                  Text(
-                    'M-value',
-                    style: textTheme.labelSmall?.copyWith(
-                      fontSize: 11,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+                _buildVizModeToggle(colorScheme, vizMode),
+                const SizedBox(width: 4),
+                _buildColorSchemeSelector(colorScheme),
               ],
             ),
             const SizedBox(height: 14),
@@ -109,10 +95,21 @@ class _CompactTissueLoadingCardState extends State<CompactTissueLoadingCard> {
             _buildTissuePressureDiagram(context, colorScheme),
             const SizedBox(height: 6),
 
-            // Heat map
+            // Visualization (switches by mode)
             if (widget.decoStatuses != null &&
                 widget.decoStatuses!.isNotEmpty) ...[
-              _buildHeatMapSection(context, colorScheme, textTheme),
+              switch (vizMode) {
+                TissueVizMode.heatMap => _buildHeatMapSection(
+                  context,
+                  colorScheme,
+                  textTheme,
+                ),
+                TissueVizMode.stackedArea => _buildAreaChartSection(
+                  context,
+                  colorScheme,
+                  textTheme,
+                ),
+              },
               const SizedBox(height: 6),
             ],
 
@@ -266,6 +263,9 @@ class _CompactTissueLoadingCardState extends State<CompactTissueLoadingCard> {
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
+    final tissueScheme = ref.watch(tissueColorSchemeProvider);
+    final colorFn = colorFnForScheme(tissueScheme);
+
     final labelStyle = textTheme.labelSmall?.copyWith(
       fontSize: 11,
       color: colorScheme.onSurfaceVariant,
@@ -276,7 +276,13 @@ class _CompactTissueLoadingCardState extends State<CompactTissueLoadingCard> {
         Row(
           children: [
             const Spacer(),
-            TissueHeatMapLegend(colorScheme: colorScheme, textTheme: textTheme),
+            TissueHeatMapLegend(
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+              colorFn: colorFn,
+              leftLabel: tissueScheme.leftLabel,
+              rightLabel: tissueScheme.rightLabel,
+            ),
           ],
         ),
         const SizedBox(height: 4),
@@ -297,6 +303,7 @@ class _CompactTissueLoadingCardState extends State<CompactTissueLoadingCard> {
                 decoStatuses: widget.decoStatuses!,
                 selectedIndex: widget.selectedIndex,
                 height: 72,
+                colorFn: colorFn,
                 onHoverIndexChanged: widget.onHeatMapHover,
                 onCompartmentHoverChanged: (compIdx) {
                   if (compIdx != null) {
@@ -310,6 +317,31 @@ class _CompactTissueLoadingCardState extends State<CompactTissueLoadingCard> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildAreaChartSection(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    final tissueScheme = ref.watch(tissueColorSchemeProvider);
+    final colorFn = colorFnForScheme(tissueScheme);
+
+    return TissueAreaChart(
+      decoStatuses: widget.decoStatuses!,
+      selectedIndex: widget.selectedIndex,
+      height: 92,
+      isExpanded: true,
+      colorFn: colorFn,
+      onHoverIndexChanged: widget.onHeatMapHover,
+      onCompartmentHoverChanged: (compIdx) {
+        if (compIdx != null) {
+          _setHoveredCompartment(compIdx);
+        } else {
+          _clearHoveredCompartment();
+        }
+      },
     );
   }
 
@@ -441,6 +473,76 @@ class _CompactTissueLoadingCardState extends State<CompactTissueLoadingCard> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildVizModeToggle(
+    ColorScheme colorScheme,
+    TissueVizMode currentMode,
+  ) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _modeIcon(
+          Icons.grid_on,
+          TissueVizMode.heatMap,
+          currentMode,
+          colorScheme,
+        ),
+        _modeIcon(
+          Icons.area_chart,
+          TissueVizMode.stackedArea,
+          currentMode,
+          colorScheme,
+        ),
+      ],
+    );
+  }
+
+  Widget _modeIcon(
+    IconData icon,
+    TissueVizMode mode,
+    TissueVizMode currentMode,
+    ColorScheme colorScheme,
+  ) {
+    final isActive = mode == currentMode;
+    return GestureDetector(
+      onTap: () => ref.read(settingsProvider.notifier).setTissueVizMode(mode),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        child: Icon(
+          icon,
+          size: 16,
+          color: isActive
+              ? colorScheme.primary
+              : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildColorSchemeSelector(ColorScheme colorScheme) {
+    return PopupMenuButton<TissueColorScheme>(
+      icon: Icon(
+        Icons.palette_outlined,
+        size: 16,
+        color: colorScheme.onSurfaceVariant,
+      ),
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
+      style: const ButtonStyle(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+      ),
+      itemBuilder: (context) => TissueColorScheme.values.map((scheme) {
+        return PopupMenuItem<TissueColorScheme>(
+          value: scheme,
+          child: Text(scheme.displayName),
+        );
+      }).toList(),
+      onSelected: (scheme) {
+        ref.read(settingsProvider.notifier).setTissueColorScheme(scheme);
+      },
     );
   }
 

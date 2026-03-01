@@ -23,11 +23,15 @@ class TissueHeatMap extends StatelessWidget {
   /// Chart height in logical pixels
   final double height;
 
+  /// Color function mapping tissue loading percentage to a color.
+  final TissueColorFn colorFn;
+
   const TissueHeatMap({
     super.key,
     required this.decoStatuses,
     this.selectedIndex,
     this.height = 48,
+    this.colorFn = thermalColor,
   });
 
   @override
@@ -50,6 +54,7 @@ class TissueHeatMap extends StatelessWidget {
                 TissueHeatMapLegend(
                   colorScheme: colorScheme,
                   textTheme: textTheme,
+                  colorFn: colorFn,
                 ),
               ],
             ),
@@ -58,6 +63,7 @@ class TissueHeatMap extends StatelessWidget {
               decoStatuses: decoStatuses,
               selectedIndex: selectedIndex,
               height: height,
+              colorFn: colorFn,
             ),
             const SizedBox(height: 4),
             Row(
@@ -101,6 +107,9 @@ class TissueHeatMapStrip extends StatefulWidget {
   /// Strip height in logical pixels
   final double height;
 
+  /// Color function mapping tissue loading percentage to a color.
+  final TissueColorFn colorFn;
+
   /// Called when the user hovers over a time index, or null when hover ends.
   final ValueChanged<int?>? onHoverIndexChanged;
 
@@ -113,6 +122,7 @@ class TissueHeatMapStrip extends StatefulWidget {
     required this.decoStatuses,
     this.selectedIndex,
     this.height = 32,
+    required this.colorFn,
     this.onHoverIndexChanged,
     this.onCompartmentHoverChanged,
   });
@@ -273,6 +283,7 @@ class _TissueHeatMapStripState extends State<TissueHeatMapStrip> {
                   decoStatuses: widget.decoStatuses,
                   selectedIndex: widget.selectedIndex,
                   cursorColor: colorScheme.onSurface,
+                  colorFn: widget.colorFn,
                 ),
               ),
             ),
@@ -291,10 +302,22 @@ class TissueHeatMapLegend extends StatelessWidget {
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
+  /// Color function mapping tissue loading percentage to a color.
+  final TissueColorFn colorFn;
+
+  /// Label displayed on the left (low-loading) end of the gradient.
+  final String leftLabel;
+
+  /// Label displayed on the right (high-loading) end of the gradient.
+  final String rightLabel;
+
   const TissueHeatMapLegend({
     super.key,
     required this.colorScheme,
     required this.textTheme,
+    required this.colorFn,
+    this.leftLabel = 'On-gassing',
+    this.rightLabel = 'Off-gassing',
   });
 
   @override
@@ -303,7 +326,7 @@ class TissueHeatMapLegend extends StatelessWidget {
     final colors = <Color>[];
     for (int i = 0; i <= 20; i++) {
       final pct = i * 5.0; // 0, 5, 10, ..., 100
-      colors.add(subsurfaceHeatColor(pct));
+      colors.add(colorFn(pct));
     }
 
     final labelStyle = textTheme.labelSmall?.copyWith(
@@ -314,7 +337,7 @@ class TissueHeatMapLegend extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('On-gassing', style: labelStyle),
+        Text(leftLabel, style: labelStyle),
         const SizedBox(width: 4),
         Container(
           width: 60,
@@ -325,7 +348,7 @@ class TissueHeatMapLegend extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 4),
-        Text('Off-gassing', style: labelStyle),
+        Text(rightLabel, style: labelStyle),
       ],
     );
   }
@@ -341,10 +364,14 @@ class _TissueHeatMapPainter extends CustomPainter {
   final int? selectedIndex;
   final Color cursorColor;
 
+  /// Color function mapping tissue loading percentage to a color.
+  final TissueColorFn colorFn;
+
   _TissueHeatMapPainter({
     required this.decoStatuses,
     required this.selectedIndex,
     required this.cursorColor,
+    required this.colorFn,
   });
 
   @override
@@ -378,7 +405,7 @@ class _TissueHeatMapPainter extends CustomPainter {
       for (int row = 0; row < numCompartments; row++) {
         final comp = status.compartments[row];
         final percentage = subsurfacePercentage(comp, ambientPressure);
-        paint.color = subsurfaceHeatColor(percentage);
+        paint.color = colorFn(percentage);
 
         canvas.drawRect(
           Rect.fromLTWH(x, row * cellHeight, rectWidth, cellHeight),
@@ -408,9 +435,12 @@ class _TissueHeatMapPainter extends CustomPainter {
     }
   }
 
+  // colorFn equality works because colorFnForScheme always returns
+  // a top-level function reference (not a closure).
   @override
   bool shouldRepaint(_TissueHeatMapPainter oldDelegate) {
     return oldDelegate.decoStatuses != decoStatuses ||
-        oldDelegate.selectedIndex != selectedIndex;
+        oldDelegate.selectedIndex != selectedIndex ||
+        oldDelegate.colorFn != colorFn;
   }
 }

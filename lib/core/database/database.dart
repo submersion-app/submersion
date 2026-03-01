@@ -586,7 +586,7 @@ class DiverSettings extends Table {
   IntColumn get cardColorGradientEnd => integer().nullable()();
   // Tissue visualization settings
   TextColumn get tissueColorScheme =>
-      text().withDefault(const Constant('thermal'))();
+      text().withDefault(const Constant('classic'))();
   TextColumn get tissueVizMode =>
       text().withDefault(const Constant('heatMap'))();
   BoolColumn get showMapBackgroundOnDiveCards =>
@@ -2019,21 +2019,36 @@ class AppDatabase extends _$AppDatabase {
             "ALTER TABLE diver_settings ADD COLUMN theme_preset TEXT NOT NULL DEFAULT 'submersion'",
           );
         }
-        if (from < 44) {
-          await customStatement(
-            'ALTER TABLE diver_settings ADD COLUMN o2_narcotic INTEGER NOT NULL DEFAULT 1',
-          );
-          await customStatement(
-            'ALTER TABLE diver_settings ADD COLUMN end_limit REAL NOT NULL DEFAULT 30.0',
-          );
-        }
         if (from < 45) {
-          await customStatement(
-            "ALTER TABLE diver_settings ADD COLUMN tissue_color_scheme TEXT NOT NULL DEFAULT 'thermal'",
-          );
-          await customStatement(
-            "ALTER TABLE diver_settings ADD COLUMN tissue_viz_mode TEXT NOT NULL DEFAULT 'heatMap'",
-          );
+          // Migrations 44-45 add columns to diver_settings.
+          // Guard with PRAGMA table_info to handle partial migrations
+          // (ALTER TABLE ADD COLUMN cannot be rolled back in SQLite).
+          final settingsInfo = await customSelect(
+            'PRAGMA table_info(diver_settings)',
+          ).get();
+          final settingsCols = settingsInfo
+              .map((r) => r.read<String>('name'))
+              .toSet();
+          if (!settingsCols.contains('o2_narcotic')) {
+            await customStatement(
+              'ALTER TABLE diver_settings ADD COLUMN o2_narcotic INTEGER NOT NULL DEFAULT 1',
+            );
+          }
+          if (!settingsCols.contains('end_limit')) {
+            await customStatement(
+              'ALTER TABLE diver_settings ADD COLUMN end_limit REAL NOT NULL DEFAULT 30.0',
+            );
+          }
+          if (!settingsCols.contains('tissue_color_scheme')) {
+            await customStatement(
+              "ALTER TABLE diver_settings ADD COLUMN tissue_color_scheme TEXT NOT NULL DEFAULT 'classic'",
+            );
+          }
+          if (!settingsCols.contains('tissue_viz_mode')) {
+            await customStatement(
+              "ALTER TABLE diver_settings ADD COLUMN tissue_viz_mode TEXT NOT NULL DEFAULT 'heatMap'",
+            );
+          }
         }
       },
       beforeOpen: (details) async {

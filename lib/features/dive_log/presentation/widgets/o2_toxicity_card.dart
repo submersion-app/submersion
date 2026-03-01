@@ -609,7 +609,7 @@ class CompactO2ToxicityPanel extends StatelessWidget {
                           totalWidth *
                           (selectedDelta / 100).clamp(0.0, 1.0 - startFraction),
                       height: barHeight,
-                      color: Colors.lightBlue,
+                      color: colorScheme.primary,
                     ),
                   ),
                 // Start segment: residual CNS from prior dives (always on top)

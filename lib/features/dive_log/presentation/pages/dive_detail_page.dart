@@ -1182,7 +1182,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             children: [
               Expanded(
                 child: Column(
-                  children: [decoCard, const SizedBox(height: 8), o2Card],
+                  children: [
+                    Expanded(child: decoCard),
+                    const SizedBox(height: 8),
+                    o2Card,
+                  ],
                 ),
               ),
               const SizedBox(width: 8),

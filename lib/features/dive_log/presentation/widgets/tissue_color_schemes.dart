@@ -10,30 +10,34 @@ typedef TissueColorFn = Color Function(double percentage);
 /// Each scheme maps a 0-120+ percentage (from [subsurfacePercentage]) to a
 /// color gradient optimized for different use cases.
 enum TissueColorScheme {
-  thermal('Thermal'),
-  diverging('Diverging'),
-  classic('Subsurface');
+  classic('Default'),
+  thermal('Thermal');
 
   final String displayName;
 
   const TissueColorScheme(this.displayName);
 
+  /// Legend label for the low end of the color scale.
+  String get leftLabel => 'On-gassing';
+
+  /// Legend label for the high end of the color scale.
+  String get rightLabel => 'Off-gassing';
+
   /// Parse a [TissueColorScheme] from its [name] string.
   ///
-  /// Returns [TissueColorScheme.thermal] if [name] is not recognized.
+  /// Returns [TissueColorScheme.classic] if [name] is not recognized.
   static TissueColorScheme fromName(String name) {
     for (final scheme in values) {
       if (scheme.name == name) return scheme;
     }
-    return TissueColorScheme.thermal;
+    return TissueColorScheme.classic;
   }
 }
 
 /// Available visualization modes for tissue loading displays.
 enum TissueVizMode {
   heatMap('Heat Map'),
-  stackedArea('Stacked Area'),
-  sparklines('Sparklines');
+  stackedArea('Stacked Area');
 
   final String displayName;
 
@@ -55,8 +59,6 @@ TissueColorFn colorFnForScheme(TissueColorScheme scheme) {
   switch (scheme) {
     case TissueColorScheme.thermal:
       return thermalColor;
-    case TissueColorScheme.diverging:
-      return divergingColor;
     case TissueColorScheme.classic:
       // subsurfaceHeatColor's optional inertFraction parameter is not
       // accessible through TissueColorFn. Default 0.79 (air) is used.
@@ -93,52 +95,6 @@ Color thermalColor(double percentage) {
   if (percentage <= 100.0) {
     final t = ((percentage - 80.0) / 20.0).clamp(0.0, 1.0);
     return Color.lerp(yellow, red, t)!;
-  }
-
-  if (percentage <= 120.0) {
-    final t = ((percentage - 100.0) / 20.0).clamp(0.0, 1.0);
-    return Color.lerp(red, white, t)!;
-  }
-
-  return white;
-}
-
-/// Two-tone diverging scale centered at 50% tissue loading.
-///
-/// Color mapping:
-/// - 0-25%:    Deep Blue (#1565C0) -> Light Blue (#90CAF9)
-/// - 25-50%:   Light Blue (#90CAF9) -> near-White center (#E8EAF6)
-/// - 50-75%:   near-White center (#E8EAF6) -> Light Orange (#FFCC80)
-/// - 75-100%:  Light Orange (#FFCC80) -> Deep Orange (#E65100)
-/// - 100-120%: Red (#EF5350) -> White (#FFFFFF)
-/// - 120+:     White
-Color divergingColor(double percentage) {
-  const deepBlue = Color(0xFF1565C0);
-  const lightBlue = Color(0xFF90CAF9);
-  const nearWhite = Color(0xFFE8EAF6);
-  const lightOrange = Color(0xFFFFCC80);
-  const deepOrange = Color(0xFFE65100);
-  const red = Color(0xFFEF5350);
-  const white = Color(0xFFFFFFFF);
-
-  if (percentage <= 25.0) {
-    final t = (percentage / 25.0).clamp(0.0, 1.0);
-    return Color.lerp(deepBlue, lightBlue, t)!;
-  }
-
-  if (percentage <= 50.0) {
-    final t = ((percentage - 25.0) / 25.0).clamp(0.0, 1.0);
-    return Color.lerp(lightBlue, nearWhite, t)!;
-  }
-
-  if (percentage <= 75.0) {
-    final t = ((percentage - 50.0) / 25.0).clamp(0.0, 1.0);
-    return Color.lerp(nearWhite, lightOrange, t)!;
-  }
-
-  if (percentage <= 100.0) {
-    final t = ((percentage - 75.0) / 25.0).clamp(0.0, 1.0);
-    return Color.lerp(lightOrange, deepOrange, t)!;
   }
 
   if (percentage <= 120.0) {

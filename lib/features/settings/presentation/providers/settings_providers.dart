@@ -259,7 +259,7 @@ class AppSettings {
     this.cardColorGradientPreset = 'ocean',
     this.cardColorGradientStart,
     this.cardColorGradientEnd,
-    this.tissueColorScheme = TissueColorScheme.thermal,
+    this.tissueColorScheme = TissueColorScheme.classic,
     this.tissueVizMode = TissueVizMode.heatMap,
     this.showMapBackgroundOnDiveCards = false,
     this.showMapBackgroundOnSiteCards = false,
@@ -1195,9 +1195,9 @@ final defaultShowGasSwitchMarkersProvider = Provider<bool>((ref) {
 });
 
 final tissueColorSchemeProvider = Provider<TissueColorScheme>((ref) {
-  return ref.watch(settingsProvider).tissueColorScheme;
+  return ref.watch(settingsProvider.select((s) => s.tissueColorScheme));
 });
 
 final tissueVizModeProvider = Provider<TissueVizMode>((ref) {
-  return ref.watch(settingsProvider).tissueVizMode;
+  return ref.watch(settingsProvider.select((s) => s.tissueVizMode));
 });
