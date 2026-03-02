@@ -139,6 +139,14 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
               ),
               textAlign: TextAlign.center,
             ),
+            const SizedBox(height: 16),
+            Text(
+              context.l10n.diveImport_healthkit_dataUsage,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 24),
             FilledButton.icon(
               icon: const Icon(Icons.lock_open),
@@ -168,6 +176,7 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
     return Column(
       children: [
         _buildStepIndicator(context),
+        _buildHealthKitAttribution(context),
         Expanded(
           child: switch (_currentStep) {
             0 => _buildStepSelectDives(context),
@@ -177,6 +186,29 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildHealthKitAttribution(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Icon(
+            Icons.health_and_safety,
+            size: 16,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            context.l10n.diveImport_healthkit_attribution,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -12067,7 +12067,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transfer_computers_appleWatchSubtitle =>
-      'استيراد الغوصات المسجلة على Apple Watch Ultra';
+      'Import dives via Apple HealthKit';
 
   @override
   String get transfer_computers_appleWatchTitle => 'الاستيراد من Apple Watch';
@@ -13834,14 +13834,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_accessDescription =>
-      'يحتاج Submersion إلى الوصول لبيانات الغوص من Apple Watch لاستيراد الغطسات.';
+      'Submersion uses Apple HealthKit to read underwater diving workout data, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
 
   @override
   String get diveImport_healthkit_accessRequired =>
-      'مطلوب الوصول إلى HealthKit';
+      'Apple HealthKit Access Required';
+
+  @override
+  String get diveImport_healthkit_attribution => 'Powered by Apple HealthKit';
 
   @override
   String get diveImport_healthkit_closeTooltip => 'إغلاق استيراد Apple Watch';
+
+  @override
+  String get diveImport_healthkit_dataUsage =>
+      'Reads underwater diving activities from Apple Health, including depth, duration, water temperature, and heart rate. This data is stored locally in your dive log and is never shared with third parties.';
 
   @override
   String get diveImport_healthkit_dateFrom => 'من';

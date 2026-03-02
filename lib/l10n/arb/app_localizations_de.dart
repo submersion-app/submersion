@@ -12292,7 +12292,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get transfer_computers_appleWatchSubtitle =>
-      'Auf der Apple Watch Ultra aufgezeichnete Tauchgaenge importieren';
+      'Import dives via Apple HealthKit';
 
   @override
   String get transfer_computers_appleWatchTitle =>
@@ -14099,15 +14099,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_accessDescription =>
-      'Submersion benoetigt Zugriff auf Ihre Apple Watch-Tauchdaten, um Tauchgaenge zu importieren.';
+      'Submersion uses Apple HealthKit to read underwater diving workout data, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
 
   @override
   String get diveImport_healthkit_accessRequired =>
-      'HealthKit-Zugriff erforderlich';
+      'Apple HealthKit Access Required';
+
+  @override
+  String get diveImport_healthkit_attribution => 'Powered by Apple HealthKit';
 
   @override
   String get diveImport_healthkit_closeTooltip =>
       'Apple Watch-Import schliessen';
+
+  @override
+  String get diveImport_healthkit_dataUsage =>
+      'Reads underwater diving activities from Apple Health, including depth, duration, water temperature, and heart rate. This data is stored locally in your dive log and is never shared with third parties.';
 
   @override
   String get diveImport_healthkit_dateFrom => 'Von';

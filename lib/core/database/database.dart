@@ -2171,11 +2171,12 @@ class AppDatabase extends _$AppDatabase {
                 substr('89ab', abs(random()) % 4 + 1, 1) ||
                 substr(hex(randomblob(2)),2) || '-' || hex(randomblob(6))),
               id,
-              liveaboard_name,
+              COALESCE(liveaboard_name, 'Unknown Vessel'),
               created_at,
               updated_at
             FROM trips
             WHERE trip_type = 'liveaboard'
+              AND id NOT IN (SELECT trip_id FROM liveaboard_detail_records)
           ''');
         }
       },

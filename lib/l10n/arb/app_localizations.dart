@@ -20968,7 +20968,7 @@ abstract class AppLocalizations {
   /// No description provided for @transfer_computers_appleWatchSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Import dives recorded on Apple Watch Ultra'**
+  /// **'Import dives via Apple HealthKit'**
   String get transfer_computers_appleWatchSubtitle;
 
   /// No description provided for @transfer_computers_appleWatchTitle.
@@ -23979,20 +23979,32 @@ abstract class AppLocalizations {
   /// No description provided for @diveImport_healthkit_accessDescription.
   ///
   /// In en, this message translates to:
-  /// **'Submersion needs access to your Apple Watch dive data to import dives.'**
+  /// **'Submersion uses Apple HealthKit to read underwater diving workout data, including depth, duration, water temperature, and heart rate, to create detailed dive logs.'**
   String get diveImport_healthkit_accessDescription;
 
   /// No description provided for @diveImport_healthkit_accessRequired.
   ///
   /// In en, this message translates to:
-  /// **'HealthKit Access Required'**
+  /// **'Apple HealthKit Access Required'**
   String get diveImport_healthkit_accessRequired;
+
+  /// No description provided for @diveImport_healthkit_attribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Powered by Apple HealthKit'**
+  String get diveImport_healthkit_attribution;
 
   /// No description provided for @diveImport_healthkit_closeTooltip.
   ///
   /// In en, this message translates to:
   /// **'Close Apple Watch import'**
   String get diveImport_healthkit_closeTooltip;
+
+  /// No description provided for @diveImport_healthkit_dataUsage.
+  ///
+  /// In en, this message translates to:
+  /// **'Reads underwater diving activities from Apple Health, including depth, duration, water temperature, and heart rate. This data is stored locally in your dive log and is never shared with third parties.'**
+  String get diveImport_healthkit_dataUsage;
 
   /// No description provided for @diveImport_healthkit_dateFrom.
   ///
