@@ -214,7 +214,7 @@ jobs:
         run: flutter build ios --release --no-codesign "${{ env.DART_DEFINES }}" -v
 
       - name: Upload iOS artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ios-build
           path: build/ios/iphoneos/Runner.app
@@ -303,7 +303,7 @@ jobs:
             build/macos/Build/Products/Release/submersion.app
 
       - name: Upload macOS artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         with:
           name: macos-build
@@ -366,7 +366,7 @@ jobs:
         run: flutter build apk --release "${{ env.DART_DEFINES }}" -v
 
       - name: Upload Android artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: android-apk
           path: build/app/outputs/flutter-apk/app-release.apk
@@ -425,7 +425,7 @@ jobs:
         run: flutter build linux --release "${{ env.DART_DEFINES }}" -v
 
       - name: Upload Linux artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: linux-build
           path: build/linux/x64/release/bundle
@@ -480,7 +480,7 @@ jobs:
         run: flutter build windows --release "${{ env.DART_DEFINES }}" -v
 
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: windows-build
           path: build\windows\x64\runner\Release
