@@ -80,8 +80,7 @@ class UpdateStatusNotifier extends StateNotifier<UpdateStatus> {
   }
 
   Future<void> checkForUpdate() async {
-    final serviceAsync = _ref.read(updateServiceProvider);
-    final service = serviceAsync.valueOrNull;
+    final service = await _ref.read(updateServiceProvider.future);
     if (service == null) return;
 
     state = const Checking();
@@ -100,8 +99,7 @@ class UpdateStatusNotifier extends StateNotifier<UpdateStatus> {
   /// User-initiated update check. Uses the platform's interactive UI
   /// (e.g. Sparkle's native dialog on macOS) when available.
   Future<void> checkForUpdateInteractively() async {
-    final serviceAsync = _ref.read(updateServiceProvider);
-    final service = serviceAsync.valueOrNull;
+    final service = await _ref.read(updateServiceProvider.future);
     if (service == null) return;
 
     state = const Checking();

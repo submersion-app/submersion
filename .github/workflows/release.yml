@@ -189,9 +189,6 @@ jobs:
             exit 1
           fi
 
-          # Mask the signature immediately so it cannot appear in subsequent logs
-          echo "::add-mask::${EDDSA_SIG}"
-
           DMG_LENGTH=$(echo "$SIGN_OUTPUT" | sed -n 's/.*length="\([^"]*\)".*/\1/p')
 
           if [ -z "$DMG_LENGTH" ]; then
