@@ -161,7 +161,7 @@ jobs:
           xcrun stapler staple "$DMG"
 
       - name: Upload DMG artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: macos-dmg
           path: Submersion-*.dmg
@@ -290,7 +290,7 @@ jobs:
           Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "Submersion-${env:TAG_NAME}-Windows.zip"
 
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: windows-zip
           path: Submersion-*.zip
@@ -345,7 +345,7 @@ jobs:
           tar czf "$GITHUB_WORKSPACE/Submersion-${TAG_NAME}-Linux.tar.gz" .
 
       - name: Upload Linux artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: linux-tar
           path: Submersion-*.tar.gz
@@ -414,7 +414,7 @@ jobs:
             "Submersion-${TAG_NAME}-Android.apk"
 
       - name: Upload Android artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: android-apk
           path: Submersion-*.apk
@@ -563,7 +563,7 @@ jobs:
           mv ios/build/Submersion.ipa "Submersion-${TAG_NAME}-iOS.ipa"
 
       - name: Upload iOS artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ios-ipa
           path: Submersion-*.ipa
@@ -608,14 +608,14 @@ jobs:
         run: sha256sum Submersion-* > checksums-sha256.txt
 
       - name: Upload appcast artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: appcast
           path: appcast.xml
           retention-days: 5
 
       - name: Upload checksums artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: checksums
           path: checksums-sha256.txt
