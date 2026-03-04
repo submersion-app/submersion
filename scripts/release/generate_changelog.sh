@@ -53,7 +53,15 @@ if [ -z "$SEMVER" ]; then
 fi
 
 # --- Find previous tag ---
-PREV_TAG=$(git describe --tags --abbrev=0 HEAD 2>/dev/null || echo "")
+# When HEAD itself is tagged (e.g., during CI release), git describe returns
+# the current tag, producing an empty commit range. Detect this and use the
+# parent commit to find the *previous* tag instead.
+CURRENT_TAG=$(git describe --tags --exact-match HEAD 2>/dev/null || echo "")
+if [ -n "$CURRENT_TAG" ]; then
+  PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+else
+  PREV_TAG=$(git describe --tags --abbrev=0 HEAD 2>/dev/null || echo "")
+fi
 
 if [ -n "$PREV_TAG" ]; then
   COMMIT_RANGE="${PREV_TAG}..HEAD"
