@@ -4205,5 +4205,110 @@
   "weightCalc_tankLine": "Bloc ({tankMaterial}) : {adjustment} kg",
   "weightCalc_title": "Calcul du lestage :",
   "weightCalc_total": "Total : {total} kg",
-  "weightCalc_waterLine": "Eau ({waterType}) : {adjustment} kg"
+  "weightCalc_waterLine": "Eau ({waterType}) : {adjustment} kg",
+  "media_diveScan_scanTooltip": "Rechercher des photos dans la galerie",
+  "media_diveScan_noPhotosFound": "Aucune nouvelle photo trouvee pres de cette plongee",
+  "media_diveScan_accessDenied": "L'acces a la phototeque est requis pour rechercher des photos",
+  "media_diveScan_foundPhotos": "{count, plural, =1{1 photo trouvee} other{{count} photos trouvees}} pres de cette plongee. Les lier ?",
+  "@media_diveScan_foundPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_foundTitle": "Photos trouvees",
+  "media_diveScan_linkButton": "Lier {count, plural, =1{la photo} other{les photos}}",
+  "@media_diveScan_linkButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_cancelButton": "Annuler",
+  "media_diveScan_error": "Erreur lors de la recherche dans la galerie : {error}",
+  "@media_diveScan_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_appearance_metricsEnabledCount": "{count} sur {total} actives",
+  "@settings_appearance_metricsEnabledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_addButton": "Ajouter {count} plongees",
+  "@trips_diveScan_addButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_added": "{count} plongees ajoutees au voyage",
+  "@trips_diveScan_added": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_cancel": "Annuler",
+  "trips_diveScan_currentTrip": "Actuellement dans : {tripName}",
+  "@trips_diveScan_currentTrip": {
+    "placeholders": {
+      "tripName": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_diveScan_deselectAll": "Tout deselectionner",
+  "trips_diveScan_error": "Erreur lors de la recherche de plongees : {error}",
+  "@trips_diveScan_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_diveScan_findButton": "Rechercher les plongees correspondantes",
+  "trips_diveScan_groupOtherTrips": "Dans d'autres voyages ({count})",
+  "@trips_diveScan_groupOtherTrips": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_groupUnassigned": "Non assignees ({count})",
+  "@trips_diveScan_groupUnassigned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_noMatches": "Aucune plongee correspondante trouvee",
+  "trips_diveScan_selectAll": "Tout selectionner",
+  "trips_diveScan_subtitle": "{count} plongees trouvees dans la plage de dates",
+  "@trips_diveScan_subtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_title": "Ajouter des plongees au voyage",
+  "trips_diveScan_unknownSite": "Site inconnu",
+  "diveImport_healthkit_attribution": "Fourni par Apple HealthKit",
+  "diveImport_healthkit_dataUsage": "Lit les activites de plongee sous-marine depuis Apple Health, y compris la profondeur, la duree, la temperature de l'eau et la frequence cardiaque. Ces donnees sont stockees localement dans votre carnet de plongee et ne sont jamais partagees avec des tiers."
 }

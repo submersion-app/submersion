@@ -8561,6 +8561,50 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_diveMediaSection_unlinkSuccess => 'Foto ontkoppeld';
 
   @override
+  String get media_diveScan_scanTooltip => 'Galerij doorzoeken naar foto\'s';
+
+  @override
+  String get media_diveScan_noPhotosFound =>
+      'Geen nieuwe foto\'s gevonden bij deze duik';
+
+  @override
+  String get media_diveScan_accessDenied =>
+      'Toegang tot de fotobibliotheek is vereist om foto\'s te zoeken';
+
+  @override
+  String media_diveScan_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s',
+      one: '1 foto',
+    );
+    return '$_temp0 gevonden bij deze duik. Koppelen?';
+  }
+
+  @override
+  String get media_diveScan_foundTitle => 'Foto\'s gevonden';
+
+  @override
+  String media_diveScan_linkButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Foto\'s',
+      one: 'Foto',
+    );
+    return '$_temp0 koppelen';
+  }
+
+  @override
+  String get media_diveScan_cancelButton => 'Annuleren';
+
+  @override
+  String media_diveScan_error(String error) {
+    return 'Fout bij het doorzoeken van de galerij: $error';
+  }
+
+  @override
   String get media_gpsBanner_addToSiteButton => 'Toevoegen aan duikstek';
 
   @override
@@ -9364,7 +9408,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String settings_appearance_metricsEnabledCount(int count, int total) {
-    return '$count of $total enabled';
+    return '$count van $total ingeschakeld';
   }
 
   @override
@@ -12681,59 +12725,59 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String trips_diveScan_addButton(int count) {
-    return 'Add $count Dives';
+    return '$count duiken toevoegen';
   }
 
   @override
   String trips_diveScan_added(int count) {
-    return 'Added $count dives to trip';
+    return '$count duiken toegevoegd aan reis';
   }
 
   @override
-  String get trips_diveScan_cancel => 'Cancel';
+  String get trips_diveScan_cancel => 'Annuleren';
 
   @override
   String trips_diveScan_currentTrip(String tripName) {
-    return 'Currently on: $tripName';
+    return 'Momenteel in: $tripName';
   }
 
   @override
-  String get trips_diveScan_deselectAll => 'Deselect all';
+  String get trips_diveScan_deselectAll => 'Alles deselecteren';
 
   @override
   String trips_diveScan_error(String error) {
-    return 'Error scanning for dives: $error';
+    return 'Fout bij het zoeken naar duiken: $error';
   }
 
   @override
-  String get trips_diveScan_findButton => 'Find matching dives';
+  String get trips_diveScan_findButton => 'Zoek overeenkomende duiken';
 
   @override
   String trips_diveScan_groupOtherTrips(int count) {
-    return 'On other trips ($count)';
+    return 'In andere reizen ($count)';
   }
 
   @override
   String trips_diveScan_groupUnassigned(int count) {
-    return 'Unassigned ($count)';
+    return 'Niet toegewezen ($count)';
   }
 
   @override
-  String get trips_diveScan_noMatches => 'No matching dives found';
+  String get trips_diveScan_noMatches => 'Geen overeenkomende duiken gevonden';
 
   @override
-  String get trips_diveScan_selectAll => 'Select all';
+  String get trips_diveScan_selectAll => 'Alles selecteren';
 
   @override
   String trips_diveScan_subtitle(int count) {
-    return '$count dives found in date range';
+    return '$count duiken gevonden in het datumbereik';
   }
 
   @override
-  String get trips_diveScan_title => 'Add Dives to Trip';
+  String get trips_diveScan_title => 'Duiken toevoegen aan reis';
 
   @override
-  String get trips_diveScan_unknownSite => 'Unknown Site';
+  String get trips_diveScan_unknownSite => 'Onbekende duiklocatie';
 
   @override
   String get trips_edit_appBar_add => 'Reis toevoegen';
@@ -14073,14 +14117,15 @@ class AppLocalizationsNl extends AppLocalizations {
       'Apple HealthKit Access Required';
 
   @override
-  String get diveImport_healthkit_attribution => 'Powered by Apple HealthKit';
+  String get diveImport_healthkit_attribution =>
+      'Mogelijk gemaakt door Apple HealthKit';
 
   @override
   String get diveImport_healthkit_closeTooltip => 'Apple Watch-import sluiten';
 
   @override
   String get diveImport_healthkit_dataUsage =>
-      'Reads underwater diving activities from Apple Health, including depth, duration, water temperature, and heart rate. This data is stored locally in your dive log and is never shared with third parties.';
+      'Leest onderwaterduikactiviteiten uit Apple Health, inclusief diepte, duur, watertemperatuur en hartslag. Deze gegevens worden lokaal opgeslagen in uw duiklogboek en worden nooit gedeeld met derden.';
 
   @override
   String get diveImport_healthkit_dateFrom => 'Van';

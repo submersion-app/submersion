@@ -4205,5 +4205,110 @@
   "weightCalc_tankLine": "Palack ({tankMaterial}): {adjustment} kg",
   "weightCalc_title": "Sulyszamitas:",
   "weightCalc_total": "Osszes: {total} kg",
-  "weightCalc_waterLine": "Viz ({waterType}): {adjustment} kg"
+  "weightCalc_waterLine": "Viz ({waterType}): {adjustment} kg",
+  "media_diveScan_scanTooltip": "Galeria keresese fotokert",
+  "media_diveScan_noPhotosFound": "Nem talalhatok uj fotok ezen a merules kozeleben",
+  "media_diveScan_accessDenied": "A fotokonyvtar hozzaferese szukseges a fotok keresesehez",
+  "media_diveScan_foundPhotos": "{count, plural, =1{1 foto} other{{count} foto}} talalhato ezen a merules kozeleben. Osszekotes?",
+  "@media_diveScan_foundPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_foundTitle": "Fotok talalva",
+  "media_diveScan_linkButton": "{count, plural, =1{Foto} other{Fotok}} osszekapcsolasa",
+  "@media_diveScan_linkButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_cancelButton": "Megse",
+  "media_diveScan_error": "Hiba a galeria keresesekor: {error}",
+  "@media_diveScan_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_appearance_metricsEnabledCount": "{count} / {total} engedelyezve",
+  "@settings_appearance_metricsEnabledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_addButton": "{count} merules hozzaadasa",
+  "@trips_diveScan_addButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_added": "{count} merules hozzaadva az uthoz",
+  "@trips_diveScan_added": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_cancel": "Megse",
+  "trips_diveScan_currentTrip": "Jelenleg: {tripName}",
+  "@trips_diveScan_currentTrip": {
+    "placeholders": {
+      "tripName": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_diveScan_deselectAll": "Osszes kivalasztas torlese",
+  "trips_diveScan_error": "Hiba a merulesek keresesekor: {error}",
+  "@trips_diveScan_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_diveScan_findButton": "Egyezo merulesek keresese",
+  "trips_diveScan_groupOtherTrips": "Mas utakon ({count})",
+  "@trips_diveScan_groupOtherTrips": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_groupUnassigned": "Nem hozzarendelt ({count})",
+  "@trips_diveScan_groupUnassigned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_noMatches": "Nem talalhatok egyezo merulesek",
+  "trips_diveScan_selectAll": "Osszes kivalasztasa",
+  "trips_diveScan_subtitle": "{count} merules talalhato a datumtartomanyban",
+  "@trips_diveScan_subtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_title": "Merulesek hozzaadasa az uthoz",
+  "trips_diveScan_unknownSite": "Ismeretlen helyszin",
+  "diveImport_healthkit_attribution": "Az Apple HealthKit altal biztositva",
+  "diveImport_healthkit_dataUsage": "Vizalatti meruleseket olvas az Apple Health-bol, beleertve a melyseg, idotartam, vizhomerseklet es pulzusszam adatokat. Ezek az adatok helyben tarolodnak a merulesnaplobajaban, es soha nem kerulnek megosztasra harmadik felekkel."
 }

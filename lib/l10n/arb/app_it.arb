@@ -4205,5 +4205,110 @@
   "weightCalc_tankLine": "Bombola ({tankMaterial}): {adjustment} kg",
   "weightCalc_title": "Calcolo zavorra:",
   "weightCalc_total": "Totale: {total} kg",
-  "weightCalc_waterLine": "Acqua ({waterType}): {adjustment} kg"
+  "weightCalc_waterLine": "Acqua ({waterType}): {adjustment} kg",
+  "media_diveScan_scanTooltip": "Cerca foto nella galleria",
+  "media_diveScan_noPhotosFound": "Nessuna nuova foto trovata vicino a questa immersione",
+  "media_diveScan_accessDenied": "L'accesso alla libreria foto e necessario per cercare le foto",
+  "media_diveScan_foundPhotos": "{count, plural, =1{Trovata 1 foto} other{Trovate {count} foto}} vicino a questa immersione. Collegare?",
+  "@media_diveScan_foundPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_foundTitle": "Foto trovate",
+  "media_diveScan_linkButton": "Collega {count, plural, =1{foto} other{foto}}",
+  "@media_diveScan_linkButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_cancelButton": "Annulla",
+  "media_diveScan_error": "Errore durante la ricerca nella galleria: {error}",
+  "@media_diveScan_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_appearance_metricsEnabledCount": "{count} di {total} abilitati",
+  "@settings_appearance_metricsEnabledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_addButton": "Aggiungi {count} immersioni",
+  "@trips_diveScan_addButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_added": "{count} immersioni aggiunte al viaggio",
+  "@trips_diveScan_added": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_cancel": "Annulla",
+  "trips_diveScan_currentTrip": "Attualmente in: {tripName}",
+  "@trips_diveScan_currentTrip": {
+    "placeholders": {
+      "tripName": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_diveScan_deselectAll": "Deseleziona tutto",
+  "trips_diveScan_error": "Errore nella ricerca delle immersioni: {error}",
+  "@trips_diveScan_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_diveScan_findButton": "Trova immersioni corrispondenti",
+  "trips_diveScan_groupOtherTrips": "In altri viaggi ({count})",
+  "@trips_diveScan_groupOtherTrips": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_groupUnassigned": "Non assegnate ({count})",
+  "@trips_diveScan_groupUnassigned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_noMatches": "Nessuna immersione corrispondente trovata",
+  "trips_diveScan_selectAll": "Seleziona tutto",
+  "trips_diveScan_subtitle": "{count} immersioni trovate nell'intervallo di date",
+  "@trips_diveScan_subtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_title": "Aggiungi immersioni al viaggio",
+  "trips_diveScan_unknownSite": "Sito sconosciuto",
+  "diveImport_healthkit_attribution": "Fornito da Apple HealthKit",
+  "diveImport_healthkit_dataUsage": "Legge le attivita di immersione subacquea da Apple Health, inclusi profondita, durata, temperatura dell'acqua e frequenza cardiaca. Questi dati vengono archiviati localmente nel tuo registro immersioni e non vengono mai condivisi con terze parti."
 }

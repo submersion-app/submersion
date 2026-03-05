@@ -8399,6 +8399,50 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_diveMediaSection_unlinkSuccess => 'קישור התמונה בוטל';
 
   @override
+  String get media_diveScan_scanTooltip => 'סרוק גלריה לחיפוש תמונות';
+
+  @override
+  String get media_diveScan_noPhotosFound =>
+      'לא נמצאו תמונות חדשות ליד צלילה זו';
+
+  @override
+  String get media_diveScan_accessDenied =>
+      'נדרשת גישה לספריית התמונות כדי לסרוק תמונות';
+
+  @override
+  String media_diveScan_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות',
+      one: 'תמונה אחת',
+    );
+    return 'נמצאו $_temp0 ליד צלילה זו. לקשר?';
+  }
+
+  @override
+  String get media_diveScan_foundTitle => 'נמצאו תמונות';
+
+  @override
+  String media_diveScan_linkButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'תמונות',
+      one: 'תמונה',
+    );
+    return 'קשר $_temp0';
+  }
+
+  @override
+  String get media_diveScan_cancelButton => 'ביטול';
+
+  @override
+  String media_diveScan_error(String error) {
+    return 'שגיאה בסריקת הגלריה: $error';
+  }
+
+  @override
   String get media_gpsBanner_addToSiteButton => 'הוסף לאתר';
 
   @override
@@ -9187,7 +9231,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String settings_appearance_metricsEnabledCount(int count, int total) {
-    return '$count of $total enabled';
+    return '$count מתוך $total מופעלים';
   }
 
   @override
@@ -12436,59 +12480,59 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String trips_diveScan_addButton(int count) {
-    return 'Add $count Dives';
+    return 'הוסף $count צלילות';
   }
 
   @override
   String trips_diveScan_added(int count) {
-    return 'Added $count dives to trip';
+    return 'נוספו $count צלילות לטיול';
   }
 
   @override
-  String get trips_diveScan_cancel => 'Cancel';
+  String get trips_diveScan_cancel => 'ביטול';
 
   @override
   String trips_diveScan_currentTrip(String tripName) {
-    return 'Currently on: $tripName';
+    return 'כרגע ב: $tripName';
   }
 
   @override
-  String get trips_diveScan_deselectAll => 'Deselect all';
+  String get trips_diveScan_deselectAll => 'בטל בחירת הכל';
 
   @override
   String trips_diveScan_error(String error) {
-    return 'Error scanning for dives: $error';
+    return 'שגיאה בחיפוש צלילות: $error';
   }
 
   @override
-  String get trips_diveScan_findButton => 'Find matching dives';
+  String get trips_diveScan_findButton => 'מצא צלילות תואמות';
 
   @override
   String trips_diveScan_groupOtherTrips(int count) {
-    return 'On other trips ($count)';
+    return 'בטיולים אחרים ($count)';
   }
 
   @override
   String trips_diveScan_groupUnassigned(int count) {
-    return 'Unassigned ($count)';
+    return 'לא משויכות ($count)';
   }
 
   @override
-  String get trips_diveScan_noMatches => 'No matching dives found';
+  String get trips_diveScan_noMatches => 'לא נמצאו צלילות תואמות';
 
   @override
-  String get trips_diveScan_selectAll => 'Select all';
+  String get trips_diveScan_selectAll => 'בחר הכל';
 
   @override
   String trips_diveScan_subtitle(int count) {
-    return '$count dives found in date range';
+    return 'נמצאו $count צלילות בטווח התאריכים';
   }
 
   @override
-  String get trips_diveScan_title => 'Add Dives to Trip';
+  String get trips_diveScan_title => 'הוסף צלילות לטיול';
 
   @override
-  String get trips_diveScan_unknownSite => 'Unknown Site';
+  String get trips_diveScan_unknownSite => 'אתר לא ידוע';
 
   @override
   String get trips_edit_appBar_add => 'הוסף טיול';
@@ -13811,14 +13855,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'Apple HealthKit Access Required';
 
   @override
-  String get diveImport_healthkit_attribution => 'Powered by Apple HealthKit';
+  String get diveImport_healthkit_attribution => 'מופעל על ידי Apple HealthKit';
 
   @override
   String get diveImport_healthkit_closeTooltip => 'סגור ייבוא Apple Watch';
 
   @override
   String get diveImport_healthkit_dataUsage =>
-      'Reads underwater diving activities from Apple Health, including depth, duration, water temperature, and heart rate. This data is stored locally in your dive log and is never shared with third parties.';
+      'קורא פעילויות צלילה תת-ימיות מ-Apple Health, כולל עומק, משך, טמפרטורת מים ודופק. נתונים אלה מאוחסנים מקומית ביומן הצלילה שלך ולעולם אינם משותפים עם צדדים שלישיים.';
 
   @override
   String get diveImport_healthkit_dateFrom => 'מתאריך';

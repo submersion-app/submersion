@@ -8629,6 +8629,50 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_diveMediaSection_unlinkSuccess => 'Foto scollegata';
 
   @override
+  String get media_diveScan_scanTooltip => 'Cerca foto nella galleria';
+
+  @override
+  String get media_diveScan_noPhotosFound =>
+      'Nessuna nuova foto trovata vicino a questa immersione';
+
+  @override
+  String get media_diveScan_accessDenied =>
+      'L\'accesso alla libreria foto e necessario per cercare le foto';
+
+  @override
+  String media_diveScan_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Trovate $count foto',
+      one: 'Trovata 1 foto',
+    );
+    return '$_temp0 vicino a questa immersione. Collegare?';
+  }
+
+  @override
+  String get media_diveScan_foundTitle => 'Foto trovate';
+
+  @override
+  String media_diveScan_linkButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'foto',
+      one: 'foto',
+    );
+    return 'Collega $_temp0';
+  }
+
+  @override
+  String get media_diveScan_cancelButton => 'Annulla';
+
+  @override
+  String media_diveScan_error(String error) {
+    return 'Errore durante la ricerca nella galleria: $error';
+  }
+
+  @override
   String get media_gpsBanner_addToSiteButton => 'Aggiungi al sito';
 
   @override
@@ -9441,7 +9485,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String settings_appearance_metricsEnabledCount(int count, int total) {
-    return '$count of $total enabled';
+    return '$count di $total abilitati';
   }
 
   @override
@@ -12796,59 +12840,60 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String trips_diveScan_addButton(int count) {
-    return 'Add $count Dives';
+    return 'Aggiungi $count immersioni';
   }
 
   @override
   String trips_diveScan_added(int count) {
-    return 'Added $count dives to trip';
+    return '$count immersioni aggiunte al viaggio';
   }
 
   @override
-  String get trips_diveScan_cancel => 'Cancel';
+  String get trips_diveScan_cancel => 'Annulla';
 
   @override
   String trips_diveScan_currentTrip(String tripName) {
-    return 'Currently on: $tripName';
+    return 'Attualmente in: $tripName';
   }
 
   @override
-  String get trips_diveScan_deselectAll => 'Deselect all';
+  String get trips_diveScan_deselectAll => 'Deseleziona tutto';
 
   @override
   String trips_diveScan_error(String error) {
-    return 'Error scanning for dives: $error';
+    return 'Errore nella ricerca delle immersioni: $error';
   }
 
   @override
-  String get trips_diveScan_findButton => 'Find matching dives';
+  String get trips_diveScan_findButton => 'Trova immersioni corrispondenti';
 
   @override
   String trips_diveScan_groupOtherTrips(int count) {
-    return 'On other trips ($count)';
+    return 'In altri viaggi ($count)';
   }
 
   @override
   String trips_diveScan_groupUnassigned(int count) {
-    return 'Unassigned ($count)';
+    return 'Non assegnate ($count)';
   }
 
   @override
-  String get trips_diveScan_noMatches => 'No matching dives found';
+  String get trips_diveScan_noMatches =>
+      'Nessuna immersione corrispondente trovata';
 
   @override
-  String get trips_diveScan_selectAll => 'Select all';
+  String get trips_diveScan_selectAll => 'Seleziona tutto';
 
   @override
   String trips_diveScan_subtitle(int count) {
-    return '$count dives found in date range';
+    return '$count immersioni trovate nell\'intervallo di date';
   }
 
   @override
-  String get trips_diveScan_title => 'Add Dives to Trip';
+  String get trips_diveScan_title => 'Aggiungi immersioni al viaggio';
 
   @override
-  String get trips_diveScan_unknownSite => 'Unknown Site';
+  String get trips_diveScan_unknownSite => 'Sito sconosciuto';
 
   @override
   String get trips_edit_appBar_add => 'Aggiungi viaggio';
@@ -14192,7 +14237,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Apple HealthKit Access Required';
 
   @override
-  String get diveImport_healthkit_attribution => 'Powered by Apple HealthKit';
+  String get diveImport_healthkit_attribution => 'Fornito da Apple HealthKit';
 
   @override
   String get diveImport_healthkit_closeTooltip =>
@@ -14200,7 +14245,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_dataUsage =>
-      'Reads underwater diving activities from Apple Health, including depth, duration, water temperature, and heart rate. This data is stored locally in your dive log and is never shared with third parties.';
+      'Legge le attivita di immersione subacquea da Apple Health, inclusi profondita, durata, temperatura dell\'acqua e frequenza cardiaca. Questi dati vengono archiviati localmente nel tuo registro immersioni e non vengono mai condivisi con terze parti.';
 
   @override
   String get diveImport_healthkit_dateFrom => 'Da';

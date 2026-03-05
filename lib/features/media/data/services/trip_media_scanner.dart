@@ -198,6 +198,39 @@ class TripMediaScanner {
     );
   }
 
+  /// Scan the device gallery for photos near a single dive.
+  ///
+  /// Uses the dive's entry/exit times with a [bufferMinutes] window on each
+  /// side. Filters out photos whose asset IDs are in [existingAssetIds].
+  ///
+  /// Returns a list of new [AssetInfo] found, or null if permission is denied.
+  static Future<List<AssetInfo>?> scanGalleryForDive({
+    required Dive dive,
+    required Set<String> existingAssetIds,
+    required PhotoPickerService photoPickerService,
+    int bufferMinutes = defaultBufferMinutes,
+  }) async {
+    final permission = await photoPickerService.requestPermission();
+    if (permission != PhotoPermissionStatus.authorized &&
+        permission != PhotoPermissionStatus.limited) {
+      return null;
+    }
+
+    final (entryTime, exitTime) = _getDiveBounds(dive);
+    final bufferDuration = Duration(minutes: bufferMinutes);
+    final rangeStart = entryTime.subtract(bufferDuration);
+    final rangeEnd = exitTime.add(bufferDuration);
+
+    final assets = await photoPickerService.getAssetsInDateRange(
+      rangeStart,
+      rangeEnd,
+    );
+
+    return assets
+        .where((asset) => !existingAssetIds.contains(asset.id))
+        .toList();
+  }
+
   /// Get the effective entry and exit times for a dive.
   ///
   /// Falls back to dateTime and dateTime + duration if entry/exit times not set.

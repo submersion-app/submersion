@@ -14959,6 +14959,54 @@ abstract class AppLocalizations {
   /// **'Photo unlinked'**
   String get media_diveMediaSection_unlinkSuccess;
 
+  /// No description provided for @media_diveScan_scanTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan gallery for photos'**
+  String get media_diveScan_scanTooltip;
+
+  /// No description provided for @media_diveScan_noPhotosFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No new photos found near this dive'**
+  String get media_diveScan_noPhotosFound;
+
+  /// No description provided for @media_diveScan_accessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo library access is required to scan for photos'**
+  String get media_diveScan_accessDenied;
+
+  /// No description provided for @media_diveScan_foundPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Found {count} {count, plural, =1{photo} other{photos}} near this dive. Link {count, plural, =1{it} other{them}}?'**
+  String media_diveScan_foundPhotos(int count);
+
+  /// No description provided for @media_diveScan_foundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos Found'**
+  String get media_diveScan_foundTitle;
+
+  /// No description provided for @media_diveScan_linkButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Link {count, plural, =1{Photo} other{Photos}}'**
+  String media_diveScan_linkButton(int count);
+
+  /// No description provided for @media_diveScan_cancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get media_diveScan_cancelButton;
+
+  /// No description provided for @media_diveScan_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Error scanning gallery: {error}'**
+  String media_diveScan_error(String error);
+
   /// No description provided for @media_gpsBanner_addToSiteButton.
   ///
   /// In en, this message translates to:

@@ -4205,5 +4205,110 @@
   "weightCalc_tankLine": "Fles ({tankMaterial}): {adjustment} kg",
   "weightCalc_title": "Gewichtsberekening:",
   "weightCalc_total": "Totaal: {total} kg",
-  "weightCalc_waterLine": "Water ({waterType}): {adjustment} kg"
+  "weightCalc_waterLine": "Water ({waterType}): {adjustment} kg",
+  "media_diveScan_scanTooltip": "Galerij doorzoeken naar foto's",
+  "media_diveScan_noPhotosFound": "Geen nieuwe foto's gevonden bij deze duik",
+  "media_diveScan_accessDenied": "Toegang tot de fotobibliotheek is vereist om foto's te zoeken",
+  "media_diveScan_foundPhotos": "{count, plural, =1{1 foto} other{{count} foto's}} gevonden bij deze duik. Koppelen?",
+  "@media_diveScan_foundPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_foundTitle": "Foto's gevonden",
+  "media_diveScan_linkButton": "{count, plural, =1{Foto} other{Foto's}} koppelen",
+  "@media_diveScan_linkButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_cancelButton": "Annuleren",
+  "media_diveScan_error": "Fout bij het doorzoeken van de galerij: {error}",
+  "@media_diveScan_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_appearance_metricsEnabledCount": "{count} van {total} ingeschakeld",
+  "@settings_appearance_metricsEnabledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_addButton": "{count} duiken toevoegen",
+  "@trips_diveScan_addButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_added": "{count} duiken toegevoegd aan reis",
+  "@trips_diveScan_added": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_cancel": "Annuleren",
+  "trips_diveScan_currentTrip": "Momenteel in: {tripName}",
+  "@trips_diveScan_currentTrip": {
+    "placeholders": {
+      "tripName": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_diveScan_deselectAll": "Alles deselecteren",
+  "trips_diveScan_error": "Fout bij het zoeken naar duiken: {error}",
+  "@trips_diveScan_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_diveScan_findButton": "Zoek overeenkomende duiken",
+  "trips_diveScan_groupOtherTrips": "In andere reizen ({count})",
+  "@trips_diveScan_groupOtherTrips": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_groupUnassigned": "Niet toegewezen ({count})",
+  "@trips_diveScan_groupUnassigned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_noMatches": "Geen overeenkomende duiken gevonden",
+  "trips_diveScan_selectAll": "Alles selecteren",
+  "trips_diveScan_subtitle": "{count} duiken gevonden in het datumbereik",
+  "@trips_diveScan_subtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_title": "Duiken toevoegen aan reis",
+  "trips_diveScan_unknownSite": "Onbekende duiklocatie",
+  "diveImport_healthkit_attribution": "Mogelijk gemaakt door Apple HealthKit",
+  "diveImport_healthkit_dataUsage": "Leest onderwaterduikactiviteiten uit Apple Health, inclusief diepte, duur, watertemperatuur en hartslag. Deze gegevens worden lokaal opgeslagen in uw duiklogboek en worden nooit gedeeld met derden."
 }

@@ -4205,5 +4205,110 @@
   "weightCalc_tankLine": "Cilindro ({tankMaterial}): {adjustment} kg",
   "weightCalc_title": "Calculo de Lastro:",
   "weightCalc_total": "Total: {total} kg",
-  "weightCalc_waterLine": "Agua ({waterType}): {adjustment} kg"
+  "weightCalc_waterLine": "Agua ({waterType}): {adjustment} kg",
+  "media_diveScan_scanTooltip": "Pesquisar fotos na galeria",
+  "media_diveScan_noPhotosFound": "Nenhuma foto nova encontrada perto deste mergulho",
+  "media_diveScan_accessDenied": "E necessario acesso a biblioteca de fotos para pesquisar fotos",
+  "media_diveScan_foundPhotos": "{count, plural, =1{Encontrada 1 foto} other{Encontradas {count} fotos}} perto deste mergulho. Vincular?",
+  "@media_diveScan_foundPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_foundTitle": "Fotos encontradas",
+  "media_diveScan_linkButton": "Vincular {count, plural, =1{foto} other{fotos}}",
+  "@media_diveScan_linkButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_cancelButton": "Cancelar",
+  "media_diveScan_error": "Erro ao pesquisar na galeria: {error}",
+  "@media_diveScan_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_appearance_metricsEnabledCount": "{count} de {total} ativados",
+  "@settings_appearance_metricsEnabledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_addButton": "Adicionar {count} mergulhos",
+  "@trips_diveScan_addButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_added": "{count} mergulhos adicionados a viagem",
+  "@trips_diveScan_added": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_cancel": "Cancelar",
+  "trips_diveScan_currentTrip": "Atualmente em: {tripName}",
+  "@trips_diveScan_currentTrip": {
+    "placeholders": {
+      "tripName": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_diveScan_deselectAll": "Desmarcar tudo",
+  "trips_diveScan_error": "Erro ao procurar mergulhos: {error}",
+  "@trips_diveScan_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_diveScan_findButton": "Encontrar mergulhos correspondentes",
+  "trips_diveScan_groupOtherTrips": "Em outras viagens ({count})",
+  "@trips_diveScan_groupOtherTrips": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_groupUnassigned": "Nao atribuidos ({count})",
+  "@trips_diveScan_groupUnassigned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_noMatches": "Nenhum mergulho correspondente encontrado",
+  "trips_diveScan_selectAll": "Selecionar tudo",
+  "trips_diveScan_subtitle": "{count} mergulhos encontrados no intervalo de datas",
+  "@trips_diveScan_subtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_title": "Adicionar mergulhos a viagem",
+  "trips_diveScan_unknownSite": "Local desconhecido",
+  "diveImport_healthkit_attribution": "Fornecido por Apple HealthKit",
+  "diveImport_healthkit_dataUsage": "Le atividades de mergulho subaquatico do Apple Health, incluindo profundidade, duracao, temperatura da agua e frequencia cardiaca. Esses dados sao armazenados localmente no seu registro de mergulho e nunca sao compartilhados com terceiros."
 }

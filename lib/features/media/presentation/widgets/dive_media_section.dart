@@ -16,8 +16,14 @@ import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 class DiveMediaSection extends ConsumerStatefulWidget {
   final String diveId;
   final VoidCallback? onAddPressed;
+  final VoidCallback? onScanPressed;
 
-  const DiveMediaSection({super.key, required this.diveId, this.onAddPressed});
+  const DiveMediaSection({
+    super.key,
+    required this.diveId,
+    this.onAddPressed,
+    this.onScanPressed,
+  });
 
   @override
   ConsumerState<DiveMediaSection> createState() => _DiveMediaSectionState();
@@ -151,6 +157,16 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       style: textTheme.titleMedium,
                     ),
                   ),
+                  if (widget.onScanPressed != null)
+                    IconButton(
+                      icon: Icon(
+                        Icons.image_search,
+                        color: colorScheme.primary,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      tooltip: context.l10n.media_diveScan_scanTooltip,
+                      onPressed: widget.onScanPressed,
+                    ),
                   if (widget.onAddPressed != null)
                     IconButton(
                       icon: Icon(

@@ -4564,6 +4564,35 @@
   "media_diveMediaSection_unlinkSelectedSuccess": "Unlinked {count} items",
   "media_diveMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
   "media_diveMediaSection_unlinkSuccess": "Photo unlinked",
+  "media_diveScan_scanTooltip": "Scan gallery for photos",
+  "media_diveScan_noPhotosFound": "No new photos found near this dive",
+  "media_diveScan_accessDenied": "Photo library access is required to scan for photos",
+  "media_diveScan_foundPhotos": "Found {count} {count, plural, =1{photo} other{photos}} near this dive. Link {count, plural, =1{it} other{them}}?",
+  "@media_diveScan_foundPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_foundTitle": "Photos Found",
+  "media_diveScan_linkButton": "Link {count, plural, =1{Photo} other{Photos}}",
+  "@media_diveScan_linkButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_cancelButton": "Cancel",
+  "media_diveScan_error": "Error scanning gallery: {error}",
+  "@media_diveScan_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "media_gpsBanner_addToSiteButton": "Add to Site",
   "media_gpsBanner_coordinates": "Coordinates: {latitude}, {longitude}",
   "media_gpsBanner_createSiteButton": "Create Site",

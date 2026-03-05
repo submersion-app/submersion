@@ -8487,6 +8487,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_diveMediaSection_unlinkSuccess => 'Photo unlinked';
 
   @override
+  String get media_diveScan_scanTooltip => 'Scan gallery for photos';
+
+  @override
+  String get media_diveScan_noPhotosFound =>
+      'No new photos found near this dive';
+
+  @override
+  String get media_diveScan_accessDenied =>
+      'Photo library access is required to scan for photos';
+
+  @override
+  String media_diveScan_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'photos',
+      one: 'photo',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'them',
+      one: 'it',
+    );
+    return 'Found $count $_temp0 near this dive. Link $_temp1?';
+  }
+
+  @override
+  String get media_diveScan_foundTitle => 'Photos Found';
+
+  @override
+  String media_diveScan_linkButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Photos',
+      one: 'Photo',
+    );
+    return 'Link $_temp0';
+  }
+
+  @override
+  String get media_diveScan_cancelButton => 'Cancel';
+
+  @override
+  String media_diveScan_error(String error) {
+    return 'Error scanning gallery: $error';
+  }
+
+  @override
   String get media_gpsBanner_addToSiteButton => 'Add to Site';
 
   @override

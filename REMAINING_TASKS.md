@@ -27,7 +27,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ### Category 8: Digital Cards (eCards)
 
-- [ ] Certification wallet view (card-style UI)
 - [ ] Export cert card as image (shareable)
 
 ### Category 11: Convenience Tools
@@ -44,18 +43,6 @@ This document contains only the features and tasks that are **not yet completed*
 ---
 
 # v2.0 Planned Features
-
-## Category 1: Core Dive Log Entry
-
-### 1.2 Location & Site
-
-| Feature | Notes |
-|---------|-------|
-| Liveaboard tracking | Specialized trip type |
-
-- [ ] Trip auto-add dives from trip time range
-
----
 
 ## Category 2: Dive Profile & Telemetry
 
@@ -222,14 +209,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ## Category 12: Cloud Sync, Backup & Multi-Device
 
-### 12.1 Cloud Accounts
-
-**Tasks:**
-
-- [ ] Backend service for user accounts (Firebase, Supabase)
-- [ ] User authentication (email/password, OAuth)
-- [ ] Privacy policy and data handling docs
-
 ### 12.2 Synchronization
 
 | Feature | Notes |
@@ -265,7 +244,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 **Tasks:**
 
-- [ ] ePub export (electronic book for showing experience digitally)
 - [ ] HTML export (static website with CSS, images, interactive map)
 - [ ] MySQL dump export (for migration to other systems)
 

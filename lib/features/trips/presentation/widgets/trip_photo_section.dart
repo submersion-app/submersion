@@ -65,23 +65,17 @@ class TripPhotoSection extends ConsumerWidget {
                   error: (error, stack) => const SizedBox.shrink(),
                 ),
                 const Spacer(),
-                // Camera icon button for scanning
-                mediaCountAsync.when(
-                  data: (count) {
-                    if (count == 0) return const SizedBox.shrink();
-                    return IconButton(
-                      icon: Icon(
-                        Icons.photo_camera,
-                        color: colorScheme.primary,
-                      ),
-                      visualDensity: VisualDensity.compact,
-                      tooltip: context.l10n.trips_photos_tooltip_scan,
-                      onPressed: onScanPressed,
-                    );
-                  },
-                  loading: () => const SizedBox.shrink(),
-                  error: (error, stack) => const SizedBox.shrink(),
-                ),
+                // Scan icon button (always visible)
+                if (onScanPressed != null)
+                  IconButton(
+                    icon: Icon(
+                      Icons.image_search,
+                      color: colorScheme.primary,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                    tooltip: context.l10n.trips_photos_tooltip_scan,
+                    onPressed: onScanPressed,
+                  ),
               ],
             ),
             const SizedBox(height: 16),

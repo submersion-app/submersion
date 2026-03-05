@@ -52,7 +52,10 @@ import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/presentation/helpers/photo_import_helper.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_media_section.dart';
 import 'package:submersion/features/signatures/presentation/providers/signature_providers.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_capture_widget.dart';
@@ -3321,7 +3324,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         ),
                       )
                     : null,
-                trailing: const Icon(Icons.chevron_right, size: 20),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.type.displayName,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.chevron_right, size: 20),
+                  ],
+                ),
                 onTap: () => context.push('/equipment/${item.id}'),
               );
             }),
@@ -3534,6 +3549,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   Widget _buildMediaSection(BuildContext context, WidgetRef ref, Dive dive) {
     return DiveMediaSection(
       diveId: dive.id,
+      onScanPressed: () => _scanGalleryForDive(context, ref, dive),
       onAddPressed: () async {
         await PhotoImportHelper.importPhotosForDive(
           context: context,
@@ -3542,6 +3558,122 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         );
       },
     );
+  }
+
+  Future<void> _scanGalleryForDive(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+  ) async {
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final mediaRepo = ref.read(mediaRepositoryProvider);
+      final alreadyLinkedIds = await mediaRepo.getLinkedAssetIdsForDive(
+        dive.id,
+      );
+
+      final photoPickerService = ref.read(photoPickerServiceProvider);
+      final assets = await TripMediaScanner.scanGalleryForDive(
+        dive: dive,
+        existingAssetIds: alreadyLinkedIds,
+        photoPickerService: photoPickerService,
+      );
+
+      if (!context.mounted) return;
+      Navigator.of(context, rootNavigator: true).pop(); // Dismiss loading
+
+      if (assets == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.media_diveScan_accessDenied)),
+        );
+        return;
+      }
+
+      if (assets.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.media_diveScan_noPhotosFound)),
+        );
+        return;
+      }
+
+      // Confirm with user
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(context.l10n.media_diveScan_foundTitle),
+          content: Text(context.l10n.media_diveScan_foundPhotos(assets.length)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(context.l10n.media_diveScan_cancelButton),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text(
+                context.l10n.media_diveScan_linkButton(assets.length),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true || !context.mounted) return;
+
+      // Show importing dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => AlertDialog(
+          content: Row(
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(width: 24),
+              Expanded(
+                child: Text(
+                  context.l10n.media_import_importingPhotos(assets.length),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      final importService = ref.read(mediaImportServiceProvider);
+      final result = await importService.importPhotosForDive(
+        selectedAssets: assets,
+        dive: dive,
+      );
+
+      if (!context.mounted) return;
+      Navigator.of(context, rootNavigator: true).pop(); // Dismiss importing
+
+      // Refresh media providers
+      ref.invalidate(mediaForDiveProvider(dive.id));
+      ref.invalidate(mediaCountForDiveProvider(dive.id));
+      ref.invalidate(divePhotoGpsProvider(dive.id));
+      ref.invalidate(allDivePhotoGpsProvider(dive.id));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.l10n.media_import_importedPhotos(result.imported.length),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.media_diveScan_error('$e'))),
+        );
+      }
+    }
   }
 
   Widget _buildNotesSection(BuildContext context, Dive dive) {

@@ -379,33 +379,102 @@ class _MoreOptionsButton extends ConsumerWidget {
   }
 
   void _showMoreOptions(BuildContext context, MetricSourceInfo? sourceInfo) {
-    final colorScheme = Theme.of(context).colorScheme;
     final renderBox = context.findRenderObject() as RenderBox;
-    final offset = renderBox.localToGlobal(Offset.zero);
+    final buttonOffset = renderBox.localToGlobal(Offset.zero);
+    final buttonSize = renderBox.size;
 
-    showMenu<void>(
+    showDialog<void>(
       context: context,
-      position: RelativeRect.fromLTRB(
-        offset.dx - 160, // Position to the left of button
-        offset.dy + renderBox.size.height,
-        offset.dx + renderBox.size.width,
-        offset.dy + renderBox.size.height + 400,
+      barrierColor: Colors.transparent,
+      builder: (dialogContext) => _ChartOptionsDialog(
+        config: config,
+        legendNotifier: legendNotifier,
+        anchorOffset: buttonOffset,
+        anchorSize: buttonSize,
       ),
-      items: _buildMenuItems(context, colorScheme, sourceInfo),
+    );
+  }
+}
+
+/// Persistent dialog for chart toggle options.
+///
+/// Uses [Consumer] to watch [profileLegendProvider] so checkbox states
+/// update live without closing the dialog. Dismissed by tapping outside
+/// (the transparent barrier).
+class _ChartOptionsDialog extends StatelessWidget {
+  final ProfileLegendConfig config;
+  final ProfileLegend legendNotifier;
+  final Offset anchorOffset;
+  final Size anchorSize;
+
+  const _ChartOptionsDialog({
+    required this.config,
+    required this.legendNotifier,
+    required this.anchorOffset,
+    required this.anchorSize,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    const edgePadding = 8.0;
+    const dialogMaxWidth = 280.0;
+
+    // Position below the button
+    final top = anchorOffset.dy + anchorSize.height + 4;
+
+    // Try to align the right edge of the dialog with the right edge of the
+    // button, but clamp so the dialog never overflows the screen edges.
+    final desiredRight = screenSize.width - anchorOffset.dx - anchorSize.width;
+    final maxRight = screenSize.width - dialogMaxWidth - edgePadding;
+    final right = desiredRight.clamp(edgePadding, maxRight);
+
+    return Stack(
+      children: [
+        Positioned(
+          top: top,
+          right: right,
+          child: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(12),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: dialogMaxWidth,
+                maxHeight: screenSize.height - top - 32,
+              ),
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final legendState = ref.watch(profileLegendProvider);
+                  final sourceInfo = ref.watch(metricSourceInfoProvider);
+
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: _buildItems(context, legendState, sourceInfo),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  List<PopupMenuEntry<void>> _buildMenuItems(
+  List<Widget> _buildItems(
     BuildContext context,
-    ColorScheme colorScheme,
+    ProfileLegendState legendState,
     MetricSourceInfo? sourceInfo,
   ) {
-    final items = <PopupMenuEntry<void>>[];
+    final items = <Widget>[];
 
     // Heart Rate
     if (config.hasHeartRateData) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_heartRate,
           color: Colors.red,
@@ -418,7 +487,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     // SAC Rate
     if (config.hasSacCurve) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_sacRate,
           color: Colors.teal,
@@ -431,7 +500,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     // Ascent Rate Colors
     if (config.hasAscentRates) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_ascentRate,
           color: Colors.lime.shade700,
@@ -444,7 +513,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     // Events
     if (config.hasEvents) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_events,
           color: Colors.amber,
@@ -459,13 +528,13 @@ class _MoreOptionsButton extends ConsumerWidget {
             config.hasPressureMarkers ||
             config.hasGasSwitches) &&
         items.isNotEmpty) {
-      items.add(const PopupMenuDivider());
+      items.add(const Divider(height: 1));
     }
 
     // Max Depth Marker
     if (config.hasMaxDepthMarker) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_maxDepth,
           color: Colors.red,
@@ -478,7 +547,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     // Pressure Threshold Markers
     if (config.hasPressureMarkers) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_pressureThresholds,
           color: Colors.orange,
@@ -491,7 +560,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     // Gas Switches
     if (config.hasGasSwitches) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_gasSwitches,
           color: GasColors.nitrox,
@@ -504,7 +573,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     // Multi-tank pressure toggles
     if (config.hasMultiTankPressure && config.tankPressures != null) {
       if (items.isNotEmpty) {
-        items.add(const PopupMenuDivider());
+        items.add(const Divider(height: 1));
       }
 
       final sortedTankIds = _sortedTankIds(config.tankPressures!.keys);
@@ -517,7 +586,7 @@ class _MoreOptionsButton extends ConsumerWidget {
         final label = tank?.name ?? context.l10n.diveLog_tank_title(i + 1);
 
         items.add(
-          _buildToggleMenuItem(
+          _buildToggleItem(
             context,
             label: label,
             color: color,
@@ -545,10 +614,10 @@ class _MoreOptionsButton extends ConsumerWidget {
         config.hasOtuData;
 
     if (hasAdvancedOptions && items.isNotEmpty) {
-      items.add(const PopupMenuDivider());
+      items.add(const Divider(height: 1));
     }
 
-    // Ceiling source selector (visibility toggle is in primary legend area)
+    // Ceiling source selector
     if (config.hasCeilingCurve) {
       items.add(
         _buildSourceSelector(
@@ -563,7 +632,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     // NDL
     if (config.hasNdlData) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: _sourceLabel(
             context.l10n.diveLog_legend_label_ndl,
@@ -587,10 +656,10 @@ class _MoreOptionsButton extends ConsumerWidget {
     // ppO2
     if (config.hasPpO2Data) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_ppO2,
-          color: const Color(0xFF00ACC1), // Cyan 600
+          color: const Color(0xFF00ACC1),
           isEnabled: legendState.showPpO2,
           onTap: legendNotifier.togglePpO2,
         ),
@@ -600,7 +669,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     // ppN2
     if (config.hasPpN2Data) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_ppN2,
           color: Colors.indigo,
@@ -613,7 +682,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     // ppHe
     if (config.hasPpHeData) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_ppHe,
           color: Colors.pink.shade300,
@@ -626,7 +695,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     // MOD
     if (config.hasModData) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_mod,
           color: Colors.deepOrange,
@@ -639,7 +708,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     // Density
     if (config.hasDensityData) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_gasDensity,
           color: Colors.brown,
@@ -652,7 +721,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     // GF%
     if (config.hasGfData) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_gfPercent,
           color: Colors.deepPurple,
@@ -665,7 +734,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     // Surface GF
     if (config.hasSurfaceGfData) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_surfaceGf,
           color: Colors.purple.shade300,
@@ -678,7 +747,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     // Mean Depth
     if (config.hasMeanDepthData) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_meanDepth,
           color: Colors.blueGrey,
@@ -691,14 +760,14 @@ class _MoreOptionsButton extends ConsumerWidget {
     // TTS
     if (config.hasTtsData) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: _sourceLabel(
             context.l10n.diveLog_legend_label_tts,
             legendState.ttsSource,
             sourceInfo?.ttsActual ?? MetricDataSource.calculated,
           ),
-          color: const Color(0xFFAD1457), // Pink 800
+          color: const Color(0xFFAD1457),
           isEnabled: legendState.showTts,
           onTap: legendNotifier.toggleTts,
         ),
@@ -715,14 +784,14 @@ class _MoreOptionsButton extends ConsumerWidget {
     // CNS%
     if (config.hasCnsData) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: _sourceLabel(
             context.l10n.diveLog_legend_label_cns,
             legendState.cnsSource,
             sourceInfo?.cnsActual ?? MetricDataSource.calculated,
           ),
-          color: const Color(0xFFE65100), // Orange 900
+          color: const Color(0xFFE65100),
           isEnabled: legendState.showCns,
           onTap: legendNotifier.toggleCns,
         ),
@@ -739,10 +808,10 @@ class _MoreOptionsButton extends ConsumerWidget {
     // OTU
     if (config.hasOtuData) {
       items.add(
-        _buildToggleMenuItem(
+        _buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_otu,
-          color: const Color(0xFF6D4C41), // Brown 600
+          color: const Color(0xFF6D4C41),
           isEnabled: legendState.showOtu,
           onTap: legendNotifier.toggleOtu,
         ),
@@ -752,58 +821,59 @@ class _MoreOptionsButton extends ConsumerWidget {
     return items;
   }
 
-  PopupMenuItem<void> _buildToggleMenuItem(
+  Widget _buildToggleItem(
     BuildContext context, {
     required String label,
     required Color color,
     required bool isEnabled,
     required VoidCallback onTap,
   }) {
-    return PopupMenuItem<void>(
+    return InkWell(
       onTap: onTap,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
-            size: 20,
-            color: isEnabled
-                ? color
-                : Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 8),
-          Container(
-            width: 16,
-            height: 4,
-            decoration: BoxDecoration(
-              color: isEnabled ? color : color.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
+              size: 20,
+              color: isEnabled
+                  ? color
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-          ),
-          const SizedBox(width: 8),
-          Text(label),
-        ],
+            const SizedBox(width: 8),
+            Container(
+              width: 16,
+              height: 4,
+              decoration: BoxDecoration(
+                color: isEnabled ? color : color.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Flexible(child: Text(label)),
+          ],
+        ),
       ),
     );
   }
 
-  /// Builds a source selector row for a metric that can come from a dive
-  /// computer or app calculation.
-  ///
-  /// When [metricName] is provided, the row shows the metric name prefix
-  /// (used when the visibility toggle is in the primary legend area rather
-  /// than the popup menu).
-  PopupMenuItem<void> _buildSourceSelector(
+  Widget _buildSourceSelector(
     BuildContext context, {
     required MetricDataSource currentSource,
     required VoidCallback onCycle,
     String? metricName,
   }) {
-    return PopupMenuItem<void>(
-      height: 36,
+    return InkWell(
       onTap: onCycle,
       child: Padding(
-        padding: EdgeInsets.only(left: metricName != null ? 0 : 28),
+        padding: EdgeInsets.only(
+          left: metricName != null ? 16 : 44,
+          right: 16,
+          top: 4,
+          bottom: 8,
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -8598,6 +8598,50 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_diveMediaSection_unlinkSuccess => 'Foto levalasztva';
 
   @override
+  String get media_diveScan_scanTooltip => 'Galeria keresese fotokert';
+
+  @override
+  String get media_diveScan_noPhotosFound =>
+      'Nem talalhatok uj fotok ezen a merules kozeleben';
+
+  @override
+  String get media_diveScan_accessDenied =>
+      'A fotokonyvtar hozzaferese szukseges a fotok keresesehez';
+
+  @override
+  String media_diveScan_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto',
+      one: '1 foto',
+    );
+    return '$_temp0 talalhato ezen a merules kozeleben. Osszekotes?';
+  }
+
+  @override
+  String get media_diveScan_foundTitle => 'Fotok talalva';
+
+  @override
+  String media_diveScan_linkButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fotok',
+      one: 'Foto',
+    );
+    return '$_temp0 osszekapcsolasa';
+  }
+
+  @override
+  String get media_diveScan_cancelButton => 'Megse';
+
+  @override
+  String media_diveScan_error(String error) {
+    return 'Hiba a galeria keresesekor: $error';
+  }
+
+  @override
   String get media_gpsBanner_addToSiteButton => 'Hozzaadas a merülohelyhez';
 
   @override
@@ -9404,7 +9448,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String settings_appearance_metricsEnabledCount(int count, int total) {
-    return '$count of $total enabled';
+    return '$count / $total engedelyezve';
   }
 
   @override
@@ -12751,59 +12795,59 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String trips_diveScan_addButton(int count) {
-    return 'Add $count Dives';
+    return '$count merules hozzaadasa';
   }
 
   @override
   String trips_diveScan_added(int count) {
-    return 'Added $count dives to trip';
+    return '$count merules hozzaadva az uthoz';
   }
 
   @override
-  String get trips_diveScan_cancel => 'Cancel';
+  String get trips_diveScan_cancel => 'Megse';
 
   @override
   String trips_diveScan_currentTrip(String tripName) {
-    return 'Currently on: $tripName';
+    return 'Jelenleg: $tripName';
   }
 
   @override
-  String get trips_diveScan_deselectAll => 'Deselect all';
+  String get trips_diveScan_deselectAll => 'Osszes kivalasztas torlese';
 
   @override
   String trips_diveScan_error(String error) {
-    return 'Error scanning for dives: $error';
+    return 'Hiba a merulesek keresesekor: $error';
   }
 
   @override
-  String get trips_diveScan_findButton => 'Find matching dives';
+  String get trips_diveScan_findButton => 'Egyezo merulesek keresese';
 
   @override
   String trips_diveScan_groupOtherTrips(int count) {
-    return 'On other trips ($count)';
+    return 'Mas utakon ($count)';
   }
 
   @override
   String trips_diveScan_groupUnassigned(int count) {
-    return 'Unassigned ($count)';
+    return 'Nem hozzarendelt ($count)';
   }
 
   @override
-  String get trips_diveScan_noMatches => 'No matching dives found';
+  String get trips_diveScan_noMatches => 'Nem talalhatok egyezo merulesek';
 
   @override
-  String get trips_diveScan_selectAll => 'Select all';
+  String get trips_diveScan_selectAll => 'Osszes kivalasztasa';
 
   @override
   String trips_diveScan_subtitle(int count) {
-    return '$count dives found in date range';
+    return '$count merules talalhato a datumtartomanyban';
   }
 
   @override
-  String get trips_diveScan_title => 'Add Dives to Trip';
+  String get trips_diveScan_title => 'Merulesek hozzaadasa az uthoz';
 
   @override
-  String get trips_diveScan_unknownSite => 'Unknown Site';
+  String get trips_diveScan_unknownSite => 'Ismeretlen helyszin';
 
   @override
   String get trips_edit_appBar_add => 'Ut hozzaadasa';
@@ -14147,7 +14191,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Apple HealthKit Access Required';
 
   @override
-  String get diveImport_healthkit_attribution => 'Powered by Apple HealthKit';
+  String get diveImport_healthkit_attribution =>
+      'Az Apple HealthKit altal biztositva';
 
   @override
   String get diveImport_healthkit_closeTooltip =>
@@ -14155,7 +14200,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_dataUsage =>
-      'Reads underwater diving activities from Apple Health, including depth, duration, water temperature, and heart rate. This data is stored locally in your dive log and is never shared with third parties.';
+      'Vizalatti meruleseket olvas az Apple Health-bol, beleertve a melyseg, idotartam, vizhomerseklet es pulzusszam adatokat. Ezek az adatok helyben tarolodnak a merulesnaplobajaban, es soha nem kerulnek megosztasra harmadik felekkel.';
 
   @override
   String get diveImport_healthkit_dateFrom => 'Ettol';

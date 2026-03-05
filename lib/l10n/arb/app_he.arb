@@ -4205,5 +4205,110 @@
   "weightCalc_tankLine": "בלון ({tankMaterial}): {adjustment} kg",
   "weightCalc_title": "חישוב משקולות:",
   "weightCalc_total": "סה\"כ: {total} kg",
-  "weightCalc_waterLine": "מים ({waterType}): {adjustment} kg"
+  "weightCalc_waterLine": "מים ({waterType}): {adjustment} kg",
+  "media_diveScan_scanTooltip": "סרוק גלריה לחיפוש תמונות",
+  "media_diveScan_noPhotosFound": "לא נמצאו תמונות חדשות ליד צלילה זו",
+  "media_diveScan_accessDenied": "נדרשת גישה לספריית התמונות כדי לסרוק תמונות",
+  "media_diveScan_foundPhotos": "נמצאו {count, plural, =1{תמונה אחת} other{{count} תמונות}} ליד צלילה זו. לקשר?",
+  "@media_diveScan_foundPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_foundTitle": "נמצאו תמונות",
+  "media_diveScan_linkButton": "קשר {count, plural, =1{תמונה} other{תמונות}}",
+  "@media_diveScan_linkButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_cancelButton": "ביטול",
+  "media_diveScan_error": "שגיאה בסריקת הגלריה: {error}",
+  "@media_diveScan_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_appearance_metricsEnabledCount": "{count} מתוך {total} מופעלים",
+  "@settings_appearance_metricsEnabledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_addButton": "הוסף {count} צלילות",
+  "@trips_diveScan_addButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_added": "נוספו {count} צלילות לטיול",
+  "@trips_diveScan_added": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_cancel": "ביטול",
+  "trips_diveScan_currentTrip": "כרגע ב: {tripName}",
+  "@trips_diveScan_currentTrip": {
+    "placeholders": {
+      "tripName": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_diveScan_deselectAll": "בטל בחירת הכל",
+  "trips_diveScan_error": "שגיאה בחיפוש צלילות: {error}",
+  "@trips_diveScan_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_diveScan_findButton": "מצא צלילות תואמות",
+  "trips_diveScan_groupOtherTrips": "בטיולים אחרים ({count})",
+  "@trips_diveScan_groupOtherTrips": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_groupUnassigned": "לא משויכות ({count})",
+  "@trips_diveScan_groupUnassigned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_noMatches": "לא נמצאו צלילות תואמות",
+  "trips_diveScan_selectAll": "בחר הכל",
+  "trips_diveScan_subtitle": "נמצאו {count} צלילות בטווח התאריכים",
+  "@trips_diveScan_subtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_title": "הוסף צלילות לטיול",
+  "trips_diveScan_unknownSite": "אתר לא ידוע",
+  "diveImport_healthkit_attribution": "מופעל על ידי Apple HealthKit",
+  "diveImport_healthkit_dataUsage": "קורא פעילויות צלילה תת-ימיות מ-Apple Health, כולל עומק, משך, טמפרטורת מים ודופק. נתונים אלה מאוחסנים מקומית ביומן הצלילה שלך ולעולם אינם משותפים עם צדדים שלישיים."
 }

@@ -4205,5 +4205,110 @@
   "weightCalc_tankLine": "الأسطوانة ({tankMaterial}): {adjustment} kg",
   "weightCalc_title": "حساب الأثقال:",
   "weightCalc_total": "الإجمالي: {total} kg",
-  "weightCalc_waterLine": "المياه ({waterType}): {adjustment} kg"
+  "weightCalc_waterLine": "المياه ({waterType}): {adjustment} kg",
+  "media_diveScan_scanTooltip": "مسح المعرض بحثا عن الصور",
+  "media_diveScan_noPhotosFound": "لم يتم العثور على صور جديدة بالقرب من هذه الغوصة",
+  "media_diveScan_accessDenied": "يلزم الوصول إلى مكتبة الصور للبحث عن الصور",
+  "media_diveScan_foundPhotos": "تم العثور على {count, plural, =1{صورة واحدة} other{{count} صور}} بالقرب من هذه الغوصة. هل تريد ربطها؟",
+  "@media_diveScan_foundPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_foundTitle": "تم العثور على صور",
+  "media_diveScan_linkButton": "ربط {count, plural, =1{الصورة} other{الصور}}",
+  "@media_diveScan_linkButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveScan_cancelButton": "إلغاء",
+  "media_diveScan_error": "خطأ في مسح المعرض: {error}",
+  "@media_diveScan_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_appearance_metricsEnabledCount": "{count} من {total} مفعّل",
+  "@settings_appearance_metricsEnabledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_addButton": "إضافة {count} غوصات",
+  "@trips_diveScan_addButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_added": "تمت إضافة {count} غوصات إلى الرحلة",
+  "@trips_diveScan_added": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_cancel": "إلغاء",
+  "trips_diveScan_currentTrip": "حاليا في: {tripName}",
+  "@trips_diveScan_currentTrip": {
+    "placeholders": {
+      "tripName": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_diveScan_deselectAll": "إلغاء تحديد الكل",
+  "trips_diveScan_error": "خطأ في البحث عن الغوصات: {error}",
+  "@trips_diveScan_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_diveScan_findButton": "البحث عن الغوصات المطابقة",
+  "trips_diveScan_groupOtherTrips": "في رحلات أخرى ({count})",
+  "@trips_diveScan_groupOtherTrips": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_groupUnassigned": "غير مخصصة ({count})",
+  "@trips_diveScan_groupUnassigned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_noMatches": "لم يتم العثور على غوصات مطابقة",
+  "trips_diveScan_selectAll": "تحديد الكل",
+  "trips_diveScan_subtitle": "تم العثور على {count} غوصات في نطاق التاريخ",
+  "@trips_diveScan_subtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_diveScan_title": "إضافة غوصات إلى الرحلة",
+  "trips_diveScan_unknownSite": "موقع غير معروف",
+  "diveImport_healthkit_attribution": "مدعوم من Apple HealthKit",
+  "diveImport_healthkit_dataUsage": "يقرأ أنشطة الغوص تحت الماء من Apple Health، بما في ذلك العمق والمدة ودرجة حرارة الماء ومعدل ضربات القلب. يتم تخزين هذه البيانات محليا في سجل الغوص الخاص بك ولا تتم مشاركتها مع أطراف ثالثة."
 }
