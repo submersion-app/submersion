@@ -334,6 +334,45 @@ class TripRepository {
     }
   }
 
+  /// Batch assign multiple dives to a trip in a single transaction.
+  Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {
+    if (diveIds.isEmpty) return;
+
+    try {
+      _log.info('Batch assigning ${diveIds.length} dives to trip $tripId');
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      await _db.transaction(() async {
+        for (final diveId in diveIds) {
+          await _db.customUpdate(
+            'UPDATE dives SET trip_id = ?, updated_at = ? WHERE id = ?',
+            variables: [
+              Variable.withString(tripId),
+              Variable.withInt(now),
+              Variable.withString(diveId),
+            ],
+            updates: {_db.dives},
+          );
+        }
+      });
+
+      // Mark dives as pending sync
+      for (final diveId in diveIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: diveId,
+          localUpdatedAt: now,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
+
+      _log.info('Batch assigned ${diveIds.length} dives to trip $tripId');
+    } catch (e, stackTrace) {
+      _log.error('Failed to batch assign dives to trip', e, stackTrace);
+      rethrow;
+    }
+  }
+
   /// Get trip statistics
   Future<domain.TripWithStats> getTripWithStats(String tripId) async {
     final trip = await getTripById(tripId);

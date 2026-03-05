@@ -236,4 +236,51 @@ void main() {
     });
   });
 
+  group('assignDivesToTrip (batch)', () {
+    test('batch assigns multiple dives to a trip', () async {
+      final startDate = DateTime(2024, 6, 1);
+      final endDate = DateTime(2024, 6, 7);
+
+      await insertTrip(id: tripId, startDate: startDate, endDate: endDate);
+
+      await insertDive(
+        id: 'dive-a',
+        dateTime: DateTime(2024, 6, 2),
+        dId: diverId,
+      );
+      await insertDive(
+        id: 'dive-b',
+        dateTime: DateTime(2024, 6, 3),
+        dId: diverId,
+      );
+      await insertDive(
+        id: 'dive-c',
+        dateTime: DateTime(2024, 6, 4),
+        dId: diverId,
+      );
+
+      await repository.assignDivesToTrip([
+        'dive-a',
+        'dive-b',
+        'dive-c',
+      ], tripId);
+
+      // Verify via raw SQL
+      final rows = await db
+          .customSelect(
+            'SELECT id, trip_id FROM dives WHERE trip_id = ? ORDER BY id',
+            variables: [Variable.withString(tripId)],
+          )
+          .get();
+
+      expect(rows, hasLength(3));
+      final ids = rows.map((r) => r.data['id'] as String).toList();
+      expect(ids, containsAll(['dive-a', 'dive-b', 'dive-c']));
+    });
+
+    test('handles empty list gracefully', () async {
+      // Should not throw
+      await repository.assignDivesToTrip([], tripId);
+    });
+  });
 }
