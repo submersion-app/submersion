@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
@@ -654,95 +656,136 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
 
 /// Provider for profile analysis using a Dive object directly.
 ///
-/// Note: This synchronous provider always uses [MetricDataSource.computer]
+/// Note: This provider always uses [MetricDataSource.computer]
 /// for all four metrics (NDL, ceiling, TTS, CNS) when data is present.
 /// It does not read per-metric source preferences from the legend state.
 /// Use [profileAnalysisProvider] (by diveId) for preference-aware handling.
-final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
-  ref,
-  dive,
-) {
-  if (dive.profile.isEmpty) {
-    return null;
-  }
-
-  try {
-    // Use dive-specific GF if the dive computer provided them,
-    // otherwise fall back to user settings
-    if (dive.gradientFactorLow != null && dive.gradientFactorHigh != null) {
-      _log.debug(
-        'Using dive-specific GF ${dive.gradientFactorLow}/'
-        '${dive.gradientFactorHigh} for dive ${dive.id}',
-      );
-    }
-    final service = _resolveAnalysisService(
+///
+/// The expensive Buhlmann decompression analysis is offloaded to a background
+/// isolate to avoid blocking the UI thread.
+final diveProfileAnalysisProvider =
+    FutureProvider.family<ProfileAnalysis?, Dive>((
       ref,
-      dive.gradientFactorLow,
-      dive.gradientFactorHigh,
-    );
+      dive,
+    ) async {
+      if (dive.profile.isEmpty) {
+        return null;
+      }
 
-    // Extract profile data
-    final depths = dive.profile.map((p) => p.depth).toList();
-    final timestamps = dive.profile.map((p) => p.timestamp).toList();
-    final pressures = dive.profile
-        .where((p) => p.pressure != null)
-        .map((p) => p.pressure!)
-        .toList();
+      try {
+        // Use dive-specific GF if the dive computer provided them,
+        // otherwise fall back to user settings
+        if (dive.gradientFactorLow != null && dive.gradientFactorHigh != null) {
+          _log.debug(
+            'Using dive-specific GF ${dive.gradientFactorLow}/'
+            '${dive.gradientFactorHigh} for dive ${dive.id}',
+          );
+        }
 
-    // Get gas mix from primary tank
-    double o2Fraction = 0.21; // Default to air
-    double heFraction = 0.0;
-    if (dive.tanks.isNotEmpty) {
-      final primaryTank = dive.tanks.first;
-      o2Fraction = primaryTank.gasMix.o2 / 100.0;
-      heFraction = primaryTank.gasMix.he / 100.0;
-    }
+        // Extract service configuration before entering isolate
+        final gfLow = dive.gradientFactorLow != null
+            ? (dive.gradientFactorLow! / 100.0).clamp(0.0, 1.0)
+            : ref.watch(gfLowProvider) / 100.0;
+        final gfHigh = dive.gradientFactorHigh != null
+            ? (dive.gradientFactorHigh! / 100.0).clamp(0.0, 1.0)
+            : ref.watch(gfHighProvider) / 100.0;
+        final ppO2Warning = ref.watch(ppO2MaxWorkingProvider);
+        final ppO2Critical = ref.watch(ppO2MaxDecoProvider);
+        final cnsWarning = ref.watch(cnsWarningThresholdProvider);
+        final ascentWarning = ref.watch(ascentRateWarningProvider);
+        final ascentCritical = ref.watch(ascentRateCriticalProvider);
+        final lastStop = ref.watch(lastStopDepthProvider);
 
-    // Get residual CNS from previous dive (0.0 while loading or if unavailable)
-    final startCns = ref.watch(residualCnsProvider(dive.id)).valueOrNull ?? 0.0;
+        // Extract profile data
+        final depths = dive.profile.map((p) => p.depth).toList();
+        final timestamps = dive.profile.map((p) => p.timestamp).toList();
+        final pressures = dive.profile
+            .where((p) => p.pressure != null)
+            .map((p) => p.pressure!)
+            .toList();
 
-    // Get residual tissue state from previous dives (null while loading)
-    final startCompartments = ref
-        .watch(residualTissueStateProvider(dive.id))
-        .valueOrNull;
+        // Get gas mix from primary tank
+        double o2Fraction = 0.21; // Default to air
+        double heFraction = 0.0;
+        if (dive.tanks.isNotEmpty) {
+          final primaryTank = dive.tanks.first;
+          o2Fraction = primaryTank.gasMix.o2 / 100.0;
+          heFraction = primaryTank.gasMix.he / 100.0;
+        }
 
-    // Get cumulative OTU from earlier same-day dives (0.0 while loading)
-    final startOtu = ref.watch(residualOtuProvider(dive.id)).valueOrNull ?? 0.0;
+        // Get residual CNS from previous dive (0.0 while loading or if unavailable)
+        final startCns =
+            ref.watch(residualCnsProvider(dive.id)).valueOrNull ?? 0.0;
 
-    final analysis = service.analyze(
-      diveId: dive.id,
-      depths: depths,
-      timestamps: timestamps,
-      o2Fraction: o2Fraction,
-      heFraction: heFraction,
-      startCns: startCns,
-      startCompartments: startCompartments,
-      startOtu: startOtu,
-      pressures: pressures.length == depths.length ? pressures : null,
-      // CCR/SCR parameters
-      diveMode: dive.diveMode,
-      setpointHigh: dive.setpointHigh,
-      setpointLow: dive.setpointLow,
-      scrInjectionRate: dive.scrInjectionRate,
-      scrSupplyO2Percent: dive.diluentGas?.o2,
-      scrVo2: dive.assumedVo2 ?? 1.3,
-    );
+        // Get residual tissue state from previous dives (null while loading)
+        final startCompartments =
+            ref.watch(residualTissueStateProvider(dive.id)).valueOrNull;
 
-    // Overlay computer-reported deco data where available
-    final (overlaid, _) = overlayComputerDecoData(
-      analysis,
-      dive.profile,
-      ndlSource: MetricDataSource.computer,
-      ceilingSource: MetricDataSource.computer,
-      ttsSource: MetricDataSource.computer,
-      cnsSource: MetricDataSource.computer,
-    );
-    return overlaid;
-  } catch (e, stackTrace) {
-    _log.error('Failed to analyze profile for dive: ${dive.id}', e, stackTrace);
-    return null;
-  }
-});
+        // Get cumulative OTU from earlier same-day dives (0.0 while loading)
+        final startOtu =
+            ref.watch(residualOtuProvider(dive.id)).valueOrNull ?? 0.0;
+
+        // Capture parameters for isolate closure
+        final diveId = dive.id;
+        final diveMode = dive.diveMode;
+        final setpointHigh = dive.setpointHigh;
+        final setpointLow = dive.setpointLow;
+        final scrInjectionRate = dive.scrInjectionRate;
+        final scrSupplyO2Percent = dive.diluentGas?.o2;
+        final scrVo2 = dive.assumedVo2 ?? 1.3;
+        final effectivePressures =
+            pressures.length == depths.length ? pressures : null;
+
+        // Run expensive Buhlmann analysis in a background isolate
+        final analysis = await Isolate.run(() {
+          final service = ProfileAnalysisService(
+            gfLow: gfLow,
+            gfHigh: gfHigh,
+            ppO2WarningThreshold: ppO2Warning,
+            ppO2CriticalThreshold: ppO2Critical,
+            cnsWarningThreshold: cnsWarning,
+            ascentRateWarning: ascentWarning,
+            ascentRateCritical: ascentCritical,
+            lastStopDepth: lastStop,
+          );
+          return service.analyze(
+            diveId: diveId,
+            depths: depths,
+            timestamps: timestamps,
+            o2Fraction: o2Fraction,
+            heFraction: heFraction,
+            startCns: startCns,
+            startCompartments: startCompartments,
+            startOtu: startOtu,
+            pressures: effectivePressures,
+            diveMode: diveMode,
+            setpointHigh: setpointHigh,
+            setpointLow: setpointLow,
+            scrInjectionRate: scrInjectionRate,
+            scrSupplyO2Percent: scrSupplyO2Percent,
+            scrVo2: scrVo2,
+          );
+        });
+
+        // Overlay computer-reported deco data where available
+        final (overlaid, _) = overlayComputerDecoData(
+          analysis,
+          dive.profile,
+          ndlSource: MetricDataSource.computer,
+          ceilingSource: MetricDataSource.computer,
+          ttsSource: MetricDataSource.computer,
+          cnsSource: MetricDataSource.computer,
+        );
+        return overlaid;
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to analyze profile for dive: ${dive.id}',
+          e,
+          stackTrace,
+        );
+        return null;
+      }
+    });
 
 /// Provider for quick stats from profile analysis
 final profileQuickStatsProvider = Provider.family<ProfileQuickStats?, String>((

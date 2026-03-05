@@ -783,8 +783,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   Widget _buildProfileSection(BuildContext context, WidgetRef ref, Dive dive) {
-    // Get profile analysis
-    final analysis = ref.watch(diveProfileAnalysisProvider(dive));
+    // Get profile analysis (async - runs in background isolate)
+    final analysis = ref.watch(diveProfileAnalysisProvider(dive)).valueOrNull;
 
     // Get marker settings
     final showMaxDepthMarker = ref.watch(showMaxDepthMarkerProvider);
@@ -1106,7 +1106,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     Dive dive,
     int? selectedPointIndex,
   ) {
-    final analysis = ref.watch(diveProfileAnalysisProvider(dive));
+    final analysis = ref.watch(diveProfileAnalysisProvider(dive)).valueOrNull;
 
     // Don't show if no analysis available
     if (analysis == null || analysis.decoStatuses.isEmpty) {
@@ -1221,7 +1221,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     Dive dive,
     int? selectedPointIndex,
   ) {
-    final analysis = ref.watch(diveProfileAnalysisProvider(dive));
+    final analysis = ref.watch(diveProfileAnalysisProvider(dive)).valueOrNull;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final sacUnit = ref.watch(sacUnitProvider);
@@ -2133,7 +2133,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   void _showFullscreenProfile(BuildContext context, WidgetRef ref, Dive dive) {
-    final analysis = ref.read(diveProfileAnalysisProvider(dive));
+    final analysis = ref.read(diveProfileAnalysisProvider(dive)).valueOrNull;
     final gasSwitches = ref.read(gasSwitchesProvider(dive.id)).valueOrNull;
     final tankPressures = ref.read(tankPressuresProvider(dive.id)).valueOrNull;
     Navigator.of(context).push(

@@ -100,7 +100,7 @@ final activeSegmentsForDiveProvider = Provider.family<List<SacSegment>?, Dive>((
     case SacSegmentationType.timeInterval:
     case SacSegmentationType.depthBased:
       // Time-based segments come from the existing profile analysis
-      final analysis = ref.watch(diveProfileAnalysisProvider(dive));
+      final analysis = ref.watch(diveProfileAnalysisProvider(dive)).valueOrNull;
       return analysis?.sacSegments;
 
     case SacSegmentationType.gasSwitch:
