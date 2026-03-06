@@ -23,5 +23,9 @@
 	<!-- Network access (client only - for cloud sync, no server functionality) -->
 	<key>com.apple.security.network.client</key>
 	<true/>
+
+	<!-- Photo library access for attaching dive photos -->
+	<key>com.apple.security.personal-information.photos-library</key>
+	<true/>
 </dict>
 </plist>
