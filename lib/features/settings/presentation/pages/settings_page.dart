@@ -1859,9 +1859,7 @@ class _DataSourcesSectionContent extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          context
-                              .l10n
-                              .settings_dataSources_appleHealth_privacy,
+                          context.l10n.settings_dataSources_appleHealth_privacy,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
