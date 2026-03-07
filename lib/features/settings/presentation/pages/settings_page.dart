@@ -24,6 +24,7 @@ import 'package:submersion/features/settings/presentation/widgets/settings_list_
 import 'package:submersion/features/settings/presentation/widgets/gradient_preset_picker.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_channel.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
@@ -136,11 +137,8 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Find the section title
-    final section = settingsSections
-        .where((s) => s.id == sectionId)
-        .firstOrNull;
-    final title = section?.title ?? 'Settings';
+    // Find the section title (use localized string)
+    final title = _getLocalizedSectionTitle(context, sectionId);
 
     return Scaffold(
       appBar: AppBar(
@@ -153,6 +151,21 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
       ),
       body: _buildContent(context, ref),
     );
+  }
+
+  String _getLocalizedSectionTitle(BuildContext context, String id) {
+    return switch (id) {
+      'profile' => context.l10n.settings_section_diverProfile_title,
+      'units' => context.l10n.settings_section_units_title,
+      'decompression' => context.l10n.settings_section_decompression_title,
+      'appearance' => context.l10n.settings_section_appearance_title,
+      'notifications' => context.l10n.settings_section_notifications_title,
+      'manage' => context.l10n.settings_section_manage_title,
+      'data' => context.l10n.settings_section_data_title,
+      'about' => context.l10n.settings_section_about_title,
+      'dataSources' => context.l10n.settings_section_dataSources_title,
+      _ => context.l10n.settings_appBar_title,
+    };
   }
 
   Widget _buildContent(BuildContext context, WidgetRef ref) {
@@ -202,13 +215,13 @@ class _MobileSettingsTile extends StatelessWidget {
         child: Icon(section.icon, color: color, size: 24),
       ),
       title: Text(
-        section.title,
+        _getLocalizedTitle(context, section),
         style: Theme.of(
           context,
         ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
       ),
       subtitle: Text(
-        section.subtitle,
+        _getLocalizedSubtitle(context, section),
         style: Theme.of(
           context,
         ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -217,6 +230,36 @@ class _MobileSettingsTile extends StatelessWidget {
       onTap: () => _navigateToSection(context, section.id),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
     );
+  }
+
+  String _getLocalizedTitle(BuildContext context, SettingsSection section) {
+    return switch (section.id) {
+      'profile' => context.l10n.settings_section_diverProfile_title,
+      'units' => context.l10n.settings_section_units_title,
+      'decompression' => context.l10n.settings_section_decompression_title,
+      'appearance' => context.l10n.settings_section_appearance_title,
+      'notifications' => context.l10n.settings_section_notifications_title,
+      'manage' => context.l10n.settings_section_manage_title,
+      'data' => context.l10n.settings_section_data_title,
+      'about' => context.l10n.settings_section_about_title,
+      'dataSources' => context.l10n.settings_section_dataSources_title,
+      _ => section.title,
+    };
+  }
+
+  String _getLocalizedSubtitle(BuildContext context, SettingsSection section) {
+    return switch (section.id) {
+      'profile' => context.l10n.settings_section_diverProfile_subtitle,
+      'units' => context.l10n.settings_section_units_subtitle,
+      'decompression' => context.l10n.settings_section_decompression_subtitle,
+      'appearance' => context.l10n.settings_section_appearance_subtitle,
+      'notifications' => context.l10n.settings_section_notifications_subtitle,
+      'manage' => context.l10n.settings_section_manage_subtitle,
+      'data' => context.l10n.settings_section_data_subtitle,
+      'about' => context.l10n.settings_section_about_subtitle,
+      'dataSources' => context.l10n.settings_section_dataSources_subtitle,
+      _ => section.subtitle,
+    };
   }
 
   void _navigateToSection(BuildContext context, String sectionId) {
@@ -1777,13 +1820,20 @@ class _DataSectionContent extends ConsumerWidget {
 }
 
 /// Data Sources section - surfaces HealthKit integration for App Store compliance.
-class _DataSourcesSectionContent extends StatelessWidget {
+///
+/// Explicitly identifies Apple HealthKit usage per App Store Guideline 2.5.1:
+/// - Shows "Apple HealthKit" branding prominently
+/// - Lists specific HealthKit data types read (Workouts, Heart Rate)
+/// - Displays current HealthKit permission status
+/// - Provides clear privacy disclosure
+class _DataSourcesSectionContent extends ConsumerWidget {
   const _DataSourcesSectionContent();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final permissionsAsync = ref.watch(healthImportHasPermissionsProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -1795,6 +1845,7 @@ class _DataSourcesSectionContent extends StatelessWidget {
             context.l10n.settings_dataSources_header,
           ),
           const SizedBox(height: 8),
+          // HealthKit branding card
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -1818,14 +1869,39 @@ class _DataSourcesSectionContent extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          context.l10n.settings_dataSources_appleHealth_title,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              context
+                                  .l10n
+                                  .settings_dataSources_appleHealth_title,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              context
+                                  .l10n
+                                  .settings_dataSources_appleHealth_subtitle,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Permission status
+                  permissionsAsync.when(
+                    data: (hasPerms) =>
+                        _buildPermissionStatus(context, hasPerms: hasPerms),
+                    loading: () =>
+                        _buildPermissionStatus(context, isLoading: true),
+                    error: (_, _) =>
+                        _buildPermissionStatus(context, hasPerms: false),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -1834,20 +1910,61 @@ class _DataSourcesSectionContent extends StatelessWidget {
                       color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.watch),
-                    title: Text(
-                      context
-                          .l10n
-                          .settings_dataSources_appleHealth_importAction,
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => context.push('/settings/wearable-import'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Data types card
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_dataSources_appleHealth_dataTypesHeader,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.scuba_diving),
+                  title: Text(
+                    context
+                        .l10n
+                        .settings_dataSources_appleHealth_dataTypeWorkouts,
                   ),
-                  const Divider(height: 1),
-                  const SizedBox(height: 12),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.monitor_heart),
+                  title: Text(
+                    context
+                        .l10n
+                        .settings_dataSources_appleHealth_dataTypeHeartRate,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Import action card
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.watch),
+              title: Text(
+                context.l10n.settings_dataSources_appleHealth_importAction,
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/settings/wearable-import'),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Privacy and attribution
+          Card(
+            color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1867,12 +1984,82 @@ class _DataSourcesSectionContent extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.favorite,
+                        size: 14,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        context.l10n.settings_dataSources_appleHealth_poweredBy,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPermissionStatus(
+    BuildContext context, {
+    bool hasPerms = false,
+    bool isLoading = false,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    if (isLoading) {
+      return Row(
+        children: [
+          SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            context.l10n.settings_dataSources_appleHealth_permissionChecking,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        Icon(
+          hasPerms ? Icons.check_circle : Icons.cancel,
+          size: 16,
+          color: hasPerms ? Colors.green : colorScheme.error,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          hasPerms
+              ? context.l10n.settings_dataSources_appleHealth_permissionGranted
+              : context
+                    .l10n
+                    .settings_dataSources_appleHealth_permissionNotGranted,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: hasPerms ? Colors.green : colorScheme.error,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }

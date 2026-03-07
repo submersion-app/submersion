@@ -14846,8 +14846,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_dataSources_appleHealth_title => 'Apple Health';
 
   @override
+  String get settings_dataSources_appleHealth_subtitle =>
+      'Underwater Diving Data';
+
+  @override
   String get settings_dataSources_appleHealth_description =>
       'Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+
+  @override
+  String get settings_dataSources_appleHealth_dataTypesHeader =>
+      'Data Read from HealthKit';
+
+  @override
+  String get settings_dataSources_appleHealth_dataTypeWorkouts =>
+      'Underwater Diving Workouts - dive start time, duration, and activity data';
+
+  @override
+  String get settings_dataSources_appleHealth_dataTypeHeartRate =>
+      'Heart Rate - heart rate samples recorded during dives';
+
+  @override
+  String get settings_dataSources_appleHealth_permissionGranted =>
+      'HealthKit access granted';
+
+  @override
+  String get settings_dataSources_appleHealth_permissionNotGranted =>
+      'HealthKit access not granted';
+
+  @override
+  String get settings_dataSources_appleHealth_permissionChecking =>
+      'Checking HealthKit access...';
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
@@ -14856,6 +14884,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_privacy =>
       'Your health data is stored locally and is never shared with third parties.';
+
+  @override
+  String get settings_dataSources_appleHealth_poweredBy =>
+      'Powered by Apple HealthKit';
 
   @override
   String get settings_dataSources_noSources =>

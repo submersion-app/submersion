@@ -14880,29 +14880,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tools_weight_yourWeight => 'Your weight';
 
   @override
-  String get settings_section_dataSources_title => 'Data Sources';
+  String get settings_section_dataSources_title => 'Apple HealthKit';
 
   @override
-  String get settings_section_dataSources_subtitle =>
-      'Connected services & integrations';
+  String get settings_section_dataSources_subtitle => 'Health data integration';
 
   @override
-  String get settings_dataSources_header => 'Data Sources';
+  String get settings_dataSources_header => 'Apple HealthKit Integration';
 
   @override
-  String get settings_dataSources_appleHealth_title => 'Apple Health';
+  String get settings_dataSources_appleHealth_title => 'Apple HealthKit';
+
+  @override
+  String get settings_dataSources_appleHealth_subtitle =>
+      'Underwater Diving Data';
 
   @override
   String get settings_dataSources_appleHealth_description =>
-      'Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'Submersion uses Apple HealthKit to read underwater diving workout data from Apple Health. This data is used to create detailed dive logs from your Apple Watch dives.';
+
+  @override
+  String get settings_dataSources_appleHealth_dataTypesHeader =>
+      'Data Read from HealthKit';
+
+  @override
+  String get settings_dataSources_appleHealth_dataTypeWorkouts =>
+      'Underwater Diving Workouts - dive start time, duration, and activity data';
+
+  @override
+  String get settings_dataSources_appleHealth_dataTypeHeartRate =>
+      'Heart Rate - heart rate samples recorded during dives';
+
+  @override
+  String get settings_dataSources_appleHealth_permissionGranted =>
+      'HealthKit access granted';
+
+  @override
+  String get settings_dataSources_appleHealth_permissionNotGranted =>
+      'HealthKit access not granted';
+
+  @override
+  String get settings_dataSources_appleHealth_permissionChecking =>
+      'Checking HealthKit access...';
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
-      'Import from Apple Watch';
+      'Import Dives from Apple Watch via HealthKit';
 
   @override
   String get settings_dataSources_appleHealth_privacy =>
-      'Your health data is stored locally and is never shared with third parties.';
+      'Your health data is stored locally on this device and is never shared with third parties. Submersion only reads data from Apple HealthKit and does not write any data back to HealthKit.';
+
+  @override
+  String get settings_dataSources_appleHealth_poweredBy =>
+      'Powered by Apple HealthKit';
 
   @override
   String get settings_dataSources_noSources =>

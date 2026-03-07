@@ -45,9 +45,9 @@ const settingsSections = [
   ),
   SettingsSection(
     id: 'dataSources',
-    icon: Icons.link,
-    title: 'Data Sources',
-    subtitle: 'Connected services & integrations',
+    icon: Icons.favorite,
+    title: 'Apple HealthKit',
+    subtitle: 'Health data integration',
     color: Colors.red,
   ),
   SettingsSection(

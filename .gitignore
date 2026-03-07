@@ -55,6 +55,7 @@ integration_test/fixtures/
 # Fastlane secrets
 ios/fastlane/api_key.json
 ios/fastlane/AuthKey_*.p8
+android/fastlane/play-store-key.json
 
 # Python
 *__pycache__/

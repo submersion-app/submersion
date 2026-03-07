@@ -25585,44 +25585,92 @@ abstract class AppLocalizations {
   /// No description provided for @settings_section_dataSources_title.
   ///
   /// In en, this message translates to:
-  /// **'Data Sources'**
+  /// **'Apple HealthKit'**
   String get settings_section_dataSources_title;
 
   /// No description provided for @settings_section_dataSources_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Connected services & integrations'**
+  /// **'Health data integration'**
   String get settings_section_dataSources_subtitle;
 
   /// No description provided for @settings_dataSources_header.
   ///
   /// In en, this message translates to:
-  /// **'Data Sources'**
+  /// **'Apple HealthKit Integration'**
   String get settings_dataSources_header;
 
   /// No description provided for @settings_dataSources_appleHealth_title.
   ///
   /// In en, this message translates to:
-  /// **'Apple Health'**
+  /// **'Apple HealthKit'**
   String get settings_dataSources_appleHealth_title;
+
+  /// No description provided for @settings_dataSources_appleHealth_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater Diving Data'**
+  String get settings_dataSources_appleHealth_subtitle;
 
   /// No description provided for @settings_dataSources_appleHealth_description.
   ///
   /// In en, this message translates to:
-  /// **'Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.'**
+  /// **'Submersion uses Apple HealthKit to read underwater diving workout data from Apple Health. This data is used to create detailed dive logs from your Apple Watch dives.'**
   String get settings_dataSources_appleHealth_description;
+
+  /// No description provided for @settings_dataSources_appleHealth_dataTypesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Read from HealthKit'**
+  String get settings_dataSources_appleHealth_dataTypesHeader;
+
+  /// No description provided for @settings_dataSources_appleHealth_dataTypeWorkouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater Diving Workouts - dive start time, duration, and activity data'**
+  String get settings_dataSources_appleHealth_dataTypeWorkouts;
+
+  /// No description provided for @settings_dataSources_appleHealth_dataTypeHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart Rate - heart rate samples recorded during dives'**
+  String get settings_dataSources_appleHealth_dataTypeHeartRate;
+
+  /// No description provided for @settings_dataSources_appleHealth_permissionGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'HealthKit access granted'**
+  String get settings_dataSources_appleHealth_permissionGranted;
+
+  /// No description provided for @settings_dataSources_appleHealth_permissionNotGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'HealthKit access not granted'**
+  String get settings_dataSources_appleHealth_permissionNotGranted;
+
+  /// No description provided for @settings_dataSources_appleHealth_permissionChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking HealthKit access...'**
+  String get settings_dataSources_appleHealth_permissionChecking;
 
   /// No description provided for @settings_dataSources_appleHealth_importAction.
   ///
   /// In en, this message translates to:
-  /// **'Import from Apple Watch'**
+  /// **'Import Dives from Apple Watch via HealthKit'**
   String get settings_dataSources_appleHealth_importAction;
 
   /// No description provided for @settings_dataSources_appleHealth_privacy.
   ///
   /// In en, this message translates to:
-  /// **'Your health data is stored locally and is never shared with third parties.'**
+  /// **'Your health data is stored locally on this device and is never shared with third parties. Submersion only reads data from Apple HealthKit and does not write any data back to HealthKit.'**
   String get settings_dataSources_appleHealth_privacy;
+
+  /// No description provided for @settings_dataSources_appleHealth_poweredBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Powered by Apple HealthKit'**
+  String get settings_dataSources_appleHealth_poweredBy;
 
   /// No description provided for @settings_dataSources_noSources.
   ///

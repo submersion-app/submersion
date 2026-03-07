@@ -1,0 +1,2 @@
+json_key_file(ENV["GOOGLE_PLAY_JSON_KEY_PATH"] || "fastlane/play-store-key.json")
+package_name("app.submersion")

@@ -1,0 +1,117 @@
+# Fastfile for Submersion Google Play Store Automation
+#
+# Usage:
+#   bundle exec fastlane beta    # Upload AAB to internal testing track
+#   bundle exec fastlane release # Upload AAB to production (20% staged rollout)
+#
+# Authentication:
+#   Set GOOGLE_PLAY_JSON_KEY_PATH to the service account JSON key file path,
+#   or place the key at fastlane/play-store-key.json.
+
+default_platform(:android)
+
+platform :android do
+  # ============================================================================
+  # Upload Lanes
+  # ============================================================================
+
+  desc "Upload AAB to internal testing track"
+  lane :beta do
+    aab_path = find_aab
+
+    UI.message("Uploading to internal testing track...")
+    upload_to_play_store(
+      aab: aab_path,
+      track: "internal",
+      release_status: "completed",
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+
+    UI.success("AAB uploaded to internal testing track!")
+  end
+
+  desc "Upload AAB to production track with staged rollout"
+  lane :release do
+    aab_path = find_aab
+
+    UI.message("Uploading to production track (20% staged rollout)...")
+    upload_to_play_store(
+      aab: aab_path,
+      track: "production",
+      release_status: "inProgress",
+      rollout: "0.2",
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+
+    UI.success("AAB uploaded to production with 20% staged rollout!")
+  end
+
+  # ============================================================================
+  # Utility Lanes
+  # ============================================================================
+
+  desc "Validate the AAB without uploading"
+  lane :validate do
+    aab_path = find_aab
+
+    UI.message("Validating AAB...")
+    upload_to_play_store(
+      aab: aab_path,
+      track: "internal",
+      release_status: "draft",
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      validate_only: true,
+    )
+
+    UI.success("AAB validation passed!")
+  end
+
+  desc "Show all available lanes"
+  lane :lanes_help do
+    UI.message("Available Fastlane lanes:")
+    UI.message("")
+    UI.message("  Upload:")
+    UI.message("    beta     - Upload AAB to internal testing track")
+    UI.message("    release  - Upload AAB to production (20% staged rollout)")
+    UI.message("")
+    UI.message("  Utilities:")
+    UI.message("    validate   - Validate AAB without uploading")
+    UI.message("    lanes_help - Show this help")
+  end
+
+  # ============================================================================
+  # Helper Methods
+  # ============================================================================
+
+  # Finds the AAB file. Checks for the renamed artifact first (CI),
+  # then falls back to the default Flutter build output (local).
+  def find_aab
+    # CI renames artifacts to Submersion-vX.Y.Z-Android.aab in the workspace root
+    ci_aab = Dir.glob("../../Submersion-*-Android.aab").first
+    if ci_aab
+      UI.message("Using CI artifact: #{ci_aab}")
+      return File.absolute_path(ci_aab)
+    end
+
+    # Local build output
+    local_aab = "../../build/app/outputs/bundle/release/app-release.aab"
+    if File.exist?(local_aab)
+      UI.message("Using local build: #{local_aab}")
+      return File.absolute_path(local_aab)
+    end
+
+    UI.user_error!(
+      "No AAB found. Build with 'flutter build appbundle --release' first, " \
+      "or ensure CI has renamed the artifact to Submersion-*-Android.aab."
+    )
+  end
+end
