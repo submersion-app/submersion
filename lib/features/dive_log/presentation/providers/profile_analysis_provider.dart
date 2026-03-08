@@ -560,9 +560,10 @@ Future<double> _computeResidualCns(Ref ref, String diveId) async {
       }
     }
 
-    // Recursively get the previous dive's full analysis (including its own
-    // residual CNS from even earlier dives).
-    final previousAnalysis = await ref.watch(
+    // Read (not watch) the previous dive's full analysis to avoid cascading
+    // Riverpod invalidations. Each profileAnalysisProvider independently
+    // watches settings, so ref.read is sufficient for one-shot lookback.
+    final previousAnalysis = await ref.read(
       profileAnalysisProvider(previousDive.id).future,
     );
     if (previousAnalysis == null) return 0.0;
@@ -599,9 +600,10 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
     final previousDive = await repository.getPreviousDive(diveId);
     if (previousDive == null) return null;
 
-    // Recursively get the previous dive's full analysis (including its own
-    // residual tissue state from even earlier dives).
-    final previousAnalysis = await ref.watch(
+    // Read (not watch) the previous dive's full analysis to avoid cascading
+    // Riverpod invalidations. Each profileAnalysisProvider independently
+    // watches settings, so ref.read is sufficient for one-shot lookback.
+    final previousAnalysis = await ref.read(
       profileAnalysisProvider(previousDive.id).future,
     );
     if (previousAnalysis == null || previousAnalysis.decoStatuses.isEmpty) {
@@ -662,7 +664,8 @@ Future<double> _computeResidualOtu(Ref ref, String diveId) async {
       if (dive.id == diveId) continue;
       final diveTime = dive.entryTime ?? dive.dateTime;
       if (diveTime.isBefore(diveDate)) {
-        final analysis = await ref.watch(
+        // Read (not watch) to avoid cascading Riverpod invalidations.
+        final analysis = await ref.read(
           profileAnalysisProvider(dive.id).future,
         );
         if (analysis != null) {
@@ -740,7 +743,10 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
 
     double totalOtu = 0.0;
     for (final dive in weekDives) {
-      final analysis = await ref.watch(profileAnalysisProvider(dive.id).future);
+      // Read (not watch) to avoid cascading Riverpod invalidations.
+      // Each profileAnalysisProvider independently watches settings,
+      // so ref.read is sufficient for aggregation.
+      final analysis = await ref.read(profileAnalysisProvider(dive.id).future);
       if (analysis != null) {
         totalOtu += analysis.o2Exposure.otu;
       }
