@@ -800,10 +800,10 @@ class _ChartOptionsDialog extends StatelessWidget {
                   onSelectionChanged: (selected) =>
                       onSourceChanged(selected.first),
                   showSelectedIcon: false,
-                  style: ButtonStyle(
+                  style: const ButtonStyle(
                     visualDensity: VisualDensity.compact,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    padding: const WidgetStatePropertyAll(
+                    padding: WidgetStatePropertyAll(
                       EdgeInsets.symmetric(horizontal: 8),
                     ),
                   ),
