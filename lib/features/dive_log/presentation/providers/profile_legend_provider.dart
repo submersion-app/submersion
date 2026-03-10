@@ -435,6 +435,13 @@ class ProfileLegend extends _$ProfileLegend {
     );
   }
 
+  /// Set a section's expanded state directly (avoids toggle desync risk)
+  void setSectionExpanded(String sectionKey, bool expanded) {
+    state = state.copyWith(
+      sectionExpanded: {...state.sectionExpanded, sectionKey: expanded},
+    );
+  }
+
   /// Toggle visibility for a specific tank's pressure line
   void toggleTankPressure(String tankId) {
     final current = state.showTankPressure[tankId] ?? true;

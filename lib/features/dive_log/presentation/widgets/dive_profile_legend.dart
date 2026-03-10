@@ -732,7 +732,8 @@ class _ChartOptionsDialog extends StatelessWidget {
           ),
         ),
         initiallyExpanded: legendState.sectionExpanded[key] ?? false,
-        onExpansionChanged: (_) => legendNotifier.toggleSection(key),
+        onExpansionChanged: (expanded) =>
+            legendNotifier.setSectionExpanded(key, expanded),
         tilePadding: const EdgeInsets.symmetric(horizontal: 12),
         childrenPadding: EdgeInsets.zero,
         dense: true,
@@ -774,34 +775,37 @@ class _ChartOptionsDialog extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Expanded(child: Text(label)),
-            SizedBox(
-              height: 28,
-              child: SegmentedButton<MetricDataSource>(
-                segments: [
-                  ButtonSegment(
-                    value: MetricDataSource.computer,
-                    label: Text(
-                      context.l10n.diveLog_legend_source_dc,
-                      style: const TextStyle(fontSize: 11),
+            GestureDetector(
+              onTap: () {}, // absorb tap to prevent parent InkWell from firing
+              child: SizedBox(
+                height: 28,
+                child: SegmentedButton<MetricDataSource>(
+                  segments: [
+                    ButtonSegment(
+                      value: MetricDataSource.computer,
+                      label: Text(
+                        context.l10n.diveLog_legend_source_dc,
+                        style: const TextStyle(fontSize: 11),
+                      ),
                     ),
-                  ),
-                  ButtonSegment(
-                    value: MetricDataSource.calculated,
-                    label: Text(
-                      context.l10n.diveLog_legend_source_calc,
-                      style: const TextStyle(fontSize: 11),
+                    ButtonSegment(
+                      value: MetricDataSource.calculated,
+                      label: Text(
+                        context.l10n.diveLog_legend_source_calc,
+                        style: const TextStyle(fontSize: 11),
+                      ),
                     ),
-                  ),
-                ],
-                selected: {currentSource},
-                onSelectionChanged: (selected) =>
-                    onSourceChanged(selected.first),
-                showSelectedIcon: false,
-                style: ButtonStyle(
-                  visualDensity: VisualDensity.compact,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  padding: const WidgetStatePropertyAll(
-                    EdgeInsets.symmetric(horizontal: 8),
+                  ],
+                  selected: {currentSource},
+                  onSelectionChanged: (selected) =>
+                      onSourceChanged(selected.first),
+                  showSelectedIcon: false,
+                  style: ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const WidgetStatePropertyAll(
+                      EdgeInsets.symmetric(horizontal: 8),
+                    ),
                   ),
                 ),
               ),
