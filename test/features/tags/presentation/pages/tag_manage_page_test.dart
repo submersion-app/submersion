@@ -172,7 +172,7 @@ void main() {
       await tester.tap(find.byType(FloatingActionButton));
       await tester.pumpAndSettle();
 
-      expect(find.text('Create Tag'), findsOneWidget);
+      expect(find.text('Create Tag'), findsNWidgets(2));
       expect(find.text('Tag Name'), findsOneWidget);
       expect(find.text('Color'), findsOneWidget);
     });
