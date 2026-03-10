@@ -443,6 +443,31 @@ class ProfileLegend extends _$ProfileLegend {
     );
   }
 
+  // Explicit data source set methods (for SegmentedButton)
+  void setCeilingSource(MetricDataSource source) {
+    state = state.copyWith(ceilingSource: source);
+  }
+
+  void setNdlSource(MetricDataSource source) {
+    state = state.copyWith(ndlSource: source);
+  }
+
+  void setTtsSource(MetricDataSource source) {
+    state = state.copyWith(ttsSource: source);
+  }
+
+  void setCnsSource(MetricDataSource source) {
+    state = state.copyWith(cnsSource: source);
+  }
+
+  // Section expand/collapse
+  void toggleSection(String sectionKey) {
+    final current = state.sectionExpanded[sectionKey] ?? false;
+    state = state.copyWith(
+      sectionExpanded: {...state.sectionExpanded, sectionKey: !current},
+    );
+  }
+
   /// Toggle visibility for a specific tank's pressure line
   void toggleTankPressure(String tankId) {
     final current = state.showTankPressure[tankId] ?? true;
