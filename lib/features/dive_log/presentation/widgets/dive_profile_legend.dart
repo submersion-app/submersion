@@ -74,7 +74,6 @@ class ProfileLegendConfig {
       hasHeartRateData ||
       hasSacCurve ||
       hasAscentRates ||
-      hasEvents ||
       hasMaxDepthMarker ||
       hasPressureMarkers ||
       hasGasSwitches ||
@@ -123,7 +122,6 @@ class DiveProfileLegend extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final legendState = ref.watch(profileLegendProvider);
     final legendNotifier = ref.read(profileLegendProvider.notifier);
-    final sourceInfo = ref.watch(metricSourceInfoProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     // Initialize tank pressures if needed
@@ -170,18 +168,14 @@ class DiveProfileLegend extends ConsumerWidget {
                     isEnabled: legendState.showPressure,
                     onTap: legendNotifier.togglePressure,
                   ),
-                // Ceiling toggle (primary)
-                if (config.hasCeilingCurve)
+                // Events toggle (primary)
+                if (config.hasEvents)
                   _buildMetricToggle(
                     context,
-                    color: const Color(0xFFD32F2F), // Red 700
-                    label: _sourceLabel(
-                      context.l10n.diveLog_legend_label_ceiling,
-                      legendState.ceilingSource,
-                      sourceInfo?.ceilingActual ?? MetricDataSource.calculated,
-                    ),
-                    isEnabled: legendState.showCeiling,
-                    onTap: legendNotifier.toggleCeiling,
+                    color: Colors.amber,
+                    label: context.l10n.diveLog_legend_label_events,
+                    isEnabled: legendState.showEvents,
+                    onTap: legendNotifier.toggleEvents,
                   ),
                 // "More" button flows right after the last toggle
                 if (config.hasSecondaryToggles)
@@ -322,12 +316,12 @@ class _MoreOptionsButton extends ConsumerWidget {
     if (config.hasHeartRateData && legendState.showHeartRate) count++;
     if (config.hasSacCurve && legendState.showSac) count++;
     if (config.hasAscentRates && legendState.showAscentRateColors) count++;
-    if (config.hasEvents && legendState.showEvents) count++;
     if (config.hasMaxDepthMarker && legendState.showMaxDepthMarker) count++;
     if (config.hasPressureMarkers && legendState.showPressureMarkers) count++;
     if (config.hasGasSwitches && legendState.showGasSwitchMarkers) count++;
 
     // Advanced deco/gas toggles
+    if (config.hasCeilingCurve && legendState.showCeiling) count++;
     if (config.hasNdlData && legendState.showNdl) count++;
     if (config.hasPpO2Data && legendState.showPpO2) count++;
     if (config.hasPpN2Data && legendState.showPpN2) count++;
@@ -510,19 +504,6 @@ class _ChartOptionsDialog extends StatelessWidget {
       );
     }
 
-    // Events
-    if (config.hasEvents) {
-      items.add(
-        _buildToggleItem(
-          context,
-          label: context.l10n.diveLog_legend_label_events,
-          color: Colors.amber,
-          isEnabled: legendState.showEvents,
-          onTap: legendNotifier.toggleEvents,
-        ),
-      );
-    }
-
     // Divider before markers section
     if ((config.hasMaxDepthMarker ||
             config.hasPressureMarkers ||
@@ -617,14 +598,26 @@ class _ChartOptionsDialog extends StatelessWidget {
       items.add(const Divider(height: 1));
     }
 
-    // Ceiling source selector
+    // Ceiling toggle + source selector
     if (config.hasCeilingCurve) {
+      items.add(
+        _buildToggleItem(
+          context,
+          label: _sourceLabel(
+            context.l10n.diveLog_legend_label_ceiling,
+            legendState.ceilingSource,
+            sourceInfo?.ceilingActual ?? MetricDataSource.calculated,
+          ),
+          color: const Color(0xFFD32F2F), // Red 700
+          isEnabled: legendState.showCeiling,
+          onTap: legendNotifier.toggleCeiling,
+        ),
+      );
       items.add(
         _buildSourceSelector(
           context,
           currentSource: legendState.ceilingSource,
           onCycle: legendNotifier.cycleCeilingSource,
-          metricName: context.l10n.diveLog_legend_label_ceiling,
         ),
       );
     }
