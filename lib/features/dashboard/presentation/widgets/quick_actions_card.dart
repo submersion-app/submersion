@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A card showing quick action buttons for common tasks
@@ -34,7 +35,10 @@ class QuickActionsCard extends StatelessWidget {
                 Tooltip(
                   message: context.l10n.dashboard_quickActions_logDiveTooltip,
                   child: FilledButton.icon(
-                    onPressed: () => context.go('/dives/new'),
+                    onPressed: () => showAddDiveBottomSheet(
+                      context: context,
+                      onLogManually: () => context.go('/dives/new'),
+                    ),
                     icon: const Icon(Icons.add),
                     label: Text(context.l10n.dashboard_quickActions_logDive),
                   ),

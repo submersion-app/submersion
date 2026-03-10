@@ -8585,7 +8585,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoPicker_emptyTitle => 'לא נמצאו תמונות';
 
   @override
-  String get media_photoPicker_grantAccessButton => 'אשר גישה';
+  String get media_photoPicker_grantAccessButton => 'המשך';
 
   @override
   String get media_photoPicker_openSettingsButton => 'פתח הגדרות';
@@ -9142,6 +9142,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_appearance_header_theme => 'ערכת נושא';
+
+  @override
+  String get settings_appearance_header_mode => 'Mode';
 
   @override
   String get settings_themes_title => 'בחר ערכת נושא';
@@ -13906,7 +13909,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveImport_healthkit_fetching => 'מאחזר...';
 
   @override
-  String get diveImport_healthkit_grantAccess => 'הענק גישה';
+  String get diveImport_healthkit_grantAccess => 'המשך';
 
   @override
   String get diveImport_healthkit_noDivesFound => 'לא נמצאו צלילות';

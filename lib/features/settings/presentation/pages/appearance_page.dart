@@ -34,21 +34,12 @@ class AppearancePage extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/settings/themes'),
           ),
-          _buildThemeSelector(context, ref, settings.themeMode),
           const Divider(),
           _buildSectionHeader(
             context,
-            context.l10n.settings_appearance_header_language,
+            context.l10n.settings_appearance_header_mode,
           ),
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: Text(context.l10n.settings_appearance_appLanguage),
-            subtitle: Text(
-              LanguageSettingsPage.getDisplayName(settings.locale),
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go('/settings/language'),
-          ),
+          _buildThemeSelector(context, ref, settings.themeMode),
           const Divider(),
           _buildSectionHeader(
             context,
@@ -114,28 +105,6 @@ class AppearancePage extends ConsumerWidget {
               ref
                   .read(settingsProvider.notifier)
                   .setShowMapBackgroundOnDiveCards(value);
-            },
-          ),
-          const SizedBox(height: 8),
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_appearance_header_diveSites,
-          ),
-          SwitchListTile(
-            title: Text(
-              context.l10n.settings_appearance_mapBackgroundSiteCards,
-            ),
-            subtitle: Text(
-              context
-                  .l10n
-                  .settings_appearance_mapBackgroundSiteCards_subtitleWithNote,
-            ),
-            secondary: const Icon(Icons.map),
-            value: settings.showMapBackgroundOnSiteCards,
-            onChanged: (value) {
-              ref
-                  .read(settingsProvider.notifier)
-                  .setShowMapBackgroundOnSiteCards(value);
             },
           ),
           const SizedBox(height: 8),
@@ -222,6 +191,42 @@ class AppearancePage extends ConsumerWidget {
             ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/settings/default-metrics'),
+          ),
+          const SizedBox(height: 8),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_diveSites,
+          ),
+          SwitchListTile(
+            title: Text(
+              context.l10n.settings_appearance_mapBackgroundSiteCards,
+            ),
+            subtitle: Text(
+              context
+                  .l10n
+                  .settings_appearance_mapBackgroundSiteCards_subtitleWithNote,
+            ),
+            secondary: const Icon(Icons.map),
+            value: settings.showMapBackgroundOnSiteCards,
+            onChanged: (value) {
+              ref
+                  .read(settingsProvider.notifier)
+                  .setShowMapBackgroundOnSiteCards(value);
+            },
+          ),
+          const Divider(),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_language,
+          ),
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: Text(context.l10n.settings_appearance_appLanguage),
+            subtitle: Text(
+              LanguageSettingsPage.getDisplayName(settings.locale),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go('/settings/language'),
           ),
           const SizedBox(height: 32),
         ],

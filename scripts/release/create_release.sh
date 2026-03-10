@@ -86,12 +86,32 @@ if git ls-remote --tags origin "refs/tags/$TAG" 2>/dev/null | grep -q "$TAG"; th
   exit 1
 fi
 
+# --- Changelog staleness check ---
+CHANGELOG="$PROJECT_DIR/CHANGELOG.md"
+if [ -f "$CHANGELOG" ]; then
+  CHANGELOG_VERSION=$(grep -m1 '^## ' "$CHANGELOG" | sed -E 's/^## ([^ ]+).*/\1/')
+  if [ -n "$CHANGELOG_VERSION" ] && [ "$CHANGELOG_VERSION" != "$SEMVER" ]; then
+    echo "[WARN] CHANGELOG.md is stale (last entry: $CHANGELOG_VERSION, releasing: $SEMVER)"
+    echo "  Consider using ./scripts/release/release.sh instead, which generates"
+    echo "  the changelog automatically, or run:"
+    echo "    ./scripts/release/generate_changelog.sh"
+    echo ""
+    read -rp "  Continue without updating CHANGELOG.md? [y/N] " confirm
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+      echo "Aborted."
+      exit 1
+    fi
+    echo ""
+  fi
+fi
+
 # --- Preflight checks ---
 if [ "$SKIP_PREFLIGHT" = true ]; then
   echo "[Preflight] Skipped (--skip-preflight)"
   echo ""
 elif [ "$DRY_RUN" = true ]; then
   echo "[Preflight] Would run these checks:"
+  echo "  - Verify CHANGELOG.md is up to date"
   echo "  - Verify on main branch"
   echo "  - Verify clean working tree"
   echo "  - Run dart format --set-exit-if-changed"

@@ -15189,7 +15189,7 @@ abstract class AppLocalizations {
   /// No description provided for @media_photoPicker_grantAccessButton.
   ///
   /// In en, this message translates to:
-  /// **'Grant Access'**
+  /// **'Continue'**
   String get media_photoPicker_grantAccessButton;
 
   /// No description provided for @media_photoPicker_openSettingsButton.
@@ -16167,8 +16167,14 @@ abstract class AppLocalizations {
   /// No description provided for @settings_appearance_header_theme.
   ///
   /// In en, this message translates to:
-  /// **'Theme'**
+  /// **'Color Theme'**
   String get settings_appearance_header_theme;
+
+  /// No description provided for @settings_appearance_header_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get settings_appearance_header_mode;
 
   /// No description provided for @settings_themes_title.
   ///
@@ -16179,7 +16185,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_themes_current.
   ///
   /// In en, this message translates to:
-  /// **'Theme'**
+  /// **'Color Theme'**
   String get settings_themes_current;
 
   /// No description provided for @theme_submersion.
@@ -24231,7 +24237,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveImport_healthkit_grantAccess.
   ///
   /// In en, this message translates to:
-  /// **'Grant Access'**
+  /// **'Continue'**
   String get diveImport_healthkit_grantAccess;
 
   /// No description provided for @diveImport_healthkit_noDivesFound.

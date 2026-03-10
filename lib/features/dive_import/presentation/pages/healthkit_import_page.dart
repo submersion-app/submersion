@@ -149,7 +149,7 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
-              icon: const Icon(Icons.lock_open),
+              icon: const Icon(Icons.arrow_forward),
               label: Text(context.l10n.diveImport_healthkit_grantAccess),
               onPressed: _requestPermissions,
             ),

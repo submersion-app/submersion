@@ -48,9 +48,11 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/species/new'),
-        child: const Icon(Icons.add),
+        tooltip: context.l10n.marineLife_speciesEdit_addTitle,
+        icon: const Icon(Icons.add),
+        label: Text(context.l10n.marineLife_speciesEdit_addTitle),
       ),
       body: Column(
         children: [

@@ -8816,7 +8816,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_photoPicker_emptyTitle => 'Nenhuma foto encontrada';
 
   @override
-  String get media_photoPicker_grantAccessButton => 'Conceder Acesso';
+  String get media_photoPicker_grantAccessButton => 'Continuar';
 
   @override
   String get media_photoPicker_openSettingsButton => 'Abrir Configuracoes';
@@ -9392,6 +9392,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_appearance_header_theme => 'Tema';
+
+  @override
+  String get settings_appearance_header_mode => 'Mode';
 
   @override
   String get settings_themes_title => 'Escolher Tema';
@@ -14288,7 +14291,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveImport_healthkit_fetching => 'Obtendo...';
 
   @override
-  String get diveImport_healthkit_grantAccess => 'Conceder Acesso';
+  String get diveImport_healthkit_grantAccess => 'Continuar';
 
   @override
   String get diveImport_healthkit_noDivesFound => 'Nenhum Mergulho Encontrado';

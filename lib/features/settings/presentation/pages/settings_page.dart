@@ -1066,6 +1066,11 @@ class _AppearanceSectionContentState
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/settings/themes'),
           ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_mode,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
@@ -1085,27 +1090,6 @@ class _AppearanceSectionContentState
                   },
                 );
               }).toList(),
-            ),
-          ),
-          const SizedBox(height: 24),
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_appearance_header_language,
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.language),
-              title: Text(context.l10n.settings_appearance_header_language),
-              subtitle: Text(
-                LanguageSettingsPage.getDisplayName(settings.locale),
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                setState(() {
-                  _showLanguageList = true;
-                });
-              },
             ),
           ),
           const SizedBox(height: 24),
@@ -1181,31 +1165,6 @@ class _AppearanceSectionContentState
                   },
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_appearance_header_diveSites,
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: SwitchListTile(
-              title: Text(
-                context.l10n.settings_appearance_mapBackgroundSiteCards,
-              ),
-              subtitle: Text(
-                context
-                    .l10n
-                    .settings_appearance_mapBackgroundSiteCards_subtitle,
-              ),
-              secondary: const Icon(Icons.map),
-              value: settings.showMapBackgroundOnSiteCards,
-              onChanged: (value) {
-                ref
-                    .read(settingsProvider.notifier)
-                    .setShowMapBackgroundOnSiteCards(value);
-              },
             ),
           ),
           const SizedBox(height: 24),
@@ -1311,6 +1270,52 @@ class _AppearanceSectionContentState
                   onTap: () => context.push('/settings/default-metrics'),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_diveSites,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: SwitchListTile(
+              title: Text(
+                context.l10n.settings_appearance_mapBackgroundSiteCards,
+              ),
+              subtitle: Text(
+                context
+                    .l10n
+                    .settings_appearance_mapBackgroundSiteCards_subtitle,
+              ),
+              secondary: const Icon(Icons.map),
+              value: settings.showMapBackgroundOnSiteCards,
+              onChanged: (value) {
+                ref
+                    .read(settingsProvider.notifier)
+                    .setShowMapBackgroundOnSiteCards(value);
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_language,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.language),
+              title: Text(context.l10n.settings_appearance_header_language),
+              subtitle: Text(
+                LanguageSettingsPage.getDisplayName(settings.locale),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                setState(() {
+                  _showLanguageList = true;
+                });
+              },
             ),
           ),
         ],

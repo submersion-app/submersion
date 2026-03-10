@@ -26,10 +26,11 @@ class TankPresetsPage extends ConsumerWidget {
           tooltip: context.l10n.common_action_back,
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/tank-presets/new'),
         tooltip: context.l10n.tankPresets_addPreset,
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: Text(context.l10n.tankPresets_addPreset),
       ),
       body: presetsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),

@@ -8642,7 +8642,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoPicker_emptyTitle => 'لم يتم العثور على صور';
 
   @override
-  String get media_photoPicker_grantAccessButton => 'منح الوصول';
+  String get media_photoPicker_grantAccessButton => 'متابعة';
 
   @override
   String get media_photoPicker_openSettingsButton => 'فتح الإعدادات';
@@ -9206,6 +9206,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_appearance_header_theme => 'المظهر';
+
+  @override
+  String get settings_appearance_header_mode => 'Mode';
 
   @override
   String get settings_themes_title => 'اختيار المظهر';
@@ -14001,7 +14004,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveImport_healthkit_fetching => 'جارٍ الجلب...';
 
   @override
-  String get diveImport_healthkit_grantAccess => 'منح الوصول';
+  String get diveImport_healthkit_grantAccess => 'متابعة';
 
   @override
   String get diveImport_healthkit_noDivesFound => 'لم يتم العثور على غطسات';

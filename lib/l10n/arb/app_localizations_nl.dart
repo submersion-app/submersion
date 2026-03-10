@@ -8747,7 +8747,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_photoPicker_emptyTitle => 'Geen foto\'s gevonden';
 
   @override
-  String get media_photoPicker_grantAccessButton => 'Toegang verlenen';
+  String get media_photoPicker_grantAccessButton => 'Doorgaan';
 
   @override
   String get media_photoPicker_openSettingsButton => 'Instellingen openen';
@@ -9318,6 +9318,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_appearance_header_theme => 'Thema';
+
+  @override
+  String get settings_appearance_header_mode => 'Mode';
 
   @override
   String get settings_themes_title => 'Thema kiezen';
@@ -14169,7 +14172,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveImport_healthkit_fetching => 'Ophalen...';
 
   @override
-  String get diveImport_healthkit_grantAccess => 'Toegang verlenen';
+  String get diveImport_healthkit_grantAccess => 'Doorgaan';
 
   @override
   String get diveImport_healthkit_noDivesFound => 'Geen duiken gevonden';

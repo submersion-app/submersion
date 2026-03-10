@@ -8679,7 +8679,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_photoPicker_emptyTitle => 'No photos found';
 
   @override
-  String get media_photoPicker_grantAccessButton => 'Grant Access';
+  String get media_photoPicker_grantAccessButton => 'Continue';
 
   @override
   String get media_photoPicker_openSettingsButton => 'Open Settings';
@@ -9240,13 +9240,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_appearance_header_language => 'Language';
 
   @override
-  String get settings_appearance_header_theme => 'Theme';
+  String get settings_appearance_header_theme => 'Color Theme';
+
+  @override
+  String get settings_appearance_header_mode => 'Mode';
 
   @override
   String get settings_themes_title => 'Choose Theme';
 
   @override
-  String get settings_themes_current => 'Theme';
+  String get settings_themes_current => 'Color Theme';
 
   @override
   String get theme_submersion => 'Submersion';
@@ -14045,7 +14048,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveImport_healthkit_fetching => 'Fetching...';
 
   @override
-  String get diveImport_healthkit_grantAccess => 'Grant Access';
+  String get diveImport_healthkit_grantAccess => 'Continue';
 
   @override
   String get diveImport_healthkit_noDivesFound => 'No Dives Found';

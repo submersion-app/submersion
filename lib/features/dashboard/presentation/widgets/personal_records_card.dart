@@ -120,19 +120,7 @@ class PersonalRecordsCard extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: recordWidgets
-                        .map(
-                          (w) => Padding(
-                            padding: const EdgeInsetsDirectional.only(end: 8),
-                            child: w,
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ),
+                Wrap(spacing: 8, runSpacing: 8, children: recordWidgets),
               ],
             ),
           ),

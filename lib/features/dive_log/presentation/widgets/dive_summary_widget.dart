@@ -388,10 +388,12 @@ class DiveSummaryWidget extends ConsumerWidget {
                 final currentPath = state.uri.path;
                 context.go('$currentPath?mode=new');
               },
-              icon: const Icon(Icons.add),
-              label: Text(context.l10n.diveLog_summary_action_logDive),
+              icon: const Icon(Icons.edit_note),
+              label: Text(
+                context.l10n.diveLog_listPage_bottomSheet_logManually,
+              ),
             ),
-            OutlinedButton.icon(
+            FilledButton.icon(
               onPressed: () => context.go('/dive-computers'),
               icon: const Icon(Icons.download),
               label: Text(context.l10n.diveLog_summary_action_importComputer),

@@ -8784,7 +8784,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoPicker_emptyTitle => 'Nincsenek fotok';
 
   @override
-  String get media_photoPicker_grantAccessButton => 'Hozzaferes engedelyezese';
+  String get media_photoPicker_grantAccessButton => 'Tovább';
 
   @override
   String get media_photoPicker_openSettingsButton => 'Beallitasok megnyitasa';
@@ -9358,6 +9358,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_appearance_header_theme => 'Tema';
+
+  @override
+  String get settings_appearance_header_mode => 'Mode';
 
   @override
   String get settings_themes_title => 'Téma kiválasztása';
@@ -14244,7 +14247,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveImport_healthkit_fetching => 'Lekeres...';
 
   @override
-  String get diveImport_healthkit_grantAccess => 'Hozzaferes engedelyezese';
+  String get diveImport_healthkit_grantAccess => 'Tovább';
 
   @override
   String get diveImport_healthkit_noDivesFound => 'Nem talalhato merules';

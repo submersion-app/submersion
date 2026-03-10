@@ -46,9 +46,11 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
             ),
       floatingActionButton: _isSelectionMode
           ? null
-          : FloatingActionButton(
+          : FloatingActionButton.extended(
               onPressed: () => _showCreateDialog(),
-              child: const Icon(Icons.add),
+              tooltip: context.l10n.tags_manage_createTitle,
+              icon: const Icon(Icons.add),
+              label: Text(context.l10n.tags_manage_createTitle),
             ),
       body: Column(
         children: [

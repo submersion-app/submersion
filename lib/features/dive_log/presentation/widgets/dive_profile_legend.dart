@@ -373,6 +373,7 @@ class _ChartOptionsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
     const edgePadding = 8.0;
     const dialogMaxWidth = 280.0;
 
@@ -396,7 +397,7 @@ class _ChartOptionsDialog extends StatelessWidget {
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth: dialogMaxWidth,
-                maxHeight: screenSize.height - top - 32,
+                maxHeight: screenSize.height - top - edgePadding - bottomInset,
               ),
               child: Consumer(
                 builder: (context, ref, _) {

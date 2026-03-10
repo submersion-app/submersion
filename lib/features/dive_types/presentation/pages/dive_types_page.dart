@@ -22,10 +22,11 @@ class DiveTypesPage extends ConsumerWidget {
           tooltip: context.l10n.common_action_back,
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddDiveTypeDialog(context, ref),
         tooltip: context.l10n.diveTypes_addTooltip,
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: Text(context.l10n.diveTypes_addTooltip),
       ),
       body: diveTypesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
