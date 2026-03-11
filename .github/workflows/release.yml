@@ -2,6 +2,8 @@
 #
 # Triggers on version tag push (v*). Builds all 5 platforms in parallel,
 # then creates a GitHub Release with all artifacts attached.
+# App Store and Google Play uploads run independently from the GitHub Release
+# so that store-side issues (e.g. version in review) never block the release.
 #
 # Beta tags (v1.0.0-beta.1) create pre-releases.
 # Clean tags (v1.0.0) create full releases.
@@ -928,7 +930,7 @@ jobs:
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [build-macos, build-windows, build-linux, build-android, build-ios, generate-appcast, upload-macos, upload-ios, upload-android]
+    needs: [build-macos, build-windows, build-linux, build-android, build-ios, generate-appcast]
     permissions:
       contents: write
 
@@ -1054,3 +1056,62 @@ jobs:
             echo "ERROR: appcast.xml is not valid XML"
             exit 1
           fi
+
+  # ============================================================================
+  # Notify on Store Upload Failures
+  # ============================================================================
+  notify-upload-failures:
+    name: Notify Upload Failures
+    runs-on: ubuntu-latest
+    needs: [upload-macos, upload-ios, upload-android]
+    if: always() && contains(needs.*.result, 'failure')
+    permissions:
+      issues: write
+
+    steps:
+      - name: Build failure summary
+        id: summary
+        env:
+          MACOS_RESULT: ${{ needs.upload-macos.result }}
+          IOS_RESULT: ${{ needs.upload-ios.result }}
+          ANDROID_RESULT: ${{ needs.upload-android.result }}
+        run: |
+          FAILURES=""
+          if [ "$MACOS_RESULT" = "failure" ]; then
+            FAILURES="${FAILURES}- **macOS** App Store upload failed\n"
+          fi
+          if [ "$IOS_RESULT" = "failure" ]; then
+            FAILURES="${FAILURES}- **iOS** App Store upload failed\n"
+          fi
+          if [ "$ANDROID_RESULT" = "failure" ]; then
+            FAILURES="${FAILURES}- **Android** Google Play upload failed\n"
+          fi
+          echo "failures<<EOF" >> "$GITHUB_OUTPUT"
+          echo -e "$FAILURES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure ci label exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh label create ci --color "0E8A16" --repo "${{ github.repository }}" 2>/dev/null || true
+
+      - name: Create GitHub Issue
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+          FAILURES: ${{ steps.summary.outputs.failures }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "Store upload failures for ${TAG_NAME}" \
+            --label "ci" \
+            --body "$(cat <<EOF
+          The GitHub Release for \`${TAG_NAME}\` was created successfully, but one or more store uploads failed:
+
+          ${FAILURES}
+          **Workflow run:** ${RUN_URL}
+
+          The builds are available as workflow artifacts. Re-upload manually or re-run the failed jobs.
+          EOF
+          )"
