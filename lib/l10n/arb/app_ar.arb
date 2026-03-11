@@ -4318,5 +4318,22 @@
   "settings_dataSources_appleHealth_description": "Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.",
   "settings_dataSources_appleHealth_importAction": "Import from Apple Watch",
   "settings_dataSources_appleHealth_privacy": "Your health data is stored locally and is never shared with third parties.",
-  "settings_dataSources_noSources": "No data source integrations are available on this platform."
+  "settings_dataSources_noSources": "No data source integrations are available on this platform.",
+  "diveLog_chartSection_decompression": "تخفيف الضغط",
+  "diveLog_chartSection_gasAnalysis": "تحليل الغاز",
+  "diveLog_chartSection_markers": "العلامات",
+  "diveLog_chartSection_other": "أخرى",
+  "diveLog_chartSection_overlays": "طبقات إضافية",
+  "diveLog_chartSection_tankPressures": "ضغوط الأسطوانات",
+  "diveLog_legend_source_calc": "محسوب",
+  "diveLog_legend_source_dc": "DC",
+  "settings_appearance_header_mode": "الوضع",
+  "settings_dataSources_appleHealth_dataTypeHeartRate": "معدل ضربات القلب - عينات معدل ضربات القلب المسجلة أثناء الغوصات",
+  "settings_dataSources_appleHealth_dataTypeWorkouts": "تمارين الغوص تحت الماء - وقت بدء الغوصة والمدة وبيانات النشاط",
+  "settings_dataSources_appleHealth_dataTypesHeader": "البيانات المقروءة من HealthKit",
+  "settings_dataSources_appleHealth_permissionChecking": "جارٍ التحقق من الوصول إلى HealthKit...",
+  "settings_dataSources_appleHealth_permissionGranted": "تم منح الوصول إلى HealthKit",
+  "settings_dataSources_appleHealth_permissionNotGranted": "لم يتم منح الوصول إلى HealthKit",
+  "settings_dataSources_appleHealth_poweredBy": "مدعوم من Apple HealthKit",
+  "settings_dataSources_appleHealth_subtitle": "بيانات الغوص تحت الماء"
 }

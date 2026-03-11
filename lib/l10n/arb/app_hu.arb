@@ -4318,5 +4318,22 @@
   "settings_dataSources_appleHealth_description": "Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.",
   "settings_dataSources_appleHealth_importAction": "Import from Apple Watch",
   "settings_dataSources_appleHealth_privacy": "Your health data is stored locally and is never shared with third parties.",
-  "settings_dataSources_noSources": "No data source integrations are available on this platform."
+  "settings_dataSources_noSources": "No data source integrations are available on this platform.",
+  "diveLog_chartSection_decompression": "Dekompresszio",
+  "diveLog_chartSection_gasAnalysis": "Gazelemzes",
+  "diveLog_chartSection_markers": "Jelolok",
+  "diveLog_chartSection_other": "Egyeb",
+  "diveLog_chartSection_overlays": "Rategek",
+  "diveLog_chartSection_tankPressures": "Palacknyomasok",
+  "diveLog_legend_source_calc": "Szam.",
+  "diveLog_legend_source_dc": "DC",
+  "settings_appearance_header_mode": "Mod",
+  "settings_dataSources_appleHealth_dataTypeHeartRate": "Pulzusszam - merulesek soran rogzitett pulzusszam-mintak",
+  "settings_dataSources_appleHealth_dataTypeWorkouts": "Vizalatti merulesi edzeseek - merules kezdesi ideje, idotartama es tevekenysegeadatai",
+  "settings_dataSources_appleHealth_dataTypesHeader": "A HealthKit-bol olvasott adatok",
+  "settings_dataSources_appleHealth_permissionChecking": "HealthKit hozzaferes ellenorzese...",
+  "settings_dataSources_appleHealth_permissionGranted": "HealthKit hozzaferes megadva",
+  "settings_dataSources_appleHealth_permissionNotGranted": "HealthKit hozzaferes nem megadva",
+  "settings_dataSources_appleHealth_poweredBy": "Az Apple HealthKit altal biztositva",
+  "settings_dataSources_appleHealth_subtitle": "Vizalatti merulesi adatok"
 }

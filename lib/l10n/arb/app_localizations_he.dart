@@ -3727,25 +3727,25 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_source_dc => 'DC';
 
   @override
-  String get diveLog_legend_source_calc => 'Calc';
+  String get diveLog_legend_source_calc => 'מחושב';
 
   @override
-  String get diveLog_chartSection_overlays => 'Overlays';
+  String get diveLog_chartSection_overlays => 'שכבות על';
 
   @override
-  String get diveLog_chartSection_markers => 'Markers';
+  String get diveLog_chartSection_markers => 'סמנים';
 
   @override
-  String get diveLog_chartSection_decompression => 'Decompression';
+  String get diveLog_chartSection_decompression => 'דקומפרסיה';
 
   @override
-  String get diveLog_chartSection_gasAnalysis => 'Gas Analysis';
+  String get diveLog_chartSection_gasAnalysis => 'ניתוח גזים';
 
   @override
-  String get diveLog_chartSection_other => 'Other';
+  String get diveLog_chartSection_other => 'אחר';
 
   @override
-  String get diveLog_chartSection_tankPressures => 'Tank Pressures';
+  String get diveLog_chartSection_tankPressures => 'לחצי מיכלים';
 
   @override
   String get diveLog_listPage_appBar_diveMap => 'מפת צלילות';
@@ -9144,7 +9144,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_header_theme => 'ערכת נושא';
 
   @override
-  String get settings_appearance_header_mode => 'Mode';
+  String get settings_appearance_header_mode => 'מצב';
 
   @override
   String get settings_themes_title => 'בחר ערכת נושא';
@@ -14773,8 +14773,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_dataSources_appleHealth_title => 'Apple Health';
 
   @override
-  String get settings_dataSources_appleHealth_subtitle =>
-      'Underwater Diving Data';
+  String get settings_dataSources_appleHealth_subtitle => 'נתוני צלילה תת-ימית';
 
   @override
   String get settings_dataSources_appleHealth_description =>
@@ -14782,27 +14781,27 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_dataTypesHeader =>
-      'Data Read from HealthKit';
+      'נתונים הנקראים מ-HealthKit';
 
   @override
   String get settings_dataSources_appleHealth_dataTypeWorkouts =>
-      'Underwater Diving Workouts - dive start time, duration, and activity data';
+      'אימוני צלילה תת-ימית - שעת התחלה, משך ונתוני פעילות של הצלילה';
 
   @override
   String get settings_dataSources_appleHealth_dataTypeHeartRate =>
-      'Heart Rate - heart rate samples recorded during dives';
+      'דופק - דגימות דופק שנרשמו במהלך צלילות';
 
   @override
   String get settings_dataSources_appleHealth_permissionGranted =>
-      'HealthKit access granted';
+      'גישה ל-HealthKit אושרה';
 
   @override
   String get settings_dataSources_appleHealth_permissionNotGranted =>
-      'HealthKit access not granted';
+      'גישה ל-HealthKit לא אושרה';
 
   @override
   String get settings_dataSources_appleHealth_permissionChecking =>
-      'Checking HealthKit access...';
+      'בודק גישה ל-HealthKit...';
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
@@ -14814,7 +14813,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
-      'Powered by Apple HealthKit';
+      'מופעל על ידי Apple HealthKit';
 
   @override
   String get settings_dataSources_noSources =>

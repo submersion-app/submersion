@@ -3844,25 +3844,25 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_source_dc => 'DC';
 
   @override
-  String get diveLog_legend_source_calc => 'Calc';
+  String get diveLog_legend_source_calc => 'Calc.';
 
   @override
-  String get diveLog_chartSection_overlays => 'Overlays';
+  String get diveLog_chartSection_overlays => 'Sovrapposizioni';
 
   @override
-  String get diveLog_chartSection_markers => 'Markers';
+  String get diveLog_chartSection_markers => 'Marcatori';
 
   @override
-  String get diveLog_chartSection_decompression => 'Decompression';
+  String get diveLog_chartSection_decompression => 'Decompressione';
 
   @override
-  String get diveLog_chartSection_gasAnalysis => 'Gas Analysis';
+  String get diveLog_chartSection_gasAnalysis => 'Analisi dei gas';
 
   @override
-  String get diveLog_chartSection_other => 'Other';
+  String get diveLog_chartSection_other => 'Altro';
 
   @override
-  String get diveLog_chartSection_tankPressures => 'Tank Pressures';
+  String get diveLog_chartSection_tankPressures => 'Pressioni delle bombole';
 
   @override
   String get diveLog_listPage_appBar_diveMap => 'Mappa immersioni';
@@ -9396,7 +9396,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_appearance_header_theme => 'Tema';
 
   @override
-  String get settings_appearance_header_mode => 'Mode';
+  String get settings_appearance_header_mode => 'Modalita';
 
   @override
   String get settings_themes_title => 'Scegli tema';
@@ -15175,7 +15175,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_subtitle =>
-      'Underwater Diving Data';
+      'Dati di immersione subacquea';
 
   @override
   String get settings_dataSources_appleHealth_description =>
@@ -15183,27 +15183,27 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_dataTypesHeader =>
-      'Data Read from HealthKit';
+      'Dati letti da HealthKit';
 
   @override
   String get settings_dataSources_appleHealth_dataTypeWorkouts =>
-      'Underwater Diving Workouts - dive start time, duration, and activity data';
+      'Allenamenti di immersione subacquea - orario di inizio, durata e dati di attivita dell\'immersione';
 
   @override
   String get settings_dataSources_appleHealth_dataTypeHeartRate =>
-      'Heart Rate - heart rate samples recorded during dives';
+      'Frequenza cardiaca - campioni di frequenza cardiaca registrati durante le immersioni';
 
   @override
   String get settings_dataSources_appleHealth_permissionGranted =>
-      'HealthKit access granted';
+      'Accesso a HealthKit concesso';
 
   @override
   String get settings_dataSources_appleHealth_permissionNotGranted =>
-      'HealthKit access not granted';
+      'Accesso a HealthKit non concesso';
 
   @override
   String get settings_dataSources_appleHealth_permissionChecking =>
-      'Checking HealthKit access...';
+      'Verifica dell\'accesso a HealthKit...';
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
@@ -15215,7 +15215,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
-      'Powered by Apple HealthKit';
+      'Fornito da Apple HealthKit';
 
   @override
   String get settings_dataSources_noSources =>

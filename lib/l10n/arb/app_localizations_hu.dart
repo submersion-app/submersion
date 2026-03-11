@@ -3822,25 +3822,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_source_dc => 'DC';
 
   @override
-  String get diveLog_legend_source_calc => 'Calc';
+  String get diveLog_legend_source_calc => 'Szam.';
 
   @override
-  String get diveLog_chartSection_overlays => 'Overlays';
+  String get diveLog_chartSection_overlays => 'Rategek';
 
   @override
-  String get diveLog_chartSection_markers => 'Markers';
+  String get diveLog_chartSection_markers => 'Jelolok';
 
   @override
-  String get diveLog_chartSection_decompression => 'Decompression';
+  String get diveLog_chartSection_decompression => 'Dekompresszio';
 
   @override
-  String get diveLog_chartSection_gasAnalysis => 'Gas Analysis';
+  String get diveLog_chartSection_gasAnalysis => 'Gazelemzes';
 
   @override
-  String get diveLog_chartSection_other => 'Other';
+  String get diveLog_chartSection_other => 'Egyeb';
 
   @override
-  String get diveLog_chartSection_tankPressures => 'Tank Pressures';
+  String get diveLog_chartSection_tankPressures => 'Palacknyomasok';
 
   @override
   String get diveLog_listPage_appBar_diveMap => 'Merulesi terkep';
@@ -9360,7 +9360,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_appearance_header_theme => 'Tema';
 
   @override
-  String get settings_appearance_header_mode => 'Mode';
+  String get settings_appearance_header_mode => 'Mod';
 
   @override
   String get settings_themes_title => 'Téma kiválasztása';
@@ -15127,7 +15127,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_subtitle =>
-      'Underwater Diving Data';
+      'Vizalatti merulesi adatok';
 
   @override
   String get settings_dataSources_appleHealth_description =>
@@ -15135,27 +15135,27 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_dataTypesHeader =>
-      'Data Read from HealthKit';
+      'A HealthKit-bol olvasott adatok';
 
   @override
   String get settings_dataSources_appleHealth_dataTypeWorkouts =>
-      'Underwater Diving Workouts - dive start time, duration, and activity data';
+      'Vizalatti merulesi edzeseek - merules kezdesi ideje, idotartama es tevekenysegeadatai';
 
   @override
   String get settings_dataSources_appleHealth_dataTypeHeartRate =>
-      'Heart Rate - heart rate samples recorded during dives';
+      'Pulzusszam - merulesek soran rogzitett pulzusszam-mintak';
 
   @override
   String get settings_dataSources_appleHealth_permissionGranted =>
-      'HealthKit access granted';
+      'HealthKit hozzaferes megadva';
 
   @override
   String get settings_dataSources_appleHealth_permissionNotGranted =>
-      'HealthKit access not granted';
+      'HealthKit hozzaferes nem megadva';
 
   @override
   String get settings_dataSources_appleHealth_permissionChecking =>
-      'Checking HealthKit access...';
+      'HealthKit hozzaferes ellenorzese...';
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
@@ -15167,7 +15167,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
-      'Powered by Apple HealthKit';
+      'Az Apple HealthKit altal biztositva';
 
   @override
   String get settings_dataSources_noSources =>

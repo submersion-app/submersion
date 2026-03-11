@@ -4318,5 +4318,22 @@
   "settings_dataSources_appleHealth_description": "Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.",
   "settings_dataSources_appleHealth_importAction": "Import from Apple Watch",
   "settings_dataSources_appleHealth_privacy": "Your health data is stored locally and is never shared with third parties.",
-  "settings_dataSources_noSources": "No data source integrations are available on this platform."
+  "settings_dataSources_noSources": "No data source integrations are available on this platform.",
+  "diveLog_chartSection_decompression": "Descompressao",
+  "diveLog_chartSection_gasAnalysis": "Analise de gases",
+  "diveLog_chartSection_markers": "Marcadores",
+  "diveLog_chartSection_other": "Outros",
+  "diveLog_chartSection_overlays": "Sobreposicoes",
+  "diveLog_chartSection_tankPressures": "Pressoes dos cilindros",
+  "diveLog_legend_source_calc": "Calc.",
+  "diveLog_legend_source_dc": "DC",
+  "settings_appearance_header_mode": "Modo",
+  "settings_dataSources_appleHealth_dataTypeHeartRate": "Frequencia cardiaca - amostras de frequencia cardiaca registradas durante os mergulhos",
+  "settings_dataSources_appleHealth_dataTypeWorkouts": "Treinos de mergulho subaquatico - hora de inicio, duracao e dados de atividade do mergulho",
+  "settings_dataSources_appleHealth_dataTypesHeader": "Dados lidos do HealthKit",
+  "settings_dataSources_appleHealth_permissionChecking": "Verificando acesso ao HealthKit...",
+  "settings_dataSources_appleHealth_permissionGranted": "Acesso ao HealthKit concedido",
+  "settings_dataSources_appleHealth_permissionNotGranted": "Acesso ao HealthKit nao concedido",
+  "settings_dataSources_appleHealth_poweredBy": "Fornecido por Apple HealthKit",
+  "settings_dataSources_appleHealth_subtitle": "Dados de mergulho subaquatico"
 }

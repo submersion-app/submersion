@@ -3858,25 +3858,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_legend_source_dc => 'DC';
 
   @override
-  String get diveLog_legend_source_calc => 'Calc';
+  String get diveLog_legend_source_calc => 'Calc.';
 
   @override
-  String get diveLog_chartSection_overlays => 'Overlays';
+  String get diveLog_chartSection_overlays => 'Superpositions';
 
   @override
-  String get diveLog_chartSection_markers => 'Markers';
+  String get diveLog_chartSection_markers => 'Marqueurs';
 
   @override
   String get diveLog_chartSection_decompression => 'Decompression';
 
   @override
-  String get diveLog_chartSection_gasAnalysis => 'Gas Analysis';
+  String get diveLog_chartSection_gasAnalysis => 'Analyse des gaz';
 
   @override
-  String get diveLog_chartSection_other => 'Other';
+  String get diveLog_chartSection_other => 'Autre';
 
   @override
-  String get diveLog_chartSection_tankPressures => 'Tank Pressures';
+  String get diveLog_chartSection_tankPressures => 'Pressions des blocs';
 
   @override
   String get diveLog_listPage_appBar_diveMap => 'Carte des plongees';
@@ -15221,7 +15221,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_subtitle =>
-      'Underwater Diving Data';
+      'Donnees de plongee sous-marine';
 
   @override
   String get settings_dataSources_appleHealth_description =>
@@ -15229,27 +15229,27 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_dataTypesHeader =>
-      'Data Read from HealthKit';
+      'Donnees lues depuis HealthKit';
 
   @override
   String get settings_dataSources_appleHealth_dataTypeWorkouts =>
-      'Underwater Diving Workouts - dive start time, duration, and activity data';
+      'Entrainements de plongee sous-marine - heure de debut, duree et donnees d\'activite de la plongee';
 
   @override
   String get settings_dataSources_appleHealth_dataTypeHeartRate =>
-      'Heart Rate - heart rate samples recorded during dives';
+      'Frequence cardiaque - echantillons de frequence cardiaque enregistres pendant les plongees';
 
   @override
   String get settings_dataSources_appleHealth_permissionGranted =>
-      'HealthKit access granted';
+      'Acces a HealthKit accorde';
 
   @override
   String get settings_dataSources_appleHealth_permissionNotGranted =>
-      'HealthKit access not granted';
+      'Acces a HealthKit non accorde';
 
   @override
   String get settings_dataSources_appleHealth_permissionChecking =>
-      'Checking HealthKit access...';
+      'Verification de l\'acces a HealthKit...';
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
@@ -15261,7 +15261,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
-      'Powered by Apple HealthKit';
+      'Fourni par Apple HealthKit';
 
   @override
   String get settings_dataSources_noSources =>

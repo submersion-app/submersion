@@ -4318,5 +4318,22 @@
   "settings_dataSources_appleHealth_description": "Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.",
   "settings_dataSources_appleHealth_importAction": "Import from Apple Watch",
   "settings_dataSources_appleHealth_privacy": "Your health data is stored locally and is never shared with third parties.",
-  "settings_dataSources_noSources": "No data source integrations are available on this platform."
+  "settings_dataSources_noSources": "No data source integrations are available on this platform.",
+  "diveLog_chartSection_decompression": "דקומפרסיה",
+  "diveLog_chartSection_gasAnalysis": "ניתוח גזים",
+  "diveLog_chartSection_markers": "סמנים",
+  "diveLog_chartSection_other": "אחר",
+  "diveLog_chartSection_overlays": "שכבות על",
+  "diveLog_chartSection_tankPressures": "לחצי מיכלים",
+  "diveLog_legend_source_calc": "מחושב",
+  "diveLog_legend_source_dc": "DC",
+  "settings_appearance_header_mode": "מצב",
+  "settings_dataSources_appleHealth_dataTypeHeartRate": "דופק - דגימות דופק שנרשמו במהלך צלילות",
+  "settings_dataSources_appleHealth_dataTypeWorkouts": "אימוני צלילה תת-ימית - שעת התחלה, משך ונתוני פעילות של הצלילה",
+  "settings_dataSources_appleHealth_dataTypesHeader": "נתונים הנקראים מ-HealthKit",
+  "settings_dataSources_appleHealth_permissionChecking": "בודק גישה ל-HealthKit...",
+  "settings_dataSources_appleHealth_permissionGranted": "גישה ל-HealthKit אושרה",
+  "settings_dataSources_appleHealth_permissionNotGranted": "גישה ל-HealthKit לא אושרה",
+  "settings_dataSources_appleHealth_poweredBy": "מופעל על ידי Apple HealthKit",
+  "settings_dataSources_appleHealth_subtitle": "נתוני צלילה תת-ימית"
 }
