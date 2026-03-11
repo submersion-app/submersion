@@ -89,14 +89,27 @@ class LocationService {
         return null;
       }
 
-      // Get current position
+      // Get current position (retry once if the first attempt fails,
+      // as the platform location manager may need time to warm up)
       _log.info('Getting current device location...');
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: timeout,
-        ),
-      );
+      Position position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+          locationSettings: LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: timeout,
+          ),
+        );
+      } catch (e) {
+        _log.warning('First location attempt failed, retrying: $e');
+        await Future<void>.delayed(const Duration(seconds: 1));
+        position = await Geolocator.getCurrentPosition(
+          locationSettings: LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: timeout,
+          ),
+        );
+      }
 
       _log.info(
         'Got position: ${position.latitude}, ${position.longitude} (accuracy: ${position.accuracy}m)',
