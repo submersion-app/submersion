@@ -1,5 +1,7 @@
 #include "dive_computer_host_api_impl.h"
 
+#include <string.h>
+
 extern "C" {
 #include "ble_io_stream.h"
 #include "ble_scanner.h"
@@ -119,6 +121,7 @@ struct DownloadThreadData {
   gchar* product;
   guint32 model;
   gchar* address;
+  gchar* fingerprint;
   LibdivecomputerPluginTransportType transport;
 };
 
@@ -126,6 +129,7 @@ static void download_thread_data_free(DownloadThreadData* data) {
   g_free(data->vendor);
   g_free(data->product);
   g_free(data->address);
+  g_free(data->fingerprint);
   delete data;
 }
 
@@ -255,15 +259,30 @@ static gpointer download_thread_func(gpointer data) {
   unsigned int firmware_version = 0;
   char error_buf[256] = {0};
 
+  // Decode fingerprint from hex string.
+  unsigned char* fp_data = NULL;
+  unsigned int fp_size = 0;
+  if (td->fingerprint != NULL && td->fingerprint[0] != '\0') {
+      size_t hex_len = strlen(td->fingerprint);
+      fp_size = (unsigned int)(hex_len / 2);
+      fp_data = (unsigned char*)g_malloc(fp_size);
+      for (unsigned int i = 0; i < fp_size; i++) {
+          char byte_str[3] = { td->fingerprint[i*2], td->fingerprint[i*2+1], '\0' };
+          fp_data[i] = (unsigned char)strtol(byte_str, NULL, 16);
+      }
+  }
+
   int rc = libdc_download_run(
       ctx->session,
       td->vendor, td->product, td->model,
       transport_flag,
       &io_callbacks,
-      nullptr, 0,  // fingerprint (none for full download)
+      fp_data, fp_size,
       &dl_callbacks,
       &serial_number, &firmware_version,
       error_buf, sizeof(error_buf));
+
+  g_free(fp_data);
 
   if (rc != 0) {
     gchar* msg = (error_buf[0] != '\0')
@@ -413,6 +432,7 @@ handle_stop_discovery(gpointer user_data) {
 
 static void handle_start_download(
     LibdivecomputerPluginDiscoveredDevice* device,
+    const gchar* fingerprint,
     LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle,
     gpointer user_data) {
   auto* ctx = static_cast<HostApiContext*>(user_data);
@@ -434,6 +454,7 @@ static void handle_start_download(
       libdivecomputer_plugin_discovered_device_get_address(device));
   td->transport =
       libdivecomputer_plugin_discovered_device_get_transport(device);
+  td->fingerprint = (fingerprint != NULL) ? g_strdup(fingerprint) : NULL;
 
   // Spawn download thread.
   ctx->download_thread = g_thread_new("dc-download", download_thread_func, td);
