@@ -133,12 +133,12 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
 
     // MARK: - Download
 
-    func startDownload(device: DiscoveredDevice, completion: @escaping (Result<Void, Error>) -> Void) {
+    func startDownload(device: DiscoveredDevice, fingerprint: String?, completion: @escaping (Result<Void, Error>) -> Void) {
         completion(.success(()))
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
-            self.performDownload(device: device)
+            self.performDownload(device: device, fingerprint: fingerprint)
         }
     }
 
@@ -155,7 +155,7 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         stream.submitPinCode(pinCode)
     }
 
-    private func performDownload(device: DiscoveredDevice) {
+    private func performDownload(device: DiscoveredDevice, fingerprint: String?) {
         // Create download session.
         guard let session = libdc_download_session_new() else {
             reportError(code: "session_failed", message: "Failed to create download session")
@@ -216,21 +216,48 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             transportValue = UInt32(LIBDC_TRANSPORT_IRDA)
         }
 
+        // Decode fingerprint from hex string if provided.
+        var fingerprintBytes: [UInt8]? = nil
+        if let hex = fingerprint, !hex.isEmpty {
+            fingerprintBytes = stride(from: 0, to: hex.count, by: 2).compactMap { i in
+                let start = hex.index(hex.startIndex, offsetBy: i)
+                let end = hex.index(start, offsetBy: 2, limitedBy: hex.endIndex) ?? hex.endIndex
+                return UInt8(hex[start..<end], radix: 16)
+            }
+        }
+
         // Run the download (blocks until complete).
         var serial: UInt32 = 0
         var firmware: UInt32 = 0
         var errorBuf = [CChar](repeating: 0, count: 256)
-        let result = libdc_download_run(
-            session,
-            device.vendor, device.product, UInt32(device.model),
-            transportValue,
-            &ioCallbacks,
-            nil, 0,  // No fingerprint for now (download all dives)
-            &downloadCallbacks,
-            &serial,
-            &firmware,
-            &errorBuf, errorBuf.count
-        )
+        let result: Int32
+        if let fp = fingerprintBytes, !fp.isEmpty {
+            result = fp.withUnsafeBufferPointer { buf in
+                libdc_download_run(
+                    session,
+                    device.vendor, device.product, UInt32(device.model),
+                    transportValue,
+                    &ioCallbacks,
+                    buf.baseAddress, UInt32(buf.count),
+                    &downloadCallbacks,
+                    &serial,
+                    &firmware,
+                    &errorBuf, errorBuf.count
+                )
+            }
+        } else {
+            result = libdc_download_run(
+                session,
+                device.vendor, device.product, UInt32(device.model),
+                transportValue,
+                &ioCallbacks,
+                nil, 0,
+                &downloadCallbacks,
+                &serial,
+                &firmware,
+                &errorBuf, errorBuf.count
+            )
+        }
 
         // Format device info as strings for Dart.
         let serialStr: String? = serial > 0 ? String(serial) : nil
