@@ -251,6 +251,8 @@ static int jni_io_write(void *userdata, const void *data, size_t size, size_t *a
 // BLE ioctl constants matching libdivecomputer's encoding.
 // DC_IOCTL('b', 0) = (0x62 << 8) | 0 = 0x6200
 #define BLE_IOCTL_GET_NAME 0x6200
+#define BLE_IOCTL_GET_PINCODE_NR 1
+#define BLE_IOCTL_ACCESSCODE_NR 2
 
 static int jni_io_ioctl(void *userdata, unsigned int request,
                          void *data, size_t size) {
@@ -279,6 +281,107 @@ static int jni_io_ioctl(void *userdata, unsigned int request,
         // Ensure null termination.
         static_cast<char *>(data)[size - 1] = '\0';
         return LIBDC_STATUS_SUCCESS;
+    }
+
+    // Handle BLE_GET_PINCODE: request PIN from user via Kotlin.
+    if (ioctl_type == 0x62 && ioctl_nr == BLE_IOCTL_GET_PINCODE_NR) {
+        if (data == nullptr || size == 0) {
+            return LIBDC_STATUS_INVALIDARGS;
+        }
+
+        JNIEnv *env;
+        bool attached = false;
+        if (ctx->jvm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
+            ctx->jvm->AttachCurrentThread(&env, nullptr);
+            attached = true;
+        }
+
+        // Call ioHandler.onPinCodeRequired(address) -- blocks until PIN is entered.
+        jclass cls = env->GetObjectClass(ctx->ioHandler);
+        jmethodID method = env->GetMethodID(cls, "onPinCodeRequired",
+            "(Ljava/lang/String;)Ljava/lang/String;");
+
+        jstring jAddress = env->NewStringUTF(ctx->ble_name);
+        jstring jPin = (jstring)env->CallObjectMethod(ctx->ioHandler, method, jAddress);
+        env->DeleteLocalRef(jAddress);
+
+        int status = LIBDC_STATUS_SUCCESS;
+        if (jPin == nullptr || env->GetStringLength(jPin) == 0) {
+            status = LIBDC_STATUS_CANCELLED;
+        } else {
+            const char *pin_chars = env->GetStringUTFChars(jPin, nullptr);
+            size_t pin_len = strlen(pin_chars) + 1;
+            size_t copy_len = pin_len < size ? pin_len : size;
+            memcpy(data, pin_chars, copy_len);
+            static_cast<char *>(data)[copy_len - 1] = '\0';
+            env->ReleaseStringUTFChars(jPin, pin_chars);
+            __android_log_print(ANDROID_LOG_DEBUG, TAG,
+                "ioctl BLE_GET_PINCODE -> PIN provided (%zu chars)", pin_len - 1);
+        }
+
+        if (jPin != nullptr) env->DeleteLocalRef(jPin);
+        if (attached) ctx->jvm->DetachCurrentThread();
+        return status;
+    }
+
+    // Handle BLE_GET_ACCESSCODE / BLE_SET_ACCESSCODE.
+    if (ioctl_type == 0x62 && ioctl_nr == BLE_IOCTL_ACCESSCODE_NR) {
+        if (data == nullptr || size == 0) {
+            return LIBDC_STATUS_INVALIDARGS;
+        }
+
+        unsigned int direction = (request >> 30) & 0x3;
+
+        JNIEnv *env;
+        bool attached = false;
+        if (ctx->jvm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
+            ctx->jvm->AttachCurrentThread(&env, nullptr);
+            attached = true;
+        }
+
+        jclass cls = env->GetObjectClass(ctx->ioHandler);
+        jstring jAddress = env->NewStringUTF(ctx->ble_name);
+        int status;
+
+        if (direction == 1) {
+            // GET access code
+            jmethodID method = env->GetMethodID(cls, "getAccessCode",
+                "(Ljava/lang/String;)[B");
+            jbyteArray jCode = (jbyteArray)env->CallObjectMethod(
+                ctx->ioHandler, method, jAddress);
+
+            if (jCode == nullptr) {
+                status = LIBDC_STATUS_UNSUPPORTED;
+                __android_log_print(ANDROID_LOG_DEBUG, TAG,
+                    "ioctl BLE_GET_ACCESSCODE -> not found");
+            } else {
+                jsize code_len = env->GetArrayLength(jCode);
+                jsize copy_len = code_len < (jsize)size ? code_len : (jsize)size;
+                env->GetByteArrayRegion(jCode, 0, copy_len,
+                    reinterpret_cast<jbyte *>(data));
+                env->DeleteLocalRef(jCode);
+                status = LIBDC_STATUS_SUCCESS;
+                __android_log_print(ANDROID_LOG_DEBUG, TAG,
+                    "ioctl BLE_GET_ACCESSCODE -> found (%d bytes)", code_len);
+            }
+        } else {
+            // SET access code
+            jbyteArray jCode = env->NewByteArray((jsize)size);
+            env->SetByteArrayRegion(jCode, 0, (jsize)size,
+                reinterpret_cast<const jbyte *>(data));
+
+            jmethodID method = env->GetMethodID(cls, "setAccessCode",
+                "(Ljava/lang/String;[B)V");
+            env->CallVoidMethod(ctx->ioHandler, method, jAddress, jCode);
+            env->DeleteLocalRef(jCode);
+            status = LIBDC_STATUS_SUCCESS;
+            __android_log_print(ANDROID_LOG_DEBUG, TAG,
+                "ioctl BLE_SET_ACCESSCODE -> stored (%zu bytes)", size);
+        }
+
+        env->DeleteLocalRef(jAddress);
+        if (attached) ctx->jvm->DetachCurrentThread();
+        return status;
     }
 
     return LIBDC_STATUS_UNSUPPORTED;
