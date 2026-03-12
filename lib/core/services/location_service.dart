@@ -76,6 +76,7 @@ class LocationService {
 
       // Check permission
       var permission = await checkPermission();
+      final wasNewlyGranted = permission == LocationPermission.denied;
       if (permission == LocationPermission.denied) {
         permission = await requestPermission();
         if (permission == LocationPermission.denied) {
@@ -89,26 +90,60 @@ class LocationService {
         return null;
       }
 
-      // Get current position (retry once if the first attempt fails,
-      // as the platform location manager may need time to warm up)
-      _log.info('Getting current device location...');
-      Position position;
-      try {
-        position = await Geolocator.getCurrentPosition(
-          locationSettings: LocationSettings(
-            accuracy: LocationAccuracy.high,
-            timeLimit: timeout,
-          ),
+      // On macOS, Core Location needs time to initialize after a fresh
+      // permission grant — the location daemon must start and WiFi
+      // positioning must warm up before it can deliver a fix.
+      if (wasNewlyGranted && !kIsWeb && Platform.isMacOS) {
+        _log.info(
+          'Fresh permission grant on macOS, waiting for CLLocationManager init...',
         );
-      } catch (e) {
-        _log.warning('First location attempt failed, retrying: $e');
-        await Future<void>.delayed(const Duration(seconds: 1));
-        position = await Geolocator.getCurrentPosition(
-          locationSettings: LocationSettings(
-            accuracy: LocationAccuracy.high,
-            timeLimit: timeout,
-          ),
-        );
+        await Future<void>.delayed(const Duration(seconds: 2));
+      }
+
+      // Use reduced accuracy on desktop (no GPS hardware — relies on WiFi
+      // triangulation) to avoid timeouts waiting for precision that cannot
+      // be achieved.
+      final accuracy = _isMobile
+          ? LocationAccuracy.high
+          : LocationAccuracy.medium;
+
+      // Get current position with retries. Desktop platforms (especially
+      // macOS) often need multiple attempts as the location manager warms up.
+      _log.info('Getting current device location (accuracy: $accuracy)...');
+      Position? position;
+      final maxAttempts = _isMobile ? 2 : 3;
+
+      for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          position = await Geolocator.getCurrentPosition(
+            locationSettings: LocationSettings(
+              accuracy: accuracy,
+              timeLimit: timeout,
+            ),
+          );
+          break;
+        } catch (e) {
+          _log.warning('Location attempt $attempt/$maxAttempts failed: $e');
+          if (attempt < maxAttempts) {
+            await Future<void>.delayed(Duration(seconds: attempt));
+          }
+        }
+      }
+
+      // Last resort: check for a cached position from a previous session
+      if (position == null) {
+        _log.info('Live positioning failed, trying last known position...');
+        position = await Geolocator.getLastKnownPosition();
+        if (position != null) {
+          _log.info(
+            'Using last known position: ${position.latitude}, ${position.longitude}',
+          );
+        }
+      }
+
+      if (position == null) {
+        _log.warning('All location attempts failed');
+        return null;
       }
 
       _log.info(
