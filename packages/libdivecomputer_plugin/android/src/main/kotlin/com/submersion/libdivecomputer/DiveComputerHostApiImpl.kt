@@ -139,6 +139,10 @@ class DiveComputerHostApiImpl(
         }
     }
 
+    override fun submitPinCode(pinCode: String) {
+        activeBleStream?.submitPinCode(pinCode)
+    }
+
     private fun performDownload(device: DiscoveredDevice, isRetry: Boolean = false) {
         // Create download session.
         val sessionPtr = LibdcWrapper.nativeDownloadSessionNew()
@@ -162,6 +166,10 @@ class DiveComputerHostApiImpl(
 
         val bleStream = BleIoStream(context, btDevice)
         activeBleStream = bleStream
+
+        bleStream.onPinRequired = { address ->
+            flutterApi.onPinCodeRequired(address) {}
+        }
 
         if (!bleStream.connectAndDiscover()) {
             reportError("connect_failed", "Failed to connect to device")
