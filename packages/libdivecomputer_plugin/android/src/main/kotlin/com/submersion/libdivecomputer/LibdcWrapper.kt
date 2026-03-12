@@ -81,6 +81,9 @@ interface BleIoHandler {
     fun write(data: ByteArray, timeoutMs: Int): Int
     fun purge(direction: Int)
     fun close()
+    fun onPinCodeRequired(address: String): String
+    fun getAccessCode(address: String): ByteArray?
+    fun setAccessCode(address: String, code: ByteArray)
 }
 
 // Interface for download event callbacks from native code.

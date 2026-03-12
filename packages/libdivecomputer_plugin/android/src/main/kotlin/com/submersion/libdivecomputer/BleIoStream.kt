@@ -60,6 +60,12 @@ class BleIoStream(
     private var connected = false
     private var readBuffer = ByteArray(0)
 
+    private val pinSemaphore = Semaphore(0)
+    private var pendingPinCode: String? = null
+
+    /// Callback invoked when PIN is needed. Set by HostApiImpl.
+    var onPinRequired: ((String) -> Unit)? = null
+
     // GATT status from the most recent disconnect. Exposed so that callers
     // can detect stale bond keys (status 5 = GATT_INSUFFICIENT_AUTHENTICATION).
     var lastDisconnectStatus = 0
@@ -464,5 +470,49 @@ class BleIoStream(
         gatt?.disconnect()
         gatt?.close()
         gatt = null
+    }
+
+    override fun onPinCodeRequired(address: String): String {
+        val deviceAddress = device.address
+        Log.d(TAG, "PIN code requested for $deviceAddress")
+        pendingPinCode = null
+
+        // Dispatch callback to main thread BEFORE blocking.
+        val callback = onPinRequired
+        if (callback != null) {
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                callback(deviceAddress)
+            }
+        }
+
+        // Block until submitPinCode() is called (60s timeout).
+        val acquired = pinSemaphore.tryAcquire(60, TimeUnit.SECONDS)
+        if (!acquired) {
+            Log.w(TAG, "PIN entry timed out")
+            return ""
+        }
+
+        return pendingPinCode ?: ""
+    }
+
+    fun submitPinCode(pin: String) {
+        pendingPinCode = pin
+        pinSemaphore.release()
+    }
+
+    override fun getAccessCode(address: String): ByteArray? {
+        val deviceAddress = device.address
+        val prefs = context.getSharedPreferences("ble_access_codes", Context.MODE_PRIVATE)
+        val key = "ble_access_code_$deviceAddress"
+        val encoded = prefs.getString(key, null) ?: return null
+        return android.util.Base64.decode(encoded, android.util.Base64.NO_WRAP)
+    }
+
+    override fun setAccessCode(address: String, code: ByteArray) {
+        val deviceAddress = device.address
+        val prefs = context.getSharedPreferences("ble_access_codes", Context.MODE_PRIVATE)
+        val key = "ble_access_code_$deviceAddress"
+        val encoded = android.util.Base64.encodeToString(code, android.util.Base64.NO_WRAP)
+        prefs.edit().putString(key, encoded).apply()
     }
 }
