@@ -31,6 +31,11 @@ class DownloadErrorEvent extends DownloadEvent {
   DownloadErrorEvent(this.error);
 }
 
+class PinCodeRequestEvent extends DownloadEvent {
+  final String deviceAddress;
+  PinCodeRequestEvent(this.deviceAddress);
+}
+
 /// High-level Dart service wrapping the Pigeon DiveComputerHostApi.
 ///
 /// Provides a Stream-based interface over the callback-based Pigeon API.
@@ -87,6 +92,11 @@ class DiveComputerService implements DiveComputerFlutterApi {
     return _hostApi.cancelDownload();
   }
 
+  /// Submit a PIN code entered by the user for BLE authentication.
+  Future<void> submitPinCode(String pinCode) {
+    return _hostApi.submitPinCode(pinCode);
+  }
+
   // === DiveComputerFlutterApi callbacks (called from native) ===
 
   @override
@@ -127,6 +137,11 @@ class DiveComputerService implements DiveComputerFlutterApi {
   @override
   void onError(DiveComputerError error) {
     _downloadEventsController.add(DownloadErrorEvent(error));
+  }
+
+  @override
+  void onPinCodeRequired(String deviceAddress) {
+    _downloadEventsController.add(PinCodeRequestEvent(deviceAddress));
   }
 
   /// Dispose of all stream controllers.
