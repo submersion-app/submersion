@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_computer/domain/entities/downloaded_div
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/pin_code_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Widget for the download step of the discovery wizard.
@@ -53,9 +54,6 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     // next build() cycle does not see old importResult / progress.
     notifier.reset();
 
-    // Set dialog context for PIN entry (Aqualung devices)
-    notifier.setDialogContext(context);
-
     // Resolve the diver ID so auto-import assigns the correct owner.
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
 
@@ -70,6 +68,15 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
   @override
   Widget build(BuildContext context) {
     final downloadState = ref.watch(downloadNotifierProvider);
+
+    ref.listen<DownloadState>(downloadNotifierProvider, (previous, next) {
+      if (next.phase == DownloadPhase.pinRequired &&
+          previous?.phase != DownloadPhase.pinRequired) {
+        final notifier = ref.read(downloadNotifierProvider.notifier);
+        handlePinCodeRequest(context, notifier.submitPinCode);
+      }
+    });
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -316,6 +323,8 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     switch (phase) {
       case DownloadPhase.connecting:
         return Icons.bluetooth_connected;
+      case DownloadPhase.pinRequired:
+        return Icons.pin;
       case DownloadPhase.enumerating:
         return Icons.search;
       case DownloadPhase.downloading:

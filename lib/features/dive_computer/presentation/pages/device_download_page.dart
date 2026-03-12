@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/download_exit_dialog.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/pin_code_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Page for downloading dives from a known/saved dive computer.
@@ -173,7 +174,6 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     if (computer == null) return;
 
     final notifier = ref.read(downloadNotifierProvider.notifier);
-    notifier.setDialogContext(context);
 
     // Resolve the diver ID before starting the download so the notifier
     // can auto-import with the correct owner.
@@ -203,6 +203,15 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
       diveComputerByIdProvider(widget.computerId),
     );
     final downloadState = ref.watch(downloadNotifierProvider);
+
+    ref.listen<DownloadState>(downloadNotifierProvider, (previous, next) {
+      if (next.phase == DownloadPhase.pinRequired &&
+          previous?.phase != DownloadPhase.pinRequired) {
+        final notifier = ref.read(downloadNotifierProvider.notifier);
+        handlePinCodeRequest(context, notifier.submitPinCode);
+      }
+    });
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -577,6 +586,8 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     switch (phase) {
       case DownloadPhase.connecting:
         return Icons.bluetooth_connected;
+      case DownloadPhase.pinRequired:
+        return Icons.pin;
       case DownloadPhase.enumerating:
         return Icons.search;
       case DownloadPhase.downloading:

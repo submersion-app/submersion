@@ -12,6 +12,23 @@ Future<String?> showPinCodeDialog(BuildContext context) {
   );
 }
 
+/// Handles the PIN code request flow for download pages.
+///
+/// Shows the PIN dialog and submits the result to the notifier.
+/// If cancelled, submits an empty string to abort the download.
+Future<void> handlePinCodeRequest(
+  BuildContext context,
+  Future<void> Function(String) submitPinCode,
+) async {
+  final pin = await showPinCodeDialog(context);
+  if (pin != null && pin.isNotEmpty) {
+    await submitPinCode(pin);
+  } else {
+    // User cancelled -- submit empty string to signal cancellation.
+    await submitPinCode('');
+  }
+}
+
 class _PinCodeDialog extends StatefulWidget {
   const _PinCodeDialog();
 
