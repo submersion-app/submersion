@@ -4335,5 +4335,10 @@
   "settings_dataSources_appleHealth_permissionGranted": "HealthKit-toegang verleend",
   "settings_dataSources_appleHealth_permissionNotGranted": "HealthKit-toegang niet verleend",
   "settings_dataSources_appleHealth_poweredBy": "Mogelijk gemaakt door Apple HealthKit",
-  "settings_dataSources_appleHealth_subtitle": "Onderwaterduikgegevens"
+  "settings_dataSources_appleHealth_subtitle": "Onderwaterduikgegevens",
+  "diveComputer_download_importingCountDives": "{count} duiken importeren...",
+  "diveComputer_download_importingCountNewDives": "{count} nieuwe duiken importeren...",
+  "diveComputer_download_newDivesOnlySubtitle": "Downloadt alleen duiken die zijn toegevoegd sinds je laatste synchronisatie",
+  "diveComputer_download_newDivesOnlyTitle": "Alleen nieuwe duiken downloaden",
+  "diveComputer_download_upToDate": "Geen nieuwe duiken gevonden -- je logboek is up-to-date"
 }

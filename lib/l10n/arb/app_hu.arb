@@ -4335,5 +4335,10 @@
   "settings_dataSources_appleHealth_permissionGranted": "HealthKit hozzaferes megadva",
   "settings_dataSources_appleHealth_permissionNotGranted": "HealthKit hozzaferes nem megadva",
   "settings_dataSources_appleHealth_poweredBy": "Az Apple HealthKit altal biztositva",
-  "settings_dataSources_appleHealth_subtitle": "Vizalatti merulesi adatok"
+  "settings_dataSources_appleHealth_subtitle": "Vizalatti merulesi adatok",
+  "diveComputer_download_importingCountDives": "{count} merülés importálása...",
+  "diveComputer_download_importingCountNewDives": "{count} új merülés importálása...",
+  "diveComputer_download_newDivesOnlySubtitle": "Csak az utolsó szinkronizálás óta hozzáadott merüléseket tölti le",
+  "diveComputer_download_newDivesOnlyTitle": "Csak új merülések letöltése",
+  "diveComputer_download_upToDate": "Nem található új merülés -- a naplód naprakész"
 }

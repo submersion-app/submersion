@@ -14011,12 +14011,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String diveComputer_download_importingCountDives(int count) {
-    return 'Importing $count dives...';
+    return 'Importando $count inmersiones...';
   }
 
   @override
   String diveComputer_download_importingCountNewDives(int count) {
-    return 'Importing $count new dives...';
+    return 'Importando $count inmersiones nuevas...';
   }
 
   @override
@@ -14025,11 +14025,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveComputer_download_newDivesOnlySubtitle =>
-      'Only downloads dives added since your last sync';
+      'Solo descarga inmersiones agregadas desde tu última sincronización';
 
   @override
   String get diveComputer_download_newDivesOnlyTitle =>
-      'Download new dives only';
+      'Descargar solo inmersiones nuevas';
 
   @override
   String get diveComputer_download_preparing => 'Preparando...';
@@ -14064,7 +14064,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveComputer_download_upToDate =>
-      'No new dives found -- your log is up to date';
+      'No se encontraron inmersiones nuevas -- tu registro está al día';
 
   @override
   String get diveComputer_list_addComputer => 'Anadir ordenador';

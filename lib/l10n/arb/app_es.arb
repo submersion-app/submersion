@@ -4335,5 +4335,10 @@
   "settings_dataSources_appleHealth_permissionGranted": "Acceso a HealthKit concedido",
   "settings_dataSources_appleHealth_permissionNotGranted": "Acceso a HealthKit no concedido",
   "settings_dataSources_appleHealth_poweredBy": "Desarrollado con Apple HealthKit",
-  "settings_dataSources_appleHealth_subtitle": "Datos de buceo subacuatico"
+  "settings_dataSources_appleHealth_subtitle": "Datos de buceo subacuatico",
+  "diveComputer_download_importingCountDives": "Importando {count} inmersiones...",
+  "diveComputer_download_importingCountNewDives": "Importando {count} inmersiones nuevas...",
+  "diveComputer_download_newDivesOnlySubtitle": "Solo descarga inmersiones agregadas desde tu última sincronización",
+  "diveComputer_download_newDivesOnlyTitle": "Descargar solo inmersiones nuevas",
+  "diveComputer_download_upToDate": "No se encontraron inmersiones nuevas -- tu registro está al día"
 }

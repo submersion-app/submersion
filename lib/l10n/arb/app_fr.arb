@@ -4335,5 +4335,10 @@
   "settings_dataSources_appleHealth_permissionGranted": "Acces a HealthKit accorde",
   "settings_dataSources_appleHealth_permissionNotGranted": "Acces a HealthKit non accorde",
   "settings_dataSources_appleHealth_poweredBy": "Fourni par Apple HealthKit",
-  "settings_dataSources_appleHealth_subtitle": "Donnees de plongee sous-marine"
+  "settings_dataSources_appleHealth_subtitle": "Donnees de plongee sous-marine",
+  "diveComputer_download_importingCountDives": "Importation de {count} plongees...",
+  "diveComputer_download_importingCountNewDives": "Importation de {count} nouvelles plongees...",
+  "diveComputer_download_newDivesOnlySubtitle": "Telecharge uniquement les plongees ajoutees depuis votre derniere synchronisation",
+  "diveComputer_download_newDivesOnlyTitle": "Telecharger uniquement les nouvelles plongees",
+  "diveComputer_download_upToDate": "Aucune nouvelle plongee trouvee -- votre carnet est a jour"
 }

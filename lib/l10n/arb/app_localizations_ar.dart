@@ -13729,12 +13729,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String diveComputer_download_importingCountDives(int count) {
-    return 'Importing $count dives...';
+    return 'جارٍ استيراد $count غطسة...';
   }
 
   @override
   String diveComputer_download_importingCountNewDives(int count) {
-    return 'Importing $count new dives...';
+    return 'جارٍ استيراد $count غطسة جديدة...';
   }
 
   @override
@@ -13742,11 +13742,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_download_newDivesOnlySubtitle =>
-      'Only downloads dives added since your last sync';
+      'يتم تنزيل الغطسات المضافة منذ آخر مزامنة فقط';
 
   @override
   String get diveComputer_download_newDivesOnlyTitle =>
-      'Download new dives only';
+      'تنزيل الغطسات الجديدة فقط';
 
   @override
   String get diveComputer_download_preparing => 'جارٍ التحضير...';
@@ -13781,7 +13781,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_download_upToDate =>
-      'No new dives found -- your log is up to date';
+      'لم يتم العثور على غطسات جديدة -- سجلك محدّث';
 
   @override
   String get diveComputer_list_addComputer => 'إضافة كمبيوتر';

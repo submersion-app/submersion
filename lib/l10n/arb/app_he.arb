@@ -4335,5 +4335,10 @@
   "settings_dataSources_appleHealth_permissionGranted": "גישה ל-HealthKit אושרה",
   "settings_dataSources_appleHealth_permissionNotGranted": "גישה ל-HealthKit לא אושרה",
   "settings_dataSources_appleHealth_poweredBy": "מופעל על ידי Apple HealthKit",
-  "settings_dataSources_appleHealth_subtitle": "נתוני צלילה תת-ימית"
+  "settings_dataSources_appleHealth_subtitle": "נתוני צלילה תת-ימית",
+  "diveComputer_download_importingCountDives": "מייבא {count} צלילות...",
+  "diveComputer_download_importingCountNewDives": "מייבא {count} צלילות חדשות...",
+  "diveComputer_download_newDivesOnlySubtitle": "מוריד רק צלילות שנוספו מאז הסנכרון האחרון",
+  "diveComputer_download_newDivesOnlyTitle": "הורד צלילות חדשות בלבד",
+  "diveComputer_download_upToDate": "לא נמצאו צלילות חדשות -- היומן שלך מעודכן"
 }

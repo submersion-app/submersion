@@ -4335,5 +4335,10 @@
   "settings_dataSources_appleHealth_permissionGranted": "تم منح الوصول إلى HealthKit",
   "settings_dataSources_appleHealth_permissionNotGranted": "لم يتم منح الوصول إلى HealthKit",
   "settings_dataSources_appleHealth_poweredBy": "مدعوم من Apple HealthKit",
-  "settings_dataSources_appleHealth_subtitle": "بيانات الغوص تحت الماء"
+  "settings_dataSources_appleHealth_subtitle": "بيانات الغوص تحت الماء",
+  "diveComputer_download_importingCountDives": "جارٍ استيراد {count} غطسة...",
+  "diveComputer_download_importingCountNewDives": "جارٍ استيراد {count} غطسة جديدة...",
+  "diveComputer_download_newDivesOnlySubtitle": "يتم تنزيل الغطسات المضافة منذ آخر مزامنة فقط",
+  "diveComputer_download_newDivesOnlyTitle": "تنزيل الغطسات الجديدة فقط",
+  "diveComputer_download_upToDate": "لم يتم العثور على غطسات جديدة -- سجلك محدّث"
 }
