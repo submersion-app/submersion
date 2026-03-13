@@ -179,6 +179,12 @@ class ExcelExportService {
       'O2 %',
       'He %',
       'Notes',
+      'Wind Speed (m/s)',
+      'Wind Direction',
+      'Cloud Cover',
+      'Precipitation',
+      'Humidity (%)',
+      'Weather Description',
     ];
 
     for (var col = 0; col < headers.length; col++) {
@@ -217,6 +223,12 @@ class ExcelExportService {
         tank?.gasMix.o2.toStringAsFixed(0) ?? '',
         tank?.gasMix.he.toStringAsFixed(0) ?? '',
         dive.notes.replaceAll('\n', ' '),
+        dive.windSpeed?.toStringAsFixed(1) ?? '',
+        dive.windDirection?.displayName ?? '',
+        dive.cloudCover?.displayName ?? '',
+        dive.precipitation?.displayName ?? '',
+        dive.humidity?.toStringAsFixed(0) ?? '',
+        dive.weatherDescription ?? '',
       ];
 
       for (var col = 0; col < rowData.length; col++) {
