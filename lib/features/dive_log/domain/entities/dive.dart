@@ -112,6 +112,16 @@ class Dive extends Equatable {
   // User-defined custom fields
   final List<DiveCustomField> customFields;
 
+  // Weather fields
+  final double? windSpeed; // m/s
+  final CurrentDirection? windDirection;
+  final CloudCover? cloudCover;
+  final Precipitation? precipitation;
+  final double? humidity; // 0-100
+  final String? weatherDescription;
+  final WeatherSource? weatherSource;
+  final DateTime? weatherFetchedAt;
+
   const Dive({
     required this.id,
     this.diverId,
@@ -187,6 +197,15 @@ class Dive extends Equatable {
     this.wearableId,
     // User-defined custom fields
     this.customFields = const [],
+    // Weather fields
+    this.windSpeed,
+    this.windDirection,
+    this.cloudCover,
+    this.precipitation,
+    this.humidity,
+    this.weatherDescription,
+    this.weatherSource,
+    this.weatherFetchedAt,
   });
 
   /// Effective start time of the dive (entryTime if set, otherwise dateTime)
@@ -492,6 +511,15 @@ class Dive extends Equatable {
     String? wearableId,
     // User-defined custom fields
     List<DiveCustomField>? customFields,
+    // Weather fields
+    double? windSpeed,
+    CurrentDirection? windDirection,
+    CloudCover? cloudCover,
+    Precipitation? precipitation,
+    double? humidity,
+    String? weatherDescription,
+    WeatherSource? weatherSource,
+    DateTime? weatherFetchedAt,
   }) {
     return Dive(
       id: id ?? this.id,
@@ -568,6 +596,15 @@ class Dive extends Equatable {
       wearableId: wearableId ?? this.wearableId,
       // User-defined custom fields
       customFields: customFields ?? this.customFields,
+      // Weather fields
+      windSpeed: windSpeed ?? this.windSpeed,
+      windDirection: windDirection ?? this.windDirection,
+      cloudCover: cloudCover ?? this.cloudCover,
+      precipitation: precipitation ?? this.precipitation,
+      humidity: humidity ?? this.humidity,
+      weatherDescription: weatherDescription ?? this.weatherDescription,
+      weatherSource: weatherSource ?? this.weatherSource,
+      weatherFetchedAt: weatherFetchedAt ?? this.weatherFetchedAt,
     );
   }
 
@@ -647,6 +684,15 @@ class Dive extends Equatable {
     wearableId,
     // User-defined custom fields
     customFields,
+    // Weather fields
+    windSpeed,
+    windDirection,
+    cloudCover,
+    precipitation,
+    humidity,
+    weatherDescription,
+    weatherSource,
+    weatherFetchedAt,
   ];
 }
 
