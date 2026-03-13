@@ -34,7 +34,10 @@ class MockDiveComputerHostApi implements DiveComputerHostApi {
   }
 
   @override
-  Future<void> startDownload(DiscoveredDevice device, String? fingerprint) async {
+  Future<void> startDownload(
+    DiscoveredDevice device,
+    String? fingerprint,
+  ) async {
     startDownloadCalled = true;
     lastDownloadDevice = device;
     lastDownloadFingerprint = fingerprint;
