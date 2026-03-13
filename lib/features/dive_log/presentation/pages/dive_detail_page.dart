@@ -241,9 +241,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               ),
             ],
             _buildDetailsSection(context, ref, dive, units),
-            if (_hasConditions(dive)) ...[
+            if (_hasEnvironmentData(dive)) ...[
               const SizedBox(height: 24),
-              _buildConditionsSection(context, dive),
+              _buildEnvironmentSection(context, dive, units),
             ],
             if (dive.altitude != null && dive.altitude! > 0) ...[
               const SizedBox(height: 24),
@@ -2186,12 +2186,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 context.l10n.diveLog_detail_label_avgDepth,
                 units.formatDepth(dive.avgDepth),
               ),
-            if (dive.airTemp != null)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_airTemp,
-                units.formatTemperature(dive.airTemp),
-              ),
             if (dive.waterType != null)
               _buildDetailRow(
                 context,
@@ -2262,8 +2256,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  bool _hasConditions(Dive dive) {
-    return dive.currentDirection != null ||
+  bool _hasEnvironmentData(Dive dive) {
+    return dive.airTemp != null ||
+        dive.surfacePressure != null ||
+        dive.windSpeed != null ||
+        dive.windDirection != null ||
+        dive.cloudCover != null ||
+        dive.precipitation != null ||
+        dive.humidity != null ||
+        dive.weatherDescription != null ||
+        dive.waterTemp != null ||
+        dive.visibility != null ||
+        dive.waterType != null ||
+        dive.currentDirection != null ||
         dive.currentStrength != null ||
         dive.swellHeight != null ||
         dive.entryMethod != null ||
@@ -2313,10 +2318,27 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     return markers;
   }
 
-  Widget _buildConditionsSection(BuildContext context, Dive dive) {
-    final hasConditions = _hasConditions(dive);
+  Widget _buildEnvironmentSection(
+    BuildContext context,
+    Dive dive,
+    UnitFormatter units,
+  ) {
+    final hasWeather =
+        dive.airTemp != null ||
+        dive.surfacePressure != null ||
+        dive.windSpeed != null ||
+        dive.windDirection != null ||
+        dive.cloudCover != null ||
+        dive.precipitation != null ||
+        dive.humidity != null ||
+        dive.weatherDescription != null;
 
-    if (!hasConditions) return const SizedBox.shrink();
+    final hasDiveConditions =
+        dive.currentDirection != null ||
+        dive.currentStrength != null ||
+        dive.swellHeight != null ||
+        dive.entryMethod != null ||
+        dive.exitMethod != null;
 
     return Card(
       child: Padding(
@@ -2324,41 +2346,118 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              context.l10n.diveLog_detail_section_conditions,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Environment', style: Theme.of(context).textTheme.titleMedium),
             const Divider(),
-            if (dive.currentDirection != null)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_currentDirection,
-                dive.currentDirection!.displayName,
+            if (hasWeather) ...[
+              Text(
+                'Weather',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
-            if (dive.currentStrength != null)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_currentStrength,
-                dive.currentStrength!.displayName,
+              const SizedBox(height: 8),
+              if (dive.airTemp != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_airTemp,
+                  units.formatTemperature(dive.airTemp),
+                ),
+              if (dive.surfacePressure != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_surfacePressure,
+                  '${(dive.surfacePressure! * 1000).toStringAsFixed(0)} mbar',
+                ),
+              if (dive.windSpeed != null)
+                _buildDetailRow(
+                  context,
+                  'Wind Speed',
+                  units.formatWindSpeed(dive.windSpeed),
+                ),
+              if (dive.windDirection != null)
+                _buildDetailRow(
+                  context,
+                  'Wind Direction',
+                  dive.windDirection!.displayName,
+                ),
+              if (dive.cloudCover != null)
+                _buildDetailRow(
+                  context,
+                  'Cloud Cover',
+                  dive.cloudCover!.displayName,
+                ),
+              if (dive.precipitation != null)
+                _buildDetailRow(
+                  context,
+                  'Precipitation',
+                  dive.precipitation!.displayName,
+                ),
+              if (dive.humidity != null)
+                _buildDetailRow(
+                  context,
+                  'Humidity',
+                  '${dive.humidity!.toStringAsFixed(0)}%',
+                ),
+              if (dive.weatherDescription != null &&
+                  dive.weatherDescription!.isNotEmpty)
+                _buildDetailRow(context, 'Weather', dive.weatherDescription!),
+              if (dive.weatherSource == WeatherSource.openMeteo)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'via Open-Meteo',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+            ],
+            if (hasWeather && hasDiveConditions) ...[
+              const SizedBox(height: 16),
+              const Divider(),
+            ],
+            if (hasDiveConditions) ...[
+              Text(
+                'Dive Conditions',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
-            if (dive.swellHeight != null)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_swellHeight,
-                '${dive.swellHeight!.toStringAsFixed(1)}m',
-              ),
-            if (dive.entryMethod != null)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_entryMethod,
-                dive.entryMethod!.displayName,
-              ),
-            if (dive.exitMethod != null)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_exitMethod,
-                dive.exitMethod!.displayName,
-              ),
+              const SizedBox(height: 8),
+              if (dive.currentDirection != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_currentDirection,
+                  dive.currentDirection!.displayName,
+                ),
+              if (dive.currentStrength != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_currentStrength,
+                  dive.currentStrength!.displayName,
+                ),
+              if (dive.swellHeight != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_swellHeight,
+                  '${dive.swellHeight!.toStringAsFixed(1)}m',
+                ),
+              if (dive.entryMethod != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_entryMethod,
+                  dive.entryMethod!.displayName,
+                ),
+              if (dive.exitMethod != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_exitMethod,
+                  dive.exitMethod!.displayName,
+                ),
+            ],
           ],
         ),
       ),
