@@ -74,10 +74,17 @@ class AssetResolutionService {
     // Check cache first
     final cachedId = await _cacheRepository.getCachedAssetId(item.id);
     if (cachedId != null) {
-      return ResolutionResult(
-        localAssetId: cachedId,
-        status: ResolutionStatus.resolved,
-      );
+      // Verify the cached asset is still loadable (may have been deleted)
+      final stillLoadable = await _verifyAssetLoadable(cachedId);
+      if (stillLoadable) {
+        return ResolutionResult(
+          localAssetId: cachedId,
+          status: ResolutionStatus.resolved,
+        );
+      }
+      // Cached ID is stale -- clear it and fall through to re-resolution
+      _log.info('Cached asset $cachedId no longer loadable, clearing cache');
+      await _cacheRepository.clearEntry(item.id);
     }
 
     // Check if we have an unexpired unresolved entry

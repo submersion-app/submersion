@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -52,6 +54,10 @@ void main() {
         mockCache.getCachedAssetId('media-1'),
       ).thenAnswer((_) async => 'cached-local-id');
       when(mockCache.isExpired('media-1')).thenAnswer((_) async => false);
+      // Cached asset is still loadable
+      when(
+        mockPicker.getThumbnail('cached-local-id', size: 50),
+      ).thenAnswer((_) async => Uint8List.fromList([1, 2, 3]));
 
       final result = await service.resolveAssetId(createTestItem());
 
@@ -59,6 +65,55 @@ void main() {
       expect(result.status, equals(ResolutionStatus.resolved));
       verifyNever(mockPicker.getAssetsInDateRange(any, any));
     });
+
+    test(
+      'clears cache and re-resolves when cached ID is no longer loadable',
+      () async {
+        when(mockPicker.supportsGalleryBrowsing).thenReturn(true);
+        when(
+          mockCache.getCachedAssetId('media-1'),
+        ).thenAnswer((_) async => 'stale-cached-id');
+        // The cached asset is no longer loadable
+        when(
+          mockPicker.getThumbnail('stale-cached-id', size: 50),
+        ).thenAnswer((_) async => null);
+        // After clearing, no cache entry
+        when(mockCache.getCacheEntry('media-1')).thenAnswer((_) async => null);
+        // The original ID also doesn't work
+        when(
+          mockPicker.getThumbnail('original-asset-id', size: 50),
+        ).thenAnswer((_) async => null);
+        // Gallery search returns a match
+        when(mockPicker.getAssetsInDateRange(any, any)).thenAnswer(
+          (_) async => [
+            AssetInfo(
+              id: 'new-local-id',
+              type: AssetType.image,
+              createDateTime: DateTime(2025, 6, 15, 10, 30, 1),
+              width: 4032,
+              height: 3024,
+              filename: 'IMG_001.jpg',
+            ),
+          ],
+        );
+        when(mockCache.clearEntry('media-1')).thenAnswer((_) async {});
+        when(
+          mockCache.cacheResolution(
+            mediaId: anyNamed('mediaId'),
+            localAssetId: anyNamed('localAssetId'),
+            method: anyNamed('method'),
+          ),
+        ).thenAnswer((_) async {});
+
+        final result = await service.resolveAssetId(createTestItem());
+
+        // Should have cleared the stale cache entry
+        verify(mockCache.clearEntry('media-1')).called(1);
+        // Should have resolved to the new ID via filename matching
+        expect(result.localAssetId, equals('new-local-id'));
+        expect(result.status, equals(ResolutionStatus.resolved));
+      },
+    );
 
     test(
       'returns null with unresolved status when cache has unexpired unresolved entry',
