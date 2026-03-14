@@ -3,6 +3,17 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.3.1 (2026-03-14)
+
+### Bug Fixes
+
+- prevent black screen on startup from failed database migration
+
+### Chores
+
+- bump version to 1.3.1+75
+
+
 ## 1.3.0 (2026-03-14)
 
 ### Features
