@@ -5,7 +5,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
-import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/unavailable_photo_placeholder.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
@@ -363,7 +364,7 @@ class _MediaThumbnailContent extends ConsumerWidget {
             if (item.isOrphaned)
               const _OrphanedPlaceholder()
             else if (item.platformAssetId != null)
-              _buildAssetThumbnail(ref, colorScheme)
+              _buildResolvedThumbnail(ref, colorScheme)
             else
               _buildPlaceholder(colorScheme),
 
@@ -453,19 +454,20 @@ class _MediaThumbnailContent extends ConsumerWidget {
     );
   }
 
-  /// Fetches and displays thumbnail from platform photo library
-  Widget _buildAssetThumbnail(WidgetRef ref, ColorScheme colorScheme) {
-    final thumbnailAsync = ref.watch(
-      assetThumbnailProvider(item.platformAssetId!),
-    );
+  /// Fetches and displays thumbnail via cross-device resolution
+  Widget _buildResolvedThumbnail(WidgetRef ref, ColorScheme colorScheme) {
+    final resultAsync = ref.watch(resolvedThumbnailProvider(item));
 
-    return thumbnailAsync.when(
-      data: (bytes) {
-        if (bytes == null) {
+    return resultAsync.when(
+      data: (result) {
+        if (result.isUnavailable) {
+          return const UnavailablePhotoPlaceholder();
+        }
+        if (result.bytes == null) {
           return _buildPlaceholder(colorScheme);
         }
         return Image.memory(
-          bytes,
+          result.bytes!,
           fit: BoxFit.cover,
           cacheWidth: 200,
           cacheHeight: 200,

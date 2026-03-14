@@ -15,7 +15,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/media/data/services/metadata_write_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
-import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/unavailable_photo_placeholder.dart';
 import 'package:submersion/features/media/presentation/widgets/write_metadata_dialog.dart';
 import 'package:submersion/features/media/presentation/widgets/mini_dive_profile_overlay.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -197,11 +198,6 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
   Future<void> _shareCurrentPhoto(MediaItem item) async {
     final l10n = context.l10n;
 
-    if (item.platformAssetId == null) {
-      _showError(l10n.media_photoViewer_cannotShare);
-      return;
-    }
-
     // Show loading indicator
     showDialog(
       context: context,
@@ -211,13 +207,17 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
     );
 
     try {
-      final bytes = await ref.read(
-        assetFullResolutionProvider(item.platformAssetId!).future,
+      final resolvedResult = await ref.read(
+        resolvedFullResolutionProvider(item).future,
       );
 
-      if (bytes == null) {
-        throw Exception('Could not load image');
+      if (resolvedResult.isUnavailable || resolvedResult.bytes == null) {
+        if (mounted) Navigator.of(context, rootNavigator: true).pop();
+        _showError(l10n.media_photoViewer_cannotShare);
+        return;
       }
+
+      final bytes = resolvedResult.bytes!;
 
       // Save to temp file
       final tempDir = await getTemporaryDirectory();
@@ -329,7 +329,7 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
 
         // Invalidate the image cache so the photo reloads with updated metadata
         debugPrint('[PhotoViewerPage] Invalidating asset provider...');
-        ref.invalidate(assetFullResolutionProvider(item.platformAssetId!));
+        ref.invalidate(resolvedFullResolutionProvider(item));
       } else {
         _showError(l10n.media_photoViewer_failedToWriteMetadata);
       }
@@ -421,25 +421,20 @@ class _PhotoItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (item.platformAssetId == null) {
-      return const Center(
-        child: Icon(Icons.broken_image, color: Colors.white54, size: 64),
-      );
-    }
-
-    final imageAsync = ref.watch(
-      assetFullResolutionProvider(item.platformAssetId!),
-    );
+    final imageAsync = ref.watch(resolvedFullResolutionProvider(item));
 
     return imageAsync.when(
-      data: (bytes) {
-        if (bytes == null) {
+      data: (result) {
+        if (result.isUnavailable) {
+          return const UnavailablePhotoFullScreen();
+        }
+        if (result.bytes == null) {
           return const Center(
             child: Icon(Icons.broken_image, color: Colors.white54, size: 64),
           );
         }
         return PhotoView(
-          imageProvider: MemoryImage(bytes),
+          imageProvider: MemoryImage(result.bytes!),
           minScale: PhotoViewComputedScale.contained,
           maxScale: PhotoViewComputedScale.covered * 3.0,
           backgroundDecoration: const BoxDecoration(color: Colors.black),
@@ -509,18 +504,8 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   }
 
   Future<void> _initializeVideo() async {
-    if (widget.item.platformAssetId == null) {
-      setState(() {
-        _error = 'videoNotLinked';
-        _isLoading = false;
-      });
-      return;
-    }
-
     try {
-      final path = await ref.read(
-        assetFilePathProvider(widget.item.platformAssetId!).future,
-      );
+      final path = await ref.read(resolvedFilePathProvider(widget.item).future);
 
       if (path == null) {
         setState(() {

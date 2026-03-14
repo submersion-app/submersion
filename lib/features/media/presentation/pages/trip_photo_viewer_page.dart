@@ -12,8 +12,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/mini_dive_profile_overlay.dart';
+import 'package:submersion/features/media/presentation/widgets/unavailable_photo_placeholder.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -200,11 +201,6 @@ class _TripPhotoViewerPageState extends ConsumerState<TripPhotoViewerPage> {
   Future<void> _shareCurrentPhoto(MediaItem item) async {
     final l10n = context.l10n;
 
-    if (item.platformAssetId == null) {
-      _showError(l10n.media_photoViewer_cannotShare);
-      return;
-    }
-
     // Show loading indicator
     showDialog(
       context: context,
@@ -214,13 +210,17 @@ class _TripPhotoViewerPageState extends ConsumerState<TripPhotoViewerPage> {
     );
 
     try {
-      final bytes = await ref.read(
-        assetFullResolutionProvider(item.platformAssetId!).future,
+      final resolvedResult = await ref.read(
+        resolvedFullResolutionProvider(item).future,
       );
 
-      if (bytes == null) {
-        throw Exception('Could not load image');
+      if (resolvedResult.isUnavailable || resolvedResult.bytes == null) {
+        if (mounted) Navigator.of(context, rootNavigator: true).pop();
+        _showError(l10n.media_photoViewer_cannotShare);
+        return;
       }
+
+      final bytes = resolvedResult.bytes!;
 
       // Save to temp file
       final tempDir = await getTemporaryDirectory();
@@ -294,25 +294,20 @@ class _PhotoItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (item.platformAssetId == null) {
-      return const Center(
-        child: Icon(Icons.broken_image, color: Colors.white54, size: 64),
-      );
-    }
-
-    final imageAsync = ref.watch(
-      assetFullResolutionProvider(item.platformAssetId!),
-    );
+    final imageAsync = ref.watch(resolvedFullResolutionProvider(item));
 
     return imageAsync.when(
-      data: (bytes) {
-        if (bytes == null) {
+      data: (result) {
+        if (result.isUnavailable) {
+          return const UnavailablePhotoFullScreen();
+        }
+        if (result.bytes == null) {
           return const Center(
             child: Icon(Icons.broken_image, color: Colors.white54, size: 64),
           );
         }
         return PhotoView(
-          imageProvider: MemoryImage(bytes),
+          imageProvider: MemoryImage(result.bytes!),
           minScale: PhotoViewComputedScale.contained,
           maxScale: PhotoViewComputedScale.covered * 3.0,
           backgroundDecoration: const BoxDecoration(color: Colors.black),

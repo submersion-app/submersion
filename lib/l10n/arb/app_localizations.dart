@@ -15492,6 +15492,12 @@ abstract class AppLocalizations {
   /// **'{count} photos could not be matched to any dive (taken outside dive times)'**
   String media_scanResults_unmatchedWarning(Object count);
 
+  /// No description provided for @media_unavailablePlaceholder_notOnDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on this device'**
+  String get media_unavailablePlaceholder_notOnDevice;
+
   /// No description provided for @media_writeMetadata_cancelButton.
   ///
   /// In en, this message translates to:

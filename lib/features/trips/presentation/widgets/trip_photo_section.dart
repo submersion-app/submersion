@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/unavailable_photo_placeholder.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 
 /// Maximum number of thumbnail photos to display in the preview row.
@@ -232,7 +233,7 @@ class _PhotoThumbnail extends ConsumerWidget {
               children: [
                 // Thumbnail
                 if (item.platformAssetId != null)
-                  _buildAssetThumbnail(ref, colorScheme)
+                  _buildResolvedThumbnail(ref, colorScheme)
                 else
                   _buildPlaceholder(colorScheme),
 
@@ -262,18 +263,19 @@ class _PhotoThumbnail extends ConsumerWidget {
     );
   }
 
-  Widget _buildAssetThumbnail(WidgetRef ref, ColorScheme colorScheme) {
-    final thumbnailAsync = ref.watch(
-      assetThumbnailProvider(item.platformAssetId!),
-    );
+  Widget _buildResolvedThumbnail(WidgetRef ref, ColorScheme colorScheme) {
+    final resultAsync = ref.watch(resolvedThumbnailProvider(item));
 
-    return thumbnailAsync.when(
-      data: (bytes) {
-        if (bytes == null) {
+    return resultAsync.when(
+      data: (result) {
+        if (result.isUnavailable) {
+          return const UnavailablePhotoPlaceholder();
+        }
+        if (result.bytes == null) {
           return _buildPlaceholder(colorScheme);
         }
         return Image.memory(
-          bytes,
+          result.bytes!,
           fit: BoxFit.cover,
           cacheWidth: 160,
           cacheHeight: 160,
