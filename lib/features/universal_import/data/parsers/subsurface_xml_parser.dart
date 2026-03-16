@@ -404,42 +404,64 @@ class SubsurfaceXmlParser implements ImportParser {
       if (pressure != null) point['pressure'] = pressure;
       points.add(point);
     }
-    _interpolatePressures(points);
+    _fillSparseField(points, 'pressure');
+    _fillSparseField(points, 'temperature');
     return points;
   }
 
-  /// Linearly interpolates missing pressure values between known readings.
+  /// Fills missing values for a sparse field using linear interpolation
+  /// between known readings, with forward-fill after the last known value
+  /// and back-fill before the first.
   ///
-  /// Subsurface dive computers only transmit tank pressure every few samples.
-  /// This fills the gaps so the profile chart displays a smooth pressure curve
-  /// instead of alternating between values and null.
-  static void _interpolatePressures(List<Map<String, dynamic>> points) {
+  /// Subsurface dive computers transmit pressure and temperature on a subset
+  /// of samples. This fills the gaps so the profile chart displays smooth
+  /// curves instead of alternating between values and null.
+  static void _fillSparseField(
+    List<Map<String, dynamic>> points,
+    String field,
+  ) {
     if (points.length < 2) return;
 
-    // Find consecutive spans of missing pressure between known values
-    int? lastKnownIndex;
+    // Collect indices of points that have a value for this field
+    final knownIndices = <int>[];
     for (var i = 0; i < points.length; i++) {
-      if (points[i]['pressure'] == null) continue;
+      if (points[i][field] != null) knownIndices.add(i);
+    }
+    if (knownIndices.isEmpty) return;
 
-      if (lastKnownIndex != null && i - lastKnownIndex > 1) {
-        // Interpolate between lastKnownIndex and i
-        final startPressure = points[lastKnownIndex]['pressure'] as double;
-        final endPressure = points[i]['pressure'] as double;
-        final startTime = points[lastKnownIndex]['timestamp'] as int;
-        final endTime = points[i]['timestamp'] as int;
-        final timeDelta = endTime - startTime;
+    // Back-fill: set all points before the first known value
+    final firstKnown = knownIndices.first;
+    final firstValue = points[firstKnown][field] as double;
+    for (var i = 0; i < firstKnown; i++) {
+      points[i][field] = firstValue;
+    }
 
-        if (timeDelta > 0) {
-          for (var j = lastKnownIndex + 1; j < i; j++) {
-            final t = points[j]['timestamp'] as int;
-            final fraction = (t - startTime) / timeDelta;
-            points[j]['pressure'] =
-                startPressure + (endPressure - startPressure) * fraction;
-          }
+    // Interpolate between consecutive known values
+    for (var k = 0; k < knownIndices.length - 1; k++) {
+      final startIdx = knownIndices[k];
+      final endIdx = knownIndices[k + 1];
+      if (endIdx - startIdx <= 1) continue;
+
+      final startVal = points[startIdx][field] as double;
+      final endVal = points[endIdx][field] as double;
+      final startTime = points[startIdx]['timestamp'] as int;
+      final endTime = points[endIdx]['timestamp'] as int;
+      final timeDelta = endTime - startTime;
+
+      if (timeDelta > 0) {
+        for (var j = startIdx + 1; j < endIdx; j++) {
+          final t = points[j]['timestamp'] as int;
+          final fraction = (t - startTime) / timeDelta;
+          points[j][field] = startVal + (endVal - startVal) * fraction;
         }
       }
+    }
 
-      lastKnownIndex = i;
+    // Forward-fill: set all points after the last known value
+    final lastKnown = knownIndices.last;
+    final lastValue = points[lastKnown][field] as double;
+    for (var i = lastKnown + 1; i < points.length; i++) {
+      points[i][field] = lastValue;
     }
   }
 

@@ -345,10 +345,10 @@ void main() {
       expect(profile[0]['temperature'], 21.0);
       expect(profile[0]['pressure'], 196.9);
 
-      // Second sample: interpolated between 196.9 (t=0) and 180.0 (t=60)
+      // Second sample: pressure interpolated, temperature forward-filled
       expect(profile[1]['timestamp'], 30);
       expect(profile[1]['depth'], 10.5);
-      expect(profile[1].containsKey('temperature'), isFalse);
+      expect(profile[1]['temperature'], 21.0);
       expect(profile[1]['pressure'], closeTo(188.45, 0.01));
 
       // Third sample: explicit pressure
