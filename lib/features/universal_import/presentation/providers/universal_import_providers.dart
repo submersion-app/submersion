@@ -26,6 +26,7 @@ import 'package:submersion/features/universal_import/data/parsers/csv_import_par
 import 'package:submersion/features/universal_import/data/parsers/fit_import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/placeholder_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/uddf_import_parser.dart';
 import 'package:submersion/features/universal_import/data/services/format_detector.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
@@ -339,7 +340,8 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   ImportParser _parserFor(ImportFormat format) {
     return switch (format) {
       ImportFormat.csv => CsvImportParser(customMapping: state.fieldMapping),
-      ImportFormat.uddf || ImportFormat.subsurfaceXml => UddfImportParser(),
+      ImportFormat.uddf => UddfImportParser(),
+      ImportFormat.subsurfaceXml => SubsurfaceXmlParser(),
       ImportFormat.fit => const FitImportParser(),
       _ => const PlaceholderParser(),
     };

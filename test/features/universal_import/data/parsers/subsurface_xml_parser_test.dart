@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -541,6 +542,62 @@ void main() {
       expect(dives.length, 1);
       expect(dives[0]['dateTime'], isNotNull);
       expect(dives[0].containsKey('maxDepth'), isFalse);
+    });
+  });
+
+  group('integration - real Subsurface export', () {
+    test('parses subsurface_export.ssrf with correct counts', () async {
+      final file = File('subsurface_export.ssrf');
+      if (!file.existsSync()) {
+        markTestSkipped('subsurface_export.ssrf not found in project root');
+        return;
+      }
+
+      final bytes = Uint8List.fromList(await file.readAsBytes());
+      final result = await parser.parse(bytes);
+
+      // Verify counts from the actual export
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives.length, 16);
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites.length, 5);
+
+      // Verify a specific dive has expected data
+      final dive1 = dives.firstWhere((d) => d['diveNumber'] == 1);
+      expect(dive1['dateTime'], DateTime(2025, 9, 20, 7, 44, 37));
+      expect(dive1['buddy'], contains('Kiyan Griffin'));
+      expect(dive1['diveMaster'], 'Sharon Patterson');
+      expect(dive1['visibility'], Visibility.poor);
+      expect(dive1['currentStrength'], CurrentStrength.strong);
+      expect(dive1['waterType'], WaterType.salt);
+
+      // Verify profile data exists
+      final profile = dive1['profile'] as List<Map<String, dynamic>>?;
+      expect(profile, isNotNull);
+      expect(profile!.length, greaterThan(10));
+
+      // Verify tanks
+      final tanks = dive1['tanks'] as List<Map<String, dynamic>>?;
+      expect(tanks, isNotNull);
+      expect(tanks!.length, 1);
+      expect(tanks[0]['name'], 'AL80');
+
+      // Verify weights
+      final weights = dive1['weights'] as List<Map<String, dynamic>>?;
+      expect(weights, isNotNull);
+      expect(weights!.length, 1);
+      expect(weights[0]['type'], WeightType.belt);
+
+      // Verify tags extracted
+      final tags = result.entitiesOf(ImportEntityType.tags);
+      expect(tags.length, greaterThanOrEqualTo(2));
+
+      // Verify no error warnings
+      final errors = result.warnings.where(
+        (w) => w.severity == ImportWarningSeverity.error,
+      );
+      expect(errors, isEmpty);
     });
   });
 }

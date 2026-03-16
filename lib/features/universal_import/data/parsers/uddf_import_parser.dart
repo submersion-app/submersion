@@ -8,7 +8,7 @@ import 'package:submersion/features/universal_import/data/models/import_payload.
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 
-/// Parser adapter for UDDF and Subsurface XML files.
+/// Parser adapter for UDDF files.
 ///
 /// Wraps [UddfFullImportService] and converts its [UddfImportResult]
 /// into the unified [ImportPayload] format. This is the richest parser,
@@ -20,10 +20,7 @@ class UddfImportParser implements ImportParser {
     : _service = service ?? UddfFullImportService();
 
   @override
-  List<ImportFormat> get supportedFormats => [
-    ImportFormat.uddf,
-    ImportFormat.subsurfaceXml,
-  ];
+  List<ImportFormat> get supportedFormats => [ImportFormat.uddf];
 
   @override
   Future<ImportPayload> parse(
