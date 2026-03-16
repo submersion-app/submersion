@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
@@ -117,8 +118,86 @@ class SubsurfaceXmlParser implements ImportParser {
       }
     }
 
+    // Air temperature from <divetemperature air='...'> (direct child of dive)
+    final diveTempEl = dive.findElements('divetemperature').firstOrNull;
+    if (diveTempEl != null) {
+      final airTemp = _parseDouble(diveTempEl.getAttribute('air'));
+      if (airTemp != null) result['airTemp'] = airTemp;
+    }
+
+    // Visibility enum
+    final visibilityVal = _parseInt(dive.getAttribute('visibility'));
+    final visibility = _mapVisibility(visibilityVal);
+    if (visibility != null) result['visibility'] = visibility;
+
+    // Rating
+    final rating = _parseInt(dive.getAttribute('rating'));
+    if (rating != null) result['rating'] = rating;
+
+    // Current strength enum
+    final currentVal = _parseInt(dive.getAttribute('current'));
+    final current = _mapCurrentStrength(currentVal);
+    if (current != null) result['currentStrength'] = current;
+
+    // Water type from salinity
+    final salinityVal = _parseDouble(dive.getAttribute('watersalinity'));
+    if (salinityVal != null) {
+      result['waterType'] = salinityVal >= 1020
+          ? WaterType.salt
+          : WaterType.fresh;
+    }
+
+    // Buddy (strip leading/trailing commas and whitespace)
+    final buddyEl = dive.findElements('buddy').firstOrNull;
+    if (buddyEl != null) {
+      final raw = buddyEl.innerText.trim();
+      final cleaned = raw.replaceAll(RegExp(r'^[,\s]+|[,\s]+$'), '').trim();
+      if (cleaned.isNotEmpty) result['buddy'] = cleaned;
+    }
+
+    // Divemaster
+    final divemasterEl = dive.findElements('divemaster').firstOrNull;
+    if (divemasterEl != null) {
+      final raw = divemasterEl.innerText.trim();
+      if (raw.isNotEmpty) result['diveMaster'] = raw;
+    }
+
+    // Composite notes: <notes> + "Suit: <suit>" + "SAC: <sac attr>"
+    final notesParts = <String>[];
+    final notesEl = dive.findElements('notes').firstOrNull;
+    if (notesEl != null) {
+      final raw = notesEl.innerText.trim();
+      if (raw.isNotEmpty) notesParts.add(raw);
+    }
+    final suitEl = dive.findElements('suit').firstOrNull;
+    if (suitEl != null) {
+      final raw = suitEl.innerText.trim();
+      if (raw.isNotEmpty) notesParts.add('Suit: $raw');
+    }
+    final sacAttr = dive.getAttribute('sac');
+    if (sacAttr != null && sacAttr.isNotEmpty) {
+      notesParts.add('SAC: $sacAttr');
+    }
+    if (notesParts.isNotEmpty) result['notes'] = notesParts.join('\n');
+
     return result;
   }
+
+  static Visibility? _mapVisibility(int? value) => switch (value) {
+    1 || 2 => Visibility.poor,
+    3 => Visibility.moderate,
+    4 => Visibility.good,
+    5 => Visibility.excellent,
+    _ => null,
+  };
+
+  static CurrentStrength? _mapCurrentStrength(int? value) => switch (value) {
+    1 => CurrentStrength.none,
+    2 => CurrentStrength.light,
+    3 => CurrentStrength.moderate,
+    4 || 5 => CurrentStrength.strong,
+    _ => null,
+  };
 
   /// Parses a double value from a string that may have a unit suffix.
   ///
