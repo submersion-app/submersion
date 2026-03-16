@@ -384,6 +384,10 @@ class SubsurfaceXmlParser implements ImportParser {
   }
 
   /// Parses `<sample>` elements from a `<divecomputer>` into profile points.
+  ///
+  /// Subsurface only records tank pressure on a subset of samples (when the
+  /// transmitter reports). After parsing, pressure values are linearly
+  /// interpolated so every point has a smooth pressure reading.
   List<Map<String, dynamic>> _parseProfile(XmlElement divecomputer) {
     final points = <Map<String, dynamic>>[];
     for (final sample in divecomputer.findElements('sample')) {
@@ -397,7 +401,43 @@ class SubsurfaceXmlParser implements ImportParser {
       if (pressure != null) point['pressure'] = pressure;
       points.add(point);
     }
+    _interpolatePressures(points);
     return points;
+  }
+
+  /// Linearly interpolates missing pressure values between known readings.
+  ///
+  /// Subsurface dive computers only transmit tank pressure every few samples.
+  /// This fills the gaps so the profile chart displays a smooth pressure curve
+  /// instead of alternating between values and null.
+  static void _interpolatePressures(List<Map<String, dynamic>> points) {
+    if (points.length < 2) return;
+
+    // Find consecutive spans of missing pressure between known values
+    int? lastKnownIndex;
+    for (var i = 0; i < points.length; i++) {
+      if (points[i]['pressure'] == null) continue;
+
+      if (lastKnownIndex != null && i - lastKnownIndex > 1) {
+        // Interpolate between lastKnownIndex and i
+        final startPressure = points[lastKnownIndex]['pressure'] as double;
+        final endPressure = points[i]['pressure'] as double;
+        final startTime = points[lastKnownIndex]['timestamp'] as int;
+        final endTime = points[i]['timestamp'] as int;
+        final timeDelta = endTime - startTime;
+
+        if (timeDelta > 0) {
+          for (var j = lastKnownIndex + 1; j < i; j++) {
+            final t = points[j]['timestamp'] as int;
+            final fraction = (t - startTime) / timeDelta;
+            points[j]['pressure'] =
+                startPressure + (endPressure - startPressure) * fraction;
+          }
+        }
+      }
+
+      lastKnownIndex = i;
+    }
   }
 
   /// Parses `<cylinder>` elements into tank maps with [GasMix] objects.

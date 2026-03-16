@@ -336,16 +336,29 @@ void main() {
       final dive = result.entitiesOf(ImportEntityType.dives).first;
       final profile = dive['profile'] as List<Map<String, dynamic>>;
       expect(profile.length, 5);
+
+      // First sample: explicit pressure
       expect(profile[0]['timestamp'], 0);
       expect(profile[0]['depth'], 0.0);
       expect(profile[0]['temperature'], 21.0);
       expect(profile[0]['pressure'], 196.9);
+
+      // Second sample: interpolated between 196.9 (t=0) and 180.0 (t=60)
       expect(profile[1]['timestamp'], 30);
       expect(profile[1]['depth'], 10.5);
       expect(profile[1].containsKey('temperature'), isFalse);
-      expect(profile[1].containsKey('pressure'), isFalse);
+      expect(profile[1]['pressure'], closeTo(188.45, 0.01));
+
+      // Third sample: explicit pressure
+      expect(profile[2]['pressure'], 180.0);
+
+      // Fourth sample: interpolated between 180.0 (t=60) and 170.0 (t=120)
+      expect(profile[3]['pressure'], closeTo(175.0, 0.01));
+
+      // Last sample: explicit pressure
       expect(profile[4]['timestamp'], 120);
       expect(profile[4]['depth'], 0.0);
+      expect(profile[4]['pressure'], 170.0);
     });
   });
 
