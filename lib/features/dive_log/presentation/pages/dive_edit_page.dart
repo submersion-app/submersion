@@ -3281,7 +3281,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
     try {
       // Build entry DateTime from date and time
-      final entryDateTime = DateTime(
+      final entryDateTime = DateTime.utc(
         _entryDate.year,
         _entryDate.month,
         _entryDate.day,
@@ -3292,7 +3292,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // Build exit DateTime if set
       DateTime? exitDateTime;
       if (_exitDate != null && _exitTime != null) {
-        exitDateTime = DateTime(
+        exitDateTime = DateTime.utc(
           _exitDate!.year,
           _exitDate!.month,
           _exitDate!.day,
