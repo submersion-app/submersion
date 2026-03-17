@@ -1,6 +1,7 @@
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' as enums;
+import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Handles simple UDDF dive import.
@@ -218,7 +219,9 @@ class UddfImportService {
     if (beforeElement != null) {
       final dateTimeText = _getElementText(beforeElement, 'datetime');
       if (dateTimeText != null) {
-        diveData['dateTime'] = DateTime.tryParse(dateTimeText);
+        diveData['dateTime'] = UddfImportParsers.parseDiveDateTime(
+          dateTimeText,
+        );
       }
 
       final diveNumText = _getElementText(beforeElement, 'divenumber');

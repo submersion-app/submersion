@@ -233,6 +233,9 @@ class Dives extends Table {
       text().nullable()(); // enum: WeatherSource.name
   IntColumn get weatherFetchedAt => integer().nullable()(); // unix timestamp
 
+  // Import version: null = pre-fix, 1 = wall-clock-as-UTC convention
+  IntColumn get importVersion => integer().nullable()();
+
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -1176,7 +1179,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 48;
+  int get schemaVersion => 49;
 
   @override
   MigrationStrategy get migration {
@@ -2252,6 +2255,55 @@ class AppDatabase extends _$AppDatabase {
               'ALTER TABLE dives ADD COLUMN weather_fetched_at INTEGER',
             );
           }
+        }
+        if (from < 49) {
+          // Add importVersion column.
+          final divesInfo = await customSelect(
+            'PRAGMA table_info(dives)',
+          ).get();
+          final divesCols = divesInfo
+              .map((r) => r.read<String>('name'))
+              .toSet();
+
+          if (!divesCols.contains('import_version')) {
+            await customStatement(
+              'ALTER TABLE dives ADD COLUMN import_version INTEGER',
+            );
+          }
+
+          // Migrate dive timestamps to wall-clock-as-UTC convention.
+          // Computer-imported dives: already in correct format (the original
+          // bug stored local wall-clock components as UTC, which matches the
+          // target convention). Only mark them with importVersion = 1.
+          await customStatement('''
+            UPDATE dives SET import_version = 1
+            WHERE dive_computer_model IS NOT NULL
+               OR computer_id IS NOT NULL
+          ''');
+
+          // Wearable and manual dives: stored as true local epoch.
+          // Both categories get the same shift so they are collapsed into one
+          // UPDATE using `import_version IS NULL` (computer dives are already
+          // set to 1 above).
+          //
+          // Convert local epoch to wall-clock-as-UTC:
+          //   newEpoch = localEpoch + timeZoneOffsetMs
+          //
+          // UTC+8 example: local 8:42 = 0:42 UTC epoch.  +8 h = 8:42 UTC.
+          // UTC-4 example: local 8:42 = 12:42 UTC epoch. -4 h = 8:42 UTC.
+          final now = DateTime.now();
+          final offsetMs = now.timeZoneOffset.inMilliseconds;
+
+          await customStatement('''
+            UPDATE dives
+            SET dive_date_time = dive_date_time + $offsetMs,
+                entry_time = CASE WHEN entry_time IS NOT NULL
+                             THEN entry_time + $offsetMs ELSE NULL END,
+                exit_time = CASE WHEN exit_time IS NOT NULL
+                            THEN exit_time + $offsetMs ELSE NULL END,
+                import_version = 1
+            WHERE import_version IS NULL
+          ''');
         }
       },
       beforeOpen: (details) async {

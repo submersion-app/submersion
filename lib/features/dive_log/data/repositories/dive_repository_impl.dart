@@ -576,6 +576,7 @@ class DiveRepository {
               // Wearable integration (v2.0)
               wearableSource: Value(dive.wearableSource),
               wearableId: Value(dive.wearableId),
+              importVersion: const Value(1),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -1093,9 +1094,10 @@ class DiveRepository {
             diveNumber: row.readNullable<int>('dive_number'),
             dateTime: DateTime.fromMillisecondsSinceEpoch(
               row.read<int>('dive_date_time'),
+              isUtc: true,
             ),
             entryTime: entryTime != null
-                ? DateTime.fromMillisecondsSinceEpoch(entryTime)
+                ? DateTime.fromMillisecondsSinceEpoch(entryTime, isUtc: true)
                 : null,
             maxDepth: row.readNullable<double>('max_depth'),
             duration: duration != null ? Duration(seconds: duration) : null,
@@ -1754,6 +1756,7 @@ class DiveRepository {
       siteName: row.data['site_name'] as String?,
       dateTime: DateTime.fromMillisecondsSinceEpoch(
         row.data['dive_date_time'] as int,
+        isUtc: true,
       ),
       maxDepth: row.data['max_depth'] as double?,
       duration: row.data['duration'] != null
@@ -1847,12 +1850,15 @@ class DiveRepository {
       id: row.id,
       diverId: row.diverId,
       diveNumber: row.diveNumber,
-      dateTime: DateTime.fromMillisecondsSinceEpoch(row.diveDateTime),
+      dateTime: DateTime.fromMillisecondsSinceEpoch(
+        row.diveDateTime,
+        isUtc: true,
+      ),
       entryTime: row.entryTime != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.entryTime!)
+          ? DateTime.fromMillisecondsSinceEpoch(row.entryTime!, isUtc: true)
           : null,
       exitTime: row.exitTime != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.exitTime!)
+          ? DateTime.fromMillisecondsSinceEpoch(row.exitTime!, isUtc: true)
           : null,
       duration: row.duration != null ? Duration(seconds: row.duration!) : null,
       runtime: row.runtime != null ? Duration(seconds: row.runtime!) : null,
@@ -2184,12 +2190,15 @@ class DiveRepository {
       id: row.id,
       diverId: row.diverId,
       diveNumber: row.diveNumber,
-      dateTime: DateTime.fromMillisecondsSinceEpoch(row.diveDateTime),
+      dateTime: DateTime.fromMillisecondsSinceEpoch(
+        row.diveDateTime,
+        isUtc: true,
+      ),
       entryTime: row.entryTime != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.entryTime!)
+          ? DateTime.fromMillisecondsSinceEpoch(row.entryTime!, isUtc: true)
           : null,
       exitTime: row.exitTime != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.exitTime!)
+          ? DateTime.fromMillisecondsSinceEpoch(row.exitTime!, isUtc: true)
           : null,
       duration: row.duration != null ? Duration(seconds: row.duration!) : null,
       runtime: row.runtime != null ? Duration(seconds: row.runtime!) : null,
@@ -2942,8 +2951,11 @@ class DiveRepository {
       int? lastNumber;
       for (final row in rows) {
         final entryTime = row.entryTime != null
-            ? DateTime.fromMillisecondsSinceEpoch(row.entryTime!)
-            : DateTime.fromMillisecondsSinceEpoch(row.diveDateTime);
+            ? DateTime.fromMillisecondsSinceEpoch(row.entryTime!, isUtc: true)
+            : DateTime.fromMillisecondsSinceEpoch(
+                row.diveDateTime,
+                isUtc: true,
+              );
 
         dives.add(
           DiveNumberEntry(

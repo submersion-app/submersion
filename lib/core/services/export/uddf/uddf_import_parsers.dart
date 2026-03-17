@@ -26,6 +26,28 @@ class UddfImportParsers {
         : element?.innerText.trim();
   }
 
+  /// Parse a UDDF datetime string using the wall-clock-as-UTC convention.
+  ///
+  /// UDDF dive datetimes represent the wall-clock reading from the dive
+  /// computer (e.g. "2024-06-15T08:42:00"). Any timezone suffix is ignored
+  /// and the date/time components are stored verbatim as a UTC DateTime so
+  /// that they survive a DB round-trip unchanged.
+  static DateTime? parseDiveDateTime(String? text) {
+    if (text == null || text.isEmpty) return null;
+    // Strip any trailing timezone info (Z, +HH:MM, -HH:MM, etc.)
+    final bare = text.split(RegExp(r'[Z+\-](?=\d{2}:\d{2}$)|Z$')).first;
+    final dt = DateTime.tryParse(bare);
+    if (dt == null) return null;
+    return DateTime.utc(
+      dt.year,
+      dt.month,
+      dt.day,
+      dt.hour,
+      dt.minute,
+      dt.second,
+    );
+  }
+
   static Map<String, dynamic> parseOwner(XmlElement ownerElement) {
     final owner = <String, dynamic>{};
     final ownerId = ownerElement.getAttribute('id');

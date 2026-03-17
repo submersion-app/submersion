@@ -1082,7 +1082,9 @@ class UddfFullImportService {
         'datetime',
       );
       if (dateTimeText != null) {
-        diveData['dateTime'] = DateTime.tryParse(dateTimeText);
+        diveData['dateTime'] = UddfImportParsers.parseDiveDateTime(
+          dateTimeText,
+        );
       }
 
       final diveNumText = UddfImportParsers.getElementText(
