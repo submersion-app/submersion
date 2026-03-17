@@ -46,6 +46,7 @@ object LibdcWrapper {
     external fun nativeGetDiveHour(divePtr: Long): Int
     external fun nativeGetDiveMinute(divePtr: Long): Int
     external fun nativeGetDiveSecond(divePtr: Long): Int
+    external fun nativeGetDiveTimezone(divePtr: Long): Int
     external fun nativeGetDiveMaxDepth(divePtr: Long): Double
     external fun nativeGetDiveAvgDepth(divePtr: Long): Double
     external fun nativeGetDiveDuration(divePtr: Long): Int

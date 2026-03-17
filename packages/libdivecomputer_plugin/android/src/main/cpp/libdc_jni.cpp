@@ -572,6 +572,13 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveSecond(
     return dive->second;
 }
 
+extern "C" JNIEXPORT jint JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveTimezone(
+    JNIEnv *, jclass, jlong divePtr) {
+    auto *dive = reinterpret_cast<const libdc_parsed_dive_t *>(divePtr);
+    return dive->timezone;
+}
+
 extern "C" JNIEXPORT jdouble JNICALL
 Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveMaxDepth(
     JNIEnv *, jclass, jlong divePtr) {
