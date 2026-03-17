@@ -405,19 +405,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             }.joined()
         }
 
-        // Convert datetime to epoch seconds.
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(identifier: "UTC")!
-        var components = DateComponents()
-        components.year = Int(dive.year)
-        components.month = Int(dive.month)
-        components.day = Int(dive.day)
-        components.hour = Int(dive.hour)
-        components.minute = Int(dive.minute)
-        components.second = Int(dive.second)
-        let epoch = calendar.date(from: components).map {
-            Int64($0.timeIntervalSince1970)
-        } ?? 0
+        // Map DC_TIMEZONE_NONE (INT32_MIN) to nil.
+        let timezoneOffset: Int64? = dive.timezone == Int32.min ? nil : Int64(dive.timezone)
 
         // Convert samples (samples is a pointer, not a tuple - subscript works).
         var samples: [ProfileSample] = []
@@ -515,7 +504,13 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
 
         return ParsedDive(
             fingerprint: fingerprintHex,
-            dateTimeEpoch: epoch,
+            dateTimeYear: Int64(dive.year),
+            dateTimeMonth: Int64(dive.month),
+            dateTimeDay: Int64(dive.day),
+            dateTimeHour: Int64(dive.hour),
+            dateTimeMinute: Int64(dive.minute),
+            dateTimeSecond: Int64(dive.second),
+            dateTimeTimezoneOffset: timezoneOffset,
             maxDepthMeters: dive.max_depth,
             avgDepthMeters: dive.avg_depth,
             durationSeconds: Int64(dive.duration),
