@@ -7,8 +7,6 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import io.flutter.plugin.common.BinaryMessenger
-import java.util.Calendar
-import java.util.TimeZone
 import java.util.concurrent.Executors
 
 // Transport bitmask values matching libdc_wrapper.h.
@@ -278,21 +276,10 @@ class DiveComputerHostApiImpl(
     private fun convertParsedDive(divePtr: Long): ParsedDive {
         val fingerprint = LibdcWrapper.nativeGetDiveFingerprint(divePtr)
 
-        // Convert datetime to epoch seconds.
-        // libdivecomputer provides LOCAL time + timezone offset (seconds east of UTC).
-        // We create a UTC calendar with the local time components, then subtract
-        // the timezone offset to get the correct UTC epoch.
-        val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-        cal.set(
-            LibdcWrapper.nativeGetDiveYear(divePtr),
-            LibdcWrapper.nativeGetDiveMonth(divePtr) - 1,  // Calendar months are 0-based
-            LibdcWrapper.nativeGetDiveDay(divePtr),
-            LibdcWrapper.nativeGetDiveHour(divePtr),
-            LibdcWrapper.nativeGetDiveMinute(divePtr),
-            LibdcWrapper.nativeGetDiveSecond(divePtr)
-        )
-        cal.set(Calendar.MILLISECOND, 0)
-        val epoch = cal.timeInMillis / 1000
+        // Pass raw datetime components through to Dart.
+        // Map DC_TIMEZONE_NONE (INT_MIN) to null.
+        val timezone = LibdcWrapper.nativeGetDiveTimezone(divePtr)
+        val timezoneOffset: Long? = if (timezone == Int.MIN_VALUE) null else timezone.toLong()
 
         // Convert samples.
         val sampleCount = LibdcWrapper.nativeGetDiveSampleCount(divePtr)
@@ -384,7 +371,13 @@ class DiveComputerHostApiImpl(
 
         return ParsedDive(
             fingerprint = fingerprint,
-            dateTimeEpoch = epoch,
+            dateTimeYear = LibdcWrapper.nativeGetDiveYear(divePtr).toLong(),
+            dateTimeMonth = LibdcWrapper.nativeGetDiveMonth(divePtr).toLong(),
+            dateTimeDay = LibdcWrapper.nativeGetDiveDay(divePtr).toLong(),
+            dateTimeHour = LibdcWrapper.nativeGetDiveHour(divePtr).toLong(),
+            dateTimeMinute = LibdcWrapper.nativeGetDiveMinute(divePtr).toLong(),
+            dateTimeSecond = LibdcWrapper.nativeGetDiveSecond(divePtr).toLong(),
+            dateTimeTimezoneOffset = timezoneOffset,
             maxDepthMeters = maxDepth,
             avgDepthMeters = avgDepth,
             durationSeconds = LibdcWrapper.nativeGetDiveDuration(divePtr).toLong(),
