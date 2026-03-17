@@ -1178,8 +1178,12 @@ class ScheduledNotifications extends Table {
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
+  /// The current schema version as a static constant so that pre-open checks
+  /// (e.g. version-mismatch guard) can reference it without an instance.
+  static const int currentSchemaVersion = 49;
+
   @override
-  int get schemaVersion => 49;
+  int get schemaVersion => currentSchemaVersion;
 
   @override
   MigrationStrategy get migration {

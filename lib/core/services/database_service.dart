@@ -4,8 +4,10 @@ import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 
 class DatabaseService {
@@ -86,6 +88,9 @@ class DatabaseService {
       await dbDir.create(recursive: true);
     }
 
+    // Guard: reject databases created by a newer version of the app
+    _assertSchemaVersionCompatible(dbPath);
+
     final file = File(dbPath);
     // Use synchronous NativeDatabase instead of createInBackground
     // Background isolates can cause close() to hang indefinitely during migration
@@ -104,6 +109,9 @@ class DatabaseService {
     if (!await dbDir.exists()) {
       await dbDir.create(recursive: true);
     }
+
+    // Guard: reject databases created by a newer version of the app
+    _assertSchemaVersionCompatible(newPath);
 
     // Small delay to ensure any previous database connections are fully released
     // This helps prevent SQLite file locking issues, especially with WAL mode
@@ -144,6 +152,33 @@ class DatabaseService {
       // Ignore close errors - we're abandoning this connection anyway
     } finally {
       _database = null;
+    }
+  }
+
+  /// Throws [DatabaseVersionMismatchException] if the database file's schema
+  /// version is newer than what this build of the app supports.
+  ///
+  /// Uses raw sqlite3 to read PRAGMA user_version before Drift opens the
+  /// database, ensuring the file is never modified by a stale migration.
+  void _assertSchemaVersionCompatible(String dbPath) {
+    final file = File(dbPath);
+    if (!file.existsSync()) return;
+
+    final db = sqlite3.sqlite3.open(dbPath, mode: sqlite3.OpenMode.readOnly);
+    try {
+      final result = db.select('PRAGMA user_version');
+      if (result.isEmpty) return;
+
+      final storedVersion = result.first.values.first;
+      if (storedVersion is int &&
+          storedVersion > AppDatabase.currentSchemaVersion) {
+        throw DatabaseVersionMismatchException(
+          databaseVersion: storedVersion,
+          appVersion: AppDatabase.currentSchemaVersion,
+        );
+      }
+    } finally {
+      db.dispose();
     }
   }
 

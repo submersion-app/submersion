@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/app.dart';
+import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -105,6 +106,46 @@ Future<void> main() async {
     await speciesRepository.seedBuiltInSpecies();
 
     runApp(SubmersionRestart(prefs: prefs));
+  } on DatabaseVersionMismatchException catch (e) {
+    debugPrint('FATAL: $e');
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.update, size: 64, color: Colors.orange),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Update Required',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Your dive data was saved by a newer version of '
+                    'Submersion (schema v${e.databaseVersion}). This version '
+                    'only supports up to schema v${e.appVersion}.',
+                    style: const TextStyle(fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Please update Submersion to the latest version. '
+                    'Your data is safe and has not been modified.',
+                    style: TextStyle(fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   } catch (e, stack) {
     debugPrint('FATAL: App initialization failed: $e');
     debugPrint('$stack');
