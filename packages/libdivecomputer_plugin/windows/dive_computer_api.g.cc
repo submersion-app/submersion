@@ -726,7 +726,12 @@ DiveEvent DiveEvent::FromEncodableList(const EncodableList& list) {
 
 ParsedDive::ParsedDive(
   const std::string& fingerprint,
-  int64_t date_time_epoch,
+  int64_t date_time_year,
+  int64_t date_time_month,
+  int64_t date_time_day,
+  int64_t date_time_hour,
+  int64_t date_time_minute,
+  int64_t date_time_second,
   double max_depth_meters,
   double avg_depth_meters,
   int64_t duration_seconds,
@@ -735,7 +740,12 @@ ParsedDive::ParsedDive(
   const EncodableList& gas_mixes,
   const EncodableList& events)
  : fingerprint_(fingerprint),
-    date_time_epoch_(date_time_epoch),
+    date_time_year_(date_time_year),
+    date_time_month_(date_time_month),
+    date_time_day_(date_time_day),
+    date_time_hour_(date_time_hour),
+    date_time_minute_(date_time_minute),
+    date_time_second_(date_time_second),
     max_depth_meters_(max_depth_meters),
     avg_depth_meters_(avg_depth_meters),
     duration_seconds_(duration_seconds),
@@ -746,7 +756,13 @@ ParsedDive::ParsedDive(
 
 ParsedDive::ParsedDive(
   const std::string& fingerprint,
-  int64_t date_time_epoch,
+  int64_t date_time_year,
+  int64_t date_time_month,
+  int64_t date_time_day,
+  int64_t date_time_hour,
+  int64_t date_time_minute,
+  int64_t date_time_second,
+  const int64_t* date_time_timezone_offset,
   double max_depth_meters,
   double avg_depth_meters,
   int64_t duration_seconds,
@@ -762,7 +778,13 @@ ParsedDive::ParsedDive(
   const int64_t* gf_high,
   const int64_t* deco_conservatism)
  : fingerprint_(fingerprint),
-    date_time_epoch_(date_time_epoch),
+    date_time_year_(date_time_year),
+    date_time_month_(date_time_month),
+    date_time_day_(date_time_day),
+    date_time_hour_(date_time_hour),
+    date_time_minute_(date_time_minute),
+    date_time_second_(date_time_second),
+    date_time_timezone_offset_(date_time_timezone_offset ? std::optional<int64_t>(*date_time_timezone_offset) : std::nullopt),
     max_depth_meters_(max_depth_meters),
     avg_depth_meters_(avg_depth_meters),
     duration_seconds_(duration_seconds),
@@ -787,12 +809,70 @@ void ParsedDive::set_fingerprint(std::string_view value_arg) {
 }
 
 
-int64_t ParsedDive::date_time_epoch() const {
-  return date_time_epoch_;
+int64_t ParsedDive::date_time_year() const {
+  return date_time_year_;
 }
 
-void ParsedDive::set_date_time_epoch(int64_t value_arg) {
-  date_time_epoch_ = value_arg;
+void ParsedDive::set_date_time_year(int64_t value_arg) {
+  date_time_year_ = value_arg;
+}
+
+
+int64_t ParsedDive::date_time_month() const {
+  return date_time_month_;
+}
+
+void ParsedDive::set_date_time_month(int64_t value_arg) {
+  date_time_month_ = value_arg;
+}
+
+
+int64_t ParsedDive::date_time_day() const {
+  return date_time_day_;
+}
+
+void ParsedDive::set_date_time_day(int64_t value_arg) {
+  date_time_day_ = value_arg;
+}
+
+
+int64_t ParsedDive::date_time_hour() const {
+  return date_time_hour_;
+}
+
+void ParsedDive::set_date_time_hour(int64_t value_arg) {
+  date_time_hour_ = value_arg;
+}
+
+
+int64_t ParsedDive::date_time_minute() const {
+  return date_time_minute_;
+}
+
+void ParsedDive::set_date_time_minute(int64_t value_arg) {
+  date_time_minute_ = value_arg;
+}
+
+
+int64_t ParsedDive::date_time_second() const {
+  return date_time_second_;
+}
+
+void ParsedDive::set_date_time_second(int64_t value_arg) {
+  date_time_second_ = value_arg;
+}
+
+
+const int64_t* ParsedDive::date_time_timezone_offset() const {
+  return date_time_timezone_offset_ ? &(*date_time_timezone_offset_) : nullptr;
+}
+
+void ParsedDive::set_date_time_timezone_offset(const int64_t* value_arg) {
+  date_time_timezone_offset_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
+}
+
+void ParsedDive::set_date_time_timezone_offset(int64_t value_arg) {
+  date_time_timezone_offset_ = value_arg;
 }
 
 
@@ -952,9 +1032,15 @@ void ParsedDive::set_deco_conservatism(int64_t value_arg) {
 
 EncodableList ParsedDive::ToEncodableList() const {
   EncodableList list;
-  list.reserve(16);
+  list.reserve(22);
   list.push_back(EncodableValue(fingerprint_));
-  list.push_back(EncodableValue(date_time_epoch_));
+  list.push_back(EncodableValue(date_time_year_));
+  list.push_back(EncodableValue(date_time_month_));
+  list.push_back(EncodableValue(date_time_day_));
+  list.push_back(EncodableValue(date_time_hour_));
+  list.push_back(EncodableValue(date_time_minute_));
+  list.push_back(EncodableValue(date_time_second_));
+  list.push_back(date_time_timezone_offset_ ? EncodableValue(*date_time_timezone_offset_) : EncodableValue());
   list.push_back(EncodableValue(max_depth_meters_));
   list.push_back(EncodableValue(avg_depth_meters_));
   list.push_back(EncodableValue(duration_seconds_));
@@ -976,38 +1062,47 @@ ParsedDive ParsedDive::FromEncodableList(const EncodableList& list) {
   ParsedDive decoded(
     std::get<std::string>(list[0]),
     std::get<int64_t>(list[1]),
-    std::get<double>(list[2]),
-    std::get<double>(list[3]),
+    std::get<int64_t>(list[2]),
+    std::get<int64_t>(list[3]),
     std::get<int64_t>(list[4]),
-    std::get<EncodableList>(list[7]),
-    std::get<EncodableList>(list[8]),
-    std::get<EncodableList>(list[9]),
-    std::get<EncodableList>(list[10]));
-  auto& encodable_min_temperature_celsius = list[5];
+    std::get<int64_t>(list[5]),
+    std::get<int64_t>(list[6]),
+    std::get<double>(list[8]),
+    std::get<double>(list[9]),
+    std::get<int64_t>(list[10]),
+    std::get<EncodableList>(list[13]),
+    std::get<EncodableList>(list[14]),
+    std::get<EncodableList>(list[15]),
+    std::get<EncodableList>(list[16]));
+  auto& encodable_date_time_timezone_offset = list[7];
+  if (!encodable_date_time_timezone_offset.IsNull()) {
+    decoded.set_date_time_timezone_offset(std::get<int64_t>(encodable_date_time_timezone_offset));
+  }
+  auto& encodable_min_temperature_celsius = list[11];
   if (!encodable_min_temperature_celsius.IsNull()) {
     decoded.set_min_temperature_celsius(std::get<double>(encodable_min_temperature_celsius));
   }
-  auto& encodable_max_temperature_celsius = list[6];
+  auto& encodable_max_temperature_celsius = list[12];
   if (!encodable_max_temperature_celsius.IsNull()) {
     decoded.set_max_temperature_celsius(std::get<double>(encodable_max_temperature_celsius));
   }
-  auto& encodable_dive_mode = list[11];
+  auto& encodable_dive_mode = list[17];
   if (!encodable_dive_mode.IsNull()) {
     decoded.set_dive_mode(std::get<std::string>(encodable_dive_mode));
   }
-  auto& encodable_deco_algorithm = list[12];
+  auto& encodable_deco_algorithm = list[18];
   if (!encodable_deco_algorithm.IsNull()) {
     decoded.set_deco_algorithm(std::get<std::string>(encodable_deco_algorithm));
   }
-  auto& encodable_gf_low = list[13];
+  auto& encodable_gf_low = list[19];
   if (!encodable_gf_low.IsNull()) {
     decoded.set_gf_low(std::get<int64_t>(encodable_gf_low));
   }
-  auto& encodable_gf_high = list[14];
+  auto& encodable_gf_high = list[20];
   if (!encodable_gf_high.IsNull()) {
     decoded.set_gf_high(std::get<int64_t>(encodable_gf_high));
   }
-  auto& encodable_deco_conservatism = list[15];
+  auto& encodable_deco_conservatism = list[21];
   if (!encodable_deco_conservatism.IsNull()) {
     decoded.set_deco_conservatism(std::get<int64_t>(encodable_deco_conservatism));
   }

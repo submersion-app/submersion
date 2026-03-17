@@ -314,7 +314,13 @@ struct DiveEvent {
 /// Generated class from Pigeon that represents data sent in messages.
 struct ParsedDive {
   var fingerprint: String
-  var dateTimeEpoch: Int64
+  var dateTimeYear: Int64
+  var dateTimeMonth: Int64
+  var dateTimeDay: Int64
+  var dateTimeHour: Int64
+  var dateTimeMinute: Int64
+  var dateTimeSecond: Int64
+  var dateTimeTimezoneOffset: Int64? = nil
   var maxDepthMeters: Double
   var avgDepthMeters: Double
   var durationSeconds: Int64
@@ -334,25 +340,37 @@ struct ParsedDive {
   // swift-format-ignore: AlwaysUseLowerCamelCase
   static func fromList(_ pigeonVar_list: [Any?]) -> ParsedDive? {
     let fingerprint = pigeonVar_list[0] as! String
-    let dateTimeEpoch = pigeonVar_list[1] as! Int64
-    let maxDepthMeters = pigeonVar_list[2] as! Double
-    let avgDepthMeters = pigeonVar_list[3] as! Double
-    let durationSeconds = pigeonVar_list[4] as! Int64
-    let minTemperatureCelsius: Double? = nilOrValue(pigeonVar_list[5])
-    let maxTemperatureCelsius: Double? = nilOrValue(pigeonVar_list[6])
-    let samples = pigeonVar_list[7] as! [ProfileSample]
-    let tanks = pigeonVar_list[8] as! [TankInfo]
-    let gasMixes = pigeonVar_list[9] as! [GasMix]
-    let events = pigeonVar_list[10] as! [DiveEvent]
-    let diveMode: String? = nilOrValue(pigeonVar_list[11])
-    let decoAlgorithm: String? = nilOrValue(pigeonVar_list[12])
-    let gfLow: Int64? = nilOrValue(pigeonVar_list[13])
-    let gfHigh: Int64? = nilOrValue(pigeonVar_list[14])
-    let decoConservatism: Int64? = nilOrValue(pigeonVar_list[15])
+    let dateTimeYear = pigeonVar_list[1] as! Int64
+    let dateTimeMonth = pigeonVar_list[2] as! Int64
+    let dateTimeDay = pigeonVar_list[3] as! Int64
+    let dateTimeHour = pigeonVar_list[4] as! Int64
+    let dateTimeMinute = pigeonVar_list[5] as! Int64
+    let dateTimeSecond = pigeonVar_list[6] as! Int64
+    let dateTimeTimezoneOffset: Int64? = nilOrValue(pigeonVar_list[7])
+    let maxDepthMeters = pigeonVar_list[8] as! Double
+    let avgDepthMeters = pigeonVar_list[9] as! Double
+    let durationSeconds = pigeonVar_list[10] as! Int64
+    let minTemperatureCelsius: Double? = nilOrValue(pigeonVar_list[11])
+    let maxTemperatureCelsius: Double? = nilOrValue(pigeonVar_list[12])
+    let samples = pigeonVar_list[13] as! [ProfileSample]
+    let tanks = pigeonVar_list[14] as! [TankInfo]
+    let gasMixes = pigeonVar_list[15] as! [GasMix]
+    let events = pigeonVar_list[16] as! [DiveEvent]
+    let diveMode: String? = nilOrValue(pigeonVar_list[17])
+    let decoAlgorithm: String? = nilOrValue(pigeonVar_list[18])
+    let gfLow: Int64? = nilOrValue(pigeonVar_list[19])
+    let gfHigh: Int64? = nilOrValue(pigeonVar_list[20])
+    let decoConservatism: Int64? = nilOrValue(pigeonVar_list[21])
 
     return ParsedDive(
       fingerprint: fingerprint,
-      dateTimeEpoch: dateTimeEpoch,
+      dateTimeYear: dateTimeYear,
+      dateTimeMonth: dateTimeMonth,
+      dateTimeDay: dateTimeDay,
+      dateTimeHour: dateTimeHour,
+      dateTimeMinute: dateTimeMinute,
+      dateTimeSecond: dateTimeSecond,
+      dateTimeTimezoneOffset: dateTimeTimezoneOffset,
       maxDepthMeters: maxDepthMeters,
       avgDepthMeters: avgDepthMeters,
       durationSeconds: durationSeconds,
@@ -372,7 +390,13 @@ struct ParsedDive {
   func toList() -> [Any?] {
     return [
       fingerprint,
-      dateTimeEpoch,
+      dateTimeYear,
+      dateTimeMonth,
+      dateTimeDay,
+      dateTimeHour,
+      dateTimeMinute,
+      dateTimeSecond,
+      dateTimeTimezoneOffset,
       maxDepthMeters,
       avgDepthMeters,
       durationSeconds,

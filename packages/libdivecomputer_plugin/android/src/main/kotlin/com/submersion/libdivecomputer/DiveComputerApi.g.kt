@@ -260,7 +260,13 @@ data class DiveEvent (
 /** Generated class from Pigeon that represents data sent in messages. */
 data class ParsedDive (
   val fingerprint: String,
-  val dateTimeEpoch: Long,
+  val dateTimeYear: Long,
+  val dateTimeMonth: Long,
+  val dateTimeDay: Long,
+  val dateTimeHour: Long,
+  val dateTimeMinute: Long,
+  val dateTimeSecond: Long,
+  val dateTimeTimezoneOffset: Long? = null,
   val maxDepthMeters: Double,
   val avgDepthMeters: Double,
   val durationSeconds: Long,
@@ -280,28 +286,40 @@ data class ParsedDive (
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): ParsedDive {
       val fingerprint = pigeonVar_list[0] as String
-      val dateTimeEpoch = pigeonVar_list[1] as Long
-      val maxDepthMeters = pigeonVar_list[2] as Double
-      val avgDepthMeters = pigeonVar_list[3] as Double
-      val durationSeconds = pigeonVar_list[4] as Long
-      val minTemperatureCelsius = pigeonVar_list[5] as Double?
-      val maxTemperatureCelsius = pigeonVar_list[6] as Double?
-      val samples = pigeonVar_list[7] as List<ProfileSample>
-      val tanks = pigeonVar_list[8] as List<TankInfo>
-      val gasMixes = pigeonVar_list[9] as List<GasMix>
-      val events = pigeonVar_list[10] as List<DiveEvent>
-      val diveMode = pigeonVar_list[11] as String?
-      val decoAlgorithm = pigeonVar_list[12] as String?
-      val gfLow = pigeonVar_list[13] as Long?
-      val gfHigh = pigeonVar_list[14] as Long?
-      val decoConservatism = pigeonVar_list[15] as Long?
-      return ParsedDive(fingerprint, dateTimeEpoch, maxDepthMeters, avgDepthMeters, durationSeconds, minTemperatureCelsius, maxTemperatureCelsius, samples, tanks, gasMixes, events, diveMode, decoAlgorithm, gfLow, gfHigh, decoConservatism)
+      val dateTimeYear = pigeonVar_list[1] as Long
+      val dateTimeMonth = pigeonVar_list[2] as Long
+      val dateTimeDay = pigeonVar_list[3] as Long
+      val dateTimeHour = pigeonVar_list[4] as Long
+      val dateTimeMinute = pigeonVar_list[5] as Long
+      val dateTimeSecond = pigeonVar_list[6] as Long
+      val dateTimeTimezoneOffset = pigeonVar_list[7] as Long?
+      val maxDepthMeters = pigeonVar_list[8] as Double
+      val avgDepthMeters = pigeonVar_list[9] as Double
+      val durationSeconds = pigeonVar_list[10] as Long
+      val minTemperatureCelsius = pigeonVar_list[11] as Double?
+      val maxTemperatureCelsius = pigeonVar_list[12] as Double?
+      val samples = pigeonVar_list[13] as List<ProfileSample>
+      val tanks = pigeonVar_list[14] as List<TankInfo>
+      val gasMixes = pigeonVar_list[15] as List<GasMix>
+      val events = pigeonVar_list[16] as List<DiveEvent>
+      val diveMode = pigeonVar_list[17] as String?
+      val decoAlgorithm = pigeonVar_list[18] as String?
+      val gfLow = pigeonVar_list[19] as Long?
+      val gfHigh = pigeonVar_list[20] as Long?
+      val decoConservatism = pigeonVar_list[21] as Long?
+      return ParsedDive(fingerprint, dateTimeYear, dateTimeMonth, dateTimeDay, dateTimeHour, dateTimeMinute, dateTimeSecond, dateTimeTimezoneOffset, maxDepthMeters, avgDepthMeters, durationSeconds, minTemperatureCelsius, maxTemperatureCelsius, samples, tanks, gasMixes, events, diveMode, decoAlgorithm, gfLow, gfHigh, decoConservatism)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
       fingerprint,
-      dateTimeEpoch,
+      dateTimeYear,
+      dateTimeMonth,
+      dateTimeDay,
+      dateTimeHour,
+      dateTimeMinute,
+      dateTimeSecond,
+      dateTimeTimezoneOffset,
       maxDepthMeters,
       avgDepthMeters,
       durationSeconds,

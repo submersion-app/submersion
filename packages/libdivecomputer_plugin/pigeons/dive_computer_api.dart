@@ -119,7 +119,13 @@ class DiveEvent {
 class ParsedDive {
   const ParsedDive({
     required this.fingerprint,
-    required this.dateTimeEpoch,
+    required this.dateTimeYear,
+    required this.dateTimeMonth,
+    required this.dateTimeDay,
+    required this.dateTimeHour,
+    required this.dateTimeMinute,
+    required this.dateTimeSecond,
+    this.dateTimeTimezoneOffset,
     required this.maxDepthMeters,
     required this.avgDepthMeters,
     required this.durationSeconds,
@@ -136,7 +142,13 @@ class ParsedDive {
     this.decoConservatism,
   });
   final String fingerprint;
-  final int dateTimeEpoch;
+  final int dateTimeYear;
+  final int dateTimeMonth;
+  final int dateTimeDay;
+  final int dateTimeHour;
+  final int dateTimeMinute;
+  final int dateTimeSecond;
+  final int? dateTimeTimezoneOffset; // seconds east of UTC, null if unknown
   final double maxDepthMeters;
   final double avgDepthMeters;
   final int durationSeconds;

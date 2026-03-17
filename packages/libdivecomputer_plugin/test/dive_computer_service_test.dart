@@ -167,7 +167,12 @@ void main() {
     test('downloadEvents stream emits dives', () async {
       final dive = ParsedDive(
         fingerprint: 'abc123',
-        dateTimeEpoch: 1700000000,
+        dateTimeYear: 2023,
+        dateTimeMonth: 11,
+        dateTimeDay: 14,
+        dateTimeHour: 22,
+        dateTimeMinute: 13,
+        dateTimeSecond: 20,
         maxDepthMeters: 30.0,
         avgDepthMeters: 15.0,
         durationSeconds: 3600,

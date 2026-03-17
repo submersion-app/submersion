@@ -514,7 +514,13 @@ G_DECLARE_FINAL_TYPE(LibdivecomputerPluginParsedDive, libdivecomputer_plugin_par
 /**
  * libdivecomputer_plugin_parsed_dive_new:
  * fingerprint: field in this object.
- * date_time_epoch: field in this object.
+ * date_time_year: field in this object.
+ * date_time_month: field in this object.
+ * date_time_day: field in this object.
+ * date_time_hour: field in this object.
+ * date_time_minute: field in this object.
+ * date_time_second: field in this object.
+ * date_time_timezone_offset: field in this object.
  * max_depth_meters: field in this object.
  * avg_depth_meters: field in this object.
  * duration_seconds: field in this object.
@@ -534,7 +540,7 @@ G_DECLARE_FINAL_TYPE(LibdivecomputerPluginParsedDive, libdivecomputer_plugin_par
  *
  * Returns: a new #LibdivecomputerPluginParsedDive
  */
-LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new(const gchar* fingerprint, int64_t date_time_epoch, double max_depth_meters, double avg_depth_meters, int64_t duration_seconds, double* min_temperature_celsius, double* max_temperature_celsius, FlValue* samples, FlValue* tanks, FlValue* gas_mixes, FlValue* events, const gchar* dive_mode, const gchar* deco_algorithm, int64_t* gf_low, int64_t* gf_high, int64_t* deco_conservatism);
+LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new(const gchar* fingerprint, int64_t date_time_year, int64_t date_time_month, int64_t date_time_day, int64_t date_time_hour, int64_t date_time_minute, int64_t date_time_second, int64_t* date_time_timezone_offset, double max_depth_meters, double avg_depth_meters, int64_t duration_seconds, double* min_temperature_celsius, double* max_temperature_celsius, FlValue* samples, FlValue* tanks, FlValue* gas_mixes, FlValue* events, const gchar* dive_mode, const gchar* deco_algorithm, int64_t* gf_low, int64_t* gf_high, int64_t* deco_conservatism);
 
 /**
  * libdivecomputer_plugin_parsed_dive_get_fingerprint
@@ -547,14 +553,74 @@ LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new(const gc
 const gchar* libdivecomputer_plugin_parsed_dive_get_fingerprint(LibdivecomputerPluginParsedDive* object);
 
 /**
- * libdivecomputer_plugin_parsed_dive_get_date_time_epoch
+ * libdivecomputer_plugin_parsed_dive_get_date_time_year
  * @object: a #LibdivecomputerPluginParsedDive.
  *
- * Gets the value of the dateTimeEpoch field of @object.
+ * Gets the value of the dateTimeYear field of @object.
  *
  * Returns: the field value.
  */
-int64_t libdivecomputer_plugin_parsed_dive_get_date_time_epoch(LibdivecomputerPluginParsedDive* object);
+int64_t libdivecomputer_plugin_parsed_dive_get_date_time_year(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_date_time_month
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the dateTimeMonth field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_parsed_dive_get_date_time_month(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_date_time_day
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the dateTimeDay field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_parsed_dive_get_date_time_day(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_date_time_hour
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the dateTimeHour field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_parsed_dive_get_date_time_hour(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_date_time_minute
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the dateTimeMinute field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_parsed_dive_get_date_time_minute(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_date_time_second
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the dateTimeSecond field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t libdivecomputer_plugin_parsed_dive_get_date_time_second(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_date_time_timezone_offset
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the dateTimeTimezoneOffset field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t* libdivecomputer_plugin_parsed_dive_get_date_time_timezone_offset(LibdivecomputerPluginParsedDive* object);
 
 /**
  * libdivecomputer_plugin_parsed_dive_get_max_depth_meters

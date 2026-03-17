@@ -388,7 +388,12 @@ class ParsedDive {
   // Constructs an object setting all non-nullable fields.
   explicit ParsedDive(
     const std::string& fingerprint,
-    int64_t date_time_epoch,
+    int64_t date_time_year,
+    int64_t date_time_month,
+    int64_t date_time_day,
+    int64_t date_time_hour,
+    int64_t date_time_minute,
+    int64_t date_time_second,
     double max_depth_meters,
     double avg_depth_meters,
     int64_t duration_seconds,
@@ -400,7 +405,13 @@ class ParsedDive {
   // Constructs an object setting all fields.
   explicit ParsedDive(
     const std::string& fingerprint,
-    int64_t date_time_epoch,
+    int64_t date_time_year,
+    int64_t date_time_month,
+    int64_t date_time_day,
+    int64_t date_time_hour,
+    int64_t date_time_minute,
+    int64_t date_time_second,
+    const int64_t* date_time_timezone_offset,
     double max_depth_meters,
     double avg_depth_meters,
     int64_t duration_seconds,
@@ -419,8 +430,27 @@ class ParsedDive {
   const std::string& fingerprint() const;
   void set_fingerprint(std::string_view value_arg);
 
-  int64_t date_time_epoch() const;
-  void set_date_time_epoch(int64_t value_arg);
+  int64_t date_time_year() const;
+  void set_date_time_year(int64_t value_arg);
+
+  int64_t date_time_month() const;
+  void set_date_time_month(int64_t value_arg);
+
+  int64_t date_time_day() const;
+  void set_date_time_day(int64_t value_arg);
+
+  int64_t date_time_hour() const;
+  void set_date_time_hour(int64_t value_arg);
+
+  int64_t date_time_minute() const;
+  void set_date_time_minute(int64_t value_arg);
+
+  int64_t date_time_second() const;
+  void set_date_time_second(int64_t value_arg);
+
+  const int64_t* date_time_timezone_offset() const;
+  void set_date_time_timezone_offset(const int64_t* value_arg);
+  void set_date_time_timezone_offset(int64_t value_arg);
 
   double max_depth_meters() const;
   void set_max_depth_meters(double value_arg);
@@ -479,7 +509,13 @@ class ParsedDive {
   friend class DiveComputerFlutterApi;
   friend class PigeonInternalCodecSerializer;
   std::string fingerprint_;
-  int64_t date_time_epoch_;
+  int64_t date_time_year_;
+  int64_t date_time_month_;
+  int64_t date_time_day_;
+  int64_t date_time_hour_;
+  int64_t date_time_minute_;
+  int64_t date_time_second_;
+  std::optional<int64_t> date_time_timezone_offset_;
   double max_depth_meters_;
   double avg_depth_meters_;
   int64_t duration_seconds_;
