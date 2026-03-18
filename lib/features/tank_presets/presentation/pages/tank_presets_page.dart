@@ -50,6 +50,15 @@ class TankPresetsPage extends ConsumerWidget {
                 context,
                 context.l10n.tankPresets_defaultSettings,
               ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Text(
+                  context.l10n.tankPresets_defaultSettings_description,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
               SwitchListTile(
                 title: Text(context.l10n.tankPresets_applyToImports),
                 subtitle: Text(

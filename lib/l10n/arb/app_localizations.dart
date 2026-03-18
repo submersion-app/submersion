@@ -70,8 +70,7 @@ import 'app_localizations_pt.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -79,8 +78,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -92,13 +90,12 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
@@ -111,7 +108,7 @@ abstract class AppLocalizations {
     Locale('hu'),
     Locale('it'),
     Locale('nl'),
-    Locale('pt'),
+    Locale('pt')
   ];
 
   /// Title of the keyboard shortcuts help dialog
@@ -1462,10 +1459,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{label} photo of {name}. Tap to view full screen'**
-  String certifications_detail_semanticLabel_photoTapToView(
-    Object label,
-    Object name,
-  );
+  String certifications_detail_semanticLabel_photoTapToView(Object label, Object name);
 
   /// No description provided for @certifications_detail_snackBar_deleted.
   ///
@@ -1993,10 +1987,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Instructor: {name} ({number})'**
-  String certifications_renderer_label_instructorWithNumber(
-    Object name,
-    Object number,
-  );
+  String certifications_renderer_label_instructorWithNumber(Object name, Object number);
 
   /// No description provided for @certifications_renderer_label_issued.
   ///
@@ -3262,12 +3253,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Created plan: {depth}{depthSymbol} for {time}min on {gasMixName}'**
-  String decoCalculator_createdPlanSnackbar(
-    Object depth,
-    Object depthSymbol,
-    Object time,
-    Object gasMixName,
-  );
+  String decoCalculator_createdPlanSnackbar(Object depth, Object depthSymbol, Object time, Object gasMixName);
 
   /// No description provided for @decoCalculator_customMixTrimix.
   ///
@@ -4767,12 +4753,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'CNS: {cns} • Max ppO₂: {maxPpO2} • At {timestamp}: {ppO2} bar'**
-  String diveLog_detail_collapsed_cnsMaxPpO2AtTime(
-    Object cns,
-    Object maxPpO2,
-    Object timestamp,
-    Object ppO2,
-  );
+  String diveLog_detail_collapsed_cnsMaxPpO2AtTime(Object cns, Object maxPpO2, Object timestamp, Object ppO2);
 
   /// No description provided for @diveLog_detail_collapsed_ndl.
   ///
@@ -8432,32 +8413,19 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Deco stop at {depth} for {duration} on {gasMix}'**
-  String divePlanner_semantics_decoStop(
-    Object depth,
-    Object duration,
-    Object gasMix,
-  );
+  String divePlanner_semantics_decoStop(Object depth, Object duration, Object gasMix);
 
   /// No description provided for @divePlanner_semantics_gasConsumption.
   ///
   /// In en, this message translates to:
   /// **'{tankName}: {gasUsed} used, {remaining} remaining, {percent} used{warning}'**
-  String divePlanner_semantics_gasConsumption(
-    Object tankName,
-    Object gasUsed,
-    Object remaining,
-    Object percent,
-    Object warning,
-  );
+  String divePlanner_semantics_gasConsumption(Object tankName, Object gasUsed, Object remaining, Object percent, Object warning);
 
   /// No description provided for @divePlanner_semantics_profileChart.
   ///
   /// In en, this message translates to:
   /// **'Dive plan, max depth {maxDepth}, total time {totalMinutes} minutes'**
-  String divePlanner_semantics_profileChart(
-    Object maxDepth,
-    Object totalMinutes,
-  );
+  String divePlanner_semantics_profileChart(Object maxDepth, Object totalMinutes);
 
   /// No description provided for @divePlanner_semantics_warning.
   ///
@@ -9969,10 +9937,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Selected coordinates: latitude {latitude}, longitude {longitude}'**
-  String diveSites_locationPicker_semantics_coordinates(
-    Object latitude,
-    Object longitude,
-  );
+  String diveSites_locationPicker_semantics_coordinates(Object latitude, Object longitude);
 
   /// No description provided for @diveSites_locationPicker_semantics_lookingUp.
   ///
@@ -12618,37 +12583,25 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{years} years, {months} months'**
-  String equipment_detail_durationYearsMonthsPluralPlural(
-    Object years,
-    Object months,
-  );
+  String equipment_detail_durationYearsMonthsPluralPlural(Object years, Object months);
 
   /// No description provided for @equipment_detail_durationYearsMonthsPluralSingular.
   ///
   /// In en, this message translates to:
   /// **'{years} years, {months} month'**
-  String equipment_detail_durationYearsMonthsPluralSingular(
-    Object years,
-    Object months,
-  );
+  String equipment_detail_durationYearsMonthsPluralSingular(Object years, Object months);
 
   /// No description provided for @equipment_detail_durationYearsMonthsSingularPlural.
   ///
   /// In en, this message translates to:
   /// **'{years} year, {months} months'**
-  String equipment_detail_durationYearsMonthsSingularPlural(
-    Object years,
-    Object months,
-  );
+  String equipment_detail_durationYearsMonthsSingularPlural(Object years, Object months);
 
   /// No description provided for @equipment_detail_durationYearsMonthsSingularSingular.
   ///
   /// In en, this message translates to:
   /// **'{years} year, {months} month'**
-  String equipment_detail_durationYearsMonthsSingularSingular(
-    Object years,
-    Object months,
-  );
+  String equipment_detail_durationYearsMonthsSingularSingular(Object years, Object months);
 
   /// No description provided for @equipment_detail_durationYearsPlural.
   ///
@@ -14196,10 +14149,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Ambient pressure at {depth}{depthSymbol}'**
-  String gasCalculators_consumption_ambientPressure(
-    Object depth,
-    Object depthSymbol,
-  );
+  String gasCalculators_consumption_ambientPressure(Object depth, Object depthSymbol);
 
   /// No description provided for @gasCalculators_consumption_avgDepth.
   ///
@@ -14247,12 +14197,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Tank capacity ({tankSize}{volumeSymbol} @ {fillPressure} {pressureSymbol})'**
-  String gasCalculators_consumption_tankCapacity(
-    Object tankSize,
-    Object volumeSymbol,
-    Object fillPressure,
-    Object pressureSymbol,
-  );
+  String gasCalculators_consumption_tankCapacity(Object tankSize, Object volumeSymbol, Object fillPressure, Object pressureSymbol);
 
   /// No description provided for @gasCalculators_consumption_title.
   ///
@@ -14486,10 +14431,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{name}, spotted {count} times'**
-  String marineLife_siteSection_spottedCountSemantics(
-    Object name,
-    Object count,
-  );
+  String marineLife_siteSection_spottedCountSemantics(Object name, Object count);
 
   /// No description provided for @marineLife_siteSection_spottedHere.
   ///
@@ -15173,12 +15115,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'No photos were found between {startDate} {startTime} and {endDate} {endTime}.'**
-  String media_photoPicker_emptyMessage(
-    Object startDate,
-    Object startTime,
-    Object endDate,
-    Object endTime,
-  );
+  String media_photoPicker_emptyMessage(Object startDate, Object startTime, Object endDate, Object endTime);
 
   /// No description provided for @media_photoPicker_emptyTitle.
   ///
@@ -16564,10 +16501,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{providerName} connection failed: {error}'**
-  String settings_cloudSync_provider_connectionFailed(
-    Object providerName,
-    Object error,
-  );
+  String settings_cloudSync_provider_connectionFailed(Object providerName, Object error);
 
   /// No description provided for @settings_cloudSync_provider_googleDrive.
   ///
@@ -17461,11 +17395,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{phase}, {current} of {total}'**
-  String settings_import_progressLabel(
-    Object phase,
-    Object current,
-    Object total,
-  );
+  String settings_import_progressLabel(Object phase, Object current, Object total);
 
   /// No description provided for @settings_import_progressPercent.
   ///
@@ -18017,11 +17947,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{fileSize} • {diveCount} dives • {siteCount} sites'**
-  String settings_storage_dbStats(
-    Object fileSize,
-    Object diveCount,
-    Object siteCount,
-  );
+  String settings_storage_dbStats(Object fileSize, Object diveCount, Object siteCount);
 
   /// No description provided for @settings_storage_dismissError_tooltip.
   ///
@@ -18855,10 +18781,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Trend line chart showing {count} data points for {yAxisLabel}'**
-  String statistics_chart_trendSemanticLabelWithAxis(
-    Object count,
-    Object yAxisLabel,
-  );
+  String statistics_chart_trendSemanticLabelWithAxis(Object count, Object yAxisLabel);
 
   /// No description provided for @statistics_conditions_appBar_title.
   ///
@@ -19200,11 +19123,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{count} countries. Top: {topName} with {topCount} dives'**
-  String statistics_geographic_countries_summary(
-    Object count,
-    Object topName,
-    Object topCount,
-  );
+  String statistics_geographic_countries_summary(Object count, Object topName, Object topCount);
 
   /// No description provided for @statistics_geographic_countries_title.
   ///
@@ -19234,11 +19153,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{count} regions. Top: {topName} with {topCount} dives'**
-  String statistics_geographic_regions_summary(
-    Object count,
-    Object topName,
-    Object topCount,
-  );
+  String statistics_geographic_regions_summary(Object count, Object topName, Object topCount);
 
   /// No description provided for @statistics_geographic_regions_title.
   ///
@@ -19268,11 +19183,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{count} trips. Top: {topName} with {topCount} dives'**
-  String statistics_geographic_trips_summary(
-    Object count,
-    Object topName,
-    Object topCount,
-  );
+  String statistics_geographic_trips_summary(Object count, Object topName, Object topCount);
 
   /// No description provided for @statistics_geographic_trips_title.
   ///
@@ -19314,11 +19225,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{count} sites. Best: {topName} with {topCount} species'**
-  String statistics_marineLife_bestSites_summary(
-    Object count,
-    Object topName,
-    Object topCount,
-  );
+  String statistics_marineLife_bestSites_summary(Object count, Object topName, Object topCount);
 
   /// No description provided for @statistics_marineLife_bestSites_title.
   ///
@@ -19348,11 +19255,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{count} species. Most common: {topName} with {topCount} sightings'**
-  String statistics_marineLife_mostCommon_summary(
-    Object count,
-    Object topName,
-    Object topCount,
-  );
+  String statistics_marineLife_mostCommon_summary(Object count, Object topName, Object topCount);
 
   /// No description provided for @statistics_marineLife_mostCommon_title.
   ///
@@ -19616,12 +19519,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{name}, rank {rank}, {count} {label}'**
-  String statistics_ranking_semanticLabel(
-    Object name,
-    Object rank,
-    Object count,
-    Object label,
-  );
+  String statistics_ranking_semanticLabel(Object name, Object rank, Object count, Object label);
 
   /// No description provided for @statistics_records_appBar_title.
   ///
@@ -19687,10 +19585,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{title}: {siteName}'**
-  String statistics_records_milestoneSemanticLabel(
-    Object title,
-    Object siteName,
-  );
+  String statistics_records_milestoneSemanticLabel(Object title, Object siteName);
 
   /// No description provided for @statistics_records_milestones.
   ///
@@ -19708,11 +19603,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{title}: {value} at {siteName}'**
-  String statistics_records_recordSemanticLabel(
-    Object title,
-    Object value,
-    Object siteName,
-  );
+  String statistics_records_recordSemanticLabel(Object title, Object value, Object siteName);
 
   /// No description provided for @statistics_records_retry.
   ///
@@ -19898,10 +19789,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{fullLabel} {count} dives'**
-  String statistics_summary_divesByMonth_tooltip(
-    Object fullLabel,
-    Object count,
-  );
+  String statistics_summary_divesByMonth_tooltip(Object fullLabel, Object count);
 
   /// No description provided for @statistics_summary_header_subtitle.
   ///
@@ -20189,10 +20077,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{hours}h {minutes}m'**
-  String statistics_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  );
+  String statistics_timePatterns_surfaceInterval_formatHoursMinutes(Object hours, Object minutes);
 
   /// No description provided for @statistics_timePatterns_surfaceInterval_formatMinutes.
   ///
@@ -20432,12 +20317,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Minimum surface interval: {interval}. Current interval: {current}. NDL for second dive: {ndl}. {status}'**
-  String surfaceInterval_result_semantics(
-    Object interval,
-    Object current,
-    Object ndl,
-    Object status,
-  );
+  String surfaceInterval_result_semantics(Object interval, Object current, Object ndl, Object status);
 
   /// Accessibility label for second dive depth slider
   ///
@@ -21025,23 +20905,13 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{tideState} tide, {height}{depthSymbol}{nextExtreme}'**
-  String tides_semantic_currentTide(
-    Object tideState,
-    Object height,
-    Object depthSymbol,
-    Object nextExtreme,
-  );
+  String tides_semantic_currentTide(Object tideState, Object height, Object depthSymbol, Object nextExtreme);
 
   /// No description provided for @tides_semantic_extremeItem.
   ///
   /// In en, this message translates to:
   /// **'{typeLabel} tide at {time}, {height}{depthSymbol}'**
-  String tides_semantic_extremeItem(
-    Object typeLabel,
-    Object time,
-    Object height,
-    Object depthSymbol,
-  );
+  String tides_semantic_extremeItem(Object typeLabel, Object time, Object height, Object depthSymbol);
 
   /// No description provided for @tides_semantic_tideChart.
   ///
@@ -23231,11 +23101,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{selected} of {total} {entityType} selected'**
-  String universalImport_semantics_entitySelection(
-    Object selected,
-    Object total,
-    Object entityType,
-  );
+  String universalImport_semantics_entitySelection(Object selected, Object total, Object entityType);
 
   /// Accessibility label for the import error message
   ///
@@ -23709,10 +23575,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Download progress: {status}{percent}'**
-  String diveComputer_downloadStep_progressSemanticLabel(
-    Object status,
-    Object percent,
-  );
+  String diveComputer_downloadStep_progressSemanticLabel(Object status, Object percent);
 
   /// No description provided for @diveComputer_downloadStep_retry.
   ///
@@ -24186,11 +24049,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Parsed {diveCount} {diveCount, plural, =1{dive} other{dives}} from {fileCount} {fileCount, plural, =1{file} other{files}} ({skippedCount} skipped)'**
-  String diveImport_fit_parsedWithSkipped(
-    int diveCount,
-    int fileCount,
-    Object skippedCount,
-  );
+  String diveImport_fit_parsedWithSkipped(int diveCount, int fileCount, Object skippedCount);
 
   /// No description provided for @diveImport_fit_parsing.
   ///
@@ -24370,11 +24229,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{newCount} new{possibleCount, plural, =0{} other{, {possibleCount} possible duplicates}}{skipCount, plural, =0{} other{, {skipCount} will be skipped}}'**
-  String diveImport_reviewSummary(
-    Object newCount,
-    int possibleCount,
-    int skipCount,
-  );
+  String diveImport_reviewSummary(Object newCount, int possibleCount, int skipCount);
 
   /// No description provided for @diveImport_selectAll.
   ///
@@ -24920,21 +24775,13 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Minimum reserve: {pressure} {pressureUnit}, {volume} {volumeUnit}. Turn the dive when reaching {pressure} {pressureUnit} remaining'**
-  String gasCalculators_rockBottom_resultSemantics(
-    Object pressure,
-    Object pressureUnit,
-    Object volume,
-    Object volumeUnit,
-  );
+  String gasCalculators_rockBottom_resultSemantics(Object pressure, Object pressureUnit, Object volume, Object volumeUnit);
 
   /// No description provided for @gasCalculators_rockBottom_safetyStopDuration.
   ///
   /// In en, this message translates to:
   /// **'3 minutes at {depth}{unit}'**
-  String gasCalculators_rockBottom_safetyStopDuration(
-    Object depth,
-    Object unit,
-  );
+  String gasCalculators_rockBottom_safetyStopDuration(Object depth, Object unit);
 
   /// No description provided for @gasCalculators_rockBottom_safetyStopGas.
   ///
@@ -24970,10 +24817,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Turn the dive when reaching {pressure} {pressureUnit} remaining'**
-  String gasCalculators_rockBottom_turnDive(
-    Object pressure,
-    Object pressureUnit,
-  );
+  String gasCalculators_rockBottom_turnDive(Object pressure, Object pressureUnit);
 
   /// No description provided for @gasCalculators_rockBottom_yourSac.
   ///
@@ -25087,11 +24931,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Delete \"{name}\" and its {count} cached tiles?\n\nThis will free up {size} of storage.'**
-  String maps_offline_deleteRegionMessage(
-    Object name,
-    Object count,
-    Object size,
-  );
+  String maps_offline_deleteRegionMessage(Object name, Object count, Object size);
 
   /// No description provided for @maps_offline_deleteRegionTitle.
   ///
@@ -25115,12 +24955,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Downloading {regionName}, {percent} percent complete, {downloaded} of {total} tiles'**
-  String maps_offline_downloadingAccessibility(
-    Object regionName,
-    Object percent,
-    Object downloaded,
-    Object total,
-  );
+  String maps_offline_downloadingAccessibility(Object regionName, Object percent, Object downloaded, Object total);
 
   /// No description provided for @maps_offline_error.
   ///
@@ -25180,23 +25015,13 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{size} | {count} tiles | Zoom {minZoom}-{maxZoom}'**
-  String maps_offline_regionInfo(
-    Object size,
-    Object count,
-    Object minZoom,
-    Object maxZoom,
-  );
+  String maps_offline_regionInfo(Object size, Object count, Object minZoom, Object maxZoom);
 
   /// No description provided for @maps_offline_regionSubtitle.
   ///
   /// In en, this message translates to:
   /// **'{size}, {count} tiles, zoom {minZoom} to {maxZoom}'**
-  String maps_offline_regionSubtitle(
-    Object size,
-    Object count,
-    Object minZoom,
-    Object maxZoom,
-  );
+  String maps_offline_regionSubtitle(Object size, Object count, Object minZoom, Object maxZoom);
 
   /// No description provided for @maps_offline_size.
   ///
@@ -25287,6 +25112,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Default Tank'**
   String get tankPresets_defaultSettings;
+
+  /// No description provided for @tankPresets_defaultSettings_description.
+  ///
+  /// In en, this message translates to:
+  /// **'The starred preset is used as the default tank when logging new dives.'**
+  String get tankPresets_defaultSettings_description;
 
   /// No description provided for @tankPresets_deleteDefaultMessage.
   ///
@@ -25483,7 +25314,7 @@ abstract class AppLocalizations {
   /// No description provided for @tankPresets_applyToImports.
   ///
   /// In en, this message translates to:
-  /// **'Apply default tank to imports'**
+  /// **'Also apply to imported dives'**
   String get tankPresets_applyToImports;
 
   /// No description provided for @tankPresets_applyToImports_subtitle.
@@ -26039,8 +25870,7 @@ abstract class AppLocalizations {
   String get enum_precipitation_hail;
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -26049,52 +25879,33 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) => <String>[
-    'ar',
-    'de',
-    'en',
-    'es',
-    'fr',
-    'he',
-    'hu',
-    'it',
-    'nl',
-    'pt',
-  ].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['ar', 'de', 'en', 'es', 'fr', 'he', 'hu', 'it', 'nl', 'pt'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'ar':
-      return AppLocalizationsAr();
-    case 'de':
-      return AppLocalizationsDe();
-    case 'en':
-      return AppLocalizationsEn();
-    case 'es':
-      return AppLocalizationsEs();
-    case 'fr':
-      return AppLocalizationsFr();
-    case 'he':
-      return AppLocalizationsHe();
-    case 'hu':
-      return AppLocalizationsHu();
-    case 'it':
-      return AppLocalizationsIt();
-    case 'nl':
-      return AppLocalizationsNl();
-    case 'pt':
-      return AppLocalizationsPt();
+    case 'ar': return AppLocalizationsAr();
+    case 'de': return AppLocalizationsDe();
+    case 'en': return AppLocalizationsEn();
+    case 'es': return AppLocalizationsEs();
+    case 'fr': return AppLocalizationsFr();
+    case 'he': return AppLocalizationsHe();
+    case 'hu': return AppLocalizationsHu();
+    case 'it': return AppLocalizationsIt();
+    case 'nl': return AppLocalizationsNl();
+    case 'pt': return AppLocalizationsPt();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
+    'that was used.'
   );
 }
