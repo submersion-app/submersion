@@ -68,6 +68,15 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDefaultStartPressure(int pressure) async =>
       state = state.copyWith(defaultStartPressure: pressure);
   @override
+  Future<void> setDefaultTankPreset(String? presetName) async =>
+      state = state.copyWith(
+        defaultTankPreset: presetName,
+        clearDefaultTankPreset: presetName == null,
+      );
+  @override
+  Future<void> setApplyDefaultTankToImports(bool value) async =>
+      state = state.copyWith(applyDefaultTankToImports: value);
+  @override
   Future<void> setGfLow(int value) async =>
       state = state.copyWith(gfLow: value);
   @override

@@ -1351,6 +1351,8 @@ class SyncDataSerializer {
       'defaultDiveType': 'recreational',
       'defaultTankVolume': 12.0,
       'defaultStartPressure': 200,
+      'defaultTankPreset': 'al80',
+      'applyDefaultTankToImports': false,
       // Decompression settings
       'gfLow': 30,
       'gfHigh': 70,
@@ -1431,6 +1433,8 @@ class SyncDataSerializer {
     'defaultDiveType': r.defaultDiveType,
     'defaultTankVolume': r.defaultTankVolume,
     'defaultStartPressure': r.defaultStartPressure,
+    'defaultTankPreset': r.defaultTankPreset,
+    'applyDefaultTankToImports': r.applyDefaultTankToImports,
     'gfLow': r.gfLow,
     'gfHigh': r.gfHigh,
     'ppO2MaxWorking': r.ppO2MaxWorking,
