@@ -3,6 +3,40 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.3.3 (2026-03-18)
+
+### Features
+
+- add schema version-mismatch guard to prevent older app from opening newer database
+- add Fix Dive Times settings page for bulk-fix tool
+- add DiveTimeMigrationService for bulk-fix offset logic
+- add importVersion column and wall-clock-as-UTC migration (schema v49)
+- construct wall-clock-as-UTC DateTime from raw components in mapper
+- pass raw datetime components instead of UTC epoch
+- add nativeGetDiveTimezone JNI binding
+- pass raw datetime components instead of UTC epoch
+- replace dateTimeEpoch with raw component fields in Pigeon API
+
+### Bug Fixes
+
+- pass raw datetime components instead of epoch in dive converters
+- use UTC bounds for all dive date range queries
+- use DateTime.utc for manual dive entry (wall-clock-as-UTC)
+
+### Documentation
+
+- add dive time timezone fix implementation plan
+- add dive_import_providers to files changed table
+- address spec review findings for dive time timezone fix
+- add dive time timezone fix design spec
+
+### Chores
+
+- bump version to 1.3.3+78
+- formatting
+- formatting
+
+
 ## 1.3.2 (2026-03-16)
 
 ### Chores
