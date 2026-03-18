@@ -745,12 +745,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
-    // Determine effective right axis metric using settings default and fallback chain
+    // Determine effective right axis metric using settings default and fallback chain.
+    // getEffectiveRightAxisMetric() returns null when the user chose "None".
     final legendNotifier = ref.read(profileLegendProvider.notifier);
     final preferredMetric = legendNotifier.getEffectiveRightAxisMetric();
-    final effectiveRightAxisMetric = _getEffectiveRightAxisMetric(
-      preferredMetric,
-    );
+    final effectiveRightAxisMetric = preferredMetric != null
+        ? _getEffectiveRightAxisMetric(preferredMetric)
+        : null;
     final rightAxisRange = effectiveRightAxisMetric != null
         ? _getMetricRange(effectiveRightAxisMetric, units)
         : null;
@@ -1667,10 +1668,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // Build list of metrics grouped by category
     final menuItems = <PopupMenuEntry<ProfileRightAxisMetric?>>[];
 
-    // Add "None" option to hide the axis
+    // Add "None" option to hide the axis.
+    // Use onTap instead of relying on the menu return value, because
+    // showMenu returns null both for "None" (value: null) and for
+    // dismissing the menu — we can't distinguish them otherwise.
     menuItems.add(
       PopupMenuItem<ProfileRightAxisMetric?>(
         value: null,
+        onTap: () => legendNotifier.hideRightAxis(),
         child: Row(
           children: [
             Icon(
@@ -1771,9 +1776,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ),
       items: menuItems,
     ).then((selectedMetric) {
-      // Handle "None" selection (null value means user wants to hide)
-      // For now, we don't have a "hide axis" option in state, so selecting
-      // an actual metric or canceling
+      // "None" is handled via onTap on its PopupMenuItem.
+      // Here we only handle actual metric selections (non-null).
       if (selectedMetric != null) {
         legendNotifier.setRightAxisMetric(selectedMetric);
       }

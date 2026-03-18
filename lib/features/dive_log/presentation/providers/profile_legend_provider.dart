@@ -15,6 +15,9 @@ class ProfileLegendState {
   // Right Y-axis metric selection
   final ProfileRightAxisMetric? rightAxisMetric;
 
+  // Whether the user explicitly hid the right axis (chose "None")
+  final bool rightAxisHidden;
+
   // Primary toggles (always visible in legend)
   final bool showTemperature;
   final bool showPressure;
@@ -57,6 +60,7 @@ class ProfileLegendState {
 
   const ProfileLegendState({
     this.rightAxisMetric,
+    this.rightAxisHidden = false,
     this.showTemperature = true,
     this.showPressure = false,
     this.showCeiling = true,
@@ -126,6 +130,7 @@ class ProfileLegendState {
   ProfileLegendState copyWith({
     ProfileRightAxisMetric? rightAxisMetric,
     bool clearRightAxisMetric = false,
+    bool? rightAxisHidden,
     bool? showTemperature,
     bool? showPressure,
     bool? showCeiling,
@@ -159,6 +164,7 @@ class ProfileLegendState {
       rightAxisMetric: clearRightAxisMetric
           ? null
           : (rightAxisMetric ?? this.rightAxisMetric),
+      rightAxisHidden: rightAxisHidden ?? this.rightAxisHidden,
       showTemperature: showTemperature ?? this.showTemperature,
       showPressure: showPressure ?? this.showPressure,
       showCeiling: showCeiling ?? this.showCeiling,
@@ -196,6 +202,7 @@ class ProfileLegendState {
       other is ProfileLegendState &&
           runtimeType == other.runtimeType &&
           rightAxisMetric == other.rightAxisMetric &&
+          rightAxisHidden == other.rightAxisHidden &&
           showTemperature == other.showTemperature &&
           showPressure == other.showPressure &&
           showCeiling == other.showCeiling &&
@@ -228,6 +235,7 @@ class ProfileLegendState {
   @override
   int get hashCode => Object.hashAll([
     rightAxisMetric,
+    rightAxisHidden,
     showTemperature,
     showPressure,
     showCeiling,
@@ -304,17 +312,24 @@ class ProfileLegend extends _$ProfileLegend {
     );
   }
 
-  /// Set the right axis metric for this session
+  /// Set the right axis metric for this session (also un-hides it)
   void setRightAxisMetric(ProfileRightAxisMetric? metric) {
     if (metric == null) {
       state = state.copyWith(clearRightAxisMetric: true);
     } else {
-      state = state.copyWith(rightAxisMetric: metric);
+      state = state.copyWith(rightAxisMetric: metric, rightAxisHidden: false);
     }
   }
 
-  /// Get the effective right axis metric (session override or settings default)
-  ProfileRightAxisMetric getEffectiveRightAxisMetric() {
+  /// Explicitly hide the right axis ("None" selection)
+  void hideRightAxis() {
+    state = state.copyWith(rightAxisHidden: true, clearRightAxisMetric: true);
+  }
+
+  /// Get the effective right axis metric (session override or settings default).
+  /// Returns null when the user has explicitly chosen "None".
+  ProfileRightAxisMetric? getEffectiveRightAxisMetric() {
+    if (state.rightAxisHidden) return null;
     return state.rightAxisMetric ??
         ref.read(settingsProvider).defaultRightAxisMetric;
   }

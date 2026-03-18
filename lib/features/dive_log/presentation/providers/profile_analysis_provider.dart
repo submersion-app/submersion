@@ -433,12 +433,22 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
         heFraction = primaryTank.gasMix.he / 100.0;
       }
 
-      // Read per-metric source preferences from legend state
-      final legendState = ref.watch(profileLegendProvider);
-      final ndlSource = legendState.ndlSource;
-      final ceilingSource = legendState.ceilingSource;
-      final ttsSource = legendState.ttsSource;
-      final cnsSource = legendState.cnsSource;
+      // Read per-metric source preferences from legend state.
+      // Use select() to only watch the 4 data-source fields — toggling
+      // visibility or expanding menu sections should NOT trigger a full
+      // Buhlmann recalculation.
+      final ndlSource = ref.watch(
+        profileLegendProvider.select((s) => s.ndlSource),
+      );
+      final ceilingSource = ref.watch(
+        profileLegendProvider.select((s) => s.ceilingSource),
+      );
+      final ttsSource = ref.watch(
+        profileLegendProvider.select((s) => s.ttsSource),
+      );
+      final cnsSource = ref.watch(
+        profileLegendProvider.select((s) => s.cnsSource),
+      );
 
       final useComputerCns = cnsSource == MetricDataSource.computer;
       final computerCns = useComputerCns
@@ -548,8 +558,11 @@ Future<double> _computeResidualCns(Ref ref, String diveId) async {
     // Short-circuit: if the legend's CNS source is set to computer and the
     // previous dive has computer CNS, use its last CNS sample directly
     // instead of full analysis.
-    final legendState = ref.watch(profileLegendProvider);
-    final useComputerCns = legendState.cnsSource == MetricDataSource.computer;
+    // Use select() to avoid invalidating on unrelated legend state changes.
+    final cnsSource = ref.watch(
+      profileLegendProvider.select((s) => s.cnsSource),
+    );
+    final useComputerCns = cnsSource == MetricDataSource.computer;
     if (useComputerCns) {
       final prevComputerCns = extractComputerCns(previousDive.profile);
       if (prevComputerCns != null) {
