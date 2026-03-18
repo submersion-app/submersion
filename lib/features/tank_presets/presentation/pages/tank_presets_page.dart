@@ -215,10 +215,10 @@ class TankPresetsPage extends ConsumerWidget {
       try {
         final notifier = ref.read(tankPresetListNotifierProvider.notifier);
         await notifier.deletePreset(preset.id);
-        if (isDefault) {
-          ref.read(settingsProvider.notifier).setDefaultTankPreset('al80');
-        }
         if (context.mounted) {
+          if (isDefault) {
+            ref.read(settingsProvider.notifier).setDefaultTankPreset('al80');
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
