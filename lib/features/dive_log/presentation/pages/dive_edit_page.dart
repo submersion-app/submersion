@@ -47,6 +47,10 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/widgets/photo_gps_suggestion_banner.dart';
 import 'package:submersion/features/media/presentation/widgets/quick_site_from_gps_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/constants/tank_presets.dart';
+import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
+import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 
 const _createNewSiteSentinel = '__create_new__';
 
@@ -134,6 +138,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   // Tank data - list of tanks with multi-tank support
   List<DiveTank> _tanks = [];
   final _uuid = const Uuid();
+  TankPresetEntity? _defaultPreset;
+  bool _tanksDirty = false;
 
   // Tags
   List<Tag> _selectedTags = [];
@@ -179,16 +185,22 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _entryDate = DateTime.now();
     _entryTime = TimeOfDay.now();
 
-    // Initialize with one default tank
+    // Eagerly resolve built-in presets (sync), async for custom
+    _loadDefaultPreset();
+
+    final settings = ref.read(settingsProvider);
     _tanks = [
       DiveTank(
         id: _uuid.v4(),
-        volume: 12.0,
-        startPressure: 200,
+        volume: _defaultPreset?.volumeLiters ?? settings.defaultTankVolume,
+        workingPressure: _defaultPreset?.workingPressureBar,
+        startPressure: settings.defaultStartPressure,
         endPressure: 50,
         gasMix: const GasMix(),
         role: TankRole.backGas,
+        material: _defaultPreset?.material,
         order: 0,
+        presetName: _defaultPreset?.name,
       ),
     ];
 
@@ -197,6 +209,53 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     } else {
       // For new dives, capture GPS in the background to suggest nearby sites
       _captureLocationForNearby();
+    }
+  }
+
+  Future<void> _loadDefaultPreset() async {
+    final settings = ref.read(settingsProvider);
+    final presetName = settings.defaultTankPreset;
+
+    // Try synchronous built-in resolution first
+    final builtIn = presetName != null ? TankPresets.byName(presetName) : null;
+    if (builtIn != null) {
+      _defaultPreset = TankPresetEntity.fromBuiltIn(builtIn);
+      return;
+    }
+
+    // Async fallback for custom presets
+    if (presetName != null) {
+      final repository = ref.read(tankPresetRepositoryProvider);
+      final resolver = DefaultTankPresetResolver(repository: repository);
+      final preset = await resolver.resolve(presetName);
+      if (mounted) {
+        setState(() {
+          _defaultPreset = preset;
+          // Apply preset to initial tank if the user hasn't edited tanks yet
+          // and this is a new dive (not editing an existing one)
+          if (!_tanksDirty &&
+              !widget.isEditing &&
+              preset != null &&
+              _tanks.length == 1) {
+            final settings = ref.read(settingsProvider);
+            final existing = _tanks[0];
+            _tanks = [
+              DiveTank(
+                id: existing.id,
+                volume: preset.volumeLiters,
+                workingPressure: preset.workingPressureBar,
+                startPressure: settings.defaultStartPressure,
+                endPressure: existing.endPressure,
+                gasMix: existing.gasMix,
+                role: existing.role,
+                material: preset.material,
+                order: existing.order,
+                presetName: preset.name,
+              ),
+            ];
+          }
+        });
+      }
     }
   }
 
@@ -1651,6 +1710,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               canRemove: _tanks.length > 1,
               onChanged: (updatedTank) {
                 setState(() {
+                  _tanksDirty = true;
                   _tanks[index] = updatedTank;
                 });
               },
@@ -1821,15 +1881,20 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   void _addTank() {
+    final settings = ref.read(settingsProvider);
     setState(() {
+      _tanksDirty = true;
       _tanks.add(
         DiveTank(
           id: _uuid.v4(),
-          volume: 12.0,
-          startPressure: 200,
+          volume: _defaultPreset?.volumeLiters ?? settings.defaultTankVolume,
+          workingPressure: _defaultPreset?.workingPressureBar,
+          startPressure: settings.defaultStartPressure,
           gasMix: const GasMix(),
           role: _tanks.isEmpty ? TankRole.backGas : TankRole.stage,
+          material: _defaultPreset?.material,
           order: _tanks.length,
+          presetName: _defaultPreset?.name,
         ),
       );
     });
@@ -1837,6 +1902,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   void _removeTank(int index) {
     setState(() {
+      _tanksDirty = true;
       _tanks.removeAt(index);
       // Update order for remaining tanks
       for (var i = 0; i < _tanks.length; i++) {
