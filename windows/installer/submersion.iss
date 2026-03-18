@@ -11,6 +11,15 @@
   #define APP_VERSION_CODE "0"
 #endif
 
+; Strip pre-release suffix (e.g. "1.3.3-beta.78" -> "1.3.3") for
+; VersionInfoVersion, which only accepts numeric X.X.X.X format.
+#define POS Pos("-", APP_VERSION)
+#if POS > 0
+  #define APP_VERSION_NUMERIC Copy(APP_VERSION, 1, POS - 1)
+#else
+  #define APP_VERSION_NUMERIC APP_VERSION
+#endif
+
 [Setup]
 AppId={{B8F4E9A2-7C3D-4E1F-9A5B-2D6E8F0C1A3B}
 AppName=Submersion
@@ -32,7 +41,7 @@ SolidCompression=yes
 ArchitecturesAllowed=x64compatible
 PrivilegesRequired=admin
 WizardStyle=modern
-VersionInfoVersion={#APP_VERSION}.{#APP_VERSION_CODE}
+VersionInfoVersion={#APP_VERSION_NUMERIC}.{#APP_VERSION_CODE}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
