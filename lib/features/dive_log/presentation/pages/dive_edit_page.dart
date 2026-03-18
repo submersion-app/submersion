@@ -237,14 +237,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               !widget.isEditing &&
               preset != null &&
               _tanks.length == 1) {
-            final settings = ref.read(settingsProvider);
             final existing = _tanks[0];
             _tanks = [
               DiveTank(
                 id: existing.id,
                 volume: preset.volumeLiters,
                 workingPressure: preset.workingPressureBar,
-                startPressure: settings.defaultStartPressure,
+                startPressure: existing.startPressure,
                 endPressure: existing.endPressure,
                 gasMix: existing.gasMix,
                 role: existing.role,
@@ -338,6 +337,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           // Load all tanks from the dive
           if (dive.tanks.isNotEmpty) {
             _tanks = List.from(dive.tanks);
+            _tanksDirty = true;
           }
 
           // Load equipment
