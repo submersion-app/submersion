@@ -31,6 +31,7 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer_reading.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/custom_field_input_row.dart';
@@ -1522,6 +1523,51 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
+  /// Opens the profile editor, optionally prompting the user to choose which
+  /// computer's profile to start from when the dive has multiple computers.
+  Future<void> _openProfileEditor(String diveId, {String? initialMode}) async {
+    final readings = await ref.read(
+      diveComputerReadingsProvider(diveId).future,
+    );
+
+    // Filter to non-edited (original) sources only
+    final originalReadings = readings
+        .where((r) => r.computerId != null)
+        .toList();
+
+    if (originalReadings.length > 1 && mounted) {
+      // Multi-computer dive: ask which profile to start from
+      final selected = await showModalBottomSheet<DiveComputerReading>(
+        context: context,
+        builder: (context) =>
+            _ComputerSourceSelectionSheet(readings: originalReadings),
+      );
+
+      if (selected == null || !mounted) return;
+
+      // Load the selected computer's profile points and push a pre-seeded
+      // editor.  We do this by passing the computerId as a query parameter
+      // so the router / page can load the correct source.
+      context.pushNamed(
+        'editProfile',
+        pathParameters: {'diveId': diveId},
+        queryParameters: {
+          if (initialMode != null) 'mode': initialMode,
+          if (selected.computerId != null)
+            'sourceComputerId': selected.computerId!,
+        },
+      );
+    } else {
+      // Single-computer (or no readings): open editor directly
+      if (!mounted) return;
+      context.pushNamed(
+        'editProfile',
+        pathParameters: {'diveId': diveId},
+        queryParameters: {if (initialMode != null) 'mode': initialMode},
+      );
+    }
+  }
+
   Widget _buildProfileSection() {
     final hasProfile = _existingDive?.profile.isNotEmpty == true;
     final profileLength = _existingDive?.profile.length ?? 0;
@@ -1569,10 +1615,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                             '${outliers.length} potential '
                             'outlier${outliers.length == 1 ? '' : 's'} detected',
                           ),
-                          onPressed: () => context.pushNamed(
-                            'editProfile',
-                            pathParameters: {'diveId': _existingDive!.id},
-                            queryParameters: {'mode': 'outlier'},
+                          onPressed: () => _openProfileEditor(
+                            _existingDive!.id,
+                            initialMode: 'outlier',
                           ),
                         ),
                       );
@@ -1583,10 +1628,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               FilledButton.tonalIcon(
                 icon: const Icon(Icons.edit),
                 label: const Text('Edit Profile'),
-                onPressed: () => context.pushNamed(
-                  'editProfile',
-                  pathParameters: {'diveId': _existingDive!.id},
-                ),
+                onPressed: () => _openProfileEditor(_existingDive!.id),
               ),
             ] else ...[
               Text(
@@ -4797,6 +4839,63 @@ class _EquipmentSetTile extends ConsumerWidget {
         ),
         title: Text(set.name),
         subtitle: Text(context.l10n.diveLog_equipmentSetPicker_errorItems),
+      ),
+    );
+  }
+}
+
+/// Bottom sheet that lets the user choose which computer's profile to use
+/// as the starting point when opening the profile editor on a multi-computer
+/// dive.
+class _ComputerSourceSelectionSheet extends StatelessWidget {
+  final List<DiveComputerReading> readings;
+
+  const _ComputerSourceSelectionSheet({required this.readings});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Choose starting profile', style: textTheme.titleMedium),
+            const SizedBox(height: 4),
+            Text(
+              'Select which computer\'s profile to edit from.',
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...readings.map(
+              (reading) => ListTile(
+                leading: Icon(
+                  Icons.computer,
+                  color: reading.isPrimary
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                ),
+                title: Text(reading.displayName),
+                subtitle: reading.isPrimary
+                    ? Text(
+                        'Primary',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.primary,
+                        ),
+                      )
+                    : null,
+                onTap: () => Navigator.of(context).pop(reading),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
   }

@@ -397,23 +397,49 @@ class DiveRepository {
 
   /// Restore the original profile as primary.
   ///
-  /// Deletes the edited (currently primary) profiles and promotes the
-  /// original (non-primary) profiles back to primary.
+  /// Deletes the edited (currently primary, computerId=null) profiles and
+  /// promotes the original profiles back to primary.
+  ///
+  /// For multi-computer dives the primary [DiveComputerData] row identifies
+  /// which computer was the original primary source.  Only that computer's
+  /// profile rows are restored to isPrimary=true; the other computers' rows
+  /// remain demoted so the profile chart continues to show a single trace.
+  ///
+  /// For single-computer dives (or when no primary computer reading exists)
+  /// all remaining profile rows are promoted to primary as before.
   Future<void> restoreOriginalProfile(String diveId) async {
     try {
       _log.info('Restoring original profile for dive: $diveId');
 
       await _db.transaction(() async {
-        // Delete edited profiles (currently marked as primary)
+        // Delete user-edited profiles (isPrimary=true, computerId=null)
         await (_db.delete(_db.diveProfiles)
               ..where((t) => t.diveId.equals(diveId))
               ..where((t) => t.isPrimary.equals(true)))
             .go();
 
-        // Restore original profiles to primary
-        await (_db.update(_db.diveProfiles)
-              ..where((t) => t.diveId.equals(diveId)))
-            .write(const DiveProfilesCompanion(isPrimary: Value(true)));
+        // Find the primary computer from dive_computer_data
+        final primaryReading =
+            await (_db.select(_db.diveComputerData)
+                  ..where((t) => t.diveId.equals(diveId))
+                  ..where((t) => t.isPrimary.equals(true))
+                  ..limit(1))
+                .getSingleOrNull();
+
+        final primaryComputerId = primaryReading?.computerId;
+
+        if (primaryComputerId != null) {
+          // Multi-computer dive: only restore the previously-primary computer
+          await (_db.update(_db.diveProfiles)
+                ..where((t) => t.diveId.equals(diveId))
+                ..where((t) => t.computerId.equals(primaryComputerId)))
+              .write(const DiveProfilesCompanion(isPrimary: Value(true)));
+        } else {
+          // Single-computer dive (or no computer reading): restore all rows
+          await (_db.update(_db.diveProfiles)
+                ..where((t) => t.diveId.equals(diveId)))
+              .write(const DiveProfilesCompanion(isPrimary: Value(true)));
+        }
       });
 
       SyncEventBus.notifyLocalChange();
