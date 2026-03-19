@@ -82,10 +82,7 @@ void main() {
         message: 'Failed to open serial port',
       );
 
-      expectLater(
-        service.downloadEvents,
-        emits(isA<DownloadErrorEvent>()),
-      );
+      expectLater(service.downloadEvents, emits(isA<DownloadErrorEvent>()));
 
       service.onError(error);
     });
