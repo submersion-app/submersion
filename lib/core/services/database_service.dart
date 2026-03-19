@@ -164,7 +164,10 @@ class DatabaseService {
     final file = File(dbPath);
     if (!file.existsSync()) return;
 
-    final db = sqlite3.sqlite3.open(dbPath, mode: sqlite3.OpenMode.readOnly);
+    // Open in read-write mode so SQLite can recover any hot journal/WAL
+    // from a previous crash. Opening read-only would fail with
+    // SQLITE_READONLY_ROLLBACK (code 776) if recovery is needed.
+    final db = sqlite3.sqlite3.open(dbPath);
     try {
       final result = db.select('PRAGMA user_version');
       if (result.isEmpty) return;
