@@ -39,6 +39,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_computers_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -203,6 +204,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   Widget _buildContent(BuildContext context, WidgetRef ref, Dive dive) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+    final computerReadingsAsync = ref.watch(
+      diveComputerReadingsProvider(dive.id),
+    );
 
     final body = SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -262,6 +266,33 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             _buildBuddiesSection(context, ref),
             const SizedBox(height: 24),
             BuddySignaturesSection(diveId: diveId),
+            computerReadingsAsync.whenData((readings) {
+                  if (readings.length < 2) return const SizedBox.shrink();
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 24),
+                      DiveComputersSection(
+                        readings: readings,
+                        diveId: dive.id,
+                        units: units,
+                        onSetPrimary: (readingId) => _onSetPrimaryComputer(
+                          context,
+                          ref,
+                          diveId: dive.id,
+                          readingId: readingId,
+                        ),
+                        onUnlink: (readingId) => _onUnlinkComputer(
+                          context,
+                          ref,
+                          diveId: dive.id,
+                          readingId: readingId,
+                        ),
+                      ),
+                    ],
+                  );
+                }).valueOrNull ??
+                const SizedBox.shrink(),
             const SizedBox(height: 24),
             if (dive.tanks.isNotEmpty) ...[
               _buildTanksSection(context, ref, dive, units),
@@ -4186,6 +4217,61 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             );
       },
     );
+  }
+
+  Future<void> _onSetPrimaryComputer(
+    BuildContext context,
+    WidgetRef ref, {
+    required String diveId,
+    required String readingId,
+  }) async {
+    final repository = ref.read(diveRepositoryProvider);
+    await repository.setPrimaryComputer(
+      diveId: diveId,
+      computerReadingId: readingId,
+    );
+    ref.invalidate(diveProvider(diveId));
+    ref.invalidate(diveComputerReadingsProvider(diveId));
+  }
+
+  Future<void> _onUnlinkComputer(
+    BuildContext context,
+    WidgetRef ref, {
+    required String diveId,
+    required String readingId,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Unlink computer'),
+        content: const Text(
+          'This will split the computer data into a separate dive. '
+          'The linked profile and readings from this computer will be removed '
+          'from the current dive. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Unlink'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final repository = ref.read(diveRepositoryProvider);
+    await repository.unlinkComputer(
+      diveId: diveId,
+      computerReadingId: readingId,
+    );
+    ref.invalidate(diveProvider(diveId));
+    ref.invalidate(diveComputerReadingsProvider(diveId));
   }
 
   void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
