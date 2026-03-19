@@ -15,5 +15,15 @@ target_include_directories(test_dive_converter PRIVATE
     ${CONFIG_DIR}
 )
 
+add_executable(test_serial_callbacks
+    test_serial_callbacks.c
+)
+target_include_directories(test_serial_callbacks PRIVATE
+    ${WRAPPER_DIR}
+    ${LIBDC_DIR}/include
+    ${CONFIG_DIR}
+)
+
 enable_testing()
 add_test(NAME test_dive_converter COMMAND test_dive_converter)
+add_test(NAME test_serial_callbacks COMMAND test_serial_callbacks)
