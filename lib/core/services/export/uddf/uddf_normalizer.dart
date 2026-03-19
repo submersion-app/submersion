@@ -20,7 +20,7 @@ class UddfNormalizer {
   static String normalize(String content) {
     final doc = XmlDocument.parse(content);
     if (MacDiveDialectNormalizer.isMatch(doc)) {
-      return MacDiveDialectNormalizer.normalize(doc);
+      return MacDiveDialectNormalizer.normalize(content);
     }
     // Future dialects (Shearwater, Subsurface) can be added here.
     return content;

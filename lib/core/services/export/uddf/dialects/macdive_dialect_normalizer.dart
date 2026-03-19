@@ -21,11 +21,13 @@ class MacDiveDialectNormalizer {
     return doc.rootElement.namespaceUri == _namespace;
   }
 
-  /// Normalizes a MacDive [doc] and returns the resulting XML string.
-  static String normalize(XmlDocument doc) {
-    // Strip the default namespace declaration so that the existing parser's
-    // findElements() calls (which use the empty namespace) work correctly.
-    final stripped = doc.toXmlString().replaceFirst(' xmlns="$_namespace"', '');
+  /// Normalizes a MacDive UDDF [rawContent] string and returns the result.
+  static String normalize(String rawContent) {
+    // Strip the default namespace declaration from the source string before
+    // parsing, so that findElements() calls (which use the empty namespace)
+    // work correctly. Operating on the raw string avoids re-serialization
+    // ambiguity from XmlDocument.toXmlString().
+    final stripped = rawContent.replaceFirst(' xmlns="$_namespace"', '');
     final clean = XmlDocument.parse(stripped);
 
     _fixSiteCountry(clean);

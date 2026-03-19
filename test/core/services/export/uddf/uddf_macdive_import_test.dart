@@ -64,7 +64,7 @@ const _macDiveUddf = '''<?xml version="1.0" encoding="UTF-8" ?>
         </informationbeforedive>
         <informationafterdive>
           <greatestdepth>22.50</greatestdepth>
-          <diveduration>3494</diveduration>
+          <diveduration>3494.00</diveduration>
           <lowesttemperature>275.15</lowesttemperature>
           <notes>
             <para><![CDATA[Test dive notes for MacDive]]></para>
@@ -81,25 +81,25 @@ const _macDiveUddf = '''<?xml version="1.0" encoding="UTF-8" ?>
         </tankdata>
         <samples>
           <waypoint>
-            <divetime>0</divetime>
+            <divetime>0.00</divetime>
             <depth>0.0</depth>
             <temperature>276.15</temperature>
           </waypoint>
           <waypoint>
-            <divetime>60</divetime>
+            <divetime>60.00</divetime>
             <depth>5.2</depth>
             <temperature>275.65</temperature>
           </waypoint>
           <waypoint>
-            <divetime>120</divetime>
+            <divetime>120.00</divetime>
             <depth>10.8</depth>
           </waypoint>
           <waypoint>
-            <divetime>180</divetime>
+            <divetime>180.00</divetime>
             <depth>22.50</depth>
           </waypoint>
           <waypoint>
-            <divetime>3494</divetime>
+            <divetime>3494.00</divetime>
             <depth>0.0</depth>
           </waypoint>
         </samples>
@@ -150,8 +150,7 @@ void main() {
       test(
         'removes default namespace so elements are in the empty namespace',
         () {
-          final doc = XmlDocument.parse(_macDiveUddf);
-          final result = MacDiveDialectNormalizer.normalize(doc);
+          final result = MacDiveDialectNormalizer.normalize(_macDiveUddf);
           final normalized = XmlDocument.parse(result);
           // After stripping, all findElements() calls must work without namespace
           expect(
@@ -166,8 +165,7 @@ void main() {
       );
 
       test('root element local name remains uddf', () {
-        final doc = XmlDocument.parse(_macDiveUddf);
-        final result = MacDiveDialectNormalizer.normalize(doc);
+        final result = MacDiveDialectNormalizer.normalize(_macDiveUddf);
         final normalized = XmlDocument.parse(result);
         expect(normalized.rootElement.name.local, 'uddf');
       });
@@ -175,8 +173,7 @@ void main() {
 
     group('normalize - country fix', () {
       test('adds country as direct child of site element', () {
-        final doc = XmlDocument.parse(_macDiveUddf);
-        final result = MacDiveDialectNormalizer.normalize(doc);
+        final result = MacDiveDialectNormalizer.normalize(_macDiveUddf);
         final normalized = XmlDocument.parse(result);
 
         final site = normalized.findAllElements('site').firstOrNull;
@@ -188,8 +185,7 @@ void main() {
       });
 
       test('preserves original geography/address/country structure', () {
-        final doc = XmlDocument.parse(_macDiveUddf);
-        final result = MacDiveDialectNormalizer.normalize(doc);
+        final result = MacDiveDialectNormalizer.normalize(_macDiveUddf);
         final normalized = XmlDocument.parse(result);
 
         final geo = normalized.findAllElements('geography').firstOrNull;
@@ -207,8 +203,7 @@ void main() {
       test(
         'copies equipmentused from informationafterdive to informationbeforedive',
         () {
-          final doc = XmlDocument.parse(_macDiveUddf);
-          final result = MacDiveDialectNormalizer.normalize(doc);
+          final result = MacDiveDialectNormalizer.normalize(_macDiveUddf);
           final normalized = XmlDocument.parse(result);
 
           final dive = normalized.findAllElements('dive').firstOrNull;
@@ -226,8 +221,7 @@ void main() {
       );
 
       test('equipmentused content is preserved after move', () {
-        final doc = XmlDocument.parse(_macDiveUddf);
-        final result = MacDiveDialectNormalizer.normalize(doc);
+        final result = MacDiveDialectNormalizer.normalize(_macDiveUddf);
         final normalized = XmlDocument.parse(result);
 
         final dive = normalized.findAllElements('dive').firstOrNull;
