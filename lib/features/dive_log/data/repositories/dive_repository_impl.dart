@@ -3382,6 +3382,365 @@ class DiveRepository {
     }
   }
 
+  // ============================================================================
+  // Consolidation and merge operations
+  // ============================================================================
+
+  /// Adds a secondary computer's data to an existing dive.
+  ///
+  /// If no [DiveComputerData] rows exist yet for [targetDiveId], the primary
+  /// computer's data is back-filled from the [Dives] row before the secondary
+  /// reading is inserted.
+  Future<void> consolidateComputer({
+    required String targetDiveId,
+    required DiveComputerDataCompanion secondaryReading,
+    required List<DiveProfilesCompanion> secondaryProfile,
+  }) async {
+    try {
+      await _db.transaction(() async {
+        // Back-fill primary if this is the first consolidation.
+        final existingReadings = await getComputerReadings(targetDiveId);
+        if (existingReadings.isEmpty) {
+          await backfillPrimaryComputerReading(targetDiveId);
+        }
+
+        // Save the secondary computer reading.
+        await saveComputerReading(secondaryReading);
+
+        // Batch-insert secondary profile points with isPrimary=false.
+        if (secondaryProfile.isNotEmpty) {
+          await _db.batch((batch) {
+            for (final point in secondaryProfile) {
+              batch.insert(
+                _db.diveProfiles,
+                point.copyWith(
+                  diveId: Value(targetDiveId),
+                  isPrimary: const Value(false),
+                ),
+              );
+            }
+          });
+        }
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to consolidate computer for dive: $targetDiveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Merges Dive B into Dive A.
+  ///
+  /// Re-parents all of B's profile rows to A, creates a [DiveComputerData]
+  /// snapshot from B's metadata, then deletes B (cascade cleans up tanks,
+  /// equipment, etc.).
+  Future<void> mergeDives({
+    required String primaryDiveId,
+    required String secondaryDiveId,
+  }) async {
+    try {
+      await _db.transaction(() async {
+        // Back-fill primary if this is the first consolidation.
+        final existingReadings = await getComputerReadings(primaryDiveId);
+        if (existingReadings.isEmpty) {
+          await backfillPrimaryComputerReading(primaryDiveId);
+        }
+
+        // Load the secondary dive's raw DB row for metadata.
+        final secondaryRow = await (_db.select(
+          _db.dives,
+        )..where((t) => t.id.equals(secondaryDiveId))).getSingleOrNull();
+
+        if (secondaryRow != null) {
+          // Create a DiveComputerReading from the secondary dive's metadata.
+          final now = DateTime.now();
+          await saveComputerReading(
+            DiveComputerDataCompanion(
+              id: Value(_uuid.v4()),
+              diveId: Value(primaryDiveId),
+              computerId: Value(secondaryRow.computerId),
+              isPrimary: const Value(false),
+              computerModel: Value(secondaryRow.diveComputerModel),
+              computerSerial: Value(secondaryRow.diveComputerSerial),
+              maxDepth: Value(secondaryRow.maxDepth),
+              avgDepth: Value(secondaryRow.avgDepth),
+              duration: Value(secondaryRow.duration),
+              waterTemp: Value(secondaryRow.waterTemp),
+              entryTime: Value(
+                secondaryRow.entryTime != null
+                    ? DateTime.fromMillisecondsSinceEpoch(
+                        secondaryRow.entryTime!,
+                        isUtc: true,
+                      )
+                    : null,
+              ),
+              exitTime: Value(
+                secondaryRow.exitTime != null
+                    ? DateTime.fromMillisecondsSinceEpoch(
+                        secondaryRow.exitTime!,
+                        isUtc: true,
+                      )
+                    : null,
+              ),
+              surfaceInterval: Value(secondaryRow.surfaceIntervalSeconds),
+              cns: Value(secondaryRow.cnsEnd),
+              decoAlgorithm: Value(secondaryRow.decoAlgorithm),
+              gradientFactorLow: Value(secondaryRow.gradientFactorLow),
+              gradientFactorHigh: Value(secondaryRow.gradientFactorHigh),
+              importedAt: Value(now),
+              createdAt: Value(now),
+            ),
+          );
+
+          // Re-parent all of the secondary dive's profiles to the primary
+          // dive, marking them as non-primary.
+          await (_db.update(
+            _db.diveProfiles,
+          )..where((t) => t.diveId.equals(secondaryDiveId))).write(
+            DiveProfilesCompanion(
+              diveId: Value(primaryDiveId),
+              isPrimary: const Value(false),
+            ),
+          );
+        }
+
+        // Delete the secondary dive (cascade deletes tanks, equipment, etc.).
+        await (_db.delete(
+          _db.dives,
+        )..where((t) => t.id.equals(secondaryDiveId))).go();
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to merge dive $secondaryDiveId into $primaryDiveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Reverses a consolidation by detaching one computer's data into a new
+  /// standalone dive.
+  ///
+  /// Re-parents the matching profile rows to the new dive, removes the
+  /// [DiveComputerData] row from the original dive, and — when the primary
+  /// computer is being unlinked — promotes the next computer via
+  /// [setPrimaryComputer].
+  ///
+  /// Returns the ID of the newly created dive.
+  Future<String> unlinkComputer({
+    required String diveId,
+    required String computerReadingId,
+  }) async {
+    try {
+      // Load the reading to unlink.
+      final reading = await (_db.select(
+        _db.diveComputerData,
+      )..where((t) => t.id.equals(computerReadingId))).getSingleOrNull();
+
+      if (reading == null) {
+        throw StateError(
+          'Computer reading $computerReadingId not found for dive $diveId',
+        );
+      }
+
+      final now = DateTime.now();
+      final newDiveId = _uuid.v4();
+
+      await _db.transaction(() async {
+        // Load original dive row for baseline metadata.
+        final originalRow = await (_db.select(
+          _db.dives,
+        )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+
+        // Create a new standalone dive from the reading's metadata.
+        await _db
+            .into(_db.dives)
+            .insert(
+              DivesCompanion(
+                id: Value(newDiveId),
+                diveDateTime: Value(
+                  reading.entryTime?.millisecondsSinceEpoch ??
+                      originalRow?.diveDateTime ??
+                      now.millisecondsSinceEpoch,
+                ),
+                entryTime: Value(reading.entryTime?.millisecondsSinceEpoch),
+                exitTime: Value(reading.exitTime?.millisecondsSinceEpoch),
+                duration: Value(reading.duration),
+                maxDepth: Value(reading.maxDepth),
+                avgDepth: Value(reading.avgDepth),
+                waterTemp: Value(reading.waterTemp),
+                computerId: Value(reading.computerId),
+                diveComputerModel: Value(reading.computerModel),
+                diveComputerSerial: Value(reading.computerSerial),
+                surfaceIntervalSeconds: Value(reading.surfaceInterval),
+                cnsEnd: Value(reading.cns),
+                decoAlgorithm: Value(reading.decoAlgorithm),
+                gradientFactorLow: Value(reading.gradientFactorLow),
+                gradientFactorHigh: Value(reading.gradientFactorHigh),
+                createdAt: Value(now.millisecondsSinceEpoch),
+                updatedAt: Value(now.millisecondsSinceEpoch),
+              ),
+            );
+
+        // Re-parent this computer's profiles to the new dive.
+        // Match by computerId when available; fall back to non-primary, null
+        // computerId rows (but never re-parent user-edited isPrimary=true rows).
+        if (reading.computerId != null) {
+          await (_db.update(_db.diveProfiles)..where(
+                (t) =>
+                    t.diveId.equals(diveId) &
+                    t.computerId.equals(reading.computerId!),
+              ))
+              .write(
+                DiveProfilesCompanion(
+                  diveId: Value(newDiveId),
+                  isPrimary: const Value(true),
+                ),
+              );
+        } else {
+          // No computerId — match non-primary rows with null computerId.
+          // Exclude isPrimary=true to protect user-edited profiles.
+          await (_db.update(_db.diveProfiles)..where(
+                (t) =>
+                    t.diveId.equals(diveId) &
+                    t.computerId.isNull() &
+                    t.isPrimary.equals(false),
+              ))
+              .write(
+                DiveProfilesCompanion(
+                  diveId: Value(newDiveId),
+                  isPrimary: const Value(true),
+                ),
+              );
+        }
+
+        // Delete the computer reading from the original dive.
+        await (_db.delete(
+          _db.diveComputerData,
+        )..where((t) => t.id.equals(computerReadingId))).go();
+
+        // If unlinking the primary, promote the next computer.
+        if (reading.isPrimary) {
+          final remaining =
+              await (_db.select(_db.diveComputerData)
+                    ..where((t) => t.diveId.equals(diveId))
+                    ..orderBy([(t) => OrderingTerm.asc(t.createdAt)])
+                    ..limit(1))
+                  .getSingleOrNull();
+
+          if (remaining != null) {
+            await setPrimaryComputer(
+              diveId: diveId,
+              computerReadingId: remaining.id,
+            );
+          }
+        }
+
+        // If only one computer reading remains, clean it up (the dive returns
+        // to single-computer state — no need for dive_computer_data rows).
+        final remainingReadings = await (_db.select(
+          _db.diveComputerData,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        if (remainingReadings.length == 1) {
+          await (_db.delete(
+            _db.diveComputerData,
+          )..where((t) => t.diveId.equals(diveId))).go();
+        }
+      });
+
+      SyncEventBus.notifyLocalChange();
+      return newDiveId;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to unlink computer $computerReadingId from dive $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Swaps which computer is primary for a dive.
+  ///
+  /// Updates both [DiveComputerData] `isPrimary` flags and the parent [Dives]
+  /// record.  Also swaps `isPrimary` on the associated [DiveProfiles] rows.
+  Future<void> setPrimaryComputer({
+    required String diveId,
+    required String computerReadingId,
+  }) async {
+    try {
+      await _db.transaction(() async {
+        // Load the reading that is being promoted.
+        final newPrimary = await (_db.select(
+          _db.diveComputerData,
+        )..where((t) => t.id.equals(computerReadingId))).getSingleOrNull();
+
+        if (newPrimary == null) return;
+
+        // Demote all readings for this dive to non-primary.
+        await (_db.update(_db.diveComputerData)
+              ..where((t) => t.diveId.equals(diveId)))
+            .write(const DiveComputerDataCompanion(isPrimary: Value(false)));
+
+        // Promote the selected reading.
+        await (_db.update(_db.diveComputerData)
+              ..where((t) => t.id.equals(computerReadingId)))
+            .write(const DiveComputerDataCompanion(isPrimary: Value(true)));
+
+        // Update the dives record with the new primary's metadata.
+        final now = DateTime.now().millisecondsSinceEpoch;
+        await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+          DivesCompanion(
+            diveComputerModel: Value(newPrimary.computerModel),
+            diveComputerSerial: Value(newPrimary.computerSerial),
+            maxDepth: Value(newPrimary.maxDepth),
+            avgDepth: Value(newPrimary.avgDepth),
+            duration: Value(newPrimary.duration),
+            waterTemp: Value(newPrimary.waterTemp),
+            entryTime: Value(newPrimary.entryTime?.millisecondsSinceEpoch),
+            exitTime: Value(newPrimary.exitTime?.millisecondsSinceEpoch),
+            surfaceIntervalSeconds: Value(newPrimary.surfaceInterval),
+            cnsEnd: Value(newPrimary.cns),
+            decoAlgorithm: Value(newPrimary.decoAlgorithm),
+            gradientFactorLow: Value(newPrimary.gradientFactorLow),
+            gradientFactorHigh: Value(newPrimary.gradientFactorHigh),
+            updatedAt: Value(now),
+          ),
+        );
+
+        // Swap isPrimary on dive_profiles:
+        // Demote all profiles for this dive.
+        await (_db.update(_db.diveProfiles)
+              ..where((t) => t.diveId.equals(diveId)))
+            .write(const DiveProfilesCompanion(isPrimary: Value(false)));
+
+        // Promote profiles belonging to the new primary computer.
+        if (newPrimary.computerId != null) {
+          await (_db.update(_db.diveProfiles)..where(
+                (t) =>
+                    t.diveId.equals(diveId) &
+                    t.computerId.equals(newPrimary.computerId!),
+              ))
+              .write(const DiveProfilesCompanion(isPrimary: Value(true)));
+        }
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set primary computer $computerReadingId for dive $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Map a [DiveComputerDataData] DB row to a [DiveComputerReading] entity.
   DiveComputerReading _mapRowToReading(DiveComputerDataData row) {
     return DiveComputerReading(
