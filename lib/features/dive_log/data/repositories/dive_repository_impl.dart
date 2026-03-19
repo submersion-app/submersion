@@ -10,6 +10,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/dive_computer_reading.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as domain;
@@ -3238,6 +3239,176 @@ class DiveRepository {
       }
     }
     return min;
+  }
+
+  // ============================================================================
+  // Dive Computer Data (multi-computer reading snapshots)
+  // ============================================================================
+
+  /// Get all computer reading snapshots for a dive.
+  Future<List<DiveComputerReading>> getComputerReadings(String diveId) async {
+    try {
+      final query = _db.select(_db.diveComputerData)
+        ..where((t) => t.diveId.equals(diveId))
+        ..orderBy([
+          (t) => OrderingTerm.desc(t.isPrimary),
+          (t) => OrderingTerm.asc(t.createdAt),
+        ]);
+      final rows = await query.get();
+      return rows.map(_mapRowToReading).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get computer readings for dive: $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Return true if a dive has readings from 2 or more computers.
+  Future<bool> hasMultipleComputers(String diveId) async {
+    try {
+      final result = await _db
+          .customSelect(
+            'SELECT COUNT(*) as cnt FROM dive_computer_data WHERE dive_id = ?',
+            variables: [Variable(diveId)],
+          )
+          .getSingle();
+      return (result.data['cnt'] as int) >= 2;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to check multiple computers for dive: $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Insert a new computer reading snapshot.
+  Future<void> saveComputerReading(DiveComputerDataCompanion reading) async {
+    try {
+      await _db.into(_db.diveComputerData).insert(reading);
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error('Failed to save computer reading', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Delete a computer reading snapshot by its ID.
+  Future<void> deleteComputerReading(String id) async {
+    try {
+      await (_db.delete(
+        _db.diveComputerData,
+      )..where((t) => t.id.equals(id))).go();
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error('Failed to delete computer reading: $id', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Create a primary [DiveComputerReading] by back-filling metadata from the
+  /// existing [Dives] row.  No-ops if a primary reading already exists.
+  Future<void> backfillPrimaryComputerReading(String diveId) async {
+    try {
+      // Skip if a primary reading already exists.
+      final existing =
+          await (_db.select(_db.diveComputerData)
+                ..where((t) => t.diveId.equals(diveId))
+                ..where((t) => t.isPrimary.equals(true))
+                ..limit(1))
+              .getSingleOrNull();
+      if (existing != null) return;
+
+      // Load the raw DB row so we can access columns not exposed on the
+      // domain Dive entity (e.g. computerId, surfaceIntervalSeconds, cnsEnd).
+      final diveRow = await (_db.select(
+        _db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+      if (diveRow == null) return;
+
+      final now = DateTime.now();
+      final id = _uuid.v4();
+
+      await saveComputerReading(
+        DiveComputerDataCompanion(
+          id: Value(id),
+          diveId: Value(diveId),
+          computerId: Value(diveRow.computerId),
+          isPrimary: const Value(true),
+          computerModel: Value(diveRow.diveComputerModel),
+          computerSerial: Value(diveRow.diveComputerSerial),
+          maxDepth: Value(diveRow.maxDepth),
+          avgDepth: Value(diveRow.avgDepth),
+          duration: Value(diveRow.duration),
+          waterTemp: Value(diveRow.waterTemp),
+          entryTime: Value(
+            diveRow.entryTime != null
+                ? DateTime.fromMillisecondsSinceEpoch(
+                    diveRow.entryTime!,
+                    isUtc: true,
+                  )
+                : null,
+          ),
+          exitTime: Value(
+            diveRow.exitTime != null
+                ? DateTime.fromMillisecondsSinceEpoch(
+                    diveRow.exitTime!,
+                    isUtc: true,
+                  )
+                : null,
+          ),
+          surfaceInterval: Value(diveRow.surfaceIntervalSeconds),
+          cns: Value(diveRow.cnsEnd),
+          decoAlgorithm: Value(diveRow.decoAlgorithm),
+          gradientFactorLow: Value(diveRow.gradientFactorLow),
+          gradientFactorHigh: Value(diveRow.gradientFactorHigh),
+          importedAt: Value(now),
+          createdAt: Value(now),
+        ),
+      );
+
+      _log.info('Backfilled primary computer reading for dive: $diveId');
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to backfill primary computer reading for dive: $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Map a [DiveComputerDataData] DB row to a [DiveComputerReading] entity.
+  DiveComputerReading _mapRowToReading(DiveComputerDataData row) {
+    return DiveComputerReading(
+      id: row.id,
+      diveId: row.diveId,
+      computerId: row.computerId,
+      isPrimary: row.isPrimary,
+      computerModel: row.computerModel,
+      computerSerial: row.computerSerial,
+      sourceFormat: row.sourceFormat,
+      maxDepth: row.maxDepth,
+      avgDepth: row.avgDepth,
+      duration: row.duration,
+      waterTemp: row.waterTemp,
+      entryTime: row.entryTime,
+      exitTime: row.exitTime,
+      maxAscentRate: row.maxAscentRate,
+      maxDescentRate: row.maxDescentRate,
+      surfaceInterval: row.surfaceInterval,
+      cns: row.cns,
+      otu: row.otu,
+      decoAlgorithm: row.decoAlgorithm,
+      gradientFactorLow: row.gradientFactorLow,
+      gradientFactorHigh: row.gradientFactorHigh,
+      importedAt: row.importedAt,
+      createdAt: row.createdAt,
+    );
   }
 }
 
