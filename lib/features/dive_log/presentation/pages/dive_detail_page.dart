@@ -40,6 +40,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_play
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_computers_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/merge_dive_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -360,6 +361,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'export':
                   _showExportOptions(context, ref, dive);
                   break;
+                case 'merge':
+                  _showMergeDiveDialog(context, ref, dive);
+                  break;
                 case 'delete':
                   _showDeleteConfirmation(context, ref);
                   break;
@@ -371,6 +375,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 child: ListTile(
                   leading: const Icon(Icons.download),
                   title: Text(context.l10n.diveLog_detail_menu_export),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'merge',
+                child: ListTile(
+                  leading: Icon(Icons.merge),
+                  title: Text('Merge with another dive'),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -482,6 +494,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'export':
                   _showExportOptions(context, ref, dive);
                   break;
+                case 'merge':
+                  _showMergeDiveDialog(context, ref, dive);
+                  break;
                 case 'delete':
                   _showDeleteConfirmation(context, ref);
                   break;
@@ -505,6 +520,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 child: ListTile(
                   leading: const Icon(Icons.download),
                   title: Text(context.l10n.diveLog_detail_menu_export),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'merge',
+                child: ListTile(
+                  leading: Icon(Icons.merge),
+                  title: Text('Merge with another dive'),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -4272,6 +4295,30 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
     ref.invalidate(diveProvider(diveId));
     ref.invalidate(diveComputerReadingsProvider(diveId));
+  }
+
+  void _showMergeDiveDialog(BuildContext context, WidgetRef ref, Dive dive) {
+    showMergeDiveDialog(
+      context: context,
+      currentDiveId: diveId,
+      currentDiveDate: dive.entryTime ?? dive.dateTime,
+      onMerge: (selectedDiveId) async {
+        final repository = ref.read(diveRepositoryProvider);
+        await repository.mergeDives(
+          primaryDiveId: diveId,
+          secondaryDiveId: selectedDiveId,
+        );
+        ref.invalidate(diveProvider(diveId));
+        ref.invalidate(diveComputerReadingsProvider(diveId));
+        ref.invalidate(paginatedDiveListProvider);
+        ref.invalidate(divesProvider);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Dive merged successfully.')),
+          );
+        }
+      },
+    );
   }
 
   void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
