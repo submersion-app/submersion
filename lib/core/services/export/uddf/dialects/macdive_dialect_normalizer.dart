@@ -36,8 +36,8 @@ class MacDiveDialectNormalizer {
     return clean.toXmlString();
   }
 
-  /// Moves <country> from geography/address/country to a direct child of
-  /// each <site> element, which is where the parser's getElementText() call
+  /// Moves `<country>` from geography/address/country to a direct child of
+  /// each `<site>` element, which is where the parser's getElementText() call
   /// expects to find it.
   static void _fixSiteCountry(XmlDocument doc) {
     for (final site in doc.findAllElements('site')) {
@@ -51,7 +51,7 @@ class MacDiveDialectNormalizer {
     }
   }
 
-  /// Copies <equipmentused> from informationafterdive into
+  /// Copies `<equipmentused>` from informationafterdive into
   /// informationbeforedive, which is where the parser reads it.
   static void _moveEquipmentUsed(XmlDocument doc) {
     for (final dive in doc.findAllElements('dive')) {
