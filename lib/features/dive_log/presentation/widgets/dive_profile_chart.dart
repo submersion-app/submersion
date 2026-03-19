@@ -129,6 +129,22 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Cumulative OTU curve
   final List<double>? otuCurve;
 
+  // Multi-computer rendering parameters
+  /// Map of computerId -> profile points for multi-computer rendering.
+  /// When non-null with 2+ entries, each computer is drawn with its own color.
+  final Map<String, List<DiveProfilePoint>>? computerProfiles;
+
+  /// Set of currently visible computer IDs.
+  /// When null, all computers in [computerProfiles] are visible.
+  final Set<String>? visibleComputers;
+
+  /// Map of computerId -> color for multi-computer rendering.
+  final Map<String, Color>? computerLineColors;
+
+  /// Set of computer IDs that use a solid line (primaries).
+  /// Computers not in this set use a dashed line style.
+  final Set<String>? primaryComputers;
+
   /// Returns responsive left axis reserved size based on available chart width.
   /// Tick labels are plain numbers (e.g. "30", "60") so don't need much space.
   static double leftAxisSize(double availableWidth) =>
@@ -178,6 +194,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.ttsCurve,
     this.cnsCurve,
     this.otuCurve,
+    this.computerProfiles,
+    this.visibleComputers,
+    this.computerLineColors,
+    this.primaryComputers,
   });
 
   @override
@@ -1784,12 +1804,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     });
   }
 
-  /// Build depth line segments - always uses consistent blue color.
-  /// Gas switches are indicated by separate gas switch markers, not depth line color.
+  /// Build depth line segments.
+  ///
+  /// When [widget.computerProfiles] is provided with 2+ entries, draws one
+  /// depth curve per visible computer using its assigned color.  Primary
+  /// computers get a solid line; secondaries get a dashed line.
+  /// Falls back to single-profile rendering when multi-computer data is absent.
   List<LineChartBarData> _buildGasColoredDepthLines(
     ColorScheme colorScheme,
     UnitFormatter units,
   ) {
+    final cpProfiles = widget.computerProfiles;
+    if (cpProfiles != null && cpProfiles.length >= 2) {
+      return _buildMultiComputerDepthLines(cpProfiles, units);
+    }
     const depthColor = AppColors.chartDepth;
     return [
       _buildSingleDepthSegment(
@@ -1800,6 +1828,94 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         showFill: true,
       ),
     ];
+  }
+
+  /// Build one depth line per computer for multi-computer rendering.
+  List<LineChartBarData> _buildMultiComputerDepthLines(
+    Map<String, List<DiveProfilePoint>> cpProfiles,
+    UnitFormatter units,
+  ) {
+    final lines = <LineChartBarData>[];
+    var index = 0;
+    for (final entry in cpProfiles.entries) {
+      final computerId = entry.key;
+      final points = entry.value;
+
+      // Skip computers that have been toggled off.
+      final visible = widget.visibleComputers;
+      if (visible != null && !visible.contains(computerId)) {
+        index++;
+        continue;
+      }
+
+      final color =
+          widget.computerLineColors?[computerId] ?? _computerColorAt(index);
+      final isPrimary =
+          widget.primaryComputers?.contains(computerId) ?? index == 0;
+
+      final spots = points
+          .map(
+            (p) => FlSpot(p.timestamp.toDouble(), -units.convertDepth(p.depth)),
+          )
+          .toList();
+
+      if (isPrimary) {
+        // Solid line with fill for the primary computer.
+        lines.add(
+          LineChartBarData(
+            spots: spots,
+            isCurved: true,
+            curveSmoothness: 0.2,
+            color: color,
+            barWidth: 2,
+            isStrokeCapRound: true,
+            dotData: const FlDotData(show: false),
+            belowBarData: BarAreaData(
+              show: true,
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: GasColors.gradientColors(color),
+              ),
+            ),
+          ),
+        );
+      } else {
+        // Dashed line (no fill) for secondary computers.
+        lines.add(
+          LineChartBarData(
+            spots: spots,
+            isCurved: true,
+            curveSmoothness: 0.2,
+            color: color,
+            barWidth: 2,
+            isStrokeCapRound: true,
+            dotData: const FlDotData(show: false),
+            dashArray: const [6, 4],
+            belowBarData: BarAreaData(show: false),
+          ),
+        );
+      }
+
+      index++;
+    }
+    return lines;
+  }
+
+  /// Returns a color for a computer at the given index, matching
+  /// [computerColorAt] in computer_toggle_bar.dart.
+  Color _computerColorAt(int index) {
+    const palette = [
+      Color(0xFF00D4FF),
+      Color(0xFFFF9500),
+      Color(0xFF2ECC71),
+      Color(0xFFE91E8C),
+    ];
+    final base = palette[index % palette.length];
+    if (index >= palette.length) {
+      return base.withValues(alpha: 0.6);
+    }
+    return base;
   }
 
   /// Build a single depth line segment with the given color

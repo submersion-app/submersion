@@ -43,6 +43,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_computers
 import 'package:submersion/features/dive_log/presentation/widgets/merge_dive_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/computer_toggle_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/playback_controls.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/playback_stats_panel.dart';
@@ -135,6 +136,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   /// Whether a page export is currently in progress
   bool _isExportingPage = false;
+
+  /// Which computer IDs are currently visible in the profile chart.
+  /// Empty set means "all visible" (default before sources are loaded).
+  Set<String> _visibleComputers = {};
 
   String get diveId => widget.diveId;
 
@@ -889,6 +894,55 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       tankPressures: tankPressures,
     );
 
+    // Get profiles grouped by source for multi-computer toggle bar
+    final profilesBySource = ref
+        .watch(profilesBySourceProvider(dive.id))
+        .valueOrNull;
+
+    // Build multi-computer data when 2+ sources exist
+    final multiComputerProfiles =
+        profilesBySource != null && profilesBySource.length >= 2
+        ? Map<String, List<DiveProfilePoint>>.fromEntries(
+            profilesBySource.entries
+                .where((e) => e.key != null)
+                .map((e) => MapEntry(e.key!, e.value)),
+          )
+        : null;
+
+    // Determine which computers are visible (empty set = all visible)
+    final effectiveVisible =
+        multiComputerProfiles != null && _visibleComputers.isNotEmpty
+        ? _visibleComputers
+        : multiComputerProfiles?.keys.toSet();
+
+    // Build per-computer color map and primary set
+    Map<String, Color>? computerLineColors;
+    Set<String>? primaryComputers;
+    List<ComputerToggleItem>? toggleItems;
+
+    if (multiComputerProfiles != null) {
+      computerLineColors = {};
+      primaryComputers = {};
+      toggleItems = [];
+      var idx = 0;
+      for (final computerId in multiComputerProfiles.keys) {
+        final color = computerColorAt(idx);
+        final isPrimary = idx == 0;
+        computerLineColors[computerId] = color;
+        if (isPrimary) primaryComputers.add(computerId);
+        toggleItems.add(
+          ComputerToggleItem(
+            computerId: computerId,
+            label: computerId,
+            isPrimary: isPrimary,
+            isEnabled: effectiveVisible?.contains(computerId) ?? true,
+            color: color,
+          ),
+        );
+        idx++;
+      }
+    }
+
     // Get unit formatter
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
@@ -1041,6 +1095,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         tanks: dive.tanks,
                         tankPressures: tankPressures,
                         gasSwitches: gasSwitchesAsync.valueOrNull,
+                        computerProfiles: multiComputerProfiles,
+                        visibleComputers: effectiveVisible,
+                        computerLineColors: computerLineColors,
+                        primaryComputers: primaryComputers,
                         playbackTimestamp: playbackState.isActive
                             ? playbackState.currentTimestamp
                             : null,
@@ -1092,6 +1150,26 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 ),
               ),
             ),
+            // Multi-computer toggle bar (only shown when 2+ sources exist)
+            if (toggleItems != null)
+              ComputerToggleBar(
+                computers: toggleItems,
+                onToggle: (computerId, enabled) {
+                  setState(() {
+                    // Initialise from all-visible state if needed.
+                    if (_visibleComputers.isEmpty &&
+                        multiComputerProfiles != null) {
+                      _visibleComputers = multiComputerProfiles.keys.toSet();
+                    }
+                    if (enabled) {
+                      _visibleComputers = {..._visibleComputers, computerId};
+                    } else {
+                      _visibleComputers = {..._visibleComputers}
+                        ..remove(computerId);
+                    }
+                  });
+                },
+              ),
             // O2 toxicity section moved to _buildDecoO2Panel (side by side)
             // Playback controls and stats (when playback mode is active)
             if (playbackState.isActive) ...[

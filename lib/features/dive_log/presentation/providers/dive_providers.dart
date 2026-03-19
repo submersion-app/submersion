@@ -139,6 +139,17 @@ final diveProfileProvider =
       return repository.getDiveProfile(diveId);
     });
 
+/// Profiles grouped by source (computer ID / 'user-edited' / 'original').
+/// Used for multi-computer toggle rendering in the dive profile chart.
+final profilesBySourceProvider =
+    FutureProvider.family<Map<String?, List<domain.DiveProfilePoint>>, String>((
+      ref,
+      diveId,
+    ) async {
+      final repository = ref.watch(diveRepositoryProvider);
+      return repository.getProfilesBySource(diveId);
+    });
+
 /// Batch profile cache for mini charts in the dive list.
 ///
 /// Stores downsampled (~20 points) profiles keyed by dive ID. Populated in
