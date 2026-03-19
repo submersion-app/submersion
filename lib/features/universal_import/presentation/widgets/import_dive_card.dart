@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/duplicate_badge.dart';
 
@@ -9,6 +10,8 @@ import 'package:submersion/features/universal_import/presentation/widgets/duplic
 ///
 /// Shows dive date, depth, duration, and site name with a selection
 /// checkbox and optional duplicate match badge with confidence score.
+/// When a probable duplicate is detected, shows resolution options
+/// including "Consolidate as additional computer".
 class ImportDiveCard extends StatelessWidget {
   const ImportDiveCard({
     super.key,
@@ -17,6 +20,8 @@ class ImportDiveCard extends StatelessWidget {
     required this.isSelected,
     required this.onToggle,
     this.matchResult,
+    this.resolution,
+    this.onResolutionChanged,
   });
 
   final Map<String, dynamic> diveData;
@@ -24,6 +29,8 @@ class ImportDiveCard extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onToggle;
   final DiveMatchResult? matchResult;
+  final DiveDuplicateResolution? resolution;
+  final ValueChanged<DiveDuplicateResolution>? onResolutionChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -69,57 +76,97 @@ class ImportDiveCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildCheckbox(colorScheme),
-                const SizedBox(width: 12),
-                Icon(
-                  Icons.scuba_diving,
-                  size: 20,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (diveNumber != null) ...[
-                        const SizedBox(height: 2),
-                        _buildMetrics(theme, depthStr, durationStr, siteName),
-                      ],
-                    ],
-                  ),
-                ),
-                if (matchResult != null) ...[
-                  const SizedBox(width: 8),
-                  DuplicateBadge(
-                    isProbable: matchResult!.score >= 0.7,
-                    label: context.l10n.universalImport_label_percentMatch(
-                      (matchResult!.score * 100).toStringAsFixed(0),
+                Row(
+                  children: [
+                    _buildCheckbox(colorScheme),
+                    const SizedBox(width: 12),
+                    Icon(
+                      Icons.scuba_diving,
+                      size: 20,
+                      color: colorScheme.onSurfaceVariant,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (diveNumber != null) ...[
+                            const SizedBox(height: 2),
+                            _buildMetrics(
+                              theme,
+                              depthStr,
+                              durationStr,
+                              siteName,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    if (matchResult != null) ...[
+                      const SizedBox(width: 8),
+                      DuplicateBadge(
+                        isProbable: matchResult!.score >= 0.7,
+                        label: context.l10n.universalImport_label_percentMatch(
+                          (matchResult!.score * 100).toStringAsFixed(0),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                if (matchResult != null && matchResult!.score >= 0.5)
+                  _buildResolutionRow(context),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildResolutionRow(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final currentResolution = resolution ?? DiveDuplicateResolution.skip;
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 48, top: 8),
+      child: Wrap(
+        spacing: 8,
+        children: [
+          for (final option in DiveDuplicateResolution.values)
+            ChoiceChip(
+              label: Text(
+                option.displayName,
+                style: theme.textTheme.labelSmall,
+              ),
+              selected: currentResolution == option,
+              onSelected: (_) => onResolutionChanged?.call(option),
+              selectedColor: option == DiveDuplicateResolution.consolidate
+                  ? colorScheme.tertiaryContainer
+                  : null,
+              visualDensity: VisualDensity.compact,
+            ),
+        ],
       ),
     );
   }

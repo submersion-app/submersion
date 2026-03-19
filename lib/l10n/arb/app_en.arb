@@ -7657,6 +7657,7 @@
   "@units_weight_pounds": {
     "description": "Symbol for pounds weight unit"
   },
+  "universalImport_action_consolidate": "Consolidate as additional computer",
   "universalImport_action_continue": "Continue",
   "universalImport_action_deselectAll": "Deselect All",
   "universalImport_action_done": "Done",
@@ -7704,6 +7705,9 @@
   "universalImport_title": "Import Data",
   "universalImport_tooltip_clearTag": "Clear tag",
   "universalImport_tooltip_closeWizard": "Close import wizard",
+  "@universalImport_action_consolidate": {
+    "description": "Button label to consolidate an imported dive as a secondary computer reading on the matched existing dive"
+  },
   "@universalImport_action_continue": {
     "description": "Label for the continue button in the import wizard"
   },

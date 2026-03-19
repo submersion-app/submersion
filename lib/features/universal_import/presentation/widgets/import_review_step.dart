@@ -203,12 +203,18 @@ class _EntityTypeList extends ConsumerWidget {
               final dupResult = state.duplicateResult;
 
               if (type == ImportEntityType.dives) {
+                final matchResult = dupResult?.diveMatchFor(index);
                 return ImportDiveCard(
                   diveData: item,
                   index: index,
                   isSelected: isSelected,
                   onToggle: () => notifier.toggleSelection(type, index),
-                  matchResult: dupResult?.diveMatchFor(index),
+                  matchResult: matchResult,
+                  resolution: state.diveResolutions[index],
+                  onResolutionChanged:
+                      matchResult != null && matchResult.score >= 0.5
+                      ? (res) => notifier.setDiveResolution(index, res)
+                      : null,
                 );
               }
 
