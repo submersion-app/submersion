@@ -3158,6 +3158,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_label_diveType => 'Dive Type';
 
   @override
+  String get diveLog_edit_label_diveNumber => 'Dive #';
+
+  @override
+  String get diveLog_edit_hint_diveNumber => 'Auto-assigned if left blank';
+
+  @override
   String get diveLog_edit_label_entryMethod => 'Entry Method';
 
   @override

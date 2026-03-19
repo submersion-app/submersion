@@ -3210,6 +3210,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_edit_label_diveType => 'Tipo de Mergulho';
 
   @override
+  String get diveLog_edit_label_diveNumber => 'No. do Mergulho';
+
+  @override
+  String get diveLog_edit_hint_diveNumber =>
+      'Atribuido automaticamente se deixado em branco';
+
+  @override
   String get diveLog_edit_label_entryMethod => 'Metodo de Entrada';
 
   @override

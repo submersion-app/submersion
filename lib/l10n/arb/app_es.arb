@@ -1100,6 +1100,8 @@
   "diveLog_edit_label_currentDirection": "Dirección de la corriente",
   "diveLog_edit_label_currentStrength": "Intensidad de la corriente",
   "diveLog_edit_label_diveType": "Tipo de inmersión",
+  "diveLog_edit_label_diveNumber": "Nro. de inmersión",
+  "diveLog_edit_hint_diveNumber": "Se asigna automáticamente si se deja en blanco",
   "diveLog_edit_label_entryMethod": "Método de entrada",
   "diveLog_edit_label_exitMethod": "Método de salida",
   "diveLog_edit_label_maxDepth": "Profundidad máxima",

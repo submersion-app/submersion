@@ -3217,6 +3217,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_label_diveType => 'Tipo di immersione';
 
   @override
+  String get diveLog_edit_label_diveNumber => 'N. immersione';
+
+  @override
+  String get diveLog_edit_hint_diveNumber =>
+      'Assegnato automaticamente se lasciato vuoto';
+
+  @override
   String get diveLog_edit_label_entryMethod => 'Metodo di ingresso';
 
   @override

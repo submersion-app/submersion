@@ -1100,6 +1100,8 @@
   "diveLog_edit_label_currentDirection": "Direcao da Corrente",
   "diveLog_edit_label_currentStrength": "Forca da Corrente",
   "diveLog_edit_label_diveType": "Tipo de Mergulho",
+  "diveLog_edit_label_diveNumber": "No. do Mergulho",
+  "diveLog_edit_hint_diveNumber": "Atribuido automaticamente se deixado em branco",
   "diveLog_edit_label_entryMethod": "Metodo de Entrada",
   "diveLog_edit_label_exitMethod": "Metodo de Saida",
   "diveLog_edit_label_maxDepth": "Prof. Maxima",

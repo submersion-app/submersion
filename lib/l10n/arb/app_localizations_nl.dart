@@ -3191,6 +3191,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_label_diveType => 'Duiktype';
 
   @override
+  String get diveLog_edit_label_diveNumber => 'Duik nr.';
+
+  @override
+  String get diveLog_edit_hint_diveNumber =>
+      'Automatisch toegewezen als leeg gelaten';
+
+  @override
   String get diveLog_edit_label_entryMethod => 'Instapmethode';
 
   @override

@@ -1100,6 +1100,8 @@
   "diveLog_edit_label_currentDirection": "اتجاه التيار",
   "diveLog_edit_label_currentStrength": "قوة التيار",
   "diveLog_edit_label_diveType": "نوع الغوصة",
+  "diveLog_edit_label_diveNumber": "رقم الغوصة",
+  "diveLog_edit_hint_diveNumber": "يُعيَّن تلقائياً إذا تُرك فارغاً",
   "diveLog_edit_label_entryMethod": "طريقة الدخول",
   "diveLog_edit_label_exitMethod": "طريقة الخروج",
   "diveLog_edit_label_maxDepth": "أقصى عمق",

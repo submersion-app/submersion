@@ -1100,6 +1100,8 @@
   "diveLog_edit_label_currentDirection": "Stroemungsrichtung",
   "diveLog_edit_label_currentStrength": "Stroemungsstaerke",
   "diveLog_edit_label_diveType": "Tauchgangart",
+  "diveLog_edit_label_diveNumber": "Tauchgang-Nr.",
+  "diveLog_edit_hint_diveNumber": "Wird automatisch vergeben, wenn leer gelassen",
   "diveLog_edit_label_entryMethod": "Einstiegsmethode",
   "diveLog_edit_label_exitMethod": "Ausstiegsmethode",
   "diveLog_edit_label_maxDepth": "Max. Tiefe",

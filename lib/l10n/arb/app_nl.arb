@@ -1100,6 +1100,8 @@
   "diveLog_edit_label_currentDirection": "Stromingsrichting",
   "diveLog_edit_label_currentStrength": "Stromingssterkte",
   "diveLog_edit_label_diveType": "Duiktype",
+  "diveLog_edit_label_diveNumber": "Duik nr.",
+  "diveLog_edit_hint_diveNumber": "Automatisch toegewezen als leeg gelaten",
   "diveLog_edit_label_entryMethod": "Instapmethode",
   "diveLog_edit_label_exitMethod": "Uitstapmethode",
   "diveLog_edit_label_maxDepth": "Max diepte",

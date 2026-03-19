@@ -3197,6 +3197,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_label_diveType => 'Merules tipusa';
 
   @override
+  String get diveLog_edit_label_diveNumber => 'Merules sz.';
+
+  @override
+  String get diveLog_edit_hint_diveNumber =>
+      'Automatikusan kiosztva, ha ures marad';
+
+  @override
   String get diveLog_edit_label_entryMethod => 'Beszallasi mod';
 
   @override

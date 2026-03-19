@@ -1100,6 +1100,8 @@
   "diveLog_edit_label_currentDirection": "כיוון זרם",
   "diveLog_edit_label_currentStrength": "עוצמת זרם",
   "diveLog_edit_label_diveType": "סוג צלילה",
+  "diveLog_edit_label_diveNumber": "מס' צלילה",
+  "diveLog_edit_hint_diveNumber": "מוקצה אוטומטית אם נותר ריק",
   "diveLog_edit_label_entryMethod": "שיטת כניסה",
   "diveLog_edit_label_exitMethod": "שיטת יציאה",
   "diveLog_edit_label_maxDepth": "עומק מרבי",

@@ -5464,6 +5464,18 @@ abstract class AppLocalizations {
   /// **'Dive Type'**
   String get diveLog_edit_label_diveType;
 
+  /// No description provided for @diveLog_edit_label_diveNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive #'**
+  String get diveLog_edit_label_diveNumber;
+
+  /// No description provided for @diveLog_edit_hint_diveNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-assigned if left blank'**
+  String get diveLog_edit_hint_diveNumber;
+
   /// No description provided for @diveLog_edit_label_entryMethod.
   ///
   /// In en, this message translates to:
