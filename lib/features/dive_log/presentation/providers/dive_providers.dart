@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/dive_computer_reading.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -778,3 +779,23 @@ final tankPressuresProvider =
       final repository = ref.watch(tankPressureRepositoryProvider);
       return repository.getTankPressuresForDive(diveId);
     });
+
+/// Provider to load computer readings for a dive.
+/// Returns empty list for single-computer dives.
+final diveComputerReadingsProvider =
+    FutureProvider.family<List<DiveComputerReading>, String>((
+      ref,
+      diveId,
+    ) async {
+      final repository = ref.watch(diveRepositoryProvider);
+      return repository.getComputerReadings(diveId);
+    });
+
+/// Provider to check if a dive has multiple computers.
+final isMultiComputerDiveProvider = FutureProvider.family<bool, String>((
+  ref,
+  diveId,
+) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  return repository.hasMultipleComputers(diveId);
+});
