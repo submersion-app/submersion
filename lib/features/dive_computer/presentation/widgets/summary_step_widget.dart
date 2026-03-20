@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
+import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -252,23 +253,19 @@ class SummaryStepWidget extends ConsumerWidget {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    final imported = candidate.dive;
-    final importedDate = imported.startTime;
-    final importedDateStr =
-        '${importedDate.month}/${importedDate.day}/${importedDate.year} '
-        '${importedDate.hour.toString().padLeft(2, '0')}:'
-        '${importedDate.minute.toString().padLeft(2, '0')}';
     final matchPercent = (candidate.matchScore * 100).toStringAsFixed(0);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Match confidence header
-            Row(
+      margin: const EdgeInsets.only(bottom: 12),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header bar with match confidence
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            color: colorScheme.tertiaryContainer.withValues(alpha: 0.3),
+            child: Row(
               children: [
                 Icon(
                   Icons.compare_arrows,
@@ -285,59 +282,70 @@ class SummaryStepWidget extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+          ),
 
-            // Side-by-side comparison
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Side-by-side comparison in bordered columns
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Existing dive (left)
                 Expanded(
-                  child: Consumer(
-                    builder: (context, ref, _) => _buildExistingDiveColumn(
-                      context,
-                      ref,
-                      candidate.matchedDiveId,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        right: BorderSide(
+                          color: colorScheme.outlineVariant.withValues(
+                            alpha: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    child: Consumer(
+                      builder: (context, ref, _) => _buildExistingDiveColumn(
+                        context,
+                        ref,
+                        candidate.matchedDiveId,
+                        theme,
+                        colorScheme,
+                      ),
+                    ),
+                  ),
+                ),
+                // Imported dive (right)
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    child: _buildImportedDiveColumn(
+                      candidate.dive,
                       theme,
                       colorScheme,
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                // Imported dive (right)
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Imported',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(importedDateStr, style: theme.textTheme.bodySmall),
-                      Text(
-                        '${imported.maxDepth.toStringAsFixed(1)}m / '
-                        '${imported.durationSeconds ~/ 60}min',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
-            const SizedBox(height: 12),
+          ),
 
-            // Action buttons
-            Row(
+          // Action buttons bar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
+              ),
+            ),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
                   onPressed: () => notifier.skipConsolidation(candidate),
                   child: const Text('Skip'),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
                 OutlinedButton(
                   onPressed: () async {
                     final messenger = ScaffoldMessenger.of(context);
@@ -356,7 +364,7 @@ class SummaryStepWidget extends ConsumerWidget {
                   },
                   child: const Text('Import as New'),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
                 FilledButton.tonal(
                   onPressed: () async {
                     final messenger = ScaffoldMessenger.of(context);
@@ -377,9 +385,57 @@ class SummaryStepWidget extends ConsumerWidget {
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildImportedDiveColumn(
+    DownloadedDive dive,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
+    final date = dive.startTime;
+    final dateStr =
+        '${date.month}/${date.day}/${date.year} '
+        '${date.hour.toString().padLeft(2, '0')}:'
+        '${date.minute.toString().padLeft(2, '0')}';
+    final computerLabel = computer != null ? computer!.fullName : 'Downloaded';
+    final serial = computer?.serialNumber;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'This Computer',
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: colorScheme.secondary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(computerLabel, style: theme.textTheme.bodySmall),
+        if (serial != null)
+          Text(
+            'S/N: $serial',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        const SizedBox(height: 6),
+        Text(dateStr, style: theme.textTheme.bodySmall),
+        Text(
+          '${dive.maxDepth.toStringAsFixed(1)}m / '
+          '${dive.durationSeconds ~/ 60}min',
+          style: theme.textTheme.bodySmall,
+        ),
+        if (dive.minTemperature != null)
+          Text(
+            '${dive.minTemperature!.toStringAsFixed(0)}C',
+            style: theme.textTheme.bodySmall,
+          ),
+      ],
     );
   }
 
@@ -411,27 +467,36 @@ class SummaryStepWidget extends ConsumerWidget {
               'Existing Dive${diveNum != null ? ' #$diveNum' : ''}',
               style: theme.textTheme.labelSmall?.copyWith(
                 color: colorScheme.primary,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
+            if (dive.diveComputerModel != null)
+              Text(dive.diveComputerModel!, style: theme.textTheme.bodySmall),
+            if (dive.diveComputerSerial != null)
+              Text(
+                'S/N: ${dive.diveComputerSerial}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            const SizedBox(height: 6),
             Text(dateStr, style: theme.textTheme.bodySmall),
             Text(
               '${dive.maxDepth?.toStringAsFixed(1) ?? '?'}m / '
               '${durationMin != null ? '${durationMin}min' : '?'}',
               style: theme.textTheme.bodySmall,
             ),
-            if (dive.diveComputerModel != null)
+            if (dive.waterTemp != null)
               Text(
-                dive.diveComputerModel!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+                '${dive.waterTemp!.toStringAsFixed(0)}C',
+                style: theme.textTheme.bodySmall,
               ),
           ],
         );
       },
       loading: () => const SizedBox(
-        height: 40,
+        height: 60,
         child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ),
       error: (_, _) => Text('Existing dive', style: theme.textTheme.bodySmall),
