@@ -162,6 +162,17 @@ class SummaryStepWidget extends ConsumerWidget {
                 ),
               ),
             ),
+          // Downloaded dives list
+          if (downloadState.downloadedDives.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildDownloadedDivesList(
+              context,
+              downloadState,
+              theme,
+              colorScheme,
+            ),
+          ],
+
           const SizedBox(height: 32),
 
           // Actions
@@ -500,6 +511,106 @@ class SummaryStepWidget extends ConsumerWidget {
         child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ),
       error: (_, _) => Text('Existing dive', style: theme.textTheme.bodySmall),
+    );
+  }
+
+  Widget _buildDownloadedDivesList(
+    BuildContext context,
+    DownloadState state,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
+    final dives = state.downloadedDives;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.scuba_diving, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text('Downloaded Dives', style: theme.textTheme.titleSmall),
+                const Spacer(),
+                Text(
+                  '${dives.length}',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: dives.length,
+                separatorBuilder: (_, _) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final dive = dives[index];
+                  final date = dive.startTime;
+                  final dateStr =
+                      '${date.month}/${date.day}/${date.year} '
+                      '${date.hour.toString().padLeft(2, '0')}:'
+                      '${date.minute.toString().padLeft(2, '0')}';
+                  final details = <String>[
+                    '${dive.maxDepth.toStringAsFixed(1)}m',
+                    '${dive.durationSeconds ~/ 60}min',
+                  ];
+                  if (dive.avgDepth != null) {
+                    details.add('avg ${dive.avgDepth!.toStringAsFixed(1)}m');
+                  }
+                  if (dive.minTemperature != null) {
+                    details.add('${dive.minTemperature!.toStringAsFixed(0)}C');
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            if (dive.diveNumber != null) ...[
+                              Text(
+                                '#${dive.diveNumber}',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            Expanded(
+                              child: Text(
+                                dateStr,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: 12,
+                          children: [
+                            for (final detail in details)
+                              Text(detail, style: theme.textTheme.bodySmall),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
