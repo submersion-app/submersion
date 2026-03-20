@@ -729,16 +729,19 @@ class DiveComputerRepository {
     int? decoConservatism,
     List<EventData>? events,
     int? diveNumber,
+    bool forceNew = false,
   }) async {
     try {
       _log.info('Importing profile from computer $computerId');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      // Try to find an existing dive
-      final matchedDiveId = await findMatchingDive(
-        profileStartTime: profileStartTime,
-        durationSeconds: durationSeconds,
-      );
+      // Try to find an existing dive (skip matching when forceNew is true)
+      final matchedDiveId = forceNew
+          ? null
+          : await findMatchingDive(
+              profileStartTime: profileStartTime,
+              durationSeconds: durationSeconds,
+            );
 
       final diveId = matchedDiveId ?? _uuid.v4();
       final isNewDive = matchedDiveId == null;

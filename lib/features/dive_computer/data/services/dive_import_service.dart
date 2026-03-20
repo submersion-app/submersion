@@ -391,8 +391,9 @@ class DiveImportService {
   Future<String> _importNewDive(
     DownloadedDive dive,
     String computerId,
-    String? diverId,
-  ) async {
+    String? diverId, {
+    bool forceNew = false,
+  }) async {
     // Calculate chronological dive number
     int? diveNumber;
     if (_diveRepository != null) {
@@ -428,6 +429,7 @@ class DiveImportService {
       decoConservatism: dive.decoConservatism,
       events: events,
       diveNumber: diveNumber,
+      forceNew: forceNew,
     );
 
     return diveId;
@@ -442,7 +444,7 @@ class DiveImportService {
     required String computerId,
     String? diverId,
   }) async {
-    return _importNewDive(dive, computerId, diverId);
+    return _importNewDive(dive, computerId, diverId, forceNew: true);
   }
 
   /// Update an existing dive with downloaded data.
