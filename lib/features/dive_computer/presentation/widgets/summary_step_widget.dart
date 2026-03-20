@@ -123,13 +123,14 @@ class SummaryStepWidget extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    _buildStatRow(
-                      context,
-                      Icons.add_circle_outline,
-                      context.l10n.diveComputer_summary_imported,
-                      '${importResult.imported}',
-                      colorScheme.primary,
-                    ),
+                    if (importResult.imported > 0)
+                      _buildStatRow(
+                        context,
+                        Icons.add_circle_outline,
+                        context.l10n.diveComputer_summary_imported,
+                        '${importResult.imported}',
+                        colorScheme.primary,
+                      ),
                     if (importResult.skipped > 0)
                       _buildStatRow(
                         context,
