@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -144,6 +145,16 @@ class SummaryStepWidget extends ConsumerWidget {
                         '${importResult.updated}',
                         colorScheme.secondary,
                       ),
+                    if (downloadState.pendingConsolidations.isNotEmpty) ...[
+                      const Divider(height: 24),
+                      _buildConsolidationSection(
+                        context,
+                        ref,
+                        downloadState,
+                        theme,
+                        colorScheme,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -162,6 +173,140 @@ class SummaryStepWidget extends ConsumerWidget {
             child: Text(context.l10n.diveComputer_summary_done),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildConsolidationSection(
+    BuildContext context,
+    WidgetRef ref,
+    DownloadState state,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
+    final notifier = ref.read(downloadNotifierProvider.notifier);
+    final candidates = state.pendingConsolidations;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.merge, color: colorScheme.tertiary, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Potential Matches (${candidates.length})',
+                style: theme.textTheme.titleSmall,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'These dives match existing dives and can be added as '
+          'additional computer data.',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...candidates.map(
+          (candidate) => _buildCandidateCard(
+            context,
+            candidate,
+            notifier,
+            theme,
+            colorScheme,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: () async {
+              final messenger = ScaffoldMessenger.of(context);
+              for (final candidate in List.of(candidates)) {
+                try {
+                  await notifier.consolidateDive(candidate);
+                } catch (_) {}
+              }
+              messenger.showSnackBar(
+                const SnackBar(content: Text('All matches consolidated.')),
+              );
+            },
+            icon: const Icon(Icons.merge),
+            label: const Text('Consolidate All'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCandidateCard(
+    BuildContext context,
+    DuplicateCandidate candidate,
+    DownloadNotifier notifier,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
+    final dive = candidate.dive;
+    final date = dive.startTime;
+    final dateStr =
+        '${date.month}/${date.day}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    final depthStr = '${dive.maxDepth.toStringAsFixed(1)}m';
+    final durationStr = '${dive.durationSeconds ~/ 60}min';
+    final matchPercent = (candidate.matchScore * 100).toStringAsFixed(0);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$dateStr  $depthStr / $durationStr',
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '$matchPercent% match with existing dive',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => notifier.skipConsolidation(candidate),
+                  child: const Text('Skip'),
+                ),
+                const SizedBox(width: 8),
+                FilledButton.tonal(
+                  onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    try {
+                      await notifier.consolidateDive(candidate);
+                      messenger.showSnackBar(
+                        const SnackBar(
+                          content: Text('Dive consolidated successfully.'),
+                        ),
+                      );
+                    } catch (e) {
+                      messenger.showSnackBar(
+                        SnackBar(content: Text('Consolidation failed: $e')),
+                      );
+                    }
+                  },
+                  child: const Text('Consolidate'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
