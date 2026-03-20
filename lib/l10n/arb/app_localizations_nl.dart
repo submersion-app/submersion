@@ -13610,6 +13610,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get units_weight_pounds => 'lbs';
 
   @override
+  String get universalImport_action_consolidate =>
+      'Consolidate as additional computer';
+
+  @override
   String get universalImport_action_continue => 'Doorgaan';
 
   @override

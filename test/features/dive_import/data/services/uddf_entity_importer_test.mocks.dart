@@ -9,6 +9,7 @@ import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i31;
 import 'package:submersion/core/constants/enums.dart' as _i20;
 import 'package:submersion/core/constants/sort_options.dart' as _i30;
+import 'package:submersion/core/database/database.dart' as _i33;
 import 'package:submersion/core/models/sort_state.dart' as _i29;
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart'
     as _i6;
@@ -18,7 +19,7 @@ import 'package:submersion/features/certifications/data/repositories/certificati
 import 'package:submersion/features/certifications/domain/entities/certification.dart'
     as _i8;
 import 'package:submersion/features/courses/data/repositories/course_repository.dart'
-    as _i33;
+    as _i35;
 import 'package:submersion/features/courses/domain/entities/course.dart'
     as _i15;
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart'
@@ -28,8 +29,10 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart'
     as _i13;
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart'
-    as _i32;
+    as _i34;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart' as _i12;
+import 'package:submersion/features/dive_log/domain/entities/dive_computer_reading.dart'
+    as _i32;
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart'
     as _i27;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart'
@@ -1940,13 +1943,131 @@ class MockDiveRepository extends _i1.Mock implements _i13.DiveRepository {
             returnValueForMissingStub: _i17.Future<void>.value(),
           )
           as _i17.Future<void>);
+
+  @override
+  _i17.Future<List<_i32.DiveComputerReading>> getComputerReadings(
+    String? diveId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getComputerReadings, [diveId]),
+            returnValue: _i17.Future<List<_i32.DiveComputerReading>>.value(
+              <_i32.DiveComputerReading>[],
+            ),
+          )
+          as _i17.Future<List<_i32.DiveComputerReading>>);
+
+  @override
+  _i17.Future<bool> hasMultipleComputers(String? diveId) =>
+      (super.noSuchMethod(
+            Invocation.method(#hasMultipleComputers, [diveId]),
+            returnValue: _i17.Future<bool>.value(false),
+          )
+          as _i17.Future<bool>);
+
+  @override
+  _i17.Future<void> saveComputerReading(
+    _i33.DiveComputerDataCompanion? reading,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveComputerReading, [reading]),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
+  _i17.Future<void> deleteComputerReading(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteComputerReading, [id]),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
+  _i17.Future<void> backfillPrimaryComputerReading(String? diveId) =>
+      (super.noSuchMethod(
+            Invocation.method(#backfillPrimaryComputerReading, [diveId]),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
+  _i17.Future<void> consolidateComputer({
+    required String? targetDiveId,
+    required _i33.DiveComputerDataCompanion? secondaryReading,
+    required List<_i33.DiveProfilesCompanion>? secondaryProfile,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#consolidateComputer, [], {
+              #targetDiveId: targetDiveId,
+              #secondaryReading: secondaryReading,
+              #secondaryProfile: secondaryProfile,
+            }),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
+  _i17.Future<void> mergeDives({
+    required String? primaryDiveId,
+    required String? secondaryDiveId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#mergeDives, [], {
+              #primaryDiveId: primaryDiveId,
+              #secondaryDiveId: secondaryDiveId,
+            }),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
+  _i17.Future<String> unlinkComputer({
+    required String? diveId,
+    required String? computerReadingId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#unlinkComputer, [], {
+              #diveId: diveId,
+              #computerReadingId: computerReadingId,
+            }),
+            returnValue: _i17.Future<String>.value(
+              _i31.dummyValue<String>(
+                this,
+                Invocation.method(#unlinkComputer, [], {
+                  #diveId: diveId,
+                  #computerReadingId: computerReadingId,
+                }),
+              ),
+            ),
+          )
+          as _i17.Future<String>);
+
+  @override
+  _i17.Future<void> setPrimaryComputer({
+    required String? diveId,
+    required String? computerReadingId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#setPrimaryComputer, [], {
+              #diveId: diveId,
+              #computerReadingId: computerReadingId,
+            }),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
 }
 
 /// A class which mocks [TankPressureRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockTankPressureRepository extends _i1.Mock
-    implements _i32.TankPressureRepository {
+    implements _i34.TankPressureRepository {
   MockTankPressureRepository() {
     _i1.throwOnMissingStub(this);
   }
@@ -2021,7 +2142,7 @@ class MockTankPressureRepository extends _i1.Mock
 /// A class which mocks [CourseRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCourseRepository extends _i1.Mock implements _i33.CourseRepository {
+class MockCourseRepository extends _i1.Mock implements _i35.CourseRepository {
   MockCourseRepository() {
     _i1.throwOnMissingStub(this);
   }

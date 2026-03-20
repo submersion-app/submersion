@@ -8,10 +8,13 @@ import 'dart:async' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i12;
 import 'package:submersion/core/constants/sort_options.dart' as _i11;
+import 'package:submersion/core/database/database.dart' as _i14;
 import 'package:submersion/core/models/sort_state.dart' as _i10;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart'
     as _i3;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart' as _i2;
+import 'package:submersion/features/dive_log/domain/entities/dive_computer_reading.dart'
+    as _i13;
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart'
     as _i8;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart'
@@ -561,6 +564,124 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
   ) =>
       (super.noSuchMethod(
             Invocation.method(#bulkRemoveTags, [diveIds, tagIds]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<List<_i13.DiveComputerReading>> getComputerReadings(
+    String? diveId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getComputerReadings, [diveId]),
+            returnValue: _i6.Future<List<_i13.DiveComputerReading>>.value(
+              <_i13.DiveComputerReading>[],
+            ),
+          )
+          as _i6.Future<List<_i13.DiveComputerReading>>);
+
+  @override
+  _i6.Future<bool> hasMultipleComputers(String? diveId) =>
+      (super.noSuchMethod(
+            Invocation.method(#hasMultipleComputers, [diveId]),
+            returnValue: _i6.Future<bool>.value(false),
+          )
+          as _i6.Future<bool>);
+
+  @override
+  _i6.Future<void> saveComputerReading(
+    _i14.DiveComputerDataCompanion? reading,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveComputerReading, [reading]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<void> deleteComputerReading(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteComputerReading, [id]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<void> backfillPrimaryComputerReading(String? diveId) =>
+      (super.noSuchMethod(
+            Invocation.method(#backfillPrimaryComputerReading, [diveId]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<void> consolidateComputer({
+    required String? targetDiveId,
+    required _i14.DiveComputerDataCompanion? secondaryReading,
+    required List<_i14.DiveProfilesCompanion>? secondaryProfile,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#consolidateComputer, [], {
+              #targetDiveId: targetDiveId,
+              #secondaryReading: secondaryReading,
+              #secondaryProfile: secondaryProfile,
+            }),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<void> mergeDives({
+    required String? primaryDiveId,
+    required String? secondaryDiveId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#mergeDives, [], {
+              #primaryDiveId: primaryDiveId,
+              #secondaryDiveId: secondaryDiveId,
+            }),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<String> unlinkComputer({
+    required String? diveId,
+    required String? computerReadingId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#unlinkComputer, [], {
+              #diveId: diveId,
+              #computerReadingId: computerReadingId,
+            }),
+            returnValue: _i6.Future<String>.value(
+              _i12.dummyValue<String>(
+                this,
+                Invocation.method(#unlinkComputer, [], {
+                  #diveId: diveId,
+                  #computerReadingId: computerReadingId,
+                }),
+              ),
+            ),
+          )
+          as _i6.Future<String>);
+
+  @override
+  _i6.Future<void> setPrimaryComputer({
+    required String? diveId,
+    required String? computerReadingId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#setPrimaryComputer, [], {
+              #diveId: diveId,
+              #computerReadingId: computerReadingId,
+            }),
             returnValue: _i6.Future<void>.value(),
             returnValueForMissingStub: _i6.Future<void>.value(),
           )

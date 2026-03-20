@@ -23331,6 +23331,12 @@ abstract class AppLocalizations {
   /// **'lbs'**
   String get units_weight_pounds;
 
+  /// Button label to consolidate an imported dive as a secondary computer reading on the matched existing dive
+  ///
+  /// In en, this message translates to:
+  /// **'Consolidate as additional computer'**
+  String get universalImport_action_consolidate;
+
   /// Label for the continue button in the import wizard
   ///
   /// In en, this message translates to:
