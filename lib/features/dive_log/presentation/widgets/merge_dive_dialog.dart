@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Multi-step dialog for merging another dive into the current one
 /// as an additional computer reading.
@@ -33,7 +34,7 @@ class _MergeDiveDialogState extends ConsumerState<MergeDiveDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final divesAsync = ref.watch(divesProvider);
+    final divesAsync = ref.watch(diveListNotifierProvider);
 
     return Dialog(
       child: ConstrainedBox(
@@ -143,6 +144,7 @@ class _MergeDiveDialogState extends ConsumerState<MergeDiveDialog> {
         return _DiveCandidateTile(
           dive: dive,
           isSelected: isSelected,
+          timePattern: ref.watch(timeFormatProvider).pattern,
           onTap: () => setState(() => _selectedDive = dive),
         );
       },
@@ -155,8 +157,12 @@ class _MergeDiveDialogState extends ConsumerState<MergeDiveDialog> {
     final dive = _selectedDive!;
 
     final timeLabel = dive.entryTime != null
-        ? DateFormat('HH:mm').format(dive.entryTime!)
-        : DateFormat('HH:mm').format(dive.dateTime);
+        ? DateFormat(
+            ref.watch(timeFormatProvider).pattern,
+          ).format(dive.entryTime!)
+        : DateFormat(
+            ref.watch(timeFormatProvider).pattern,
+          ).format(dive.dateTime);
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -266,10 +272,12 @@ class _DiveCandidateTile extends StatelessWidget {
   final Dive dive;
   final bool isSelected;
   final VoidCallback onTap;
+  final String timePattern;
 
   const _DiveCandidateTile({
     required this.dive,
     required this.isSelected,
+    required this.timePattern,
     required this.onTap,
   });
 
@@ -279,7 +287,7 @@ class _DiveCandidateTile extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     final entryTime = dive.entryTime ?? dive.dateTime;
-    final timeStr = DateFormat('HH:mm').format(entryTime);
+    final timeStr = DateFormat(timePattern).format(entryTime);
 
     final depthStr = dive.maxDepth != null
         ? '${dive.maxDepth!.toStringAsFixed(1)} m'
