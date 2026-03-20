@@ -351,6 +351,7 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
@@ -371,50 +372,106 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
               ],
             ),
             const SizedBox(height: 12),
-            // Show last few dives
-            ...state.downloadedDives.take(3).map((dive) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Text(
-                      _formatDate(dive.startTime),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      context.l10n.diveComputer_downloadStep_depthMeters(
-                        dive.maxDepth.toStringAsFixed(1),
-                      ),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      context.l10n.diveComputer_downloadStep_durationMin(
-                        dive.durationSeconds ~/ 60,
-                      ),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              );
-            }),
-            if (state.downloadedDives.length > 3)
-              Text(
-                context.l10n.diveComputer_downloadStep_andMoreDives(
-                  state.downloadedDives.length - 3,
-                ),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: state.downloadedDives.length,
+                separatorBuilder: (_, _) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final dive = state.downloadedDives[index];
+                  return _buildDiveRow(context, dive, theme, colorScheme);
+                },
               ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.month}/${date.day}/${date.year}';
+  Widget _buildDiveRow(
+    BuildContext context,
+    DownloadedDive dive,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
+    final date = dive.startTime;
+    final dateStr =
+        '${date.month}/${date.day}/${date.year} '
+        '${date.hour.toString().padLeft(2, '0')}:'
+        '${date.minute.toString().padLeft(2, '0')}';
+    final durationMin = dive.durationSeconds ~/ 60;
+
+    // Build detail chips
+    final details = <String>[
+      '${dive.maxDepth.toStringAsFixed(1)}m',
+      '${durationMin}min',
+    ];
+    if (dive.avgDepth != null) {
+      details.add('avg ${dive.avgDepth!.toStringAsFixed(1)}m');
+    }
+    if (dive.minTemperature != null) {
+      details.add('${dive.minTemperature!.toStringAsFixed(0)}C');
+    }
+
+    // Gas mix info from tanks
+    final gasMixes = dive.tanks
+        .where((t) => t.o2Percent != 21.0)
+        .map((t) => 'EAN${t.o2Percent.round()}')
+        .toSet();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (dive.diveNumber != null) ...[
+                Text(
+                  '#${dive.diveNumber}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Expanded(child: Text(dateStr, style: theme.textTheme.bodySmall)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 12,
+            children: [
+              for (final detail in details)
+                Text(detail, style: theme.textTheme.bodySmall),
+              if (gasMixes.isNotEmpty)
+                Text(
+                  gasMixes.join(', '),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.tertiary,
+                  ),
+                ),
+              if (dive.decoAlgorithm != null)
+                Text(
+                  dive.decoAlgorithm!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              if (dive.gfLow != null && dive.gfHigh != null)
+                Text(
+                  'GF ${dive.gfLow}/${dive.gfHigh}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
