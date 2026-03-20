@@ -28,143 +28,68 @@ class SummaryStepWidget extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
 
     final diveCount = downloadState.downloadedDives.length;
-    final importResult = downloadState.importResult;
+
+    final computerName =
+        computer?.displayName ?? context.l10n.diveComputer_summary_diveComputer;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 32),
-
-          // Success icon
-          ExcludeSemantics(
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colorScheme.primaryContainer,
-              ),
-              child: Icon(Icons.check, size: 56, color: colorScheme.primary),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Title
-          Text(
-            context.l10n.diveComputer_summary_title,
-            style: theme.textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-
-          // Summary
+          // Compact header: icon + title + computer name
           Semantics(
             label: context.l10n.diveComputer_summary_semanticLabel(
               diveCount,
-              computer?.displayName ??
-                  context.l10n.diveComputer_summary_diveComputer,
+              computerName,
             ),
-            child: Text(
-              context.l10n.diveComputer_summary_divesDownloaded(diveCount),
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+            child: Row(
+              children: [
+                Icon(Icons.check_circle, color: colorScheme.primary, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$diveCount ${diveCount == 1 ? 'dive' : 'dives'} '
+                        'imported from $computerName',
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      if (computer?.serialNumber != null)
+                        Text(
+                          'S/N: ${computer!.serialNumber}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 32),
 
-          // Computer card
-          if (computer != null)
+          // Consolidation section (if duplicates found)
+          if (downloadState.pendingConsolidations.isNotEmpty) ...[
+            const SizedBox(height: 16),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.watch,
-                        color: colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            computer!.displayName,
-                            style: theme.textTheme.titleMedium,
-                          ),
-                          Text(
-                            computer!.fullName,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.check_circle, color: colorScheme.primary),
-                  ],
+                child: _buildConsolidationSection(
+                  context,
+                  ref,
+                  downloadState,
+                  theme,
+                  colorScheme,
                 ),
               ),
             ),
-          const SizedBox(height: 16),
+          ],
 
-          // Import stats
-          if (importResult != null)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    if (importResult.imported > 0)
-                      _buildStatRow(
-                        context,
-                        Icons.add_circle_outline,
-                        context.l10n.diveComputer_summary_imported,
-                        '${importResult.imported}',
-                        colorScheme.primary,
-                      ),
-                    if (importResult.skipped > 0)
-                      _buildStatRow(
-                        context,
-                        Icons.skip_next,
-                        context.l10n.diveComputer_summary_skippedDuplicates,
-                        '${importResult.skipped}',
-                        colorScheme.onSurfaceVariant,
-                      ),
-                    if (importResult.updated > 0)
-                      _buildStatRow(
-                        context,
-                        Icons.update,
-                        context.l10n.diveComputer_summary_updated,
-                        '${importResult.updated}',
-                        colorScheme.secondary,
-                      ),
-                    if (downloadState.pendingConsolidations.isNotEmpty) ...[
-                      const Divider(height: 24),
-                      _buildConsolidationSection(
-                        context,
-                        ref,
-                        downloadState,
-                        theme,
-                        colorScheme,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
           // Downloaded dives list
           if (downloadState.downloadedDives.isNotEmpty) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             _buildDownloadedDivesList(
               context,
               downloadState,
@@ -173,18 +98,26 @@ class SummaryStepWidget extends ConsumerWidget {
             ),
           ],
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
 
-          // Actions
-          FilledButton.icon(
-            onPressed: onViewDives,
-            icon: const Icon(Icons.list),
-            label: Text(context.l10n.diveComputer_summary_viewDives),
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton(
-            onPressed: onDone,
-            child: Text(context.l10n.diveComputer_summary_done),
+          // Action buttons side by side
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onDone,
+                  child: Text(context.l10n.diveComputer_summary_done),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: onViewDives,
+                  icon: const Icon(Icons.list),
+                  label: Text(context.l10n.diveComputer_summary_viewDives),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -606,37 +539,6 @@ class SummaryStepWidget extends ConsumerWidget {
                     ),
                   );
                 },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatRow(
-    BuildContext context,
-    IconData icon,
-    String label,
-    String value,
-    Color iconColor,
-  ) {
-    final theme = Theme.of(context);
-
-    return Semantics(
-      label: '$label: $value',
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            ExcludeSemantics(child: Icon(icon, color: iconColor, size: 20)),
-            const SizedBox(width: 12),
-            Text(label, style: theme.textTheme.bodyMedium),
-            const Spacer(),
-            Text(
-              value,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
               ),
             ),
           ],
