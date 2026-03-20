@@ -519,35 +519,18 @@ class DeviceDetailPage extends ConsumerWidget {
     WidgetRef ref,
     DiveComputer computer,
   ) {
-    // Get all dives, filter to those from this computer, set filter by IDs
-    final divesAsync = ref.read(diveListNotifierProvider);
-    divesAsync.whenData((dives) {
-      final hasSerial =
-          computer.serialNumber != null && computer.serialNumber!.isNotEmpty;
-      final matchingIds = dives
-          .where((d) {
-            // Prefer serial number match (unique per device)
-            if (hasSerial && d.diveComputerSerial != null) {
-              return d.diveComputerSerial == computer.serialNumber;
-            }
-            // Fall back to model name only if serial unavailable
-            return d.diveComputerModel == computer.fullName;
-          })
-          .map((d) => d.id)
-          .toList();
-
-      if (matchingIds.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No dives found from this computer.')),
-        );
-        return;
-      }
-
+    if (computer.serialNumber != null && computer.serialNumber!.isNotEmpty) {
       ref.read(diveFilterProvider.notifier).state = DiveFilterState(
-        diveIds: matchingIds,
+        computerSerial: computer.serialNumber,
       );
       context.go('/dives');
-    });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cannot filter: no serial number for this computer.'),
+        ),
+      );
+    }
   }
 
   void _handleMenuAction(

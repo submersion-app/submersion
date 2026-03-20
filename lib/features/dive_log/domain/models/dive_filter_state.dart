@@ -26,6 +26,7 @@ class DiveFilterState {
   final int? minRating;
   final int? minDurationMinutes;
   final int? maxDurationMinutes;
+  final String? computerSerial;
   final String? customFieldKey;
   final String? customFieldValue;
 
@@ -49,6 +50,7 @@ class DiveFilterState {
     this.minRating,
     this.minDurationMinutes,
     this.maxDurationMinutes,
+    this.computerSerial,
     this.customFieldKey,
     this.customFieldValue,
   });
@@ -73,6 +75,7 @@ class DiveFilterState {
       minRating != null ||
       minDurationMinutes != null ||
       maxDurationMinutes != null ||
+      computerSerial != null ||
       (customFieldKey != null && customFieldKey!.isNotEmpty);
 
   DiveFilterState copyWith({
@@ -95,6 +98,7 @@ class DiveFilterState {
     int? minRating,
     int? minDurationMinutes,
     int? maxDurationMinutes,
+    String? computerSerial,
     String? customFieldKey,
     String? customFieldValue,
     bool clearStartDate = false,
@@ -116,6 +120,7 @@ class DiveFilterState {
     bool clearMinRating = false,
     bool clearMinDurationMinutes = false,
     bool clearMaxDurationMinutes = false,
+    bool clearComputerSerial = false,
     bool clearCustomFieldKey = false,
     bool clearCustomFieldValue = false,
   }) {
@@ -155,6 +160,9 @@ class DiveFilterState {
       maxDurationMinutes: clearMaxDurationMinutes
           ? null
           : (maxDurationMinutes ?? this.maxDurationMinutes),
+      computerSerial: clearComputerSerial
+          ? null
+          : (computerSerial ?? this.computerSerial),
       customFieldKey: clearCustomFieldKey
           ? null
           : (customFieldKey ?? this.customFieldKey),
@@ -243,6 +251,9 @@ class DiveFilterState {
             durationMinutes > maxDurationMinutes!) {
           return false;
         }
+      }
+      if (computerSerial != null) {
+        if (dive.diveComputerSerial != computerSerial) return false;
       }
       if (customFieldKey != null && customFieldKey!.isNotEmpty) {
         final hasMatch = dive.customFields.any((cf) {
