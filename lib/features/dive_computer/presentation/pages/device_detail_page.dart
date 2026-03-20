@@ -171,6 +171,8 @@ class DeviceDetailPage extends ConsumerWidget {
               computer.manufacturer ?? 'Unknown',
             ),
             _buildInfoRow(context, 'Model', computer.model ?? 'Unknown'),
+            if (computer.serialNumber != null)
+              _buildInfoRow(context, 'Serial Number', computer.serialNumber!),
             _buildInfoRow(
               context,
               'Connection',
