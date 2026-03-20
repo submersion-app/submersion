@@ -7,6 +7,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 
 /// Page displaying details about a specific dive computer.
@@ -102,7 +103,7 @@ class DeviceDetailPage extends ConsumerWidget {
             const SizedBox(height: 16),
             _buildStatsCard(context, ref, computer, colorScheme),
             const SizedBox(height: 16),
-            _buildActionsCard(context, computer, colorScheme),
+            _buildActionsCard(context, ref, computer, colorScheme),
             if (computer.notes.isNotEmpty) ...[
               const SizedBox(height: 16),
               _buildNotesCard(context, computer, colorScheme),
@@ -459,6 +460,7 @@ class DeviceDetailPage extends ConsumerWidget {
 
   Widget _buildActionsCard(
     BuildContext context,
+    WidgetRef ref,
     DiveComputer computer,
     ColorScheme colorScheme,
   ) {
@@ -476,12 +478,7 @@ class DeviceDetailPage extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
-              onPressed: () {
-                // TODO: Show dives from this computer
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('View dives coming soon')),
-                );
-              },
+              onPressed: () => _viewDivesFromComputer(context, ref, computer),
               icon: const Icon(Icons.list),
               label: const Text('View Dives from This Computer'),
             ),
@@ -515,6 +512,38 @@ class DeviceDetailPage extends ConsumerWidget {
 
   void _setFavorite(WidgetRef ref, DiveComputer computer) {
     ref.read(diveComputerNotifierProvider.notifier).setFavorite(computer.id);
+  }
+
+  void _viewDivesFromComputer(
+    BuildContext context,
+    WidgetRef ref,
+    DiveComputer computer,
+  ) {
+    // Get all dives, filter to those from this computer, set filter by IDs
+    final divesAsync = ref.read(diveListNotifierProvider);
+    divesAsync.whenData((dives) {
+      final matchingIds = dives
+          .where(
+            (d) =>
+                d.diveComputerModel == computer.fullName ||
+                (d.diveComputerSerial != null &&
+                    d.diveComputerSerial == computer.serialNumber),
+          )
+          .map((d) => d.id)
+          .toList();
+
+      if (matchingIds.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No dives found from this computer.')),
+        );
+        return;
+      }
+
+      ref.read(diveFilterProvider.notifier).state = DiveFilterState(
+        diveIds: matchingIds,
+      );
+      context.go('/dives');
+    });
   }
 
   void _handleMenuAction(
