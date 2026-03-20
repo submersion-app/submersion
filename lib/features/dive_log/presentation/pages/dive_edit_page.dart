@@ -39,6 +39,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/ccr_settings_p
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/scr_settings_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
+import 'package:submersion/features/dive_log/presentation/utils/site_picker_search.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
@@ -3737,7 +3738,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 }
 
 /// Site picker bottom sheet with nearby site suggestions
-class _SitePickerSheet extends ConsumerWidget {
+class _SitePickerSheet extends ConsumerStatefulWidget {
   final ScrollController scrollController;
   final String? selectedSiteId;
   final LocationResult? currentLocation;
@@ -3752,12 +3753,26 @@ class _SitePickerSheet extends ConsumerWidget {
     required this.onCreateNewSite,
   });
 
+  @override
+  ConsumerState<_SitePickerSheet> createState() => _SitePickerSheetState();
+}
+
+class _SitePickerSheetState extends ConsumerState<_SitePickerSheet> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   /// Calculate distance from current location to a site in km
   double? _distanceToSite(DiveSite site) {
-    if (currentLocation == null || site.location == null) return null;
+    if (widget.currentLocation == null || site.location == null) return null;
     final distanceMeters = LocationService.instance.distanceBetween(
-      currentLocation!.latitude,
-      currentLocation!.longitude,
+      widget.currentLocation!.latitude,
+      widget.currentLocation!.longitude,
       site.location!.latitude,
       site.location!.longitude,
     );
@@ -3779,6 +3794,7 @@ class _SitePickerSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sitesAsync = ref.watch(sitesProvider);
     final colorScheme = Theme.of(context).colorScheme;
+    final normalizedQuery = _searchQuery.trim().toLowerCase();
 
     return Column(
       children: [
@@ -3794,7 +3810,7 @@ class _SitePickerSheet extends ConsumerWidget {
                     context.l10n.diveLog_sitePicker_title,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  if (currentLocation != null)
+                  if (widget.currentLocation != null)
                     Row(
                       children: [
                         Icon(
@@ -3813,11 +3829,33 @@ class _SitePickerSheet extends ConsumerWidget {
                 ],
               ),
               TextButton.icon(
-                onPressed: onCreateNewSite,
+                onPressed: widget.onCreateNewSite,
                 icon: const Icon(Icons.add),
                 label: Text(context.l10n.diveLog_sitePicker_newDiveSite),
               ),
             ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: context.l10n.diveSites_list_search_placeholder,
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: normalizedQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      tooltip: context.l10n.diveLog_speciesPicker_tooltip_clearSearch,
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() => _searchQuery = '');
+                      },
+                    )
+                  : null,
+              border: const OutlineInputBorder(),
+            ),
+            onChanged: (value) => setState(() => _searchQuery = value),
           ),
         ),
         const Divider(height: 1),
@@ -3841,7 +3879,7 @@ class _SitePickerSheet extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       TextButton.icon(
-                        onPressed: onCreateNewSite,
+                        onPressed: widget.onCreateNewSite,
                         icon: const Icon(Icons.add),
                         label: Text(
                           context.l10n.diveLog_sitePicker_addDiveSite,
@@ -3854,7 +3892,7 @@ class _SitePickerSheet extends ConsumerWidget {
 
               // Sort sites by distance if we have current location
               List<_SiteWithDistance> sortedSites;
-              if (currentLocation != null) {
+              if (widget.currentLocation != null) {
                 sortedSites = sites.map((site) {
                   return _SiteWithDistance(site, _distanceToSite(site));
                 }).toList();
@@ -3871,14 +3909,33 @@ class _SitePickerSheet extends ConsumerWidget {
                     .toList();
               }
 
+              final visibleSites = normalizedQuery.isEmpty
+                  ? sortedSites
+                  : sortedSites.where((siteWithDistance) {
+                      return siteMatchesPickerQuery(
+                        siteWithDistance.site,
+                        normalizedQuery,
+                      );
+                    }).toList();
+
+              if (visibleSites.isEmpty) {
+                return Center(
+                  child: Text(
+                    context.l10n.diveSites_list_search_noResults(_searchQuery.trim()),
+                    style: Theme.of(context).textTheme.titleMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                );
+              }
+
               return ListView.builder(
-                controller: scrollController,
-                itemCount: sortedSites.length,
+                controller: widget.scrollController,
+                itemCount: visibleSites.length,
                 itemBuilder: (context, index) {
-                  final siteWithDist = sortedSites[index];
+                  final siteWithDist = visibleSites[index];
                   final site = siteWithDist.site;
                   final distance = siteWithDist.distance;
-                  final isSelected = site.id == selectedSiteId;
+                  final isSelected = site.id == widget.selectedSiteId;
                   final isNearby =
                       distance != null && distance < 50; // Within 50km
 
@@ -3920,7 +3977,7 @@ class _SitePickerSheet extends ConsumerWidget {
                     trailing: isSelected
                         ? Icon(Icons.check_circle, color: colorScheme.primary)
                         : null,
-                    onTap: () => onSiteSelected(site),
+                    onTap: () => widget.onSiteSelected(site),
                   );
                 },
               );
