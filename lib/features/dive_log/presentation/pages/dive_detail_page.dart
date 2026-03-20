@@ -4332,6 +4332,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       computerReadingId: readingId,
     );
     ref.invalidate(diveProvider(diveId));
+    ref.invalidate(diveProfileProvider(diveId));
+    ref.invalidate(profilesBySourceProvider(diveId));
     ref.invalidate(diveComputerReadingsProvider(diveId));
   }
 
@@ -4372,7 +4374,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       computerReadingId: readingId,
     );
     ref.invalidate(diveProvider(diveId));
+    ref.invalidate(diveProfileProvider(diveId));
+    ref.invalidate(profilesBySourceProvider(diveId));
     ref.invalidate(diveComputerReadingsProvider(diveId));
+    ref.invalidate(paginatedDiveListProvider);
   }
 
   void _showMergeDiveDialog(BuildContext context, WidgetRef ref, Dive dive) {
@@ -4387,6 +4392,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           secondaryDiveId: selectedDiveId,
         );
         ref.invalidate(diveProvider(diveId));
+        ref.invalidate(diveProfileProvider(diveId));
+        ref.invalidate(profilesBySourceProvider(diveId));
         ref.invalidate(diveComputerReadingsProvider(diveId));
         ref.invalidate(paginatedDiveListProvider);
         ref.invalidate(divesProvider);
