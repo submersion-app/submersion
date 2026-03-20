@@ -324,6 +324,7 @@ class MockDiveComputerRepository extends _i1.Mock
     int? decoConservatism,
     List<_i3.EventData>? events,
     int? diveNumber,
+    bool? forceNew = false,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#importProfile, [], {
@@ -342,6 +343,7 @@ class MockDiveComputerRepository extends _i1.Mock
               #decoConservatism: decoConservatism,
               #events: events,
               #diveNumber: diveNumber,
+              #forceNew: forceNew,
             }),
             returnValue: _i7.Future<String>.value(
               _i9.dummyValue<String>(
@@ -362,6 +364,7 @@ class MockDiveComputerRepository extends _i1.Mock
                   #decoConservatism: decoConservatism,
                   #events: events,
                   #diveNumber: diveNumber,
+                  #forceNew: forceNew,
                 }),
               ),
             ),

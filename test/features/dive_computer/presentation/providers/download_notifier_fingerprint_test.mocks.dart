@@ -342,6 +342,7 @@ class MockDiveComputerRepository extends _i1.Mock
     int? decoConservatism,
     List<_i3.EventData>? events,
     int? diveNumber,
+    bool? forceNew = false,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#importProfile, [], {
@@ -360,6 +361,7 @@ class MockDiveComputerRepository extends _i1.Mock
               #decoConservatism: decoConservatism,
               #events: events,
               #diveNumber: diveNumber,
+              #forceNew: forceNew,
             }),
             returnValue: _i8.Future<String>.value(
               _i10.dummyValue<String>(
@@ -380,6 +382,7 @@ class MockDiveComputerRepository extends _i1.Mock
                   #decoConservatism: decoConservatism,
                   #events: events,
                   #diveNumber: diveNumber,
+                  #forceNew: forceNew,
                 }),
               ),
             ),
@@ -530,6 +533,31 @@ class MockDiveImportService extends _i1.Mock implements _i4.DiveImportService {
             ),
           )
           as _i8.Future<_i4.DuplicateResult>);
+
+  @override
+  _i8.Future<String> importSingleDiveAsNew(
+    _i11.DownloadedDive? dive, {
+    required String? computerId,
+    String? diverId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #importSingleDiveAsNew,
+              [dive],
+              {#computerId: computerId, #diverId: diverId},
+            ),
+            returnValue: _i8.Future<String>.value(
+              _i10.dummyValue<String>(
+                this,
+                Invocation.method(
+                  #importSingleDiveAsNew,
+                  [dive],
+                  {#computerId: computerId, #diverId: diverId},
+                ),
+              ),
+            ),
+          )
+          as _i8.Future<String>);
 
   @override
   _i8.Future<String?> resolveConflict(

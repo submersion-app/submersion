@@ -4,24 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
-import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/download_step_widget.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/summary_step_widget.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/dive_computer/presentation/widgets/download_exit_dialog.dart';
-import 'package:submersion/features/dive_computer/presentation/widgets/pin_code_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Page for downloading dives from a known/saved dive computer.
+/// Download page for a known dive computer.
 ///
-/// This page handles reconnecting to the device and downloading dives.
-/// Import is triggered automatically by the [DownloadNotifier] when
-/// the download completes — no widget-side import logic needed.
+/// Scans for the device automatically, then reuses the same
+/// [DownloadStepWidget] and [SummaryStepWidget] as the discovery wizard
+/// for a consistent download experience.
 class DeviceDownloadPage extends ConsumerStatefulWidget {
   final String computerId;
 
@@ -31,76 +28,60 @@ class DeviceDownloadPage extends ConsumerStatefulWidget {
   ConsumerState<DeviceDownloadPage> createState() => _DeviceDownloadPageState();
 }
 
+enum _Phase { scanning, downloading, complete, error }
+
 class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
+  _Phase _phase = _Phase.scanning;
   DiscoveredDevice? _discoveredDevice;
-  bool _isScanning = false;
-  bool _hasStartedDownload = false;
-  bool _hasInvalidatedDiveList = false;
-  String? _scanError;
   DiveComputer? _computer;
+  String? _errorMessage;
+  bool _hasInvalidatedDiveList = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startScanAndConnect();
+      _scanForDevice();
     });
   }
 
-  Future<void> _startScanAndConnect() async {
-    // Invalidate to force a fresh DB fetch — picks up any fingerprint
-    // stored after a previous download in this session.
+  Future<void> _scanForDevice() async {
     ref.invalidate(diveComputerByIdProvider(widget.computerId));
     final computer = await ref.read(
       diveComputerByIdProvider(widget.computerId).future,
     );
     if (computer == null) {
       setState(() {
-        _scanError = context.l10n.diveComputer_download_computerNotFound;
+        _phase = _Phase.error;
+        _errorMessage = context.l10n.diveComputer_download_computerNotFound;
       });
       return;
     }
 
     _computer = computer;
-
-    setState(() {
-      _isScanning = true;
-      _scanError = null;
-    });
+    setState(() => _phase = _Phase.scanning);
 
     try {
-      // Start scanning for the device
       final discoveryNotifier = ref.read(discoveryNotifierProvider.notifier);
       await discoveryNotifier.startScan();
 
-      // Subscribe to the discovery notifier's accumulated devices
       final service = ref.read(diveComputerServiceProvider);
-      StreamSubscription<dynamic>? subscription;
       final completer = Completer<DiscoveredDevice?>();
 
-      // Set up timeout
       final timeoutTimer = Timer(const Duration(seconds: 15), () {
-        if (!completer.isCompleted) {
-          completer.complete(null);
-        }
+        if (!completer.isCompleted) completer.complete(null);
       });
 
-      // Listen for discovered devices via the service stream
-      subscription = service.discoveredDevices.listen((pigeonDevice) {
+      final subscription = service.discoveredDevices.listen((pigeonDevice) {
         if (completer.isCompleted) return;
-
         final device = DiscoveredDevice.fromPigeon(pigeonDevice);
         if (_deviceMatchesComputer(device, computer)) {
-          if (!completer.isCompleted) {
-            completer.complete(device);
-          }
+          if (!completer.isCompleted) completer.complete(device);
         }
       });
 
-      // Wait for device to be found or timeout
       final foundDevice = await completer.future;
 
-      // Cleanup
       timeoutTimer.cancel();
       await subscription.cancel();
       await discoveryNotifier.stopScan();
@@ -108,55 +89,47 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
       if (!mounted) return;
 
       if (foundDevice != null) {
-        setState(() {
-          _discoveredDevice = foundDevice;
-          _isScanning = false;
-        });
-        _startDownload();
+        _discoveredDevice = foundDevice;
+        setState(() => _phase = _Phase.downloading);
       } else {
-        // Timeout - device not found
         setState(() {
-          _isScanning = false;
-          _scanError = context.l10n.diveComputer_download_deviceNotFoundError(
-            computer.name.isNotEmpty ? computer.name : computer.fullName,
-          );
+          _phase = _Phase.error;
+          _errorMessage = context.l10n
+              .diveComputer_download_deviceNotFoundError(
+                computer.name.isNotEmpty ? computer.name : computer.fullName,
+              );
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
-        _isScanning = false;
-        _scanError = context.l10n.diveComputer_download_scanError(e.toString());
+        _phase = _Phase.error;
+        _errorMessage = context.l10n.diveComputer_download_scanError(
+          e.toString(),
+        );
       });
     }
   }
 
   bool _deviceMatchesComputer(DiscoveredDevice device, DiveComputer computer) {
-    // Match by Bluetooth address if available
     if (computer.bluetoothAddress != null &&
-        computer.bluetoothAddress!.isNotEmpty) {
-      if (device.id == computer.bluetoothAddress) {
-        return true;
-      }
+        computer.bluetoothAddress!.isNotEmpty &&
+        device.id == computer.bluetoothAddress) {
+      return true;
     }
 
-    // Match by serial number if available
-    if (computer.serialNumber != null && computer.serialNumber!.isNotEmpty) {
-      // Check if device name contains serial number
-      if (device.name.contains(computer.serialNumber!)) {
-        return true;
-      }
+    if (computer.serialNumber != null &&
+        computer.serialNumber!.isNotEmpty &&
+        device.name.contains(computer.serialNumber!)) {
+      return true;
     }
 
-    // Match by manufacturer and model
     if (computer.manufacturer != null && computer.model != null) {
       final deviceManufacturer =
           device.recognizedModel?.manufacturer.toLowerCase() ?? '';
       final deviceModelName = device.recognizedModel?.model.toLowerCase() ?? '';
-      final computerManufacturer = computer.manufacturer!.toLowerCase();
-      final computerModelName = computer.model!.toLowerCase();
-
-      if (deviceManufacturer == computerManufacturer &&
-          deviceModelName == computerModelName) {
+      if (deviceManufacturer == computer.manufacturer!.toLowerCase() &&
+          deviceModelName == computer.model!.toLowerCase()) {
         return true;
       }
     }
@@ -164,33 +137,24 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     return false;
   }
 
-  /// Start downloading dives from the device.
-  ///
-  /// Resolves the diver ID and passes it along with the computer to
-  /// the [DownloadNotifier], which will auto-import when the download
-  /// completes. No widget-side import logic needed.
-  Future<void> _startDownload() async {
-    if (_hasStartedDownload || _discoveredDevice == null) return;
-    _hasStartedDownload = true;
-
-    final computer = _computer;
-    if (computer == null) return;
-
-    final notifier = ref.read(downloadNotifierProvider.notifier);
-
-    // Resolve the diver ID before starting the download so the notifier
-    // can auto-import with the correct owner.
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-
-    // The notifier stores computer + diverId and auto-imports when done.
-    await notifier.startDownload(
-      _discoveredDevice!,
-      computer: computer,
-      diverId: diverId,
-    );
+  void _onDownloadComplete() {
+    if (!_hasInvalidatedDiveList) {
+      _hasInvalidatedDiveList = true;
+      ref.invalidate(divesProvider);
+      ref.invalidate(diveListNotifierProvider);
+      ref.invalidate(paginatedDiveListProvider);
+    }
+    setState(() => _phase = _Phase.complete);
   }
 
-  Future<void> _handleCloseWithConfirmation() async {
+  void _onDownloadError(String error) {
+    setState(() {
+      _phase = _Phase.error;
+      _errorMessage = error;
+    });
+  }
+
+  Future<void> _handleClose() async {
     final downloadState = ref.read(downloadNotifierProvider);
     if (downloadState.isDownloading) {
       final shouldLeave = await showDownloadExitConfirmation(context);
@@ -202,794 +166,144 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
 
   @override
   Widget build(BuildContext context) {
-    final computerAsync = ref.watch(
-      diveComputerByIdProvider(widget.computerId),
-    );
-    final downloadState = ref.watch(downloadNotifierProvider);
-
-    ref.listen<DownloadState>(downloadNotifierProvider, (previous, next) {
-      if (next.phase == DownloadPhase.pinRequired &&
-          previous?.phase != DownloadPhase.pinRequired) {
-        final notifier = ref.read(downloadNotifierProvider.notifier);
-        handlePinCodeRequest(context, notifier.submitPinCode);
-      }
-    });
-
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // When import completes, invalidate the dive list providers so the
-    // Dives page shows the newly imported dives.
-    if (!_hasInvalidatedDiveList &&
-        downloadState.importResult != null &&
-        downloadState.importResult!.imported > 0) {
-      _hasInvalidatedDiveList = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.invalidate(divesProvider);
-        ref.invalidate(diveListNotifierProvider);
-        ref.invalidate(paginatedDiveListProvider);
-      });
-    }
-
     return PopScope(
-      canPop: !downloadState.isDownloading,
+      canPop: _phase != _Phase.downloading,
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
-          _handleCloseWithConfirmation();
-        }
+        if (!didPop) _handleClose();
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(context.l10n.diveComputer_download_title),
+          title: Text(
+            _computer?.displayName ?? context.l10n.diveComputer_download_title,
+          ),
           leading: IconButton(
             icon: const Icon(Icons.close),
-            onPressed: _handleCloseWithConfirmation,
+            onPressed: _handleClose,
             tooltip: context.l10n.diveComputer_download_closeTooltip,
           ),
         ),
-        body: computerAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-                const SizedBox(height: 16),
-                Text(
-                  context.l10n.diveComputer_download_errorWithMessage(
-                    error.toString(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: () => context.pop(),
-                  child: Text(context.l10n.diveComputer_download_goBack),
-                ),
-              ],
-            ),
+        body: switch (_phase) {
+          _Phase.scanning => _buildScanningState(theme, colorScheme),
+          _Phase.downloading => DownloadStepWidget(
+            device: _discoveredDevice,
+            computer: _computer,
+            onComplete: _onDownloadComplete,
+            onError: _onDownloadError,
           ),
-          data: (computer) {
-            if (computer == null) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: colorScheme.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(context.l10n.diveComputer_download_computerNotFound),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: () => context.pop(),
-                      child: Text(context.l10n.diveComputer_download_goBack),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return _buildContent(context, computer, downloadState);
-          },
-        ),
+          _Phase.complete => SummaryStepWidget(
+            computer: _computer,
+            onDone: () => context.pop(),
+            onViewDives: () {
+              context.pop();
+              context.go('/dives');
+            },
+          ),
+          _Phase.error => _buildErrorState(theme, colorScheme),
+        },
       ),
     );
   }
 
-  Widget _buildContent(
-    BuildContext context,
-    DiveComputer computer,
-    DownloadState downloadState,
-  ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+  Widget _buildScanningState(ThemeData theme, ColorScheme colorScheme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(
+            width: 64,
+            height: 64,
+            child: CircularProgressIndicator(strokeWidth: 4),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            context.l10n.diveComputer_download_searchingForDevice(
+              _computer?.displayName ?? '',
+            ),
+            style: theme.textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Make sure your dive computer is on and nearby.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
 
-    // Scanning phase
-    if (_isScanning) {
-      return Center(
+  Widget _buildErrorState(ThemeData theme, ColorScheme colorScheme) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(
-              width: 120,
-              height: 120,
-              child: CircularProgressIndicator(strokeWidth: 8),
-            ),
-            const SizedBox(height: 32),
+            Icon(Icons.error_outline, size: 48, color: colorScheme.error),
+            const SizedBox(height: 16),
             Text(
-              context.l10n.diveComputer_download_searchingForDevice(
-                computer.name.isNotEmpty ? computer.name : computer.fullName,
-              ),
+              _errorMessage ?? 'An error occurred',
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
-            Text(
-              context.l10n.diveComputer_download_searchingInstructions,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            OutlinedButton(
-              onPressed: () {
-                ref.read(discoveryNotifierProvider.notifier).stopScan();
-                context.pop();
-              },
-              child: Text(context.l10n.diveComputer_download_cancel),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Scan error
-    if (_scanError != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colorScheme.errorContainer,
-                ),
-                child: Icon(
-                  Icons.bluetooth_disabled,
-                  size: 64,
-                  color: colorScheme.error,
-                ),
-              ),
-              const SizedBox(height: 32),
-              Text(
-                context.l10n.diveComputer_download_deviceNotFoundTitle,
-                style: theme.textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                _scanError!,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              FilledButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _scanError = null;
-                  });
-                  _startScanAndConnect();
-                },
-                icon: const Icon(Icons.refresh),
-                label: Text(context.l10n.diveComputer_download_tryAgain),
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: () => context.pop(),
-                child: Text(context.l10n.diveComputer_download_cancel),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Download in progress or complete
-    return _buildDownloadContent(context, downloadState);
-  }
-
-  Widget _buildDownloadContent(BuildContext context, DownloadState state) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Incremental download toggle (only when computer has a fingerprint)
-            if (_computer?.lastDiveFingerprint != null &&
-                !state.isDownloading &&
-                !state.isComplete &&
-                !state.hasError)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: SwitchListTile(
-                  title: Text(
-                    context.l10n.diveComputer_download_newDivesOnlyTitle,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  subtitle: Text(
-                    context.l10n.diveComputer_download_newDivesOnlySubtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  value: state.newDivesOnly,
-                  onChanged: (value) {
-                    ref
-                        .read(downloadNotifierProvider.notifier)
-                        .setNewDivesOnly(value);
-                  },
-                ),
-              ),
-
-            // Progress indicator
-            _buildProgressIndicator(state, colorScheme),
-            const SizedBox(height: 16),
-
-            // Status text
-            Text(
-              _statusText(context, state),
-              style: theme.textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-
-            // Progress percentage
-            if (state.progress != null && state.progress!.totalDives > 0)
-              Text(
-                context.l10n.diveComputer_download_progressPercent(
-                  (state.progress!.percentage * 100).toStringAsFixed(0),
-                ),
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
-                ),
-              ),
-
-            const SizedBox(height: 16),
-
-            // Downloaded dives count
-            if (state.downloadedDives.isNotEmpty)
-              _buildDivesList(context, state),
-
-            // Import results + consolidation review (shown after import completes)
-            if (state.importResult != null) _buildImportResults(context, state),
-
             const SizedBox(height: 24),
-
-            // Action buttons based on state
-            if (state.isDownloading)
-              OutlinedButton.icon(
-                onPressed: () {
-                  ref.read(downloadNotifierProvider.notifier).cancelDownload();
-                },
-                icon: const Icon(Icons.cancel),
-                label: Text(context.l10n.diveComputer_download_cancel),
-              ),
-
-            if (state.isComplete)
-              FilledButton.icon(
-                onPressed: () => context.pop(),
-                icon: const Icon(Icons.check),
-                label: Text(context.l10n.diveComputer_download_done),
-              ),
-
-            // Error state
-            if (state.hasError)
-              Column(
-                children: [
-                  Card(
-                    color: colorScheme.errorContainer,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Icon(Icons.error, color: colorScheme.error),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              state.errorMessage ??
-                                  context
-                                      .l10n
-                                      .diveComputer_download_errorOccurred,
-                              style: TextStyle(
-                                color: colorScheme.onErrorContainer,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      OutlinedButton(
-                        onPressed: () => context.pop(),
-                        child: Text(context.l10n.diveComputer_download_cancel),
-                      ),
-                      const SizedBox(width: 16),
-                      FilledButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            _hasStartedDownload = false;
-                            _hasInvalidatedDiveList = false;
-                            _discoveredDevice = null;
-                          });
-                          ref.read(downloadNotifierProvider.notifier).reset();
-                          _startScanAndConnect();
-                        },
-                        icon: const Icon(Icons.refresh),
-                        label: Text(context.l10n.diveComputer_download_retry),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Build a human-readable status string from the download state.
-  String _statusText(BuildContext context, DownloadState state) {
-    if (state.phase == DownloadPhase.processing) {
-      final count = state.downloadedDives.length;
-      if (state.newDivesOnly && count > 0) {
-        return context.l10n.diveComputer_download_importingCountNewDives(count);
-      }
-      return context.l10n.diveComputer_download_importingCountDives(count);
-    }
-    return state.progress?.status ??
-        context.l10n.diveComputer_download_preparing;
-  }
-
-  Widget _buildProgressIndicator(DownloadState state, ColorScheme colorScheme) {
-    final progress = state.progress;
-
-    if (state.hasError) {
-      return Container(
-        width: 120,
-        height: 120,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: colorScheme.errorContainer,
-        ),
-        child: Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-      );
-    }
-
-    if (state.isComplete) {
-      return Container(
-        width: 120,
-        height: 120,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: colorScheme.primaryContainer,
-        ),
-        child: Icon(Icons.check, size: 64, color: colorScheme.primary),
-      );
-    }
-
-    return SizedBox(
-      width: 120,
-      height: 120,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SizedBox(
-            width: 120,
-            height: 120,
-            child: CircularProgressIndicator(
-              value: progress?.percentage,
-              strokeWidth: 8,
-              backgroundColor: colorScheme.surfaceContainerHighest,
-            ),
-          ),
-          Icon(
-            _getPhaseIcon(state.phase),
-            size: 48,
-            color: colorScheme.primary,
-          ),
-        ],
-      ),
-    );
-  }
-
-  IconData _getPhaseIcon(DownloadPhase phase) {
-    switch (phase) {
-      case DownloadPhase.connecting:
-        return Icons.bluetooth_connected;
-      case DownloadPhase.pinRequired:
-        return Icons.pin;
-      case DownloadPhase.enumerating:
-        return Icons.search;
-      case DownloadPhase.downloading:
-        return Icons.download;
-      case DownloadPhase.processing:
-        return Icons.sync;
-      case DownloadPhase.complete:
-        return Icons.check_circle;
-      case DownloadPhase.error:
-        return Icons.error;
-      case DownloadPhase.cancelled:
-        return Icons.cancel;
-      default:
-        return Icons.hourglass_empty;
-    }
-  }
-
-  Widget _buildDivesList(BuildContext context, DownloadState state) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    // After import completes, show only imported dives (non-duplicates)
-    // During download, show all downloaded dives
-    final dives = state.importResult?.importedDives ?? state.downloadedDives;
-    final title = state.importResult != null
-        ? context.l10n.diveComputer_download_importedDives
-        : context.l10n.diveComputer_download_downloadedDives;
-
-    if (dives.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.scuba_diving, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(title, style: theme.textTheme.titleSmall),
-                const Spacer(),
-                Text(
-                  '${dives.length}',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
-                  ),
+                OutlinedButton(
+                  onPressed: () => context.pop(),
+                  child: Text(context.l10n.diveComputer_download_cancel),
+                ),
+                const SizedBox(width: 16),
+                FilledButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _phase = _Phase.scanning;
+                      _errorMessage = null;
+                      _discoveredDevice = null;
+                      _hasInvalidatedDiveList = false;
+                    });
+                    ref.read(downloadNotifierProvider.notifier).reset();
+                    _scanForDevice();
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: Text(context.l10n.diveComputer_download_retry),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            // Scrollable list of dives with constrained height
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 200),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: dives.length,
-                itemBuilder: (context, index) {
-                  final dive = dives[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            _formatDate(dive.startTime),
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            context.l10n.diveComputer_download_depthMeters(
-                              dive.maxDepth.toStringAsFixed(1),
-                            ),
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            context.l10n.diveComputer_download_durationMin(
-                              dive.durationSeconds ~/ 60,
-                            ),
-                            style: theme.textTheme.bodySmall,
-                            textAlign: TextAlign.end,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildConsolidationSection(BuildContext context, DownloadState state) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final notifier = ref.read(downloadNotifierProvider.notifier);
-    final candidates = state.pendingConsolidations;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.merge, color: colorScheme.secondary),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Potential Matches (${candidates.length})',
-                style: theme.textTheme.titleSmall,
-              ),
-            ),
-          ],
+/// Show exit confirmation when download is in progress.
+Future<bool> showDownloadExitConfirmation(BuildContext context) async {
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Cancel download?'),
+      content: const Text(
+        'A download is in progress. Are you sure you want to leave?',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('Stay'),
         ),
-        const SizedBox(height: 4),
-        Text(
-          'These dives match existing dives and can be added as '
-          'additional computer data.',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 12),
-        ...candidates.map(
-          (candidate) => _buildCandidateCard(
-            context,
-            candidate,
-            notifier,
-            colorScheme,
-            theme,
-          ),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () async {
-              final messenger = ScaffoldMessenger.of(context);
-              for (final candidate in List.of(candidates)) {
-                try {
-                  await notifier.consolidateDive(candidate);
-                } catch (_) {
-                  // Continue with remaining candidates on error.
-                }
-              }
-              if (mounted) {
-                messenger.showSnackBar(
-                  const SnackBar(content: Text('All matches consolidated.')),
-                );
-              }
-            },
-            icon: const Icon(Icons.merge),
-            label: const Text('Consolidate All'),
-          ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text('Leave'),
         ),
       ],
-    );
-  }
-
-  Widget _buildCandidateCard(
-    BuildContext context,
-    DuplicateCandidate candidate,
-    DownloadNotifier notifier,
-    ColorScheme colorScheme,
-    ThemeData theme,
-  ) {
-    final matchPercent = (candidate.matchScore * 100).round();
-    final depth = candidate.dive.maxDepth.toStringAsFixed(1);
-    final minutes = candidate.dive.durationSeconds ~/ 60;
-    final dt = candidate.dive.startTime;
-    final dateStr =
-        '${_monthName(dt.month)} ${dt.day}, ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      color: colorScheme.surfaceContainerHighest,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '$dateStr — ${depth}m / ${minutes}min',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '$matchPercent% match with existing dive',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                FilledButton.tonal(
-                  onPressed: () async {
-                    final messenger = ScaffoldMessenger.of(context);
-                    try {
-                      await notifier.consolidateDive(candidate);
-                      if (mounted) {
-                        messenger.showSnackBar(
-                          const SnackBar(content: Text('Dive consolidated.')),
-                        );
-                      }
-                    } catch (e) {
-                      if (mounted) {
-                        messenger.showSnackBar(
-                          SnackBar(content: Text('Consolidation failed: $e')),
-                        );
-                      }
-                    }
-                  },
-                  child: const Text('Consolidate'),
-                ),
-                const SizedBox(width: 8),
-                OutlinedButton(
-                  onPressed: () => notifier.skipConsolidation(candidate),
-                  child: const Text('Skip'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _monthName(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return months[month - 1];
-  }
-
-  Widget _buildImportResults(BuildContext context, DownloadState state) {
-    final result = state.importResult!;
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    // Show "up to date" message when incremental download finds nothing new
-    if (result.imported == 0 && result.skipped == 0 && result.updated == 0) {
-      return Card(
-        margin: const EdgeInsets.only(top: 16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(Icons.check_circle_outline, color: colorScheme.primary),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  context.l10n.diveComputer_download_upToDate,
-                  style: theme.textTheme.bodyMedium,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Card(
-      margin: const EdgeInsets.only(top: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.sync, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveComputer_download_importResults,
-                  style: theme.textTheme.titleSmall,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (result.imported > 0)
-              _buildImportStatRow(
-                context,
-                Icons.add_circle_outline,
-                context.l10n.diveComputer_download_newDivesImported,
-                result.imported,
-                colorScheme.primary,
-              ),
-            if (result.skipped > 0)
-              _buildImportStatRow(
-                context,
-                Icons.skip_next,
-                context.l10n.diveComputer_download_duplicatesSkipped,
-                result.skipped,
-                colorScheme.onSurfaceVariant,
-              ),
-            if (result.updated > 0)
-              _buildImportStatRow(
-                context,
-                Icons.update,
-                context.l10n.diveComputer_download_divesUpdated,
-                result.updated,
-                colorScheme.secondary,
-              ),
-            if (state.pendingConsolidations.isNotEmpty) ...[
-              const Divider(height: 24),
-              _buildConsolidationSection(context, state),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImportStatRow(
-    BuildContext context,
-    IconData icon,
-    String label,
-    int count,
-    Color iconColor,
-  ) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(icon, color: iconColor, size: 18),
-          const SizedBox(width: 8),
-          Text(label, style: theme.textTheme.bodyMedium),
-          const Spacer(),
-          Text(
-            '$count',
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.month}/${date.day}/${date.year}';
-  }
+    ),
+  );
+  return result ?? false;
 }
