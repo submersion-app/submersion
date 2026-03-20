@@ -153,6 +153,7 @@ class DeviceDetailPage extends ConsumerWidget {
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 8),
+            _buildInfoRow(context, 'Name', computer.name),
             _buildInfoRow(
               context,
               'Manufacturer',
