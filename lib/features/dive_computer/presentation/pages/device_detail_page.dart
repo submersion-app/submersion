@@ -143,21 +143,9 @@ class DeviceDetailPage extends ConsumerWidget {
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        computer.fullName,
-                        style: theme.textTheme.titleLarge,
-                      ),
-                      if (computer.serialNumber != null)
-                        Text(
-                          'S/N: ${computer.serialNumber}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                    ],
+                  child: Text(
+                    computer.fullName,
+                    style: theme.textTheme.titleLarge,
                   ),
                 ),
               ],
