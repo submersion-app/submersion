@@ -3846,6 +3846,7 @@ class _SitePickerSheetState extends ConsumerState<_SitePickerSheet> {
               suffixIcon: normalizedQuery.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear),
+<<<<<<< HEAD
                       tooltip: context
                           .l10n
                           .diveLog_speciesPicker_tooltip_clearSearch,
