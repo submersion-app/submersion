@@ -3846,7 +3846,9 @@ class _SitePickerSheetState extends ConsumerState<_SitePickerSheet> {
               suffixIcon: normalizedQuery.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear),
-                      tooltip: context.l10n.diveLog_speciesPicker_tooltip_clearSearch,
+                      tooltip: context
+                          .l10n
+                          .diveLog_speciesPicker_tooltip_clearSearch,
                       onPressed: () {
                         _searchController.clear();
                         setState(() => _searchQuery = '');
@@ -3921,7 +3923,9 @@ class _SitePickerSheetState extends ConsumerState<_SitePickerSheet> {
               if (visibleSites.isEmpty) {
                 return Center(
                   child: Text(
-                    context.l10n.diveSites_list_search_noResults(_searchQuery.trim()),
+                    context.l10n.diveSites_list_search_noResults(
+                      _searchQuery.trim(),
+                    ),
                     style: Theme.of(context).textTheme.titleMedium,
                     textAlign: TextAlign.center,
                   ),
