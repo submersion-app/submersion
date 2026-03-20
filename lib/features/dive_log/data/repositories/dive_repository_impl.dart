@@ -1315,6 +1315,10 @@ class DiveRepository {
         args.add(Variable(diveId));
       }
     }
+    if (filter.computerSerial != null) {
+      clauses.add('d.dive_computer_serial = ?');
+      args.add(Variable(filter.computerSerial!));
+    }
     if (filter.minO2Percent != null || filter.maxO2Percent != null) {
       final tankClauses = <String>[];
       if (filter.minO2Percent != null) {
