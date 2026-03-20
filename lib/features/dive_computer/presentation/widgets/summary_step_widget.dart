@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Widget for the summary step of the discovery wizard.
@@ -250,12 +251,12 @@ class SummaryStepWidget extends ConsumerWidget {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    final dive = candidate.dive;
-    final date = dive.startTime;
-    final dateStr =
-        '${date.month}/${date.day}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-    final depthStr = '${dive.maxDepth.toStringAsFixed(1)}m';
-    final durationStr = '${dive.durationSeconds ~/ 60}min';
+    final imported = candidate.dive;
+    final importedDate = imported.startTime;
+    final importedDateStr =
+        '${importedDate.month}/${importedDate.day}/${importedDate.year} '
+        '${importedDate.hour.toString().padLeft(2, '0')}:'
+        '${importedDate.minute.toString().padLeft(2, '0')}';
     final matchPercent = (candidate.matchScore * 100).toStringAsFixed(0);
 
     return Card(
@@ -265,24 +266,94 @@ class SummaryStepWidget extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '$dateStr  $depthStr / $durationStr',
-              style: theme.textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '$matchPercent% match with existing dive',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+            // Match confidence header
+            Row(
+              children: [
+                Icon(
+                  Icons.compare_arrows,
+                  size: 16,
+                  color: colorScheme.tertiary,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '$matchPercent% match',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: colorScheme.tertiary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
+
+            // Side-by-side comparison
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Existing dive (left)
+                Expanded(
+                  child: Consumer(
+                    builder: (context, ref, _) => _buildExistingDiveColumn(
+                      context,
+                      ref,
+                      candidate.matchedDiveId,
+                      theme,
+                      colorScheme,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Imported dive (right)
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Imported',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(importedDateStr, style: theme.textTheme.bodySmall),
+                      Text(
+                        '${imported.maxDepth.toStringAsFixed(1)}m / '
+                        '${imported.durationSeconds ~/ 60}min',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Action buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
                   onPressed: () => notifier.skipConsolidation(candidate),
                   child: const Text('Skip'),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton(
+                  onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    try {
+                      await notifier.importCandidateAsNew(candidate);
+                      messenger.showSnackBar(
+                        const SnackBar(
+                          content: Text('Imported as separate dive.'),
+                        ),
+                      );
+                    } catch (e) {
+                      messenger.showSnackBar(
+                        SnackBar(content: Text('Import failed: $e')),
+                      );
+                    }
+                  },
+                  child: const Text('Import as New'),
                 ),
                 const SizedBox(width: 8),
                 FilledButton.tonal(
@@ -308,6 +379,61 @@ class SummaryStepWidget extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildExistingDiveColumn(
+    BuildContext context,
+    WidgetRef ref,
+    String diveId,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
+    final existingAsync = ref.watch(diveProvider(diveId));
+
+    return existingAsync.when(
+      data: (dive) {
+        if (dive == null) {
+          return Text('Existing dive', style: theme.textTheme.bodySmall);
+        }
+        final date = dive.entryTime ?? dive.effectiveEntryTime;
+        final dateStr =
+            '${date.month}/${date.day}/${date.year} '
+            '${date.hour.toString().padLeft(2, '0')}:'
+            '${date.minute.toString().padLeft(2, '0')}';
+        final diveNum = dive.diveNumber;
+        final durationMin = dive.duration?.inMinutes;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Existing Dive${diveNum != null ? ' #$diveNum' : ''}',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(dateStr, style: theme.textTheme.bodySmall),
+            Text(
+              '${dive.maxDepth?.toStringAsFixed(1) ?? '?'}m / '
+              '${durationMin != null ? '${durationMin}min' : '?'}',
+              style: theme.textTheme.bodySmall,
+            ),
+            if (dive.diveComputerModel != null)
+              Text(
+                dive.diveComputerModel!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+          ],
+        );
+      },
+      loading: () => const SizedBox(
+        height: 40,
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      ),
+      error: (_, _) => Text('Existing dive', style: theme.textTheme.bodySmall),
     );
   }
 

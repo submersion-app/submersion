@@ -279,9 +279,8 @@ class DiveImportService {
                 ),
               );
             } else if (defaultResolution == ConflictResolution.skip) {
-              // Skip the dive but record it as a consolidation candidate
-              // so the caller can offer a post-download review step.
-              skipped++;
+              // Record as a consolidation candidate for post-download review.
+              // Don't count as "skipped" — pending review is a distinct state.
               duplicateCandidates.add(
                 DuplicateCandidate(
                   dive: dive,
@@ -432,6 +431,18 @@ class DiveImportService {
     );
 
     return diveId;
+  }
+
+  /// Import a single dive as a new dive, ignoring any duplicate match.
+  ///
+  /// Used when the user explicitly chooses "Import as New" from the
+  /// post-download consolidation review.
+  Future<String> importSingleDiveAsNew(
+    DownloadedDive dive, {
+    required String computerId,
+    String? diverId,
+  }) async {
+    return _importNewDive(dive, computerId, diverId);
   }
 
   /// Update an existing dive with downloaded data.

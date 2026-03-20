@@ -394,20 +394,30 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       secondaryProfile: secondaryProfile,
     );
 
-    // Remove the candidate from pending list.
-    state = state.copyWith(
-      pendingConsolidations: state.pendingConsolidations
-          .where(
-            (c) =>
-                c.matchedDiveId != candidate.matchedDiveId ||
-                c.dive.startTime != candidate.dive.startTime,
-          )
-          .toList(),
+    _removeCandidateFromState(candidate);
+  }
+
+  /// Import a consolidation candidate as a brand-new separate dive.
+  Future<void> importCandidateAsNew(DuplicateCandidate candidate) async {
+    final computer = _autoImportComputer;
+    if (computer == null) return;
+
+    await _importService.importSingleDiveAsNew(
+      candidate.dive,
+      computerId: computer.id,
+      diverId: _autoImportDiverId,
     );
+
+    _removeCandidateFromState(candidate);
   }
 
   /// Dismiss a consolidation candidate without performing the consolidation.
   void skipConsolidation(DuplicateCandidate candidate) {
+    _removeCandidateFromState(candidate);
+  }
+
+  /// Remove a candidate from the pending consolidations list.
+  void _removeCandidateFromState(DuplicateCandidate candidate) {
     state = state.copyWith(
       pendingConsolidations: state.pendingConsolidations
           .where(
