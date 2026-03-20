@@ -8,21 +8,29 @@ import 'package:submersion/features/dive_computer/data/services/dive_import_serv
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 
-@GenerateMocks([DiveComputerRepository, DiveImportService, DiveComputerService])
+@GenerateMocks([
+  DiveComputerRepository,
+  DiveImportService,
+  DiveComputerService,
+  DiveRepository,
+])
 import 'download_notifier_fingerprint_test.mocks.dart';
 
 void main() {
   late MockDiveComputerRepository mockRepository;
   late MockDiveImportService mockImportService;
   late MockDiveComputerService mockService;
+  late MockDiveRepository mockDiveRepository;
   late DownloadNotifier notifier;
 
   setUp(() {
     mockRepository = MockDiveComputerRepository();
     mockImportService = MockDiveImportService();
     mockService = MockDiveComputerService();
+    mockDiveRepository = MockDiveRepository();
 
     when(mockService.downloadEvents).thenAnswer((_) => const Stream.empty());
 
@@ -30,6 +38,7 @@ void main() {
       service: mockService,
       importService: mockImportService,
       repository: mockRepository,
+      diveRepository: mockDiveRepository,
     );
   });
 

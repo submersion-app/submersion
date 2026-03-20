@@ -4,7 +4,11 @@ import 'package:flutter/foundation.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:drift/drift.dart' show Value;
+import 'package:submersion/core/database/database.dart'
+    show DiveComputerDataCompanion, DiveProfilesCompanion;
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
@@ -13,6 +17,7 @@ import 'package:submersion/features/dive_computer/domain/entities/device_model.d
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/fingerprint_utils.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
+import 'package:uuid/uuid.dart';
 
 /// Provider for the dive computer repository.
 final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
@@ -46,6 +51,9 @@ class DownloadState {
   final String? serialNumber;
   final String? firmwareVersion;
 
+  /// Dives skipped as duplicates that the user can choose to consolidate.
+  final List<DuplicateCandidate> pendingConsolidations;
+
   const DownloadState({
     this.phase = DownloadPhase.initializing,
     this.progress,
@@ -55,6 +63,7 @@ class DownloadState {
     this.newDivesOnly = true,
     this.serialNumber,
     this.firmwareVersion,
+    this.pendingConsolidations = const [],
   });
 
   DownloadState copyWith({
@@ -66,6 +75,7 @@ class DownloadState {
     bool? newDivesOnly,
     String? serialNumber,
     String? firmwareVersion,
+    List<DuplicateCandidate>? pendingConsolidations,
     bool clearError = false,
     bool clearImportResult = false,
   }) {
@@ -80,6 +90,8 @@ class DownloadState {
       newDivesOnly: newDivesOnly ?? this.newDivesOnly,
       serialNumber: serialNumber ?? this.serialNumber,
       firmwareVersion: firmwareVersion ?? this.firmwareVersion,
+      pendingConsolidations:
+          pendingConsolidations ?? this.pendingConsolidations,
     );
   }
 
@@ -113,6 +125,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   final pigeon.DiveComputerService _service;
   final DiveImportService _importService;
   final DiveComputerRepository _repository;
+  final DiveRepository _diveRepository;
   StreamSubscription<pigeon.DownloadEvent>? _downloadSubscription;
 
   // Stored for auto-import after download completes.
@@ -123,9 +136,11 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
     required pigeon.DiveComputerService service,
     required DiveImportService importService,
     required DiveComputerRepository repository,
+    required DiveRepository diveRepository,
   }) : _service = service,
        _importService = importService,
        _repository = repository,
+       _diveRepository = diveRepository,
        super(const DownloadState());
 
   /// Set whether to download new dives only.
@@ -153,6 +168,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         clearImportResult: true,
         downloadedDives: [],
         progress: DownloadProgress.connecting(),
+        pendingConsolidations: [],
       );
 
       _downloadSubscription?.cancel();
@@ -315,6 +331,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       state = state.copyWith(
         phase: DownloadPhase.complete,
         importResult: result,
+        pendingConsolidations: result.duplicateCandidates,
       );
 
       return result;
@@ -326,6 +343,80 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
 
       return ImportResult.failure('$e');
     }
+  }
+
+  /// Consolidate a duplicate candidate as a secondary computer reading on the
+  /// matched existing dive.
+  ///
+  /// Calls [DiveRepository.consolidateComputer] with the candidate's dive data
+  /// converted to the required Drift companion types.
+  Future<void> consolidateDive(DuplicateCandidate candidate) async {
+    const uuid = Uuid();
+    final now = DateTime.now();
+    final computer = _autoImportComputer;
+
+    final secondaryReading = DiveComputerDataCompanion.insert(
+      id: uuid.v4(),
+      diveId: candidate.matchedDiveId,
+      isPrimary: const Value(false),
+      computerModel: Value(computer?.model),
+      computerSerial: Value(computer?.serialNumber),
+      sourceFormat: const Value('dive_computer'),
+      maxDepth: Value(candidate.dive.maxDepth),
+      avgDepth: Value(candidate.dive.avgDepth),
+      duration: Value(candidate.dive.durationSeconds),
+      waterTemp: Value(candidate.dive.minTemperature),
+      entryTime: Value(candidate.dive.startTime),
+      exitTime: Value(candidate.dive.endTime),
+      importedAt: now,
+      createdAt: now,
+    );
+
+    final secondaryProfile = candidate.dive.profile
+        .map(
+          (p) => DiveProfilesCompanion.insert(
+            id: uuid.v4(),
+            diveId: candidate.matchedDiveId,
+            isPrimary: const Value(false),
+            timestamp: p.timeSeconds,
+            depth: p.depth,
+            temperature: Value(p.temperature),
+            pressure: Value(p.pressure),
+            setpoint: Value(p.setpoint),
+            ppO2: Value(p.ppo2),
+          ),
+        )
+        .toList();
+
+    await _diveRepository.consolidateComputer(
+      targetDiveId: candidate.matchedDiveId,
+      secondaryReading: secondaryReading,
+      secondaryProfile: secondaryProfile,
+    );
+
+    // Remove the candidate from pending list.
+    state = state.copyWith(
+      pendingConsolidations: state.pendingConsolidations
+          .where(
+            (c) =>
+                c.matchedDiveId != candidate.matchedDiveId ||
+                c.dive.startTime != candidate.dive.startTime,
+          )
+          .toList(),
+    );
+  }
+
+  /// Dismiss a consolidation candidate without performing the consolidation.
+  void skipConsolidation(DuplicateCandidate candidate) {
+    state = state.copyWith(
+      pendingConsolidations: state.pendingConsolidations
+          .where(
+            (c) =>
+                c.matchedDiveId != candidate.matchedDiveId ||
+                c.dive.startTime != candidate.dive.startTime,
+          )
+          .toList(),
+    );
   }
 
   /// Reset the download state.
@@ -348,11 +439,13 @@ final downloadNotifierProvider =
       final service = ref.watch(diveComputerServiceProvider);
       final importService = ref.watch(diveImportServiceProvider);
       final repository = ref.watch(diveComputerRepositoryProvider);
+      final diveRepository = ref.watch(diveRepositoryProvider);
 
       return DownloadNotifier(
         service: service,
         importService: importService,
         repository: repository,
+        diveRepository: diveRepository,
       );
     });
 

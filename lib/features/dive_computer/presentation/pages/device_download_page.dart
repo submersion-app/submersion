@@ -474,6 +474,10 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
           if (state.importResult != null)
             _buildImportResults(context, state.importResult!),
 
+          // Consolidation review (shown when duplicates were skipped)
+          if (state.pendingConsolidations.isNotEmpty)
+            _buildConsolidationSection(context, state),
+
           const Spacer(),
 
           // Action buttons based on state
@@ -723,6 +727,169 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildConsolidationSection(BuildContext context, DownloadState state) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final notifier = ref.read(downloadNotifierProvider.notifier);
+    final candidates = state.pendingConsolidations;
+
+    return Card(
+      margin: const EdgeInsets.only(top: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.merge, color: colorScheme.secondary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Potential Matches (${candidates.length})',
+                    style: theme.textTheme.titleSmall,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'These dives match existing dives and can be added as '
+              'additional computer data.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...candidates.map(
+              (candidate) => _buildCandidateCard(
+                context,
+                candidate,
+                notifier,
+                colorScheme,
+                theme,
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  for (final candidate in List.of(candidates)) {
+                    try {
+                      await notifier.consolidateDive(candidate);
+                    } catch (_) {
+                      // Continue with remaining candidates on error.
+                    }
+                  }
+                  if (mounted) {
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('All matches consolidated.'),
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.merge),
+                label: const Text('Consolidate All'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCandidateCard(
+    BuildContext context,
+    DuplicateCandidate candidate,
+    DownloadNotifier notifier,
+    ColorScheme colorScheme,
+    ThemeData theme,
+  ) {
+    final matchPercent = (candidate.matchScore * 100).round();
+    final depth = candidate.dive.maxDepth.toStringAsFixed(1);
+    final minutes = candidate.dive.durationSeconds ~/ 60;
+    final dt = candidate.dive.startTime;
+    final dateStr =
+        '${_monthName(dt.month)} ${dt.day}, ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      color: colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$dateStr — ${depth}m / ${minutes}min',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '$matchPercent% match with existing dive',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                FilledButton.tonal(
+                  onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    try {
+                      await notifier.consolidateDive(candidate);
+                      if (mounted) {
+                        messenger.showSnackBar(
+                          const SnackBar(content: Text('Dive consolidated.')),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        messenger.showSnackBar(
+                          SnackBar(content: Text('Consolidation failed: $e')),
+                        );
+                      }
+                    }
+                  },
+                  child: const Text('Consolidate'),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton(
+                  onPressed: () => notifier.skipConsolidation(candidate),
+                  child: const Text('Skip'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _monthName(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return months[month - 1];
   }
 
   Widget _buildImportResults(BuildContext context, ImportResult result) {
