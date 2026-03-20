@@ -176,12 +176,6 @@ class DeviceDetailPage extends ConsumerWidget {
               'Connection',
               _getConnectionName(computer.connectionType),
             ),
-            if (computer.bluetoothAddress != null)
-              _buildInfoRow(
-                context,
-                'Bluetooth Address',
-                computer.bluetoothAddress!,
-              ),
           ],
         ),
       ),
@@ -640,12 +634,16 @@ class DeviceDetailPage extends ConsumerWidget {
 
   IconData _getConnectionIcon(String? connectionType) {
     switch (connectionType?.toLowerCase()) {
+      case 'ble':
       case 'bluetooth':
+      case 'bluetoothclassic':
         return Icons.bluetooth;
       case 'usb':
         return Icons.usb;
       case 'wifi':
         return Icons.wifi;
+      case 'infrared':
+        return Icons.sensors;
       default:
         return Icons.watch;
     }
@@ -653,7 +651,10 @@ class DeviceDetailPage extends ConsumerWidget {
 
   String _getConnectionName(String? connectionType) {
     switch (connectionType?.toLowerCase()) {
+      case 'ble':
+        return 'Bluetooth LE';
       case 'bluetooth':
+      case 'bluetoothclassic':
         return 'Bluetooth';
       case 'usb':
         return 'USB';
