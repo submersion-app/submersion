@@ -1468,45 +1468,16 @@ class DiveRepository {
     }
   }
 
-  /// Get the dive number based on chronological position for a given date
-  /// Counts how many dives exist before [dateTime] and returns count + startFrom
-  /// This ensures dive numbers match chronological order
+  /// Get the next dive number for a given date.
+  ///
+  /// Delegates to [getNextDiveNumber] (MAX + 1) to avoid duplicate numbers
+  /// when importing from multiple computers with overlapping dates.
   Future<int> getDiveNumberForDate(
     DateTime dateTime, {
     String? diverId,
     int startFrom = 1,
   }) async {
-    try {
-      final timestamp = dateTime.millisecondsSinceEpoch;
-      final String sql;
-      final List<Object> args;
-
-      if (diverId != null) {
-        sql = '''
-          SELECT COUNT(*) as count FROM dives
-          WHERE diver_id = ? AND (
-            entry_time < ? OR (entry_time IS NULL AND dive_date_time < ?)
-          )
-        ''';
-        args = [diverId, timestamp, timestamp];
-      } else {
-        sql = '''
-          SELECT COUNT(*) as count FROM dives
-          WHERE entry_time < ? OR (entry_time IS NULL AND dive_date_time < ?)
-        ''';
-        args = [timestamp, timestamp];
-      }
-
-      final result = await _db
-          .customSelect(sql, variables: args.map((a) => Variable(a)).toList())
-          .getSingle();
-
-      final count = result.data['count'] as int;
-      return count + startFrom;
-    } catch (e, stackTrace) {
-      _log.error('Failed to get dive number for date', e, stackTrace);
-      rethrow;
-    }
+    return getNextDiveNumber(diverId: diverId);
   }
 
   /// Search dives by notes or buddy name
