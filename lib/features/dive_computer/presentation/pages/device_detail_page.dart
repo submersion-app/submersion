@@ -522,13 +522,17 @@ class DeviceDetailPage extends ConsumerWidget {
     // Get all dives, filter to those from this computer, set filter by IDs
     final divesAsync = ref.read(diveListNotifierProvider);
     divesAsync.whenData((dives) {
+      final hasSerial =
+          computer.serialNumber != null && computer.serialNumber!.isNotEmpty;
       final matchingIds = dives
-          .where(
-            (d) =>
-                d.diveComputerModel == computer.fullName ||
-                (d.diveComputerSerial != null &&
-                    d.diveComputerSerial == computer.serialNumber),
-          )
+          .where((d) {
+            // Prefer serial number match (unique per device)
+            if (hasSerial && d.diveComputerSerial != null) {
+              return d.diveComputerSerial == computer.serialNumber;
+            }
+            // Fall back to model name only if serial unavailable
+            return d.diveComputerModel == computer.fullName;
+          })
           .map((d) => d.id)
           .toList();
 
