@@ -412,144 +412,156 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
 
     return Padding(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          // Incremental download toggle (only when computer has a fingerprint)
-          if (_computer?.lastDiveFingerprint != null &&
-              !state.isDownloading &&
-              !state.isComplete &&
-              !state.hasError)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: SwitchListTile(
-                title: Text(
-                  context.l10n.diveComputer_download_newDivesOnlyTitle,
-                  style: theme.textTheme.bodyMedium,
-                ),
-                subtitle: Text(
-                  context.l10n.diveComputer_download_newDivesOnlySubtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                value: state.newDivesOnly,
-                onChanged: (value) {
-                  ref
-                      .read(downloadNotifierProvider.notifier)
-                      .setNewDivesOnly(value);
-                },
-              ),
-            ),
-
-          // Progress indicator
-          _buildProgressIndicator(state, colorScheme),
-          const SizedBox(height: 16),
-
-          // Status text
-          Text(
-            _statusText(context, state),
-            style: theme.textTheme.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-
-          // Progress percentage
-          if (state.progress != null && state.progress!.totalDives > 0)
-            Text(
-              context.l10n.diveComputer_download_progressPercent(
-                (state.progress!.percentage * 100).toStringAsFixed(0),
-              ),
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
-              ),
-            ),
-
-          const SizedBox(height: 16),
-
-          // Downloaded dives count
-          if (state.downloadedDives.isNotEmpty) _buildDivesList(context, state),
-
-          // Import results (shown after import completes)
-          if (state.importResult != null)
-            _buildImportResults(context, state.importResult!),
-
-          // Consolidation review (shown when duplicates were skipped)
-          if (state.pendingConsolidations.isNotEmpty)
-            _buildConsolidationSection(context, state),
-
-          const Spacer(),
-
-          // Action buttons based on state
-          if (state.isDownloading)
-            OutlinedButton.icon(
-              onPressed: () {
-                ref.read(downloadNotifierProvider.notifier).cancelDownload();
-              },
-              icon: const Icon(Icons.cancel),
-              label: Text(context.l10n.diveComputer_download_cancel),
-            ),
-
-          if (state.isComplete)
-            FilledButton.icon(
-              onPressed: () => context.pop(),
-              icon: const Icon(Icons.check),
-              label: Text(context.l10n.diveComputer_download_done),
-            ),
-
-          // Error state
-          if (state.hasError)
-            Column(
+      child: CustomScrollView(
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Column(
               children: [
-                Card(
-                  color: colorScheme.errorContainer,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Icon(Icons.error, color: colorScheme.error),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            state.errorMessage ??
-                                context
-                                    .l10n
-                                    .diveComputer_download_errorOccurred,
-                            style: TextStyle(
-                              color: colorScheme.onErrorContainer,
-                            ),
+                // Incremental download toggle (only when computer has a fingerprint)
+                if (_computer?.lastDiveFingerprint != null &&
+                    !state.isDownloading &&
+                    !state.isComplete &&
+                    !state.hasError)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: SwitchListTile(
+                      title: Text(
+                        context.l10n.diveComputer_download_newDivesOnlyTitle,
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                      subtitle: Text(
+                        context.l10n.diveComputer_download_newDivesOnlySubtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      value: state.newDivesOnly,
+                      onChanged: (value) {
+                        ref
+                            .read(downloadNotifierProvider.notifier)
+                            .setNewDivesOnly(value);
+                      },
+                    ),
+                  ),
+
+                // Progress indicator
+                _buildProgressIndicator(state, colorScheme),
+                const SizedBox(height: 16),
+
+                // Status text
+                Text(
+                  _statusText(context, state),
+                  style: theme.textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+
+                // Progress percentage
+                if (state.progress != null && state.progress!.totalDives > 0)
+                  Text(
+                    context.l10n.diveComputer_download_progressPercent(
+                      (state.progress!.percentage * 100).toStringAsFixed(0),
+                    ),
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+
+                const SizedBox(height: 16),
+
+                // Downloaded dives count
+                if (state.downloadedDives.isNotEmpty)
+                  _buildDivesList(context, state),
+
+                // Import results + consolidation review (shown after import completes)
+                if (state.importResult != null)
+                  _buildImportResults(context, state),
+
+                const Spacer(),
+
+                // Action buttons based on state
+                if (state.isDownloading)
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      ref
+                          .read(downloadNotifierProvider.notifier)
+                          .cancelDownload();
+                    },
+                    icon: const Icon(Icons.cancel),
+                    label: Text(context.l10n.diveComputer_download_cancel),
+                  ),
+
+                if (state.isComplete)
+                  FilledButton.icon(
+                    onPressed: () => context.pop(),
+                    icon: const Icon(Icons.check),
+                    label: Text(context.l10n.diveComputer_download_done),
+                  ),
+
+                // Error state
+                if (state.hasError)
+                  Column(
+                    children: [
+                      Card(
+                        color: colorScheme.errorContainer,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error, color: colorScheme.error),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  state.errorMessage ??
+                                      context
+                                          .l10n
+                                          .diveComputer_download_errorOccurred,
+                                  style: TextStyle(
+                                    color: colorScheme.onErrorContainer,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          OutlinedButton(
+                            onPressed: () => context.pop(),
+                            child: Text(
+                              context.l10n.diveComputer_download_cancel,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          FilledButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _hasStartedDownload = false;
+                                _hasInvalidatedDiveList = false;
+                                _discoveredDevice = null;
+                              });
+                              ref
+                                  .read(downloadNotifierProvider.notifier)
+                                  .reset();
+                              _startScanAndConnect();
+                            },
+                            icon: const Icon(Icons.refresh),
+                            label: Text(
+                              context.l10n.diveComputer_download_retry,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => context.pop(),
-                      child: Text(context.l10n.diveComputer_download_cancel),
-                    ),
-                    const SizedBox(width: 16),
-                    FilledButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _hasStartedDownload = false;
-                          _hasInvalidatedDiveList = false;
-                          _discoveredDevice = null;
-                        });
-                        ref.read(downloadNotifierProvider.notifier).reset();
-                        _startScanAndConnect();
-                      },
-                      icon: const Icon(Icons.refresh),
-                      label: Text(context.l10n.diveComputer_download_retry),
-                    ),
-                  ],
-                ),
               ],
             ),
+          ),
         ],
       ),
     );
@@ -735,71 +747,63 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     final notifier = ref.read(downloadNotifierProvider.notifier);
     final candidates = state.pendingConsolidations;
 
-    return Card(
-      margin: const EdgeInsets.only(top: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Row(
-              children: [
-                Icon(Icons.merge, color: colorScheme.secondary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Potential Matches (${candidates.length})',
-                    style: theme.textTheme.titleSmall,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'These dives match existing dives and can be added as '
-              'additional computer data.',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 12),
-            ...candidates.map(
-              (candidate) => _buildCandidateCard(
-                context,
-                candidate,
-                notifier,
-                colorScheme,
-                theme,
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () async {
-                  final messenger = ScaffoldMessenger.of(context);
-                  for (final candidate in List.of(candidates)) {
-                    try {
-                      await notifier.consolidateDive(candidate);
-                    } catch (_) {
-                      // Continue with remaining candidates on error.
-                    }
-                  }
-                  if (mounted) {
-                    messenger.showSnackBar(
-                      const SnackBar(
-                        content: Text('All matches consolidated.'),
-                      ),
-                    );
-                  }
-                },
-                icon: const Icon(Icons.merge),
-                label: const Text('Consolidate All'),
+            Icon(Icons.merge, color: colorScheme.secondary),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Potential Matches (${candidates.length})',
+                style: theme.textTheme.titleSmall,
               ),
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 4),
+        Text(
+          'These dives match existing dives and can be added as '
+          'additional computer data.',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...candidates.map(
+          (candidate) => _buildCandidateCard(
+            context,
+            candidate,
+            notifier,
+            colorScheme,
+            theme,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              final messenger = ScaffoldMessenger.of(context);
+              for (final candidate in List.of(candidates)) {
+                try {
+                  await notifier.consolidateDive(candidate);
+                } catch (_) {
+                  // Continue with remaining candidates on error.
+                }
+              }
+              if (mounted) {
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('All matches consolidated.')),
+                );
+              }
+            },
+            icon: const Icon(Icons.merge),
+            label: const Text('Consolidate All'),
+          ),
+        ),
+      ],
     );
   }
 
@@ -892,7 +896,8 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     return months[month - 1];
   }
 
-  Widget _buildImportResults(BuildContext context, ImportResult result) {
+  Widget _buildImportResults(BuildContext context, DownloadState state) {
+    final result = state.importResult!;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -960,6 +965,10 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
                 result.updated,
                 colorScheme.secondary,
               ),
+            if (state.pendingConsolidations.isNotEmpty) ...[
+              const Divider(height: 24),
+              _buildConsolidationSection(context, state),
+            ],
           ],
         ),
       ),
