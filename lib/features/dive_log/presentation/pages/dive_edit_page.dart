@@ -3791,7 +3791,7 @@ class _SitePickerSheetState extends ConsumerState<_SitePickerSheet> {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final sitesAsync = ref.watch(sitesProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final normalizedQuery = _searchQuery.trim().toLowerCase();
