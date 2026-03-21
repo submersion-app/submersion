@@ -658,6 +658,9 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(true))();
   BoolColumn get showPressureThresholdMarkers =>
       boolean().withDefault(const Constant(false))();
+  // Dive list view mode (v51)
+  TextColumn get diveListViewMode =>
+      text().withDefault(const Constant('detailed'))();
   // Dive profile chart defaults
   TextColumn get defaultRightAxisMetric =>
       text().withDefault(const Constant('temperature'))();
@@ -1184,7 +1187,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 50;
+  static const int currentSchemaVersion = 51;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -2330,6 +2333,11 @@ class AppDatabase extends _$AppDatabase {
               'ALTER TABLE diver_settings ADD COLUMN apply_default_tank_to_imports INTEGER NOT NULL DEFAULT 0',
             );
           }
+        }
+        if (from < 51) {
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN dive_list_view_mode TEXT NOT NULL DEFAULT 'detailed'",
+          );
         }
       },
       beforeOpen: (details) async {

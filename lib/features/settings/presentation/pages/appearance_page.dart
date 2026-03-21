@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/constants/dive_list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
@@ -90,6 +91,31 @@ class AppearancePage extends ConsumerWidget {
                 },
               ),
             ),
+          // Dive list view mode selector
+          ListTile(
+            leading: const Icon(Icons.view_list),
+            title: const Text('Dive List View'),
+            subtitle: const Text('Default layout for the dive list'),
+            trailing: DropdownButton<DiveListViewMode>(
+              value: settings.diveListViewMode,
+              underline: const SizedBox(),
+              onChanged: (value) {
+                if (value != null) {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setDiveListViewMode(value);
+                  // Also update the runtime provider
+                  ref.read(diveListViewModeProvider.notifier).state = value;
+                }
+              },
+              items: DiveListViewMode.values.map((mode) {
+                return DropdownMenuItem(
+                  value: mode,
+                  child: Text(_getViewModeDisplayName(mode)),
+                );
+              }).toList(),
+            ),
+          ),
           SwitchListTile(
             title: Text(
               context.l10n.settings_appearance_mapBackgroundDiveCards,
@@ -340,6 +366,14 @@ class AppearancePage extends ConsumerWidget {
       default:
         return preset.nameKey;
     }
+  }
+
+  String _getViewModeDisplayName(DiveListViewMode mode) {
+    return switch (mode) {
+      DiveListViewMode.detailed => 'Detailed',
+      DiveListViewMode.compact => 'Compact',
+      DiveListViewMode.dense => 'Dense',
+    };
   }
 
   String _getAttributeDisplayName(

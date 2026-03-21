@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/constants/dive_list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -86,6 +87,7 @@ class DiverSettingsRepository {
               defaultCnsSource: Value(s.defaultCnsSource.toInt()),
               showDepthColoredDiveCards: Value(s.showDepthColoredDiveCards),
               cardColorAttribute: Value(s.cardColorAttribute.name),
+              diveListViewMode: Value(s.diveListViewMode.name),
               cardColorGradientPreset: Value(s.cardColorGradientPreset),
               cardColorGradientStart: Value(s.cardColorGradientStart),
               cardColorGradientEnd: Value(s.cardColorGradientEnd),
@@ -196,6 +198,7 @@ class DiverSettingsRepository {
           defaultCnsSource: Value(settings.defaultCnsSource.toInt()),
           showDepthColoredDiveCards: Value(settings.showDepthColoredDiveCards),
           cardColorAttribute: Value(settings.cardColorAttribute.name),
+          diveListViewMode: Value(settings.diveListViewMode.name),
           cardColorGradientPreset: Value(settings.cardColorGradientPreset),
           cardColorGradientStart: Value(settings.cardColorGradientStart),
           cardColorGradientEnd: Value(settings.cardColorGradientEnd),
@@ -341,6 +344,7 @@ class DiverSettingsRepository {
       defaultTtsSource: MetricDataSource.fromInt(row.defaultTtsSource),
       defaultCnsSource: MetricDataSource.fromInt(row.defaultCnsSource),
       cardColorAttribute: CardColorAttribute.fromName(row.cardColorAttribute),
+      diveListViewMode: DiveListViewMode.fromName(row.diveListViewMode),
       cardColorGradientPreset: row.cardColorGradientPreset,
       cardColorGradientStart: row.cardColorGradientStart,
       cardColorGradientEnd: row.cardColorGradientEnd,

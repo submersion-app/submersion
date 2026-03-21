@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/constants/dive_list_view_mode.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -1146,6 +1147,31 @@ class _AppearanceSectionContentState
                     ),
                   ),
                 const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.view_list),
+                  title: const Text('Dive List View'),
+                  subtitle: const Text('Default layout for the dive list'),
+                  trailing: DropdownButton<DiveListViewMode>(
+                    value: settings.diveListViewMode,
+                    underline: const SizedBox(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        ref
+                            .read(settingsProvider.notifier)
+                            .setDiveListViewMode(value);
+                        ref.read(diveListViewModeProvider.notifier).state =
+                            value;
+                      }
+                    },
+                    items: DiveListViewMode.values.map((mode) {
+                      return DropdownMenuItem(
+                        value: mode,
+                        child: Text(_getViewModeDisplayName(mode)),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const Divider(height: 1),
                 SwitchListTile(
                   title: Text(
                     context.l10n.settings_appearance_mapBackgroundDiveCards,
@@ -1335,6 +1361,14 @@ class _AppearanceSectionContentState
         context.l10n.settings_appearance_cardColorAttribute_duration,
       CardColorAttribute.temperature =>
         context.l10n.settings_appearance_cardColorAttribute_temperature,
+    };
+  }
+
+  String _getViewModeDisplayName(DiveListViewMode mode) {
+    return switch (mode) {
+      DiveListViewMode.detailed => 'Detailed',
+      DiveListViewMode.compact => 'Compact',
+      DiveListViewMode.dense => 'Dense',
     };
   }
 

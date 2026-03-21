@@ -3,6 +3,46 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.3.6 (2026-03-21)
+
+### Features
+
+- add dive list view mode dropdown to Appearance settings
+- integrate view mode toggle and tile switching in dive list
+- add DiveListViewModeToggle segmented button
+- add DenseDiveListTile widget
+- add CompactDiveListTile widget
+- wire DiveListViewMode through settings layer
+- add dive_list_view_mode column to DiverSettings (schema v51)
+- add DiveListViewMode enum
+
+### Bug Fixes
+
+- formatting
+- replace SegmentedButton with PopupMenuButton for view mode toggle
+- add dive list view mode dropdown to desktop settings page
+- normalize wall-clock-as-UTC and local times in media matching
+- open schema version check in read-write mode to allow WAL recovery
+
+### Documentation
+
+- add compact dive list view implementation plan
+- add compact dive list view design spec
+- add multi-computer dive consolidation implementation plan
+- address spec review feedback for multi-computer consolidation
+- add multi-computer dive consolidation design spec
+
+### Chores
+
+- bump version to 1.3.6+81
+- update changelog
+
+### Other
+
+- Fix/air consumption unit conversion (#52)
+- Feature/site picker search (Issue #49) (#51)
+
+
 ## 1.3.5 (2026-03-19)
 
 ### Features

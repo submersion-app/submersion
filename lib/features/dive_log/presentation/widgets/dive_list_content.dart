@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/constants/dive_list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compact_dive_list_tile.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dense_dive_list_tile.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
@@ -851,6 +855,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     return AppBar(
       title: Text(context.l10n.diveLog_listPage_title),
       actions: [
+        DiveListViewModeToggle(
+          currentMode: ref.watch(diveListViewModeProvider),
+          onModeChanged: (mode) {
+            ref.read(diveListViewModeProvider.notifier).state = mode;
+          },
+        ),
         IconButton(
           icon: const Icon(Icons.map),
           tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
@@ -940,6 +950,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
+          DiveListViewModeToggle(
+            currentMode: ref.watch(diveListViewModeProvider),
+            onModeChanged: (mode) {
+              ref.read(diveListViewModeProvider.notifier).state = mode;
+            },
+            iconSize: 18,
+          ),
+          const SizedBox(width: 4),
           if (widget.onMapViewToggle != null)
             MapViewToggleButton(
               isActive: widget.isMapViewActive,
@@ -1181,32 +1199,73 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 final dive = dives[index];
                 final isSelected = _selectedIds.contains(dive.id);
                 final isMasterSelected = widget.selectedId == dive.id;
-                return DiveListTile(
-                  diveId: dive.id,
-                  diveNumber: dive.diveNumber ?? index + 1,
-                  dateTime: dive.dateTime,
-                  siteName: dive.siteName,
-                  siteLocation: dive.siteLocation,
-                  maxDepth: dive.maxDepth,
-                  duration: dive.runtime ?? dive.duration,
-                  waterTemp: dive.waterTemp,
-                  rating: dive.rating,
-                  isFavorite: dive.isFavorite,
-                  tags: dive.tags,
-                  isSelectionMode: _isSelectionMode,
-                  isSelected: isSelected || isMasterSelected,
-                  colorValue: getCardColorValue(dive, colorAttribute),
-                  minValueInList: minValue,
-                  maxValueInList: maxValue,
-                  gradientStartColor: gradientColors.start,
-                  gradientEndColor: gradientColors.end,
-                  siteLatitude: dive.siteLatitude,
-                  siteLongitude: dive.siteLongitude,
-                  onTap: () => _handleItemTap(dive),
-                  onLongPress: _isSelectionMode
-                      ? null
-                      : () => _enterSelectionMode(dive.id),
-                );
+                final viewMode = ref.watch(diveListViewModeProvider);
+                return switch (viewMode) {
+                  DiveListViewMode.detailed => DiveListTile(
+                    diveId: dive.id,
+                    diveNumber: dive.diveNumber ?? index + 1,
+                    dateTime: dive.dateTime,
+                    siteName: dive.siteName,
+                    siteLocation: dive.siteLocation,
+                    maxDepth: dive.maxDepth,
+                    duration: dive.runtime ?? dive.duration,
+                    waterTemp: dive.waterTemp,
+                    rating: dive.rating,
+                    isFavorite: dive.isFavorite,
+                    tags: dive.tags,
+                    isSelectionMode: _isSelectionMode,
+                    isSelected: isSelected || isMasterSelected,
+                    colorValue: getCardColorValue(dive, colorAttribute),
+                    minValueInList: minValue,
+                    maxValueInList: maxValue,
+                    gradientStartColor: gradientColors.start,
+                    gradientEndColor: gradientColors.end,
+                    siteLatitude: dive.siteLatitude,
+                    siteLongitude: dive.siteLongitude,
+                    onTap: () => _handleItemTap(dive),
+                    onLongPress: _isSelectionMode
+                        ? null
+                        : () => _enterSelectionMode(dive.id),
+                  ),
+                  DiveListViewMode.compact => CompactDiveListTile(
+                    diveId: dive.id,
+                    diveNumber: dive.diveNumber ?? index + 1,
+                    dateTime: dive.dateTime,
+                    siteName: dive.siteName,
+                    maxDepth: dive.maxDepth,
+                    duration: dive.runtime ?? dive.duration,
+                    isSelectionMode: _isSelectionMode,
+                    isSelected: isSelected || isMasterSelected,
+                    colorValue: getCardColorValue(dive, colorAttribute),
+                    minValueInList: minValue,
+                    maxValueInList: maxValue,
+                    gradientStartColor: gradientColors.start,
+                    gradientEndColor: gradientColors.end,
+                    onTap: () => _handleItemTap(dive),
+                    onLongPress: _isSelectionMode
+                        ? null
+                        : () => _enterSelectionMode(dive.id),
+                  ),
+                  DiveListViewMode.dense => DenseDiveListTile(
+                    diveId: dive.id,
+                    diveNumber: dive.diveNumber ?? index + 1,
+                    dateTime: dive.dateTime,
+                    siteName: dive.siteName,
+                    maxDepth: dive.maxDepth,
+                    duration: dive.runtime ?? dive.duration,
+                    isSelectionMode: _isSelectionMode,
+                    isSelected: isSelected || isMasterSelected,
+                    colorValue: getCardColorValue(dive, colorAttribute),
+                    minValueInList: minValue,
+                    maxValueInList: maxValue,
+                    gradientStartColor: gradientColors.start,
+                    gradientEndColor: gradientColors.end,
+                    onTap: () => _handleItemTap(dive),
+                    onLongPress: _isSelectionMode
+                        ? null
+                        : () => _enterSelectionMode(dive.id),
+                  ),
+                };
               },
             ),
           ),
