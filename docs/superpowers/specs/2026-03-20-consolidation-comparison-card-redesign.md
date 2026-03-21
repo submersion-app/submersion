@@ -19,7 +19,7 @@ Replace the current side-by-side `_buildCandidateCard` with a hybrid layout that
 #### 1. Match Header
 
 A compact bar containing:
-- **Match percentage badge** (e.g., "98%") with color coding based on `DuplicateConfidence`: green for exact/likely, amber for possible
+- **Match percentage badge** (e.g., "98%") with color coding derived from score thresholds: green for >= 0.9 (high confidence), amber for >= 0.7, red-ish for < 0.7 (since the file import flow uses `DiveMatchResult` which has no `DuplicateConfidence` enum, score-based thresholds work for both flows)
 - **Shared dive data shown once**: date/time and max depth (when they match)
 
 This immediately answers "when was this dive?" without the user scanning two columns.
@@ -99,8 +99,9 @@ The card needs a helper that compares the existing `Dive` with the incoming dive
 #### Unified incoming dive data model
 
 The two import flows use different data types for incoming dives:
+
 - **Dive computer download**: `DownloadedDive` with typed fields and `List<ProfileSample>`
-- **File import**: `Map<String, dynamic>` with keys like `dateTime`, `maxDepth`, `duration`, `siteName`, `profile` (a `List<Map<String, dynamic>>` or absent)
+- **File import**: `Map<String, dynamic>` with typed values (see mapping table below)
 
 To avoid duplicating comparison logic, introduce a lightweight `IncomingDiveData` class that normalizes both sources:
 
@@ -121,8 +122,27 @@ class IncomingDiveData {
 }
 ```
 
+**`fromImportMap` field mapping** (import map key -> `IncomingDiveData` field):
+
+| Import map key | Type | IncomingDiveData field | Notes |
+|----------------|------|----------------------|-------|
+| `dateTime` | `DateTime?` | `startTime` | |
+| `maxDepth` | `double?` | `maxDepth` | |
+| `avgDepth` | `double?` | `avgDepth` | |
+| `runtime` | `Duration?` | `durationSeconds` | Prefer `runtime` over `duration`; convert via `.inSeconds` |
+| `duration` | `Duration?` | `durationSeconds` | Fallback if `runtime` is null |
+| `waterTemp` | `double?` | `waterTemp` | |
+| `diveComputerModel` | `String?` | `computerModel` | Only populated by UDDF parsers; may be null for CSV/FIT/Subsurface |
+| `diveComputerSerial` | `String?` | `computerSerial` | Only populated by UDDF parsers |
+| `siteName` | `String?` | `siteName` | |
+| `profile` | `List<Map>?` | `profile` | Each map has `timestamp` (int) and `depth` (double) keys; convert to `DiveProfilePoint` |
+
+**`fromDownloadedDive` field mapping**: Direct typed access on `DownloadedDive` fields. Computer model/serial come from the optional `DiveComputer` parameter. Profile converts `ProfileSample.timeSeconds` -> `DiveProfilePoint.timestamp`, `ProfileSample.depth` -> `DiveProfilePoint.depth`.
+
 The comparison function then works with this normalized type:
 `DiveComparisonResult compareForConsolidation(Dive existing, IncomingDiveData incoming)`
+
+**Unit formatting**: `IncomingDiveData` stores raw metric values (meters, Celsius). Conversion to the user's preferred units happens at the widget rendering layer via `UnitFormatter`, consistent with the rest of the codebase.
 
 Tolerances:
 - Time: 60 seconds
@@ -132,7 +152,9 @@ Tolerances:
 
 ### Shared Comparison Card Widget
 
-The hybrid card should be a reusable widget (`DiveComparisonCard`) used by both flows. It accepts:
+The hybrid card should be a reusable `ConsumerWidget` (`DiveComparisonCard`) used by both flows. It must be a `ConsumerWidget` because it fetches the existing dive and its profile via Riverpod providers (`diveProvider`, `diveProfileProvider`).
+
+It accepts:
 
 - `IncomingDiveData incoming` -- the normalized incoming dive
 - `String existingDiveId` -- ID of the matched existing dive (fetches `Dive` and profile via providers)
@@ -161,7 +183,7 @@ DiveComparisonCard(
 
 In `import_dive_card.dart`, when a match is detected (`matchResult != null && matchResult.score >= 0.5`), replace the inline `ChoiceChip` resolution row with an expandable `DiveComparisonCard`. The card appears when the user taps to expand the match details.
 
-The `ImportDiveCard` keeps its existing layout (checkbox, title, match badge) but replaces `_buildResolutionRow` with a collapsible section that shows the full `DiveComparisonCard`:
+`ImportDiveCard` must become a `StatefulWidget` to manage the expanded/collapsed toggle state. It keeps its existing layout (checkbox, title, match badge) but replaces `_buildResolutionRow` with a collapsible section that shows the full `DiveComparisonCard`:
 
 ```dart
 DiveComparisonCard(
