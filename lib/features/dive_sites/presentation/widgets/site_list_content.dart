@@ -514,7 +514,8 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             icon: const Icon(Icons.merge_type, size: 20),
             tooltip: context.l10n.diveSites_list_selection_mergeTooltip,
             onPressed: _selectedIds.length > 1
-                ? () => context.push('/sites/merge', extra: _selectedIds.toList())
+                ? () =>
+                      context.push('/sites/merge', extra: _selectedIds.toList())
                 : null,
           ),
           IconButton(
@@ -562,10 +563,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               : null,
         ),
         IconButton(
-          icon: Icon(
-            Icons.delete,
-            color: Theme.of(context).colorScheme.error,
-          ),
+          icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
           tooltip: context.l10n.diveSites_list_selection_deleteTooltip,
           onPressed: _selectedIds.isNotEmpty ? _confirmAndDelete : null,
         ),
