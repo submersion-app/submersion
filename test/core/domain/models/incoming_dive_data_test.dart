@@ -13,9 +13,9 @@ void main() {
         avgDepth: 1.5,
         minTemperature: 26.0,
         profile: [
-          ProfileSample(timeSeconds: 0, depth: 0.0),
-          ProfileSample(timeSeconds: 30, depth: 2.2),
-          ProfileSample(timeSeconds: 60, depth: 0.0),
+          const ProfileSample(timeSeconds: 0, depth: 0.0),
+          const ProfileSample(timeSeconds: 30, depth: 2.2),
+          const ProfileSample(timeSeconds: 60, depth: 0.0),
         ],
       );
       final computer = DiveComputer(
