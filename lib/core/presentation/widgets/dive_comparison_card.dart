@@ -86,6 +86,8 @@ class DiveComparisonCard extends ConsumerWidget {
                 effectiveExistingLabel,
                 units,
                 existingDive.effectiveEntryTime,
+                incoming.startTime,
+                existingDive.site?.name,
               ),
 
               // 2. Overlaid Profiles
@@ -98,10 +100,12 @@ class DiveComparisonCard extends ConsumerWidget {
                   existingProfile: existingProfile,
                   incomingProfile: incoming.profile,
                   existingLabel: _computerLabel(
+                    null,
                     existingDive.diveComputerModel,
                     existingDive.diveComputerSerial,
                   ),
                   incomingLabel: _computerLabel(
+                    incoming.computerName,
                     incoming.computerModel,
                     incoming.computerSerial,
                   ),
@@ -135,21 +139,28 @@ class DiveComparisonCard extends ConsumerWidget {
     DiveComparisonResult comparison,
     String label,
     UnitFormatter units,
-    DateTime diveDateTime,
+    DateTime existingDateTime,
+    DateTime? incomingDateTime,
+    String? siteName,
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final percent = (matchScore * 100).toStringAsFixed(0);
 
-    // Always show date/time, plus any other shared fields.
-    final sharedParts = <String>[
-      '${diveDateTime.month}/${diveDateTime.day}/${diveDateTime.year} '
-          '${diveDateTime.hour.toString().padLeft(2, '0')}:'
-          '${diveDateTime.minute.toString().padLeft(2, '0')}',
-    ];
+    // Format date/times.
+    final existingDateStr = _formatDateTimeStr(existingDateTime);
+    final incomingDateStr = incomingDateTime != null
+        ? _formatDateTimeStr(incomingDateTime)
+        : null;
+
+    // Check if dates are the same (within tolerance, already classified).
+    final datesMatch = comparison.sameFields.any((f) => f.name == 'date/time');
+
+    // Gather shared metric data for the header line.
+    final metricParts = <String>[];
     for (final f in comparison.sameFields) {
       if (f.name == 'max depth' && f.rawValue != null) {
-        sharedParts.add(_formatFieldValue(f.type, f.rawValue, units));
+        metricParts.add(_formatFieldValue(f.type, f.rawValue, units));
       }
     }
 
@@ -159,37 +170,60 @@ class DiveComparisonCard extends ConsumerWidget {
         color: colorScheme.surfaceContainerHighest,
         border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: _badgeColor(colorScheme),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              '$percent%',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+          // First row: badge + date
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: _badgeColor(colorScheme),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$percent%',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  datesMatch
+                      ? existingDateStr
+                      : '$existingDateStr vs ${incomingDateStr ?? "unknown"}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              sharedParts.isNotEmpty
-                  ? sharedParts.join(' \u00b7 ')
-                  : 'Potential match',
+          // Second row: site and shared metrics
+          if (siteName != null || metricParts.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              [if (siteName != null) siteName, ...metricParts].join(' \u00b7 '),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
               overflow: TextOverflow.ellipsis,
             ),
-          ),
+          ],
         ],
       ),
     );
+  }
+
+  static String _formatDateTimeStr(DateTime dt) {
+    return '${dt.month}/${dt.day}/${dt.year} '
+        '${dt.hour.toString().padLeft(2, '0')}:'
+        '${dt.minute.toString().padLeft(2, '0')}';
   }
 
   Widget _buildSameSummary(
@@ -423,15 +457,11 @@ class DiveComparisonCard extends ConsumerWidget {
     }
   }
 
-  String _computerLabel(String? model, String? serial) {
+  String _computerLabel(String? name, String? model, String? serial) {
     final parts = <String>[];
-    if (model != null) parts.add(model);
-    if (serial != null) {
-      final truncated = serial.length > 6
-          ? '...${serial.substring(serial.length - 6)}'
-          : serial;
-      parts.add(truncated);
-    }
+    if (name != null && name.isNotEmpty) parts.add(name);
+    if (model != null && model != name) parts.add(model);
+    if (serial != null) parts.add('S/N: $serial');
     return parts.isEmpty ? 'Unknown' : parts.join(' \u00b7 ');
   }
 }

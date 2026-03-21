@@ -13,6 +13,7 @@ class IncomingDiveData {
   final double? avgDepth;
   final int? durationSeconds;
   final double? waterTemp;
+  final String? computerName;
   final String? computerModel;
   final String? computerSerial;
   final List<DiveProfilePoint> profile;
@@ -24,6 +25,7 @@ class IncomingDiveData {
     this.avgDepth,
     this.durationSeconds,
     this.waterTemp,
+    this.computerName,
     this.computerModel,
     this.computerSerial,
     this.profile = const [],
@@ -41,6 +43,7 @@ class IncomingDiveData {
       avgDepth: dive.avgDepth,
       durationSeconds: dive.durationSeconds,
       waterTemp: dive.minTemperature,
+      computerName: computer?.displayName,
       computerModel: computer?.fullName,
       computerSerial: computer?.serialNumber,
       profile: dive.profile

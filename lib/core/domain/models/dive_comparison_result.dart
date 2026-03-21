@@ -135,12 +135,14 @@ DiveComparisonResult compareForConsolidation(
       name: 'computer',
       type: ComparisonFieldType.text,
       existingText: _formatComputer(
-        existing.diveComputerModel,
-        existing.diveComputerSerial,
+        name: null,
+        model: existing.diveComputerModel,
+        serial: existing.diveComputerSerial,
       ),
       incomingText: _formatComputer(
-        incoming.computerModel,
-        incoming.computerSerial,
+        name: incoming.computerName,
+        model: incoming.computerModel,
+        serial: incoming.computerSerial,
       ),
     ),
   );
@@ -193,14 +195,10 @@ String _formatDateTime(DateTime dt) {
       '${dt.minute.toString().padLeft(2, '0')}';
 }
 
-String _formatComputer(String? model, String? serial) {
+String _formatComputer({String? name, String? model, String? serial}) {
   final parts = <String>[];
-  if (model != null) parts.add(model);
-  if (serial != null) {
-    final truncated = serial.length > 6
-        ? '...${serial.substring(serial.length - 6)}'
-        : serial;
-    parts.add(truncated);
-  }
+  if (name != null && name.isNotEmpty) parts.add(name);
+  if (model != null && model != name) parts.add(model);
+  if (serial != null) parts.add('S/N: $serial');
   return parts.isEmpty ? 'Unknown' : parts.join(' \u00b7 ');
 }
