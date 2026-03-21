@@ -65,16 +65,20 @@ class StatisticsGasPage extends ConsumerWidget {
       title: context.l10n.statistics_gas_sacTrend_title,
       subtitle: context.l10n.statistics_gas_sacTrend_subtitle,
       child: sacTrendAsync.when(
-        data: (data) => TrendLineChart(
-          data: data,
-          lineColor: Colors.blue,
-          valueFormatter: (value) {
-            final converted = sacUnit == SacUnit.litersPerMin
-                ? units.convertVolume(value)
-                : units.convertPressure(value);
-            return '${converted.toStringAsFixed(1)} $unitSymbol';
-          },
-        ),
+        data: (data) {
+          double convert(double v) => sacUnit == SacUnit.litersPerMin
+              ? units.convertVolume(v)
+              : units.convertPressure(v);
+
+          return TrendLineChart(
+            data: data,
+            lineColor: Colors.blue,
+            yAxisLabel: unitSymbol,
+            valueFormatter: (value) =>
+                '${convert(value).toStringAsFixed(1)} $unitSymbol',
+            yAxisFormatter: (value) => convert(value).toStringAsFixed(1),
+          );
+        },
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),

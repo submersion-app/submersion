@@ -13,6 +13,7 @@ class TrendLineChart extends StatelessWidget {
   final bool curved;
   final double height;
   final String Function(double)? valueFormatter;
+  final String Function(double)? yAxisFormatter;
 
   const TrendLineChart({
     super.key,
@@ -23,6 +24,7 @@ class TrendLineChart extends StatelessWidget {
     this.curved = true,
     this.height = 200,
     this.valueFormatter,
+    this.yAxisFormatter,
   });
 
   @override
@@ -130,12 +132,20 @@ class TrendLineChart extends StatelessWidget {
                 ),
               ),
               leftTitles: AxisTitles(
+                axisNameWidget: yAxisLabel != null
+                    ? Text(
+                        yAxisLabel!,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      )
+                    : null,
+                axisNameSize: yAxisLabel != null ? 20 : 0,
                 sideTitles: SideTitles(
                   showTitles: true,
-                  reservedSize: 40,
+                  reservedSize: 50,
                   getTitlesWidget: (value, meta) {
+                    final formatter = yAxisFormatter ?? valueFormatter;
                     return Text(
-                      valueFormatter?.call(value) ?? value.toStringAsFixed(0),
+                      formatter?.call(value) ?? value.toStringAsFixed(0),
                       style: Theme.of(context).textTheme.bodySmall,
                     );
                   },
