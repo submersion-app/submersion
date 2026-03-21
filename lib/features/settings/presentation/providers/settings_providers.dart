@@ -139,6 +139,21 @@ class AppSettings {
   /// Which layout to use for the dive list
   final ListViewMode diveListViewMode;
 
+  /// Which layout to use for the site list
+  final ListViewMode siteListViewMode;
+
+  /// Which layout to use for the trip list
+  final ListViewMode tripListViewMode;
+
+  /// Which layout to use for the equipment list
+  final ListViewMode equipmentListViewMode;
+
+  /// Which layout to use for the buddy list
+  final ListViewMode buddyListViewMode;
+
+  /// Which layout to use for the dive center list
+  final ListViewMode diveCenterListViewMode;
+
   /// Name of the selected gradient preset ('ocean', 'thermal', etc.)
   final String cardColorGradientPreset;
 
@@ -268,6 +283,11 @@ class AppSettings {
     // Appearance defaults
     this.cardColorAttribute = CardColorAttribute.none,
     this.diveListViewMode = ListViewMode.detailed,
+    this.siteListViewMode = ListViewMode.detailed,
+    this.tripListViewMode = ListViewMode.detailed,
+    this.equipmentListViewMode = ListViewMode.detailed,
+    this.buddyListViewMode = ListViewMode.detailed,
+    this.diveCenterListViewMode = ListViewMode.detailed,
     this.cardColorGradientPreset = 'ocean',
     this.cardColorGradientStart,
     this.cardColorGradientEnd,
@@ -374,6 +394,11 @@ class AppSettings {
     MetricDataSource? defaultCnsSource,
     CardColorAttribute? cardColorAttribute,
     ListViewMode? diveListViewMode,
+    ListViewMode? siteListViewMode,
+    ListViewMode? tripListViewMode,
+    ListViewMode? equipmentListViewMode,
+    ListViewMode? buddyListViewMode,
+    ListViewMode? diveCenterListViewMode,
     String? cardColorGradientPreset,
     int? cardColorGradientStart,
     int? cardColorGradientEnd,
@@ -447,6 +472,13 @@ class AppSettings {
       defaultCnsSource: defaultCnsSource ?? this.defaultCnsSource,
       cardColorAttribute: cardColorAttribute ?? this.cardColorAttribute,
       diveListViewMode: diveListViewMode ?? this.diveListViewMode,
+      siteListViewMode: siteListViewMode ?? this.siteListViewMode,
+      tripListViewMode: tripListViewMode ?? this.tripListViewMode,
+      equipmentListViewMode:
+          equipmentListViewMode ?? this.equipmentListViewMode,
+      buddyListViewMode: buddyListViewMode ?? this.buddyListViewMode,
+      diveCenterListViewMode:
+          diveCenterListViewMode ?? this.diveCenterListViewMode,
       cardColorGradientPreset:
           cardColorGradientPreset ?? this.cardColorGradientPreset,
       cardColorGradientStart: clearCardColorGradientStart
@@ -814,6 +846,31 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setDiveListViewMode(ListViewMode mode) async {
     state = state.copyWith(diveListViewMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setSiteListViewMode(ListViewMode mode) async {
+    state = state.copyWith(siteListViewMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setTripListViewMode(ListViewMode mode) async {
+    state = state.copyWith(tripListViewMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setEquipmentListViewMode(ListViewMode mode) async {
+    state = state.copyWith(equipmentListViewMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setBuddyListViewMode(ListViewMode mode) async {
+    state = state.copyWith(buddyListViewMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setDiveCenterListViewMode(ListViewMode mode) async {
+    state = state.copyWith(diveCenterListViewMode: mode);
     await _saveSettings();
   }
 
@@ -1252,4 +1309,29 @@ final tissueVizModeProvider = Provider<TissueVizMode>((ref) {
 final diveListViewModeProvider = StateProvider<ListViewMode>((ref) {
   final settings = ref.read(settingsProvider);
   return settings.diveListViewMode;
+});
+
+final siteListViewModeProvider = StateProvider<ListViewMode>((ref) {
+  final settings = ref.read(settingsProvider);
+  return settings.siteListViewMode;
+});
+
+final tripListViewModeProvider = StateProvider<ListViewMode>((ref) {
+  final settings = ref.read(settingsProvider);
+  return settings.tripListViewMode;
+});
+
+final equipmentListViewModeProvider = StateProvider<ListViewMode>((ref) {
+  final settings = ref.read(settingsProvider);
+  return settings.equipmentListViewMode;
+});
+
+final buddyListViewModeProvider = StateProvider<ListViewMode>((ref) {
+  final settings = ref.read(settingsProvider);
+  return settings.buddyListViewMode;
+});
+
+final diveCenterListViewModeProvider = StateProvider<ListViewMode>((ref) {
+  final settings = ref.read(settingsProvider);
+  return settings.diveCenterListViewMode;
 });

@@ -141,6 +141,21 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDiveListViewMode(ListViewMode mode) async =>
       state = state.copyWith(diveListViewMode: mode);
   @override
+  Future<void> setSiteListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(siteListViewMode: mode);
+  @override
+  Future<void> setTripListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(tripListViewMode: mode);
+  @override
+  Future<void> setEquipmentListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(equipmentListViewMode: mode);
+  @override
+  Future<void> setBuddyListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(buddyListViewMode: mode);
+  @override
+  Future<void> setDiveCenterListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(diveCenterListViewMode: mode);
+  @override
   Future<void> setCardColorGradientPreset(String preset) async =>
       state = state.copyWith(cardColorGradientPreset: preset);
   @override
