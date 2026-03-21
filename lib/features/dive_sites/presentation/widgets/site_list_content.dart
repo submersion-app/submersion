@@ -191,6 +191,25 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     });
   }
 
+  Future<void> _startMerge() async {
+    final mergedId = await context.push<String>(
+      '/sites/merge',
+      extra: _selectedIds.toList(),
+    );
+
+    if (!mounted || mergedId == null) return;
+
+    setState(() {
+      _isSelectionMode = false;
+      _selectedIds.clear();
+    });
+
+    if (widget.onItemSelected != null) {
+      _selectionFromList = true;
+      widget.onItemSelected!(mergedId);
+    }
+  }
+
   Future<void> _confirmAndDelete() async {
     final count = _selectedIds.length;
     final confirmed = await showDialog<bool>(
@@ -513,10 +532,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           IconButton(
             icon: const Icon(Icons.merge_type, size: 20),
             tooltip: context.l10n.diveSites_list_selection_mergeTooltip,
-            onPressed: _selectedIds.length > 1
-                ? () =>
-                      context.push('/sites/merge', extra: _selectedIds.toList())
-                : null,
+            onPressed: _selectedIds.length > 1 ? _startMerge : null,
           ),
           IconButton(
             icon: Icon(
@@ -558,9 +574,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         IconButton(
           icon: const Icon(Icons.merge_type),
           tooltip: context.l10n.diveSites_list_selection_mergeTooltip,
-          onPressed: _selectedIds.length > 1
-              ? () => context.push('/sites/merge', extra: _selectedIds.toList())
-              : null,
+          onPressed: _selectedIds.length > 1 ? _startMerge : null,
         ),
         IconButton(
           icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
