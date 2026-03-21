@@ -53,7 +53,8 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
 
     // Listen for step changes and animate page
     ref.listen<DiscoveryState>(discoveryNotifierProvider, (previous, next) {
-      if (previous?.currentStep != next.currentStep) {
+      if (previous?.currentStep != next.currentStep &&
+          _pageController.hasClients) {
         final stepIndex = DiscoveryStep.values.indexOf(next.currentStep);
         _pageController.animateToPage(
           stepIndex,
