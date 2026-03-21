@@ -515,10 +515,11 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
 
   Future<void> _onDownloadComplete() async {
     // Import is handled automatically by the DownloadNotifier's auto-import.
-    // Just invalidate the dive list so the Dives page refreshes.
+    // Invalidate dive list and computer list so both pages refresh.
     ref.invalidate(divesProvider);
     ref.invalidate(diveListNotifierProvider);
     ref.invalidate(paginatedDiveListProvider);
+    ref.invalidate(allDiveComputersProvider);
 
     ref.read(discoveryNotifierProvider.notifier).goToSummary();
   }

@@ -143,6 +143,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
       ref.invalidate(divesProvider);
       ref.invalidate(diveListNotifierProvider);
       ref.invalidate(paginatedDiveListProvider);
+      ref.invalidate(allDiveComputersProvider);
     }
     setState(() => _phase = _Phase.complete);
   }
