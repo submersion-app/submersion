@@ -64,9 +64,7 @@ void main() {
     );
     expect(nameField.controller!.text, equals('Siet'));
 
-    await tester.tap(find.byIcon(Icons.arrow_drop_down_circle_outlined).first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.textContaining('Site: Site').last);
+    await tester.tap(find.byIcon(Icons.sync_alt).first);
     await tester.pumpAndSettle();
 
     final updatedNameField = tester.widget<TextFormField>(
