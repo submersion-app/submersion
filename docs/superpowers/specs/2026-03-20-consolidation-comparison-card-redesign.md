@@ -2,10 +2,13 @@
 
 ## Problem
 
-When downloading dives from a second computer, the app detects potential duplicate dives and presents a comparison card with Skip/Import as New/Consolidate actions. The current card has two problems:
+Two separate import flows detect potential duplicate dives and present resolution options, but both have UX problems:
 
-1. **The side-by-side columns show redundant matching data** -- the user sees the same date, same depth repeated on both sides, making it hard to spot what actually differs.
-2. **The action buttons lack explanation** -- "Consolidate", "Import as New", and "Skip" give no indication of what each action does to the dive log.
+**1. Dive computer download** (`summary_step_widget.dart`): Shows a side-by-side comparison card with Skip/Import as New/Consolidate actions. The columns show redundant matching data, and the buttons lack explanation of what each action does.
+
+**2. File import** (`import_dive_card.dart`): Shows a compact card with ChoiceChip resolution options but no comparison detail at all -- the user sees a match percentage badge but has no way to compare the existing dive with the imported one to make an informed decision.
+
+Both flows need the same thing: a clear, detailed comparison that highlights differences and explains actions.
 
 ## Design: Hybrid Card
 
@@ -89,11 +92,37 @@ Skip is de-emphasized since it's the least common action for high-confidence mat
 
 ### Comparison Logic
 
-The card needs a helper that compares the existing `Dive` with the `DownloadedDive` and produces:
+The card needs a helper that compares the existing `Dive` with the incoming dive data and produces:
 - `sameFields`: list of field names + values that match within tolerance
 - `diffFields`: list of `{field, existingValue, downloadedValue, delta?}` entries
 
-This can be a pure function or a small class: `DiveComparisonResult compareForConsolidation(Dive existing, DownloadedDive downloaded)`.
+#### Unified incoming dive data model
+
+The two import flows use different data types for incoming dives:
+- **Dive computer download**: `DownloadedDive` with typed fields and `List<ProfileSample>`
+- **File import**: `Map<String, dynamic>` with keys like `dateTime`, `maxDepth`, `duration`, `siteName`, `profile` (a `List<Map<String, dynamic>>` or absent)
+
+To avoid duplicating comparison logic, introduce a lightweight `IncomingDiveData` class that normalizes both sources:
+
+```dart
+class IncomingDiveData {
+  final DateTime? startTime;
+  final double? maxDepth;
+  final double? avgDepth;
+  final int? durationSeconds;
+  final double? waterTemp;
+  final String? computerModel;
+  final String? computerSerial;
+  final List<DiveProfilePoint> profile;
+  final String? siteName;
+
+  factory IncomingDiveData.fromDownloadedDive(DownloadedDive dive, {DiveComputer? computer});
+  factory IncomingDiveData.fromImportMap(Map<String, dynamic> data);
+}
+```
+
+The comparison function then works with this normalized type:
+`DiveComparisonResult compareForConsolidation(Dive existing, IncomingDiveData incoming)`
 
 Tolerances:
 - Time: 60 seconds
@@ -101,24 +130,75 @@ Tolerances:
 - Temperature: 1.0C
 - Duration: 60 seconds
 
+### Shared Comparison Card Widget
+
+The hybrid card should be a reusable widget (`DiveComparisonCard`) used by both flows. It accepts:
+
+- `IncomingDiveData incoming` -- the normalized incoming dive
+- `String existingDiveId` -- ID of the matched existing dive (fetches `Dive` and profile via providers)
+- `double matchScore` -- 0.0 to 1.0
+- `String existingLabel` -- e.g., "Existing (#7)" or "Existing Dive"
+- `String incomingLabel` -- e.g., "Downloaded" or "Imported"
+- Action callbacks: `onSkip`, `onImportAsNew`, `onConsolidate`
+
+#### Integration: Dive Computer Download
+
+In `summary_step_widget.dart`, replace `_buildCandidateCard` / `_buildExistingDiveColumn` / `_buildImportedDiveColumn` with `DiveComparisonCard`:
+
+```dart
+DiveComparisonCard(
+  incoming: IncomingDiveData.fromDownloadedDive(candidate.dive, computer: computer),
+  existingDiveId: candidate.matchedDiveId,
+  matchScore: candidate.matchScore,
+  incomingLabel: 'Downloaded',
+  onSkip: () => notifier.skipConsolidation(candidate),
+  onImportAsNew: () => notifier.importCandidateAsNew(candidate),
+  onConsolidate: () => notifier.consolidateDive(candidate),
+)
+```
+
+#### Integration: File Import
+
+In `import_dive_card.dart`, when a match is detected (`matchResult != null && matchResult.score >= 0.5`), replace the inline `ChoiceChip` resolution row with an expandable `DiveComparisonCard`. The card appears when the user taps to expand the match details.
+
+The `ImportDiveCard` keeps its existing layout (checkbox, title, match badge) but replaces `_buildResolutionRow` with a collapsible section that shows the full `DiveComparisonCard`:
+
+```dart
+DiveComparisonCard(
+  incoming: IncomingDiveData.fromImportMap(diveData),
+  existingDiveId: matchResult!.diveId,
+  matchScore: matchResult!.score,
+  incomingLabel: 'Imported',
+  onSkip: () => onResolutionChanged?.call(DiveDuplicateResolution.skip),
+  onImportAsNew: () => onResolutionChanged?.call(DiveDuplicateResolution.importAsNew),
+  onConsolidate: () => onResolutionChanged?.call(DiveDuplicateResolution.consolidate),
+)
+```
+
 ### Files to Modify
 
 | File | Change |
 |------|--------|
-| `lib/features/dive_computer/presentation/widgets/summary_step_widget.dart` | Replace `_buildCandidateCard`, `_buildExistingDiveColumn`, `_buildImportedDiveColumn` with the new hybrid card layout |
-| (none -- `dive_profile_chart.dart` is already 3000+ lines, so the new chart goes in its own file) | |
+| `lib/features/dive_computer/presentation/widgets/summary_step_widget.dart` | Replace `_buildCandidateCard`, `_buildExistingDiveColumn`, `_buildImportedDiveColumn` with `DiveComparisonCard` |
+| `lib/features/universal_import/presentation/widgets/import_dive_card.dart` | Replace `_buildResolutionRow` ChoiceChips with expandable `DiveComparisonCard` |
 
 ### New Files
 
 | File | Purpose |
 |------|---------|
-| `lib/features/dive_computer/presentation/widgets/dive_comparison_helpers.dart` | `DiveComparisonResult` class and `compareForConsolidation()` function |
-| `lib/features/dive_computer/presentation/widgets/overlaid_profile_chart.dart` | `OverlaidProfileChart` widget (two-line variant of `DiveProfileMiniChart`) |
+| `lib/core/presentation/widgets/dive_comparison_card.dart` | Shared `DiveComparisonCard` widget used by both import flows |
+| `lib/core/presentation/widgets/overlaid_profile_chart.dart` | `OverlaidProfileChart` widget (two-line variant of `DiveProfileMiniChart`) |
+| `lib/core/domain/models/incoming_dive_data.dart` | `IncomingDiveData` normalized data class with factory constructors |
+| `lib/core/domain/models/dive_comparison_result.dart` | `DiveComparisonResult` class and `compareForConsolidation()` function |
+
+Note: These files live in `core/` rather than `dive_computer/` because they are shared between the dive computer download and universal import features.
 
 ### What Does NOT Change
 
 - The `DuplicateCandidate` data model
+- The `DiveMatchResult` data model
 - The `DownloadNotifier` actions (consolidateDive, importCandidateAsNew, skipConsolidation)
+- The `DiveDuplicateResolution` enum and `setDiveResolution` notifier method
 - The "Consolidate All" button behavior
 - The "Potential Matches (N)" section header
 - The gating logic (downloaded dives / action buttons hidden until matches resolved)
@@ -126,4 +206,6 @@ Tolerances:
 ## Testing
 
 - Unit test for `compareForConsolidation()` with cases: all fields same, some differ, missing fields on one side, edge cases at tolerance boundaries
-- Widget test for the new card rendering with mock dive data
+- Unit test for `IncomingDiveData.fromDownloadedDive()` and `IncomingDiveData.fromImportMap()` factory constructors
+- Widget test for `DiveComparisonCard` rendering with mock dive data
+- Widget test for `ImportDiveCard` expansion to show comparison card when match detected
