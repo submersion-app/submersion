@@ -1,47 +1,47 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/constants/dive_list_view_mode.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 
 /// Popup menu button for switching between dive list view modes.
 ///
 /// Shows the icon of the current mode; tapping reveals all three options.
-class DiveListViewModeToggle extends StatelessWidget {
-  final DiveListViewMode currentMode;
-  final ValueChanged<DiveListViewMode> onModeChanged;
+class ListViewModeToggle extends StatelessWidget {
+  final ListViewMode currentMode;
+  final ValueChanged<ListViewMode> onModeChanged;
 
   /// Icon size (default 20 for compact app bars).
   final double iconSize;
 
-  const DiveListViewModeToggle({
+  const ListViewModeToggle({
     super.key,
     required this.currentMode,
     required this.onModeChanged,
     this.iconSize = 20,
   });
 
-  IconData _iconForMode(DiveListViewMode mode) {
+  IconData _iconForMode(ListViewMode mode) {
     return switch (mode) {
-      DiveListViewMode.detailed => Icons.view_agenda,
-      DiveListViewMode.compact => Icons.view_list,
-      DiveListViewMode.dense => Icons.list,
+      ListViewMode.detailed => Icons.view_agenda,
+      ListViewMode.compact => Icons.view_list,
+      ListViewMode.dense => Icons.list,
     };
   }
 
-  String _labelForMode(DiveListViewMode mode) {
+  String _labelForMode(ListViewMode mode) {
     return switch (mode) {
-      DiveListViewMode.detailed => 'Detailed',
-      DiveListViewMode.compact => 'Compact',
-      DiveListViewMode.dense => 'Dense',
+      ListViewMode.detailed => 'Detailed',
+      ListViewMode.compact => 'Compact',
+      ListViewMode.dense => 'Dense',
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<DiveListViewMode>(
+    return PopupMenuButton<ListViewMode>(
       icon: Icon(_iconForMode(currentMode), size: iconSize),
       tooltip: 'View mode',
       onSelected: onModeChanged,
-      itemBuilder: (context) => DiveListViewMode.values.map((mode) {
+      itemBuilder: (context) => ListViewMode.values.map((mode) {
         return PopupMenuItem(
           value: mode,
           child: Row(

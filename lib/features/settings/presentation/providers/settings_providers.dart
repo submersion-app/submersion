@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/constants/card_color.dart';
-import 'package:submersion/core/constants/dive_list_view_mode.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_preset.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
@@ -137,7 +137,7 @@ class AppSettings {
   final CardColorAttribute cardColorAttribute;
 
   /// Which layout to use for the dive list
-  final DiveListViewMode diveListViewMode;
+  final ListViewMode diveListViewMode;
 
   /// Name of the selected gradient preset ('ocean', 'thermal', etc.)
   final String cardColorGradientPreset;
@@ -267,7 +267,7 @@ class AppSettings {
     this.defaultCnsSource = MetricDataSource.calculated,
     // Appearance defaults
     this.cardColorAttribute = CardColorAttribute.none,
-    this.diveListViewMode = DiveListViewMode.detailed,
+    this.diveListViewMode = ListViewMode.detailed,
     this.cardColorGradientPreset = 'ocean',
     this.cardColorGradientStart,
     this.cardColorGradientEnd,
@@ -373,7 +373,7 @@ class AppSettings {
     MetricDataSource? defaultTtsSource,
     MetricDataSource? defaultCnsSource,
     CardColorAttribute? cardColorAttribute,
-    DiveListViewMode? diveListViewMode,
+    ListViewMode? diveListViewMode,
     String? cardColorGradientPreset,
     int? cardColorGradientStart,
     int? cardColorGradientEnd,
@@ -812,7 +812,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  Future<void> setDiveListViewMode(DiveListViewMode mode) async {
+  Future<void> setDiveListViewMode(ListViewMode mode) async {
     state = state.copyWith(diveListViewMode: mode);
     await _saveSettings();
   }
@@ -1249,7 +1249,7 @@ final tissueVizModeProvider = Provider<TissueVizMode>((ref) {
 /// default only once at creation time. If we used `ref.watch()`, any change
 /// to *any* setting would reset the runtime override back to the default,
 /// breaking the session-scoped toggle behavior.
-final diveListViewModeProvider = StateProvider<DiveListViewMode>((ref) {
+final diveListViewModeProvider = StateProvider<ListViewMode>((ref) {
   final settings = ref.read(settingsProvider);
   return settings.diveListViewMode;
 });

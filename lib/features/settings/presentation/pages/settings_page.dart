@@ -6,7 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
-import 'package:submersion/core/constants/dive_list_view_mode.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -1151,7 +1151,7 @@ class _AppearanceSectionContentState
                   leading: const Icon(Icons.view_list),
                   title: const Text('Dive List View'),
                   subtitle: const Text('Default layout for the dive list'),
-                  trailing: DropdownButton<DiveListViewMode>(
+                  trailing: DropdownButton<ListViewMode>(
                     value: settings.diveListViewMode,
                     underline: const SizedBox(),
                     onChanged: (value) {
@@ -1163,7 +1163,7 @@ class _AppearanceSectionContentState
                             value;
                       }
                     },
-                    items: DiveListViewMode.values.map((mode) {
+                    items: ListViewMode.values.map((mode) {
                       return DropdownMenuItem(
                         value: mode,
                         child: Text(_getViewModeDisplayName(mode)),
@@ -1364,11 +1364,11 @@ class _AppearanceSectionContentState
     };
   }
 
-  String _getViewModeDisplayName(DiveListViewMode mode) {
+  String _getViewModeDisplayName(ListViewMode mode) {
     return switch (mode) {
-      DiveListViewMode.detailed => 'Detailed',
-      DiveListViewMode.compact => 'Compact',
-      DiveListViewMode.dense => 'Dense',
+      ListViewMode.detailed => 'Detailed',
+      ListViewMode.compact => 'Compact',
+      ListViewMode.dense => 'Dense',
     };
   }
 
