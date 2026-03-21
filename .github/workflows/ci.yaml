@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -119,7 +120,7 @@ jobs:
     name: Integration Test (macOS)
     needs: analyze
     runs-on: macos-14
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -178,7 +179,7 @@ jobs:
     name: Build iOS
     needs: test
     runs-on: macos-14
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -248,7 +249,7 @@ jobs:
     name: Build macOS
     needs: test
     runs-on: macos-14
-    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -334,7 +335,7 @@ jobs:
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v7
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || github.event_name == 'workflow_dispatch'
         with:
           name: macos-build
           path: build/macos/Build/Products/Release/submersion.app
@@ -344,7 +345,7 @@ jobs:
     name: Build Android
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -412,7 +413,7 @@ jobs:
     name: Build Linux
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -477,7 +478,7 @@ jobs:
     name: Build Windows
     needs: test
     runs-on: windows-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v6
         with:
