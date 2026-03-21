@@ -54,6 +54,14 @@ class DownloadState {
   /// Dives skipped as duplicates that the user can choose to consolidate.
   final List<DuplicateCandidate> pendingConsolidations;
 
+  /// Number of consolidation candidates the user chose to import as new dives.
+  final int candidatesImportedAsNew;
+
+  /// Total number of dives actually imported (initial import + candidates
+  /// imported as new).
+  int get totalImported =>
+      (importResult?.imported ?? 0) + candidatesImportedAsNew;
+
   const DownloadState({
     this.phase = DownloadPhase.initializing,
     this.progress,
@@ -64,6 +72,7 @@ class DownloadState {
     this.serialNumber,
     this.firmwareVersion,
     this.pendingConsolidations = const [],
+    this.candidatesImportedAsNew = 0,
   });
 
   DownloadState copyWith({
@@ -76,6 +85,7 @@ class DownloadState {
     String? serialNumber,
     String? firmwareVersion,
     List<DuplicateCandidate>? pendingConsolidations,
+    int? candidatesImportedAsNew,
     bool clearError = false,
     bool clearImportResult = false,
   }) {
@@ -92,6 +102,8 @@ class DownloadState {
       firmwareVersion: firmwareVersion ?? this.firmwareVersion,
       pendingConsolidations:
           pendingConsolidations ?? this.pendingConsolidations,
+      candidatesImportedAsNew:
+          candidatesImportedAsNew ?? this.candidatesImportedAsNew,
     );
   }
 
@@ -408,6 +420,9 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       diverId: _autoImportDiverId,
     );
 
+    state = state.copyWith(
+      candidatesImportedAsNew: state.candidatesImportedAsNew + 1,
+    );
     _removeCandidateFromState(candidate);
   }
 

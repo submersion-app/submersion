@@ -1019,7 +1019,17 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                     loading: () => const LinearProgressIndicator(),
                     error: (_, _) => const Text('Error loading computers'),
                     data: (computers) {
-                      if (computers.isEmpty) {
+                      // Only include computers with serial numbers,
+                      // deduplicated by serial.
+                      final seen = <String>{};
+                      final filterable = computers
+                          .where(
+                            (c) =>
+                                c.serialNumber != null &&
+                                seen.add(c.serialNumber!),
+                          )
+                          .toList();
+                      if (filterable.isEmpty) {
                         return Text(
                           'No dive computers registered',
                           style: Theme.of(context).textTheme.bodySmall
@@ -1030,8 +1040,18 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                               ),
                         );
                       }
+                      // Reset to null if the saved serial is not in the list.
+                      final validSerial =
+                          filterable.any(
+                            (c) => c.serialNumber == _computerSerial,
+                          )
+                          ? _computerSerial
+                          : null;
+                      if (validSerial != _computerSerial) {
+                        _computerSerial = validSerial;
+                      }
                       return DropdownButtonFormField<String?>(
-                        initialValue: _computerSerial,
+                        initialValue: validSerial,
                         decoration: const InputDecoration(
                           hintText: 'All computers',
                           prefixIcon: Icon(Icons.watch),
@@ -1041,7 +1061,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                             value: null,
                             child: Text('All computers'),
                           ),
-                          ...computers.map(
+                          ...filterable.map(
                             (c) => DropdownMenuItem(
                               value: c.serialNumber,
                               child: Text(c.displayName),
