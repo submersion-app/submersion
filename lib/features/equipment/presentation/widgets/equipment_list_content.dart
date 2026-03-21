@@ -3,11 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 
@@ -137,6 +141,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       appBar: AppBar(
         title: Text(context.l10n.equipment_appBar_title),
         actions: [
+          ListViewModeToggle(
+            currentMode: ref.watch(equipmentListViewModeProvider),
+            availableModes: const [ListViewMode.detailed, ListViewMode.dense],
+            onModeChanged: (mode) {
+              ref.read(equipmentListViewModeProvider.notifier).state = mode;
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.sort),
             tooltip: context.l10n.equipment_list_sortTooltip,
@@ -183,6 +194,14 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
+          ListViewModeToggle(
+            currentMode: ref.watch(equipmentListViewModeProvider),
+            availableModes: const [ListViewMode.detailed, ListViewMode.dense],
+            onModeChanged: (mode) {
+              ref.read(equipmentListViewModeProvider.notifier).state = mode;
+            },
+            iconSize: 20,
+          ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
             tooltip: context.l10n.equipment_list_sortTooltip,
@@ -312,11 +331,19 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         itemBuilder: (context, index) {
           final item = equipment[index];
           final isSelected = widget.selectedId == item.id;
-          return EquipmentListTile(
-            item: item,
-            isSelected: isSelected,
-            onTap: () => _handleItemTap(item),
-          );
+          final viewMode = ref.watch(equipmentListViewModeProvider);
+          return switch (viewMode) {
+            ListViewMode.detailed || ListViewMode.compact => EquipmentListTile(
+              item: item,
+              isSelected: isSelected,
+              onTap: () => _handleItemTap(item),
+            ),
+            ListViewMode.dense => DenseEquipmentListTile(
+              item: item,
+              isSelected: isSelected,
+              onTap: () => _handleItemTap(item),
+            ),
+          };
         },
       ),
     );
