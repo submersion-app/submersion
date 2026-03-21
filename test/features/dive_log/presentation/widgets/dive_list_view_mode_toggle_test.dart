@@ -19,10 +19,7 @@ void main() {
 
       // Shows the icon for the current mode
       expect(find.byIcon(Icons.view_agenda), findsOneWidget);
-      expect(
-        find.byType(PopupMenuButton<DiveListViewMode>),
-        findsOneWidget,
-      );
+      expect(find.byType(PopupMenuButton<DiveListViewMode>), findsOneWidget);
     });
 
     testWidgets('opens popup with all three options', (tester) async {
