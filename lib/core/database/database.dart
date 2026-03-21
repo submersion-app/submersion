@@ -661,6 +661,17 @@ class DiverSettings extends Table {
   // Dive list view mode (v51)
   TextColumn get diveListViewMode =>
       text().withDefault(const Constant('detailed'))();
+  // List view modes for other features (v52)
+  TextColumn get siteListViewMode =>
+      text().withDefault(const Constant('detailed'))();
+  TextColumn get tripListViewMode =>
+      text().withDefault(const Constant('detailed'))();
+  TextColumn get equipmentListViewMode =>
+      text().withDefault(const Constant('detailed'))();
+  TextColumn get buddyListViewMode =>
+      text().withDefault(const Constant('detailed'))();
+  TextColumn get diveCenterListViewMode =>
+      text().withDefault(const Constant('detailed'))();
   // Dive profile chart defaults
   TextColumn get defaultRightAxisMetric =>
       text().withDefault(const Constant('temperature'))();
@@ -1187,7 +1198,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 51;
+  static const int currentSchemaVersion = 52;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -2337,6 +2348,23 @@ class AppDatabase extends _$AppDatabase {
         if (from < 51) {
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN dive_list_view_mode TEXT NOT NULL DEFAULT 'detailed'",
+          );
+        }
+        if (from < 52) {
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN site_list_view_mode TEXT NOT NULL DEFAULT 'detailed'",
+          );
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN trip_list_view_mode TEXT NOT NULL DEFAULT 'detailed'",
+          );
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN equipment_list_view_mode TEXT NOT NULL DEFAULT 'detailed'",
+          );
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN buddy_list_view_mode TEXT NOT NULL DEFAULT 'detailed'",
+          );
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN dive_center_list_view_mode TEXT NOT NULL DEFAULT 'detailed'",
           );
         }
       },
