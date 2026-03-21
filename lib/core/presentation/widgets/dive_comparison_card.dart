@@ -430,7 +430,7 @@ class DiveComparisonCard extends ConsumerWidget {
             label: 'Consolidate',
             subtitle: 'Add as 2nd computer reading',
             onPressed: onConsolidate,
-            style: _ActionButtonStyle.filledTonal,
+            style: _ActionButtonStyle.outlined,
           ),
         ],
       ),
