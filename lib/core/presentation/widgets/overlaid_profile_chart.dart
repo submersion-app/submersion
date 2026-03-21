@@ -60,7 +60,7 @@ class OverlaidProfileChart extends StatelessWidget {
     final maxTime = allTimes.reduce(math.max).toDouble();
 
     final existingColor = colorScheme.primary;
-    final incomingColor = colorScheme.secondary;
+    final incomingColor = Colors.teal.shade400;
 
     final bars = <LineChartBarData>[];
 

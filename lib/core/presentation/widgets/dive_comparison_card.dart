@@ -85,6 +85,7 @@ class DiveComparisonCard extends ConsumerWidget {
                 comparison,
                 effectiveExistingLabel,
                 units,
+                existingDive.effectiveEntryTime,
               ),
 
               // 2. Overlaid Profiles
@@ -134,15 +135,20 @@ class DiveComparisonCard extends ConsumerWidget {
     DiveComparisonResult comparison,
     String label,
     UnitFormatter units,
+    DateTime diveDateTime,
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final percent = (matchScore * 100).toStringAsFixed(0);
 
-    // Gather shared data to display once.
-    final sharedParts = <String>[];
+    // Always show date/time, plus any other shared fields.
+    final sharedParts = <String>[
+      '${diveDateTime.month}/${diveDateTime.day}/${diveDateTime.year} '
+          '${diveDateTime.hour.toString().padLeft(2, '0')}:'
+          '${diveDateTime.minute.toString().padLeft(2, '0')}',
+    ];
     for (final f in comparison.sameFields) {
-      if (f.name == 'date/time' || f.name == 'max depth') {
+      if (f.name == 'max depth' && f.rawValue != null) {
         sharedParts.add(_formatFieldValue(f.type, f.rawValue, units));
       }
     }
