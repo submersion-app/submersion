@@ -303,13 +303,13 @@ class PlanCalculatorService {
               value: remainingPressure.toDouble(),
             ),
           );
-        } else if (remainingPressure != null && remainingPressure < reservePressure) {
+        } else if (remainingPressure != null &&
+            remainingPressure < reservePressure) {
           warnings.add(
             PlanWarning(
               type: PlanWarningType.gasLow,
               severity: PlanWarningSeverity.alert,
-              message:
-                  'Tank ${tank.name ?? tank.gasMix.name} below reserve',
+              message: 'Tank ${tank.name ?? tank.gasMix.name} below reserve',
               value: remainingPressure.toDouble(),
               threshold: reservePressure,
             ),
@@ -327,7 +327,8 @@ class PlanCalculatorService {
             remainingPressure: remainingPressure,
             percentUsed: percentUsed,
             reserveViolation:
-                remainingPressure != null && remainingPressure < reservePressure,
+                remainingPressure != null &&
+                remainingPressure < reservePressure,
           ),
         );
       }

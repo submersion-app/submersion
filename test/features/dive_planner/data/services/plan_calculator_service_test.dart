@@ -57,19 +57,21 @@ void main() {
       expect(consumption.remainingPressure!, greaterThan(0));
     });
 
-    test('no gasLow warning when reserve entered as psi is below remaining',
-        () {
-      // This profile ends with ~35 bar (~508 psi) remaining.
-      // A user entering 500 psi as reserve (≈ 34.47 bar) should see
-      // NO warning, because 35 bar remaining > 34.47 bar reserve.
-      final result = calculateWithReserve(psiToBar(500));
-      final gasLowWarnings = result.warnings
-          .where((w) => w.type == PlanWarningType.gasLow)
-          .toList();
+    test(
+      'no gasLow warning when reserve entered as psi is below remaining',
+      () {
+        // This profile ends with ~35 bar (~508 psi) remaining.
+        // A user entering 500 psi as reserve (≈ 34.47 bar) should see
+        // NO warning, because 35 bar remaining > 34.47 bar reserve.
+        final result = calculateWithReserve(psiToBar(500));
+        final gasLowWarnings = result.warnings
+            .where((w) => w.type == PlanWarningType.gasLow)
+            .toList();
 
-      expect(gasLowWarnings, isEmpty);
-      expect(result.gasConsumptions.first.reserveViolation, isFalse);
-    });
+        expect(gasLowWarnings, isEmpty);
+        expect(result.gasConsumptions.first.reserveViolation, isFalse);
+      },
+    );
 
     test('gasLow warning when reserve entered as psi is above remaining', () {
       // Same profile (~508 psi remaining). A user entering 600 psi as
@@ -85,18 +87,21 @@ void main() {
       expect(result.gasConsumptions.first.reserveViolation, isTrue);
     });
 
-    test('gasLow warning threshold reflects user-entered reserve, not hardcoded 50 bar',
-        () {
-      // A user sets reserve to 600 psi (≈ 41.37 bar). The warning's
-      // threshold must be ~41.37, NOT 50 (the old hardcoded value).
-      final reserveBar = psiToBar(600);
-      final result = calculateWithReserve(reserveBar);
-      final gasLowWarning = result.warnings
-          .firstWhere((w) => w.type == PlanWarningType.gasLow);
+    test(
+      'gasLow warning threshold reflects user-entered reserve, not hardcoded 50 bar',
+      () {
+        // A user sets reserve to 600 psi (≈ 41.37 bar). The warning's
+        // threshold must be ~41.37, NOT 50 (the old hardcoded value).
+        final reserveBar = psiToBar(600);
+        final result = calculateWithReserve(reserveBar);
+        final gasLowWarning = result.warnings.firstWhere(
+          (w) => w.type == PlanWarningType.gasLow,
+        );
 
-      expect(gasLowWarning.threshold, reserveBar);
-      expect(gasLowWarning.threshold, isNot(equals(50)));
-    });
+        expect(gasLowWarning.threshold, reserveBar);
+        expect(gasLowWarning.threshold, isNot(equals(50)));
+      },
+    );
 
     test('no gasLow warning when bar reserve is below remaining', () {
       // With 35 bar remaining, a 30 bar reserve should produce no warning.

@@ -42,8 +42,8 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   final double _defaultReservePressure;
 
   DivePlanNotifier(this._calculator, {double reservePressure = 50})
-      : _defaultReservePressure = reservePressure,
-        super(_createInitialState(reservePressure: reservePressure));
+    : _defaultReservePressure = reservePressure,
+      super(_createInitialState(reservePressure: reservePressure));
 
   static DivePlanState _createInitialState({double reservePressure = 50}) {
     final now = DateTime.now();

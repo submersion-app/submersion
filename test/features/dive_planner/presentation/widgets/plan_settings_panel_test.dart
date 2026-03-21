@@ -13,7 +13,7 @@ import '../../../../helpers/test_app.dart';
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _TestSettingsNotifier({PressureUnit pressureUnit = PressureUnit.bar})
-      : super(AppSettings(pressureUnit: pressureUnit));
+    : super(AppSettings(pressureUnit: pressureUnit));
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -21,13 +21,13 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 
 void main() {
   group('PlanSettingsPanel reserve pressure field', () {
-    testWidgets('displays reserve pressure field with bar unit for metric',
-        (tester) async {
+    testWidgets('displays reserve pressure field with bar unit for metric', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         testApp(
           overrides: [
-            settingsProvider
-                .overrideWith((ref) => _TestSettingsNotifier()),
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
           ],
           child: const SingleChildScrollView(child: PlanSettingsPanel()),
         ),
@@ -38,8 +38,9 @@ void main() {
       expect(find.text('bar'), findsOneWidget);
     });
 
-    testWidgets('displays reserve pressure field with psi unit for imperial',
-        (tester) async {
+    testWidgets('displays reserve pressure field with psi unit for imperial', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         testApp(
           overrides: [
@@ -60,8 +61,7 @@ void main() {
       await tester.pumpWidget(
         testApp(
           overrides: [
-            settingsProvider
-                .overrideWith((ref) => _TestSettingsNotifier()),
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
           ],
           child: const SingleChildScrollView(child: PlanSettingsPanel()),
         ),
