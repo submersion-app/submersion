@@ -54,13 +54,12 @@ class DownloadState {
   /// Dives skipped as duplicates that the user can choose to consolidate.
   final List<DuplicateCandidate> pendingConsolidations;
 
-  /// Number of consolidation candidates the user chose to import as new dives.
-  final int candidatesImportedAsNew;
+  /// Number of consolidation candidates resolved (consolidated or imported as new).
+  final int candidatesResolved;
 
-  /// Total number of dives actually imported (initial import + candidates
-  /// imported as new).
-  int get totalImported =>
-      (importResult?.imported ?? 0) + candidatesImportedAsNew;
+  /// Total number of dives actually imported (initial import + consolidated
+  /// + imported as new).
+  int get totalImported => (importResult?.imported ?? 0) + candidatesResolved;
 
   const DownloadState({
     this.phase = DownloadPhase.initializing,
@@ -72,7 +71,7 @@ class DownloadState {
     this.serialNumber,
     this.firmwareVersion,
     this.pendingConsolidations = const [],
-    this.candidatesImportedAsNew = 0,
+    this.candidatesResolved = 0,
   });
 
   DownloadState copyWith({
@@ -85,7 +84,7 @@ class DownloadState {
     String? serialNumber,
     String? firmwareVersion,
     List<DuplicateCandidate>? pendingConsolidations,
-    int? candidatesImportedAsNew,
+    int? candidatesResolved,
     bool clearError = false,
     bool clearImportResult = false,
   }) {
@@ -102,8 +101,7 @@ class DownloadState {
       firmwareVersion: firmwareVersion ?? this.firmwareVersion,
       pendingConsolidations:
           pendingConsolidations ?? this.pendingConsolidations,
-      candidatesImportedAsNew:
-          candidatesImportedAsNew ?? this.candidatesImportedAsNew,
+      candidatesResolved: candidatesResolved ?? this.candidatesResolved,
     );
   }
 
@@ -406,6 +404,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       secondaryProfile: secondaryProfile,
     );
 
+    state = state.copyWith(candidatesResolved: state.candidatesResolved + 1);
     _removeCandidateFromState(candidate);
   }
 
@@ -420,9 +419,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       diverId: _autoImportDiverId,
     );
 
-    state = state.copyWith(
-      candidatesImportedAsNew: state.candidatesImportedAsNew + 1,
-    );
+    state = state.copyWith(candidatesResolved: state.candidatesResolved + 1);
     _removeCandidateFromState(candidate);
   }
 
