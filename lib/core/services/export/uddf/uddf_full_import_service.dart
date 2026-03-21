@@ -1141,7 +1141,9 @@ class UddfFullImportService {
           'passedtime',
         );
         if (passedTimeText != null) {
-          final seconds = int.tryParse(passedTimeText);
+          final seconds =
+              int.tryParse(passedTimeText) ??
+              double.tryParse(passedTimeText)?.round();
           if (seconds != null && seconds > 0) {
             diveData['surfaceInterval'] = Duration(seconds: seconds);
           }
