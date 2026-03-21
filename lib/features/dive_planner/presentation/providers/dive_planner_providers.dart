@@ -406,6 +406,7 @@ final planResultsProvider = Provider<PlanResult>((ref) {
     segments: state.segments,
     tanks: state.tanks,
     sacRate: state.sacRate,
+    reservePressure: state.reservePressure,
     initialTissueState: state.initialTissueState,
   );
 });

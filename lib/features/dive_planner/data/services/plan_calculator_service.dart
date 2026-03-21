@@ -55,11 +55,13 @@ class PlanCalculatorService {
   /// [segments] - The dive plan segments in order.
   /// [tanks] - Available tanks with starting pressures and volumes.
   /// [sacRate] - Surface Air Consumption in L/min.
+  /// [reservePressure] - Reserve pressure threshold in bar.
   /// [initialTissueState] - Tissue state from previous dive (for repetitive).
   PlanResult calculatePlan({
     required List<PlanSegment> segments,
     required List<DiveTank> tanks,
     required double sacRate,
+    double reservePressure = 50,
     List<TissueCompartment>? initialTissueState,
   }) {
     if (segments.isEmpty) {
@@ -301,15 +303,15 @@ class PlanCalculatorService {
               value: remainingPressure.toDouble(),
             ),
           );
-        } else if (remainingPressure != null && remainingPressure < 50) {
+        } else if (remainingPressure != null && remainingPressure < reservePressure) {
           warnings.add(
             PlanWarning(
               type: PlanWarningType.gasLow,
               severity: PlanWarningSeverity.alert,
               message:
-                  'Tank ${tank.name ?? tank.gasMix.name} below 50 bar reserve',
+                  'Tank ${tank.name ?? tank.gasMix.name} below reserve',
               value: remainingPressure.toDouble(),
-              threshold: 50,
+              threshold: reservePressure,
             ),
           );
         }
@@ -325,7 +327,7 @@ class PlanCalculatorService {
             remainingPressure: remainingPressure,
             percentUsed: percentUsed,
             reserveViolation:
-                remainingPressure != null && remainingPressure < 50,
+                remainingPressure != null && remainingPressure < reservePressure,
           ),
         );
       }

@@ -4,7 +4,6 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
-import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 
 void main() {
   group('PlanCalculatorService reserve pressure', () {
@@ -17,11 +16,11 @@ void main() {
     /// Creates a simple 18m/40min dive on air with an AL80 starting at
     /// 200 bar and returns the [PlanResult] for the given [reservePressure]
     /// (in bar, as stored internally).
-    PlanResult _calculateWithReserve(double reservePressureBar) {
+    PlanResult calculateWithReserve(double reservePressureBar) {
       const tankId = 'tank-1';
       const gasMix = GasMix(o2: 21, he: 0);
 
-      final tank = DiveTank(
+      const tank = DiveTank(
         id: tankId,
         name: 'AL80',
         volume: 11.1,
@@ -51,7 +50,7 @@ void main() {
         PressureUnit.psi.convert(psi, PressureUnit.bar);
 
     test('remaining pressure is positive for the test dive profile', () {
-      final result = _calculateWithReserve(0);
+      final result = calculateWithReserve(0);
       final consumption = result.gasConsumptions.first;
 
       expect(consumption.remainingPressure, isNotNull);
@@ -63,7 +62,7 @@ void main() {
       // This profile ends with ~35 bar (~508 psi) remaining.
       // A user entering 500 psi as reserve (≈ 34.47 bar) should see
       // NO warning, because 35 bar remaining > 34.47 bar reserve.
-      final result = _calculateWithReserve(psiToBar(500));
+      final result = calculateWithReserve(psiToBar(500));
       final gasLowWarnings = result.warnings
           .where((w) => w.type == PlanWarningType.gasLow)
           .toList();
@@ -76,7 +75,7 @@ void main() {
       // Same profile (~508 psi remaining). A user entering 600 psi as
       // reserve (≈ 41.37 bar) should trigger a warning.
       final reserveBar = psiToBar(600);
-      final result = _calculateWithReserve(reserveBar);
+      final result = calculateWithReserve(reserveBar);
       final gasLowWarnings = result.warnings
           .where((w) => w.type == PlanWarningType.gasLow)
           .toList();
@@ -91,7 +90,7 @@ void main() {
       // A user sets reserve to 600 psi (≈ 41.37 bar). The warning's
       // threshold must be ~41.37, NOT 50 (the old hardcoded value).
       final reserveBar = psiToBar(600);
-      final result = _calculateWithReserve(reserveBar);
+      final result = calculateWithReserve(reserveBar);
       final gasLowWarning = result.warnings
           .firstWhere((w) => w.type == PlanWarningType.gasLow);
 
@@ -101,7 +100,7 @@ void main() {
 
     test('no gasLow warning when bar reserve is below remaining', () {
       // With 35 bar remaining, a 30 bar reserve should produce no warning.
-      final result = _calculateWithReserve(30);
+      final result = calculateWithReserve(30);
       final gasLowWarnings = result.warnings
           .where((w) => w.type == PlanWarningType.gasLow)
           .toList();
@@ -112,7 +111,7 @@ void main() {
 
     test('gasLow warning when bar reserve is above remaining', () {
       // With 35 bar remaining, a 40 bar reserve should trigger a warning.
-      final result = _calculateWithReserve(40);
+      final result = calculateWithReserve(40);
       final gasLowWarnings = result.warnings
           .where((w) => w.type == PlanWarningType.gasLow)
           .toList();
