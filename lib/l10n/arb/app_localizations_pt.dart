@@ -5195,6 +5195,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_edit_appBar_editSite => 'Editar Ponto';
 
   @override
+  String get diveSites_edit_appBar_merge => 'Mesclar';
+
+  @override
+  String get diveSites_edit_appBar_mergeSites => 'Mesclar locais de mergulho';
+
+  @override
   String get diveSites_edit_appBar_newSite => 'Novo Ponto';
 
   @override
@@ -5202,6 +5208,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveSites_edit_button_addSite => 'Adicionar Ponto';
+
+  @override
+  String get diveSites_edit_button_mergeSites => 'Mesclar locais de mergulho';
 
   @override
   String get diveSites_edit_button_saveChanges => 'Salvar Alteracoes';
@@ -5329,6 +5338,48 @@ class AppLocalizationsPt extends AppLocalizations {
       'Especies que voce espera ver neste ponto';
 
   @override
+  String diveSites_edit_merge_confirmBody(int count) {
+    return 'Mesclar $count locais de mergulho em uma única entrada?';
+  }
+
+  @override
+  String get diveSites_edit_merge_confirmTitle => 'Mesclar locais de mergulho';
+
+  @override
+  String get diveSites_edit_merge_fieldSourceCycleTooltip =>
+      'Usar valor do próximo local selecionado';
+
+  @override
+  String diveSites_edit_merge_fieldSourceLabel(
+    Object siteName,
+    int current,
+    int total,
+  ) {
+    return 'De $siteName ($current/$total)';
+  }
+
+  @override
+  String get diveSites_edit_merge_fieldSourceMenuTooltip =>
+      'Selecionar valor do local selecionado';
+
+  @override
+  String diveSites_edit_merge_loadingErrorBody(Object error) {
+    return 'Falha ao carregar locais de mergulho: $error';
+  }
+
+  @override
+  String get diveSites_edit_merge_loadingErrorTitle =>
+      'Mesclar locais de mergulho';
+
+  @override
+  String get diveSites_edit_merge_notEnoughBody =>
+      'Não há locais de mergulho suficientes para mesclar.';
+
+  @override
+  String get diveSites_edit_merge_notEnoughTitle =>
+      'Mesclar locais de mergulho';
+
+  @override
   String get diveSites_edit_rating_clear => 'Limpar Avaliacao';
 
   @override
@@ -5403,6 +5454,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveSites_edit_snackbar_siteAdded => 'Ponto adicionado';
+
+  @override
+  String get diveSites_edit_snackbar_sitesMerged =>
+      'Locais de mergulho mesclados';
 
   @override
   String get diveSites_edit_snackbar_siteUpdated => 'Ponto atualizado';
@@ -5747,6 +5802,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveSites_list_selection_deleteTooltip => 'Excluir Selecionados';
+
+  @override
+  String get diveSites_list_selection_mergeTooltip => 'Mesclar selecionados';
 
   @override
   String get diveSites_list_selection_deselectAllTooltip => 'Desmarcar Todos';

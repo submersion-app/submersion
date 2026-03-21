@@ -498,28 +498,34 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
-          if (_selectedIds.length < sites.length)
-            IconButton(
-              icon: const Icon(Icons.select_all, size: 20),
-              tooltip: context.l10n.diveSites_list_selection_selectAllTooltip,
-              onPressed: () => _selectAll(sites),
+          IconButton(
+            icon: const Icon(Icons.select_all, size: 20),
+            tooltip: context.l10n.diveSites_list_selection_selectAllTooltip,
+            onPressed: _selectedIds.length < sites.length
+                ? () => _selectAll(sites)
+                : null,
+          ),
+          IconButton(
+            icon: const Icon(Icons.deselect, size: 20),
+            tooltip: context.l10n.diveSites_list_selection_deselectAllTooltip,
+            onPressed: _selectedIds.isNotEmpty ? _deselectAll : null,
+          ),
+          IconButton(
+            icon: const Icon(Icons.merge_type, size: 20),
+            tooltip: context.l10n.diveSites_list_selection_mergeTooltip,
+            onPressed: _selectedIds.length > 1
+                ? () => context.push('/sites/merge', extra: _selectedIds.toList())
+                : null,
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.delete,
+              size: 20,
+              color: Theme.of(context).colorScheme.error,
             ),
-          if (_selectedIds.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.deselect, size: 20),
-              tooltip: context.l10n.diveSites_list_selection_deselectAllTooltip,
-              onPressed: _deselectAll,
-            ),
-          if (_selectedIds.isNotEmpty)
-            IconButton(
-              icon: Icon(
-                Icons.delete,
-                size: 20,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              tooltip: context.l10n.diveSites_list_selection_deleteTooltip,
-              onPressed: _confirmAndDelete,
-            ),
+            tooltip: context.l10n.diveSites_list_selection_deleteTooltip,
+            onPressed: _selectedIds.isNotEmpty ? _confirmAndDelete : null,
+          ),
         ],
       ),
     );
@@ -536,27 +542,33 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         context.l10n.diveSites_list_selection_count(_selectedIds.length),
       ),
       actions: [
-        if (_selectedIds.length < sites.length)
-          IconButton(
-            icon: const Icon(Icons.select_all),
-            tooltip: context.l10n.diveSites_list_selection_selectAllTooltip,
-            onPressed: () => _selectAll(sites),
+        IconButton(
+          icon: const Icon(Icons.select_all),
+          tooltip: context.l10n.diveSites_list_selection_selectAllTooltip,
+          onPressed: _selectedIds.length < sites.length
+              ? () => _selectAll(sites)
+              : null,
+        ),
+        IconButton(
+          icon: const Icon(Icons.deselect),
+          tooltip: context.l10n.diveSites_list_selection_deselectAllTooltip,
+          onPressed: _selectedIds.isNotEmpty ? _deselectAll : null,
+        ),
+        IconButton(
+          icon: const Icon(Icons.merge_type),
+          tooltip: context.l10n.diveSites_list_selection_mergeTooltip,
+          onPressed: _selectedIds.length > 1
+              ? () => context.push('/sites/merge', extra: _selectedIds.toList())
+              : null,
+        ),
+        IconButton(
+          icon: Icon(
+            Icons.delete,
+            color: Theme.of(context).colorScheme.error,
           ),
-        if (_selectedIds.isNotEmpty)
-          IconButton(
-            icon: const Icon(Icons.deselect),
-            tooltip: context.l10n.diveSites_list_selection_deselectAllTooltip,
-            onPressed: _deselectAll,
-          ),
-        if (_selectedIds.isNotEmpty)
-          IconButton(
-            icon: Icon(
-              Icons.delete,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            tooltip: context.l10n.diveSites_list_selection_deleteTooltip,
-            onPressed: _confirmAndDelete,
-          ),
+          tooltip: context.l10n.diveSites_list_selection_deleteTooltip,
+          onPressed: _selectedIds.isNotEmpty ? _confirmAndDelete : null,
+        ),
       ],
     );
   }

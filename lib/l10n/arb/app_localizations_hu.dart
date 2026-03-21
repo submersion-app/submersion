@@ -5182,6 +5182,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_edit_appBar_editSite => 'Helyszin szerkesztese';
 
   @override
+  String get diveSites_edit_appBar_merge => 'Egyesítés';
+
+  @override
+  String get diveSites_edit_appBar_mergeSites => 'Merülőhelyek egyesítése';
+
+  @override
   String get diveSites_edit_appBar_newSite => 'Uj helyszin';
 
   @override
@@ -5189,6 +5195,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_edit_button_addSite => 'Helyszin hozzaadasa';
+
+  @override
+  String get diveSites_edit_button_mergeSites => 'Merülőhelyek egyesítése';
 
   @override
   String get diveSites_edit_button_saveChanges => 'Valtozasok mentese';
@@ -5317,6 +5326,47 @@ class AppLocalizationsHu extends AppLocalizations {
       'Fajok, amelyeket varhatoan lathat ezen a helyszinen';
 
   @override
+  String diveSites_edit_merge_confirmBody(int count) {
+    return '$count merülőhelyet egy bejegyzésbe egyesít?';
+  }
+
+  @override
+  String get diveSites_edit_merge_confirmTitle => 'Merülőhelyek egyesítése';
+
+  @override
+  String get diveSites_edit_merge_fieldSourceCycleTooltip =>
+      'Érték használata a következő kiválasztott oldalról';
+
+  @override
+  String diveSites_edit_merge_fieldSourceLabel(
+    Object siteName,
+    int current,
+    int total,
+  ) {
+    return '$siteName ($current/$total) -ról/ről';
+  }
+
+  @override
+  String get diveSites_edit_merge_fieldSourceMenuTooltip =>
+      'Érték kiválasztása a kiválasztott oldalról';
+
+  @override
+  String diveSites_edit_merge_loadingErrorBody(Object error) {
+    return 'Nem sikerült betölteni a helyszíneket: $error';
+  }
+
+  @override
+  String get diveSites_edit_merge_loadingErrorTitle =>
+      'Merülőhelyek egyesítése';
+
+  @override
+  String get diveSites_edit_merge_notEnoughBody =>
+      'Nincs elég helyszín az egyesítéshez.';
+
+  @override
+  String get diveSites_edit_merge_notEnoughTitle => 'Merülőhelyek egyesítése';
+
+  @override
   String get diveSites_edit_rating_clear => 'Ertekeles torlese';
 
   @override
@@ -5390,6 +5440,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_edit_snackbar_siteAdded => 'Helyszin hozzaadva';
+
+  @override
+  String get diveSites_edit_snackbar_sitesMerged => 'Merülőhelyek egyesítve';
 
   @override
   String get diveSites_edit_snackbar_siteUpdated => 'Helyszin frissitve';
@@ -5732,6 +5785,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_list_selection_deleteTooltip => 'Kivalasztottak torlese';
+
+  @override
+  String get diveSites_list_selection_mergeTooltip => 'Kijelöltek egyesítése';
 
   @override
   String get diveSites_list_selection_deselectAllTooltip =>

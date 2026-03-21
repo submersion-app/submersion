@@ -187,6 +187,63 @@ class SiteRepository {
     }
   }
 
+  /// Merge multiple sites into the first site in [siteIds].
+  ///
+  /// The first ID is treated as the survivor. The survivor is updated with
+  /// [mergedSite], dependent records are re-linked to it, expected species are
+  /// unioned by species ID, and the remaining sites are deleted.
+  Future<void> mergeSites({
+    required domain.DiveSite mergedSite,
+    required List<String> siteIds,
+  }) async {
+    final orderedIds = siteIds.toSet().toList(growable: false);
+    if (orderedIds.length < 2) return;
+
+    final survivorId = orderedIds.first;
+    final duplicateIds = orderedIds.skip(1).toList(growable: false);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final survivorSite = mergedSite.copyWith(id: survivorId);
+
+    try {
+      _log.info(
+        'Merging ${orderedIds.length} sites into survivor: $survivorId',
+      );
+
+      await _db.transaction(() async {
+        await _updateSiteRow(survivorSite, now);
+        await _syncRepository.markRecordPending(
+          entityType: 'diveSites',
+          recordId: survivorId,
+          localUpdatedAt: now,
+        );
+
+        await _relinkDives(duplicateIds, survivorId, now);
+        await _relinkMedia(duplicateIds, survivorId, now);
+        await _mergeExpectedSpecies(
+          orderedSiteIds: orderedIds,
+          survivorId: survivorId,
+          now: now,
+        );
+
+        for (final duplicateId in duplicateIds) {
+          await (_db.delete(
+            _db.diveSites,
+          )..where((t) => t.id.equals(duplicateId))).go();
+          await _syncRepository.logDeletion(
+            entityType: 'diveSites',
+            recordId: duplicateId,
+          );
+        }
+      });
+
+      SyncEventBus.notifyLocalChange();
+      _log.info('Merged ${orderedIds.length} sites into survivor: $survivorId');
+    } catch (e, stackTrace) {
+      _log.error('Failed to merge sites: $siteIds', e, stackTrace);
+      rethrow;
+    }
+  }
+
   /// Search sites by name or location
   Future<List<domain.DiveSite>> searchSites(
     String query, {
@@ -283,6 +340,149 @@ class SiteRepository {
       parkingInfo: row.parkingInfo,
       altitude: row.altitude,
     );
+  }
+
+  Future<void> _updateSiteRow(domain.DiveSite site, int now) async {
+    await (_db.update(_db.diveSites)..where((t) => t.id.equals(site.id))).write(
+      DiveSitesCompanion(
+        name: Value(site.name),
+        description: Value(site.description),
+        latitude: Value(site.location?.latitude),
+        longitude: Value(site.location?.longitude),
+        minDepth: Value(site.minDepth),
+        maxDepth: Value(site.maxDepth),
+        difficulty: Value(site.difficulty?.name),
+        country: Value(site.country),
+        region: Value(site.region),
+        rating: Value(site.rating),
+        notes: Value(site.notes),
+        hazards: Value(site.hazards),
+        accessNotes: Value(site.accessNotes),
+        mooringNumber: Value(site.mooringNumber),
+        parkingInfo: Value(site.parkingInfo),
+        altitude: Value(site.altitude),
+        updatedAt: Value(now),
+      ),
+    );
+  }
+
+  Future<void> _relinkDives(
+    List<String> duplicateIds,
+    String survivorId,
+    int now,
+  ) async {
+    if (duplicateIds.isEmpty) return;
+
+    final affectedDives = await (_db.select(
+      _db.dives,
+    )..where((t) => t.siteId.isIn(duplicateIds))).get();
+
+    if (affectedDives.isEmpty) return;
+
+    await (_db.update(
+      _db.dives,
+    )..where((t) => t.siteId.isIn(duplicateIds))).write(
+      DivesCompanion(siteId: Value(survivorId), updatedAt: Value(now)),
+    );
+
+    for (final dive in affectedDives) {
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: dive.id,
+        localUpdatedAt: now,
+      );
+    }
+  }
+
+  Future<void> _relinkMedia(
+    List<String> duplicateIds,
+    String survivorId,
+    int now,
+  ) async {
+    if (duplicateIds.isEmpty) return;
+
+    final affectedMedia = await (_db.select(
+      _db.media,
+    )..where((t) => t.siteId.isIn(duplicateIds))).get();
+
+    if (affectedMedia.isEmpty) return;
+
+    await (_db.update(
+      _db.media,
+    )..where((t) => t.siteId.isIn(duplicateIds))).write(
+      MediaCompanion(siteId: Value(survivorId), updatedAt: Value(now)),
+    );
+
+    for (final media in affectedMedia) {
+      await _syncRepository.markRecordPending(
+        entityType: 'media',
+        recordId: media.id,
+        localUpdatedAt: now,
+      );
+    }
+  }
+
+  Future<void> _mergeExpectedSpecies({
+    required List<String> orderedSiteIds,
+    required String survivorId,
+    required int now,
+  }) async {
+    final speciesRows = await (_db.select(
+      _db.siteSpecies,
+    )..where((t) => t.siteId.isIn(orderedSiteIds))).get();
+
+    if (speciesRows.isEmpty) return;
+
+    final siteOrder = <String, int>{
+      for (var i = 0; i < orderedSiteIds.length; i++) orderedSiteIds[i]: i,
+    };
+
+    final bySpecies = <String, List<SiteSpecy>>{};
+    for (final row in speciesRows) {
+      bySpecies.putIfAbsent(row.speciesId, () => []).add(row);
+    }
+
+    for (final rows in bySpecies.values) {
+      rows.sort(
+        (a, b) => (siteOrder[a.siteId] ?? orderedSiteIds.length).compareTo(
+          siteOrder[b.siteId] ?? orderedSiteIds.length,
+        ),
+      );
+
+      final primary = rows.first;
+      final mergedNotes = rows
+          .map((row) => row.notes.trim())
+          .firstWhere((notes) => notes.isNotEmpty, orElse: () => '');
+
+      final primaryNeedsSiteMove = primary.siteId != survivorId;
+      final primaryNeedsNoteUpdate = primary.notes != mergedNotes;
+
+      if (primaryNeedsSiteMove || primaryNeedsNoteUpdate) {
+        await (_db.update(
+          _db.siteSpecies,
+        )..where((t) => t.id.equals(primary.id))).write(
+          SiteSpeciesCompanion(
+            siteId: Value(survivorId),
+            notes: Value(mergedNotes),
+          ),
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'site_species',
+          recordId: primary.id,
+          localUpdatedAt: now,
+        );
+      }
+
+      for (final duplicate in rows.skip(1)) {
+        await (_db.delete(
+          _db.siteSpecies,
+        )..where((t) => t.id.equals(duplicate.id))).go();
+        await _syncRepository.logDeletion(
+          entityType: 'site_species',
+          recordId: duplicate.id,
+        );
+      }
+    }
   }
 }
 

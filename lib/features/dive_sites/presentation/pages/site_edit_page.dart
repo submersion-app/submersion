@@ -21,6 +21,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 class SiteEditPage extends ConsumerStatefulWidget {
   final String? siteId;
+  final List<String>? mergeSiteIds;
   final bool embedded;
   final void Function(String savedId)? onSaved;
   final VoidCallback? onCancel;
@@ -28,12 +29,17 @@ class SiteEditPage extends ConsumerStatefulWidget {
   const SiteEditPage({
     super.key,
     this.siteId,
+    this.mergeSiteIds,
     this.embedded = false,
     this.onSaved,
     this.onCancel,
-  });
+  }) : assert(
+         siteId == null || mergeSiteIds == null,
+         'siteId and mergeSiteIds are mutually exclusive',
+       );
 
   bool get isEditing => siteId != null;
+  bool get isMerging => mergeSiteIds != null && mergeSiteIds!.length > 1;
 
   @override
   ConsumerState<SiteEditPage> createState() => _SiteEditPageState();
@@ -61,9 +67,17 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   bool _isLoading = false;
   bool _isInitialized = false;
   bool _hasChanges = false;
+  bool _isApplyingInitialValues = false;
   DiveSite? _originalSite;
   List<Species> _expectedSpecies = [];
   Set<String> _originalExpectedSpeciesIds = {};
+  late final Future<_MergeLoadData>? _mergeLoadFuture;
+  final Map<String, List<_MergeFieldCandidate<String>>> _mergeTextCandidates =
+      {};
+  final Map<String, int> _mergeFieldIndices = {};
+  List<_MergeFieldCandidate<SiteDifficulty?>> _difficultyCandidates = [];
+  List<_MergeFieldCandidate<double>> _ratingCandidates = [];
+  List<_MergeFieldCandidate<_CoordinateCandidate>> _coordinateCandidates = [];
 
   @override
   void initState() {
@@ -82,9 +96,11 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _mooringNumberController.addListener(_onFieldChanged);
     _parkingInfoController.addListener(_onFieldChanged);
     _altitudeController.addListener(_onFieldChanged);
+    _mergeLoadFuture = widget.isMerging ? _loadMergeData() : null;
   }
 
   void _onFieldChanged() {
+    if (_isApplyingInitialValues) return;
     if (!_hasChanges && _isInitialized) {
       setState(() => _hasChanges = true);
     }
@@ -113,6 +129,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     if (_isInitialized) return;
     _isInitialized = true;
     _originalSite = site;
+    _isApplyingInitialValues = true;
 
     _nameController.text = site.name;
     _descriptionController.text = site.description;
@@ -136,9 +153,154 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _altitudeController.text = site.altitude != null
         ? units.convertAltitude(site.altitude!).toStringAsFixed(0)
         : '';
+    _isApplyingInitialValues = false;
 
     // Load expected species
     _loadExpectedSpecies(site.id);
+  }
+
+  void _initializeFromMerge(_MergeLoadData data, UnitFormatter units) {
+    if (_isInitialized) return;
+    _isInitialized = true;
+    _originalSite = data.sites.first;
+    _expectedSpecies = data.expectedSpecies;
+    _originalExpectedSpeciesIds = _expectedSpecies.map((s) => s.id).toSet();
+    _isApplyingInitialValues = true;
+
+    _initializeMergeTextField(
+      key: 'name',
+      controller: _nameController,
+      sites: data.sites,
+      getValue: (site) => site.name,
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+    _initializeMergeTextField(
+      key: 'description',
+      controller: _descriptionController,
+      sites: data.sites,
+      getValue: (site) => site.description,
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+    _initializeMergeTextField(
+      key: 'country',
+      controller: _countryController,
+      sites: data.sites,
+      getValue: (site) => site.country ?? '',
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+    _initializeMergeTextField(
+      key: 'region',
+      controller: _regionController,
+      sites: data.sites,
+      getValue: (site) => site.region ?? '',
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+    _initializeMergeTextField(
+      key: 'minDepth',
+      controller: _minDepthController,
+      sites: data.sites,
+      getValue: (site) => site.minDepth != null
+          ? units.convertDepth(site.minDepth!).toStringAsFixed(1)
+          : '',
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+    _initializeMergeTextField(
+      key: 'maxDepth',
+      controller: _maxDepthController,
+      sites: data.sites,
+      getValue: (site) => site.maxDepth != null
+          ? units.convertDepth(site.maxDepth!).toStringAsFixed(1)
+          : '',
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+    _initializeMergeTextField(
+      key: 'notes',
+      controller: _notesController,
+      sites: data.sites,
+      getValue: (site) => site.notes,
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+    _initializeMergeTextField(
+      key: 'hazards',
+      controller: _hazardsController,
+      sites: data.sites,
+      getValue: (site) => site.hazards ?? '',
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+    _initializeMergeTextField(
+      key: 'accessNotes',
+      controller: _accessNotesController,
+      sites: data.sites,
+      getValue: (site) => site.accessNotes ?? '',
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+    _initializeMergeTextField(
+      key: 'mooringNumber',
+      controller: _mooringNumberController,
+      sites: data.sites,
+      getValue: (site) => site.mooringNumber ?? '',
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+    _initializeMergeTextField(
+      key: 'parkingInfo',
+      controller: _parkingInfoController,
+      sites: data.sites,
+      getValue: (site) => site.parkingInfo ?? '',
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+    _initializeMergeTextField(
+      key: 'altitude',
+      controller: _altitudeController,
+      sites: data.sites,
+      getValue: (site) => site.altitude != null
+          ? units.convertAltitude(site.altitude!).toStringAsFixed(0)
+          : '',
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+
+    _difficultyCandidates = _buildDistinctCandidates<SiteDifficulty?>(
+      data.sites,
+      (site) => site.difficulty,
+      equals: (a, b) => a == b,
+    );
+    _mergeFieldIndices['difficulty'] = _firstMeaningfulIndex(
+      _difficultyCandidates,
+      (value) => value != null,
+    );
+    _difficulty =
+        _difficultyCandidates[_mergeFieldIndices['difficulty'] ?? 0].value;
+
+    _ratingCandidates = _buildDistinctCandidates<double>(
+      data.sites,
+      (site) => site.rating ?? 0,
+      equals: (a, b) => a == b,
+    );
+    _mergeFieldIndices['rating'] = _firstMeaningfulIndex(
+      _ratingCandidates,
+      (value) => value > 0,
+    );
+    _rating = _ratingCandidates[_mergeFieldIndices['rating'] ?? 0].value;
+
+    _coordinateCandidates = _buildDistinctCandidates<_CoordinateCandidate>(
+      data.sites,
+      (site) => _CoordinateCandidate(
+        latitudeText: site.location?.latitude.toString() ?? '',
+        longitudeText: site.location?.longitude.toString() ?? '',
+      ),
+      equals: (a, b) =>
+          a.latitudeText == b.latitudeText &&
+          a.longitudeText == b.longitudeText,
+    );
+    _mergeFieldIndices['coordinates'] = _firstMeaningfulIndex(
+      _coordinateCandidates,
+      (value) =>
+          value.latitudeText.trim().isNotEmpty &&
+          value.longitudeText.trim().isNotEmpty,
+    );
+    _applyCoordinateCandidate(
+      _coordinateCandidates[_mergeFieldIndices['coordinates'] ?? 0].value,
+    );
+    _isApplyingInitialValues = false;
   }
 
   Future<void> _loadExpectedSpecies(String siteId) async {
@@ -175,6 +337,71 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+
+    if (widget.isMerging) {
+      return FutureBuilder<_MergeLoadData>(
+        future: _mergeLoadFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            if (widget.embedded) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(context.l10n.diveSites_edit_appBar_mergeSites),
+              ),
+              body: const Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          if (snapshot.hasError) {
+            if (widget.embedded) {
+              return Center(
+                child: Text(
+                  context.l10n.diveSites_edit_merge_loadingErrorBody(
+                    '${snapshot.error}',
+                  ),
+                ),
+              );
+            }
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(
+                  context.l10n.diveSites_edit_merge_loadingErrorTitle,
+                ),
+              ),
+              body: Center(
+                child: Text(
+                  context.l10n.diveSites_edit_merge_loadingErrorBody(
+                    '${snapshot.error}',
+                  ),
+                ),
+              ),
+            );
+          }
+
+          final data = snapshot.data;
+          if (data == null || data.sites.length < 2) {
+            if (widget.embedded) {
+              return Center(
+                child: Text(context.l10n.diveSites_edit_merge_notEnoughBody),
+              );
+            }
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(context.l10n.diveSites_edit_merge_notEnoughTitle),
+              ),
+              body: Center(
+                child: Text(context.l10n.diveSites_edit_merge_notEnoughBody),
+              ),
+            );
+          }
+
+          _initializeFromMerge(data, units);
+          return _buildForm(context, units);
+        },
+      );
+    }
 
     if (widget.isEditing) {
       final siteAsync = ref.watch(siteProvider(widget.siteId!));
@@ -244,10 +471,13 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           // Name
           TextFormField(
             controller: _nameController,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveSites_edit_field_siteName_label,
-              prefixIcon: const Icon(Icons.location_on),
-              hintText: context.l10n.diveSites_edit_field_siteName_hint,
+            decoration: _withMergeTextDecoration(
+              key: 'name',
+              decoration: InputDecoration(
+                labelText: context.l10n.diveSites_edit_field_siteName_label,
+                prefixIcon: const Icon(Icons.location_on),
+                hintText: context.l10n.diveSites_edit_field_siteName_hint,
+              ),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -261,10 +491,13 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           // Description
           TextFormField(
             controller: _descriptionController,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveSites_edit_field_description_label,
-              prefixIcon: const Icon(Icons.description),
-              hintText: context.l10n.diveSites_edit_field_description_hint,
+            decoration: _withMergeTextDecoration(
+              key: 'description',
+              decoration: InputDecoration(
+                labelText: context.l10n.diveSites_edit_field_description_label,
+                prefixIcon: const Icon(Icons.description),
+                hintText: context.l10n.diveSites_edit_field_description_hint,
+              ),
             ),
             maxLines: 3,
           ),
@@ -276,9 +509,13 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
               Expanded(
                 child: TextFormField(
                   controller: _countryController,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.diveSites_edit_field_country_label,
-                    prefixIcon: const Icon(Icons.flag),
+                  decoration: _withMergeTextDecoration(
+                    key: 'country',
+                    decoration: InputDecoration(
+                      labelText:
+                          context.l10n.diveSites_edit_field_country_label,
+                      prefixIcon: const Icon(Icons.flag),
+                    ),
                   ),
                 ),
               ),
@@ -286,9 +523,12 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
               Expanded(
                 child: TextFormField(
                   controller: _regionController,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.diveSites_edit_field_region_label,
-                    prefixIcon: const Icon(Icons.map),
+                  decoration: _withMergeTextDecoration(
+                    key: 'region',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveSites_edit_field_region_label,
+                      prefixIcon: const Icon(Icons.map),
+                    ),
                   ),
                 ),
               ),
@@ -331,10 +571,13 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           // Notes
           TextFormField(
             controller: _notesController,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveSites_edit_field_notes_label,
-              prefixIcon: const Icon(Icons.notes),
-              hintText: context.l10n.diveSites_edit_field_notes_hint,
+            decoration: _withMergeTextDecoration(
+              key: 'notes',
+              decoration: InputDecoration(
+                labelText: context.l10n.diveSites_edit_field_notes_label,
+                prefixIcon: const Icon(Icons.notes),
+                hintText: context.l10n.diveSites_edit_field_notes_hint,
+              ),
             ),
             maxLines: 4,
           ),
@@ -351,7 +594,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : Text(
-                      widget.isEditing
+                      widget.isMerging
+                          ? context.l10n.diveSites_edit_button_mergeSites
+                          : widget.isEditing
                           ? context.l10n.diveSites_edit_button_saveChanges
                           : context.l10n.diveSites_edit_button_addSite,
                     ),
@@ -396,6 +641,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           title: Text(
             widget.isEditing
                 ? context.l10n.diveSites_edit_appBar_editSite
+                : widget.isMerging
+                ? context.l10n.diveSites_edit_appBar_mergeSites
                 : context.l10n.diveSites_edit_appBar_newSite,
           ),
           actions: [
@@ -419,7 +666,11 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             else
               TextButton(
                 onPressed: _saveSite,
-                child: Text(context.l10n.diveSites_edit_appBar_save),
+                child: Text(
+                  widget.isMerging
+                      ? context.l10n.diveSites_edit_appBar_merge
+                      : context.l10n.diveSites_edit_appBar_save,
+                ),
               ),
           ],
         ),
@@ -445,7 +696,11 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             radius: 20,
             backgroundColor: colorScheme.primaryContainer,
             child: Icon(
-              widget.isEditing ? Icons.edit : Icons.add_location,
+              widget.isEditing
+                  ? Icons.edit
+                  : widget.isMerging
+                  ? Icons.merge_type
+                  : Icons.add_location,
               size: 20,
               color: colorScheme.onPrimaryContainer,
             ),
@@ -455,6 +710,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             child: Text(
               widget.isEditing
                   ? context.l10n.diveSites_edit_appBar_editSite
+                  : widget.isMerging
+                  ? context.l10n.diveSites_edit_appBar_mergeSites
                   : context.l10n.diveSites_edit_appBar_newSite,
               style: Theme.of(
                 context,
@@ -486,7 +743,11 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                       color: Colors.white,
                     ),
                   )
-                : Text(context.l10n.diveSites_edit_appBar_save),
+                : Text(
+                    widget.isMerging
+                        ? context.l10n.diveSites_edit_appBar_merge
+                        : context.l10n.diveSites_edit_appBar_save,
+                  ),
           ),
         ],
       ),
@@ -513,6 +774,225 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     );
   }
 
+  Future<_MergeLoadData> _loadMergeData() async {
+    final siteRepository = ref.read(siteRepositoryProvider);
+    final speciesRepository = ref.read(speciesRepositoryProvider);
+    final requestedIds = widget.mergeSiteIds ?? const <String>[];
+    final sites = await siteRepository.getSitesByIds(requestedIds);
+    final sitesById = {for (final site in sites) site.id: site};
+    final orderedSites = requestedIds
+        .map((id) => sitesById[id])
+        .whereType<DiveSite>()
+        .toList(growable: false);
+
+    final allSpecies = await speciesRepository.getAllSpecies();
+    final speciesById = {for (final species in allSpecies) species.id: species};
+    final mergedSpecies = <Species>[];
+    final seenSpeciesIds = <String>{};
+
+    for (final site in orderedSites) {
+      final entries = await speciesRepository.getExpectedSpeciesForSite(
+        site.id,
+      );
+      for (final entry in entries) {
+        if (seenSpeciesIds.add(entry.speciesId)) {
+          final species = speciesById[entry.speciesId];
+          if (species != null) {
+            mergedSpecies.add(species);
+          }
+        }
+      }
+    }
+
+    return _MergeLoadData(sites: orderedSites, expectedSpecies: mergedSpecies);
+  }
+
+  void _initializeMergeTextField({
+    required String key,
+    required TextEditingController controller,
+    required List<DiveSite> sites,
+    required String Function(DiveSite site) getValue,
+    required bool Function(String value) isMeaningful,
+  }) {
+    final candidates = _buildDistinctCandidates<String>(
+      sites,
+      getValue,
+      equals: (a, b) => a == b,
+    );
+    _mergeTextCandidates[key] = candidates;
+    _mergeFieldIndices[key] = _firstMeaningfulIndex(candidates, isMeaningful);
+    controller.text = candidates[_mergeFieldIndices[key] ?? 0].value;
+  }
+
+  List<_MergeFieldCandidate<T>> _buildDistinctCandidates<T>(
+    List<DiveSite> sites,
+    T Function(DiveSite site) getValue, {
+    required bool Function(T a, T b) equals,
+  }) {
+    final candidates = <_MergeFieldCandidate<T>>[];
+    for (final site in sites) {
+      final value = getValue(site);
+      final alreadyIncluded = candidates.any(
+        (candidate) => equals(candidate.value, value),
+      );
+      if (!alreadyIncluded) {
+        candidates.add(
+          _MergeFieldCandidate(
+            siteId: site.id,
+            siteName: site.name,
+            value: value,
+          ),
+        );
+      }
+    }
+    return candidates;
+  }
+
+  int _firstMeaningfulIndex<T>(
+    List<_MergeFieldCandidate<T>> candidates,
+    bool Function(T value) isMeaningful,
+  ) {
+    final index = candidates.indexWhere(
+      (candidate) => isMeaningful(candidate.value),
+    );
+    return index >= 0 ? index : 0;
+  }
+
+  InputDecoration _withMergeTextDecoration({
+    required String key,
+    required InputDecoration decoration,
+  }) {
+    final candidates = _mergeTextCandidates[key];
+    if (!widget.isMerging || candidates == null || candidates.length < 2) {
+      return decoration;
+    }
+
+    final currentIndex = _mergeFieldIndices[key] ?? 0;
+    final current = candidates[currentIndex];
+
+    return decoration.copyWith(
+      helperText: context.l10n.diveSites_edit_merge_fieldSourceLabel(
+        current.siteName,
+        currentIndex + 1,
+        candidates.length,
+      ),
+      suffixIcon: IconButton(
+        icon: const Icon(Icons.sync_alt),
+        tooltip: context.l10n.diveSites_edit_merge_fieldSourceCycleTooltip,
+        onPressed: () => _cycleTextField(key),
+      ),
+    );
+  }
+
+  void _selectTextFieldCandidate(String key, int index) {
+    final candidates = _mergeTextCandidates[key];
+    if (candidates == null || index < 0 || index >= candidates.length) return;
+
+    final controller = switch (key) {
+      'name' => _nameController,
+      'description' => _descriptionController,
+      'country' => _countryController,
+      'region' => _regionController,
+      'minDepth' => _minDepthController,
+      'maxDepth' => _maxDepthController,
+      'notes' => _notesController,
+      'hazards' => _hazardsController,
+      'accessNotes' => _accessNotesController,
+      'mooringNumber' => _mooringNumberController,
+      'parkingInfo' => _parkingInfoController,
+      'altitude' => _altitudeController,
+      _ => null,
+    };
+
+    if (controller == null) return;
+
+    setState(() {
+      _mergeFieldIndices[key] = index;
+      controller.text = candidates[index].value;
+      _hasChanges = true;
+    });
+  }
+
+  void _cycleTextField(String key) {
+    final candidates = _mergeTextCandidates[key];
+    if (candidates == null || candidates.length < 2) return;
+
+    final nextIndex = ((_mergeFieldIndices[key] ?? 0) + 1) % candidates.length;
+    _selectTextFieldCandidate(key, nextIndex);
+  }
+
+  void _cycleDifficulty() {
+    if (_difficultyCandidates.length < 2) return;
+    setState(() {
+      final nextIndex =
+          ((_mergeFieldIndices['difficulty'] ?? 0) + 1) %
+          _difficultyCandidates.length;
+      _mergeFieldIndices['difficulty'] = nextIndex;
+      _difficulty = _difficultyCandidates[nextIndex].value;
+      _hasChanges = true;
+    });
+  }
+
+  void _cycleRating() {
+    if (_ratingCandidates.length < 2) return;
+    setState(() {
+      final nextIndex =
+          ((_mergeFieldIndices['rating'] ?? 0) + 1) % _ratingCandidates.length;
+      _mergeFieldIndices['rating'] = nextIndex;
+      _rating = _ratingCandidates[nextIndex].value;
+      _hasChanges = true;
+    });
+  }
+
+  void _cycleCoordinates() {
+    if (_coordinateCandidates.length < 2) return;
+    setState(() {
+      final nextIndex =
+          ((_mergeFieldIndices['coordinates'] ?? 0) + 1) %
+          _coordinateCandidates.length;
+      _mergeFieldIndices['coordinates'] = nextIndex;
+      _applyCoordinateCandidate(_coordinateCandidates[nextIndex].value);
+      _hasChanges = true;
+    });
+  }
+
+  void _applyCoordinateCandidate(_CoordinateCandidate candidate) {
+    _latitudeController.text = candidate.latitudeText;
+    _longitudeController.text = candidate.longitudeText;
+  }
+
+  String? _mergeSectionSourceLabel(String key, int length, String siteName) {
+    if (!widget.isMerging || length < 2) return null;
+    final index = _mergeFieldIndices[key] ?? 0;
+    return context.l10n.diveSites_edit_merge_fieldSourceLabel(
+      siteName,
+      index + 1,
+      length,
+    );
+  }
+
+  Future<bool> _confirmMerge() async {
+    final count = widget.mergeSiteIds?.length ?? 0;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.diveSites_edit_merge_confirmTitle),
+        content: Text(context.l10n.diveSites_edit_merge_confirmBody(count)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(context.l10n.diveSites_edit_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(context.l10n.diveSites_edit_appBar_merge),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
+  }
+
   Widget _buildRatingSection(BuildContext context) {
     return Card(
       child: Padding(
@@ -520,10 +1000,35 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              context.l10n.diveSites_edit_section_rating,
-              style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              children: [
+                Text(
+                  context.l10n.diveSites_edit_section_rating,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                if (widget.isMerging && _ratingCandidates.length > 1) ...[
+                  const Spacer(),
+                  IconButton(
+                    onPressed: _cycleRating,
+                    tooltip: context
+                        .l10n
+                        .diveSites_edit_merge_fieldSourceCycleTooltip,
+                    icon: const Icon(Icons.sync_alt),
+                  ),
+                ],
+              ],
             ),
+            if (widget.isMerging && _ratingCandidates.length > 1)
+              Text(
+                _mergeSectionSourceLabel(
+                      'rating',
+                      _ratingCandidates.length,
+                      _ratingCandidates[_mergeFieldIndices['rating'] ?? 0]
+                          .siteName,
+                    ) ??
+                    '',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -593,11 +1098,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _minDepthController,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.diveSites_edit_depth_minLabel(
-                        depthSymbol,
+                    decoration: _withMergeTextDecoration(
+                      key: 'minDepth',
+                      decoration: InputDecoration(
+                        labelText: context.l10n.diveSites_edit_depth_minLabel(
+                          depthSymbol,
+                        ),
+                        hintText: context.l10n.diveSites_edit_depth_minHint,
                       ),
-                      hintText: context.l10n.diveSites_edit_depth_minHint,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -611,11 +1119,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _maxDepthController,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.diveSites_edit_depth_maxLabel(
-                        depthSymbol,
+                    decoration: _withMergeTextDecoration(
+                      key: 'maxDepth',
+                      decoration: InputDecoration(
+                        labelText: context.l10n.diveSites_edit_depth_maxLabel(
+                          depthSymbol,
+                        ),
+                        hintText: context.l10n.diveSites_edit_depth_maxHint,
                       ),
-                      hintText: context.l10n.diveSites_edit_depth_maxHint,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -645,8 +1156,30 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                   context.l10n.diveSites_edit_section_difficultyLevel,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
+                if (widget.isMerging && _difficultyCandidates.length > 1) ...[
+                  const Spacer(),
+                  IconButton(
+                    onPressed: _cycleDifficulty,
+                    tooltip: context
+                        .l10n
+                        .diveSites_edit_merge_fieldSourceCycleTooltip,
+                    icon: const Icon(Icons.sync_alt),
+                  ),
+                ],
               ],
             ),
+            if (widget.isMerging && _difficultyCandidates.length > 1)
+              Text(
+                _mergeSectionSourceLabel(
+                      'difficulty',
+                      _difficultyCandidates.length,
+                      _difficultyCandidates[_mergeFieldIndices['difficulty'] ??
+                              0]
+                          .siteName,
+                    ) ??
+                    '',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -798,8 +1331,30 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                   context.l10n.diveSites_edit_section_gpsCoordinates,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
+                if (widget.isMerging && _coordinateCandidates.length > 1) ...[
+                  const Spacer(),
+                  IconButton(
+                    onPressed: _cycleCoordinates,
+                    tooltip: context
+                        .l10n
+                        .diveSites_edit_merge_fieldSourceCycleTooltip,
+                    icon: const Icon(Icons.sync_alt),
+                  ),
+                ],
               ],
             ),
+            if (widget.isMerging && _coordinateCandidates.length > 1)
+              Text(
+                _mergeSectionSourceLabel(
+                      'coordinates',
+                      _coordinateCandidates.length,
+                      _coordinateCandidates[_mergeFieldIndices['coordinates'] ??
+                              0]
+                          .siteName,
+                    ) ??
+                    '',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             const SizedBox(height: 8),
             Text(
               context.l10n.diveSites_edit_gps_helperText,
@@ -935,12 +1490,15 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _altitudeController,
-              decoration: InputDecoration(
-                labelText: context.l10n.diveSites_edit_altitude_label(
-                  altitudeSymbol,
+              decoration: _withMergeTextDecoration(
+                key: 'altitude',
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveSites_edit_altitude_label(
+                    altitudeSymbol,
+                  ),
+                  hintText: context.l10n.diveSites_edit_altitude_hint,
+                  prefixIcon: const Icon(Icons.terrain),
                 ),
-                hintText: context.l10n.diveSites_edit_altitude_hint,
-                prefixIcon: const Icon(Icons.terrain),
               ),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
@@ -1057,9 +1615,13 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _accessNotesController,
-              decoration: InputDecoration(
-                labelText: context.l10n.diveSites_edit_access_accessNotes_label,
-                hintText: context.l10n.diveSites_edit_access_accessNotes_hint,
+              decoration: _withMergeTextDecoration(
+                key: 'accessNotes',
+                decoration: InputDecoration(
+                  labelText:
+                      context.l10n.diveSites_edit_access_accessNotes_label,
+                  hintText: context.l10n.diveSites_edit_access_accessNotes_hint,
+                ),
               ),
               maxLines: 3,
             ),
@@ -1069,13 +1631,17 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _mooringNumberController,
-                    decoration: InputDecoration(
-                      labelText: context
-                          .l10n
-                          .diveSites_edit_access_mooringNumber_label,
-                      hintText:
-                          context.l10n.diveSites_edit_access_mooringNumber_hint,
-                      prefixIcon: const Icon(Icons.anchor),
+                    decoration: _withMergeTextDecoration(
+                      key: 'mooringNumber',
+                      decoration: InputDecoration(
+                        labelText: context
+                            .l10n
+                            .diveSites_edit_access_mooringNumber_label,
+                        hintText: context
+                            .l10n
+                            .diveSites_edit_access_mooringNumber_hint,
+                        prefixIcon: const Icon(Icons.anchor),
+                      ),
                     ),
                   ),
                 ),
@@ -1084,10 +1650,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _parkingInfoController,
-              decoration: InputDecoration(
-                labelText: context.l10n.diveSites_edit_access_parkingInfo_label,
-                hintText: context.l10n.diveSites_edit_access_parkingInfo_hint,
-                prefixIcon: const Icon(Icons.local_parking),
+              decoration: _withMergeTextDecoration(
+                key: 'parkingInfo',
+                decoration: InputDecoration(
+                  labelText:
+                      context.l10n.diveSites_edit_access_parkingInfo_label,
+                  hintText: context.l10n.diveSites_edit_access_parkingInfo_hint,
+                  prefixIcon: const Icon(Icons.local_parking),
+                ),
               ),
               maxLines: 2,
             ),
@@ -1127,9 +1697,12 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _hazardsController,
-              decoration: InputDecoration(
-                labelText: context.l10n.diveSites_edit_hazards_label,
-                hintText: context.l10n.diveSites_edit_hazards_hint,
+              decoration: _withMergeTextDecoration(
+                key: 'hazards',
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveSites_edit_hazards_label,
+                  hintText: context.l10n.diveSites_edit_hazards_hint,
+                ),
               ),
               maxLines: 3,
             ),
@@ -1331,7 +1904,15 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       final notifier = ref.read(siteListNotifierProvider.notifier);
       String savedId;
 
-      if (widget.isEditing) {
+      if (widget.isMerging) {
+        final confirmed = await _confirmMerge();
+        if (!confirmed) {
+          return;
+        }
+
+        await notifier.mergeSites(site, widget.mergeSiteIds!);
+        savedId = widget.mergeSiteIds!.first;
+      } else if (widget.isEditing) {
         await notifier.updateSite(site);
         savedId = widget.siteId!;
       } else {
@@ -1341,7 +1922,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
       // Save expected species
       final currentIds = _expectedSpecies.map((s) => s.id).toSet();
-      if (currentIds != _originalExpectedSpeciesIds || !widget.isEditing) {
+      if (currentIds != _originalExpectedSpeciesIds ||
+          !widget.isEditing ||
+          widget.isMerging) {
         final speciesNotifier = ref.read(
           siteExpectedSpeciesNotifierProvider(savedId).notifier,
         );
@@ -1355,6 +1938,11 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       if (widget.isEditing) {
         ref.invalidate(siteProvider(widget.siteId!));
       }
+      if (widget.isMerging) {
+        for (final siteId in widget.mergeSiteIds!) {
+          ref.invalidate(siteProvider(siteId));
+        }
+      }
 
       if (mounted) {
         if (widget.embedded) {
@@ -1364,7 +1952,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                widget.isEditing
+                widget.isMerging
+                    ? context.l10n.diveSites_edit_snackbar_sitesMerged
+                    : widget.isEditing
                     ? context.l10n.diveSites_edit_snackbar_siteUpdated
                     : context.l10n.diveSites_edit_snackbar_siteAdded,
               ),
@@ -1447,4 +2037,33 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       }
     }
   }
+}
+
+class _MergeLoadData {
+  final List<DiveSite> sites;
+  final List<Species> expectedSpecies;
+
+  const _MergeLoadData({required this.sites, required this.expectedSpecies});
+}
+
+class _MergeFieldCandidate<T> {
+  final String siteId;
+  final String siteName;
+  final T value;
+
+  const _MergeFieldCandidate({
+    required this.siteId,
+    required this.siteName,
+    required this.value,
+  });
+}
+
+class _CoordinateCandidate {
+  final String latitudeText;
+  final String longitudeText;
+
+  const _CoordinateCandidate({
+    required this.latitudeText,
+    required this.longitudeText,
+  });
 }

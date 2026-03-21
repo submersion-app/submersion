@@ -8957,6 +8957,18 @@ abstract class AppLocalizations {
   /// **'Edit Site'**
   String get diveSites_edit_appBar_editSite;
 
+  /// No description provided for @diveSites_edit_appBar_merge.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get diveSites_edit_appBar_merge;
+
+  /// No description provided for @diveSites_edit_appBar_mergeSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Sites'**
+  String get diveSites_edit_appBar_mergeSites;
+
   /// No description provided for @diveSites_edit_appBar_newSite.
   ///
   /// In en, this message translates to:
@@ -8974,6 +8986,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Site'**
   String get diveSites_edit_button_addSite;
+
+  /// No description provided for @diveSites_edit_button_mergeSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Sites'**
+  String get diveSites_edit_button_mergeSites;
 
   /// No description provided for @diveSites_edit_button_saveChanges.
   ///
@@ -9197,6 +9215,64 @@ abstract class AppLocalizations {
   /// **'Species you expect to see at this site'**
   String get diveSites_edit_marineLife_helperText;
 
+  /// No description provided for @diveSites_edit_merge_confirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge {count} sites into one entry?'**
+  String diveSites_edit_merge_confirmBody(int count);
+
+  /// No description provided for @diveSites_edit_merge_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Sites'**
+  String get diveSites_edit_merge_confirmTitle;
+
+  /// No description provided for @diveSites_edit_merge_fieldSourceCycleTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Use value from next selected site'**
+  String get diveSites_edit_merge_fieldSourceCycleTooltip;
+
+  /// No description provided for @diveSites_edit_merge_fieldSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'From {siteName} ({current}/{total})'**
+  String diveSites_edit_merge_fieldSourceLabel(
+    Object siteName,
+    int current,
+    int total,
+  );
+
+  /// No description provided for @diveSites_edit_merge_fieldSourceMenuTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Select value from selected site'**
+  String get diveSites_edit_merge_fieldSourceMenuTooltip;
+
+  /// No description provided for @diveSites_edit_merge_loadingErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load sites: {error}'**
+  String diveSites_edit_merge_loadingErrorBody(Object error);
+
+  /// No description provided for @diveSites_edit_merge_loadingErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Sites'**
+  String get diveSites_edit_merge_loadingErrorTitle;
+
+  /// No description provided for @diveSites_edit_merge_notEnoughBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough sites to merge.'**
+  String get diveSites_edit_merge_notEnoughBody;
+
+  /// No description provided for @diveSites_edit_merge_notEnoughTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Sites'**
+  String get diveSites_edit_merge_notEnoughTitle;
+
   /// No description provided for @diveSites_edit_rating_clear.
   ///
   /// In en, this message translates to:
@@ -9310,6 +9386,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Site added'**
   String get diveSites_edit_snackbar_siteAdded;
+
+  /// No description provided for @diveSites_edit_snackbar_sitesMerged.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites merged'**
+  String get diveSites_edit_snackbar_sitesMerged;
 
   /// No description provided for @diveSites_edit_snackbar_siteUpdated.
   ///
@@ -9851,7 +9933,7 @@ abstract class AppLocalizations {
   /// **'Search sites...'**
   String get diveSites_list_search_placeholder;
 
-  /// No description provided for @diveSites_list_selection_closeTooltip.
+  /// Tooltip for the close button in multi-select mode
   ///
   /// In en, this message translates to:
   /// **'Close Selection'**
@@ -9863,19 +9945,25 @@ abstract class AppLocalizations {
   /// **'{count} selected'**
   String diveSites_list_selection_count(Object count);
 
-  /// No description provided for @diveSites_list_selection_deleteTooltip.
+  /// Tooltip for the delete button in multi-select mode
   ///
   /// In en, this message translates to:
   /// **'Delete Selected'**
   String get diveSites_list_selection_deleteTooltip;
 
-  /// No description provided for @diveSites_list_selection_deselectAllTooltip.
+  /// Tooltip for the merge button in multi-select mode
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Selected'**
+  String get diveSites_list_selection_mergeTooltip;
+
+  /// Tooltip for the deselect all button in multi-select mode
   ///
   /// In en, this message translates to:
   /// **'Deselect All'**
   String get diveSites_list_selection_deselectAllTooltip;
 
-  /// No description provided for @diveSites_list_selection_selectAllTooltip.
+  /// Tooltip for the select all button in multi-select mode
   ///
   /// In en, this message translates to:
   /// **'Select All'**

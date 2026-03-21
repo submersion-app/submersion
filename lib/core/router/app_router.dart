@@ -36,6 +36,7 @@ import 'package:submersion/features/maps/presentation/pages/offline_maps_page.da
 import 'package:submersion/features/dive_sites/presentation/pages/site_list_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_merge_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_import_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_map_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_list_page.dart';
@@ -299,6 +300,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newSite',
                 builder: (context, state) => const SiteEditPage(),
+              ),
+              GoRoute(
+                path: 'merge',
+                name: 'mergeSite',
+                builder: (context, state) {
+                  final siteIds = state.extra as List<String>;
+                  return SiteMergePage(siteIds: siteIds);
+                },
               ),
               GoRoute(
                 path: ':siteId',

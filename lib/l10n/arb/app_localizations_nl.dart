@@ -5153,6 +5153,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_edit_appBar_editSite => 'Stek bewerken';
 
   @override
+  String get diveSites_edit_appBar_merge => 'Samenvoegen';
+
+  @override
+  String get diveSites_edit_appBar_mergeSites => 'Duiklocaties samenvoegen';
+
+  @override
   String get diveSites_edit_appBar_newSite => 'Nieuwe stek';
 
   @override
@@ -5160,6 +5166,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_edit_button_addSite => 'Stek toevoegen';
+
+  @override
+  String get diveSites_edit_button_mergeSites => 'Duiklocaties samenvoegen';
 
   @override
   String get diveSites_edit_button_saveChanges => 'Wijzigingen opslaan';
@@ -5286,6 +5295,47 @@ class AppLocalizationsNl extends AppLocalizations {
       'Soorten die je op deze stek verwacht te zien';
 
   @override
+  String diveSites_edit_merge_confirmBody(int count) {
+    return '$count duiklocaties samenvoegen tot één item?';
+  }
+
+  @override
+  String get diveSites_edit_merge_confirmTitle => 'Duiklocaties samenvoegen';
+
+  @override
+  String get diveSites_edit_merge_fieldSourceCycleTooltip =>
+      'Waarde gebruiken van volgende geselecteerde locatie';
+
+  @override
+  String diveSites_edit_merge_fieldSourceLabel(
+    Object siteName,
+    int current,
+    int total,
+  ) {
+    return 'Van $siteName ($current/$total)';
+  }
+
+  @override
+  String get diveSites_edit_merge_fieldSourceMenuTooltip =>
+      'Waarde selecteren van geselecteerde locatie';
+
+  @override
+  String diveSites_edit_merge_loadingErrorBody(Object error) {
+    return 'Kan duiklocaties niet laden: $error';
+  }
+
+  @override
+  String get diveSites_edit_merge_loadingErrorTitle =>
+      'Duiklocaties samenvoegen';
+
+  @override
+  String get diveSites_edit_merge_notEnoughBody =>
+      'Niet genoeg duiklocaties om samen te voegen.';
+
+  @override
+  String get diveSites_edit_merge_notEnoughTitle => 'Duiklocaties samenvoegen';
+
+  @override
   String get diveSites_edit_rating_clear => 'Beoordeling wissen';
 
   @override
@@ -5358,6 +5408,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_edit_snackbar_siteAdded => 'Stek toegevoegd';
+
+  @override
+  String get diveSites_edit_snackbar_sitesMerged => 'Duiklocaties samengevoegd';
 
   @override
   String get diveSites_edit_snackbar_siteUpdated => 'Stek bijgewerkt';
@@ -5701,6 +5754,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveSites_list_selection_deleteTooltip =>
       'Geselecteerde verwijderen';
+
+  @override
+  String get diveSites_list_selection_mergeTooltip =>
+      'Geselecteerde samenvoegen';
 
   @override
   String get diveSites_list_selection_deselectAllTooltip =>

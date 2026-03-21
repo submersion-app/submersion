@@ -2777,9 +2777,12 @@
   "diveSites_edit_altitude_validation": "Invalid altitude",
   "diveSites_edit_appBar_deleteSiteTooltip": "Delete Site",
   "diveSites_edit_appBar_editSite": "Edit Site",
+  "diveSites_edit_appBar_merge": "Merge",
+  "diveSites_edit_appBar_mergeSites": "Merge Sites",
   "diveSites_edit_appBar_newSite": "New Site",
   "diveSites_edit_appBar_save": "Save",
   "diveSites_edit_button_addSite": "Add Site",
+  "diveSites_edit_button_mergeSites": "Merge Sites",
   "diveSites_edit_button_saveChanges": "Save Changes",
   "diveSites_edit_cancel": "Cancel",
   "diveSites_edit_depth_helperText": "From the shallowest to the deepest point",
@@ -2817,6 +2820,15 @@
   "diveSites_edit_marineLife_addButton": "Add",
   "diveSites_edit_marineLife_empty": "No expected species added",
   "diveSites_edit_marineLife_helperText": "Species you expect to see at this site",
+  "diveSites_edit_merge_confirmBody": "Merge {count} sites into one entry?",
+  "diveSites_edit_merge_confirmTitle": "Merge Sites",
+  "diveSites_edit_merge_fieldSourceCycleTooltip": "Use value from next selected site",
+  "diveSites_edit_merge_fieldSourceLabel": "From {siteName} ({current}/{total})",
+  "diveSites_edit_merge_fieldSourceMenuTooltip": "Select value from selected site",
+  "diveSites_edit_merge_loadingErrorBody": "Failed to load sites: {error}",
+  "diveSites_edit_merge_loadingErrorTitle": "Merge Sites",
+  "diveSites_edit_merge_notEnoughBody": "Not enough sites to merge.",
+  "diveSites_edit_merge_notEnoughTitle": "Merge Sites",
   "diveSites_edit_rating_clear": "Clear Rating",
   "diveSites_edit_rating_starTooltip": "{count} star{count, plural, =1{} other{s}}",
   "diveSites_edit_section_access": "Access & Logistics",
@@ -2836,6 +2848,7 @@
   "diveSites_edit_snackbar_locationUnavailableDesktop": "Unable to get location. Location services may not be available.",
   "diveSites_edit_snackbar_locationUnavailableMobile": "Unable to get location. Please check permissions.",
   "diveSites_edit_snackbar_siteAdded": "Site added",
+  "diveSites_edit_snackbar_sitesMerged": "Sites merged",
   "diveSites_edit_snackbar_siteUpdated": "Site updated",
   "diveSites_fab_label": "Add Site",
   "diveSites_fab_tooltip": "Add a new dive site",
@@ -2929,6 +2942,7 @@
   "diveSites_list_selection_closeTooltip": "Close Selection",
   "diveSites_list_selection_count": "{count} selected",
   "diveSites_list_selection_deleteTooltip": "Delete Selected",
+  "diveSites_list_selection_mergeTooltip": "Merge Selected",
   "diveSites_list_selection_deselectAllTooltip": "Deselect All",
   "diveSites_list_selection_selectAllTooltip": "Select All",
   "diveSites_list_sort_title": "Sort Sites",
@@ -3187,6 +3201,48 @@
         "type": "Object"
       }
     }
+  },
+  "@diveSites_list_selection_closeTooltip": {
+    "description": "Tooltip for the close button in multi-select mode"
+  },
+  "@diveSites_list_selection_deleteTooltip": {
+    "description": "Tooltip for the delete button in multi-select mode"
+  },
+  "@diveSites_list_selection_mergeTooltip": {
+    "description": "Tooltip for the merge button in multi-select mode"
+  },
+  "@diveSites_edit_merge_confirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@diveSites_edit_merge_fieldSourceLabel": {
+    "placeholders": {
+      "siteName": {
+        "type": "Object"
+      },
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@diveSites_edit_merge_loadingErrorBody": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "@diveSites_list_selection_deselectAllTooltip": {
+    "description": "Tooltip for the deselect all button in multi-select mode"
+  },
+  "@diveSites_list_selection_selectAllTooltip": {
+    "description": "Tooltip for the select all button in multi-select mode"
   },
   "@diveSites_list_tile_diveCount": {
     "placeholders": {

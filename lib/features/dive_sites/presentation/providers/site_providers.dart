@@ -4,10 +4,12 @@ import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 
 // ============================================================================
 // Site Filter State
@@ -381,6 +383,35 @@ class SiteListNotifier
     await _loadSites();
     _ref.invalidate(sitesProvider);
     _ref.invalidate(sitesWithCountsProvider);
+  }
+
+  Future<void> mergeSites(
+    domain.DiveSite mergedSite,
+    List<String> orderedSiteIds,
+  ) async {
+    if (orderedSiteIds.length < 2) return;
+
+    final dedupedSiteIds = orderedSiteIds.toSet().toList(growable: false);
+    final survivorId = dedupedSiteIds.first;
+
+    await _repository.mergeSites(
+      mergedSite: mergedSite.copyWith(id: survivorId),
+      siteIds: dedupedSiteIds,
+    );
+
+    await _loadSites();
+    _ref.invalidate(sitesProvider);
+    _ref.invalidate(sitesWithCountsProvider);
+    _ref.invalidate(divesProvider);
+    _ref.invalidate(diveListNotifierProvider);
+
+    for (final siteId in dedupedSiteIds) {
+      _ref.invalidate(siteProvider(siteId));
+      _ref.invalidate(siteDiveCountProvider(siteId));
+      _ref.invalidate(siteExpectedSpeciesProvider(siteId));
+      _ref.invalidate(siteExpectedSpeciesNotifierProvider(siteId));
+      _ref.invalidate(siteSpottedSpeciesProvider(siteId));
+    }
   }
 }
 
