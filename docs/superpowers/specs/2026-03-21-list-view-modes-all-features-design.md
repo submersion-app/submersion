@@ -6,7 +6,7 @@ The dive list now supports three view density modes (detailed, compact, dense), 
 
 ## Solution
 
-Add compact and/or dense view modes to all five remaining list features, reusing the existing `DiveListViewMode` enum and `DiveListViewModeToggle` widget. Each feature gets per-feature persistent settings and session-scoped app bar toggles matching the dive list pattern.
+Add compact and/or dense view modes to all five remaining list features. As part of this work, rename the existing `ListViewMode` enum to `ListViewMode` and `ListViewModeToggle` to `ListViewModeToggle` since they are now shared across all features. Each feature gets per-feature persistent settings and session-scoped app bar toggles matching the dive list pattern.
 
 ## Features and Modes
 
@@ -70,11 +70,11 @@ All dense tiles use no card wrapper, divider-separated rows with fixed-width col
 
 ### DiveListViewMode Enum
 
-Reuse the existing `DiveListViewMode` enum (`detailed`, `compact`, `dense`) from `lib/core/constants/dive_list_view_mode.dart`. No changes needed.
+Reuse the existing `ListViewMode` enum (`detailed`, `compact`, `dense`) from `lib/core/constants/dive_list_view_mode.dart`. No changes needed.
 
 ### DiveListViewModeToggle Enhancement
 
-Add an `availableModes` parameter to the existing `DiveListViewModeToggle` widget:
+Add an `availableModes` parameter to the existing `ListViewModeToggle` widget:
 
 ```dart
 class DiveListViewModeToggle extends StatelessWidget {
@@ -92,7 +92,7 @@ class DiveListViewModeToggle extends StatelessWidget {
 
 ### Database
 
-Add 5 new text columns to the `DiverSettings` table. Single schema bump to v52 with one migration adding all columns:
+Add 5 new text columns to the `DiverSettings` table. Single schema bump (currentSchemaVersion + 1) with one migration adding all columns:
 
 ```dart
 TextColumn get siteListViewMode => text().withDefault(const Constant('detailed'))();
@@ -114,7 +114,7 @@ ALTER TABLE diver_settings ADD COLUMN dive_center_list_view_mode TEXT NOT NULL D
 
 ### AppSettings
 
-5 new `DiveListViewMode` fields with defaults of `DiveListViewMode.detailed`. 5 new setters on `SettingsNotifier` following the existing `setDiveListViewMode` pattern.
+5 new `ListViewMode` fields with defaults of `DiveListViewMode.detailed`. 5 new setters on `SettingsNotifier` following the existing `setDiveListViewMode` pattern.
 
 ### DiverSettingsRepository
 
@@ -136,7 +136,7 @@ final siteListViewModeProvider = StateProvider<DiveListViewMode>((ref) {
 
 ### App Bar (Quick Switch)
 
-Each feature's list content widget gets a `DiveListViewModeToggle` in its app bar actions (both mobile `_buildAppBar` and desktop `_buildCompactAppBar`). Same placement pattern as the dive list.
+Each feature's list content widget gets a `ListViewModeToggle` in its app bar actions (both mobile `_buildAppBar` and desktop `_buildCompactAppBar`). Same placement pattern as the dive list.
 
 - Sites, trips, dive centers: default `availableModes` (all three)
 - Equipment, buddies: `availableModes: [DiveListViewMode.detailed, DiveListViewMode.dense]`
@@ -159,6 +159,27 @@ Matches the dive list pattern:
 - On page load, the runtime view mode initializes from the persisted default.
 - App bar toggle changes the runtime value only (session-scoped).
 - Settings page changes both the persistent default AND the current runtime value.
+
+## Rename Existing Files
+
+As part of this work, rename the enum and toggle widget to remove the "Dive" prefix:
+
+| Old Name | New Name | Old File | New File |
+|----------|----------|----------|----------|
+| `DiveListViewMode` | `ListViewMode` | `lib/core/constants/dive_list_view_mode.dart` | `lib/core/constants/list_view_mode.dart` |
+| `DiveListViewModeToggle` | `ListViewModeToggle` | `lib/features/dive_log/presentation/widgets/dive_list_view_mode_toggle.dart` | `lib/shared/widgets/list_view_mode_toggle.dart` |
+
+Update all existing references in the dive list feature, settings providers, settings pages, and tests. The toggle moves from the dive_log feature to shared/widgets since it is now used by all features.
+
+Also rename the existing runtime provider from `diveListViewModeProvider` to stay consistent. The dive list's runtime provider keeps its name since it is feature-specific.
+
+## Selection Mode
+
+All new compact and dense tile widgets support `isSelectionMode` and `isSelected` parameters, following the same pattern as the existing dive list tiles. In selection mode, a checkbox replaces the leading element (dive number, icon, or avatar). Features that currently support selection mode (sites with multi-select) carry that behavior into all view modes.
+
+## Card Color Gradients
+
+Card color gradient support (attribute-based coloring) is **dive list only**. The new tiles for other features do not include `colorValue`, `minValueInList`, or gradient color parameters. If gradient coloring is added to other features in the future, it can be added to their tile widgets at that time.
 
 ## New Widget Files
 
@@ -192,6 +213,6 @@ Matches the dive list pattern:
 ## Testing
 
 - Widget tests for each new tile widget (8 tiles x ~3 tests each) -- renders correct data, selection mode, null fallbacks
-- Widget test for `DiveListViewModeToggle` with `availableModes` -- only filtered modes appear
+- Widget test for `ListViewModeToggle` with `availableModes` -- only filtered modes appear
 - Existing settings tests should pass with defaults (new fields have defaults)
 - Mock notifier updates for any test files with explicit `SettingsNotifier` implementations
