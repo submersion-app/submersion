@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -225,6 +227,9 @@ class _BuddySelectionSheet extends ConsumerStatefulWidget {
 class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  String _debouncedQuery = '';
+  Timer? _debounceTimer;
+  List<Buddy>? _lastSearchResults;
   late List<BuddyWithRole> _localSelectedBuddies;
 
   @override
@@ -235,15 +240,16 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final buddiesAsync = _searchQuery.isEmpty
+    final buddiesAsync = _debouncedQuery.isEmpty
         ? ref.watch(allBuddiesProvider)
-        : ref.watch(buddySearchProvider(_searchQuery));
+        : ref.watch(buddySearchProvider(_debouncedQuery));
 
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
@@ -286,7 +292,12 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                           tooltip: context.l10n.buddies_action_clearSearch,
                           onPressed: () {
                             _searchController.clear();
-                            setState(() => _searchQuery = '');
+                            _debounceTimer?.cancel();
+                            setState(() {
+                              _searchQuery = '';
+                              _debouncedQuery = '';
+                              _lastSearchResults = null;
+                            });
                           },
                         )
                       : null,
@@ -296,6 +307,22 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                 ),
                 onChanged: (value) {
                   setState(() => _searchQuery = value);
+                  _debounceTimer?.cancel();
+                  if (value.isEmpty) {
+                    setState(() {
+                      _debouncedQuery = '';
+                      _lastSearchResults = null;
+                    });
+                  } else {
+                    _debounceTimer = Timer(
+                      const Duration(milliseconds: 300),
+                      () {
+                        if (mounted) {
+                          setState(() => _debouncedQuery = value);
+                        }
+                      },
+                    );
+                  }
                 },
               ),
             ),
@@ -327,6 +354,9 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
             Expanded(
               child: buddiesAsync.when(
                 data: (buddies) {
+                  if (_debouncedQuery.isNotEmpty) {
+                    _lastSearchResults = buddies;
+                  }
                   if (buddies.isEmpty) {
                     return Center(
                       child: Column(
@@ -353,71 +383,86 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                     );
                   }
 
-                  return ListView.builder(
-                    controller: scrollController,
-                    itemCount: buddies.length,
-                    itemBuilder: (context, index) {
-                      final buddy = buddies[index];
-                      final isSelected = _localSelectedBuddies.any(
-                        (b) => b.buddy.id == buddy.id,
-                      );
-                      final selectedRole = _localSelectedBuddies
-                          .where((b) => b.buddy.id == buddy.id)
-                          .map((b) => b.role)
-                          .firstOrNull;
-
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: isSelected
-                              ? Theme.of(context).colorScheme.primaryContainer
-                              : Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHighest,
-                          child: isSelected
-                              ? Icon(
-                                  Icons.check,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimaryContainer,
-                                )
-                              : Text(
-                                  buddy.initials,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                        ),
-                        title: Text(buddy.name),
-                        subtitle: buddy.certificationLevel != null
-                            ? Text(buddy.certificationLevel!.displayName)
-                            : null,
-                        trailing: isSelected
-                            ? Chip(
-                                label: Text(
-                                  selectedRole?.displayName ?? 'Buddy',
-                                ),
-                                visualDensity: VisualDensity.compact,
-                              )
-                            : null,
-                        onTap: () {
-                          if (isSelected) {
-                            _removeBuddy(buddy.id);
-                          } else {
-                            _showRoleSelectorForBuddy(context, buddy);
-                          }
-                        },
-                      );
-                    },
-                  );
+                  return _buildBuddyListView(scrollController, buddies);
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () {
+                  if (_lastSearchResults != null &&
+                      _lastSearchResults!.isNotEmpty) {
+                    return Column(
+                      children: [
+                        const LinearProgressIndicator(),
+                        Expanded(
+                          child: _buildBuddyListView(
+                            scrollController,
+                            _lastSearchResults!,
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  return const Center(child: CircularProgressIndicator());
+                },
                 error: (error, _) => Center(child: Text('Error: $error')),
               ),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBuddyListView(
+    ScrollController scrollController,
+    List<Buddy> buddies,
+  ) {
+    return ListView.builder(
+      controller: scrollController,
+      itemCount: buddies.length,
+      itemBuilder: (context, index) {
+        final buddy = buddies[index];
+        final isSelected = _localSelectedBuddies.any(
+          (b) => b.buddy.id == buddy.id,
+        );
+        final selectedRole = _localSelectedBuddies
+            .where((b) => b.buddy.id == buddy.id)
+            .map((b) => b.role)
+            .firstOrNull;
+
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundColor: isSelected
+                ? Theme.of(context).colorScheme.primaryContainer
+                : Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: isSelected
+                ? Icon(
+                    Icons.check,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  )
+                : Text(
+                    buddy.initials,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+          ),
+          title: Text(buddy.name),
+          subtitle: buddy.certificationLevel != null
+              ? Text(buddy.certificationLevel!.displayName)
+              : null,
+          trailing: isSelected
+              ? Chip(
+                  label: Text(selectedRole?.displayName ?? 'Buddy'),
+                  visualDensity: VisualDensity.compact,
+                )
+              : null,
+          onTap: () {
+            if (isSelected) {
+              _removeBuddy(buddy.id);
+            } else {
+              _showRoleSelectorForBuddy(context, buddy);
+            }
+          },
         );
       },
     );

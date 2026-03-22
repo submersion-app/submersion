@@ -18,6 +18,7 @@ import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.d
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
+import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -266,37 +267,33 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
   }
 
   Widget _buildSearchResults(BuildContext context) {
-    final searchAsync = ref.watch(diveSearchProvider(query));
-
-    return searchAsync.when(
-      data: (dives) {
-        if (dives.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ExcludeSemantics(
-                  child: Icon(
-                    Icons.search_off,
-                    size: 64,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  context.l10n.diveLog_listPage_searchNoResults(query),
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+    return DebouncedSearchResults<Dive>(
+      query: query,
+      watchProvider: (ref, q) => ref.watch(diveSearchProvider(q)),
+      emptyBuilder: (context, q) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ExcludeSemantics(
+              child: Icon(
+                Icons.search_off,
+                size: 64,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
             ),
-          );
-        }
-
-        // Calculate value range for card coloring based on active attribute
+            const SizedBox(height: 16),
+            Text(
+              context.l10n.diveLog_listPage_searchNoResults(q),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+      dataBuilder: (context, dives) {
         final colorAttribute = ref.read(settingsProvider).cardColorAttribute;
         final colorValues = dives
             .map((d) => getCardColorValueFromDive(d, colorAttribute))
@@ -337,8 +334,7 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
+      errorBuilder: (context, error) => Center(
         child: Text(
           context.l10n.diveLog_listPage_errorLoading(error.toString()),
         ),

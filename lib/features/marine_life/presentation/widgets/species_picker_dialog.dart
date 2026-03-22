@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -21,6 +23,9 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
   late Set<String> _selectedIds;
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  String _debouncedQuery = '';
+  Timer? _debounceTimer;
+  List<Species>? _lastSearchResults;
   SpeciesCategory? _selectedCategory;
 
   @override
@@ -31,6 +36,7 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -38,9 +44,9 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final speciesAsync = _searchQuery.isEmpty
+    final speciesAsync = _debouncedQuery.isEmpty
         ? ref.watch(allSpeciesProvider)
-        : ref.watch(speciesSearchProvider(_searchQuery));
+        : ref.watch(speciesSearchProvider(_debouncedQuery));
 
     return Dialog(
       child: ConstrainedBox(
@@ -93,7 +99,12 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
                                   .marineLife_speciesPicker_clearSearchTooltip,
                               onPressed: () {
                                 _searchController.clear();
-                                setState(() => _searchQuery = '');
+                                _debounceTimer?.cancel();
+                                setState(() {
+                                  _searchQuery = '';
+                                  _debouncedQuery = '';
+                                  _lastSearchResults = null;
+                                });
                               },
                             )
                           : null,
@@ -109,6 +120,22 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
                     ),
                     onChanged: (value) {
                       setState(() => _searchQuery = value);
+                      _debounceTimer?.cancel();
+                      if (value.isEmpty) {
+                        setState(() {
+                          _debouncedQuery = '';
+                          _lastSearchResults = null;
+                        });
+                      } else {
+                        _debounceTimer = Timer(
+                          const Duration(milliseconds: 300),
+                          () {
+                            if (mounted) {
+                              setState(() => _debouncedQuery = value);
+                            }
+                          },
+                        );
+                      }
                     },
                   ),
                   const SizedBox(height: 12),
@@ -156,57 +183,28 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
             Expanded(
               child: speciesAsync.when(
                 data: (allSpecies) {
-                  final filtered = _selectedCategory == null
-                      ? allSpecies
-                      : allSpecies
-                            .where((s) => s.category == _selectedCategory)
-                            .toList();
-
-                  if (filtered.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.search_off,
-                            size: 48,
-                            color: colorScheme.onSurfaceVariant,
+                  if (_debouncedQuery.isNotEmpty) {
+                    _lastSearchResults = allSpecies;
+                  }
+                  return _buildSpeciesList(context, allSpecies);
+                },
+                loading: () {
+                  if (_lastSearchResults != null &&
+                      _lastSearchResults!.isNotEmpty) {
+                    return Column(
+                      children: [
+                        const LinearProgressIndicator(),
+                        Expanded(
+                          child: _buildSpeciesList(
+                            context,
+                            _lastSearchResults!,
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            context
-                                .l10n
-                                .marineLife_speciesPicker_noSpeciesFound,
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     );
                   }
-
-                  // Group by category
-                  final grouped = <SpeciesCategory, List<Species>>{};
-                  for (final species in filtered) {
-                    grouped
-                        .putIfAbsent(species.category, () => [])
-                        .add(species);
-                  }
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: grouped.length,
-                    itemBuilder: (context, index) {
-                      final entry = grouped.entries.elementAt(index);
-                      return _buildCategorySection(
-                        context,
-                        entry.key,
-                        entry.value,
-                      );
-                    },
-                  );
+                  return const Center(child: CircularProgressIndicator());
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, _) => Center(
                   child: Text(
                     context.l10n.marineLife_speciesPicker_error(
@@ -257,6 +255,50 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSpeciesList(BuildContext context, List<Species> allSpecies) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final filtered = _selectedCategory == null
+        ? allSpecies
+        : allSpecies.where((s) => s.category == _selectedCategory).toList();
+
+    if (filtered.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 48,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              context.l10n.marineLife_speciesPicker_noSpeciesFound,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Group by category
+    final grouped = <SpeciesCategory, List<Species>>{};
+    for (final species in filtered) {
+      grouped.putIfAbsent(species.category, () => []).add(species);
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: grouped.length,
+      itemBuilder: (context, index) {
+        final entry = grouped.entries.elementAt(index);
+        return _buildCategorySection(context, entry.key, entry.value);
+      },
     );
   }
 

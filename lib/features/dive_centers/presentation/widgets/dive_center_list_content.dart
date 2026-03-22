@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/compact_dive_center_list_tile.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dense_dive_center_list_tile.dart';
+import 'package:submersion/shared/widgets/debounced_search_results.dart';
 
 /// Content widget for the dive center list, used in master-detail layout.
 class DiveCenterListContent extends ConsumerStatefulWidget {
@@ -604,38 +605,10 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
   Widget buildSuggestions(BuildContext context) => _buildSearchResults(context);
 
   Widget _buildSearchResults(BuildContext context) {
-    final resultsAsync = ref.watch(diveCenterSearchProvider(query));
-
-    return resultsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Text(context.l10n.diveCenters_error_generic(error.toString())),
-      ),
-      data: (centers) {
-        if (centers.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.search_off,
-                  size: 48,
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  query.isEmpty
-                      ? context.l10n.diveCenters_search_prompt
-                      : context.l10n.diveCenters_search_noResults(query),
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
+    return DebouncedSearchResults<DiveCenter>(
+      query: query,
+      watchProvider: (ref, q) => ref.watch(diveCenterSearchProvider(q)),
+      dataBuilder: (context, centers) {
         return ListView.builder(
           itemCount: centers.length,
           itemBuilder: (context, index) {
@@ -677,6 +650,49 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
               },
             );
           },
+        );
+      },
+      emptyQueryBuilder: (context) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search,
+              size: 48,
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              context.l10n.diveCenters_search_prompt,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+          ],
+        ),
+      ),
+      emptyBuilder: (context, query) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 48,
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              context.l10n.diveCenters_search_noResults(query),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+          ],
+        ),
+      ),
+      errorBuilder: (context, error) {
+        return Center(
+          child: Text(context.l10n.diveCenters_error_generic(error.toString())),
         );
       },
     );

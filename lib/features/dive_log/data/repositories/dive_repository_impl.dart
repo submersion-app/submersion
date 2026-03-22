@@ -1485,61 +1485,75 @@ class DiveRepository {
   /// Search dives by notes or buddy name
   Future<List<domain.Dive>> searchDives(String query, {String? diverId}) async {
     try {
-      final searchQuery = _db.select(_db.dives)
-        ..where(
-          (t) =>
-              t.notes.contains(query) |
-              t.buddy.contains(query) |
-              t.diveMaster.contains(query),
-        )
-        ..orderBy([
-          (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
-          (t) => OrderingTerm.desc(t.diveNumber),
-        ]);
+      // Search across dive fields and all related tables in a single query.
+      // Matches: notes, buddy (legacy field), dive master, site name/country/
+      // region, dive center name, linked buddy names, tag names, custom fields.
+      final likeTerm = '%$query%';
+      final diverClause = diverId != null ? 'AND d.diver_id = ?' : '';
+      final diverArgs = diverId != null
+          ? [Variable<String>(diverId)]
+          : <Variable<String>>[];
 
-      if (diverId != null) {
-        searchQuery.where((t) => t.diverId.equals(diverId));
-      }
-
-      final rows = await searchQuery.get();
-
-      // Also search custom field keys and values
-      final customFieldMatches = await _db
+      final matchingIds = await _db
           .customSelect(
-            'SELECT DISTINCT cf.dive_id FROM dive_custom_fields cf '
-            'INNER JOIN dives d ON cf.dive_id = d.id '
-            'WHERE (cf.field_key LIKE ? OR cf.field_value LIKE ?) '
-            '${diverId != null ? 'AND d.diver_id = ?' : ''}',
+            '''
+            SELECT DISTINCT d.id
+            FROM dives d
+            LEFT JOIN dive_sites ds ON d.site_id = ds.id
+            LEFT JOIN dive_centers dc ON d.dive_center_id = dc.id
+            LEFT JOIN dive_buddies db ON db.dive_id = d.id
+            LEFT JOIN buddies b ON db.buddy_id = b.id
+            LEFT JOIN dive_tags dt ON dt.dive_id = d.id
+            LEFT JOIN tags t ON dt.tag_id = t.id
+            LEFT JOIN dive_custom_fields cf ON cf.dive_id = d.id
+            WHERE (
+              d.notes LIKE ?
+              OR d.buddy LIKE ?
+              OR d.dive_master LIKE ?
+              OR ds.name LIKE ?
+              OR ds.country LIKE ?
+              OR ds.region LIKE ?
+              OR dc.name LIKE ?
+              OR b.name LIKE ?
+              OR t.name LIKE ?
+              OR cf.field_key LIKE ?
+              OR cf.field_value LIKE ?
+            )
+            $diverClause
+            ''',
             variables: [
-              Variable('%$query%'),
-              Variable('%$query%'),
-              if (diverId != null) Variable(diverId),
+              Variable(likeTerm),
+              Variable(likeTerm),
+              Variable(likeTerm),
+              Variable(likeTerm),
+              Variable(likeTerm),
+              Variable(likeTerm),
+              Variable(likeTerm),
+              Variable(likeTerm),
+              Variable(likeTerm),
+              Variable(likeTerm),
+              Variable(likeTerm),
+              ...diverArgs,
             ],
           )
           .get();
 
-      final customFieldDiveIds = customFieldMatches
-          .map((r) => r.data['dive_id'] as String)
-          .toSet();
+      if (matchingIds.isEmpty) return [];
 
-      // Remove IDs already found by the main query
-      final existingIds = rows.map((r) => r.id).toSet();
-      final additionalIds = customFieldDiveIds.difference(existingIds);
+      final ids = matchingIds.map((r) => r.data['id'] as String).toList();
 
-      // Load additional dives from custom field matches
-      final List<Dive> allRows = rows.toList();
-      if (additionalIds.isNotEmpty) {
-        final additionalQuery = _db.select(_db.dives)
-          ..where((t) => t.id.isIn(additionalIds.toList()))
-          ..orderBy([
-            (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
-            (t) => OrderingTerm.desc(t.diveNumber),
-          ]);
-        final additionalRows = await additionalQuery.get();
-        allRows.addAll(additionalRows);
-      }
+      final rows =
+          await (_db.select(_db.dives)
+                ..where((t) => t.id.isIn(ids))
+                ..orderBy([
+                  (t) => OrderingTerm.desc(
+                    coalesce([t.entryTime, t.diveDateTime]),
+                  ),
+                  (t) => OrderingTerm.desc(t.diveNumber),
+                ]))
+              .get();
 
-      return Future.wait(allRows.map(_mapRowToDive));
+      return Future.wait(rows.map(_mapRowToDive));
     } catch (e, stackTrace) {
       _log.error('Failed to search dives: $query', e, stackTrace);
       rethrow;

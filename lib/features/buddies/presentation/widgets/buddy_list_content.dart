@@ -18,6 +18,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/dense_buddy_list_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/debounced_search_results.dart';
 
 /// Content widget for the buddy list, used in master-detail layout.
 ///
@@ -605,34 +606,10 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
   }
 
   Widget _buildSearchResults(BuildContext context) {
-    final searchAsync = ref.watch(buddySearchProvider(query));
-
-    return searchAsync.when(
-      data: (buddies) {
-        if (buddies.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.search_off,
-                  size: 64,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  context.l10n.buddies_search_noResults(query),
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
+    return DebouncedSearchResults<Buddy>(
+      query: query,
+      watchProvider: (ref, q) => ref.watch(buddySearchProvider(q)),
+      dataBuilder: (context, buddies) {
         return ListView.builder(
           itemCount: buddies.length,
           itemBuilder: (context, index) {
@@ -647,8 +624,32 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
+      emptyBuilder: (context, query) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.search_off,
+                size: 64,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                context.l10n.buddies_search_noResults(query),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      errorBuilder: (context, error) {
+        return Center(child: Text('Error: $error'));
+      },
     );
   }
 }
