@@ -666,79 +666,79 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buddies_validation_nameRequired => 'Veuillez entrer un nom';
 
   @override
-  String get buddies_list_selection_closeTooltip => 'Close Selection';
+  String get buddies_list_selection_closeTooltip => 'Fermer la sélection';
 
   @override
   String buddies_list_selection_count(int count) {
-    return '$count selected';
+    return '$count sélectionné(s)';
   }
 
   @override
-  String get buddies_list_selection_selectAllTooltip => 'Select All';
+  String get buddies_list_selection_selectAllTooltip => 'Tout sélectionner';
 
   @override
-  String get buddies_list_selection_deselectAllTooltip => 'Deselect All';
+  String get buddies_list_selection_deselectAllTooltip => 'Tout désélectionner';
 
   @override
-  String get buddies_list_selection_mergeTooltip => 'Merge Selected';
+  String get buddies_list_selection_mergeTooltip => 'Fusionner la sélection';
 
   @override
-  String get buddies_list_selection_deleteTooltip => 'Delete Selected';
+  String get buddies_list_selection_deleteTooltip => 'Supprimer la sélection';
 
   @override
   String buddies_list_merge_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'buddies',
-      one: 'buddy',
+      other: 'binômes',
+      one: 'binôme',
     );
-    return 'Merged $count $_temp0';
+    return '$count $_temp0 fusionné(s)';
   }
 
   @override
-  String get buddies_list_merge_undo => 'Undo';
+  String get buddies_list_merge_undo => 'Annuler';
 
   @override
-  String get buddies_list_merge_restored => 'Merge undone';
+  String get buddies_list_merge_restored => 'Fusion annulée';
 
   @override
-  String get buddies_list_bulkDelete_title => 'Delete Buddies';
+  String get buddies_list_bulkDelete_title => 'Supprimer les binômes';
 
   @override
   String buddies_list_bulkDelete_content(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'buddies',
-      one: 'buddy',
+      other: 'binômes',
+      one: 'binôme',
     );
-    return 'Are you sure you want to delete $count $_temp0? This action cannot be undone.';
+    return 'Voulez-vous vraiment supprimer $count $_temp0 ? Cette action est irréversible.';
   }
 
   @override
-  String get buddies_list_bulkDelete_cancel => 'Cancel';
+  String get buddies_list_bulkDelete_cancel => 'Annuler';
 
   @override
-  String get buddies_list_bulkDelete_confirm => 'Delete';
+  String get buddies_list_bulkDelete_confirm => 'Supprimer';
 
   @override
   String buddies_list_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'buddies',
-      one: 'buddy',
+      other: 'binômes',
+      one: 'binôme',
     );
-    return 'Deleted $count $_temp0';
+    return '$count $_temp0 supprimé(s)';
   }
 
   @override
-  String get buddies_edit_merge_title => 'Merge Buddies';
+  String get buddies_edit_merge_title => 'Fusionner les binômes';
 
   @override
   String get buddies_edit_merge_fieldSourceCycleTooltip =>
-      'Use value from next selected buddy';
+      'Utiliser la valeur du binôme sélectionné suivant';
 
   @override
   String buddies_edit_merge_fieldSourceLabel(
@@ -746,30 +746,31 @@ class AppLocalizationsFr extends AppLocalizations {
     int current,
     int total,
   ) {
-    return 'From $buddyName ($current/$total)';
+    return 'De $buddyName ($current/$total)';
   }
 
   @override
-  String get buddies_edit_merge_confirmTitle => 'Merge Buddies';
+  String get buddies_edit_merge_confirmTitle => 'Fusionner les binômes';
 
   @override
   String buddies_edit_merge_confirmBody(int count) {
-    return 'This will merge $count buddies into one. Dive associations will be combined under the surviving buddy. The other buddies will be deleted.';
+    return 'Cela fusionnera $count binômes en un seul. Les associations de plongées seront regroupées sous le binôme survivant. Les autres binômes seront supprimés.';
   }
 
   @override
-  String get buddies_edit_merge_loadingErrorTitle => 'Merge Buddies';
+  String get buddies_edit_merge_loadingErrorTitle => 'Fusionner les binômes';
 
   @override
   String buddies_edit_merge_loadingErrorBody(String error) {
-    return 'Failed to load buddies: $error';
+    return 'Échec du chargement des binômes : $error';
   }
 
   @override
-  String get buddies_edit_merge_notEnoughTitle => 'Merge Buddies';
+  String get buddies_edit_merge_notEnoughTitle => 'Fusionner les binômes';
 
   @override
-  String get buddies_edit_merge_notEnoughBody => 'Not enough buddies to merge.';
+  String get buddies_edit_merge_notEnoughBody =>
+      'Pas assez de binômes à fusionner.';
 
   @override
   String get certifications_appBar_addCertification =>

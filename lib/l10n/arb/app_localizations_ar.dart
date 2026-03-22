@@ -656,79 +656,79 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_validation_nameRequired => 'الرجاء إدخال الاسم';
 
   @override
-  String get buddies_list_selection_closeTooltip => 'Close Selection';
+  String get buddies_list_selection_closeTooltip => 'إغلاق التحديد';
 
   @override
   String buddies_list_selection_count(int count) {
-    return '$count selected';
+    return '$count مُحدد';
   }
 
   @override
-  String get buddies_list_selection_selectAllTooltip => 'Select All';
+  String get buddies_list_selection_selectAllTooltip => 'تحديد الكل';
 
   @override
-  String get buddies_list_selection_deselectAllTooltip => 'Deselect All';
+  String get buddies_list_selection_deselectAllTooltip => 'إلغاء تحديد الكل';
 
   @override
-  String get buddies_list_selection_mergeTooltip => 'Merge Selected';
+  String get buddies_list_selection_mergeTooltip => 'دمج المحددين';
 
   @override
-  String get buddies_list_selection_deleteTooltip => 'Delete Selected';
+  String get buddies_list_selection_deleteTooltip => 'حذف المحددين';
 
   @override
   String buddies_list_merge_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'buddies',
-      one: 'buddy',
+      other: 'رفاق',
+      one: 'رفيق',
     );
-    return 'Merged $count $_temp0';
+    return 'تم دمج $count $_temp0';
   }
 
   @override
-  String get buddies_list_merge_undo => 'Undo';
+  String get buddies_list_merge_undo => 'تراجع';
 
   @override
-  String get buddies_list_merge_restored => 'Merge undone';
+  String get buddies_list_merge_restored => 'تم التراجع عن الدمج';
 
   @override
-  String get buddies_list_bulkDelete_title => 'Delete Buddies';
+  String get buddies_list_bulkDelete_title => 'حذف الرفاق';
 
   @override
   String buddies_list_bulkDelete_content(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'buddies',
-      one: 'buddy',
+      other: 'رفاق',
+      one: 'رفيق',
     );
-    return 'Are you sure you want to delete $count $_temp0? This action cannot be undone.';
+    return 'هل أنت متأكد من حذف $count $_temp0؟ لا يمكن التراجع عن هذا الإجراء.';
   }
 
   @override
-  String get buddies_list_bulkDelete_cancel => 'Cancel';
+  String get buddies_list_bulkDelete_cancel => 'إلغاء';
 
   @override
-  String get buddies_list_bulkDelete_confirm => 'Delete';
+  String get buddies_list_bulkDelete_confirm => 'حذف';
 
   @override
   String buddies_list_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'buddies',
-      one: 'buddy',
+      other: 'رفاق',
+      one: 'رفيق',
     );
-    return 'Deleted $count $_temp0';
+    return 'تم حذف $count $_temp0';
   }
 
   @override
-  String get buddies_edit_merge_title => 'Merge Buddies';
+  String get buddies_edit_merge_title => 'دمج الرفاق';
 
   @override
   String get buddies_edit_merge_fieldSourceCycleTooltip =>
-      'Use value from next selected buddy';
+      'استخدام القيمة من الرفيق المحدد التالي';
 
   @override
   String buddies_edit_merge_fieldSourceLabel(
@@ -736,30 +736,31 @@ class AppLocalizationsAr extends AppLocalizations {
     int current,
     int total,
   ) {
-    return 'From $buddyName ($current/$total)';
+    return 'من $buddyName ($current/$total)';
   }
 
   @override
-  String get buddies_edit_merge_confirmTitle => 'Merge Buddies';
+  String get buddies_edit_merge_confirmTitle => 'دمج الرفاق';
 
   @override
   String buddies_edit_merge_confirmBody(int count) {
-    return 'This will merge $count buddies into one. Dive associations will be combined under the surviving buddy. The other buddies will be deleted.';
+    return 'سيتم دمج $count من الرفاق في رفيق واحد. ستُجمع ارتباطات الغوص تحت الرفيق الباقي. سيتم حذف الرفاق الآخرين.';
   }
 
   @override
-  String get buddies_edit_merge_loadingErrorTitle => 'Merge Buddies';
+  String get buddies_edit_merge_loadingErrorTitle => 'دمج الرفاق';
 
   @override
   String buddies_edit_merge_loadingErrorBody(String error) {
-    return 'Failed to load buddies: $error';
+    return 'فشل في تحميل الرفاق: $error';
   }
 
   @override
-  String get buddies_edit_merge_notEnoughTitle => 'Merge Buddies';
+  String get buddies_edit_merge_notEnoughTitle => 'دمج الرفاق';
 
   @override
-  String get buddies_edit_merge_notEnoughBody => 'Not enough buddies to merge.';
+  String get buddies_edit_merge_notEnoughBody =>
+      'لا يوجد عدد كافٍ من الرفاق للدمج.';
 
   @override
   String get certifications_appBar_addCertification => 'إضافة شهادة';

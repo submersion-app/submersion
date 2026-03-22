@@ -656,24 +656,25 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_validation_nameRequired => 'Voer een naam in';
 
   @override
-  String get buddies_list_selection_closeTooltip => 'Close Selection';
+  String get buddies_list_selection_closeTooltip => 'Selectie sluiten';
 
   @override
   String buddies_list_selection_count(int count) {
-    return '$count selected';
+    return '$count geselecteerd';
   }
 
   @override
-  String get buddies_list_selection_selectAllTooltip => 'Select All';
+  String get buddies_list_selection_selectAllTooltip => 'Alles selecteren';
 
   @override
-  String get buddies_list_selection_deselectAllTooltip => 'Deselect All';
+  String get buddies_list_selection_deselectAllTooltip => 'Alles deselecteren';
 
   @override
-  String get buddies_list_selection_mergeTooltip => 'Merge Selected';
+  String get buddies_list_selection_mergeTooltip => 'Geselecteerde samenvoegen';
 
   @override
-  String get buddies_list_selection_deleteTooltip => 'Delete Selected';
+  String get buddies_list_selection_deleteTooltip =>
+      'Geselecteerde verwijderen';
 
   @override
   String buddies_list_merge_snackbar(int count) {
@@ -683,17 +684,17 @@ class AppLocalizationsNl extends AppLocalizations {
       other: 'buddies',
       one: 'buddy',
     );
-    return 'Merged $count $_temp0';
+    return '$count $_temp0 samengevoegd';
   }
 
   @override
-  String get buddies_list_merge_undo => 'Undo';
+  String get buddies_list_merge_undo => 'Ongedaan maken';
 
   @override
-  String get buddies_list_merge_restored => 'Merge undone';
+  String get buddies_list_merge_restored => 'Samenvoeging ongedaan gemaakt';
 
   @override
-  String get buddies_list_bulkDelete_title => 'Delete Buddies';
+  String get buddies_list_bulkDelete_title => 'Buddies verwijderen';
 
   @override
   String buddies_list_bulkDelete_content(int count) {
@@ -703,14 +704,14 @@ class AppLocalizationsNl extends AppLocalizations {
       other: 'buddies',
       one: 'buddy',
     );
-    return 'Are you sure you want to delete $count $_temp0? This action cannot be undone.';
+    return 'Weet je zeker dat je $count $_temp0 wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.';
   }
 
   @override
-  String get buddies_list_bulkDelete_cancel => 'Cancel';
+  String get buddies_list_bulkDelete_cancel => 'Annuleren';
 
   @override
-  String get buddies_list_bulkDelete_confirm => 'Delete';
+  String get buddies_list_bulkDelete_confirm => 'Verwijderen';
 
   @override
   String buddies_list_bulkDelete_snackbar(int count) {
@@ -720,15 +721,15 @@ class AppLocalizationsNl extends AppLocalizations {
       other: 'buddies',
       one: 'buddy',
     );
-    return 'Deleted $count $_temp0';
+    return '$count $_temp0 verwijderd';
   }
 
   @override
-  String get buddies_edit_merge_title => 'Merge Buddies';
+  String get buddies_edit_merge_title => 'Buddies samenvoegen';
 
   @override
   String get buddies_edit_merge_fieldSourceCycleTooltip =>
-      'Use value from next selected buddy';
+      'Waarde van volgende geselecteerde buddy gebruiken';
 
   @override
   String buddies_edit_merge_fieldSourceLabel(
@@ -736,30 +737,31 @@ class AppLocalizationsNl extends AppLocalizations {
     int current,
     int total,
   ) {
-    return 'From $buddyName ($current/$total)';
+    return 'Van $buddyName ($current/$total)';
   }
 
   @override
-  String get buddies_edit_merge_confirmTitle => 'Merge Buddies';
+  String get buddies_edit_merge_confirmTitle => 'Buddies samenvoegen';
 
   @override
   String buddies_edit_merge_confirmBody(int count) {
-    return 'This will merge $count buddies into one. Dive associations will be combined under the surviving buddy. The other buddies will be deleted.';
+    return 'Dit voegt $count buddies samen tot één. Duikassociaties worden gecombineerd onder de overgebleven buddy. De andere buddies worden verwijderd.';
   }
 
   @override
-  String get buddies_edit_merge_loadingErrorTitle => 'Merge Buddies';
+  String get buddies_edit_merge_loadingErrorTitle => 'Buddies samenvoegen';
 
   @override
   String buddies_edit_merge_loadingErrorBody(String error) {
-    return 'Failed to load buddies: $error';
+    return 'Laden van buddies mislukt: $error';
   }
 
   @override
-  String get buddies_edit_merge_notEnoughTitle => 'Merge Buddies';
+  String get buddies_edit_merge_notEnoughTitle => 'Buddies samenvoegen';
 
   @override
-  String get buddies_edit_merge_notEnoughBody => 'Not enough buddies to merge.';
+  String get buddies_edit_merge_notEnoughBody =>
+      'Niet genoeg buddies om samen te voegen.';
 
   @override
   String get certifications_appBar_addCertification =>
