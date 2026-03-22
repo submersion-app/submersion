@@ -164,6 +164,43 @@ void main() {
       expect(survivor!.name, equals('Merged'));
       expect(await container.read(siteProvider('dd-2').future), isNull);
     });
+
+    test('undoMerge restores sites and invalidates providers', () async {
+      final site1 = await siteRepository.createSite(
+        const DiveSite(id: 'um-1', name: 'Undo A'),
+      );
+      final site2 = await siteRepository.createSite(
+        const DiveSite(id: 'um-2', name: 'Undo B', country: 'Fiji'),
+      );
+
+      await _insertDive(database, id: 'um-dive', siteId: site2.id);
+
+      final notifier = container.read(siteListNotifierProvider.notifier);
+      final snapshot = await notifier.mergeSites(
+        site1.copyWith(name: 'Merged'),
+        [site1.id, site2.id],
+      );
+
+      // Verify merged state
+      expect(await container.read(siteProvider('um-2').future), isNull);
+
+      // Undo
+      await notifier.undoMerge(snapshot!);
+
+      // Verify restored
+      final restored1 = await container.read(siteProvider('um-1').future);
+      final restored2 = await container.read(siteProvider('um-2').future);
+      expect(restored1, isNotNull);
+      expect(restored1!.name, equals('Undo A'));
+      expect(restored2, isNotNull);
+      expect(restored2!.name, equals('Undo B'));
+      expect(restored2.country, equals('Fiji'));
+
+      // Verify dive re-linked
+      final diveList = await container.read(divesProvider.future);
+      final undoDive = diveList.where((d) => d.id == 'um-dive');
+      expect(undoDive.first.site?.id, equals('um-2'));
+    });
   });
 }
 

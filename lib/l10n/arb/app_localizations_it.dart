@@ -5348,7 +5348,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String diveSites_edit_merge_confirmBody(int count) {
-    return 'Unire $count siti di immersione in una singola voce?';
+    return 'Questa operazione unirà $count siti in uno solo. Le immersioni, i media e le specie previste verranno combinati sotto il sito superstite. Gli altri siti verranno eliminati.';
   }
 
   @override
@@ -5370,6 +5370,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveSites_edit_merge_fieldSourceMenuTooltip =>
       'Seleziona il valore dal sito selezionato';
+
+  @override
+  String get diveSites_edit_merge_marineLifeHelperText =>
+      'Combinato da tutti i siti selezionati';
 
   @override
   String diveSites_edit_merge_loadingErrorBody(Object error) {
@@ -5737,6 +5741,23 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_list_bulkDelete_undo => 'Annulla';
+
+  @override
+  String get diveSites_list_merge_restored => 'Unione annullata';
+
+  @override
+  String diveSites_list_merge_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'siti uniti',
+      one: 'sito unito',
+    );
+    return '$count $_temp0';
+  }
+
+  @override
+  String get diveSites_list_merge_undo => 'Annulla';
 
   @override
   String get diveSites_list_emptyFiltered_clearAll => 'Cancella tutti i filtri';

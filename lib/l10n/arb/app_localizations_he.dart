@@ -5194,7 +5194,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String diveSites_edit_merge_confirmBody(int count) {
-    return 'למזג $count אתרי צלילה לרשומה אחת?';
+    return 'פעולה זו תמזג $count אתרים לאחד. צלילות, מדיה ומינים צפויים ישולבו תחת האתר הנותר. שאר האתרים יימחקו.';
   }
 
   @override
@@ -5216,6 +5216,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveSites_edit_merge_fieldSourceMenuTooltip =>
       'בחר ערך מהאתר הנבחר';
+
+  @override
+  String get diveSites_edit_merge_marineLifeHelperText =>
+      'משולב מכל האתרים שנבחרו';
 
   @override
   String diveSites_edit_merge_loadingErrorBody(Object error) {
@@ -5576,6 +5580,23 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_list_bulkDelete_undo => 'בטל';
+
+  @override
+  String get diveSites_list_merge_restored => 'המיזוג בוטל';
+
+  @override
+  String diveSites_list_merge_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'אתרים',
+      one: 'אתר',
+    );
+    return 'מוזגו $count $_temp0';
+  }
+
+  @override
+  String get diveSites_list_merge_undo => 'בטל';
 
   @override
   String get diveSites_list_emptyFiltered_clearAll => 'נקה את כל המסננים';

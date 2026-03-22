@@ -1381,6 +1381,29 @@ class MockSiteRepository extends _i1.Mock implements _i26.SiteRepository {
           as _i17.Future<void>);
 
   @override
+  _i17.Future<_i26.MergeSnapshot?> mergeSites({
+    required _i11.DiveSite? mergedSite,
+    required List<String>? siteIds,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#mergeSites, [], {
+              #mergedSite: mergedSite,
+              #siteIds: siteIds,
+            }),
+            returnValue: _i17.Future<_i26.MergeSnapshot?>.value(),
+          )
+          as _i17.Future<_i26.MergeSnapshot?>);
+
+  @override
+  _i17.Future<void> undoMerge(_i26.MergeSnapshot? snapshot) =>
+      (super.noSuchMethod(
+            Invocation.method(#undoMerge, [snapshot]),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
   _i17.Future<List<_i11.DiveSite>> searchSites(
     String? query, {
     String? diverId,

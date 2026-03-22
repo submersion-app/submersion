@@ -5296,7 +5296,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String diveSites_edit_merge_confirmBody(int count) {
-    return '$count duiklocaties samenvoegen tot één item?';
+    return 'Dit voegt $count locaties samen tot één. Duiken, media en verwachte soorten worden gecombineerd onder de overgebleven locatie. De andere locaties worden verwijderd.';
   }
 
   @override
@@ -5318,6 +5318,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveSites_edit_merge_fieldSourceMenuTooltip =>
       'Waarde selecteren van geselecteerde locatie';
+
+  @override
+  String get diveSites_edit_merge_marineLifeHelperText =>
+      'Gecombineerd uit alle geselecteerde locaties';
 
   @override
   String diveSites_edit_merge_loadingErrorBody(Object error) {
@@ -5684,6 +5688,23 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_list_bulkDelete_undo => 'Ongedaan maken';
+
+  @override
+  String get diveSites_list_merge_restored => 'Samenvoeging ongedaan gemaakt';
+
+  @override
+  String diveSites_list_merge_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'stekken',
+      one: 'stek',
+    );
+    return '$count $_temp0 samengevoegd';
+  }
+
+  @override
+  String get diveSites_list_merge_undo => 'Ongedaan maken';
 
   @override
   String get diveSites_list_emptyFiltered_clearAll => 'Alle filters wissen';

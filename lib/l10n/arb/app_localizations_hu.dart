@@ -5327,7 +5327,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String diveSites_edit_merge_confirmBody(int count) {
-    return '$count merülőhelyet egy bejegyzésbe egyesít?';
+    return 'Ez $count helyszínt egyesít egybe. A merülések, médiák és várt fajok a megmaradó helyszín alá kerülnek. A többi helyszín törlődik.';
   }
 
   @override
@@ -5349,6 +5349,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveSites_edit_merge_fieldSourceMenuTooltip =>
       'Érték kiválasztása a kiválasztott oldalról';
+
+  @override
+  String get diveSites_edit_merge_marineLifeHelperText =>
+      'Az összes kiválasztott helyszínről összesítve';
 
   @override
   String diveSites_edit_merge_loadingErrorBody(Object error) {
@@ -5716,6 +5720,23 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_list_bulkDelete_undo => 'Visszavonas';
+
+  @override
+  String get diveSites_list_merge_restored => 'Osszevonás visszavonva';
+
+  @override
+  String diveSites_list_merge_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'helyszin',
+      one: 'helyszin',
+    );
+    return '$count $_temp0 osszevonva';
+  }
+
+  @override
+  String get diveSites_list_merge_undo => 'Visszavonas';
 
   @override
   String get diveSites_list_emptyFiltered_clearAll => 'Osszes szuro torlese';

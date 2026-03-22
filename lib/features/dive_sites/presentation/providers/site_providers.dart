@@ -385,27 +385,44 @@ class SiteListNotifier
     _ref.invalidate(sitesWithCountsProvider);
   }
 
-  Future<void> mergeSites(
+  Future<MergeSnapshot?> mergeSites(
     domain.DiveSite mergedSite,
     List<String> orderedSiteIds,
   ) async {
-    if (orderedSiteIds.length < 2) return;
+    if (orderedSiteIds.length < 2) return null;
 
     final dedupedSiteIds = orderedSiteIds.toSet().toList(growable: false);
     final survivorId = dedupedSiteIds.first;
 
-    await _repository.mergeSites(
+    final snapshot = await _repository.mergeSites(
       mergedSite: mergedSite.copyWith(id: survivorId),
       siteIds: dedupedSiteIds,
     );
 
     await _loadSites();
+    _invalidateMergeProviders(dedupedSiteIds);
+
+    return snapshot;
+  }
+
+  Future<void> undoMerge(MergeSnapshot snapshot) async {
+    await _repository.undoMerge(snapshot);
+    await _loadSites();
+
+    final allSiteIds = [
+      snapshot.originalSurvivor.id,
+      ...snapshot.deletedSites.map((s) => s.id),
+    ];
+    _invalidateMergeProviders(allSiteIds);
+  }
+
+  void _invalidateMergeProviders(List<String> siteIds) {
     _ref.invalidate(sitesProvider);
     _ref.invalidate(sitesWithCountsProvider);
     _ref.invalidate(divesProvider);
     _ref.invalidate(diveListNotifierProvider);
 
-    for (final siteId in dedupedSiteIds) {
+    for (final siteId in siteIds) {
       _ref.invalidate(siteProvider(siteId));
       _ref.invalidate(siteDiveCountProvider(siteId));
       _ref.invalidate(siteExpectedSpeciesProvider(siteId));

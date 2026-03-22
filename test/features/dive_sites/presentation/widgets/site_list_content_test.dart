@@ -65,7 +65,8 @@ void main() {
             builder: (context, state) => Scaffold(
               body: Center(
                 child: FilledButton(
-                  onPressed: () => context.pop('site-1'),
+                  onPressed: () =>
+                      context.pop(const SiteMergeResult(survivorId: 'site-1')),
                   child: const Text('Complete Merge'),
                 ),
               ),

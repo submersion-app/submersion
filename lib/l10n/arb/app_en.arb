@@ -2820,11 +2820,12 @@
   "diveSites_edit_marineLife_addButton": "Add",
   "diveSites_edit_marineLife_empty": "No expected species added",
   "diveSites_edit_marineLife_helperText": "Species you expect to see at this site",
-  "diveSites_edit_merge_confirmBody": "Merge {count} sites into one entry?",
+  "diveSites_edit_merge_confirmBody": "This will merge {count} sites into one. Dives, media, and expected species will be combined under the surviving site. The other sites will be deleted.",
   "diveSites_edit_merge_confirmTitle": "Merge Sites",
   "diveSites_edit_merge_fieldSourceCycleTooltip": "Use value from next selected site",
   "diveSites_edit_merge_fieldSourceLabel": "From {siteName} ({current}/{total})",
   "diveSites_edit_merge_fieldSourceMenuTooltip": "Select value from selected site",
+  "diveSites_edit_merge_marineLifeHelperText": "Combined from all selected sites",
   "diveSites_edit_merge_loadingErrorBody": "Failed to load sites: {error}",
   "diveSites_edit_merge_loadingErrorTitle": "Merge Sites",
   "diveSites_edit_merge_notEnoughBody": "Not enough sites to merge.",
@@ -2923,6 +2924,9 @@
   "diveSites_list_bulkDelete_snackbar": "Deleted {count} {count, plural, =1{site} other{sites}}",
   "diveSites_list_bulkDelete_title": "Delete Sites",
   "diveSites_list_bulkDelete_undo": "Undo",
+  "diveSites_list_merge_restored": "Merge undone",
+  "diveSites_list_merge_snackbar": "Merged {count} {count, plural, =1{site} other{sites}}",
+  "diveSites_list_merge_undo": "Undo",
   "diveSites_list_emptyFiltered_clearAll": "Clear All Filters",
   "diveSites_list_emptyFiltered_subtitle": "Try adjusting or clearing your filters",
   "diveSites_list_emptyFiltered_title": "No sites match your filters",
@@ -3168,6 +3172,13 @@
     }
   },
   "@diveSites_list_bulkDelete_snackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@diveSites_list_merge_snackbar": {
     "placeholders": {
       "count": {
         "type": "int"

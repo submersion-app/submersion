@@ -68,6 +68,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   bool _isSelectionMode = false;
   final Set<String> _selectedIds = {};
   List<DiveSite>? _deletedSites;
+  MergeSnapshot? _mergeSnapshot;
 
   @override
   void initState() {
@@ -196,12 +197,17 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   }
 
   Future<void> _startMerge() async {
-    final mergedId = await context.push<String>(
+    final selectedCount = _selectedIds.length;
+    final result = await context.push<SiteMergeResult>(
       '/sites/merge',
       extra: _selectedIds.toList(),
     );
 
-    if (!mounted || mergedId == null) return;
+    if (!mounted || result == null) return;
+
+    _mergeSnapshot = result.snapshot;
+    final mergedId = result.survivorId;
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     setState(() {
       _isSelectionMode = false;
@@ -211,6 +217,39 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     if (widget.onItemSelected != null) {
       _selectionFromList = true;
       widget.onItemSelected!(mergedId);
+    }
+
+    // Show undo snackbar if a snapshot was captured by the merge page
+    if (_mergeSnapshot != null && mounted) {
+      scaffoldMessenger.clearSnackBars();
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            context.l10n.diveSites_list_merge_snackbar(selectedCount),
+          ),
+          duration: const Duration(seconds: 5),
+          showCloseIcon: true,
+          action: SnackBarAction(
+            label: context.l10n.diveSites_list_merge_undo,
+            onPressed: () async {
+              if (_mergeSnapshot != null) {
+                await ref
+                    .read(siteListNotifierProvider.notifier)
+                    .undoMerge(_mergeSnapshot!);
+                _mergeSnapshot = null;
+                if (mounted) {
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text(context.l10n.diveSites_list_merge_restored),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              }
+            },
+          ),
+        ),
+      );
     }
   }
 

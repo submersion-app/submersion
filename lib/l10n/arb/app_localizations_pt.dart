@@ -5339,7 +5339,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String diveSites_edit_merge_confirmBody(int count) {
-    return 'Mesclar $count locais de mergulho em uma única entrada?';
+    return 'Isso mesclará $count locais em um só. Mergulhos, mídias e espécies esperadas serão combinados no local remanescente. Os outros locais serão excluídos.';
   }
 
   @override
@@ -5361,6 +5361,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveSites_edit_merge_fieldSourceMenuTooltip =>
       'Selecionar valor do local selecionado';
+
+  @override
+  String get diveSites_edit_merge_marineLifeHelperText =>
+      'Combinado de todos os locais selecionados';
 
   @override
   String diveSites_edit_merge_loadingErrorBody(Object error) {
@@ -5732,6 +5736,23 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveSites_list_bulkDelete_undo => 'Desfazer';
+
+  @override
+  String get diveSites_list_merge_restored => 'Fusao desfeita';
+
+  @override
+  String diveSites_list_merge_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'pontos fundidos',
+      one: 'ponto fundido',
+    );
+    return '$count $_temp0';
+  }
+
+  @override
+  String get diveSites_list_merge_undo => 'Desfazer';
 
   @override
   String get diveSites_list_emptyFiltered_clearAll => 'Limpar Todos os Filtros';

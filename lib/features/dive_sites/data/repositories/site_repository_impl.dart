@@ -192,12 +192,15 @@ class SiteRepository {
   /// The first ID is treated as the survivor. The survivor is updated with
   /// [mergedSite], dependent records are re-linked to it, expected species are
   /// unioned by species ID, and the remaining sites are deleted.
-  Future<void> mergeSites({
+  ///
+  /// Returns a [MergeSnapshot] that can be passed to [undoMerge] to reverse
+  /// the operation, or `null` if the merge was a no-op.
+  Future<MergeSnapshot?> mergeSites({
     required domain.DiveSite mergedSite,
     required List<String> siteIds,
   }) async {
     final orderedIds = siteIds.toSet().toList(growable: false);
-    if (orderedIds.length < 2) return;
+    if (orderedIds.length < 2) return null;
 
     final survivorId = orderedIds.first;
     final duplicateIds = orderedIds.skip(1).toList(growable: false);
@@ -208,6 +211,40 @@ class SiteRepository {
       _log.info(
         'Merging ${orderedIds.length} sites into survivor: $survivorId',
       );
+
+      // Capture pre-merge state for undo
+      final originalSurvivor = await getSiteById(survivorId);
+      final deletedSites = await getSitesByIds(duplicateIds);
+
+      final affectedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.siteId.isIn(duplicateIds))).get();
+      final diveOriginalSiteIds = {
+        for (final dive in affectedDives)
+          if (dive.siteId != null) dive.id: dive.siteId!,
+      };
+
+      final affectedMedia = await (_db.select(
+        _db.media,
+      )..where((t) => t.siteId.isIn(duplicateIds))).get();
+      final mediaOriginalSiteIds = {
+        for (final media in affectedMedia)
+          if (media.siteId != null) media.id: media.siteId!,
+      };
+
+      final allSpeciesRows = await (_db.select(
+        _db.siteSpecies,
+      )..where((t) => t.siteId.isIn(orderedIds))).get();
+      final speciesSnapshots = allSpeciesRows
+          .map(
+            (row) => SiteSpeciesSnapshot(
+              id: row.id,
+              siteId: row.siteId,
+              speciesId: row.speciesId,
+              notes: row.notes,
+            ),
+          )
+          .toList(growable: false);
 
       await _db.transaction(() async {
         await _updateSiteRow(survivorSite, now);
@@ -238,8 +275,166 @@ class SiteRepository {
 
       SyncEventBus.notifyLocalChange();
       _log.info('Merged ${orderedIds.length} sites into survivor: $survivorId');
+
+      // Separate snapshots into deleted vs modified for undo
+      final postMergeSpecies = await (_db.select(
+        _db.siteSpecies,
+      )..where((t) => t.siteId.equals(survivorId))).get();
+      final survivingIds = postMergeSpecies.map((row) => row.id).toSet();
+
+      final deletedSpecies = speciesSnapshots
+          .where((s) => !survivingIds.contains(s.id))
+          .toList(growable: false);
+      final modifiedSpecies = speciesSnapshots
+          .where(
+            (s) =>
+                survivingIds.contains(s.id) &&
+                (s.siteId != survivorId ||
+                    s.notes != _findPostMergeNotes(postMergeSpecies, s.id)),
+          )
+          .toList(growable: false);
+
+      return MergeSnapshot(
+        originalSurvivor: originalSurvivor!,
+        deletedSites: deletedSites,
+        diveOriginalSiteIds: diveOriginalSiteIds,
+        mediaOriginalSiteIds: mediaOriginalSiteIds,
+        deletedSpeciesEntries: deletedSpecies,
+        modifiedSpeciesEntries: modifiedSpecies,
+      );
     } catch (e, stackTrace) {
       _log.error('Failed to merge sites: $siteIds', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  String _findPostMergeNotes(List<SiteSpecy> rows, String id) {
+    return rows.where((r) => r.id == id).firstOrNull?.notes ?? '';
+  }
+
+  /// Reverse a merge operation using a previously captured [MergeSnapshot].
+  Future<void> undoMerge(MergeSnapshot snapshot) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    try {
+      _log.info(
+        'Undoing merge: restoring ${snapshot.deletedSites.length} sites',
+      );
+
+      await _db.transaction(() async {
+        // 1. Restore the survivor to its original state
+        await _updateSiteRow(snapshot.originalSurvivor, now);
+        await _syncRepository.markRecordPending(
+          entityType: 'diveSites',
+          recordId: snapshot.originalSurvivor.id,
+          localUpdatedAt: now,
+        );
+
+        // 2. Re-create deleted sites
+        for (final site in snapshot.deletedSites) {
+          await _db
+              .into(_db.diveSites)
+              .insert(
+                DiveSitesCompanion(
+                  id: Value(site.id),
+                  diverId: Value(site.diverId),
+                  name: Value(site.name),
+                  description: Value(site.description),
+                  latitude: Value(site.location?.latitude),
+                  longitude: Value(site.location?.longitude),
+                  minDepth: Value(site.minDepth),
+                  maxDepth: Value(site.maxDepth),
+                  difficulty: Value(site.difficulty?.name),
+                  country: Value(site.country),
+                  region: Value(site.region),
+                  rating: Value(site.rating),
+                  notes: Value(site.notes),
+                  hazards: Value(site.hazards),
+                  accessNotes: Value(site.accessNotes),
+                  mooringNumber: Value(site.mooringNumber),
+                  parkingInfo: Value(site.parkingInfo),
+                  altitude: Value(site.altitude),
+                  createdAt: Value(now),
+                  updatedAt: Value(now),
+                ),
+              );
+          await _syncRepository.markRecordPending(
+            entityType: 'diveSites',
+            recordId: site.id,
+            localUpdatedAt: now,
+          );
+        }
+
+        // 3. Re-point dives back to their original sites
+        for (final entry in snapshot.diveOriginalSiteIds.entries) {
+          await (_db.update(
+            _db.dives,
+          )..where((t) => t.id.equals(entry.key))).write(
+            DivesCompanion(siteId: Value(entry.value), updatedAt: Value(now)),
+          );
+          await _syncRepository.markRecordPending(
+            entityType: 'dives',
+            recordId: entry.key,
+            localUpdatedAt: now,
+          );
+        }
+
+        // 4. Re-point media back to their original sites
+        for (final entry in snapshot.mediaOriginalSiteIds.entries) {
+          await (_db.update(
+            _db.media,
+          )..where((t) => t.id.equals(entry.key))).write(
+            MediaCompanion(siteId: Value(entry.value), updatedAt: Value(now)),
+          );
+          await _syncRepository.markRecordPending(
+            entityType: 'media',
+            recordId: entry.key,
+            localUpdatedAt: now,
+          );
+        }
+
+        // 5. Restore deleted species entries
+        for (final entry in snapshot.deletedSpeciesEntries) {
+          await _db
+              .into(_db.siteSpecies)
+              .insert(
+                SiteSpeciesCompanion(
+                  id: Value(entry.id),
+                  siteId: Value(entry.siteId),
+                  speciesId: Value(entry.speciesId),
+                  notes: Value(entry.notes),
+                  createdAt: Value(now),
+                ),
+              );
+          await _syncRepository.markRecordPending(
+            entityType: 'site_species',
+            recordId: entry.id,
+            localUpdatedAt: now,
+          );
+        }
+
+        // 6. Restore modified species entries to original state
+        for (final entry in snapshot.modifiedSpeciesEntries) {
+          await (_db.update(
+            _db.siteSpecies,
+          )..where((t) => t.id.equals(entry.id))).write(
+            SiteSpeciesCompanion(
+              siteId: Value(entry.siteId),
+              notes: Value(entry.notes),
+            ),
+          );
+          await _syncRepository.markRecordPending(
+            entityType: 'site_species',
+            recordId: entry.id,
+            localUpdatedAt: now,
+          );
+        }
+      });
+
+      SyncEventBus.notifyLocalChange();
+      _log.info('Undo merge complete');
+    } catch (e, stackTrace) {
+      _log.error('Failed to undo merge', e, stackTrace);
       rethrow;
     }
   }
@@ -491,4 +686,47 @@ class SiteWithDiveCount {
   final int diveCount;
 
   SiteWithDiveCount({required this.site, required this.diveCount});
+}
+
+/// Result returned from a merge operation, containing the survivor ID
+/// and an optional snapshot for undo.
+class SiteMergeResult {
+  final String survivorId;
+  final MergeSnapshot? snapshot;
+
+  const SiteMergeResult({required this.survivorId, this.snapshot});
+}
+
+/// Snapshot captured before a merge so the operation can be reversed.
+class MergeSnapshot {
+  final domain.DiveSite originalSurvivor;
+  final List<domain.DiveSite> deletedSites;
+  final Map<String, String> diveOriginalSiteIds;
+  final Map<String, String> mediaOriginalSiteIds;
+  final List<SiteSpeciesSnapshot> deletedSpeciesEntries;
+  final List<SiteSpeciesSnapshot> modifiedSpeciesEntries;
+
+  const MergeSnapshot({
+    required this.originalSurvivor,
+    required this.deletedSites,
+    required this.diveOriginalSiteIds,
+    required this.mediaOriginalSiteIds,
+    required this.deletedSpeciesEntries,
+    required this.modifiedSpeciesEntries,
+  });
+}
+
+/// Lightweight snapshot of a site_species row for undo.
+class SiteSpeciesSnapshot {
+  final String id;
+  final String siteId;
+  final String speciesId;
+  final String notes;
+
+  const SiteSpeciesSnapshot({
+    required this.id,
+    required this.siteId,
+    required this.speciesId,
+    required this.notes,
+  });
 }

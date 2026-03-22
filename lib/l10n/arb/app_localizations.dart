@@ -9218,7 +9218,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveSites_edit_merge_confirmBody.
   ///
   /// In en, this message translates to:
-  /// **'Merge {count} sites into one entry?'**
+  /// **'This will merge {count} sites into one. Dives, media, and expected species will be combined under the surviving site. The other sites will be deleted.'**
   String diveSites_edit_merge_confirmBody(int count);
 
   /// No description provided for @diveSites_edit_merge_confirmTitle.
@@ -9248,6 +9248,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select value from selected site'**
   String get diveSites_edit_merge_fieldSourceMenuTooltip;
+
+  /// No description provided for @diveSites_edit_merge_marineLifeHelperText.
+  ///
+  /// In en, this message translates to:
+  /// **'Combined from all selected sites'**
+  String get diveSites_edit_merge_marineLifeHelperText;
 
   /// No description provided for @diveSites_edit_merge_loadingErrorBody.
   ///
@@ -9836,6 +9842,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Undo'**
   String get diveSites_list_bulkDelete_undo;
+
+  /// No description provided for @diveSites_list_merge_restored.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge undone'**
+  String get diveSites_list_merge_restored;
+
+  /// No description provided for @diveSites_list_merge_snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Merged {count} {count, plural, =1{site} other{sites}}'**
+  String diveSites_list_merge_snackbar(int count);
+
+  /// No description provided for @diveSites_list_merge_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get diveSites_list_merge_undo;
 
   /// No description provided for @diveSites_list_emptyFiltered_clearAll.
   ///

@@ -5221,7 +5221,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String diveSites_edit_merge_confirmBody(int count) {
-    return 'هل تريد دمج $count موقع في إدخال واحد؟';
+    return 'سيتم دمج $count موقع في موقع واحد. سيتم جمع الغطسات والوسائط والأنواع المتوقعة تحت الموقع المتبقي. سيتم حذف المواقع الأخرى.';
   }
 
   @override
@@ -5243,6 +5243,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveSites_edit_merge_fieldSourceMenuTooltip =>
       'حدد القيمة من الموقع المحدد';
+
+  @override
+  String get diveSites_edit_merge_marineLifeHelperText =>
+      'مجمّعة من جميع المواقع المحددة';
 
   @override
   String diveSites_edit_merge_loadingErrorBody(Object error) {
@@ -5607,6 +5611,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_list_bulkDelete_undo => 'تراجع';
+
+  @override
+  String get diveSites_list_merge_restored => 'تم التراجع عن الدمج';
+
+  @override
+  String diveSites_list_merge_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'مواقع',
+      one: 'موقع',
+    );
+    return 'تم دمج $count $_temp0';
+  }
+
+  @override
+  String get diveSites_list_merge_undo => 'تراجع';
 
   @override
   String get diveSites_list_emptyFiltered_clearAll => 'مسح جميع الفلاتر';

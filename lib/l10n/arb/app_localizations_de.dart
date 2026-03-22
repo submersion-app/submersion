@@ -5335,7 +5335,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String diveSites_edit_merge_confirmBody(int count) {
-    return '$count Tauchplätze zu einem Eintrag zusammenführen?';
+    return 'Dies wird $count Tauchplätze zu einem zusammenführen. Tauchgänge, Medien und erwartete Arten werden unter dem verbleibenden Tauchplatz zusammengefasst. Die anderen Tauchplätze werden gelöscht.';
   }
 
   @override
@@ -5357,6 +5357,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveSites_edit_merge_fieldSourceMenuTooltip =>
       'Wert vom ausgewählten Standort auswählen';
+
+  @override
+  String get diveSites_edit_merge_marineLifeHelperText =>
+      'Zusammengefasst aus allen ausgewählten Tauchplätzen';
 
   @override
   String diveSites_edit_merge_loadingErrorBody(Object error) {
@@ -5727,6 +5731,24 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_list_bulkDelete_undo => 'Rueckgaengig';
+
+  @override
+  String get diveSites_list_merge_restored =>
+      'Zusammenfuehrung rueckgaengig gemacht';
+
+  @override
+  String diveSites_list_merge_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tauchplaetze',
+      one: 'Tauchplatz',
+    );
+    return '$count $_temp0 zusammengefuehrt';
+  }
+
+  @override
+  String get diveSites_list_merge_undo => 'Rueckgaengig';
 
   @override
   String get diveSites_list_emptyFiltered_clearAll => 'Alle Filter loeschen';

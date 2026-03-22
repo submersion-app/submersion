@@ -516,6 +516,133 @@ void main() {
       });
     });
 
+    group('undoMerge', () {
+      test(
+        'should fully reverse a merge including sites, dives, media, and species',
+        () async {
+          final site1 = await repository.createSite(
+            const DiveSite(
+              id: 'undo-1',
+              name: 'Original Alpha',
+              country: 'Mexico',
+            ),
+          );
+          final site2 = await repository.createSite(
+            const DiveSite(
+              id: 'undo-2',
+              name: 'Original Beta',
+              country: 'Belize',
+            ),
+          );
+
+          await _insertDive(database, id: 'undo-dive-1', siteId: 'undo-2');
+          await mediaRepository.createMedia(
+            _testMedia(id: 'undo-media-1', siteId: 'undo-2'),
+          );
+
+          final turtle = await speciesRepository.createSpecies(
+            commonName: 'Loggerhead',
+            category: SpeciesCategory.turtle,
+          );
+          await speciesRepository.addExpectedSpecies(
+            siteId: 'undo-1',
+            speciesId: turtle.id,
+          );
+          await speciesRepository.addExpectedSpecies(
+            siteId: 'undo-2',
+            speciesId: turtle.id,
+            notes: 'Common here',
+          );
+
+          final snapshot = await repository.mergeSites(
+            mergedSite: site1.copyWith(
+              name: 'Merged Result',
+              country: 'Belize',
+            ),
+            siteIds: [site1.id, site2.id],
+          );
+
+          // Verify merge happened
+          expect(await repository.getSiteById('undo-2'), isNull);
+          final merged = await repository.getSiteById('undo-1');
+          expect(merged!.name, equals('Merged Result'));
+
+          // Undo the merge
+          await repository.undoMerge(snapshot!);
+
+          // Verify sites restored
+          final restored1 = await repository.getSiteById('undo-1');
+          final restored2 = await repository.getSiteById('undo-2');
+          expect(restored1, isNotNull);
+          expect(restored1!.name, equals('Original Alpha'));
+          expect(restored1.country, equals('Mexico'));
+          expect(restored2, isNotNull);
+          expect(restored2!.name, equals('Original Beta'));
+          expect(restored2.country, equals('Belize'));
+
+          // Verify dive re-linked back
+          final diveRows = await (database.select(
+            database.dives,
+          )..where((t) => t.id.equals('undo-dive-1'))).get();
+          expect(diveRows.first.siteId, equals('undo-2'));
+
+          // Verify media re-linked back
+          final media = await mediaRepository.getMediaById('undo-media-1');
+          expect(media!.siteId, equals('undo-2'));
+
+          // Verify species restored to both sites
+          final species1 = await speciesRepository.getExpectedSpeciesForSite(
+            'undo-1',
+          );
+          final species2 = await speciesRepository.getExpectedSpeciesForSite(
+            'undo-2',
+          );
+          expect(species1, hasLength(1));
+          expect(species2, hasLength(1));
+          expect(species2.first.notes, equals('Common here'));
+        },
+      );
+
+      test('should return snapshot with correct structure', () async {
+        await repository.createSite(
+          const DiveSite(id: 'snap-1', name: 'Snap A'),
+        );
+        await repository.createSite(
+          const DiveSite(id: 'snap-2', name: 'Snap B'),
+        );
+        await repository.createSite(
+          const DiveSite(id: 'snap-3', name: 'Snap C'),
+        );
+
+        await _insertDive(database, id: 'snap-dive', siteId: 'snap-2');
+
+        final snapshot = await repository.mergeSites(
+          mergedSite: const DiveSite(id: '', name: 'Snap A'),
+          siteIds: ['snap-1', 'snap-2', 'snap-3'],
+        );
+
+        expect(snapshot, isNotNull);
+        expect(snapshot!.originalSurvivor.name, equals('Snap A'));
+        expect(snapshot.deletedSites.length, equals(2));
+        expect(
+          snapshot.deletedSites.map((s) => s.id).toSet(),
+          equals({'snap-2', 'snap-3'}),
+        );
+        expect(snapshot.diveOriginalSiteIds, equals({'snap-dive': 'snap-2'}));
+      });
+
+      test('should return null for no-op merge', () async {
+        await repository.createSite(const DiveSite(id: 'noop', name: 'Solo'));
+
+        final snapshot = await repository.mergeSites(
+          mergedSite: const DiveSite(id: '', name: 'Solo'),
+          siteIds: ['noop'],
+        );
+
+        expect(snapshot, isNull);
+      });
+    });
+
     group('searchSites', () {
       setUp(() async {
         await repository.createSite(

@@ -11,6 +11,7 @@ import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
@@ -858,6 +859,23 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     return index >= 0 ? index : 0;
   }
 
+  Widget _buildMergeCycleButton(VoidCallback onPressed) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return IconButton(
+      onPressed: onPressed,
+      tooltip: context.l10n.diveSites_edit_merge_fieldSourceCycleTooltip,
+      icon: const Icon(Icons.sync_alt, size: 18),
+      iconSize: 18,
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      padding: const EdgeInsets.all(6),
+      style: IconButton.styleFrom(
+        backgroundColor: colorScheme.primaryContainer,
+        foregroundColor: colorScheme.onPrimaryContainer,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
   InputDecoration _withMergeTextDecoration({
     required String key,
     required InputDecoration decoration,
@@ -876,10 +894,13 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         currentIndex + 1,
         candidates.length,
       ),
-      suffixIcon: IconButton(
-        icon: const Icon(Icons.sync_alt),
-        tooltip: context.l10n.diveSites_edit_merge_fieldSourceCycleTooltip,
-        onPressed: () => _cycleTextField(key),
+      suffixIcon: Padding(
+        padding: const EdgeInsets.only(right: 6),
+        child: _buildMergeCycleButton(() => _cycleTextField(key)),
+      ),
+      suffixIconConstraints: const BoxConstraints(
+        minWidth: 44,
+        minHeight: 36,
       ),
     );
   }
@@ -1008,13 +1029,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 ),
                 if (widget.isMerging && _ratingCandidates.length > 1) ...[
                   const Spacer(),
-                  IconButton(
-                    onPressed: _cycleRating,
-                    tooltip: context
-                        .l10n
-                        .diveSites_edit_merge_fieldSourceCycleTooltip,
-                    icon: const Icon(Icons.sync_alt),
-                  ),
+                  _buildMergeCycleButton(_cycleRating),
                 ],
               ],
             ),
@@ -1158,13 +1173,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 ),
                 if (widget.isMerging && _difficultyCandidates.length > 1) ...[
                   const Spacer(),
-                  IconButton(
-                    onPressed: _cycleDifficulty,
-                    tooltip: context
-                        .l10n
-                        .diveSites_edit_merge_fieldSourceCycleTooltip,
-                    icon: const Icon(Icons.sync_alt),
-                  ),
+                  _buildMergeCycleButton(_cycleDifficulty),
                 ],
               ],
             ),
@@ -1333,13 +1342,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 ),
                 if (widget.isMerging && _coordinateCandidates.length > 1) ...[
                   const Spacer(),
-                  IconButton(
-                    onPressed: _cycleCoordinates,
-                    tooltip: context
-                        .l10n
-                        .diveSites_edit_merge_fieldSourceCycleTooltip,
-                    icon: const Icon(Icons.sync_alt),
-                  ),
+                  _buildMergeCycleButton(_cycleCoordinates),
                 ],
               ],
             ),
@@ -1740,7 +1743,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              context.l10n.diveSites_edit_marineLife_helperText,
+              widget.isMerging
+                  ? context.l10n.diveSites_edit_merge_marineLifeHelperText
+                  : context.l10n.diveSites_edit_marineLife_helperText,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -1904,13 +1909,15 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       final notifier = ref.read(siteListNotifierProvider.notifier);
       String savedId;
 
+      MergeSnapshot? mergeSnapshot;
+
       if (widget.isMerging) {
         final confirmed = await _confirmMerge();
         if (!confirmed) {
           return;
         }
 
-        await notifier.mergeSites(site, widget.mergeSiteIds!);
+        mergeSnapshot = await notifier.mergeSites(site, widget.mergeSiteIds!);
         savedId = widget.mergeSiteIds!.first;
       } else if (widget.isEditing) {
         await notifier.updateSite(site);
@@ -1947,14 +1954,16 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       if (mounted) {
         if (widget.embedded) {
           widget.onSaved?.call(savedId);
+        } else if (widget.isMerging) {
+          context.pop(
+            SiteMergeResult(survivorId: savedId, snapshot: mergeSnapshot),
+          );
         } else {
           context.pop(savedId);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                widget.isMerging
-                    ? context.l10n.diveSites_edit_snackbar_sitesMerged
-                    : widget.isEditing
+                widget.isEditing
                     ? context.l10n.diveSites_edit_snackbar_siteUpdated
                     : context.l10n.diveSites_edit_snackbar_siteAdded,
               ),
