@@ -5,6 +5,7 @@ import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -127,7 +128,7 @@ class PlanSettingsPanel extends ConsumerWidget {
                   reservePressure: planState.reservePressure,
                   defaultPressureBar: settings.pressureUnit == PressureUnit.psi
                       ? PressureUnit.psi.convert(500, PressureUnit.bar)
-                      : 50.0,
+                      : DivePlanState.kDefaultReservePressureBar,
                   maxPressureBar: planState.tanks
                       .map((t) => t.startPressure ?? 0)
                       .fold(0, (a, b) => a + b)

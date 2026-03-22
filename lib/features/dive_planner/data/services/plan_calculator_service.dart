@@ -61,7 +61,7 @@ class PlanCalculatorService {
     required List<PlanSegment> segments,
     required List<DiveTank> tanks,
     required double sacRate,
-    double reservePressure = 50,
+    double reservePressure = DivePlanState.kDefaultReservePressureBar,
     List<TissueCompartment>? initialTissueState,
   }) {
     if (segments.isEmpty) {

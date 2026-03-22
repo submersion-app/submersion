@@ -461,6 +461,9 @@ class PlanResult extends Equatable {
 
 /// State of a dive plan being edited.
 class DivePlanState extends Equatable {
+  /// Default reserve pressure in bar.
+  static const double kDefaultReservePressureBar = 50;
+
   /// Unique ID for this plan.
   final String id;
 
@@ -521,7 +524,7 @@ class DivePlanState extends Equatable {
     this.initialTissueState,
     this.siteId,
     this.altitude,
-    this.reservePressure = 50,
+    this.reservePressure = kDefaultReservePressureBar,
     this.notes = '',
     this.isDirty = false,
     required this.createdAt,
