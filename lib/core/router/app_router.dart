@@ -305,7 +305,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'merge',
                 name: 'mergeSite',
                 builder: (context, state) {
-                  final siteIds = state.extra as List<String>;
+                  final siteIds =
+                      (state.extra as List<dynamic>?)?.cast<String>() ??
+                          const <String>[];
                   return SiteMergePage(siteIds: siteIds);
                 },
               ),

@@ -212,9 +212,17 @@ class SiteRepository {
         'Merging ${orderedIds.length} sites into survivor: $survivorId',
       );
 
-      // Capture pre-merge state for undo
+      // Validate all sites exist before mutating
       final originalSurvivor = await getSiteById(survivorId);
+      if (originalSurvivor == null) {
+        throw StateError('Survivor site $survivorId does not exist');
+      }
       final deletedSites = await getSitesByIds(duplicateIds);
+      if (deletedSites.length != duplicateIds.length) {
+        final found = deletedSites.map((s) => s.id).toSet();
+        final missing = duplicateIds.where((id) => !found.contains(id));
+        throw StateError('Sites not found: ${missing.join(', ')}');
+      }
 
       final affectedDives = await (_db.select(
         _db.dives,
@@ -295,7 +303,7 @@ class SiteRepository {
           .toList(growable: false);
 
       return MergeSnapshot(
-        originalSurvivor: originalSurvivor!,
+        originalSurvivor: originalSurvivor,
         deletedSites: deletedSites,
         diveOriginalSiteIds: diveOriginalSiteIds,
         mediaOriginalSiteIds: mediaOriginalSiteIds,
