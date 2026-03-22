@@ -308,11 +308,21 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                 onChanged: (value) {
                   setState(() => _searchQuery = value);
                   _debounceTimer?.cancel();
-                  _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-                    if (mounted) {
-                      setState(() => _debouncedQuery = value);
-                    }
-                  });
+                  if (value.isEmpty) {
+                    setState(() {
+                      _debouncedQuery = '';
+                      _lastSearchResults = null;
+                    });
+                  } else {
+                    _debounceTimer = Timer(
+                      const Duration(milliseconds: 300),
+                      () {
+                        if (mounted) {
+                          setState(() => _debouncedQuery = value);
+                        }
+                      },
+                    );
+                  }
                 },
               ),
             ),

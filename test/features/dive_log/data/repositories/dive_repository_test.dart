@@ -1,9 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 import '../../../../helpers/performance_data_generator.dart';
 import '../../../../helpers/test_database.dart';
@@ -417,6 +422,84 @@ void main() {
         final results = await repository.searchDives('NonExistent');
 
         expect(results, isEmpty);
+      });
+
+      test('should find dives by linked site name', () async {
+        final site = await siteRepository.createSite(
+          const DiveSite(id: '', name: 'Blue Hole Belize'),
+        );
+        await repository.createDive(createTestDive(diveNumber: 10, site: site));
+
+        final results = await repository.searchDives('Blue Hole');
+
+        expect(results.length, equals(1));
+        expect(results[0].diveNumber, equals(10));
+      });
+
+      test('should find dives by site country', () async {
+        final site = await siteRepository.createSite(
+          const DiveSite(id: '', name: 'Some Reef', country: 'Thailand'),
+        );
+        await repository.createDive(createTestDive(diveNumber: 11, site: site));
+
+        final results = await repository.searchDives('Thailand');
+
+        expect(results.length, equals(1));
+        expect(results[0].diveNumber, equals(11));
+      });
+
+      test('should find dives by site region', () async {
+        final site = await siteRepository.createSite(
+          const DiveSite(id: '', name: 'Wall Dive', region: 'Cozumel'),
+        );
+        await repository.createDive(createTestDive(diveNumber: 12, site: site));
+
+        final results = await repository.searchDives('Cozumel');
+
+        expect(results.length, equals(1));
+        expect(results[0].diveNumber, equals(12));
+      });
+
+      test('should find dives by linked buddy name', () async {
+        final buddyRepo = BuddyRepository();
+        final buddy = await buddyRepo.createBuddy(
+          Buddy(
+            id: '',
+            name: 'Jacques Cousteau',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+        final dive = await repository.createDive(
+          createTestDive(diveNumber: 13),
+        );
+        await buddyRepo.addBuddyToDive(dive.id, buddy.id, BuddyRole.buddy);
+
+        final results = await repository.searchDives('Cousteau');
+
+        expect(results.length, equals(1));
+        expect(results[0].diveNumber, equals(13));
+      });
+
+      test('should find dives by tag name', () async {
+        final tagRepo = TagRepository();
+        final tag = await tagRepo.createTag(
+          Tag(
+            id: '',
+            name: 'wreck-exploration',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+        final dive = await repository.createDive(
+          createTestDive(diveNumber: 14),
+        );
+        await tagRepo.addTagToDive(dive.id, tag.id);
+
+        final results = await repository.searchDives('wreck-exploration');
+
+        expect(results.length, equals(1));
+        expect(results[0].diveNumber, equals(14));
       });
     });
 

@@ -1489,9 +1489,7 @@ class DiveRepository {
       // Matches: notes, buddy (legacy field), dive master, site name/country/
       // region, dive center name, linked buddy names, tag names, custom fields.
       final likeTerm = '%$query%';
-      final diverClause = diverId != null
-          ? 'AND d.id IN (SELECT id FROM dives WHERE diver_id = ?)'
-          : '';
+      final diverClause = diverId != null ? 'AND d.diver_id = ?' : '';
       final diverArgs = diverId != null
           ? [Variable<String>(diverId)]
           : <Variable<String>>[];

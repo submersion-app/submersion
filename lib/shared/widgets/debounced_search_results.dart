@@ -33,6 +33,10 @@ class DebouncedSearchResults<T> extends ConsumerStatefulWidget {
   /// Builds the error view.
   final Widget Function(BuildContext context, Object error) errorBuilder;
 
+  /// Optional widget shown when the query is empty. If null, a [SizedBox.shrink]
+  /// is returned for empty queries.
+  final Widget Function(BuildContext context)? emptyQueryBuilder;
+
   const DebouncedSearchResults({
     super.key,
     required this.query,
@@ -41,6 +45,7 @@ class DebouncedSearchResults<T> extends ConsumerStatefulWidget {
     required this.dataBuilder,
     required this.emptyBuilder,
     required this.errorBuilder,
+    this.emptyQueryBuilder,
   });
 
   @override
@@ -65,11 +70,19 @@ class _DebouncedSearchResultsState<T>
     super.didUpdateWidget(oldWidget);
     if (widget.query != oldWidget.query) {
       _debounceTimer?.cancel();
-      _debounceTimer = Timer(widget.debounceDuration, () {
-        if (mounted) {
-          setState(() => _debouncedQuery = widget.query);
-        }
-      });
+      if (widget.query.isEmpty) {
+        // Clear immediately — no debounce needed for empty queries
+        setState(() {
+          _debouncedQuery = '';
+          _lastResults = null;
+        });
+      } else {
+        _debounceTimer = Timer(widget.debounceDuration, () {
+          if (mounted) {
+            setState(() => _debouncedQuery = widget.query);
+          }
+        });
+      }
     }
   }
 
@@ -83,6 +96,9 @@ class _DebouncedSearchResultsState<T>
   Widget build(BuildContext context) {
     if (_debouncedQuery.isEmpty) {
       _lastResults = null;
+      if (widget.emptyQueryBuilder != null) {
+        return widget.emptyQueryBuilder!(context);
+      }
       return const SizedBox.shrink();
     }
 

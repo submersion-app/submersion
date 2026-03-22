@@ -652,29 +652,44 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
           },
         );
       },
-      emptyBuilder: (context, query) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.search_off,
-                size: 48,
+      emptyQueryBuilder: (context) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search,
+              size: 48,
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              context.l10n.diveCenters_search_prompt,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: Theme.of(context).colorScheme.outline,
               ),
-              const SizedBox(height: 16),
-              Text(
-                query.isEmpty
-                    ? context.l10n.diveCenters_search_prompt
-                    : context.l10n.diveCenters_search_noResults(query),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+            ),
+          ],
+        ),
+      ),
+      emptyBuilder: (context, query) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 48,
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              context.l10n.diveCenters_search_noResults(query),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
               ),
-            ],
-          ),
-        );
-      },
+            ),
+          ],
+        ),
+      ),
       errorBuilder: (context, error) {
         return Center(
           child: Text(context.l10n.diveCenters_error_generic(error.toString())),
