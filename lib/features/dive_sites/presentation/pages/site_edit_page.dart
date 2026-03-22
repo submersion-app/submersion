@@ -898,10 +898,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         padding: const EdgeInsets.only(right: 6),
         child: _buildMergeCycleButton(() => _cycleTextField(key)),
       ),
-      suffixIconConstraints: const BoxConstraints(
-        minWidth: 44,
-        minHeight: 36,
-      ),
+      suffixIconConstraints: const BoxConstraints(minWidth: 44, minHeight: 36),
     );
   }
 
