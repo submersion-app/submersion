@@ -725,6 +725,8 @@
   "diveComputer_discovery_titleFindDevice": "Eszkoz keresese",
   "diveComputer_discovery_unknownDevice": "Ismeretlen eszkoz",
   "diveComputer_discovery_unknownDeviceDescription": "Ez az eszkoz nem szerepel a konyvtarunkban. Megprobaljuk csatlakoztatni, de a letoltes nem feltetlen mukodik.",
+  "diveComputer_discovery_usbNoResults": "Nincs találat erre: \"{query}\"",
+  "diveComputer_discovery_usbSearchHint": "Keresés gyártó vagy modell alapján...",
   "diveComputer_downloadStep_andMoreDives": "... es meg {count} tovabbi",
   "diveComputer_downloadStep_cancel": "Megse",
   "diveComputer_downloadStep_cancelled": "Letoltes megszakitva",

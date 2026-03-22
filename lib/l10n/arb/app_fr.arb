@@ -725,6 +725,8 @@
   "diveComputer_discovery_titleFindDevice": "Rechercher un appareil",
   "diveComputer_discovery_unknownDevice": "Appareil inconnu",
   "diveComputer_discovery_unknownDeviceDescription": "Cet appareil n'est pas dans notre bibliotheque. Nous tenterons de nous connecter, mais le telechargement pourrait ne pas fonctionner.",
+  "diveComputer_discovery_usbNoResults": "Aucun appareil correspondant à \"{query}\"",
+  "diveComputer_discovery_usbSearchHint": "Rechercher par fabricant ou modèle...",
   "diveComputer_downloadStep_andMoreDives": "... et {count} de plus",
   "diveComputer_downloadStep_cancel": "Annuler",
   "diveComputer_downloadStep_cancelled": "Telechargement annule",

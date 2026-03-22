@@ -725,6 +725,8 @@
   "diveComputer_discovery_titleFindDevice": "Encontrar Dispositivo",
   "diveComputer_discovery_unknownDevice": "Dispositivo Desconhecido",
   "diveComputer_discovery_unknownDeviceDescription": "Este dispositivo nao esta na nossa biblioteca. Tentaremos conectar, mas o download pode nao funcionar.",
+  "diveComputer_discovery_usbNoResults": "Nenhum dispositivo correspondente a \"{query}\"",
+  "diveComputer_discovery_usbSearchHint": "Pesquisar por fabricante ou modelo...",
   "diveComputer_downloadStep_andMoreDives": "... e mais {count}",
   "diveComputer_downloadStep_cancel": "Cancelar",
   "diveComputer_downloadStep_cancelled": "Download cancelado",

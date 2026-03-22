@@ -13856,6 +13856,15 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dit apparaat staat niet in onze bibliotheek. We proberen verbinding te maken, maar downloaden werkt mogelijk niet.';
 
   @override
+  String diveComputer_discovery_usbNoResults(String query) {
+    return 'Geen apparaten gevonden voor \"$query\"';
+  }
+
+  @override
+  String get diveComputer_discovery_usbSearchHint =>
+      'Zoeken op fabrikant of model...';
+
+  @override
   String diveComputer_downloadStep_andMoreDives(Object count) {
     return '... en nog $count meer';
   }

@@ -13958,6 +13958,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dieses Geraet befindet sich nicht in unserer Bibliothek. Wir versuchen eine Verbindung herzustellen, aber der Download funktioniert moeglicherweise nicht.';
 
   @override
+  String diveComputer_discovery_usbNoResults(String query) {
+    return 'Keine Geräte für \"$query\"';
+  }
+
+  @override
+  String get diveComputer_discovery_usbSearchHint =>
+      'Nach Hersteller oder Modell suchen...';
+
+  @override
   String diveComputer_downloadStep_andMoreDives(Object count) {
     return '... und $count weitere';
   }

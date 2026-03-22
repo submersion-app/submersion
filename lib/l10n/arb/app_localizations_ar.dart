@@ -13694,6 +13694,15 @@ class AppLocalizationsAr extends AppLocalizations {
       'هذا الجهاز غير موجود في مكتبتنا. سنحاول الاتصال، لكن التنزيل قد لا يعمل.';
 
   @override
+  String diveComputer_discovery_usbNoResults(String query) {
+    return 'لا توجد أجهزة مطابقة لـ \"$query\"';
+  }
+
+  @override
+  String get diveComputer_discovery_usbSearchHint =>
+      'البحث حسب الشركة المصنعة أو الطراز...';
+
+  @override
   String diveComputer_downloadStep_andMoreDives(Object count) {
     return '... و$count أخرى';
   }

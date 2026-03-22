@@ -13736,6 +13736,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'This device is not in our library. We\'ll try to connect, but download may not work.';
 
   @override
+  String diveComputer_discovery_usbNoResults(String query) {
+    return 'No devices matching \"$query\"';
+  }
+
+  @override
+  String get diveComputer_discovery_usbSearchHint =>
+      'Search by manufacturer or model...';
+
+  @override
   String diveComputer_downloadStep_andMoreDives(Object count) {
     return '... and $count more';
   }

@@ -8413,6 +8413,15 @@
   "diveComputer_discovery_titleFindDevice": "Find Device",
   "diveComputer_discovery_unknownDevice": "Unknown Device",
   "diveComputer_discovery_unknownDeviceDescription": "This device is not in our library. We'll try to connect, but download may not work.",
+  "diveComputer_discovery_usbNoResults": "No devices matching \"{query}\"",
+  "@diveComputer_discovery_usbNoResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "diveComputer_discovery_usbSearchHint": "Search by manufacturer or model...",
   "diveComputer_downloadStep_andMoreDives": "... and {count} more",
   "@diveComputer_downloadStep_andMoreDives": {
     "placeholders": {

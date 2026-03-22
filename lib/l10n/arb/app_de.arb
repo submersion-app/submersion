@@ -725,6 +725,8 @@
   "diveComputer_discovery_titleFindDevice": "Geraet suchen",
   "diveComputer_discovery_unknownDevice": "Unbekanntes Geraet",
   "diveComputer_discovery_unknownDeviceDescription": "Dieses Geraet befindet sich nicht in unserer Bibliothek. Wir versuchen eine Verbindung herzustellen, aber der Download funktioniert moeglicherweise nicht.",
+  "diveComputer_discovery_usbNoResults": "Keine Geräte für \"{query}\"",
+  "diveComputer_discovery_usbSearchHint": "Nach Hersteller oder Modell suchen...",
   "diveComputer_downloadStep_andMoreDives": "... und {count} weitere",
   "diveComputer_downloadStep_cancel": "Abbrechen",
   "diveComputer_downloadStep_cancelled": "Download abgebrochen",

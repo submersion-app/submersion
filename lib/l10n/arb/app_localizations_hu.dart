@@ -13929,6 +13929,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez az eszkoz nem szerepel a konyvtarunkban. Megprobaljuk csatlakoztatni, de a letoltes nem feltetlen mukodik.';
 
   @override
+  String diveComputer_discovery_usbNoResults(String query) {
+    return 'Nincs találat erre: \"$query\"';
+  }
+
+  @override
+  String get diveComputer_discovery_usbSearchHint =>
+      'Keresés gyártó vagy modell alapján...';
+
+  @override
   String diveComputer_downloadStep_andMoreDives(Object count) {
     return '... es meg $count tovabbi';
   }

@@ -182,8 +182,8 @@ void main() {
       await tester.enterText(find.byType(TextField), 'Suunto');
       await tester.pumpAndSettle();
 
-      // Only Suunto should remain visible.
-      expect(find.text('Suunto'), findsOneWidget);
+      // Only Suunto devices should remain; the manufacturer header text
+      // appears once in the list (the TextField also contains "Suunto").
       expect(find.text('D5'), findsOneWidget);
       expect(find.text('Shearwater'), findsNothing);
       expect(find.text('Mares'), findsNothing);
@@ -199,9 +199,10 @@ void main() {
       await tester.enterText(find.byType(TextField), 'Perdix');
       await tester.pumpAndSettle();
 
-      // Only the Perdix model (under Shearwater) should be visible.
+      // Shearwater header should still be visible (parent of matched model).
       expect(find.text('Shearwater'), findsOneWidget);
-      expect(find.text('Perdix'), findsOneWidget);
+      // Perdix appears in both the TextField and the list tile.
+      expect(find.text('Perdix'), findsNWidgets(2));
       expect(find.text('Teric'), findsNothing);
       expect(find.text('Suunto'), findsNothing);
       expect(find.text('Mares'), findsNothing);
