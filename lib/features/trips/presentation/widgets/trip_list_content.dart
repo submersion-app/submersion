@@ -3,14 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/compact_trip_list_tile.dart';
+import 'package:submersion/features/trips/presentation/widgets/dense_trip_list_tile.dart';
 
 /// Content widget for the trip list, used in master-detail layout.
 class TripListContent extends ConsumerStatefulWidget {
@@ -150,6 +155,12 @@ class _TripListContentState extends ConsumerState<TripListContent> {
       appBar: AppBar(
         title: Text(context.l10n.trips_appBar_title),
         actions: [
+          ListViewModeToggle(
+            currentMode: ref.watch(tripListViewModeProvider),
+            onModeChanged: (mode) {
+              ref.read(tripListViewModeProvider.notifier).state = mode;
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             tooltip: context.l10n.trips_list_tooltip_search,
@@ -191,6 +202,14 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
+          ListViewModeToggle(
+            currentMode: ref.watch(tripListViewModeProvider),
+            onModeChanged: (mode) {
+              ref.read(tripListViewModeProvider.notifier).state = mode;
+            },
+            iconSize: 18,
+          ),
+          const SizedBox(width: 4),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
             tooltip: context.l10n.trips_list_tooltip_search,
@@ -281,11 +300,24 @@ class _TripListContentState extends ConsumerState<TripListContent> {
               itemBuilder: (context, index) {
                 final tripWithStats = trips[index];
                 final isSelected = widget.selectedId == tripWithStats.trip.id;
-                return TripListTile(
-                  tripWithStats: tripWithStats,
-                  isSelected: isSelected,
-                  onTap: () => _handleItemTap(tripWithStats.trip),
-                );
+                final viewMode = ref.watch(tripListViewModeProvider);
+                return switch (viewMode) {
+                  ListViewMode.detailed => TripListTile(
+                    tripWithStats: tripWithStats,
+                    isSelected: isSelected,
+                    onTap: () => _handleItemTap(tripWithStats.trip),
+                  ),
+                  ListViewMode.compact => CompactTripListTile(
+                    tripWithStats: tripWithStats,
+                    isSelected: isSelected,
+                    onTap: () => _handleItemTap(tripWithStats.trip),
+                  ),
+                  ListViewMode.dense => DenseTripListTile(
+                    tripWithStats: tripWithStats,
+                    isSelected: isSelected,
+                    onTap: () => _handleItemTap(tripWithStats.trip),
+                  ),
+                };
               },
             ),
           ),

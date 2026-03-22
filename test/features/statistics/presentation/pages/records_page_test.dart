@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/constants/dive_list_view_mode.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -138,8 +138,23 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setCardColorAttribute(CardColorAttribute attribute) async =>
       state = state.copyWith(cardColorAttribute: attribute);
   @override
-  Future<void> setDiveListViewMode(DiveListViewMode mode) async =>
+  Future<void> setDiveListViewMode(ListViewMode mode) async =>
       state = state.copyWith(diveListViewMode: mode);
+  @override
+  Future<void> setSiteListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(siteListViewMode: mode);
+  @override
+  Future<void> setTripListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(tripListViewMode: mode);
+  @override
+  Future<void> setEquipmentListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(equipmentListViewMode: mode);
+  @override
+  Future<void> setBuddyListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(buddyListViewMode: mode);
+  @override
+  Future<void> setDiveCenterListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(diveCenterListViewMode: mode);
   @override
   Future<void> setCardColorGradientPreset(String preset) async =>
       state = state.copyWith(cardColorGradientPreset: preset);

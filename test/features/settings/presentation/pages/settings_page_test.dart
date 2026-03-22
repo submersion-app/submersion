@@ -9,7 +9,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
-import 'package:submersion/core/constants/dive_list_view_mode.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -137,8 +137,23 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setCardColorAttribute(CardColorAttribute attribute) async =>
       state = state.copyWith(cardColorAttribute: attribute);
   @override
-  Future<void> setDiveListViewMode(DiveListViewMode mode) async =>
+  Future<void> setDiveListViewMode(ListViewMode mode) async =>
       state = state.copyWith(diveListViewMode: mode);
+  @override
+  Future<void> setSiteListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(siteListViewMode: mode);
+  @override
+  Future<void> setTripListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(tripListViewMode: mode);
+  @override
+  Future<void> setEquipmentListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(equipmentListViewMode: mode);
+  @override
+  Future<void> setBuddyListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(buddyListViewMode: mode);
+  @override
+  Future<void> setDiveCenterListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(diveCenterListViewMode: mode);
   @override
   Future<void> setCardColorGradientPreset(String preset) async =>
       state = state.copyWith(cardColorGradientPreset: preset);

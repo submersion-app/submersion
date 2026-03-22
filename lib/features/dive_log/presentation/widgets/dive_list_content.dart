@@ -3,13 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
-import 'package:submersion/core/constants/dive_list_view_mode.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_dive_list_tile.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dense_dive_list_tile.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_list_view_mode_toggle.dart';
+import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
@@ -855,7 +855,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     return AppBar(
       title: Text(context.l10n.diveLog_listPage_title),
       actions: [
-        DiveListViewModeToggle(
+        ListViewModeToggle(
           currentMode: ref.watch(diveListViewModeProvider),
           onModeChanged: (mode) {
             ref.read(diveListViewModeProvider.notifier).state = mode;
@@ -950,7 +950,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
-          DiveListViewModeToggle(
+          ListViewModeToggle(
             currentMode: ref.watch(diveListViewModeProvider),
             onModeChanged: (mode) {
               ref.read(diveListViewModeProvider.notifier).state = mode;
@@ -1201,7 +1201,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 final isMasterSelected = widget.selectedId == dive.id;
                 final viewMode = ref.watch(diveListViewModeProvider);
                 return switch (viewMode) {
-                  DiveListViewMode.detailed => DiveListTile(
+                  ListViewMode.detailed => DiveListTile(
                     diveId: dive.id,
                     diveNumber: dive.diveNumber ?? index + 1,
                     dateTime: dive.dateTime,
@@ -1227,7 +1227,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                         ? null
                         : () => _enterSelectionMode(dive.id),
                   ),
-                  DiveListViewMode.compact => CompactDiveListTile(
+                  ListViewMode.compact => CompactDiveListTile(
                     diveId: dive.id,
                     diveNumber: dive.diveNumber ?? index + 1,
                     dateTime: dive.dateTime,
@@ -1246,7 +1246,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                         ? null
                         : () => _enterSelectionMode(dive.id),
                   ),
-                  DiveListViewMode.dense => DenseDiveListTile(
+                  ListViewMode.dense => DenseDiveListTile(
                     diveId: dive.id,
                     diveNumber: dive.diveNumber ?? index + 1,
                     dateTime: dive.dateTime,

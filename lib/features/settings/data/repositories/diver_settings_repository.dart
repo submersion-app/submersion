@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
-import 'package:submersion/core/constants/dive_list_view_mode.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -88,6 +88,11 @@ class DiverSettingsRepository {
               showDepthColoredDiveCards: Value(s.showDepthColoredDiveCards),
               cardColorAttribute: Value(s.cardColorAttribute.name),
               diveListViewMode: Value(s.diveListViewMode.name),
+              siteListViewMode: Value(s.siteListViewMode.name),
+              tripListViewMode: Value(s.tripListViewMode.name),
+              equipmentListViewMode: Value(s.equipmentListViewMode.name),
+              buddyListViewMode: Value(s.buddyListViewMode.name),
+              diveCenterListViewMode: Value(s.diveCenterListViewMode.name),
               cardColorGradientPreset: Value(s.cardColorGradientPreset),
               cardColorGradientStart: Value(s.cardColorGradientStart),
               cardColorGradientEnd: Value(s.cardColorGradientEnd),
@@ -199,6 +204,11 @@ class DiverSettingsRepository {
           showDepthColoredDiveCards: Value(settings.showDepthColoredDiveCards),
           cardColorAttribute: Value(settings.cardColorAttribute.name),
           diveListViewMode: Value(settings.diveListViewMode.name),
+          siteListViewMode: Value(settings.siteListViewMode.name),
+          tripListViewMode: Value(settings.tripListViewMode.name),
+          equipmentListViewMode: Value(settings.equipmentListViewMode.name),
+          buddyListViewMode: Value(settings.buddyListViewMode.name),
+          diveCenterListViewMode: Value(settings.diveCenterListViewMode.name),
           cardColorGradientPreset: Value(settings.cardColorGradientPreset),
           cardColorGradientStart: Value(settings.cardColorGradientStart),
           cardColorGradientEnd: Value(settings.cardColorGradientEnd),
@@ -344,7 +354,12 @@ class DiverSettingsRepository {
       defaultTtsSource: MetricDataSource.fromInt(row.defaultTtsSource),
       defaultCnsSource: MetricDataSource.fromInt(row.defaultCnsSource),
       cardColorAttribute: CardColorAttribute.fromName(row.cardColorAttribute),
-      diveListViewMode: DiveListViewMode.fromName(row.diveListViewMode),
+      diveListViewMode: ListViewMode.fromName(row.diveListViewMode),
+      siteListViewMode: ListViewMode.fromName(row.siteListViewMode),
+      tripListViewMode: ListViewMode.fromName(row.tripListViewMode),
+      equipmentListViewMode: ListViewMode.fromName(row.equipmentListViewMode),
+      buddyListViewMode: ListViewMode.fromName(row.buddyListViewMode),
+      diveCenterListViewMode: ListViewMode.fromName(row.diveCenterListViewMode),
       cardColorGradientPreset: row.cardColorGradientPreset,
       cardColorGradientStart: row.cardColorGradientStart,
       cardColorGradientEnd: row.cardColorGradientEnd,

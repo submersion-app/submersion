@@ -3,11 +3,13 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
@@ -15,6 +17,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/compact_site_list_tile.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/dense_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_sheet.dart';
 
 /// Content widget for the site list, used in master-detail layout.
@@ -345,6 +349,12 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           : AppBar(
               title: Text(context.l10n.diveSites_list_appBar_title),
               actions: [
+                ListViewModeToggle(
+                  currentMode: ref.watch(siteListViewModeProvider),
+                  onModeChanged: (mode) {
+                    ref.read(siteListViewModeProvider.notifier).state = mode;
+                  },
+                ),
                 IconButton(
                   icon: const Icon(Icons.map),
                   tooltip: context.l10n.diveSites_list_tooltip_mapView,
@@ -431,6 +441,14 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
+          ListViewModeToggle(
+            currentMode: ref.watch(siteListViewModeProvider),
+            onModeChanged: (mode) {
+              ref.read(siteListViewModeProvider.notifier).state = mode;
+            },
+            iconSize: 18,
+          ),
+          const SizedBox(width: 4),
           if (widget.onMapViewToggle != null)
             MapViewToggleButton(
               isActive: widget.isMapViewActive,
@@ -604,26 +622,52 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           final isSelected = widget.selectedId == site.id;
           final isChecked = _selectedIds.contains(site.id);
 
-          return SiteListTile(
-            name: site.name,
-            location: site.locationString.isNotEmpty
-                ? site.locationString
-                : null,
-            minDepth: site.minDepth,
-            maxDepth: site.maxDepth,
-            difficulty: site.difficulty?.displayName,
-            diveCount: siteData.diveCount,
-            rating: site.rating,
-            isSelectionMode: _isSelectionMode,
-            isSelected: isSelected,
-            isChecked: isChecked,
-            latitude: site.location?.latitude,
-            longitude: site.location?.longitude,
-            onTap: () => _handleItemTap(site),
-            onLongPress: _isSelectionMode
-                ? null
-                : () => _enterSelectionMode(site.id),
-          );
+          final viewMode = ref.watch(siteListViewModeProvider);
+          final locationString = site.locationString.isNotEmpty
+              ? site.locationString
+              : null;
+          return switch (viewMode) {
+            ListViewMode.detailed => SiteListTile(
+              name: site.name,
+              location: locationString,
+              minDepth: site.minDepth,
+              maxDepth: site.maxDepth,
+              difficulty: site.difficulty?.displayName,
+              diveCount: siteData.diveCount,
+              rating: site.rating,
+              isSelectionMode: _isSelectionMode,
+              isSelected: isSelected,
+              isChecked: isChecked,
+              latitude: site.location?.latitude,
+              longitude: site.location?.longitude,
+              onTap: () => _handleItemTap(site),
+              onLongPress: _isSelectionMode
+                  ? null
+                  : () => _enterSelectionMode(site.id),
+            ),
+            ListViewMode.compact => CompactSiteListTile(
+              name: site.name,
+              location: locationString,
+              diveCount: siteData.diveCount,
+              isSelectionMode: _isSelectionMode,
+              isSelected: isChecked,
+              onTap: () => _handleItemTap(site),
+              onLongPress: _isSelectionMode
+                  ? null
+                  : () => _enterSelectionMode(site.id),
+            ),
+            ListViewMode.dense => DenseSiteListTile(
+              name: site.name,
+              location: locationString,
+              diveCount: siteData.diveCount,
+              isSelectionMode: _isSelectionMode,
+              isSelected: isChecked,
+              onTap: () => _handleItemTap(site),
+              onLongPress: _isSelectionMode
+                  ? null
+                  : () => _enterSelectionMode(site.id),
+            ),
+          };
         },
       ),
     );

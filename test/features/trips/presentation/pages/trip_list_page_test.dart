@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -30,6 +32,9 @@ void main() {
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);
             }),
+            tripListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
           ],
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -51,6 +56,9 @@ void main() {
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);
             }),
+            tripListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
           ],
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -72,6 +80,9 @@ void main() {
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);
             }),
+            tripListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
           ],
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -98,6 +109,9 @@ void main() {
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);
             }),
+            tripListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
           ],
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -149,6 +163,9 @@ void main() {
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier(testTrips);
             }),
+            tripListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
           ],
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -186,6 +203,9 @@ void main() {
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier(testTrips);
             }),
+            tripListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
           ],
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -225,6 +245,9 @@ void main() {
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier(testTrips);
             }),
+            tripListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
           ],
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -246,6 +269,9 @@ void main() {
             tripListNotifierProvider.overrideWith((ref) {
               return _LoadingTripListNotifier();
             }),
+            tripListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
           ],
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,

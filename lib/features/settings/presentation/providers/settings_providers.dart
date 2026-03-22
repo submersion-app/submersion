@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/constants/card_color.dart';
-import 'package:submersion/core/constants/dive_list_view_mode.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_preset.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
@@ -137,7 +137,22 @@ class AppSettings {
   final CardColorAttribute cardColorAttribute;
 
   /// Which layout to use for the dive list
-  final DiveListViewMode diveListViewMode;
+  final ListViewMode diveListViewMode;
+
+  /// Which layout to use for the site list
+  final ListViewMode siteListViewMode;
+
+  /// Which layout to use for the trip list
+  final ListViewMode tripListViewMode;
+
+  /// Which layout to use for the equipment list
+  final ListViewMode equipmentListViewMode;
+
+  /// Which layout to use for the buddy list
+  final ListViewMode buddyListViewMode;
+
+  /// Which layout to use for the dive center list
+  final ListViewMode diveCenterListViewMode;
 
   /// Name of the selected gradient preset ('ocean', 'thermal', etc.)
   final String cardColorGradientPreset;
@@ -267,7 +282,12 @@ class AppSettings {
     this.defaultCnsSource = MetricDataSource.calculated,
     // Appearance defaults
     this.cardColorAttribute = CardColorAttribute.none,
-    this.diveListViewMode = DiveListViewMode.detailed,
+    this.diveListViewMode = ListViewMode.detailed,
+    this.siteListViewMode = ListViewMode.detailed,
+    this.tripListViewMode = ListViewMode.detailed,
+    this.equipmentListViewMode = ListViewMode.detailed,
+    this.buddyListViewMode = ListViewMode.detailed,
+    this.diveCenterListViewMode = ListViewMode.detailed,
     this.cardColorGradientPreset = 'ocean',
     this.cardColorGradientStart,
     this.cardColorGradientEnd,
@@ -373,7 +393,12 @@ class AppSettings {
     MetricDataSource? defaultTtsSource,
     MetricDataSource? defaultCnsSource,
     CardColorAttribute? cardColorAttribute,
-    DiveListViewMode? diveListViewMode,
+    ListViewMode? diveListViewMode,
+    ListViewMode? siteListViewMode,
+    ListViewMode? tripListViewMode,
+    ListViewMode? equipmentListViewMode,
+    ListViewMode? buddyListViewMode,
+    ListViewMode? diveCenterListViewMode,
     String? cardColorGradientPreset,
     int? cardColorGradientStart,
     int? cardColorGradientEnd,
@@ -447,6 +472,13 @@ class AppSettings {
       defaultCnsSource: defaultCnsSource ?? this.defaultCnsSource,
       cardColorAttribute: cardColorAttribute ?? this.cardColorAttribute,
       diveListViewMode: diveListViewMode ?? this.diveListViewMode,
+      siteListViewMode: siteListViewMode ?? this.siteListViewMode,
+      tripListViewMode: tripListViewMode ?? this.tripListViewMode,
+      equipmentListViewMode:
+          equipmentListViewMode ?? this.equipmentListViewMode,
+      buddyListViewMode: buddyListViewMode ?? this.buddyListViewMode,
+      diveCenterListViewMode:
+          diveCenterListViewMode ?? this.diveCenterListViewMode,
       cardColorGradientPreset:
           cardColorGradientPreset ?? this.cardColorGradientPreset,
       cardColorGradientStart: clearCardColorGradientStart
@@ -812,8 +844,33 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  Future<void> setDiveListViewMode(DiveListViewMode mode) async {
+  Future<void> setDiveListViewMode(ListViewMode mode) async {
     state = state.copyWith(diveListViewMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setSiteListViewMode(ListViewMode mode) async {
+    state = state.copyWith(siteListViewMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setTripListViewMode(ListViewMode mode) async {
+    state = state.copyWith(tripListViewMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setEquipmentListViewMode(ListViewMode mode) async {
+    state = state.copyWith(equipmentListViewMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setBuddyListViewMode(ListViewMode mode) async {
+    state = state.copyWith(buddyListViewMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setDiveCenterListViewMode(ListViewMode mode) async {
+    state = state.copyWith(diveCenterListViewMode: mode);
     await _saveSettings();
   }
 
@@ -1249,7 +1306,32 @@ final tissueVizModeProvider = Provider<TissueVizMode>((ref) {
 /// default only once at creation time. If we used `ref.watch()`, any change
 /// to *any* setting would reset the runtime override back to the default,
 /// breaking the session-scoped toggle behavior.
-final diveListViewModeProvider = StateProvider<DiveListViewMode>((ref) {
+final diveListViewModeProvider = StateProvider<ListViewMode>((ref) {
   final settings = ref.read(settingsProvider);
   return settings.diveListViewMode;
+});
+
+final siteListViewModeProvider = StateProvider<ListViewMode>((ref) {
+  final settings = ref.read(settingsProvider);
+  return settings.siteListViewMode;
+});
+
+final tripListViewModeProvider = StateProvider<ListViewMode>((ref) {
+  final settings = ref.read(settingsProvider);
+  return settings.tripListViewMode;
+});
+
+final equipmentListViewModeProvider = StateProvider<ListViewMode>((ref) {
+  final settings = ref.read(settingsProvider);
+  return settings.equipmentListViewMode;
+});
+
+final buddyListViewModeProvider = StateProvider<ListViewMode>((ref) {
+  final settings = ref.read(settingsProvider);
+  return settings.buddyListViewMode;
+});
+
+final diveCenterListViewModeProvider = StateProvider<ListViewMode>((ref) {
+  final settings = ref.read(settingsProvider);
+  return settings.diveCenterListViewMode;
 });

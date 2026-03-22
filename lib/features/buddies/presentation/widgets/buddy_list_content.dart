@@ -7,13 +7,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/dense_buddy_list_tile.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Content widget for the buddy list, used in master-detail layout.
 ///
@@ -228,6 +232,13 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
       appBar: AppBar(
         title: Text(context.l10n.buddies_title),
         actions: [
+          ListViewModeToggle(
+            currentMode: ref.watch(buddyListViewModeProvider),
+            availableModes: const [ListViewMode.detailed, ListViewMode.dense],
+            onModeChanged: (mode) {
+              ref.read(buddyListViewModeProvider.notifier).state = mode;
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.sort),
             tooltip: context.l10n.buddies_action_sort,
@@ -287,6 +298,14 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
+          ListViewModeToggle(
+            currentMode: ref.watch(buddyListViewModeProvider),
+            availableModes: const [ListViewMode.detailed, ListViewMode.dense],
+            onModeChanged: (mode) {
+              ref.read(buddyListViewModeProvider.notifier).state = mode;
+            },
+            iconSize: 20,
+          ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
             tooltip: context.l10n.buddies_action_sort,
@@ -358,12 +377,21 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
         itemBuilder: (context, index) {
           final buddyWithCount = buddies[index];
           final isSelected = widget.selectedId == buddyWithCount.buddy.id;
-          return BuddyListTile(
-            buddy: buddyWithCount.buddy,
-            diveCount: buddyWithCount.diveCount,
-            isSelected: isSelected,
-            onTap: () => _handleItemTap(buddyWithCount.buddy),
-          );
+          final viewMode = ref.watch(buddyListViewModeProvider);
+          return switch (viewMode) {
+            ListViewMode.detailed || ListViewMode.compact => BuddyListTile(
+              buddy: buddyWithCount.buddy,
+              diveCount: buddyWithCount.diveCount,
+              isSelected: isSelected,
+              onTap: () => _handleItemTap(buddyWithCount.buddy),
+            ),
+            ListViewMode.dense => DenseBuddyListTile(
+              buddy: buddyWithCount.buddy,
+              diveCount: buddyWithCount.diveCount,
+              isSelected: isSelected,
+              onTap: () => _handleItemTap(buddyWithCount.buddy),
+            ),
+          };
         },
       ),
     );
