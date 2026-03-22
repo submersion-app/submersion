@@ -623,6 +623,13 @@ class BuddyRepository {
         deletedBuddies.add(buddy);
       }
 
+      // Validate all buddies belong to the same diver
+      final allBuddies = [originalSurvivor, ...deletedBuddies];
+      final diverIds = allBuddies.map((b) => b.diverId).toSet();
+      if (diverIds.length > 1) {
+        throw StateError('Cannot merge buddies from different divers');
+      }
+
       // Capture snapshot of all DiveBuddies for ALL buddies (survivor + duplicates)
       final allDiveBuddyRows = await (_db.select(
         _db.diveBuddies,
