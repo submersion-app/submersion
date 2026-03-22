@@ -23,6 +23,9 @@ class BuddyEditPage extends ConsumerStatefulWidget {
   /// Callback when user cancels editing.
   final VoidCallback? onCancel;
 
+  /// IDs of buddies to merge into one. Mutually exclusive with [buddyId].
+  final List<String>? mergeBuddyIds;
+
   const BuddyEditPage({
     super.key,
     this.buddyId,
@@ -32,7 +35,13 @@ class BuddyEditPage extends ConsumerStatefulWidget {
     this.embedded = false,
     this.onSaved,
     this.onCancel,
-  });
+    this.mergeBuddyIds,
+  }) : assert(
+         buddyId == null || mergeBuddyIds == null,
+         'buddyId and mergeBuddyIds are mutually exclusive',
+       );
+
+  bool get isMerging => mergeBuddyIds != null && mergeBuddyIds!.length > 1;
 
   @override
   ConsumerState<BuddyEditPage> createState() => _BuddyEditPageState();

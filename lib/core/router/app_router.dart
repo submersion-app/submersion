@@ -10,6 +10,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/onboarding/presentation/pages/welcome_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.dart';
 import 'package:submersion/features/divers/presentation/pages/diver_list_page.dart';
 import 'package:submersion/features/divers/presentation/pages/diver_detail_page.dart';
 import 'package:submersion/features/divers/presentation/pages/diver_edit_page.dart';
@@ -408,6 +409,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     initialEmail: extra?['email'] as String?,
                     initialPhone: extra?['phone'] as String?,
                   );
+                },
+              ),
+              GoRoute(
+                path: 'merge',
+                name: 'mergeBuddy',
+                builder: (context, state) {
+                  final buddyIds =
+                      (state.extra as List<dynamic>?)?.cast<String>() ??
+                      const <String>[];
+                  return BuddyMergePage(buddyIds: buddyIds);
                 },
               ),
               GoRoute(
