@@ -574,6 +574,231 @@ class BuddyRepository {
     );
   }
 
+  static const _roleRank = {
+    'solo': 0,
+    'student': 1,
+    'buddy': 2,
+    'diveGuide': 3,
+    'diveMaster': 4,
+    'instructor': 5,
+  };
+
+  /// Merge multiple buddies into the first buddy in [buddyIds].
+  ///
+  /// The first ID is treated as the survivor. The survivor is updated with
+  /// [mergedBuddy], DiveBuddies entries are re-linked with role conflict
+  /// resolution, and the remaining buddies are deleted.
+  ///
+  /// Returns a [BuddyMergeResult] that can be used to undo the operation,
+  /// or `null` if the merge was a no-op.
+  Future<BuddyMergeResult?> mergeBuddies({
+    required domain.Buddy mergedBuddy,
+    required List<String> buddyIds,
+  }) async {
+    final orderedIds = buddyIds.toSet().toList(growable: false);
+    if (orderedIds.length < 2) return null;
+
+    final survivorId = orderedIds.first;
+    final duplicateIds = orderedIds.skip(1).toList(growable: false);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final survivorBuddy = mergedBuddy.copyWith(id: survivorId);
+
+    try {
+      _log.info(
+        'Merging ${orderedIds.length} buddies into survivor: $survivorId',
+      );
+
+      // Validate all buddies exist before mutating
+      final originalSurvivor = await getBuddyById(survivorId);
+      if (originalSurvivor == null) {
+        throw StateError('Survivor buddy $survivorId does not exist');
+      }
+
+      final deletedBuddies = <domain.Buddy>[];
+      for (final id in duplicateIds) {
+        final buddy = await getBuddyById(id);
+        if (buddy == null) {
+          throw StateError('Buddy not found: $id');
+        }
+        deletedBuddies.add(buddy);
+      }
+
+      // Capture snapshot of all DiveBuddies for ALL buddies (survivor + duplicates)
+      final allDiveBuddyRows = await (_db.select(
+        _db.diveBuddies,
+      )..where((t) => t.buddyId.isIn(orderedIds))).get();
+      final allDiveBuddySnapshots = allDiveBuddyRows
+          .map(
+            (row) => DiveBuddySnapshot(
+              id: row.id,
+              diveId: row.diveId,
+              buddyId: row.buddyId,
+              role: row.role,
+            ),
+          )
+          .toList(growable: false);
+
+      final deletedDiveBuddyEntries = <DiveBuddySnapshot>[];
+      final modifiedDiveBuddyEntries = <DiveBuddySnapshot>[];
+
+      await _db.transaction(() async {
+        // Update survivor with merged fields
+        await _updateBuddyRow(survivorBuddy, now);
+        await _syncRepository.markRecordPending(
+          entityType: 'buddies',
+          recordId: survivorId,
+          localUpdatedAt: now,
+        );
+
+        // Build survivor's current diveId -> row map for collision detection
+        final survivorRows = await (_db.select(
+          _db.diveBuddies,
+        )..where((t) => t.buddyId.equals(survivorId))).get();
+        final survivorDiveMap = {
+          for (final row in survivorRows) row.diveId: row,
+        };
+
+        // Process each duplicate's DiveBuddies entries
+        for (final duplicateId in duplicateIds) {
+          final duplicateRows = await (_db.select(
+            _db.diveBuddies,
+          )..where((t) => t.buddyId.equals(duplicateId))).get();
+
+          for (final dupRow in duplicateRows) {
+            final existingSurvivorRow = survivorDiveMap[dupRow.diveId];
+
+            if (existingSurvivorRow == null) {
+              // No collision: relink to survivor
+              await (_db.update(_db.diveBuddies)
+                    ..where((t) => t.id.equals(dupRow.id)))
+                  .write(DiveBuddiesCompanion(buddyId: Value(survivorId)));
+              await _syncRepository.markRecordPending(
+                entityType: 'diveBuddies',
+                recordId: dupRow.id,
+                localUpdatedAt: now,
+              );
+              // Update our local map so subsequent duplicates see updated state
+              survivorDiveMap[dupRow.diveId] = DiveBuddy(
+                id: dupRow.id,
+                diveId: dupRow.diveId,
+                buddyId: survivorId,
+                role: dupRow.role,
+                createdAt: dupRow.createdAt,
+              );
+            } else {
+              // Collision: compare roles via hierarchy
+              final dupRank = _roleRank[dupRow.role] ?? 0;
+              final survivorRank = _roleRank[existingSurvivorRow.role] ?? 0;
+
+              if (dupRank > survivorRank) {
+                // Duplicate's role outranks survivor's - upgrade survivor entry
+                final originalSnapshot = DiveBuddySnapshot(
+                  id: existingSurvivorRow.id,
+                  diveId: existingSurvivorRow.diveId,
+                  buddyId: existingSurvivorRow.buddyId,
+                  role: existingSurvivorRow.role,
+                );
+                modifiedDiveBuddyEntries.add(originalSnapshot);
+
+                await (_db.update(_db.diveBuddies)
+                      ..where((t) => t.id.equals(existingSurvivorRow.id)))
+                    .write(DiveBuddiesCompanion(role: Value(dupRow.role)));
+                await _syncRepository.markRecordPending(
+                  entityType: 'diveBuddies',
+                  recordId: existingSurvivorRow.id,
+                  localUpdatedAt: now,
+                );
+              }
+
+              // Delete the duplicate's junction entry
+              deletedDiveBuddyEntries.add(
+                DiveBuddySnapshot(
+                  id: dupRow.id,
+                  diveId: dupRow.diveId,
+                  buddyId: dupRow.buddyId,
+                  role: dupRow.role,
+                ),
+              );
+              await (_db.delete(
+                _db.diveBuddies,
+              )..where((t) => t.id.equals(dupRow.id))).go();
+              await _syncRepository.logDeletion(
+                entityType: 'diveBuddies',
+                recordId: dupRow.id,
+              );
+            }
+          }
+        }
+
+        // Delete duplicate buddy rows (CASCADE cleans remaining junction rows)
+        for (final duplicateId in duplicateIds) {
+          await (_db.delete(
+            _db.buddies,
+          )..where((t) => t.id.equals(duplicateId))).go();
+          await _syncRepository.logDeletion(
+            entityType: 'buddies',
+            recordId: duplicateId,
+          );
+        }
+      });
+
+      SyncEventBus.notifyLocalChange();
+      _log.info(
+        'Merged ${orderedIds.length} buddies into survivor: $survivorId',
+      );
+
+      // Categorize snapshot entries: entries from allDiveBuddySnapshots that
+      // were not explicitly captured as deleted or modified were relinked (no
+      // snapshot needed beyond the explicit lists above).
+      // Include all pre-merge entries for duplicate buddies as deleted
+      // (either explicitly deleted collisions or relinked entries that no
+      // longer exist under their original id/buddyId).
+      final explicitlyDeletedIds = deletedDiveBuddyEntries
+          .map((s) => s.id)
+          .toSet();
+      final remainingDuplicateSnapshots = allDiveBuddySnapshots
+          .where(
+            (s) =>
+                duplicateIds.contains(s.buddyId) &&
+                !explicitlyDeletedIds.contains(s.id),
+          )
+          .toList(growable: false);
+      final allDeleted = [
+        ...deletedDiveBuddyEntries,
+        ...remainingDuplicateSnapshots,
+      ];
+
+      return BuddyMergeResult(
+        survivorId: survivorId,
+        snapshot: BuddyMergeSnapshot(
+          originalSurvivor: originalSurvivor,
+          deletedBuddies: deletedBuddies,
+          deletedDiveBuddyEntries: allDeleted,
+          modifiedDiveBuddyEntries: modifiedDiveBuddyEntries,
+        ),
+      );
+    } catch (e, stackTrace) {
+      _log.error('Failed to merge buddies: $buddyIds', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  Future<void> _updateBuddyRow(domain.Buddy buddy, int now) async {
+    await (_db.update(_db.buddies)..where((t) => t.id.equals(buddy.id))).write(
+      BuddiesCompanion(
+        diverId: Value(buddy.diverId),
+        name: Value(buddy.name),
+        email: Value(buddy.email),
+        phone: Value(buddy.phone),
+        certificationLevel: Value(buddy.certificationLevel?.name),
+        certificationAgency: Value(buddy.certificationAgency?.name),
+        photoPath: Value(buddy.photoPath),
+        notes: Value(buddy.notes),
+        updatedAt: Value(now),
+      ),
+    );
+  }
+
   domain.Buddy _mapRowToBuddy(Buddy row) {
     return domain.Buddy(
       id: row.id,
@@ -628,4 +853,42 @@ class BuddyWithDiveCount {
   final int diveCount;
 
   const BuddyWithDiveCount({required this.buddy, required this.diveCount});
+}
+
+/// Snapshot of a DiveBuddies junction row for undo.
+class DiveBuddySnapshot {
+  final String id;
+  final String diveId;
+  final String buddyId;
+  final String role;
+
+  const DiveBuddySnapshot({
+    required this.id,
+    required this.diveId,
+    required this.buddyId,
+    required this.role,
+  });
+}
+
+/// Snapshot captured before a buddy merge for undo.
+class BuddyMergeSnapshot {
+  final domain.Buddy originalSurvivor;
+  final List<domain.Buddy> deletedBuddies;
+  final List<DiveBuddySnapshot> deletedDiveBuddyEntries;
+  final List<DiveBuddySnapshot> modifiedDiveBuddyEntries;
+
+  const BuddyMergeSnapshot({
+    required this.originalSurvivor,
+    required this.deletedBuddies,
+    required this.deletedDiveBuddyEntries,
+    required this.modifiedDiveBuddyEntries,
+  });
+}
+
+/// Result from a buddy merge operation.
+class BuddyMergeResult {
+  final String survivorId;
+  final BuddyMergeSnapshot? snapshot;
+
+  const BuddyMergeResult({required this.survivorId, this.snapshot});
 }
