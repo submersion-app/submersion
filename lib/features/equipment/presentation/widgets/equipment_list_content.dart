@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/presentation/widgets/dense_equipme
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 
 /// Special filter value for computed "service due" items
@@ -628,53 +629,49 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
   }
 
   Widget _buildSearchResults(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final searchAsync = ref.watch(equipmentSearchProvider(query));
-
-        return searchAsync.when(
-          data: (equipment) {
-            if (equipment.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.search_off,
-                      size: 64,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No equipment found for "$query"',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return ListView.builder(
-              itemCount: equipment.length,
-              itemBuilder: (context, index) {
-                final item = equipment[index];
-                return EquipmentListTile(
-                  item: item,
-                  onTap: () {
-                    close(context, item);
-                    context.push('/equipment/${item.id}');
-                  },
-                );
+    return DebouncedSearchResults<EquipmentItem>(
+      query: query,
+      watchProvider: (ref, q) => ref.watch(equipmentSearchProvider(q)),
+      dataBuilder: (context, equipment) {
+        return ListView.builder(
+          itemCount: equipment.length,
+          itemBuilder: (context, index) {
+            final item = equipment[index];
+            return EquipmentListTile(
+              item: item,
+              onTap: () {
+                close(context, item);
+                context.push('/equipment/${item.id}');
               },
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(child: Text('Error: $error')),
         );
+      },
+      emptyBuilder: (context, query) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.search_off,
+                size: 64,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No equipment found for "$query"',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      errorBuilder: (context, error) {
+        return Center(child: Text('Error: $error'));
       },
     );
   }

@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_sites/presentation/widgets/compact_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/dense_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_sheet.dart';
+import 'package:submersion/shared/widgets/debounced_search_results.dart';
 
 /// Content widget for the site list, used in master-detail layout.
 class SiteListContent extends ConsumerStatefulWidget {
@@ -988,34 +989,10 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
   }
 
   Widget _buildSearchResults(BuildContext context) {
-    final searchAsync = ref.watch(siteSearchProvider(query));
-
-    return searchAsync.when(
-      data: (sites) {
-        if (sites.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.search_off,
-                  size: 64,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  context.l10n.diveSites_list_search_noResults(query),
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
+    return DebouncedSearchResults<DiveSite>(
+      query: query,
+      watchProvider: (ref, q) => ref.watch(siteSearchProvider(q)),
+      dataBuilder: (context, sites) {
         return ListView.builder(
           itemCount: sites.length,
           itemBuilder: (context, index) {
@@ -1039,10 +1016,36 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Text(context.l10n.diveSites_list_search_error(error.toString())),
-      ),
+      emptyBuilder: (context, query) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.search_off,
+                size: 64,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                context.l10n.diveSites_list_search_noResults(query),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      errorBuilder: (context, error) {
+        return Center(
+          child: Text(
+            context.l10n.diveSites_list_search_error(error.toString()),
+          ),
+        );
+      },
     );
   }
 }
