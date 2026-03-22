@@ -265,8 +265,8 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
       buddyIds: dedupedIds,
     );
 
+    await _invalidateMergeProviders(dedupedIds);
     await refresh();
-    _invalidateMergeProviders(dedupedIds);
 
     return result?.snapshot;
   }
@@ -277,7 +277,7 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
       snapshot.originalSurvivor.id,
       ...snapshot.deletedBuddies.map((b) => b.id),
     ];
-    _invalidateMergeProviders(affectedIds);
+    await _invalidateMergeProviders(affectedIds);
     await refresh();
   }
 
@@ -290,7 +290,7 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
     await refresh();
   }
 
-  void _invalidateMergeProviders(List<String> buddyIds) async {
+  Future<void> _invalidateMergeProviders(List<String> buddyIds) async {
     _ref.invalidate(allBuddiesProvider);
     _ref.invalidate(allBuddiesWithDiveCountProvider);
     for (final id in buddyIds) {
