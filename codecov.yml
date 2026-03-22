@@ -14,5 +14,6 @@ coverage:
 ignore:
   - "**/*.g.dart"
   - "**/*.freezed.dart"
+  - "lib/l10n/**"
   - "test/**"
   - "integration_test/**"
