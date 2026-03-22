@@ -4756,6 +4756,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de convertir : le plan comporte des avertissements critiques';
 
   @override
+  String get divePlanner_error_reserveExceedsTank =>
+      'Dépasse la pression du bloc';
+
+  @override
+  String get divePlanner_error_reserveMustBePositive =>
+      'Doit être supérieur à 0';
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override

@@ -1542,6 +1542,8 @@
   "divePlanner_action_resetPlan": "إعادة تعيين الخطة",
   "divePlanner_action_savePlan": "حفظ الخطة",
   "divePlanner_error_cannotConvert": "لا يمكن التحويل: الخطة تحتوي على تحذيرات حرجة",
+  "divePlanner_error_reserveExceedsTank": "يتجاوز ضغط الأسطوانة",
+  "divePlanner_error_reserveMustBePositive": "يجب أن يكون أكبر من 0",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "الاسم",
   "divePlanner_field_o2Percent": "O₂ %",

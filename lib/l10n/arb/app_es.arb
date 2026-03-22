@@ -1542,6 +1542,8 @@
   "divePlanner_action_resetPlan": "Restablecer Plan",
   "divePlanner_action_savePlan": "Guardar Plan",
   "divePlanner_error_cannotConvert": "No se puede convertir: el plan tiene advertencias críticas",
+  "divePlanner_error_reserveExceedsTank": "Excede la presión del tanque",
+  "divePlanner_error_reserveMustBePositive": "Debe ser mayor que 0",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "Nombre",
   "divePlanner_field_o2Percent": "O₂ %",

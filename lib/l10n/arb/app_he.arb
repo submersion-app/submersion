@@ -1542,6 +1542,8 @@
   "divePlanner_action_resetPlan": "אפס תכנית",
   "divePlanner_action_savePlan": "שמור תכנית",
   "divePlanner_error_cannotConvert": "לא ניתן להמיר: לתכנית יש אזהרות קריטיות",
+  "divePlanner_error_reserveExceedsTank": "חורג מלחץ המיכל",
+  "divePlanner_error_reserveMustBePositive": "חייב להיות גדול מ-0",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "שם",
   "divePlanner_field_o2Percent": "O₂ %",

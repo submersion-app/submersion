@@ -122,6 +122,10 @@ class PlanSettingsPanel extends ConsumerWidget {
                 ),
                 _ReservePressureInput(
                   reservePressure: planState.reservePressure,
+                  maxPressureBar: planState.tanks
+                      .map((t) => t.startPressure ?? 0)
+                      .fold(0, (a, b) => a + b)
+                      .toDouble(),
                   units: units,
                   onChanged: (value) {
                     ref
@@ -287,14 +291,16 @@ class _AltitudeInputState extends State<_AltitudeInput> {
   }
 }
 
-/// Reserve pressure input field.
+/// Reserve pressure input field with validation.
 class _ReservePressureInput extends StatefulWidget {
   final double reservePressure;
+  final double maxPressureBar;
   final UnitFormatter units;
   final ValueChanged<double> onChanged;
 
   const _ReservePressureInput({
     required this.reservePressure,
+    required this.maxPressureBar,
     required this.units,
     required this.onChanged,
   });
@@ -305,6 +311,7 @@ class _ReservePressureInput extends StatefulWidget {
 
 class _ReservePressureInputState extends State<_ReservePressureInput> {
   late TextEditingController _controller;
+  String? _errorText;
 
   @override
   void initState() {
@@ -327,6 +334,10 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
         _controller.text = newText;
       }
     }
+    // Re-validate against new max if tanks changed
+    if (oldWidget.maxPressureBar != widget.maxPressureBar) {
+      setState(() => _errorText = _getError(_controller.text));
+    }
   }
 
   @override
@@ -335,34 +346,71 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
     super.dispose();
   }
 
+  String? _getError(String value) {
+    final parsed = double.tryParse(value);
+    if (parsed == null) return null;
+    final bar = widget.units.pressureToBar(parsed);
+    if (bar <= 0) return context.l10n.divePlanner_error_reserveMustBePositive;
+    if (widget.maxPressureBar > 0 &&
+        parsed > widget.units.convertPressure(widget.maxPressureBar).roundToDouble()) {
+      return context.l10n.divePlanner_error_reserveExceedsTank;
+    }
+    return null;
+  }
+
+  void _validate(String value) {
+    final error = _getError(value);
+    setState(() => _errorText = error);
+    if (error == null) {
+      final parsed = double.tryParse(value);
+      if (parsed != null) {
+        widget.onChanged(widget.units.pressureToBar(parsed));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(context.l10n.divePlanner_label_reserve),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 80,
-          child: TextField(
-            controller: _controller,
-            decoration: InputDecoration(
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 8,
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(context.l10n.divePlanner_label_reserve),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 80,
+              child: TextField(
+                controller: _controller,
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 8,
+                  ),
+                  suffixText: widget.units.pressureSymbol,
+                  // Error text rendered separately below
+                  errorText: _errorText != null ? '' : null,
+                  errorStyle: const TextStyle(height: 0, fontSize: 0),
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: _validate,
               ),
-              suffixText: widget.units.pressureSymbol,
             ),
-            keyboardType: TextInputType.number,
-            onChanged: (value) {
-              final parsed = double.tryParse(value);
-              if (parsed != null) {
-                widget.onChanged(widget.units.pressureToBar(parsed));
-              }
-            },
-          ),
+          ],
         ),
+        if (_errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              _errorText!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ),
       ],
     );
   }

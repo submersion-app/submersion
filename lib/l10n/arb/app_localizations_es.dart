@@ -4731,6 +4731,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se puede convertir: el plan tiene advertencias críticas';
 
   @override
+  String get divePlanner_error_reserveExceedsTank =>
+      'Excede la presión del tanque';
+
+  @override
+  String get divePlanner_error_reserveMustBePositive => 'Debe ser mayor que 0';
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override

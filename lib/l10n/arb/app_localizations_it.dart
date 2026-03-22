@@ -4739,6 +4739,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile convertire: il piano ha avvisi critici';
 
   @override
+  String get divePlanner_error_reserveExceedsTank =>
+      'Supera la pressione della bombola';
+
+  @override
+  String get divePlanner_error_reserveMustBePositive =>
+      'Deve essere maggiore di 0';
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override

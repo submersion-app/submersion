@@ -1542,6 +1542,8 @@
   "divePlanner_action_resetPlan": "Restaurar Plano",
   "divePlanner_action_savePlan": "Salvar Plano",
   "divePlanner_error_cannotConvert": "Não é possível converter: o plano tem avisos críticos",
+  "divePlanner_error_reserveExceedsTank": "Excede a pressão do cilindro",
+  "divePlanner_error_reserveMustBePositive": "Deve ser maior que 0",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "Nome",
   "divePlanner_field_o2Percent": "O₂ %",

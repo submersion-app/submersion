@@ -8164,6 +8164,18 @@ abstract class AppLocalizations {
   /// **'Cannot convert: plan has critical warnings'**
   String get divePlanner_error_cannotConvert;
 
+  /// No description provided for @divePlanner_error_reserveExceedsTank.
+  ///
+  /// In en, this message translates to:
+  /// **'Exceeds tank pressure'**
+  String get divePlanner_error_reserveExceedsTank;
+
+  /// No description provided for @divePlanner_error_reserveMustBePositive.
+  ///
+  /// In en, this message translates to:
+  /// **'Must be greater than 0'**
+  String get divePlanner_error_reserveMustBePositive;
+
   /// No description provided for @divePlanner_field_hePercent.
   ///
   /// In en, this message translates to:

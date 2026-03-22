@@ -4717,6 +4717,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem lehet átalakítani: a tervnek kritikus figyelmeztetései vannak';
 
   @override
+  String get divePlanner_error_reserveExceedsTank =>
+      'Meghaladja a palack nyomását';
+
+  @override
+  String get divePlanner_error_reserveMustBePositive =>
+      'Nullánál nagyobbnak kell lennie';
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override

@@ -4602,6 +4602,12 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן להמיר: לתכנית יש אזהרות קריטיות';
 
   @override
+  String get divePlanner_error_reserveExceedsTank => 'חורג מלחץ המיכל';
+
+  @override
+  String get divePlanner_error_reserveMustBePositive => 'חייב להיות גדול מ-0';
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override

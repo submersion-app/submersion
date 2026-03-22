@@ -4729,6 +4729,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kann nicht konvertieren: Plan hat kritische Warnungen';
 
   @override
+  String get divePlanner_error_reserveExceedsTank =>
+      'Überschreitet Flaschendruck';
+
+  @override
+  String get divePlanner_error_reserveMustBePositive =>
+      'Muss größer als 0 sein';
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override

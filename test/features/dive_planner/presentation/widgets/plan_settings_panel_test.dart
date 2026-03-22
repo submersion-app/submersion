@@ -93,4 +93,158 @@ void main() {
       expect(textField.controller?.text, '500');
     });
   });
+
+  group('PlanSettingsPanel reserve pressure validation', () {
+    testWidgets('shows error when reserve pressure is 0', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanSettingsPanel()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Clear and enter 0
+      final reserveField = find.widgetWithText(TextField, '50');
+      await tester.enterText(reserveField, '0');
+      await tester.pumpAndSettle();
+
+      // Should show error text
+      expect(find.textContaining('Must be greater than 0'), findsOneWidget);
+    });
+
+    testWidgets('shows error when reserve pressure is negative', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanSettingsPanel()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final reserveField = find.widgetWithText(TextField, '50');
+      await tester.enterText(reserveField, '-10');
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Must be greater than 0'), findsOneWidget);
+    });
+
+    testWidgets('shows error when reserve exceeds max tank pressure in bar', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanSettingsPanel()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Default tank startPressure is 200 bar; entering 201 should error
+      final reserveField = find.widgetWithText(TextField, '50');
+      await tester.enterText(reserveField, '201');
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Exceeds tank pressure'), findsOneWidget);
+    });
+
+    testWidgets('no error when reserve equals max tank pressure in bar', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanSettingsPanel()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 200 bar is exactly the tank's startPressure — should be valid
+      final reserveField = find.widgetWithText(TextField, '50');
+      await tester.enterText(reserveField, '200');
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Must be greater than 0'), findsNothing);
+      expect(find.textContaining('Exceeds tank pressure'), findsNothing);
+    });
+
+    testWidgets('no error for valid reserve pressure', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanSettingsPanel()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final reserveField = find.widgetWithText(TextField, '50');
+      await tester.enterText(reserveField, '30');
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Must be greater than 0'), findsNothing);
+      expect(find.textContaining('Exceeds tank pressure'), findsNothing);
+    });
+
+    testWidgets(
+      'shows error when reserve exceeds max tank pressure in psi',
+      (tester) async {
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              settingsProvider.overrideWith(
+                (ref) =>
+                    _TestSettingsNotifier(pressureUnit: PressureUnit.psi),
+              ),
+            ],
+            child: const SingleChildScrollView(child: PlanSettingsPanel()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Default tank is 200 bar ≈ 2901 psi; entering 3000 should error
+        final reserveField = find.widgetWithText(TextField, '500');
+        await tester.enterText(reserveField, '3000');
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('Exceeds tank pressure'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'no error when reserve equals max tank pressure in psi (2901)',
+      (tester) async {
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              settingsProvider.overrideWith(
+                (ref) =>
+                    _TestSettingsNotifier(pressureUnit: PressureUnit.psi),
+              ),
+            ],
+            child: const SingleChildScrollView(child: PlanSettingsPanel()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // 200 bar displays as 2901 psi — entering 2901 should be valid
+        final reserveField = find.widgetWithText(TextField, '500');
+        await tester.enterText(reserveField, '2901');
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('Exceeds tank pressure'), findsNothing);
+      },
+    );
+  });
 }

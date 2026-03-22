@@ -4732,6 +4732,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não é possível converter: o plano tem avisos críticos';
 
   @override
+  String get divePlanner_error_reserveExceedsTank =>
+      'Excede a pressão do cilindro';
+
+  @override
+  String get divePlanner_error_reserveMustBePositive => 'Deve ser maior que 0';
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override
