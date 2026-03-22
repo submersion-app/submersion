@@ -340,6 +340,182 @@ void main() {
       );
     });
 
+    group('getSitesByIds', () {
+      test('should return matching sites', () async {
+        await repository.createSite(const DiveSite(id: 'a', name: 'Alpha'));
+        await repository.createSite(const DiveSite(id: 'b', name: 'Bravo'));
+        await repository.createSite(const DiveSite(id: 'c', name: 'Charlie'));
+
+        final results = await repository.getSitesByIds(['a', 'c']);
+
+        expect(results.length, equals(2));
+        expect(results.map((s) => s.id).toSet(), equals({'a', 'c'}));
+      });
+
+      test('should return empty list for empty input', () async {
+        final results = await repository.getSitesByIds([]);
+        expect(results, isEmpty);
+      });
+    });
+
+    group('bulkDeleteSites', () {
+      test('should delete multiple sites', () async {
+        await repository.createSite(const DiveSite(id: 'x', name: 'X Site'));
+        await repository.createSite(const DiveSite(id: 'y', name: 'Y Site'));
+        await repository.createSite(const DiveSite(id: 'z', name: 'Z Site'));
+
+        await repository.bulkDeleteSites(['x', 'z']);
+
+        expect(await repository.getSiteById('x'), isNull);
+        expect(await repository.getSiteById('y'), isNotNull);
+        expect(await repository.getSiteById('z'), isNull);
+      });
+
+      test('should no-op for empty list', () async {
+        await repository.createSite(
+          const DiveSite(id: 'keep', name: 'Keep Me'),
+        );
+
+        await repository.bulkDeleteSites([]);
+
+        expect(await repository.getSiteById('keep'), isNotNull);
+      });
+    });
+
+    group('mergeSites - edge cases', () {
+      test('should no-op when fewer than 2 site IDs', () async {
+        final site = await repository.createSite(
+          const DiveSite(id: 'only', name: 'Only Site'),
+        );
+
+        await repository.mergeSites(
+          mergedSite: site.copyWith(name: 'Renamed'),
+          siteIds: ['only'],
+        );
+
+        final result = await repository.getSiteById('only');
+        expect(result!.name, equals('Only Site'));
+      });
+
+      test('should no-op when all IDs are duplicates of one', () async {
+        final site = await repository.createSite(
+          const DiveSite(id: 'dup', name: 'Dup Site'),
+        );
+
+        await repository.mergeSites(
+          mergedSite: site.copyWith(name: 'Renamed'),
+          siteIds: ['dup', 'dup', 'dup'],
+        );
+
+        final result = await repository.getSiteById('dup');
+        expect(result!.name, equals('Dup Site'));
+      });
+
+      test('should merge two sites with no dives, media, or species', () async {
+        await repository.createSite(
+          const DiveSite(id: 'site-a', name: 'Site A'),
+        );
+        await repository.createSite(
+          const DiveSite(id: 'site-b', name: 'Site B', country: 'Mexico'),
+        );
+
+        await repository.mergeSites(
+          mergedSite: const DiveSite(id: '', name: 'Merged', country: 'Mexico'),
+          siteIds: ['site-a', 'site-b'],
+        );
+
+        final survivor = await repository.getSiteById('site-a');
+        expect(survivor, isNotNull);
+        expect(survivor!.name, equals('Merged'));
+        expect(survivor.country, equals('Mexico'));
+        expect(await repository.getSiteById('site-b'), isNull);
+      });
+
+      test(
+        'should merge expected species when primary already on survivor (note update only)',
+        () async {
+          await repository.createSite(
+            const DiveSite(id: 'ms-1', name: 'Main Site'),
+          );
+          await repository.createSite(
+            const DiveSite(id: 'ms-2', name: 'Dupe Site'),
+          );
+
+          final species = await speciesRepository.createSpecies(
+            commonName: 'Hammerhead',
+            category: SpeciesCategory.fish,
+          );
+
+          // Add species to survivor with no notes
+          await speciesRepository.addExpectedSpecies(
+            siteId: 'ms-1',
+            speciesId: species.id,
+          );
+          // Add same species to duplicate with notes
+          await speciesRepository.addExpectedSpecies(
+            siteId: 'ms-2',
+            speciesId: species.id,
+            notes: 'Seen at cleaning station',
+          );
+
+          await repository.mergeSites(
+            mergedSite: const DiveSite(id: '', name: 'Main Site'),
+            siteIds: ['ms-1', 'ms-2'],
+          );
+
+          final expected = await speciesRepository.getExpectedSpeciesForSite(
+            'ms-1',
+          );
+          expect(expected, hasLength(1));
+          expect(expected.first.notes, equals('Seen at cleaning station'));
+        },
+      );
+
+      test('should handle merge with dives but no media', () async {
+        await repository.createSite(
+          const DiveSite(id: 'dm-1', name: 'Site One'),
+        );
+        await repository.createSite(
+          const DiveSite(id: 'dm-2', name: 'Site Two'),
+        );
+
+        await _insertDive(database, id: 'dive-a', siteId: 'dm-2');
+
+        await repository.mergeSites(
+          mergedSite: const DiveSite(id: '', name: 'Site One'),
+          siteIds: ['dm-1', 'dm-2'],
+        );
+
+        final diveRows = await (database.select(
+          database.dives,
+        )..where((t) => t.id.equals('dive-a'))).get();
+        expect(diveRows.first.siteId, equals('dm-1'));
+        expect(await repository.getSiteById('dm-2'), isNull);
+      });
+
+      test('should handle merge with media but no dives', () async {
+        await repository.createSite(
+          const DiveSite(id: 'mm-1', name: 'Media Site A'),
+        );
+        await repository.createSite(
+          const DiveSite(id: 'mm-2', name: 'Media Site B'),
+        );
+
+        await mediaRepository.createMedia(
+          _testMedia(id: 'med-1', siteId: 'mm-2'),
+        );
+
+        await repository.mergeSites(
+          mergedSite: const DiveSite(id: '', name: 'Media Site A'),
+          siteIds: ['mm-1', 'mm-2'],
+        );
+
+        final relinkedMedia = await mediaRepository.getMediaById('med-1');
+        expect(relinkedMedia!.siteId, equals('mm-1'));
+        expect(await repository.getSiteById('mm-2'), isNull);
+      });
+    });
+
     group('searchSites', () {
       setUp(() async {
         await repository.createSite(

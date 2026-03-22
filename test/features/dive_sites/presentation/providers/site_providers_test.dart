@@ -127,6 +127,43 @@ void main() {
         );
       },
     );
+
+    test(
+      'mergeSites with fewer than 2 IDs returns early without changes',
+      () async {
+        final site = await siteRepository.createSite(
+          const DiveSite(id: 'solo', name: 'Solo Site'),
+        );
+
+        await container.read(siteListNotifierProvider.notifier).mergeSites(
+          site.copyWith(name: 'Should Not Change'),
+          ['solo'],
+        );
+
+        final result = await container.read(siteProvider('solo').future);
+        expect(result, isNotNull);
+        expect(result!.name, equals('Solo Site'));
+      },
+    );
+
+    test('mergeSites deduplicates site IDs before merging', () async {
+      final site1 = await siteRepository.createSite(
+        const DiveSite(id: 'dd-1', name: 'First'),
+      );
+      final site2 = await siteRepository.createSite(
+        const DiveSite(id: 'dd-2', name: 'Second'),
+      );
+
+      await container.read(siteListNotifierProvider.notifier).mergeSites(
+        site1.copyWith(name: 'Merged'),
+        [site1.id, site2.id, site2.id, site1.id],
+      );
+
+      final survivor = await container.read(siteProvider('dd-1').future);
+      expect(survivor, isNotNull);
+      expect(survivor!.name, equals('Merged'));
+      expect(await container.read(siteProvider('dd-2').future), isNull);
+    });
   });
 }
 
