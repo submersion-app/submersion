@@ -473,6 +473,66 @@
       }
     }
   },
+  "buddies_list_selection_closeTooltip": "Close Selection",
+  "buddies_list_selection_count": "{count} selected",
+  "@buddies_list_selection_count": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "buddies_list_selection_selectAllTooltip": "Select All",
+  "buddies_list_selection_deselectAllTooltip": "Deselect All",
+  "buddies_list_selection_mergeTooltip": "Merge Selected",
+  "buddies_list_selection_deleteTooltip": "Delete Selected",
+  "buddies_list_merge_snackbar": "Merged {count} {count, plural, =1{buddy} other{buddies}}",
+  "@buddies_list_merge_snackbar": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "buddies_list_merge_undo": "Undo",
+  "buddies_list_merge_restored": "Merge undone",
+  "buddies_list_bulkDelete_title": "Delete Buddies",
+  "buddies_list_bulkDelete_content": "Are you sure you want to delete {count} {count, plural, =1{buddy} other{buddies}}? This action cannot be undone.",
+  "@buddies_list_bulkDelete_content": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "buddies_list_bulkDelete_cancel": "Cancel",
+  "buddies_list_bulkDelete_confirm": "Delete",
+  "buddies_list_bulkDelete_snackbar": "Deleted {count} {count, plural, =1{buddy} other{buddies}}",
+  "@buddies_list_bulkDelete_snackbar": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "buddies_edit_merge_title": "Merge Buddies",
+  "buddies_edit_merge_fieldSourceCycleTooltip": "Use value from next selected buddy",
+  "buddies_edit_merge_fieldSourceLabel": "From {buddyName} ({current}/{total})",
+  "@buddies_edit_merge_fieldSourceLabel": {
+    "placeholders": {
+      "buddyName": {"type": "String"},
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "buddies_edit_merge_confirmTitle": "Merge Buddies",
+  "buddies_edit_merge_confirmBody": "This will merge {count} buddies into one. Dive associations will be combined under the surviving buddy. The other buddies will be deleted.",
+  "@buddies_edit_merge_confirmBody": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "buddies_edit_merge_loadingErrorTitle": "Merge Buddies",
+  "buddies_edit_merge_loadingErrorBody": "Failed to load buddies: {error}",
+  "@buddies_edit_merge_loadingErrorBody": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "buddies_edit_merge_notEnoughTitle": "Merge Buddies",
+  "buddies_edit_merge_notEnoughBody": "Not enough buddies to merge.",
   "certifications_appBar_addCertification": "Add Certification",
   "certifications_appBar_certificationWallet": "Certification Wallet",
   "certifications_appBar_editCertification": "Edit Certification",

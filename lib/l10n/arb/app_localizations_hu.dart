@@ -661,6 +661,112 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_validation_nameRequired => 'Adj meg egy nevet';
 
   @override
+  String get buddies_list_selection_closeTooltip => 'Close Selection';
+
+  @override
+  String buddies_list_selection_count(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get buddies_list_selection_selectAllTooltip => 'Select All';
+
+  @override
+  String get buddies_list_selection_deselectAllTooltip => 'Deselect All';
+
+  @override
+  String get buddies_list_selection_mergeTooltip => 'Merge Selected';
+
+  @override
+  String get buddies_list_selection_deleteTooltip => 'Delete Selected';
+
+  @override
+  String buddies_list_merge_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'buddies',
+      one: 'buddy',
+    );
+    return 'Merged $count $_temp0';
+  }
+
+  @override
+  String get buddies_list_merge_undo => 'Undo';
+
+  @override
+  String get buddies_list_merge_restored => 'Merge undone';
+
+  @override
+  String get buddies_list_bulkDelete_title => 'Delete Buddies';
+
+  @override
+  String buddies_list_bulkDelete_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'buddies',
+      one: 'buddy',
+    );
+    return 'Are you sure you want to delete $count $_temp0? This action cannot be undone.';
+  }
+
+  @override
+  String get buddies_list_bulkDelete_cancel => 'Cancel';
+
+  @override
+  String get buddies_list_bulkDelete_confirm => 'Delete';
+
+  @override
+  String buddies_list_bulkDelete_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'buddies',
+      one: 'buddy',
+    );
+    return 'Deleted $count $_temp0';
+  }
+
+  @override
+  String get buddies_edit_merge_title => 'Merge Buddies';
+
+  @override
+  String get buddies_edit_merge_fieldSourceCycleTooltip =>
+      'Use value from next selected buddy';
+
+  @override
+  String buddies_edit_merge_fieldSourceLabel(
+    String buddyName,
+    int current,
+    int total,
+  ) {
+    return 'From $buddyName ($current/$total)';
+  }
+
+  @override
+  String get buddies_edit_merge_confirmTitle => 'Merge Buddies';
+
+  @override
+  String buddies_edit_merge_confirmBody(int count) {
+    return 'This will merge $count buddies into one. Dive associations will be combined under the surviving buddy. The other buddies will be deleted.';
+  }
+
+  @override
+  String get buddies_edit_merge_loadingErrorTitle => 'Merge Buddies';
+
+  @override
+  String buddies_edit_merge_loadingErrorBody(String error) {
+    return 'Failed to load buddies: $error';
+  }
+
+  @override
+  String get buddies_edit_merge_notEnoughTitle => 'Merge Buddies';
+
+  @override
+  String get buddies_edit_merge_notEnoughBody => 'Not enough buddies to merge.';
+
+  @override
   String get certifications_appBar_addCertification => 'Kepesites hozzaadasa';
 
   @override
