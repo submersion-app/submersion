@@ -441,7 +441,12 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             );
           }
 
-          _initializeFromMerge(data);
+          if (!_isInitialized) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _initializeFromMerge(data);
+            });
+            return _buildScaffold(context);
+          }
           return _buildScaffold(context);
         },
       );
