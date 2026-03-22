@@ -803,6 +803,111 @@ class BuddyRepository {
     }
   }
 
+  /// Reverse a merge operation using a previously captured [BuddyMergeSnapshot].
+  Future<void> undoMerge(BuddyMergeSnapshot snapshot) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    try {
+      _log.info(
+        'Undoing buddy merge: restoring ${snapshot.deletedBuddies.length} buddies',
+      );
+
+      await _db.transaction(() async {
+        // 1. Restore survivor to original state
+        await _updateBuddyRow(snapshot.originalSurvivor, now);
+        await _syncRepository.markRecordPending(
+          entityType: 'buddies',
+          recordId: snapshot.originalSurvivor.id,
+          localUpdatedAt: now,
+        );
+
+        // 2. Re-create deleted buddies
+        for (final buddy in snapshot.deletedBuddies) {
+          await _db
+              .into(_db.buddies)
+              .insert(
+                BuddiesCompanion(
+                  id: Value(buddy.id),
+                  diverId: Value(buddy.diverId),
+                  name: Value(buddy.name),
+                  email: Value(buddy.email),
+                  phone: Value(buddy.phone),
+                  certificationLevel: Value(buddy.certificationLevel?.name),
+                  certificationAgency: Value(buddy.certificationAgency?.name),
+                  photoPath: Value(buddy.photoPath),
+                  notes: Value(buddy.notes),
+                  createdAt: Value(now),
+                  updatedAt: Value(now),
+                ),
+              );
+          await _syncRepository.markRecordPending(
+            entityType: 'buddies',
+            recordId: buddy.id,
+            localUpdatedAt: now,
+          );
+        }
+
+        // 3. Restore deleted/relinked DiveBuddies entries.
+        // Relinked entries still exist in the DB (buddyId updated to survivor),
+        // so use insertOrReplace to handle both truly-deleted and relinked rows.
+        for (final entry in snapshot.deletedDiveBuddyEntries) {
+          await _db
+              .into(_db.diveBuddies)
+              .insert(
+                DiveBuddiesCompanion(
+                  id: Value(entry.id),
+                  diveId: Value(entry.diveId),
+                  buddyId: Value(entry.buddyId),
+                  role: Value(entry.role),
+                  createdAt: Value(now),
+                ),
+                mode: InsertMode.insertOrReplace,
+              );
+          await _syncRepository.markRecordPending(
+            entityType: 'diveBuddies',
+            recordId: entry.id,
+            localUpdatedAt: now,
+          );
+        }
+
+        // 4. Restore modified DiveBuddies entries (revert role changes)
+        for (final entry in snapshot.modifiedDiveBuddyEntries) {
+          await (_db.update(_db.diveBuddies)
+                ..where((t) => t.id.equals(entry.id)))
+              .write(DiveBuddiesCompanion(role: Value(entry.role)));
+          await _syncRepository.markRecordPending(
+            entityType: 'diveBuddies',
+            recordId: entry.id,
+            localUpdatedAt: now,
+          );
+        }
+      });
+
+      SyncEventBus.notifyLocalChange();
+      _log.info('Undo buddy merge complete');
+    } catch (e, stackTrace) {
+      _log.error('Failed to undo buddy merge', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Bulk delete multiple buddies
+  Future<void> bulkDeleteBuddies(List<String> ids) async {
+    if (ids.isEmpty) return;
+    try {
+      _log.info('Bulk deleting ${ids.length} buddies');
+      await (_db.delete(_db.buddies)..where((t) => t.id.isIn(ids))).go();
+      for (final id in ids) {
+        await _syncRepository.logDeletion(entityType: 'buddies', recordId: id);
+      }
+      SyncEventBus.notifyLocalChange();
+      _log.info('Bulk deleted ${ids.length} buddies');
+    } catch (e, stackTrace) {
+      _log.error('Failed to bulk delete buddies', e, stackTrace);
+      rethrow;
+    }
+  }
+
   Future<void> _updateBuddyRow(domain.Buddy buddy, int now) async {
     await (_db.update(_db.buddies)..where((t) => t.id.equals(buddy.id))).write(
       BuddiesCompanion(
