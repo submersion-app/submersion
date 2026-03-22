@@ -20,6 +20,34 @@ Submersion is a Flutter dive logging application for scuba divers. It provides d
 | ------ | --------- |
 | [FEATURE_ROADMAP.md](FEATURE_ROADMAP.md) | Comprehensive roadmap with all features by phase (v1.0, v1.5, v2.0, v3.0), database schemas, and dependencies |
 
+## Git Worktrees
+
+Use git worktrees for all parallel work. When reviewing or fixing PRs, each PR
+should get its own worktree so multiple Claude Code sessions can run simultaneously
+without interfering with each other.
+
+Launch parallel sessions with:
+```
+claude -w pr-<number>
+```
+
+### Worktree initialization
+
+After creating a new worktree, always run these steps before doing anything else:
+
+1. `git submodule update --init --recursive` — worktrees do not inherit
+   initialized submodules from the main working tree; libdivecomputer and any
+   other submodules must be explicitly initialized.
+2. `flutter pub get` — worktrees have their own `.dart_tool` and `build`
+   directories, and the native platform channel builds (libdivecomputer) need
+   their own build artifacts per worktree.
+
+### Cleanup
+
+Add `.claude/worktrees/` to `.gitignore`. When exiting a worktree session,
+Claude Code will prompt to keep or remove the worktree if changes exist.
+Periodically run `git worktree prune` to clean up stale references.
+
 ## Quick Start
 
 ```bash
