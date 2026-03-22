@@ -1,3 +1,5 @@
+import 'dart:async' show TimeoutException;
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,16 +18,20 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import '../../../../helpers/test_database.dart';
 
 /// Reads the [buddyListNotifierProvider] state and waits until it is no longer
-/// loading, returning the resolved list.
+/// loading, returning the resolved list. Times out after 5 seconds.
 Future<List<domain.Buddy>> _readBuddyList(ProviderContainer container) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 5));
   // Poll until the AsyncValue settles (loading -> data/error).
-  while (true) {
+  while (DateTime.now().isBefore(deadline)) {
     final value = container.read(buddyListNotifierProvider);
     if (value is AsyncData<List<domain.Buddy>>) return value.value;
     if (value is AsyncError<List<domain.Buddy>>) throw value.error;
-    // Still loading – give the event loop a tick.
+    // Still loading -- give the event loop a tick.
     await Future<void>.delayed(Duration.zero);
   }
+  throw TimeoutException(
+    'buddyListNotifierProvider did not settle within 5 seconds',
+  );
 }
 
 void main() {

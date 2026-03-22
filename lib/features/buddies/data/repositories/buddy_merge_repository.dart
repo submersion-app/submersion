@@ -14,12 +14,14 @@ class DiveBuddySnapshot {
   final String diveId;
   final String buddyId;
   final String role;
+  final int createdAt;
 
   const DiveBuddySnapshot({
     required this.id,
     required this.diveId,
     required this.buddyId,
     required this.role,
+    required this.createdAt,
   });
 }
 
@@ -166,12 +168,16 @@ class BuddyMergeRepository {
               diveId: row.diveId,
               buddyId: row.buddyId,
               role: row.role,
+              createdAt: row.createdAt,
             ),
           )
           .toList(growable: false);
 
       final deletedDiveBuddyEntries = <DiveBuddySnapshot>[];
       final modifiedDiveBuddyEntries = <DiveBuddySnapshot>[];
+      // Track which survivor rows have already been snapshotted so that
+      // 3+ buddy merges don't record intermediate roles.
+      final modifiedRowIds = <String>{};
 
       await _db.transaction(() async {
         // Update survivor with merged fields
@@ -223,14 +229,21 @@ class BuddyMergeRepository {
               final survivorRank = _roleRank[existingSurvivorRow.role] ?? 0;
 
               if (dupRank > survivorRank) {
-                // Duplicate's role outranks survivor's - upgrade survivor entry
-                final originalSnapshot = DiveBuddySnapshot(
-                  id: existingSurvivorRow.id,
-                  diveId: existingSurvivorRow.diveId,
-                  buddyId: existingSurvivorRow.buddyId,
-                  role: existingSurvivorRow.role,
-                );
-                modifiedDiveBuddyEntries.add(originalSnapshot);
+                // Duplicate's role outranks survivor's - upgrade survivor entry.
+                // Only snapshot the original role the first time this row is
+                // modified, so 3+ merges don't record intermediate roles.
+                if (!modifiedRowIds.contains(existingSurvivorRow.id)) {
+                  modifiedRowIds.add(existingSurvivorRow.id);
+                  modifiedDiveBuddyEntries.add(
+                    DiveBuddySnapshot(
+                      id: existingSurvivorRow.id,
+                      diveId: existingSurvivorRow.diveId,
+                      buddyId: existingSurvivorRow.buddyId,
+                      role: existingSurvivorRow.role,
+                      createdAt: existingSurvivorRow.createdAt,
+                    ),
+                  );
+                }
 
                 await (_db.update(_db.diveBuddies)
                       ..where((t) => t.id.equals(existingSurvivorRow.id)))
@@ -258,6 +271,7 @@ class BuddyMergeRepository {
                   diveId: dupRow.diveId,
                   buddyId: dupRow.buddyId,
                   role: dupRow.role,
+                  createdAt: dupRow.createdAt,
                 ),
               );
               await (_db.delete(
@@ -357,8 +371,8 @@ class BuddyMergeRepository {
                   certificationAgency: Value(buddy.certificationAgency?.name),
                   photoPath: Value(buddy.photoPath),
                   notes: Value(buddy.notes),
-                  createdAt: Value(now),
-                  updatedAt: Value(now),
+                  createdAt: Value(buddy.createdAt.millisecondsSinceEpoch),
+                  updatedAt: Value(buddy.updatedAt.millisecondsSinceEpoch),
                 ),
               );
           await _syncRepository.markRecordPending(
@@ -380,7 +394,7 @@ class BuddyMergeRepository {
                   diveId: Value(entry.diveId),
                   buddyId: Value(entry.buddyId),
                   role: Value(entry.role),
-                  createdAt: Value(now),
+                  createdAt: Value(entry.createdAt),
                 ),
                 mode: InsertMode.insertOrReplace,
               );

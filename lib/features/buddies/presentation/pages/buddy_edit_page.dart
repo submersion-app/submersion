@@ -8,6 +8,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_merge_form_controller.dart';
 
 class BuddyEditPage extends ConsumerStatefulWidget {
   final String? buddyId;
@@ -24,8 +25,9 @@ class BuddyEditPage extends ConsumerStatefulWidget {
   /// Callback when user cancels editing.
   final VoidCallback? onCancel;
 
-  /// IDs of buddies to merge into one. Mutually exclusive with [buddyId].
-  final List<String>? mergeBuddyIds;
+  /// Loaded buddies to merge into one. Mutually exclusive with [buddyId].
+  /// Data loading is handled by [BuddyMergePage].
+  final List<Buddy>? mergeBuddies;
 
   const BuddyEditPage({
     super.key,
@@ -36,13 +38,13 @@ class BuddyEditPage extends ConsumerStatefulWidget {
     this.embedded = false,
     this.onSaved,
     this.onCancel,
-    this.mergeBuddyIds,
+    this.mergeBuddies,
   }) : assert(
-         buddyId == null || mergeBuddyIds == null,
-         'buddyId and mergeBuddyIds are mutually exclusive',
+         buddyId == null || mergeBuddies == null,
+         'buddyId and mergeBuddies are mutually exclusive',
        );
 
-  bool get isMerging => mergeBuddyIds != null && mergeBuddyIds!.length > 1;
+  bool get isMerging => mergeBuddies != null && mergeBuddies!.length > 1;
 
   @override
   ConsumerState<BuddyEditPage> createState() => _BuddyEditPageState();
@@ -62,16 +64,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   bool _hasChanges = false;
   Buddy? _originalBuddy;
 
-  late final Future<_MergeLoadData>? _mergeLoadFuture;
-  final Map<String, List<_MergeFieldCandidate<String>>> _mergeTextCandidates =
-      {};
-  final Map<String, int> _mergeFieldIndices = {};
-  List<_MergeFieldCandidate<CertificationLevel?>> _certLevelCandidates = [];
-  List<_MergeFieldCandidate<CertificationAgency?>> _certAgencyCandidates = [];
-  List<_MergeFieldCandidate<String?>> _photoCandidates = [];
-  String? _mergedPhotoPath;
-
-  bool _isInitialized = false;
+  BuddyMergeFormController? _mergeCtrl;
 
   bool get isEditing => widget.buddyId != null;
   bool get hasInitialData =>
@@ -82,8 +75,19 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   @override
   void initState() {
     super.initState();
-    _mergeLoadFuture = widget.isMerging ? _loadMergeData() : null;
-    if (isEditing) {
+    if (widget.isMerging) {
+      _mergeCtrl = BuddyMergeFormController();
+      _originalBuddy = widget.mergeBuddies!.first;
+      final (:certLevel, :certAgency) = _mergeCtrl!.initialize(
+        buddies: widget.mergeBuddies!,
+        nameController: _nameController,
+        emailController: _emailController,
+        phoneController: _phoneController,
+        notesController: _notesController,
+      );
+      _certLevel = certLevel;
+      _certAgency = certAgency;
+    } else if (isEditing) {
       _loadBuddy();
     } else if (hasInitialData) {
       // Pre-fill from imported contact
@@ -138,145 +142,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     }
   }
 
-  Future<_MergeLoadData> _loadMergeData() async {
-    final buddyRepository = ref.read(buddyRepositoryProvider);
-    final requestedIds = widget.mergeBuddyIds ?? const <String>[];
-    final fetchedBuddies = await Future.wait(
-      requestedIds.map((id) => buddyRepository.getBuddyById(id)),
-    );
-    final buddiesById = <String, Buddy>{
-      for (final buddy in fetchedBuddies)
-        if (buddy != null) buddy.id: buddy,
-    };
-    final orderedBuddies = requestedIds
-        .map((id) => buddiesById[id])
-        .whereType<Buddy>()
-        .toList(growable: false);
-
-    return _MergeLoadData(buddies: orderedBuddies);
-  }
-
-  void _initializeFromMerge(_MergeLoadData data) {
-    if (_isInitialized) return;
-    _isInitialized = true;
-    _originalBuddy = data.buddies.first;
-
-    _initializeMergeTextField(
-      key: 'name',
-      controller: _nameController,
-      buddies: data.buddies,
-      getValue: (buddy) => buddy.name,
-      isMeaningful: (value) => value.trim().isNotEmpty,
-    );
-    _initializeMergeTextField(
-      key: 'email',
-      controller: _emailController,
-      buddies: data.buddies,
-      getValue: (buddy) => buddy.email ?? '',
-      isMeaningful: (value) => value.trim().isNotEmpty,
-    );
-    _initializeMergeTextField(
-      key: 'phone',
-      controller: _phoneController,
-      buddies: data.buddies,
-      getValue: (buddy) => buddy.phone ?? '',
-      isMeaningful: (value) => value.trim().isNotEmpty,
-    );
-    _initializeMergeTextField(
-      key: 'notes',
-      controller: _notesController,
-      buddies: data.buddies,
-      getValue: (buddy) => buddy.notes,
-      isMeaningful: (value) => value.trim().isNotEmpty,
-    );
-
-    _certLevelCandidates = _buildDistinctCandidates<CertificationLevel?>(
-      data.buddies,
-      (buddy) => buddy.certificationLevel,
-      equals: (a, b) => a == b,
-    );
-    _mergeFieldIndices['certLevel'] = _firstMeaningfulIndex(
-      _certLevelCandidates,
-      (value) => value != null,
-    );
-    _certLevel =
-        _certLevelCandidates[_mergeFieldIndices['certLevel'] ?? 0].value;
-
-    _certAgencyCandidates = _buildDistinctCandidates<CertificationAgency?>(
-      data.buddies,
-      (buddy) => buddy.certificationAgency,
-      equals: (a, b) => a == b,
-    );
-    _mergeFieldIndices['certAgency'] = _firstMeaningfulIndex(
-      _certAgencyCandidates,
-      (value) => value != null,
-    );
-    _certAgency =
-        _certAgencyCandidates[_mergeFieldIndices['certAgency'] ?? 0].value;
-
-    _photoCandidates = _buildDistinctCandidates<String?>(
-      data.buddies,
-      (buddy) => buddy.photoPath,
-      equals: (a, b) => a == b,
-    );
-    _mergeFieldIndices['photo'] = _firstMeaningfulIndex(
-      _photoCandidates,
-      (value) => value != null && value.isNotEmpty,
-    );
-    _mergedPhotoPath = _photoCandidates[_mergeFieldIndices['photo'] ?? 0].value;
-  }
-
-  void _initializeMergeTextField({
-    required String key,
-    required TextEditingController controller,
-    required List<Buddy> buddies,
-    required String Function(Buddy buddy) getValue,
-    required bool Function(String value) isMeaningful,
-  }) {
-    final candidates = _buildDistinctCandidates<String>(
-      buddies,
-      getValue,
-      equals: (a, b) => a == b,
-    );
-    _mergeTextCandidates[key] = candidates;
-    _mergeFieldIndices[key] = _firstMeaningfulIndex(candidates, isMeaningful);
-    controller.text = candidates[_mergeFieldIndices[key] ?? 0].value;
-  }
-
-  List<_MergeFieldCandidate<T>> _buildDistinctCandidates<T>(
-    List<Buddy> buddies,
-    T Function(Buddy buddy) getValue, {
-    required bool Function(T a, T b) equals,
-  }) {
-    final candidates = <_MergeFieldCandidate<T>>[];
-    for (final buddy in buddies) {
-      final value = getValue(buddy);
-      final alreadyIncluded = candidates.any(
-        (candidate) => equals(candidate.value, value),
-      );
-      if (!alreadyIncluded) {
-        candidates.add(
-          _MergeFieldCandidate(
-            buddyId: buddy.id,
-            buddyName: buddy.name,
-            value: value,
-          ),
-        );
-      }
-    }
-    return candidates;
-  }
-
-  int _firstMeaningfulIndex<T>(
-    List<_MergeFieldCandidate<T>> candidates,
-    bool Function(T value) isMeaningful,
-  ) {
-    final index = candidates.indexWhere(
-      (candidate) => isMeaningful(candidate.value),
-    );
-    return index >= 0 ? index : 0;
-  }
-
   Widget _buildMergeCycleButton(VoidCallback onPressed) {
     final colorScheme = Theme.of(context).colorScheme;
     return IconButton(
@@ -298,13 +163,21 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     required String key,
     required InputDecoration decoration,
   }) {
-    final candidates = _mergeTextCandidates[key];
-    if (!widget.isMerging || candidates == null || candidates.length < 2) {
-      return decoration;
-    }
+    final ctrl = _mergeCtrl;
+    if (!widget.isMerging || ctrl == null) return decoration;
 
-    final currentIndex = _mergeFieldIndices[key] ?? 0;
+    final candidates = ctrl.textCandidates[key];
+    if (candidates == null || candidates.length < 2) return decoration;
+
+    final currentIndex = ctrl.fieldIndices[key] ?? 0;
     final current = candidates[currentIndex];
+    final controller = switch (key) {
+      'name' => _nameController,
+      'email' => _emailController,
+      'phone' => _phoneController,
+      'notes' => _notesController,
+      _ => _nameController,
+    };
 
     return decoration.copyWith(
       helperText: context.l10n.buddies_edit_merge_fieldSourceLabel(
@@ -314,63 +187,15 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       ),
       suffixIcon: Padding(
         padding: const EdgeInsets.only(right: 6),
-        child: _buildMergeCycleButton(() => _cycleTextField(key)),
+        child: _buildMergeCycleButton(
+          () => setState(() {
+            ctrl.cycleTextField(key, controller: controller);
+            _hasChanges = true;
+          }),
+        ),
       ),
       suffixIconConstraints: const BoxConstraints(minWidth: 44, minHeight: 36),
     );
-  }
-
-  void _selectTextFieldCandidate(String key, int index) {
-    final candidates = _mergeTextCandidates[key];
-    if (candidates == null || index < 0 || index >= candidates.length) return;
-
-    final controller = switch (key) {
-      'name' => _nameController,
-      'email' => _emailController,
-      'phone' => _phoneController,
-      'notes' => _notesController,
-      _ => null,
-    };
-
-    if (controller == null) return;
-
-    setState(() {
-      _mergeFieldIndices[key] = index;
-      controller.text = candidates[index].value;
-      _hasChanges = true;
-    });
-  }
-
-  void _cycleTextField(String key) {
-    final candidates = _mergeTextCandidates[key];
-    if (candidates == null || candidates.length < 2) return;
-
-    final nextIndex = ((_mergeFieldIndices[key] ?? 0) + 1) % candidates.length;
-    _selectTextFieldCandidate(key, nextIndex);
-  }
-
-  void _cycleCertLevel() {
-    if (_certLevelCandidates.length < 2) return;
-    setState(() {
-      final nextIndex =
-          ((_mergeFieldIndices['certLevel'] ?? 0) + 1) %
-          _certLevelCandidates.length;
-      _mergeFieldIndices['certLevel'] = nextIndex;
-      _certLevel = _certLevelCandidates[nextIndex].value;
-      _hasChanges = true;
-    });
-  }
-
-  void _cycleCertAgency() {
-    if (_certAgencyCandidates.length < 2) return;
-    setState(() {
-      final nextIndex =
-          ((_mergeFieldIndices['certAgency'] ?? 0) + 1) %
-          _certAgencyCandidates.length;
-      _mergeFieldIndices['certAgency'] = nextIndex;
-      _certAgency = _certAgencyCandidates[nextIndex].value;
-      _hasChanges = true;
-    });
   }
 
   @override
@@ -384,74 +209,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isMerging) {
-      return FutureBuilder<_MergeLoadData>(
-        future: _mergeLoadFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            if (widget.embedded) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            return Scaffold(
-              appBar: AppBar(
-                title: Text(context.l10n.buddies_edit_merge_title),
-              ),
-              body: const Center(child: CircularProgressIndicator()),
-            );
-          }
-
-          if (snapshot.hasError) {
-            if (widget.embedded) {
-              return Center(
-                child: Text(
-                  context.l10n.buddies_edit_merge_loadingErrorBody(
-                    '${snapshot.error}',
-                  ),
-                ),
-              );
-            }
-            return Scaffold(
-              appBar: AppBar(
-                title: Text(context.l10n.buddies_edit_merge_loadingErrorTitle),
-              ),
-              body: Center(
-                child: Text(
-                  context.l10n.buddies_edit_merge_loadingErrorBody(
-                    '${snapshot.error}',
-                  ),
-                ),
-              ),
-            );
-          }
-
-          final data = snapshot.data;
-          if (data == null || data.buddies.length < 2) {
-            if (widget.embedded) {
-              return Center(
-                child: Text(context.l10n.buddies_edit_merge_notEnoughBody),
-              );
-            }
-            return Scaffold(
-              appBar: AppBar(
-                title: Text(context.l10n.buddies_edit_merge_notEnoughTitle),
-              ),
-              body: Center(
-                child: Text(context.l10n.buddies_edit_merge_notEnoughBody),
-              ),
-            );
-          }
-
-          if (!_isInitialized) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _initializeFromMerge(data);
-            });
-            return _buildScaffold(context);
-          }
-          return _buildScaffold(context);
-        },
-      );
-    }
-
     final body = _isLoading
         ? const Center(child: CircularProgressIndicator())
         : _buildFormBody(context);
@@ -688,20 +445,32 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                     },
                   ),
                 ),
-                if (widget.isMerging && _certLevelCandidates.length > 1) ...[
+                if (widget.isMerging &&
+                    _mergeCtrl != null &&
+                    _mergeCtrl!.certLevelCandidates.length > 1) ...[
                   const SizedBox(width: 8),
-                  _buildMergeCycleButton(_cycleCertLevel),
+                  _buildMergeCycleButton(() {
+                    setState(() {
+                      _certLevel = _mergeCtrl!.cycleCertLevel();
+                      _hasChanges = true;
+                    });
+                  }),
                 ],
               ],
             ),
-            if (widget.isMerging && _certLevelCandidates.length > 1) ...[
+            if (widget.isMerging &&
+                _mergeCtrl != null &&
+                _mergeCtrl!.certLevelCandidates.length > 1) ...[
               const SizedBox(height: 4),
               Text(
                 context.l10n.buddies_edit_merge_fieldSourceLabel(
-                  _certLevelCandidates[_mergeFieldIndices['certLevel'] ?? 0]
+                  _mergeCtrl!
+                      .certLevelCandidates[_mergeCtrl!
+                              .fieldIndices['certLevel'] ??
+                          0]
                       .buddyName,
-                  (_mergeFieldIndices['certLevel'] ?? 0) + 1,
-                  _certLevelCandidates.length,
+                  (_mergeCtrl!.fieldIndices['certLevel'] ?? 0) + 1,
+                  _mergeCtrl!.certLevelCandidates.length,
                 ),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
@@ -739,20 +508,32 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                     },
                   ),
                 ),
-                if (widget.isMerging && _certAgencyCandidates.length > 1) ...[
+                if (widget.isMerging &&
+                    _mergeCtrl != null &&
+                    _mergeCtrl!.certAgencyCandidates.length > 1) ...[
                   const SizedBox(width: 8),
-                  _buildMergeCycleButton(_cycleCertAgency),
+                  _buildMergeCycleButton(() {
+                    setState(() {
+                      _certAgency = _mergeCtrl!.cycleCertAgency();
+                      _hasChanges = true;
+                    });
+                  }),
                 ],
               ],
             ),
-            if (widget.isMerging && _certAgencyCandidates.length > 1) ...[
+            if (widget.isMerging &&
+                _mergeCtrl != null &&
+                _mergeCtrl!.certAgencyCandidates.length > 1) ...[
               const SizedBox(height: 4),
               Text(
                 context.l10n.buddies_edit_merge_fieldSourceLabel(
-                  _certAgencyCandidates[_mergeFieldIndices['certAgency'] ?? 0]
+                  _mergeCtrl!
+                      .certAgencyCandidates[_mergeCtrl!
+                              .fieldIndices['certAgency'] ??
+                          0]
                       .buddyName,
-                  (_mergeFieldIndices['certAgency'] ?? 0) + 1,
-                  _certAgencyCandidates.length,
+                  (_mergeCtrl!.fieldIndices['certAgency'] ?? 0) + 1,
+                  _mergeCtrl!.certAgencyCandidates.length,
                 ),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
@@ -916,7 +697,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   }
 
   Future<bool> _confirmMerge() async {
-    final count = widget.mergeBuddyIds?.length ?? 0;
+    final count = widget.mergeBuddies?.length ?? 0;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -962,7 +743,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         certificationLevel: _certLevel,
         certificationAgency: _certAgency,
         photoPath: widget.isMerging
-            ? _mergedPhotoPath
+            ? _mergeCtrl?.mergedPhotoPath
             : _originalBuddy?.photoPath,
         notes: _notesController.text.trim(),
         createdAt: _originalBuddy?.createdAt ?? now,
@@ -976,10 +757,13 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
           return;
         }
 
+        final buddyIds = widget.mergeBuddies!
+            .map((b) => b.id)
+            .toList(growable: false);
         final mergeSnapshot = await ref
             .read(buddyListNotifierProvider.notifier)
-            .mergeBuddies(buddy, widget.mergeBuddyIds!);
-        final savedId = widget.mergeBuddyIds!.first;
+            .mergeBuddies(buddy, buddyIds);
+        final savedId = buddyIds.first;
 
         if (mounted) {
           context.pop(
@@ -1029,20 +813,4 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       }
     }
   }
-}
-
-class _MergeLoadData {
-  final List<Buddy> buddies;
-  const _MergeLoadData({required this.buddies});
-}
-
-class _MergeFieldCandidate<T> {
-  final String buddyId;
-  final String buddyName;
-  final T value;
-  const _MergeFieldCandidate({
-    required this.buddyId,
-    required this.buddyName,
-    required this.value,
-  });
 }
