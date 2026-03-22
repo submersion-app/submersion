@@ -363,7 +363,9 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
                         ),
                         IconButton(
                           icon: const Icon(Icons.close),
-                          tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                          tooltip: MaterialLocalizations.of(
+                            context,
+                          ).closeButtonTooltip,
                           onPressed: () {
                             _searchController.clear();
                             setState(() {
@@ -388,7 +390,8 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
                         ),
                         IconButton(
                           icon: const Icon(Icons.search),
-                          tooltip: context.l10n.diveComputer_discovery_usbSearchHint,
+                          tooltip:
+                              context.l10n.diveComputer_discovery_usbSearchHint,
                           onPressed: () => setState(() => _isSearching = true),
                         ),
                       ],
