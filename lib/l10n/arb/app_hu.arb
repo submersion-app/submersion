@@ -1544,6 +1544,7 @@
   "divePlanner_error_cannotConvert": "Nem lehet átalakítani: a tervnek kritikus figyelmeztetései vannak",
   "divePlanner_error_reserveExceedsTank": "Meghaladja a palack nyomását",
   "divePlanner_error_reserveMustBePositive": "Nullánál nagyobbnak kell lennie",
+  "divePlanner_info_reserveDefault": "Nincs megadva — alapértelmezett {value} {unit}",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "Név",
   "divePlanner_field_o2Percent": "O₂ %",

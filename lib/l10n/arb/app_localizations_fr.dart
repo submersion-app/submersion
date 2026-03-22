@@ -4764,6 +4764,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Doit être supérieur à 0';
 
   @override
+  String divePlanner_info_reserveDefault(Object unit, Object value) {
+    return 'Non saisi — valeur par défaut $value $unit';
+  }
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override

@@ -1544,6 +1544,7 @@
   "divePlanner_error_cannotConvert": "لا يمكن التحويل: الخطة تحتوي على تحذيرات حرجة",
   "divePlanner_error_reserveExceedsTank": "يتجاوز ضغط الأسطوانة",
   "divePlanner_error_reserveMustBePositive": "يجب أن يكون أكبر من 0",
+  "divePlanner_info_reserveDefault": "لم يُدخل — افتراض {value} {unit}",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "الاسم",
   "divePlanner_field_o2Percent": "O₂ %",

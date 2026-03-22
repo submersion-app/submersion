@@ -2649,6 +2649,7 @@
   "divePlanner_error_cannotConvert": "Cannot convert: plan has critical warnings",
   "divePlanner_error_reserveExceedsTank": "Exceeds tank pressure",
   "divePlanner_error_reserveMustBePositive": "Must be greater than 0",
+  "divePlanner_info_reserveDefault": "Not entered — assuming {value} {unit}",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "Name",
   "divePlanner_field_o2Percent": "O₂ %",

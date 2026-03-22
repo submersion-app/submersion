@@ -1544,6 +1544,7 @@
   "divePlanner_error_cannotConvert": "Impossible de convertir : le plan comporte des avertissements critiques",
   "divePlanner_error_reserveExceedsTank": "Dépasse la pression du bloc",
   "divePlanner_error_reserveMustBePositive": "Doit être supérieur à 0",
+  "divePlanner_info_reserveDefault": "Non saisi — valeur par défaut {value} {unit}",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "Nom",
   "divePlanner_field_o2Percent": "O₂ %",

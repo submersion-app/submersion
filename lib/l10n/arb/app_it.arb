@@ -1544,6 +1544,7 @@
   "divePlanner_error_cannotConvert": "Impossibile convertire: il piano ha avvisi critici",
   "divePlanner_error_reserveExceedsTank": "Supera la pressione della bombola",
   "divePlanner_error_reserveMustBePositive": "Deve essere maggiore di 0",
+  "divePlanner_info_reserveDefault": "Non inserito — valore predefinito {value} {unit}",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "Nome",
   "divePlanner_field_o2Percent": "O₂ %",

@@ -1544,6 +1544,7 @@
   "divePlanner_error_cannotConvert": "Kann nicht konvertieren: Plan hat kritische Warnungen",
   "divePlanner_error_reserveExceedsTank": "Überschreitet Flaschendruck",
   "divePlanner_error_reserveMustBePositive": "Muss größer als 0 sein",
+  "divePlanner_info_reserveDefault": "Nicht eingegeben — Annahme {value} {unit}",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "Name",
   "divePlanner_field_o2Percent": "O₂ %",

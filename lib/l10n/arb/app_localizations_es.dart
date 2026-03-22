@@ -4738,6 +4738,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_error_reserveMustBePositive => 'Debe ser mayor que 0';
 
   @override
+  String divePlanner_info_reserveDefault(Object unit, Object value) {
+    return 'No ingresado — asumiendo $value $unit';
+  }
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override

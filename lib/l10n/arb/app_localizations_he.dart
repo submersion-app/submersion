@@ -4608,6 +4608,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_error_reserveMustBePositive => 'חייב להיות גדול מ-0';
 
   @override
+  String divePlanner_info_reserveDefault(Object unit, Object value) {
+    return 'לא הוזן — מניח $value $unit';
+  }
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override

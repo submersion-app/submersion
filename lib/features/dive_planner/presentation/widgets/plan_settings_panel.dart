@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -124,6 +125,9 @@ class PlanSettingsPanel extends ConsumerWidget {
                 Expanded(
                   child: _ReservePressureInput(
                   reservePressure: planState.reservePressure,
+                  defaultPressureBar: settings.pressureUnit == PressureUnit.psi
+                      ? PressureUnit.psi.convert(500, PressureUnit.bar)
+                      : 50.0,
                   maxPressureBar: planState.tanks
                       .map((t) => t.startPressure ?? 0)
                       .fold(0, (a, b) => a + b)
@@ -297,12 +301,14 @@ class _AltitudeInputState extends State<_AltitudeInput> {
 /// Reserve pressure input field with validation.
 class _ReservePressureInput extends StatefulWidget {
   final double reservePressure;
+  final double defaultPressureBar;
   final double maxPressureBar;
   final UnitFormatter units;
   final ValueChanged<double> onChanged;
 
   const _ReservePressureInput({
     required this.reservePressure,
+    required this.defaultPressureBar,
     required this.maxPressureBar,
     required this.units,
     required this.onChanged,
@@ -314,7 +320,8 @@ class _ReservePressureInput extends StatefulWidget {
 
 class _ReservePressureInputState extends State<_ReservePressureInput> {
   late TextEditingController _controller;
-  String? _errorText;
+  String? _messageText;
+  bool _isError = false;
 
   @override
   void initState() {
@@ -339,7 +346,11 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
     }
     // Re-validate against new max if tanks changed
     if (oldWidget.maxPressureBar != widget.maxPressureBar) {
-      setState(() => _errorText = _getError(_controller.text));
+      final error = _getError(_controller.text);
+      setState(() {
+        _messageText = error;
+        _isError = error != null;
+      });
     }
   }
 
@@ -362,8 +373,25 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
   }
 
   void _validate(String value) {
+    if (value.isEmpty) {
+      final defaultDisplay = widget.units
+          .convertPressure(widget.defaultPressureBar)
+          .toStringAsFixed(0);
+      setState(() {
+        _messageText = context.l10n.divePlanner_info_reserveDefault(
+          widget.units.pressureSymbol,
+          defaultDisplay,
+        );
+        _isError = false;
+      });
+      widget.onChanged(widget.defaultPressureBar);
+      return;
+    }
     final error = _getError(value);
-    setState(() => _errorText = error);
+    setState(() {
+      _messageText = error;
+      _isError = error != null;
+    });
     if (error == null) {
       final parsed = double.tryParse(value);
       if (parsed != null) {
@@ -395,7 +423,7 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
                   ),
                   suffixText: widget.units.pressureSymbol,
                   // Error text rendered separately below
-                  errorText: _errorText != null ? '' : null,
+                  errorText: _isError ? '' : null,
                   errorStyle: const TextStyle(height: 0, fontSize: 0),
                 ),
                 keyboardType: TextInputType.number,
@@ -404,13 +432,15 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
             ),
           ],
         ),
-        if (_errorText != null)
+        if (_messageText != null)
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
-              _errorText!,
+              _messageText!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.error,
+                color: _isError
+                    ? Theme.of(context).colorScheme.error
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),

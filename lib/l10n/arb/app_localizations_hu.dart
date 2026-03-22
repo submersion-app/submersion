@@ -4725,6 +4725,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nullánál nagyobbnak kell lennie';
 
   @override
+  String divePlanner_info_reserveDefault(Object unit, Object value) {
+    return 'Nincs megadva — alapértelmezett $value $unit';
+  }
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override

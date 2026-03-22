@@ -1544,6 +1544,7 @@
   "divePlanner_error_cannotConvert": "Kan niet omzetten: plan heeft kritieke waarschuwingen",
   "divePlanner_error_reserveExceedsTank": "Overschrijdt tankdruk",
   "divePlanner_error_reserveMustBePositive": "Moet groter zijn dan 0",
+  "divePlanner_info_reserveDefault": "Niet ingevoerd — standaard {value} {unit}",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "Naam",
   "divePlanner_field_o2Percent": "O₂ %",

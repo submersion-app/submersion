@@ -8176,6 +8176,12 @@ abstract class AppLocalizations {
   /// **'Must be greater than 0'**
   String get divePlanner_error_reserveMustBePositive;
 
+  /// No description provided for @divePlanner_info_reserveDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Not entered — assuming {value} {unit}'**
+  String divePlanner_info_reserveDefault(Object unit, Object value);
+
   /// No description provided for @divePlanner_field_hePercent.
   ///
   /// In en, this message translates to:
