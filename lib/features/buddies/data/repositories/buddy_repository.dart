@@ -624,9 +624,13 @@ class BuddyRepository {
       }
 
       // Validate all buddies belong to the same diver
+      // Null diverIds (global buddies) are allowed to merge with scoped buddies
       final allBuddies = [originalSurvivor, ...deletedBuddies];
-      final diverIds = allBuddies.map((b) => b.diverId).toSet();
-      if (diverIds.length > 1) {
+      final nonNullDiverIds = allBuddies
+          .map((b) => b.diverId)
+          .whereType<String>()
+          .toSet();
+      if (nonNullDiverIds.length > 1) {
         throw StateError('Cannot merge buddies from different divers');
       }
 
@@ -714,6 +718,15 @@ class BuddyRepository {
                   entityType: 'diveBuddies',
                   recordId: existingSurvivorRow.id,
                   localUpdatedAt: now,
+                );
+
+                // Update in-memory map so subsequent duplicates see the new role
+                survivorDiveMap[dupRow.diveId] = DiveBuddy(
+                  id: existingSurvivorRow.id,
+                  diveId: existingSurvivorRow.diveId,
+                  buddyId: existingSurvivorRow.buddyId,
+                  role: dupRow.role,
+                  createdAt: existingSurvivorRow.createdAt,
                 );
               }
 
