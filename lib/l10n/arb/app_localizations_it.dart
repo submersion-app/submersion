@@ -14100,6 +14100,19 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questo dispositivo non si trova nella nostra libreria. Tenteremo la connessione, ma il download potrebbe non funzionare.';
 
   @override
+  String get diveComputer_discovery_usbInstructions =>
+      'Collega il tuo computer subacqueo tramite cavo USB, quindi selezionalo qui sotto.';
+
+  @override
+  String diveComputer_discovery_usbNoResults(String query) {
+    return 'Nessun dispositivo corrispondente a \"$query\"';
+  }
+
+  @override
+  String get diveComputer_discovery_usbSearchHint =>
+      'Cerca per produttore o modello...';
+
+  @override
   String diveComputer_downloadStep_andMoreDives(Object count) {
     return '... e altre $count';
   }

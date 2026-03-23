@@ -269,13 +269,50 @@ class _BluetoothScanTab extends ConsumerWidget {
 }
 
 /// Tab for USB device selection.
-class _UsbDevicesTab extends ConsumerWidget {
+class _UsbDevicesTab extends ConsumerStatefulWidget {
   final void Function(DiscoveredDevice device) onDeviceSelected;
 
   const _UsbDevicesTab({required this.onDeviceSelected});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_UsbDevicesTab> createState() => _UsbDevicesTabState();
+}
+
+class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
+  bool _isSearching = false;
+  String _searchQuery = '';
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// Filters the device map to only include entries matching the query.
+  Map<String, List<DeviceModel>> _filterDevices(
+    Map<String, List<DeviceModel>> devices,
+  ) {
+    if (_searchQuery.isEmpty) return devices;
+    final query = _searchQuery.toLowerCase();
+    final result = <String, List<DeviceModel>>{};
+    for (final entry in devices.entries) {
+      // If manufacturer matches, include all its models.
+      if (entry.key.toLowerCase().contains(query)) {
+        result[entry.key] = entry.value;
+      } else {
+        // Otherwise filter individual models.
+        final matched = entry.value
+            .where((m) => m.model.toLowerCase().contains(query))
+            .toList();
+        if (matched.isNotEmpty) result[entry.key] = matched;
+      }
+    }
+    return result;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final usbDevicesAsync = ref.watch(usbDevicesByManufacturerProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -293,9 +330,12 @@ class _UsbDevicesTab extends ConsumerWidget {
           );
         }
 
+        final filtered = _filterDevices(usbDevicesByManufacturer);
+        final manufacturers = filtered.keys.toList();
+
         return Column(
           children: [
-            // Instructions
+            // Instructions + search
             Container(
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(16),
@@ -303,69 +343,117 @@ class _UsbDevicesTab extends ConsumerWidget {
                 color: colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: colorScheme.primary),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Connect your dive computer via USB cable, then select it below.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+              child: _isSearching
+                  ? Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            autofocus: true,
+                            decoration: InputDecoration(
+                              hintText: context
+                                  .l10n
+                                  .diveComputer_discovery_usbSearchHint,
+                              border: InputBorder.none,
+                              isDense: true,
+                            ),
+                            onChanged: (value) =>
+                                setState(() => _searchQuery = value),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          tooltip: MaterialLocalizations.of(
+                            context,
+                          ).closeButtonTooltip,
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _isSearching = false;
+                              _searchQuery = '';
+                            });
+                          },
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Icon(Icons.info_outline, color: colorScheme.primary),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            context.l10n.diveComputer_discovery_usbInstructions,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.search),
+                          tooltip:
+                              context.l10n.diveComputer_discovery_usbSearchHint,
+                          onPressed: () => setState(() => _isSearching = true),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
             ),
 
             // Device list grouped by manufacturer
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: usbDevicesByManufacturer.length,
-                itemBuilder: (context, index) {
-                  final manufacturer = usbDevicesByManufacturer.keys.elementAt(
-                    index,
-                  );
-                  final devices = usbDevicesByManufacturer[manufacturer]!;
+              child: filtered.isEmpty
+                  ? Center(
+                      child: Text(
+                        context.l10n.diveComputer_discovery_usbNoResults(
+                          _searchQuery,
+                        ),
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        final manufacturer = manufacturers[index];
+                        final devices = filtered[manufacturer]!;
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Manufacturer header
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Text(
-                          manufacturer,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      // Devices
-                      ...devices.map(
-                        (model) => _UsbDeviceListTile(
-                          model: model,
-                          onTap: () {
-                            final discoveredDevice = DiscoveredDevice(
-                              id: model.id,
-                              name: model.fullName,
-                              connectionType: DeviceConnectionType.usb,
-                              address: model.id,
-                              recognizedModel: model,
-                              discoveredAt: DateTime.now(),
-                            );
-                            onDeviceSelected(discoveredDevice);
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                  );
-                },
-              ),
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Manufacturer header
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Text(
+                                manufacturer,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            // Devices
+                            ...devices.map(
+                              (model) => _UsbDeviceListTile(
+                                model: model,
+                                onTap: () {
+                                  final discoveredDevice = DiscoveredDevice(
+                                    id: model.id,
+                                    name: model.fullName,
+                                    connectionType: DeviceConnectionType.usb,
+                                    address: model.id,
+                                    recognizedModel: model,
+                                    discoveredAt: DateTime.now(),
+                                  );
+                                  widget.onDeviceSelected(discoveredDevice);
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                        );
+                      },
+                    ),
             ),
           ],
         );

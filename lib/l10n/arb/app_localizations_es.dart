@@ -14100,6 +14100,19 @@ class AppLocalizationsEs extends AppLocalizations {
       'Este dispositivo no esta en nuestra biblioteca. Intentaremos conectar, pero la descarga podria no funcionar.';
 
   @override
+  String get diveComputer_discovery_usbInstructions =>
+      'Conecte su ordenador de buceo por cable USB y selecciónelo a continuación.';
+
+  @override
+  String diveComputer_discovery_usbNoResults(String query) {
+    return 'No se encontraron dispositivos para \"$query\"';
+  }
+
+  @override
+  String get diveComputer_discovery_usbSearchHint =>
+      'Buscar por fabricante o modelo...';
+
+  @override
   String diveComputer_downloadStep_andMoreDives(Object count) {
     return '... y $count mas';
   }

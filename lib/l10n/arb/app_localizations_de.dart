@@ -14084,6 +14084,19 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dieses Geraet befindet sich nicht in unserer Bibliothek. Wir versuchen eine Verbindung herzustellen, aber der Download funktioniert moeglicherweise nicht.';
 
   @override
+  String get diveComputer_discovery_usbInstructions =>
+      'Verbinden Sie Ihren Tauchcomputer per USB-Kabel und waehlen Sie ihn unten aus.';
+
+  @override
+  String diveComputer_discovery_usbNoResults(String query) {
+    return 'Keine Geraete fuer \"$query\"';
+  }
+
+  @override
+  String get diveComputer_discovery_usbSearchHint =>
+      'Nach Hersteller oder Modell suchen...';
+
+  @override
   String diveComputer_downloadStep_andMoreDives(Object count) {
     return '... und $count weitere';
   }

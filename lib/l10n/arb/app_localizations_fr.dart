@@ -14150,6 +14150,19 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cet appareil n\'est pas dans notre bibliotheque. Nous tenterons de nous connecter, mais le telechargement pourrait ne pas fonctionner.';
 
   @override
+  String get diveComputer_discovery_usbInstructions =>
+      'Connectez votre ordinateur de plongée par câble USB, puis sélectionnez-le ci-dessous.';
+
+  @override
+  String diveComputer_discovery_usbNoResults(String query) {
+    return 'Aucun appareil correspondant à \"$query\"';
+  }
+
+  @override
+  String get diveComputer_discovery_usbSearchHint =>
+      'Rechercher par fabricant ou modèle...';
+
+  @override
   String diveComputer_downloadStep_andMoreDives(Object count) {
     return '... et $count de plus';
   }
