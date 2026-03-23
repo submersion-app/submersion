@@ -194,9 +194,33 @@ static gpointer download_thread_func(gpointer data) {
     return nullptr;
   }
 
+  // Set up download callbacks.
+  libdc_download_callbacks_t dl_callbacks = {0};
+  dl_callbacks.on_progress = on_download_progress;
+  dl_callbacks.on_dive = on_dive_downloaded;
+  dl_callbacks.userdata = ctx;
+
+  unsigned int serial_number = 0;
+  unsigned int firmware_version = 0;
+  char error_buf[256] = {0};
+
+  // Decode fingerprint from hex string.
+  unsigned char* fp_data = NULL;
+  unsigned int fp_size = 0;
+  if (td->fingerprint != NULL && td->fingerprint[0] != '\0') {
+      size_t hex_len = strlen(td->fingerprint);
+      fp_size = (unsigned int)(hex_len / 2);
+      fp_data = (unsigned char*)g_malloc(fp_size);
+      for (unsigned int i = 0; i < fp_size; i++) {
+          char byte_str[3] = { td->fingerprint[i*2], td->fingerprint[i*2+1], '\0' };
+          fp_data[i] = (unsigned char)strtol(byte_str, NULL, 16);
+      }
+  }
+
   // Set up I/O based on transport type.
   libdc_io_callbacks_t io_callbacks = {0};
   unsigned int transport_flag = 0;
+  int rc = -1;
 
   if (td->transport == LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_BLE) {
     transport_flag = LIBDC_TRANSPORT_BLE;
@@ -224,81 +248,99 @@ static gpointer download_thread_func(gpointer data) {
       ctx->ble_stream = nullptr;
       libdc_download_session_free(ctx->session);
       ctx->session = nullptr;
+      g_free(fp_data);
       download_thread_data_free(td);
       return nullptr;
     }
     io_callbacks = ble_io_stream_make_callbacks(ctx->ble_stream);
+
+    rc = libdc_download_run(
+        ctx->session,
+        td->vendor, td->product, td->model,
+        transport_flag,
+        &io_callbacks,
+        fp_data, fp_size,
+        &dl_callbacks,
+        &serial_number, &firmware_version,
+        error_buf, sizeof(error_buf));
   } else {
     // Serial or USB transport.
     transport_flag = LIBDC_TRANSPORT_SERIAL;
-    ctx->serial_stream = serial_io_stream_new();
 
-    // If the address looks like a device path, use it directly.
-    // Otherwise (manual model selection), try each available port.
-    gboolean opened = FALSE;
+    // Build list of candidate ports. If the address is a device path, use it
+    // directly. Otherwise (manual model selection), enumerate available ports.
+    // We attempt a full download per port because many serial devices are
+    // openable but are not the target dive computer.
+    gboolean found = FALSE;
     if (g_str_has_prefix(td->address, "/dev/")) {
-      opened = serial_io_stream_open(ctx->serial_stream, td->address);
+      ctx->serial_stream = serial_io_stream_new();
+      if (serial_io_stream_open(ctx->serial_stream, td->address)) {
+        io_callbacks = serial_io_stream_make_callbacks(ctx->serial_stream);
+        rc = libdc_download_run(
+            ctx->session,
+            td->vendor, td->product, td->model,
+            transport_flag,
+            &io_callbacks,
+            fp_data, fp_size,
+            &dl_callbacks,
+            &serial_number, &firmware_version,
+            error_buf, sizeof(error_buf));
+        found = TRUE;
+      }
+      serial_io_stream_free(ctx->serial_stream);
+      ctx->serial_stream = nullptr;
     } else {
       g_auto(GStrv) ports = serial_enumerate_ports();
       if (ports) {
         for (int i = 0; ports[i] != NULL; i++) {
-          if (serial_io_stream_open(ctx->serial_stream, ports[i])) {
-            opened = TRUE;
+          ctx->serial_stream = serial_io_stream_new();
+          if (!serial_io_stream_open(ctx->serial_stream, ports[i])) {
+            serial_io_stream_free(ctx->serial_stream);
+            ctx->serial_stream = nullptr;
+            continue;
+          }
+
+          io_callbacks = serial_io_stream_make_callbacks(ctx->serial_stream);
+          serial_number = 0;
+          firmware_version = 0;
+          memset(error_buf, 0, sizeof(error_buf));
+
+          rc = libdc_download_run(
+              ctx->session,
+              td->vendor, td->product, td->model,
+              transport_flag,
+              &io_callbacks,
+              fp_data, fp_size,
+              &dl_callbacks,
+              &serial_number, &firmware_version,
+              error_buf, sizeof(error_buf));
+
+          serial_io_stream_free(ctx->serial_stream);
+          ctx->serial_stream = nullptr;
+          found = TRUE;
+
+          if (rc == 0 || rc == LIBDC_STATUS_CANCELLED) {
             break;
           }
+          // Download failed on this port — try the next one.
         }
       }
     }
 
-    if (!opened) {
+    if (!found) {
       LibdivecomputerPluginDiveComputerError* error =
           libdivecomputer_plugin_dive_computer_error_new(
               "connect_failed", "Failed to open serial port");
       libdivecomputer_plugin_dive_computer_flutter_api_on_error(
           ctx->flutter_api, error, nullptr, nullptr, nullptr);
       g_object_unref(error);
-      serial_io_stream_free(ctx->serial_stream);
-      ctx->serial_stream = nullptr;
       libdc_download_session_free(ctx->session);
       ctx->session = nullptr;
+      g_free(fp_data);
       download_thread_data_free(td);
       return nullptr;
     }
-    io_callbacks = serial_io_stream_make_callbacks(ctx->serial_stream);
   }
-
-  // Set up download callbacks.
-  libdc_download_callbacks_t dl_callbacks = {0};
-  dl_callbacks.on_progress = on_download_progress;
-  dl_callbacks.on_dive = on_dive_downloaded;
-  dl_callbacks.userdata = ctx;
-
-  unsigned int serial_number = 0;
-  unsigned int firmware_version = 0;
-  char error_buf[256] = {0};
-
-  // Decode fingerprint from hex string.
-  unsigned char* fp_data = NULL;
-  unsigned int fp_size = 0;
-  if (td->fingerprint != NULL && td->fingerprint[0] != '\0') {
-      size_t hex_len = strlen(td->fingerprint);
-      fp_size = (unsigned int)(hex_len / 2);
-      fp_data = (unsigned char*)g_malloc(fp_size);
-      for (unsigned int i = 0; i < fp_size; i++) {
-          char byte_str[3] = { td->fingerprint[i*2], td->fingerprint[i*2+1], '\0' };
-          fp_data[i] = (unsigned char)strtol(byte_str, NULL, 16);
-      }
-  }
-
-  int rc = libdc_download_run(
-      ctx->session,
-      td->vendor, td->product, td->model,
-      transport_flag,
-      &io_callbacks,
-      fp_data, fp_size,
-      &dl_callbacks,
-      &serial_number, &firmware_version,
-      error_buf, sizeof(error_buf));
 
   g_free(fp_data);
 
