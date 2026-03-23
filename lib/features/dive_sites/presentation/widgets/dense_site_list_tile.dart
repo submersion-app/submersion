@@ -48,16 +48,26 @@ class DenseSiteListTile extends StatelessWidget {
           onTap: onTap,
           onLongPress: onLongPress,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.only(
+              left: 8,
+              right: 16,
+              top: 10,
+              bottom: 10,
+            ),
             child: Row(
               children: [
-                if (isSelectionMode)
-                  Checkbox(
+                Visibility(
+                  visible: isSelectionMode,
+                  maintainSize: true,
+                  maintainAnimation: true,
+                  maintainState: true,
+                  child: Checkbox(
                     value: isSelected,
                     onChanged: (_) => onTap?.call(),
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     visualDensity: VisualDensity.compact,
                   ),
+                ),
                 // Site name (expanded)
                 Expanded(
                   child: Text(

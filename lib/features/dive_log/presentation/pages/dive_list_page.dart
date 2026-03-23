@@ -487,25 +487,31 @@ class DiveListTile extends ConsumerWidget {
                 Row(
                   children: [
                     // Selection checkbox or dive number badge
-                    if (isSelectionMode)
-                      Checkbox(
-                        value: isSelected,
-                        onChanged: (_) => onTap?.call(),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                      )
-                    else
-                      CircleAvatar(
-                        backgroundColor: colorScheme.primaryContainer,
-                        child: Text(
-                          '#$diveNumber',
-                          style: TextStyle(
-                            color: colorScheme.onPrimaryContainer,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
+                    SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: isSelectionMode
+                          ? Center(
+                              child: Checkbox(
+                                value: isSelected,
+                                onChanged: (_) => onTap?.call(),
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            )
+                          : CircleAvatar(
+                              backgroundColor: colorScheme.primaryContainer,
+                              child: Text(
+                                '#$diveNumber',
+                                style: TextStyle(
+                                  color: colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                    ),
                     const SizedBox(width: 12),
                     // Main text content (site, location, date)
                     Expanded(

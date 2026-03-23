@@ -520,10 +520,10 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.primaryContainer,
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
+            color: Theme.of(context).colorScheme.outline,
             width: 1,
           ),
         ),
@@ -774,7 +774,18 @@ class BuddyListTile extends StatelessWidget {
       child: ListTile(
         onTap: onTap,
         leading: isSelectionMode
-            ? Checkbox(value: isChecked, onChanged: (_) => onTap?.call())
+            ? SizedBox(
+                width: 40,
+                height: 40,
+                child: Center(
+                  child: Checkbox(
+                    value: isChecked,
+                    onChanged: (_) => onTap?.call(),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              )
             : CircleAvatar(
                 backgroundColor: theme.colorScheme.primaryContainer,
                 backgroundImage: buddy.photoPath != null

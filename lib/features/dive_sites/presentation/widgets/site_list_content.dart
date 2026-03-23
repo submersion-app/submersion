@@ -553,10 +553,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.primaryContainer,
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
+            color: Theme.of(context).colorScheme.outline,
             width: 1,
           ),
         ),
@@ -1114,21 +1114,26 @@ class SiteListTile extends ConsumerWidget {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            if (isSelectionMode)
-              Checkbox(
-                value: isChecked,
-                onChanged: (_) => onTap?.call(),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
-              )
-            else
-              CircleAvatar(
-                backgroundColor: colorScheme.secondaryContainer,
-                child: Icon(
-                  Icons.location_on,
-                  color: colorScheme.onSecondaryContainer,
-                ),
-              ),
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: isSelectionMode
+                  ? Center(
+                      child: Checkbox(
+                        value: isChecked,
+                        onChanged: (_) => onTap?.call(),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    )
+                  : CircleAvatar(
+                      backgroundColor: colorScheme.secondaryContainer,
+                      child: Icon(
+                        Icons.location_on,
+                        color: colorScheme.onSecondaryContainer,
+                      ),
+                    ),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(

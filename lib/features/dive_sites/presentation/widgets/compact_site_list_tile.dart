@@ -43,56 +43,69 @@ class CompactSiteListTile extends StatelessWidget {
           onLongPress: onLongPress,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.only(
+              left: 4,
+              right: 10,
+              top: 10,
+              bottom: 10,
+            ),
+            child: Row(
               children: [
-                // Line 1: checkbox or leading space, site name, dive count, chevron
-                Row(
-                  children: [
-                    if (isSelectionMode)
-                      Checkbox(
-                        value: isSelected,
-                        onChanged: (_) => onTap?.call(),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    Expanded(
-                      child: Text(
-                        name,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '$diveCount dives',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: secondaryTextColor,
-                      ),
-                    ),
-                    ExcludeSemantics(
-                      child: Icon(
-                        Icons.chevron_right,
-                        color: secondaryTextColor,
-                        size: 20,
-                      ),
-                    ),
-                  ],
-                ),
-                // Line 2: location
-                if (location != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    location!,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: secondaryTextColor),
-                    overflow: TextOverflow.ellipsis,
+                Visibility(
+                  visible: isSelectionMode,
+                  maintainSize: true,
+                  maintainAnimation: true,
+                  maintainState: true,
+                  child: Checkbox(
+                    value: isSelected,
+                    onChanged: (_) => onTap?.call(),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
                   ),
-                ],
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Line 1: site name, dive count, chevron
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              name,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '$diveCount dives',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: secondaryTextColor),
+                          ),
+                          ExcludeSemantics(
+                            child: Icon(
+                              Icons.chevron_right,
+                              color: secondaryTextColor,
+                              size: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Line 2: location
+                      if (location != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          location!,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: secondaryTextColor),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

@@ -105,25 +105,36 @@ class CompactDiveListTile extends ConsumerWidget {
                 // Line 1: dive number, site name, date, chevron
                 Row(
                   children: [
-                    if (isSelectionMode)
-                      Checkbox(
-                        value: isSelected,
-                        onChanged: (_) => onTap?.call(),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                      )
-                    else
-                      SizedBox(
-                        width: 36,
-                        child: Text(
-                          '#$diveNumber',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            color: accentColor,
+                    SizedBox(
+                      width: 36,
+                      child: Stack(
+                        alignment: Alignment.centerLeft,
+                        children: [
+                          Visibility(
+                            visible: isSelectionMode,
+                            maintainSize: true,
+                            maintainAnimation: true,
+                            maintainState: true,
+                            child: Checkbox(
+                              value: isSelected,
+                              onChanged: (_) => onTap?.call(),
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              visualDensity: VisualDensity.compact,
+                            ),
                           ),
-                        ),
+                          if (!isSelectionMode)
+                            Text(
+                              '#$diveNumber',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                color: accentColor,
+                              ),
+                            ),
+                        ],
                       ),
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(

@@ -1101,33 +1101,31 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         children: [
           IconButton(
             icon: const Icon(Icons.close, size: 20),
-            visualDensity: VisualDensity.compact,
             tooltip: context.l10n.diveLog_selection_tooltip_exit,
             onPressed: _exitSelectionMode,
           ),
           Text(
             context.l10n.diveLog_selection_countSelected(_selectedIds.length),
-            style: Theme.of(context).textTheme.titleSmall,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           if (_selectedIds.length < dives.length)
             IconButton(
               icon: const Icon(Icons.select_all, size: 20),
-              visualDensity: VisualDensity.compact,
               tooltip: context.l10n.diveLog_selection_tooltip_selectAll,
               onPressed: () => _selectAll(dives),
             ),
           if (_selectedIds.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.upload, size: 20),
-              visualDensity: VisualDensity.compact,
               tooltip: context.l10n.diveLog_selection_tooltip_export,
               onPressed: _showExportDialog,
             ),
           if (_selectedIds.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.edit, size: 20),
-              visualDensity: VisualDensity.compact,
               tooltip: context.l10n.diveLog_selection_tooltip_edit,
               onPressed: _showBulkEditSheet,
             ),
@@ -1138,7 +1136,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 size: 20,
                 color: Theme.of(context).colorScheme.error,
               ),
-              visualDensity: VisualDensity.compact,
               tooltip: context.l10n.diveLog_selection_tooltip_delete,
               onPressed: _confirmAndDelete,
             ),
