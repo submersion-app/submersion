@@ -176,24 +176,37 @@ void DiveComputerHostApiImpl::PerformDownload(
     download_session_ = session;
 
     // Set up download callbacks.
+    // When probing multiple serial ports, dives are buffered to avoid
+    // dispatching phantom dives from a wrong port to Flutter.
+    struct DownloadContext {
+        DiveComputerHostApiImpl* self;
+        bool buffer_dives = false;
+        std::vector<ParsedDive> buffered_dives;
+    };
+    DownloadContext dl_ctx{this};
+
     libdc_download_callbacks_t dl_callbacks = {};
     dl_callbacks.on_progress = [](unsigned int current, unsigned int maximum,
                                   void* ud) {
-        auto* self = static_cast<DiveComputerHostApiImpl*>(ud);
-        self->flutter_api_->OnDownloadProgress(
+        auto* ctx = static_cast<DownloadContext*>(ud);
+        ctx->self->flutter_api_->OnDownloadProgress(
             DownloadProgress(static_cast<int64_t>(current),
                              static_cast<int64_t>(maximum),
                              "downloading"),
             [] {}, [](const auto&) {});
     };
     dl_callbacks.on_dive = [](const libdc_parsed_dive_t* dive, void* ud) {
-        auto* self = static_cast<DiveComputerHostApiImpl*>(ud);
+        auto* ctx = static_cast<DownloadContext*>(ud);
         if (!dive) return;
         auto parsed = ConvertParsedDive(*dive);
-        self->flutter_api_->OnDiveDownloaded(
-            parsed, [] {}, [](const auto&) {});
+        if (ctx->buffer_dives) {
+            ctx->buffered_dives.push_back(std::move(parsed));
+        } else {
+            ctx->self->flutter_api_->OnDiveDownloaded(
+                parsed, [] {}, [](const auto&) {});
+        }
     };
-    dl_callbacks.userdata = this;
+    dl_callbacks.userdata = &dl_ctx;
 
     // Map transport type.
     unsigned int transport_value = 0;
@@ -248,7 +261,11 @@ void DiveComputerHostApiImpl::PerformDownload(
         // even when they are not the target dive computer.
         std::string probe_log;
         bool any_opened = false;
+        // Buffer dives when probing multiple ports to avoid dispatching
+        // phantom dives from a wrong port to Flutter.
+        dl_ctx.buffer_dives = (ports_to_try.size() > 1);
         for (const auto& port : ports_to_try) {
+            dl_ctx.buffered_dives.clear();
             serial_stream_ = std::make_unique<SerialIoStream>();
             if (!serial_stream_->Open(port)) {
                 probe_log += "  " + port + ": failed to open\n";
@@ -306,6 +323,14 @@ void DiveComputerHostApiImpl::PerformDownload(
             download_session_ = nullptr;
             return;
         }
+
+        // Flush buffered dives to Flutter after a successful probe.
+        for (auto& dive : dl_ctx.buffered_dives) {
+            flutter_api_->OnDiveDownloaded(
+                dive, [] {}, [](const auto&) {});
+        }
+        dl_ctx.buffered_dives.clear();
+        dl_ctx.buffer_dives = false;
     } else {
         // BLE transport.
         if (ble_scanner_) {

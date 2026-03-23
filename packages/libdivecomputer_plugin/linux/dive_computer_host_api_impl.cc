@@ -21,6 +21,11 @@ struct HostApiContext {
   SerialIoStream* serial_stream;
   libdc_download_session_t* session;
   GThread* download_thread;
+  // When true, on_dive_downloaded buffers dives instead of dispatching them
+  // immediately. Used during multi-port probing to avoid leaking phantom
+  // dives from a wrong port to Flutter.
+  gboolean buffer_dives;
+  GList* buffered_dives;  // list of LibdivecomputerPluginParsedDive*
 };
 
 static void host_api_context_free(gpointer data) {
@@ -39,6 +44,9 @@ static void host_api_context_free(gpointer data) {
   }
   if (ctx->session != nullptr) {
     libdc_download_session_free(ctx->session);
+  }
+  if (ctx->buffered_dives != nullptr) {
+    g_list_free_full(ctx->buffered_dives, g_object_unref);
   }
   if (ctx->flutter_api != nullptr) {
     g_object_unref(ctx->flutter_api);
@@ -183,11 +191,41 @@ static void on_dive_downloaded(const libdc_parsed_dive_t* dive,
   auto* ctx = static_cast<HostApiContext*>(userdata);
   LibdivecomputerPluginParsedDive* parsed = convert_parsed_dive(dive);
   if (parsed != nullptr) {
-    auto* cbd = new DiveCallbackData();
-    cbd->flutter_api = ctx->flutter_api;
-    cbd->parsed = parsed;
-    g_idle_add(dive_callback_idle, cbd);
+    if (ctx->buffer_dives) {
+      // During multi-port probing, buffer dives until we confirm the port
+      // is correct. This prevents phantom dives from wrong ports leaking
+      // to Flutter.
+      ctx->buffered_dives = g_list_append(ctx->buffered_dives, parsed);
+    } else {
+      auto* cbd = new DiveCallbackData();
+      cbd->flutter_api = ctx->flutter_api;
+      cbd->parsed = parsed;
+      g_idle_add(dive_callback_idle, cbd);
+    }
   }
+}
+
+// Flush buffered dives to Flutter via g_idle_add. Called after a successful
+// download during multi-port probing.
+static void flush_buffered_dives(HostApiContext* ctx) {
+    for (GList* l = ctx->buffered_dives; l != NULL; l = l->next) {
+        auto* parsed = static_cast<LibdivecomputerPluginParsedDive*>(l->data);
+        auto* cbd = new DiveCallbackData();
+        cbd->flutter_api = ctx->flutter_api;
+        cbd->parsed = parsed;
+        g_object_ref(parsed);
+        g_idle_add(dive_callback_idle, cbd);
+    }
+    g_list_free_full(ctx->buffered_dives, g_object_unref);
+    ctx->buffered_dives = nullptr;
+}
+
+// Discard buffered dives from a failed probe attempt.
+static void clear_buffered_dives(HostApiContext* ctx) {
+    if (ctx->buffered_dives != nullptr) {
+        g_list_free_full(ctx->buffered_dives, g_object_unref);
+        ctx->buffered_dives = nullptr;
+    }
 }
 
 struct PinCallbackData {
@@ -354,9 +392,13 @@ static gpointer download_thread_func(gpointer data) {
       g_auto(GStrv) ports = serial_enumerate_ports();
       g_autoptr(GString) probe_log = g_string_new(NULL);
       int port_count = 0;
+      // Buffer dives during multi-port probing so phantom dives from a
+      // wrong port are not dispatched to Flutter.
+      ctx->buffer_dives = TRUE;
       if (ports) {
         for (int i = 0; ports[i] != NULL; i++) {
           port_count++;
+          clear_buffered_dives(ctx);
           ctx->serial_stream = serial_io_stream_new();
           if (!serial_io_stream_open(ctx->serial_stream, ports[i])) {
             g_string_append_printf(probe_log, "  %s: failed to open\n", ports[i]);
@@ -390,6 +432,14 @@ static gpointer download_thread_func(gpointer data) {
           g_string_append_printf(probe_log, "  %s: download failed (rc=%d)\n", ports[i], rc);
         }
       }
+
+      // Flush or discard buffered dives based on result.
+      if (rc == 0) {
+        flush_buffered_dives(ctx);
+      } else {
+        clear_buffered_dives(ctx);
+      }
+      ctx->buffer_dives = FALSE;
 
       if (!found) {
         if (port_count == 0) {
