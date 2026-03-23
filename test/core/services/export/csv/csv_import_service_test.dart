@@ -102,6 +102,39 @@ void main() {
       expect(dateTime.minute, 0);
     });
 
+    test('ISO 8601 date falls through to DateTime.tryParse as UTC', () async {
+      // ISO 8601 with time component doesn't match strict DateFormat patterns,
+      // so it exercises the DateTime.tryParse fallback path.
+      const csv =
+          'Date,Duration\r\n'
+          '2024-01-15T14:30:00,45\r\n';
+
+      final dives = await service.importDivesFromCsv(csv);
+
+      expect(dives, hasLength(1));
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(dateTime.isUtc, isTrue);
+      expect(dateTime.year, 2024);
+      expect(dateTime.month, 1);
+      expect(dateTime.day, 15);
+      expect(dateTime.hour, 14);
+      expect(dateTime.minute, 30);
+    });
+
+    test('ISO 8601 with Z suffix produces UTC', () async {
+      const csv =
+          'Date,Duration\r\n'
+          '2024-01-15T10:30:00Z,45\r\n';
+
+      final dives = await service.importDivesFromCsv(csv);
+
+      expect(dives, hasLength(1));
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(dateTime.isUtc, isTrue);
+      expect(dateTime.hour, 10);
+      expect(dateTime.minute, 30);
+    });
+
     test('late evening time is preserved as UTC', () async {
       const csv =
           'Date,Time,Duration\r\n'

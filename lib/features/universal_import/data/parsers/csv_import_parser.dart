@@ -238,8 +238,6 @@ class CsvImportParser implements ImportParser {
           time.minute,
           time.second,
         );
-      } else if (!dateTime.isUtc) {
-        dateTime = DateTime.utc(dateTime.year, dateTime.month, dateTime.day);
       }
       diveData['dateTime'] = dateTime;
       diveData.remove('date');

@@ -119,8 +119,6 @@ class CsvImportService {
             time.hour,
             time.minute,
           );
-        } else if (!dateTime.isUtc) {
-          dateTime = DateTime.utc(dateTime.year, dateTime.month, dateTime.day);
         }
         diveData['dateTime'] = dateTime;
         diveData.remove('date');
@@ -138,6 +136,9 @@ class CsvImportService {
   // ==================== Parsing Helpers ====================
 
   /// Parse a date string, returning a UTC DateTime (wall-time convention).
+  ///
+  /// Uses strict parsing so that ISO 8601 strings (e.g. "2024-01-15T10:30:00")
+  /// fall through to [DateTime.tryParse] which handles them natively.
   DateTime? _parseDate(String value) {
     final formats = [
       'yyyy-MM-dd',
@@ -150,7 +151,7 @@ class CsvImportService {
 
     for (final format in formats) {
       try {
-        return DateFormat(format).parse(value, true);
+        return DateFormat(format).parseStrict(value, true);
       } catch (_) {
         continue;
       }
