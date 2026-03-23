@@ -133,15 +133,49 @@ static void download_thread_data_free(DownloadThreadData* data) {
   delete data;
 }
 
+// Dispatch download progress to the main thread via g_idle_add.
+// Flutter API calls must not be made from the download thread.
+struct ProgressCallbackData {
+    LibdivecomputerPluginDiveComputerFlutterApi* flutter_api;
+    int64_t current;
+    int64_t maximum;
+};
+
+static gboolean progress_callback_idle(gpointer data) {
+    auto* cbd = static_cast<ProgressCallbackData*>(data);
+    LibdivecomputerPluginDownloadProgress* progress =
+        libdivecomputer_plugin_download_progress_new(
+            cbd->current, cbd->maximum, "downloading");
+    libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress(
+        cbd->flutter_api, progress, nullptr, nullptr, nullptr);
+    g_object_unref(progress);
+    delete cbd;
+    return G_SOURCE_REMOVE;
+}
+
 static void on_download_progress(unsigned int current, unsigned int maximum,
                                  void* userdata) {
   auto* ctx = static_cast<HostApiContext*>(userdata);
-  LibdivecomputerPluginDownloadProgress* progress =
-      libdivecomputer_plugin_download_progress_new(
-          (int64_t)current, (int64_t)maximum, "downloading");
-  libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress(
-      ctx->flutter_api, progress, nullptr, nullptr, nullptr);
-  g_object_unref(progress);
+  auto* cbd = new ProgressCallbackData();
+  cbd->flutter_api = ctx->flutter_api;
+  cbd->current = (int64_t)current;
+  cbd->maximum = (int64_t)maximum;
+  g_idle_add(progress_callback_idle, cbd);
+}
+
+// Dispatch downloaded dive to the main thread via g_idle_add.
+struct DiveCallbackData {
+    LibdivecomputerPluginDiveComputerFlutterApi* flutter_api;
+    LibdivecomputerPluginParsedDive* parsed;
+};
+
+static gboolean dive_callback_idle(gpointer data) {
+    auto* cbd = static_cast<DiveCallbackData*>(data);
+    libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded(
+        cbd->flutter_api, cbd->parsed, nullptr, nullptr, nullptr);
+    g_object_unref(cbd->parsed);
+    delete cbd;
+    return G_SOURCE_REMOVE;
 }
 
 static void on_dive_downloaded(const libdc_parsed_dive_t* dive,
@@ -149,9 +183,10 @@ static void on_dive_downloaded(const libdc_parsed_dive_t* dive,
   auto* ctx = static_cast<HostApiContext*>(userdata);
   LibdivecomputerPluginParsedDive* parsed = convert_parsed_dive(dive);
   if (parsed != nullptr) {
-    libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded(
-        ctx->flutter_api, parsed, nullptr, nullptr, nullptr);
-    g_object_unref(parsed);
+    auto* cbd = new DiveCallbackData();
+    cbd->flutter_api = ctx->flutter_api;
+    cbd->parsed = parsed;
+    g_idle_add(dive_callback_idle, cbd);
   }
 }
 
