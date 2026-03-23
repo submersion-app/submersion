@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -87,8 +91,14 @@ class FitAdapter implements ImportSourceAdapter {
     WizardStepDef(
       label: 'Select Files',
       icon: Icons.file_open,
-      builder: (context) => const _FitAcquisitionPlaceholder(),
+      builder: (context) => _FitFilePickerStep(
+        fitParser: _fitParser,
+        onDivesParsed: (dives) {
+          setParsedDives(dives);
+        },
+      ),
       canAdvance: fitAdapterCanAdvanceProvider,
+      autoAdvance: false,
     ),
   ];
 
@@ -277,16 +287,197 @@ class FitAdapter implements ImportSourceAdapter {
 // Private widgets
 // =============================================================================
 
-/// Placeholder widget for the FIT file acquisition step.
+/// File picker step for the FIT import wizard.
 ///
-/// The actual file picker UI will be extracted from [FitImportPage] during
-/// route integration (Task 11). For now this serves as a non-null widget so
-/// the wizard can render the step.
-class _FitAcquisitionPlaceholder extends StatelessWidget {
-  const _FitAcquisitionPlaceholder();
+/// Presents a button to select one or more .fit files, parses them with
+/// [FitParserService], and invokes [onDivesParsed] with the results.
+/// Sets [fitAdapterCanAdvanceProvider] to true once at least one dive is
+/// successfully parsed.
+class _FitFilePickerStep extends ConsumerStatefulWidget {
+  const _FitFilePickerStep({
+    required this.fitParser,
+    required this.onDivesParsed,
+  });
+
+  final FitParserService fitParser;
+  final void Function(List<ImportedDive> dives) onDivesParsed;
+
+  @override
+  ConsumerState<_FitFilePickerStep> createState() => _FitFilePickerStepState();
+}
+
+class _FitFilePickerStepState extends ConsumerState<_FitFilePickerStep> {
+  bool _isParsing = false;
+  int _totalFileCount = 0;
+  int _skippedFileCount = 0;
+  List<ImportedDive> _parsedDives = [];
+
+  Future<void> _pickAndParseFiles() async {
+    setState(() => _isParsing = true);
+
+    try {
+      final useAnyType = Platform.isIOS || Platform.isMacOS;
+      final result = await FilePicker.platform.pickFiles(
+        type: useAnyType ? FileType.any : FileType.custom,
+        allowedExtensions: useAnyType ? null : ['fit'],
+        allowMultiple: true,
+      );
+
+      if (result == null || result.files.isEmpty) {
+        setState(() => _isParsing = false);
+        return;
+      }
+
+      final fitFiles = result.files.where((f) {
+        final ext = f.extension?.toLowerCase();
+        return ext == 'fit';
+      }).toList();
+
+      if (fitFiles.isEmpty) {
+        setState(() {
+          _isParsing = false;
+          _totalFileCount = result.files.length;
+          _skippedFileCount = result.files.length;
+          _parsedDives = [];
+        });
+        widget.onDivesParsed([]);
+        return;
+      }
+
+      final fileBytesList = <Uint8List>[];
+      final fileNames = <String>[];
+      for (final file in fitFiles) {
+        final path = file.path;
+        if (path == null) continue;
+        final bytes = await File(path).readAsBytes();
+        fileBytesList.add(bytes);
+        fileNames.add(file.name);
+      }
+
+      final dives = await widget.fitParser.parseFitFiles(
+        fileBytesList,
+        fileNames: fileNames,
+      );
+
+      widget.onDivesParsed(dives);
+
+      if (mounted) {
+        setState(() {
+          _totalFileCount = fitFiles.length;
+          _skippedFileCount = fitFiles.length - dives.length;
+          _parsedDives = dives;
+          _isParsing = false;
+        });
+      }
+
+      ref.read(fitAdapterCanAdvanceProvider.notifier).state = dives.isNotEmpty;
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isParsing = false);
+      }
+      widget.onDivesParsed([]);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Select FIT files to import.'));
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: OutlinedButton.icon(
+            icon: _isParsing
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.file_open),
+            label: Text(_isParsing ? 'Parsing...' : 'Select Files'),
+            onPressed: _isParsing ? null : _pickAndParseFiles,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (_totalFileCount > 0)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              _skippedFileCount > 0
+                  ? 'Parsed ${_parsedDives.length} dive(s) from $_totalFileCount'
+                        ' file(s) ($_skippedFileCount skipped)'
+                  : 'Parsed ${_parsedDives.length} dive(s) from'
+                        ' $_totalFileCount file(s)',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        const SizedBox(height: 16),
+        Expanded(
+          child: _parsedDives.isEmpty
+              ? _buildEmptyState(context, theme)
+              : _buildDiveList(theme),
+        ),
+      ],
+    );
   }
+
+  Widget _buildEmptyState(BuildContext context, ThemeData theme) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ExcludeSemantics(
+              child: Icon(
+                Icons.file_open,
+                size: 64,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text('No dives loaded', style: theme.textTheme.titleLarge),
+            const SizedBox(height: 8),
+            Text(
+              'Select one or more .fit files exported from your Garmin device.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDiveList(ThemeData theme) {
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: _parsedDives.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final dive = _parsedDives[index];
+        final dateStr = _dateFormatter.format(dive.startTime);
+        final timeStr = _timeFormatter.format(dive.startTime);
+        final depthStr = dive.maxDepth.toStringAsFixed(1);
+        final durationMin = dive.duration.inMinutes;
+
+        return Card(
+          child: ListTile(
+            leading: const Icon(Icons.water),
+            title: Text('$dateStr \u2014 $timeStr'),
+            subtitle: Text('${depthStr}m max \u00b7 $durationMin min'),
+          ),
+        );
+      },
+    );
+  }
+
+  static final _dateFormatter = DateFormat('MMM d, yyyy');
+  static final _timeFormatter = DateFormat('h:mm a');
 }

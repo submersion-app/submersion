@@ -7,6 +7,12 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
+import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart'
+    hide diveProvider;
+import 'package:submersion/features/import_wizard/data/adapters/fit_adapter.dart';
+import 'package:submersion/features/import_wizard/presentation/pages/unified_import_wizard.dart';
 import 'package:submersion/features/onboarding/presentation/pages/welcome_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
@@ -96,7 +102,6 @@ import 'package:submersion/features/dive_computer/presentation/pages/device_disc
 import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:submersion/features/dive_planner/presentation/pages/dive_planner_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
-import 'package:submersion/features/dive_import/presentation/pages/fit_import_page.dart';
 import 'package:submersion/features/dive_import/presentation/pages/healthkit_import_page.dart';
 import 'package:submersion/features/dive_import/presentation/pages/uddf_import_page.dart';
 import 'package:submersion/features/universal_import/presentation/pages/universal_import_page.dart';
@@ -701,7 +706,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'fit-import',
                 name: 'fitImport',
-                builder: (context, state) => const FitImportPage(),
+                builder: (context, state) => const _FitImportWizardRoute(),
               ),
               GoRoute(
                 path: 'uddf-import',
@@ -909,3 +914,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+/// Wrapper that creates a [FitAdapter] with dependencies from Riverpod.
+class _FitImportWizardRoute extends ConsumerWidget {
+  const _FitImportWizardRoute();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final diverId = ref.watch(currentDiverIdProvider) ?? '';
+    final converter = ref.watch(importedDiveConverterProvider);
+    final diveRepo = ref.watch(diveRepositoryProvider);
+
+    return UnifiedImportWizard(
+      adapter: FitAdapter(
+        fitParser: ref.watch(fitParserServiceProvider),
+        diveMatcher: const DiveMatcher(),
+        converter: converter,
+        diveRepository: diveRepo,
+        diverId: diverId,
+      ),
+    );
+  }
+}
