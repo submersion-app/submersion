@@ -664,6 +664,116 @@ class AppLocalizationsDe extends AppLocalizations {
       'Bitte geben Sie einen Namen ein';
 
   @override
+  String get buddies_list_selection_closeTooltip => 'Auswahl schließen';
+
+  @override
+  String buddies_list_selection_count(int count) {
+    return '$count ausgewählt';
+  }
+
+  @override
+  String get buddies_list_selection_selectAllTooltip => 'Alle auswählen';
+
+  @override
+  String get buddies_list_selection_deselectAllTooltip => 'Alle abwählen';
+
+  @override
+  String get buddies_list_selection_mergeTooltip =>
+      'Ausgewählte zusammenführen';
+
+  @override
+  String get buddies_list_selection_deleteTooltip => 'Ausgewählte löschen';
+
+  @override
+  String buddies_list_merge_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tauchpartner',
+      one: 'Tauchpartner',
+    );
+    return '$count $_temp0 zusammengeführt';
+  }
+
+  @override
+  String get buddies_list_merge_undo => 'Rückgängig';
+
+  @override
+  String get buddies_list_merge_restored =>
+      'Zusammenführung rückgängig gemacht';
+
+  @override
+  String get buddies_list_bulkDelete_title => 'Tauchpartner löschen';
+
+  @override
+  String buddies_list_bulkDelete_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tauchpartner',
+      one: 'Tauchpartner',
+    );
+    return 'Möchten Sie wirklich $count $_temp0 löschen? Diese Aktion kann nicht rückgängig gemacht werden.';
+  }
+
+  @override
+  String get buddies_list_bulkDelete_cancel => 'Abbrechen';
+
+  @override
+  String get buddies_list_bulkDelete_confirm => 'Löschen';
+
+  @override
+  String buddies_list_bulkDelete_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tauchpartner',
+      one: 'Tauchpartner',
+    );
+    return '$count $_temp0 gelöscht';
+  }
+
+  @override
+  String get buddies_edit_merge_title => 'Tauchpartner zusammenführen';
+
+  @override
+  String get buddies_edit_merge_fieldSourceCycleTooltip =>
+      'Wert vom nächsten ausgewählten Tauchpartner verwenden';
+
+  @override
+  String buddies_edit_merge_fieldSourceLabel(
+    String buddyName,
+    int current,
+    int total,
+  ) {
+    return 'Von $buddyName ($current/$total)';
+  }
+
+  @override
+  String get buddies_edit_merge_confirmTitle => 'Tauchpartner zusammenführen';
+
+  @override
+  String buddies_edit_merge_confirmBody(int count) {
+    return 'Dabei werden $count Tauchpartner zu einem zusammengeführt. Tauchgangverknüpfungen werden beim verbleibenden Tauchpartner zusammengefasst. Die anderen Tauchpartner werden gelöscht.';
+  }
+
+  @override
+  String get buddies_edit_merge_loadingErrorTitle =>
+      'Tauchpartner zusammenführen';
+
+  @override
+  String buddies_edit_merge_loadingErrorBody(String error) {
+    return 'Tauchpartner konnten nicht geladen werden: $error';
+  }
+
+  @override
+  String get buddies_edit_merge_notEnoughTitle => 'Tauchpartner zusammenführen';
+
+  @override
+  String get buddies_edit_merge_notEnoughBody =>
+      'Nicht genügend Tauchpartner zum Zusammenführen.';
+
+  @override
   String get certifications_appBar_addCertification =>
       'Zertifizierung hinzufuegen';
 

@@ -250,6 +250,60 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
     _ref.invalidate(allBuddiesWithDiveCountProvider);
     await refresh();
   }
+
+  Future<BuddyMergeSnapshot?> mergeBuddies(
+    Buddy mergedBuddy,
+    List<String> buddyIds,
+  ) async {
+    if (buddyIds.length < 2) return null;
+
+    final dedupedIds = buddyIds.toSet().toList(growable: false);
+    final survivorId = dedupedIds.first;
+
+    final result = await _repository.mergeBuddies(
+      mergedBuddy: mergedBuddy.copyWith(id: survivorId),
+      buddyIds: dedupedIds,
+    );
+
+    await _invalidateMergeProviders(dedupedIds);
+    await refresh();
+
+    return result?.snapshot;
+  }
+
+  Future<void> undoMerge(BuddyMergeSnapshot snapshot) async {
+    await _repository.undoMerge(snapshot);
+    final affectedIds = [
+      snapshot.originalSurvivor.id,
+      ...snapshot.deletedBuddies.map((b) => b.id),
+    ];
+    await _invalidateMergeProviders(affectedIds);
+    await refresh();
+  }
+
+  Future<void> bulkDeleteBuddies(List<String> ids) async {
+    await _repository.bulkDeleteBuddies(ids);
+    for (final id in ids) {
+      _ref.invalidate(buddyByIdProvider(id));
+    }
+    _ref.invalidate(allBuddiesWithDiveCountProvider);
+    await refresh();
+  }
+
+  Future<void> _invalidateMergeProviders(List<String> buddyIds) async {
+    _ref.invalidate(allBuddiesProvider);
+    _ref.invalidate(allBuddiesWithDiveCountProvider);
+    for (final id in buddyIds) {
+      _ref.invalidate(buddyByIdProvider(id));
+      _ref.invalidate(buddyStatsProvider(id));
+      final diveIds = await _repository.getDiveIdsForBuddy(id);
+      for (final diveId in diveIds) {
+        _ref.invalidate(buddiesForDiveProvider(diveId));
+      }
+      _ref.invalidate(diveIdsForBuddyProvider(id));
+      _ref.invalidate(divesForBuddyProvider(id));
+    }
+  }
 }
 
 final buddyListNotifierProvider =

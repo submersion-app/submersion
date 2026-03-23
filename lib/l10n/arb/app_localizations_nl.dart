@@ -656,6 +656,114 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_validation_nameRequired => 'Voer een naam in';
 
   @override
+  String get buddies_list_selection_closeTooltip => 'Selectie sluiten';
+
+  @override
+  String buddies_list_selection_count(int count) {
+    return '$count geselecteerd';
+  }
+
+  @override
+  String get buddies_list_selection_selectAllTooltip => 'Alles selecteren';
+
+  @override
+  String get buddies_list_selection_deselectAllTooltip => 'Alles deselecteren';
+
+  @override
+  String get buddies_list_selection_mergeTooltip => 'Geselecteerde samenvoegen';
+
+  @override
+  String get buddies_list_selection_deleteTooltip =>
+      'Geselecteerde verwijderen';
+
+  @override
+  String buddies_list_merge_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'buddies',
+      one: 'buddy',
+    );
+    return '$count $_temp0 samengevoegd';
+  }
+
+  @override
+  String get buddies_list_merge_undo => 'Ongedaan maken';
+
+  @override
+  String get buddies_list_merge_restored => 'Samenvoeging ongedaan gemaakt';
+
+  @override
+  String get buddies_list_bulkDelete_title => 'Buddies verwijderen';
+
+  @override
+  String buddies_list_bulkDelete_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'buddies',
+      one: 'buddy',
+    );
+    return 'Weet je zeker dat je $count $_temp0 wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.';
+  }
+
+  @override
+  String get buddies_list_bulkDelete_cancel => 'Annuleren';
+
+  @override
+  String get buddies_list_bulkDelete_confirm => 'Verwijderen';
+
+  @override
+  String buddies_list_bulkDelete_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'buddies',
+      one: 'buddy',
+    );
+    return '$count $_temp0 verwijderd';
+  }
+
+  @override
+  String get buddies_edit_merge_title => 'Buddies samenvoegen';
+
+  @override
+  String get buddies_edit_merge_fieldSourceCycleTooltip =>
+      'Waarde van volgende geselecteerde buddy gebruiken';
+
+  @override
+  String buddies_edit_merge_fieldSourceLabel(
+    String buddyName,
+    int current,
+    int total,
+  ) {
+    return 'Van $buddyName ($current/$total)';
+  }
+
+  @override
+  String get buddies_edit_merge_confirmTitle => 'Buddies samenvoegen';
+
+  @override
+  String buddies_edit_merge_confirmBody(int count) {
+    return 'Dit voegt $count buddies samen tot één. Duikassociaties worden gecombineerd onder de overgebleven buddy. De andere buddies worden verwijderd.';
+  }
+
+  @override
+  String get buddies_edit_merge_loadingErrorTitle => 'Buddies samenvoegen';
+
+  @override
+  String buddies_edit_merge_loadingErrorBody(String error) {
+    return 'Laden van buddies mislukt: $error';
+  }
+
+  @override
+  String get buddies_edit_merge_notEnoughTitle => 'Buddies samenvoegen';
+
+  @override
+  String get buddies_edit_merge_notEnoughBody =>
+      'Niet genoeg buddies om samen te voegen.';
+
+  @override
   String get certifications_appBar_addCertification =>
       'Certificering toevoegen';
 

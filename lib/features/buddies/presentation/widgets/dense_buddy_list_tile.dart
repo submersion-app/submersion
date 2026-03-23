@@ -10,6 +10,8 @@ class DenseBuddyListTile extends StatelessWidget {
   final Buddy buddy;
   final int? diveCount;
   final bool isSelected;
+  final bool isChecked;
+  final bool isSelectionMode;
   final VoidCallback? onTap;
 
   const DenseBuddyListTile({
@@ -17,13 +19,17 @@ class DenseBuddyListTile extends StatelessWidget {
     required this.buddy,
     this.diveCount,
     this.isSelected = false,
+    this.isChecked = false,
+    this.isSelectionMode = false,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final rowColor = isSelected
+    final rowColor = isChecked
+        ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+        : isSelected
         ? colorScheme.primaryContainer.withValues(alpha: 0.3)
         : null;
     final secondaryTextColor = colorScheme.onSurfaceVariant;
@@ -47,6 +53,14 @@ class DenseBuddyListTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: [
+                if (isSelectionMode) ...[
+                  Checkbox(
+                    value: isChecked,
+                    onChanged: (_) => onTap?.call(),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 // Buddy name (expanded)
                 Expanded(
                   child: Text(

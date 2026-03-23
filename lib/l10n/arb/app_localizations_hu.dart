@@ -661,6 +661,114 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_validation_nameRequired => 'Adj meg egy nevet';
 
   @override
+  String get buddies_list_selection_closeTooltip => 'Kijelölés bezárása';
+
+  @override
+  String buddies_list_selection_count(int count) {
+    return '$count kijelölve';
+  }
+
+  @override
+  String get buddies_list_selection_selectAllTooltip => 'Összes kijelölése';
+
+  @override
+  String get buddies_list_selection_deselectAllTooltip =>
+      'Összes kijelölés megszüntetése';
+
+  @override
+  String get buddies_list_selection_mergeTooltip => 'Kijelöltek összevonása';
+
+  @override
+  String get buddies_list_selection_deleteTooltip => 'Kijelöltek törlése';
+
+  @override
+  String buddies_list_merge_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'búvártárs',
+      one: 'búvártárs',
+    );
+    return '$count $_temp0 összevonva';
+  }
+
+  @override
+  String get buddies_list_merge_undo => 'Visszavonás';
+
+  @override
+  String get buddies_list_merge_restored => 'Összevonás visszavonva';
+
+  @override
+  String get buddies_list_bulkDelete_title => 'Búvártársak törlése';
+
+  @override
+  String buddies_list_bulkDelete_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'búvártársat',
+      one: 'búvártársat',
+    );
+    return 'Biztosan törölni szeretnéd ezt a(z) $count $_temp0? Ez a művelet nem vonható vissza.';
+  }
+
+  @override
+  String get buddies_list_bulkDelete_cancel => 'Mégse';
+
+  @override
+  String get buddies_list_bulkDelete_confirm => 'Törlés';
+
+  @override
+  String buddies_list_bulkDelete_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'búvártárs',
+      one: 'búvártárs',
+    );
+    return '$count $_temp0 törölve';
+  }
+
+  @override
+  String get buddies_edit_merge_title => 'Búvártársak összevonása';
+
+  @override
+  String get buddies_edit_merge_fieldSourceCycleTooltip =>
+      'Érték használata a következő kijelölt búvártárstól';
+
+  @override
+  String buddies_edit_merge_fieldSourceLabel(
+    String buddyName,
+    int current,
+    int total,
+  ) {
+    return '$buddyName ($current/$total)';
+  }
+
+  @override
+  String get buddies_edit_merge_confirmTitle => 'Búvártársak összevonása';
+
+  @override
+  String buddies_edit_merge_confirmBody(int count) {
+    return 'Ez $count búvártársat von össze eggyé. A merülés-társítások az életben maradó búvártárs alá kerülnek. A többi búvártárs törlésre kerül.';
+  }
+
+  @override
+  String get buddies_edit_merge_loadingErrorTitle => 'Búvártársak összevonása';
+
+  @override
+  String buddies_edit_merge_loadingErrorBody(String error) {
+    return 'Nem sikerült betölteni a búvártársakat: $error';
+  }
+
+  @override
+  String get buddies_edit_merge_notEnoughTitle => 'Búvártársak összevonása';
+
+  @override
+  String get buddies_edit_merge_notEnoughBody =>
+      'Nincs elég búvártárs az összevonáshoz.';
+
+  @override
   String get certifications_appBar_addCertification => 'Kepesites hozzaadasa';
 
   @override

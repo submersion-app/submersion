@@ -664,6 +664,113 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buddies_validation_nameRequired => 'Inserisci un nome';
 
   @override
+  String get buddies_list_selection_closeTooltip => 'Chiudi selezione';
+
+  @override
+  String buddies_list_selection_count(int count) {
+    return '$count selezionato/i';
+  }
+
+  @override
+  String get buddies_list_selection_selectAllTooltip => 'Seleziona tutto';
+
+  @override
+  String get buddies_list_selection_deselectAllTooltip => 'Deseleziona tutto';
+
+  @override
+  String get buddies_list_selection_mergeTooltip => 'Unisci selezionati';
+
+  @override
+  String get buddies_list_selection_deleteTooltip => 'Elimina selezionati';
+
+  @override
+  String buddies_list_merge_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'compagni',
+      one: 'compagno',
+    );
+    return '$count $_temp0 uniti';
+  }
+
+  @override
+  String get buddies_list_merge_undo => 'Annulla';
+
+  @override
+  String get buddies_list_merge_restored => 'Unione annullata';
+
+  @override
+  String get buddies_list_bulkDelete_title => 'Elimina compagni';
+
+  @override
+  String buddies_list_bulkDelete_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'compagni',
+      one: 'compagno',
+    );
+    return 'Sei sicuro di voler eliminare $count $_temp0? Questa azione non può essere annullata.';
+  }
+
+  @override
+  String get buddies_list_bulkDelete_cancel => 'Annulla';
+
+  @override
+  String get buddies_list_bulkDelete_confirm => 'Elimina';
+
+  @override
+  String buddies_list_bulkDelete_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'compagni',
+      one: 'compagno',
+    );
+    return '$count $_temp0 eliminati';
+  }
+
+  @override
+  String get buddies_edit_merge_title => 'Unisci compagni';
+
+  @override
+  String get buddies_edit_merge_fieldSourceCycleTooltip =>
+      'Usa il valore del compagno selezionato successivo';
+
+  @override
+  String buddies_edit_merge_fieldSourceLabel(
+    String buddyName,
+    int current,
+    int total,
+  ) {
+    return 'Da $buddyName ($current/$total)';
+  }
+
+  @override
+  String get buddies_edit_merge_confirmTitle => 'Unisci compagni';
+
+  @override
+  String buddies_edit_merge_confirmBody(int count) {
+    return 'Questo unirà $count compagni in uno. Le associazioni delle immersioni saranno combinate sotto il compagno risultante. Gli altri compagni saranno eliminati.';
+  }
+
+  @override
+  String get buddies_edit_merge_loadingErrorTitle => 'Unisci compagni';
+
+  @override
+  String buddies_edit_merge_loadingErrorBody(String error) {
+    return 'Impossibile caricare i compagni: $error';
+  }
+
+  @override
+  String get buddies_edit_merge_notEnoughTitle => 'Unisci compagni';
+
+  @override
+  String get buddies_edit_merge_notEnoughBody =>
+      'Compagni insufficienti per l\'unione.';
+
+  @override
   String get certifications_appBar_addCertification =>
       'Aggiungi certificazione';
 

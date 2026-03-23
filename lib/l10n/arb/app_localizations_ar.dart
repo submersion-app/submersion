@@ -656,6 +656,113 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_validation_nameRequired => 'الرجاء إدخال الاسم';
 
   @override
+  String get buddies_list_selection_closeTooltip => 'إغلاق التحديد';
+
+  @override
+  String buddies_list_selection_count(int count) {
+    return '$count مُحدد';
+  }
+
+  @override
+  String get buddies_list_selection_selectAllTooltip => 'تحديد الكل';
+
+  @override
+  String get buddies_list_selection_deselectAllTooltip => 'إلغاء تحديد الكل';
+
+  @override
+  String get buddies_list_selection_mergeTooltip => 'دمج المحددين';
+
+  @override
+  String get buddies_list_selection_deleteTooltip => 'حذف المحددين';
+
+  @override
+  String buddies_list_merge_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'رفاق',
+      one: 'رفيق',
+    );
+    return 'تم دمج $count $_temp0';
+  }
+
+  @override
+  String get buddies_list_merge_undo => 'تراجع';
+
+  @override
+  String get buddies_list_merge_restored => 'تم التراجع عن الدمج';
+
+  @override
+  String get buddies_list_bulkDelete_title => 'حذف الرفاق';
+
+  @override
+  String buddies_list_bulkDelete_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'رفاق',
+      one: 'رفيق',
+    );
+    return 'هل أنت متأكد من حذف $count $_temp0؟ لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String get buddies_list_bulkDelete_cancel => 'إلغاء';
+
+  @override
+  String get buddies_list_bulkDelete_confirm => 'حذف';
+
+  @override
+  String buddies_list_bulkDelete_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'رفاق',
+      one: 'رفيق',
+    );
+    return 'تم حذف $count $_temp0';
+  }
+
+  @override
+  String get buddies_edit_merge_title => 'دمج الرفاق';
+
+  @override
+  String get buddies_edit_merge_fieldSourceCycleTooltip =>
+      'استخدام القيمة من الرفيق المحدد التالي';
+
+  @override
+  String buddies_edit_merge_fieldSourceLabel(
+    String buddyName,
+    int current,
+    int total,
+  ) {
+    return 'من $buddyName ($current/$total)';
+  }
+
+  @override
+  String get buddies_edit_merge_confirmTitle => 'دمج الرفاق';
+
+  @override
+  String buddies_edit_merge_confirmBody(int count) {
+    return 'سيتم دمج $count من الرفاق في رفيق واحد. ستُجمع ارتباطات الغوص تحت الرفيق الباقي. سيتم حذف الرفاق الآخرين.';
+  }
+
+  @override
+  String get buddies_edit_merge_loadingErrorTitle => 'دمج الرفاق';
+
+  @override
+  String buddies_edit_merge_loadingErrorBody(String error) {
+    return 'فشل في تحميل الرفاق: $error';
+  }
+
+  @override
+  String get buddies_edit_merge_notEnoughTitle => 'دمج الرفاق';
+
+  @override
+  String get buddies_edit_merge_notEnoughBody =>
+      'لا يوجد عدد كافٍ من الرفاق للدمج.';
+
+  @override
   String get certifications_appBar_addCertification => 'إضافة شهادة';
 
   @override

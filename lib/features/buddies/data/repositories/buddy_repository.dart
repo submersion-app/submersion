@@ -9,6 +9,11 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
+import 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart';
+
+// Re-export merge types so callers can import from buddy_repository.dart
+export 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart'
+    show BuddyMergeResult, BuddyMergeSnapshot, DiveBuddySnapshot;
 
 class BuddyRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -573,6 +578,26 @@ class BuddyRepository {
       favoriteSite: favoriteSite,
     );
   }
+
+  /// Merge multiple buddies into the first buddy in [buddyIds].
+  ///
+  /// Delegates to [BuddyMergeRepository]. The first ID is treated as the
+  /// survivor. DiveBuddies entries are re-linked with role conflict resolution.
+  Future<BuddyMergeResult?> mergeBuddies({
+    required domain.Buddy mergedBuddy,
+    required List<String> buddyIds,
+  }) => BuddyMergeRepository().mergeBuddies(
+    mergedBuddy: mergedBuddy,
+    buddyIds: buddyIds,
+  );
+
+  /// Reverse a merge operation. Delegates to [BuddyMergeRepository].
+  Future<void> undoMerge(BuddyMergeSnapshot snapshot) =>
+      BuddyMergeRepository().undoMerge(snapshot);
+
+  /// Bulk delete multiple buddies. Delegates to [BuddyMergeRepository].
+  Future<void> bulkDeleteBuddies(List<String> ids) =>
+      BuddyMergeRepository().bulkDeleteBuddies(ids);
 
   domain.Buddy _mapRowToBuddy(Buddy row) {
     return domain.Buddy(

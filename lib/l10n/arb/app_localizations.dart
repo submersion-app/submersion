@@ -1260,6 +1260,148 @@ abstract class AppLocalizations {
   /// **'Please enter a name'**
   String get buddies_validation_nameRequired;
 
+  /// No description provided for @buddies_list_selection_closeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Close Selection'**
+  String get buddies_list_selection_closeTooltip;
+
+  /// No description provided for @buddies_list_selection_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String buddies_list_selection_count(int count);
+
+  /// No description provided for @buddies_list_selection_selectAllTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Select All'**
+  String get buddies_list_selection_selectAllTooltip;
+
+  /// No description provided for @buddies_list_selection_deselectAllTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect All'**
+  String get buddies_list_selection_deselectAllTooltip;
+
+  /// No description provided for @buddies_list_selection_mergeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Selected'**
+  String get buddies_list_selection_mergeTooltip;
+
+  /// No description provided for @buddies_list_selection_deleteTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Selected'**
+  String get buddies_list_selection_deleteTooltip;
+
+  /// No description provided for @buddies_list_merge_snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Merged {count} {count, plural, =1{buddy} other{buddies}}'**
+  String buddies_list_merge_snackbar(int count);
+
+  /// No description provided for @buddies_list_merge_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get buddies_list_merge_undo;
+
+  /// No description provided for @buddies_list_merge_restored.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge undone'**
+  String get buddies_list_merge_restored;
+
+  /// No description provided for @buddies_list_bulkDelete_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Buddies'**
+  String get buddies_list_bulkDelete_title;
+
+  /// No description provided for @buddies_list_bulkDelete_content.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete {count} {count, plural, =1{buddy} other{buddies}}? This action cannot be undone.'**
+  String buddies_list_bulkDelete_content(int count);
+
+  /// No description provided for @buddies_list_bulkDelete_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get buddies_list_bulkDelete_cancel;
+
+  /// No description provided for @buddies_list_bulkDelete_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get buddies_list_bulkDelete_confirm;
+
+  /// No description provided for @buddies_list_bulkDelete_snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted {count} {count, plural, =1{buddy} other{buddies}}'**
+  String buddies_list_bulkDelete_snackbar(int count);
+
+  /// No description provided for @buddies_edit_merge_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Buddies'**
+  String get buddies_edit_merge_title;
+
+  /// No description provided for @buddies_edit_merge_fieldSourceCycleTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Use value from next selected buddy'**
+  String get buddies_edit_merge_fieldSourceCycleTooltip;
+
+  /// No description provided for @buddies_edit_merge_fieldSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'From {buddyName} ({current}/{total})'**
+  String buddies_edit_merge_fieldSourceLabel(
+    String buddyName,
+    int current,
+    int total,
+  );
+
+  /// No description provided for @buddies_edit_merge_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Buddies'**
+  String get buddies_edit_merge_confirmTitle;
+
+  /// No description provided for @buddies_edit_merge_confirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will merge {count} buddies into one. Dive associations will be combined under the surviving buddy. The other buddies will be deleted.'**
+  String buddies_edit_merge_confirmBody(int count);
+
+  /// No description provided for @buddies_edit_merge_loadingErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Buddies'**
+  String get buddies_edit_merge_loadingErrorTitle;
+
+  /// No description provided for @buddies_edit_merge_loadingErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load buddies: {error}'**
+  String buddies_edit_merge_loadingErrorBody(String error);
+
+  /// No description provided for @buddies_edit_merge_notEnoughTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Buddies'**
+  String get buddies_edit_merge_notEnoughTitle;
+
+  /// No description provided for @buddies_edit_merge_notEnoughBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough buddies to merge.'**
+  String get buddies_edit_merge_notEnoughBody;
+
   /// No description provided for @certifications_appBar_addCertification.
   ///
   /// In en, this message translates to:

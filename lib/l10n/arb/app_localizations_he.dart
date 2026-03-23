@@ -650,6 +650,113 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_validation_nameRequired => 'נא להזין שם';
 
   @override
+  String get buddies_list_selection_closeTooltip => 'סגור בחירה';
+
+  @override
+  String buddies_list_selection_count(int count) {
+    return '$count נבחרו';
+  }
+
+  @override
+  String get buddies_list_selection_selectAllTooltip => 'בחר הכל';
+
+  @override
+  String get buddies_list_selection_deselectAllTooltip => 'בטל בחירת הכל';
+
+  @override
+  String get buddies_list_selection_mergeTooltip => 'מזג נבחרים';
+
+  @override
+  String get buddies_list_selection_deleteTooltip => 'מחק נבחרים';
+
+  @override
+  String buddies_list_merge_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'חברי צוללים',
+      one: 'חבר צוללים',
+    );
+    return 'מוזגו $count $_temp0';
+  }
+
+  @override
+  String get buddies_list_merge_undo => 'בטל';
+
+  @override
+  String get buddies_list_merge_restored => 'המיזוג בוטל';
+
+  @override
+  String get buddies_list_bulkDelete_title => 'מחק חברי צוללים';
+
+  @override
+  String buddies_list_bulkDelete_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'חברי צוללים',
+      one: 'חבר צוללים',
+    );
+    return 'האם אתה בטוח שברצונך למחוק $count $_temp0? לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String get buddies_list_bulkDelete_cancel => 'ביטול';
+
+  @override
+  String get buddies_list_bulkDelete_confirm => 'מחק';
+
+  @override
+  String buddies_list_bulkDelete_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'חברי צוללים',
+      one: 'חבר צוללים',
+    );
+    return 'נמחקו $count $_temp0';
+  }
+
+  @override
+  String get buddies_edit_merge_title => 'מזג חברי צוללים';
+
+  @override
+  String get buddies_edit_merge_fieldSourceCycleTooltip =>
+      'השתמש בערך מחבר הצוללים הנבחר הבא';
+
+  @override
+  String buddies_edit_merge_fieldSourceLabel(
+    String buddyName,
+    int current,
+    int total,
+  ) {
+    return 'מ-$buddyName ($current/$total)';
+  }
+
+  @override
+  String get buddies_edit_merge_confirmTitle => 'מזג חברי צוללים';
+
+  @override
+  String buddies_edit_merge_confirmBody(int count) {
+    return 'פעולה זו תמזג $count חברי צוללים לאחד. קישורי הצלילות יאוחדו תחת חבר הצוללים הנותר. שאר חברי הצוללים יימחקו.';
+  }
+
+  @override
+  String get buddies_edit_merge_loadingErrorTitle => 'מזג חברי צוללים';
+
+  @override
+  String buddies_edit_merge_loadingErrorBody(String error) {
+    return 'טעינת חברי צוללים נכשלה: $error';
+  }
+
+  @override
+  String get buddies_edit_merge_notEnoughTitle => 'מזג חברי צוללים';
+
+  @override
+  String get buddies_edit_merge_notEnoughBody =>
+      'אין מספיק חברי צוללים למיזוג.';
+
+  @override
   String get certifications_appBar_addCertification => 'הוסף הסמכה';
 
   @override

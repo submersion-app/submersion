@@ -26,7 +26,7 @@ BuddyMergeSnapshot:
   modifiedDiveBuddyEntries: List<DiveBuddySnapshot>  // junction rows whose role changed
 ```
 
-`DiveBuddySnapshot` captures the original junction row fields: id, diveId, buddyId, role. The `createdAt` field is not captured; undo will use the current timestamp when re-creating entries, matching the sites merge pattern.
+`DiveBuddySnapshot` captures the original junction row fields: id, diveId, buddyId, role, and createdAt. Undo restores the original `createdAt` timestamp rather than using the current time, preserving association history.
 
 ### BuddyMergeResult
 
@@ -124,7 +124,7 @@ Add to `buddy_edit_page.dart`:
 - `_loadMergeData()`: fetches all buddies by ID, ordered by selection order
 - Per-field cycling for text fields: name, email, phone, notes
 - Per-field cycling for enum fields: certificationLevel, certificationAgency
-- Photo handling: `photoPath` is included in per-field cycling. Candidates are the distinct non-null photo paths from the merged buddies, displayed as thumbnail previews with the cycle button. If only one buddy has a photo, it is used automatically.
+- Photo handling: per-field cycling for `photoPath` is **not** implemented yet. The merge UI continues to show the existing "photo coming soon" placeholder, and an initial `mergedPhotoPath` is chosen automatically (the first non-null photo from the merged buddies) without any user-facing photo cycling controls or thumbnail previews.
 - Uses `_MergeFieldCandidate<T>`, `_buildDistinctCandidates()`, `_initializeMergeTextField()`, `_buildMergeCycleButton()` patterns from sites
 - Title changes to "Merge Buddies" when `isMerging`
 - Save triggers `_confirmMerge()` confirmation dialog before executing

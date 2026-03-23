@@ -663,6 +663,113 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buddies_validation_nameRequired => 'Por favor ingresa un nombre';
 
   @override
+  String get buddies_list_selection_closeTooltip => 'Cerrar selección';
+
+  @override
+  String buddies_list_selection_count(int count) {
+    return '$count seleccionado(s)';
+  }
+
+  @override
+  String get buddies_list_selection_selectAllTooltip => 'Seleccionar todo';
+
+  @override
+  String get buddies_list_selection_deselectAllTooltip => 'Deseleccionar todo';
+
+  @override
+  String get buddies_list_selection_mergeTooltip => 'Combinar seleccionados';
+
+  @override
+  String get buddies_list_selection_deleteTooltip => 'Eliminar seleccionados';
+
+  @override
+  String buddies_list_merge_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'compañeros',
+      one: 'compañero',
+    );
+    return 'Se combinaron $count $_temp0';
+  }
+
+  @override
+  String get buddies_list_merge_undo => 'Deshacer';
+
+  @override
+  String get buddies_list_merge_restored => 'Combinación deshecha';
+
+  @override
+  String get buddies_list_bulkDelete_title => 'Eliminar Compañeros';
+
+  @override
+  String buddies_list_bulkDelete_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'compañeros',
+      one: 'compañero',
+    );
+    return '¿Estás seguro de que deseas eliminar $count $_temp0? Esta acción no se puede deshacer.';
+  }
+
+  @override
+  String get buddies_list_bulkDelete_cancel => 'Cancelar';
+
+  @override
+  String get buddies_list_bulkDelete_confirm => 'Eliminar';
+
+  @override
+  String buddies_list_bulkDelete_snackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'compañeros',
+      one: 'compañero',
+    );
+    return 'Se eliminaron $count $_temp0';
+  }
+
+  @override
+  String get buddies_edit_merge_title => 'Combinar Compañeros';
+
+  @override
+  String get buddies_edit_merge_fieldSourceCycleTooltip =>
+      'Usar valor del siguiente compañero seleccionado';
+
+  @override
+  String buddies_edit_merge_fieldSourceLabel(
+    String buddyName,
+    int current,
+    int total,
+  ) {
+    return 'De $buddyName ($current/$total)';
+  }
+
+  @override
+  String get buddies_edit_merge_confirmTitle => 'Combinar Compañeros';
+
+  @override
+  String buddies_edit_merge_confirmBody(int count) {
+    return 'Esto combinará $count compañeros en uno. Las asociaciones de inmersiones se unirán bajo el compañero resultante. Los demás compañeros serán eliminados.';
+  }
+
+  @override
+  String get buddies_edit_merge_loadingErrorTitle => 'Combinar Compañeros';
+
+  @override
+  String buddies_edit_merge_loadingErrorBody(String error) {
+    return 'Error al cargar compañeros: $error';
+  }
+
+  @override
+  String get buddies_edit_merge_notEnoughTitle => 'Combinar Compañeros';
+
+  @override
+  String get buddies_edit_merge_notEnoughBody =>
+      'No hay suficientes compañeros para combinar.';
+
+  @override
   String get certifications_appBar_addCertification => 'Agregar certificacion';
 
   @override
