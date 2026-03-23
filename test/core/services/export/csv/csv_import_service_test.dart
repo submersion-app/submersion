@@ -55,5 +55,65 @@ void main() {
       );
       expect(dateTime.minute, 22);
     });
+
+    test('all dives in multi-row CSV produce UTC DateTimes', () async {
+      const csv =
+          'Date,Time,Duration\r\n'
+          '2024-01-15,08:00,45\r\n'
+          '2024-01-15,14:30,50\r\n'
+          '2024-01-16,09:45,35\r\n';
+
+      final dives = await service.importDivesFromCsv(csv);
+
+      expect(dives, hasLength(3));
+      for (final dive in dives) {
+        final dt = dive['dateTime'] as DateTime;
+        expect(dt.isUtc, isTrue, reason: 'Every dive must have UTC dateTime');
+      }
+      expect((dives[0]['dateTime'] as DateTime).hour, 8);
+      expect((dives[1]['dateTime'] as DateTime).hour, 14);
+      expect((dives[2]['dateTime'] as DateTime).hour, 9);
+    });
+
+    test('MM/dd/yyyy date format produces UTC', () async {
+      const csv =
+          'Date,Time,Duration\r\n'
+          '01/15/2024,10:00,45\r\n';
+
+      final dives = await service.importDivesFromCsv(csv);
+
+      expect(dives, hasLength(1));
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(dateTime.isUtc, isTrue);
+      expect(dateTime, DateTime.utc(2024, 1, 15, 10, 0));
+    });
+
+    test('midnight time is preserved as UTC', () async {
+      const csv =
+          'Date,Time,Duration\r\n'
+          '2024-01-15,00:00,45\r\n';
+
+      final dives = await service.importDivesFromCsv(csv);
+
+      expect(dives, hasLength(1));
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(dateTime.isUtc, isTrue);
+      expect(dateTime.hour, 0);
+      expect(dateTime.minute, 0);
+    });
+
+    test('late evening time is preserved as UTC', () async {
+      const csv =
+          'Date,Time,Duration\r\n'
+          '2024-01-15,23:30,45\r\n';
+
+      final dives = await service.importDivesFromCsv(csv);
+
+      expect(dives, hasLength(1));
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(dateTime.isUtc, isTrue);
+      expect(dateTime.hour, 23);
+      expect(dateTime.minute, 30);
+    });
   });
 }
