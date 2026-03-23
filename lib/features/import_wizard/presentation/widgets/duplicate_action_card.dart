@@ -1,0 +1,222 @@
+import 'package:flutter/material.dart';
+
+import 'package:submersion/core/presentation/widgets/dive_comparison_card.dart';
+import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
+import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+
+/// A collapsed/expandable card summarising one duplicate item.
+///
+/// In collapsed state the card shows a match-percentage badge, item title and
+/// subtitle, and the current action badge. Tapping the chevron expands the
+/// card to reveal a [DiveComparisonCard] in tri-state selector mode.
+class DuplicateActionCard extends StatefulWidget {
+  /// The item data for display.
+  final EntityItem item;
+
+  /// The duplicate match result containing score and matched dive ID.
+  final DiveMatchResult matchResult;
+
+  /// The currently selected action for this item.
+  final DuplicateAction selectedAction;
+
+  /// The set of action buttons to show in the expanded comparison card.
+  final Set<DuplicateAction> availableActions;
+
+  /// Called when the user selects a different action.
+  final ValueChanged<DuplicateAction> onActionChanged;
+
+  /// The ID of the matched existing dive, passed to [DiveComparisonCard].
+  final String existingDiveId;
+
+  const DuplicateActionCard({
+    super.key,
+    required this.item,
+    required this.matchResult,
+    required this.selectedAction,
+    required this.availableActions,
+    required this.onActionChanged,
+    required this.existingDiveId,
+  });
+
+  @override
+  State<DuplicateActionCard> createState() => _DuplicateActionCardState();
+}
+
+class _DuplicateActionCardState extends State<DuplicateActionCard> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final score = widget.matchResult.score;
+
+    final borderColor = score >= 0.7 ? colorScheme.error : Colors.orange;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: borderColor, width: 1.5),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _CollapsedHeader(
+            item: widget.item,
+            matchResult: widget.matchResult,
+            selectedAction: widget.selectedAction,
+            expanded: _expanded,
+            onToggle: () => setState(() => _expanded = !_expanded),
+          ),
+          if (_expanded) _buildExpanded(context, colorScheme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpanded(BuildContext context, ColorScheme colorScheme) {
+    final diveData = widget.item.diveData;
+    if (diveData == null) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          'Dive data not available for comparison.',
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+        ),
+      );
+    }
+
+    return DiveComparisonCard(
+      incoming: diveData,
+      existingDiveId: widget.existingDiveId,
+      matchScore: widget.matchResult.score,
+      incomingLabel: 'Incoming',
+      selectedAction: widget.selectedAction,
+      onActionChanged: widget.onActionChanged,
+      availableActions: widget.availableActions,
+    );
+  }
+}
+
+class _CollapsedHeader extends StatelessWidget {
+  final EntityItem item;
+  final DiveMatchResult matchResult;
+  final DuplicateAction selectedAction;
+  final bool expanded;
+  final VoidCallback onToggle;
+
+  const _CollapsedHeader({
+    required this.item,
+    required this.matchResult,
+    required this.selectedAction,
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final score = matchResult.score;
+    final percent = (score * 100).toStringAsFixed(0);
+
+    final badgeBorderColor = score >= 0.7 ? colorScheme.error : Colors.orange;
+
+    return InkWell(
+      onTap: onToggle,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            // Match percentage badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                border: Border.all(color: badgeBorderColor, width: 1.5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '$percent% MATCH',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: badgeBorderColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            // Title and subtitle
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    item.subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Action badge
+            _ActionBadge(action: selectedAction),
+            const SizedBox(width: 4),
+            // Expand/collapse chevron
+            Icon(
+              expanded ? Icons.expand_less : Icons.expand_more,
+              size: 20,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionBadge extends StatelessWidget {
+  final DuplicateAction action;
+
+  const _ActionBadge({required this.action});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final (label, color) = switch (action) {
+      DuplicateAction.skip => ('SKIP', theme.colorScheme.error),
+      DuplicateAction.importAsNew => ('IMPORT', Colors.blue.shade700),
+      DuplicateAction.consolidate => ('CONSOLIDATE', Colors.green.shade700),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color, width: 1),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+}
