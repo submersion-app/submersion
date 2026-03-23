@@ -107,12 +107,12 @@ class CsvImportService {
         }
       }
 
-      // Combine date and time if both present
+      // Combine date and time if both present (UTC wall-time convention)
       if (diveData['date'] != null) {
         DateTime dateTime = diveData['date'] as DateTime;
         if (diveData['time'] != null) {
           final time = diveData['time'] as DateTime;
-          dateTime = DateTime(
+          dateTime = DateTime.utc(
             dateTime.year,
             dateTime.month,
             dateTime.day,
@@ -135,6 +135,10 @@ class CsvImportService {
 
   // ==================== Parsing Helpers ====================
 
+  /// Parse a date string, returning a UTC DateTime (wall-time convention).
+  ///
+  /// Uses strict parsing so that ISO 8601 strings (e.g. "2024-01-15T10:30:00")
+  /// fall through to [DateTime.tryParse] which handles them natively.
   DateTime? _parseDate(String value) {
     final formats = [
       'yyyy-MM-dd',
@@ -147,21 +151,34 @@ class CsvImportService {
 
     for (final format in formats) {
       try {
-        return DateFormat(format).parse(value);
+        return DateFormat(format).parseStrict(value, true);
       } catch (_) {
         continue;
       }
     }
 
-    return DateTime.tryParse(value);
+    final parsed = DateTime.tryParse(value);
+    if (parsed == null) return null;
+    if (parsed.isUtc) return parsed;
+    return DateTime.utc(
+      parsed.year,
+      parsed.month,
+      parsed.day,
+      parsed.hour,
+      parsed.minute,
+      parsed.second,
+      parsed.millisecond,
+      parsed.microsecond,
+    );
   }
 
+  /// Parse a time string, returning a UTC DateTime (wall-time convention).
   DateTime? _parseTime(String value) {
     final formats = ['HH:mm', 'H:mm', 'hh:mm a', 'h:mm a'];
 
     for (final format in formats) {
       try {
-        return DateFormat(format).parse(value);
+        return DateFormat(format).parse(value, true);
       } catch (_) {
         continue;
       }

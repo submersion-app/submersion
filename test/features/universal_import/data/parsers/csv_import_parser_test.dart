@@ -218,5 +218,148 @@ void main() {
       expect(dateTime.hour, 14);
       expect(dateTime.minute, 30);
     });
+
+    test('produces UTC DateTimes (utc-as-wall-time convention)', () async {
+      const csv =
+          'Date,Time,Max Depth\n'
+          '2024-01-15,14:30,25.5\n';
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        options: const ImportOptions(
+          sourceApp: SourceApp.generic,
+          format: ImportFormat.csv,
+        ),
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(
+        dateTime.isUtc,
+        isTrue,
+        reason: 'CSV import must produce UTC DateTimes for wall-time storage',
+      );
+      expect(dateTime, DateTime.utc(2024, 1, 15, 14, 30));
+    });
+
+    test('date-only CSV produces UTC DateTime at midnight', () async {
+      const csv =
+          'Date,Max Depth\n'
+          '2024-01-15,25.5\n';
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        options: const ImportOptions(
+          sourceApp: SourceApp.generic,
+          format: ImportFormat.csv,
+        ),
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(dateTime.isUtc, isTrue);
+      expect(dateTime, DateTime.utc(2024, 1, 15));
+    });
+
+    test('times are not shifted by local UTC offset (issue #60)', () async {
+      // This is the exact scenario from issue #60: a user at UTC+4 imports
+      // a CSV with time "11:22" and it should remain 11:22, not become 15:22.
+      const csv =
+          'Dive,Date,Time,Depth,Duration,,,Notes\n'
+          '3,1998-08-05,11:22,15,45,,,\n';
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        options: const ImportOptions(
+          sourceApp: SourceApp.generic,
+          format: ImportFormat.csv,
+        ),
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(dateTime.isUtc, isTrue);
+      expect(
+        dateTime.hour,
+        11,
+        reason: 'Time must not be shifted by UTC offset',
+      );
+      expect(dateTime.minute, 22);
+    });
+
+    test('all dives in multi-row CSV produce UTC DateTimes', () async {
+      const csv =
+          'Date,Time,Max Depth\n'
+          '2024-01-15,08:00,20\n'
+          '2024-01-15,14:30,25\n'
+          '2024-01-16,09:45,18\n';
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        options: const ImportOptions(
+          sourceApp: SourceApp.generic,
+          format: ImportFormat.csv,
+        ),
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, hasLength(3));
+      for (final dive in dives) {
+        final dt = dive['dateTime'] as DateTime;
+        expect(dt.isUtc, isTrue, reason: 'Every dive must have UTC dateTime');
+      }
+      expect((dives[0]['dateTime'] as DateTime).hour, 8);
+      expect((dives[1]['dateTime'] as DateTime).hour, 14);
+      expect((dives[2]['dateTime'] as DateTime).hour, 9);
+    });
+
+    test('custom mapping with date field produces UTC', () async {
+      const csv =
+          'dive_date,dive_time,depth\n'
+          '2024-06-20,16:45,30\n';
+
+      const customMapping = FieldMapping(
+        name: 'Custom UTC',
+        sourceApp: SourceApp.generic,
+        columns: [
+          ColumnMapping(sourceColumn: 'dive_date', targetField: 'date'),
+          ColumnMapping(sourceColumn: 'dive_time', targetField: 'time'),
+          ColumnMapping(sourceColumn: 'depth', targetField: 'maxDepth'),
+        ],
+      );
+
+      const customParser = CsvImportParser(customMapping: customMapping);
+      final result = await customParser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(dateTime.isUtc, isTrue);
+      expect(dateTime, DateTime.utc(2024, 6, 20, 16, 45));
+    });
+
+    test('time with seconds produces UTC', () async {
+      const csv =
+          'Date,Time,Max Depth\n'
+          '2024-01-15,14:30:45,25.5\n';
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        options: const ImportOptions(
+          sourceApp: SourceApp.generic,
+          format: ImportFormat.csv,
+        ),
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(dateTime.isUtc, isTrue);
+      expect(dateTime.hour, 14);
+      expect(dateTime.minute, 30);
+    });
   });
 }

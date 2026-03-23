@@ -208,44 +208,95 @@ void main() {
   });
 
   group('parseDate', () {
-    test('parses yyyy-MM-dd', () {
-      expect(service.parseDate('2024-01-15'), DateTime(2024, 1, 15));
+    test('parses yyyy-MM-dd as UTC', () {
+      final result = service.parseDate('2024-01-15');
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      expect(result, DateTime.utc(2024, 1, 15));
     });
 
-    test('parses MM/dd/yyyy', () {
-      expect(service.parseDate('01/15/2024'), DateTime(2024, 1, 15));
+    test('parses MM/dd/yyyy as UTC', () {
+      final result = service.parseDate('01/15/2024');
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      expect(result, DateTime.utc(2024, 1, 15));
     });
 
-    test('parses ISO 8601', () {
+    test('parses ISO 8601 without timezone as UTC', () {
       final result = service.parseDate('2024-01-15T10:30:00');
       expect(result, isNotNull);
-      expect(result!.year, 2024);
+      expect(result!.isUtc, isTrue);
+      expect(result.year, 2024);
       expect(result.month, 1);
       expect(result.day, 15);
+      expect(result.hour, 10);
+      expect(result.minute, 30);
+    });
+
+    test('parses ISO 8601 with Z suffix and preserves UTC', () {
+      final result = service.parseDate('2024-01-15T10:30:00Z');
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      expect(result.hour, 10);
+      expect(result.minute, 30);
     });
 
     test('returns null for garbage', () {
       expect(service.parseDate('not a date'), isNull);
     });
+
+    test('returns null for empty string', () {
+      expect(service.parseDate(''), isNull);
+    });
   });
 
   group('parseTime', () {
-    test('parses HH:mm', () {
+    test('parses HH:mm as UTC', () {
       final result = service.parseTime('14:30');
       expect(result, isNotNull);
-      expect(result!.hour, 14);
+      expect(result!.isUtc, isTrue);
+      expect(result.hour, 14);
       expect(result.minute, 30);
     });
 
-    test('parses HH:mm:ss', () {
+    test('parses single-digit hour H:mm as UTC', () {
+      final result = service.parseTime('9:15');
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      expect(result.hour, 9);
+      expect(result.minute, 15);
+    });
+
+    test('parses HH:mm:ss as UTC', () {
       final result = service.parseTime('14:30:45');
       expect(result, isNotNull);
-      expect(result!.hour, 14);
+      expect(result!.isUtc, isTrue);
+      expect(result.hour, 14);
       expect(result.minute, 30);
+    });
+
+    test('parses midnight as UTC', () {
+      final result = service.parseTime('00:00');
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      expect(result.hour, 0);
+      expect(result.minute, 0);
+    });
+
+    test('parses end of day as UTC', () {
+      final result = service.parseTime('23:59');
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      expect(result.hour, 23);
+      expect(result.minute, 59);
     });
 
     test('returns null for invalid', () {
       expect(service.parseTime('noon'), isNull);
+    });
+
+    test('returns null for bare number', () {
+      expect(service.parseTime('45'), isNull);
     });
   });
 
