@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -13,7 +13,25 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
     hide diveProvider;
 import 'package:submersion/features/import_wizard/data/adapters/fit_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/healthkit_adapter.dart';
+import 'package:submersion/features/import_wizard/data/adapters/uddf_adapter.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/unified_import_wizard.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_import/data/services/uddf_duplicate_checker.dart';
+import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
+import 'package:submersion/features/dive_import/data/services/uddf_parser_service.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
+import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/onboarding/presentation/pages/welcome_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
@@ -104,7 +122,6 @@ import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.
 import 'package:submersion/features/dive_planner/presentation/pages/dive_planner_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
 import 'package:submersion/features/dive_import/presentation/pages/healthkit_import_page.dart';
-import 'package:submersion/features/dive_import/presentation/pages/uddf_import_page.dart';
 import 'package:submersion/features/universal_import/presentation/pages/universal_import_page.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 
@@ -712,7 +729,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'uddf-import',
                 name: 'uddfImport',
-                builder: (context, state) => const UddfImportPage(),
+                builder: (context, state) => const _UddfImportWizardRoute(),
               ),
               GoRoute(
                 path: 'import-wizard',
@@ -967,6 +984,103 @@ class _FitImportWizardRoute extends ConsumerWidget {
         diveRepository: diveRepo,
         diverId: diverId,
       ),
+    );
+  }
+}
+
+/// Wrapper that creates a [UddfAdapter] with dependencies from Riverpod.
+///
+/// Fetches all existing entities for duplicate checking and constructs the
+/// [UddfEntityImporter] with the user's tank preset settings.
+class _UddfImportWizardRoute extends ConsumerWidget {
+  const _UddfImportWizardRoute();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final diverId = ref.watch(currentDiverIdProvider) ?? '';
+    final diveRepo = ref.watch(diveRepositoryProvider);
+    final exportService = ref.watch(exportServiceProvider);
+    final parser = UddfParserService(exportService);
+    final settings = ref.watch(settingsProvider);
+
+    // Fetch existing entities for duplicate checking. These are async
+    // FutureProviders, so we watch the .when result. Show loading while any
+    // are still loading.
+    final tripsAsync = ref.watch(allTripsProvider);
+    final sitesAsync = ref.watch(sitesProvider);
+    final equipmentAsync = ref.watch(allEquipmentProvider);
+    final buddiesAsync = ref.watch(allBuddiesProvider);
+    final diveCentersAsync = ref.watch(allDiveCentersProvider);
+    final certsAsync = ref.watch(allCertificationsProvider);
+    final tagsAsync = ref.watch(tagsProvider);
+    final diveTypesAsync = ref.watch(diveTypesProvider);
+
+    // If any provider is still loading, show a loading indicator.
+    if (tripsAsync.isLoading ||
+        sitesAsync.isLoading ||
+        equipmentAsync.isLoading ||
+        buddiesAsync.isLoading ||
+        diveCentersAsync.isLoading ||
+        certsAsync.isLoading ||
+        tagsAsync.isLoading ||
+        diveTypesAsync.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final repositories = ImportRepositories(
+      tripRepository: ref.watch(tripRepositoryProvider),
+      equipmentRepository: ref.watch(equipmentRepositoryProvider),
+      equipmentSetRepository: ref.watch(equipmentSetRepositoryProvider),
+      buddyRepository: ref.watch(buddyRepositoryProvider),
+      diveCenterRepository: ref.watch(diveCenterRepositoryProvider),
+      certificationRepository: ref.watch(certificationRepositoryProvider),
+      tagRepository: ref.watch(tagRepositoryProvider),
+      diveTypeRepository: ref.watch(diveTypeRepositoryProvider),
+      siteRepository: ref.watch(siteRepositoryProvider),
+      diveRepository: diveRepo,
+      tankPressureRepository: ref.watch(tankPressureRepositoryProvider),
+      courseRepository: ref.watch(courseRepositoryProvider),
+    );
+
+    final resolver = DefaultTankPresetResolver(
+      repository: ref.watch(tankPresetRepositoryProvider),
+    );
+
+    return FutureBuilder(
+      future: resolver.resolve(settings.defaultTankPreset),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData && !snapshot.hasError) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final defaultTankPreset = snapshot.data;
+        final importer = UddfEntityImporter(
+          defaultTankPreset: defaultTankPreset,
+          defaultStartPressure: settings.defaultStartPressure,
+          applyDefaultTankToImports: settings.applyDefaultTankToImports,
+        );
+
+        return UnifiedImportWizard(
+          adapter: UddfAdapter(
+            parser: parser,
+            duplicateChecker: const UddfDuplicateChecker(),
+            entityImporter: importer,
+            repositories: repositories,
+            diveRepository: diveRepo,
+            existingTrips: tripsAsync.valueOrNull ?? const [],
+            existingSites: sitesAsync.valueOrNull ?? const [],
+            existingEquipment: equipmentAsync.valueOrNull ?? const [],
+            existingBuddies: buddiesAsync.valueOrNull ?? const [],
+            existingDiveCenters: diveCentersAsync.valueOrNull ?? const [],
+            existingCertifications: certsAsync.valueOrNull ?? const [],
+            existingTags: tagsAsync.valueOrNull ?? const [],
+            existingDiveTypes: diveTypesAsync.valueOrNull ?? const [],
+            diverId: diverId,
+          ),
+        );
+      },
     );
   }
 }
