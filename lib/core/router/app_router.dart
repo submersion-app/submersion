@@ -116,8 +116,10 @@ import 'package:submersion/features/deco_calculator/presentation/pages/deco_calc
 import 'package:submersion/features/gas_calculators/presentation/pages/gas_calculators_page.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/device_list_page.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/device_detail_page.dart';
-import 'package:submersion/features/dive_computer/presentation/pages/device_download_page.dart';
-import 'package:submersion/features/dive_computer/presentation/pages/device_discovery_page.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart'
+    show diveImportServiceProvider;
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:submersion/features/dive_planner/presentation/pages/dive_planner_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
@@ -908,7 +910,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'discover',
                 name: 'discoverDevice',
-                builder: (context, state) => const DeviceDiscoveryPage(),
+                builder: (context, state) =>
+                    const _DiveComputerDiscoveryWizardRoute(),
               ),
               GoRoute(
                 path: ':computerId',
@@ -920,9 +923,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'download',
                     name: 'computerDownload',
-                    builder: (context, state) => DeviceDownloadPage(
-                      computerId: state.pathParameters['computerId']!,
-                    ),
+                    builder: (context, state) =>
+                        _DiveComputerDownloadWizardRoute(
+                          computerId: state.pathParameters['computerId']!,
+                        ),
                   ),
                 ],
               ),
@@ -1081,6 +1085,71 @@ class _UddfImportWizardRoute extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Wrapper that creates a [DiveComputerAdapter] for device discovery.
+class _DiveComputerDiscoveryWizardRoute extends ConsumerWidget {
+  const _DiveComputerDiscoveryWizardRoute();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final diverId = ref.watch(currentDiverIdProvider) ?? '';
+    final importService = ref.watch(diveImportServiceProvider);
+    final computerRepo = ref.watch(diveComputerRepositoryProvider);
+    final diveRepo = ref.watch(diveRepositoryProvider);
+
+    return UnifiedImportWizard(
+      adapter: DiveComputerAdapter(
+        importService: importService,
+        computerRepository: computerRepo,
+        diveRepository: diveRepo,
+        diverId: diverId,
+      ),
+    );
+  }
+}
+
+/// Wrapper that creates a [DiveComputerAdapter] for quick download
+/// from a known (previously paired) computer.
+class _DiveComputerDownloadWizardRoute extends ConsumerWidget {
+  const _DiveComputerDownloadWizardRoute({required this.computerId});
+
+  final String computerId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final diverId = ref.watch(currentDiverIdProvider) ?? '';
+    final importService = ref.watch(diveImportServiceProvider);
+    final computerRepo = ref.watch(diveComputerRepositoryProvider);
+    final diveRepo = ref.watch(diveRepositoryProvider);
+    final computerAsync = ref.watch(diveComputerByIdProvider(computerId));
+
+    return computerAsync.when(
+      data: (computer) {
+        if (computer == null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Download')),
+            body: const Center(child: Text('Computer not found')),
+          );
+        }
+        return UnifiedImportWizard(
+          adapter: DiveComputerAdapter(
+            importService: importService,
+            computerRepository: computerRepo,
+            diveRepository: diveRepo,
+            diverId: diverId,
+            knownComputer: computer,
+          ),
+        );
+      },
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(
+        appBar: AppBar(title: const Text('Download')),
+        body: Center(child: Text('Error: $e')),
+      ),
     );
   }
 }
