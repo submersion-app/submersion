@@ -99,6 +99,10 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
 
   final ImportSourceAdapter _adapter;
 
+  /// The duplicate actions supported by the underlying adapter.
+  Set<DuplicateAction> get supportedDuplicateActions =>
+      _adapter.supportedDuplicateActions;
+
   // -------------------------------------------------------------------------
   // setBundle
   // -------------------------------------------------------------------------
