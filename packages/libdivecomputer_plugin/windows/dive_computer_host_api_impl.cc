@@ -164,7 +164,9 @@ ErrorOr<std::string> DiveComputerHostApiImpl::GetLibdivecomputerVersion() {
 void DiveComputerHostApiImpl::PerformDownload(
     const DiscoveredDevice& device,
     const std::optional<std::string>& fingerprint) {
-    // Create download session.
+    // Create download session. The session holds a dc_context_t (logging) and a
+    // cancelled flag. It is intentionally reused across multiple libdc_download_run
+    // calls during multi-port probing — each call creates its own internal state.
     auto* session = libdc_download_session_new();
     if (!session) {
         flutter_api_->OnError(

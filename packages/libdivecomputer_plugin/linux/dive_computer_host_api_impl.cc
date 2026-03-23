@@ -284,7 +284,9 @@ static gpointer download_thread_func(gpointer data) {
   auto* td = static_cast<DownloadThreadData*>(data);
   HostApiContext* ctx = td->ctx;
 
-  // Create download session.
+  // Create download session. The session holds a dc_context_t (logging) and a
+  // cancelled flag. It is intentionally reused across multiple libdc_download_run
+  // calls during multi-port probing — each call creates its own internal state.
   ctx->session = libdc_download_session_new();
   if (ctx->session == nullptr) {
     send_error_from_thread(ctx, "session_error",
