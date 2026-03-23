@@ -7,12 +7,16 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 
-@GenerateMocks([DiveComputerRepository, DiveRepository])
+import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
+
+@GenerateMocks([DiveComputerRepository, DiveRepository, TagRepository])
 import 'dive_import_service_test.mocks.dart';
 
 void main() {
   late MockDiveComputerRepository mockComputerRepo;
   late MockDiveRepository mockDiveRepo;
+  late MockTagRepository mockTagRepo;
   late DiveImportService service;
 
   final computer = DiveComputer(
@@ -25,10 +29,12 @@ void main() {
   setUp(() {
     mockComputerRepo = MockDiveComputerRepository();
     mockDiveRepo = MockDiveRepository();
+    mockTagRepo = MockTagRepository();
 
     service = DiveImportService(
       repository: mockComputerRepo,
       diveRepository: mockDiveRepo,
+      tagRepository: mockTagRepo,
     );
 
     // Default: no duplicates found
@@ -41,6 +47,17 @@ void main() {
         fingerprint: anyNamed('fingerprint'),
       ),
     ).thenAnswer((_) async => null);
+
+    when(
+      mockTagRepo.getOrCreateTag(any, diverId: anyNamed('diverId')),
+    ).thenAnswer(
+      (_) async => domain.Tag(
+        id: 'batch-tag',
+        name: 'Batch Tag',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
 
     // Default: importProfile returns a dive id
     when(
@@ -62,6 +79,69 @@ void main() {
         diveNumber: anyNamed('diveNumber'),
       ),
     ).thenAnswer((_) async => 'dive-id');
+  });
+
+  group('DiveImportService tagging', () {
+    test('applies batch tag to imported dives', () async {
+      final dive = DownloadedDive(
+        fingerprint: 'fp1',
+        startTime: DateTime(2026, 3, 23, 10, 0),
+        durationSeconds: 3600,
+        maxDepth: 20.0,
+        profile: const [],
+        tanks: const [],
+        events: const [],
+      );
+      when(
+        mockDiveRepo.getDiveNumberForDate(any, diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => 1);
+
+      final batchTag = domain.Tag(
+        id: 'tag-1',
+        name: 'Test Computer Import 2026-03-23',
+        createdAt: DateTime(2026, 3, 23),
+        updatedAt: DateTime(2026, 3, 23),
+      );
+
+      when(
+        mockTagRepo.getOrCreateTag(
+          'Test Computer Import 2026-03-23',
+          diverId: anyNamed('diverId'),
+        ),
+      ).thenAnswer((_) async => batchTag);
+      when(
+        mockComputerRepo.importProfile(
+          computerId: anyNamed('computerId'),
+          profileStartTime: anyNamed('profileStartTime'),
+          points: anyNamed('points'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          avgDepth: anyNamed('avgDepth'),
+          isPrimary: anyNamed('isPrimary'),
+          diverId: anyNamed('diverId'),
+          tanks: anyNamed('tanks'),
+          decoAlgorithm: anyNamed('decoAlgorithm'),
+          gfLow: anyNamed('gfLow'),
+          gfHigh: anyNamed('gfHigh'),
+          decoConservatism: anyNamed('decoConservatism'),
+          events: anyNamed('events'),
+          diveNumber: anyNamed('diveNumber'),
+        ),
+      ).thenAnswer((_) async => 'new-dive-id');
+
+      await service.importDives(dives: [dive], computer: computer);
+
+      // Verify a batch tag was created
+      verify(
+        mockTagRepo.getOrCreateTag(
+          'Test Computer Import 2026-03-23',
+          diverId: anyNamed('diverId'),
+        ),
+      ).called(1);
+
+      // Verify the tag was applied to the new dive
+      verify(mockTagRepo.addTagToDive('new-dive-id', 'tag-1')).called(1);
+    });
   });
 
   group('DiveImportService dive numbering', () {

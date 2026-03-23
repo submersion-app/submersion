@@ -1,8 +1,11 @@
+import 'package:intl/intl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
+import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 
 /// Mode for importing dives.
 enum ImportMode {
@@ -181,13 +184,16 @@ class ImportResult {
 class DiveImportService {
   final DiveComputerRepository _repository;
   final DiveRepository? _diveRepository;
+  final TagRepository _tagRepository;
   final DiveParser _parser;
 
   DiveImportService({
     required DiveComputerRepository repository,
+    required TagRepository tagRepository,
     DiveRepository? diveRepository,
     DiveParser? parser,
   }) : _repository = repository,
+       _tagRepository = tagRepository,
        _diveRepository = diveRepository,
        _parser = parser ?? const DiveParser();
 
@@ -211,6 +217,15 @@ class DiveImportService {
     final importedDiveIds = <String>[];
     final importedDives = <DownloadedDive>[];
     final conflicts = <ImportConflict>[];
+
+    // Create a batch tag for this import session
+    domain.Tag? batchTag;
+    if (dives.isNotEmpty) {
+      final now = DateTime.now();
+      final formattedDate = DateFormat('yyyy-MM-dd').format(now);
+      final tagName = '${computer.name} Import $formattedDate';
+      batchTag = await _tagRepository.getOrCreateTag(tagName, diverId: diverId);
+    }
 
     // Sort dives chronologically (oldest first) so that sequential
     // getDiveNumberForDate() calls produce correct numbering.
@@ -247,7 +262,12 @@ class DiveImportService {
               updated++;
             } else {
               // Import as new
-              final diveId = await _importNewDive(dive, computer.id, diverId);
+              final diveId = await _importNewDive(
+                dive,
+                computer.id,
+                diverId,
+                batchTag,
+              );
               importedDiveIds.add(diveId);
               importedDives.add(dive);
               imported++;
@@ -262,14 +282,24 @@ class DiveImportService {
             updated++;
           } else {
             // Low confidence match in 'all' mode - import as new
-            final diveId = await _importNewDive(dive, computer.id, diverId);
+            final diveId = await _importNewDive(
+              dive,
+              computer.id,
+              diverId,
+              batchTag,
+            );
             importedDiveIds.add(diveId);
             importedDives.add(dive);
             imported++;
           }
         } else {
           // No duplicate - import as new
-          final diveId = await _importNewDive(dive, computer.id, diverId);
+          final diveId = await _importNewDive(
+            dive,
+            computer.id,
+            diverId,
+            batchTag,
+          );
           importedDiveIds.add(diveId);
           importedDives.add(dive);
           imported++;
@@ -337,6 +367,7 @@ class DiveImportService {
     DownloadedDive dive,
     String computerId,
     String? diverId,
+    domain.Tag? batchTag,
   ) async {
     // Calculate chronological dive number
     int? diveNumber;
@@ -374,6 +405,9 @@ class DiveImportService {
       events: events,
       diveNumber: diveNumber,
     );
+    if (batchTag != null) {
+      await _tagRepository.addTagToDive(diveId, batchTag.id);
+    }
 
     return diveId;
   }
@@ -416,6 +450,7 @@ class DiveImportService {
     ConflictResolution resolution,
     String computerId, {
     String? diverId,
+    domain.Tag? batchTag,
   }) async {
     conflict.resolution = resolution;
 
@@ -432,7 +467,12 @@ class DiveImportService {
         return conflict.existingDiveId;
 
       case ConflictResolution.importAsNew:
-        return await _importNewDive(conflict.downloaded, computerId, diverId);
+        return await _importNewDive(
+          conflict.downloaded,
+          computerId,
+          diverId,
+          batchTag,
+        );
 
       case ConflictResolution.askUser:
         // This shouldn't be called with askUser

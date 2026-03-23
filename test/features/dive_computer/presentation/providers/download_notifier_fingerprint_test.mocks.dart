@@ -5,20 +5,23 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i5;
 
-import 'package:libdivecomputer_plugin/src/dive_computer_service.dart' as _i9;
+import 'package:libdivecomputer_plugin/src/dive_computer_service.dart' as _i11;
 import 'package:libdivecomputer_plugin/src/generated/dive_computer_api.g.dart'
-    as _i10;
+    as _i12;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i7;
+import 'package:mockito/src/dummies.dart' as _i8;
 import 'package:submersion/core/database/database.dart' as _i6;
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart'
     as _i4;
+import 'package:submersion/features/dive_computer/data/services/dive_parser.dart'
+    as _i7;
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart'
-    as _i8;
+    as _i9;
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart'
     as _i3;
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as _i2;
+import 'package:submersion/features/tags/domain/entities/tag.dart' as _i10;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -295,12 +298,12 @@ class MockDiveComputerRepository extends _i1.Mock
     double? avgDepth,
     bool? isPrimary = false,
     String? diverId,
-    List<_i3.TankData>? tanks,
+    List<_i7.TankData>? tanks,
     String? decoAlgorithm,
     int? gfLow,
     int? gfHigh,
     int? decoConservatism,
-    List<_i3.EventData>? events,
+    List<_i7.EventData>? events,
     int? diveNumber,
   }) =>
       (super.noSuchMethod(
@@ -322,7 +325,7 @@ class MockDiveComputerRepository extends _i1.Mock
               #diveNumber: diveNumber,
             }),
             returnValue: _i5.Future<String>.value(
-              _i7.dummyValue<String>(
+              _i8.dummyValue<String>(
                 this,
                 Invocation.method(#importProfile, [], {
                   #computerId: computerId,
@@ -434,11 +437,12 @@ class MockDiveImportService extends _i1.Mock implements _i4.DiveImportService {
 
   @override
   _i5.Future<_i4.ImportResult> importDives({
-    required List<_i8.DownloadedDive>? dives,
+    required List<_i9.DownloadedDive>? dives,
     required _i2.DiveComputer? computer,
     _i4.ImportMode? mode = _i4.ImportMode.newOnly,
     _i4.ConflictResolution? defaultResolution = _i4.ConflictResolution.skip,
     String? diverId,
+    List<String>? tags = const [],
   }) =>
       (super.noSuchMethod(
             Invocation.method(#importDives, [], {
@@ -447,6 +451,7 @@ class MockDiveImportService extends _i1.Mock implements _i4.DiveImportService {
               #mode: mode,
               #defaultResolution: defaultResolution,
               #diverId: diverId,
+              #tags: tags,
             }),
             returnValue: _i5.Future<_i4.ImportResult>.value(
               _FakeImportResult_2(
@@ -457,6 +462,7 @@ class MockDiveImportService extends _i1.Mock implements _i4.DiveImportService {
                   #mode: mode,
                   #defaultResolution: defaultResolution,
                   #diverId: diverId,
+                  #tags: tags,
                 }),
               ),
             ),
@@ -465,7 +471,7 @@ class MockDiveImportService extends _i1.Mock implements _i4.DiveImportService {
 
   @override
   _i5.Future<_i4.DuplicateResult> detectDuplicate(
-    _i8.DownloadedDive? dive, {
+    _i9.DownloadedDive? dive, {
     double? timeTolerance = 5.0,
     double? depthTolerance = 0.5,
   }) =>
@@ -497,12 +503,13 @@ class MockDiveImportService extends _i1.Mock implements _i4.DiveImportService {
     _i4.ConflictResolution? resolution,
     String? computerId, {
     String? diverId,
+    _i10.Tag? batchTag,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
               #resolveConflict,
               [conflict, resolution, computerId],
-              {#diverId: diverId},
+              {#diverId: diverId, #batchTag: batchTag},
             ),
             returnValue: _i5.Future<String?>.value(),
           )
@@ -513,18 +520,18 @@ class MockDiveImportService extends _i1.Mock implements _i4.DiveImportService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockDiveComputerService extends _i1.Mock
-    implements _i9.DiveComputerService {
+    implements _i11.DiveComputerService {
   MockDiveComputerService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i5.Stream<_i10.DiscoveredDevice> get discoveredDevices =>
+  _i5.Stream<_i12.DiscoveredDevice> get discoveredDevices =>
       (super.noSuchMethod(
             Invocation.getter(#discoveredDevices),
-            returnValue: _i5.Stream<_i10.DiscoveredDevice>.empty(),
+            returnValue: _i5.Stream<_i12.DiscoveredDevice>.empty(),
           )
-          as _i5.Stream<_i10.DiscoveredDevice>);
+          as _i5.Stream<_i12.DiscoveredDevice>);
 
   @override
   _i5.Stream<void> get discoveryComplete =>
@@ -535,35 +542,35 @@ class MockDiveComputerService extends _i1.Mock
           as _i5.Stream<void>);
 
   @override
-  _i5.Stream<_i9.DownloadEvent> get downloadEvents =>
+  _i5.Stream<_i11.DownloadEvent> get downloadEvents =>
       (super.noSuchMethod(
             Invocation.getter(#downloadEvents),
-            returnValue: _i5.Stream<_i9.DownloadEvent>.empty(),
+            returnValue: _i5.Stream<_i11.DownloadEvent>.empty(),
           )
-          as _i5.Stream<_i9.DownloadEvent>);
+          as _i5.Stream<_i11.DownloadEvent>);
 
   @override
-  _i5.Future<List<_i10.DeviceDescriptor>> getDeviceDescriptors() =>
+  _i5.Future<List<_i12.DeviceDescriptor>> getDeviceDescriptors() =>
       (super.noSuchMethod(
             Invocation.method(#getDeviceDescriptors, []),
-            returnValue: _i5.Future<List<_i10.DeviceDescriptor>>.value(
-              <_i10.DeviceDescriptor>[],
+            returnValue: _i5.Future<List<_i12.DeviceDescriptor>>.value(
+              <_i12.DeviceDescriptor>[],
             ),
           )
-          as _i5.Future<List<_i10.DeviceDescriptor>>);
+          as _i5.Future<List<_i12.DeviceDescriptor>>);
 
   @override
   _i5.Future<String> getVersion() =>
       (super.noSuchMethod(
             Invocation.method(#getVersion, []),
             returnValue: _i5.Future<String>.value(
-              _i7.dummyValue<String>(this, Invocation.method(#getVersion, [])),
+              _i8.dummyValue<String>(this, Invocation.method(#getVersion, [])),
             ),
           )
           as _i5.Future<String>);
 
   @override
-  _i5.Future<void> startDiscovery(_i10.TransportType? transport) =>
+  _i5.Future<void> startDiscovery(_i12.TransportType? transport) =>
       (super.noSuchMethod(
             Invocation.method(#startDiscovery, [transport]),
             returnValue: _i5.Future<void>.value(),
@@ -582,7 +589,7 @@ class MockDiveComputerService extends _i1.Mock
 
   @override
   _i5.Future<void> startDownload(
-    _i10.DiscoveredDevice? device, {
+    _i12.DiscoveredDevice? device, {
     String? fingerprint,
   }) =>
       (super.noSuchMethod(
@@ -615,7 +622,7 @@ class MockDiveComputerService extends _i1.Mock
           as _i5.Future<void>);
 
   @override
-  void onDeviceDiscovered(_i10.DiscoveredDevice? device) => super.noSuchMethod(
+  void onDeviceDiscovered(_i12.DiscoveredDevice? device) => super.noSuchMethod(
     Invocation.method(#onDeviceDiscovered, [device]),
     returnValueForMissingStub: null,
   );
@@ -627,14 +634,14 @@ class MockDiveComputerService extends _i1.Mock
   );
 
   @override
-  void onDownloadProgress(_i10.DownloadProgress? progress) =>
+  void onDownloadProgress(_i12.DownloadProgress? progress) =>
       super.noSuchMethod(
         Invocation.method(#onDownloadProgress, [progress]),
         returnValueForMissingStub: null,
       );
 
   @override
-  void onDiveDownloaded(_i10.ParsedDive? dive) => super.noSuchMethod(
+  void onDiveDownloaded(_i12.ParsedDive? dive) => super.noSuchMethod(
     Invocation.method(#onDiveDownloaded, [dive]),
     returnValueForMissingStub: null,
   );
@@ -654,7 +661,7 @@ class MockDiveComputerService extends _i1.Mock
   );
 
   @override
-  void onError(_i10.DiveComputerError? error) => super.noSuchMethod(
+  void onError(_i12.DiveComputerError? error) => super.noSuchMethod(
     Invocation.method(#onError, [error]),
     returnValueForMissingStub: null,
   );

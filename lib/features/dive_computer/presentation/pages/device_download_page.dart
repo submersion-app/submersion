@@ -112,7 +112,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
           _discoveredDevice = foundDevice;
           _isScanning = false;
         });
-        _startDownload();
+        _startDownload(); // Will be triggered by user action
       } else {
         // Timeout - device not found
         setState(() {
@@ -171,7 +171,9 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
   /// completes. No widget-side import logic needed.
   Future<void> _startDownload() async {
     if (_hasStartedDownload || _discoveredDevice == null) return;
-    _hasStartedDownload = true;
+    setState(() {
+      _hasStartedDownload = true;
+    });
 
     final computer = _computer;
     if (computer == null) return;
@@ -400,6 +402,10 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
           ),
         ),
       );
+    }
+
+    if (_discoveredDevice != null && !_hasStartedDownload) {
+      return _buildDownloadContent(context, downloadState);
     }
 
     // Download in progress or complete

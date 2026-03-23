@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_computer/domain/entities/device_model.d
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/fingerprint_utils.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 
 /// Provider for the dive computer repository.
 final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
@@ -23,9 +24,11 @@ final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
 final diveImportServiceProvider = Provider<DiveImportService>((ref) {
   final repository = ref.watch(diveComputerRepositoryProvider);
   final diveRepository = ref.watch(diveRepositoryProvider);
+  final tagRepository = ref.watch(tagRepositoryProvider);
   return DiveImportService(
     repository: repository,
     diveRepository: diveRepository,
+    tagRepository: tagRepository,
   );
 });
 
