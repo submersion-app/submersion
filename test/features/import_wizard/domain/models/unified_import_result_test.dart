@@ -30,7 +30,7 @@ void main() {
       expect(result.errorMessage, 'File could not be parsed.');
     });
 
-    test('importedCounts defaults to empty when not provided', () {
+    test('importedCounts can be empty map', () {
       const result = UnifiedImportResult(
         importedCounts: {},
         consolidatedCount: 0,

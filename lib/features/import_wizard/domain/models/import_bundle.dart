@@ -136,7 +136,8 @@ class ImportBundle {
   const ImportBundle({required this.source, required this.groups});
 
   /// Returns the [ImportEntityType]s that have at least one group in this bundle.
-  List<ImportEntityType> get availableTypes => groups.keys.toList();
+  List<ImportEntityType> get availableTypes =>
+      List.unmodifiable(groups.keys);
 
   /// Returns true if this bundle contains a group of the given [type].
   bool hasType(ImportEntityType type) => groups.containsKey(type);
