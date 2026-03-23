@@ -547,19 +547,19 @@ void main() {
           return importResult;
         });
 
+        // Track intermediate states to verify progress was applied.
+        final phases = <String?>[];
+        notifier.addListener((state) {
+          if (state.importPhase != null) {
+            phases.add(state.importPhase);
+          }
+        });
+
         await notifier.performImport();
 
-        // Progress should have been applied at some point;
-        // final state has the last progress values recorded.
-        // (May be overwritten by completion — verify the callback was invoked.)
-        verify(
-          mockAdapter.performImport(
-            any,
-            any,
-            any,
-            onProgress: anyNamed('onProgress'),
-          ),
-        ).called(1);
+        // Verify progress state was actually updated.
+        expect(phases, contains('dives'));
+        expect(notifier.state.importResult, isNotNull);
       });
 
       test('does nothing when no bundle is set', () async {

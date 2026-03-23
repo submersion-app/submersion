@@ -56,6 +56,7 @@ class ImportWizardState {
   ImportWizardState copyWith({
     int? currentStep,
     ImportBundle? bundle,
+    bool clearBundle = false,
     Map<ImportEntityType, Set<int>>? selections,
     Map<ImportEntityType, Map<int, DuplicateAction>>? duplicateActions,
     String? importPhase,
@@ -63,19 +64,22 @@ class ImportWizardState {
     int? importCurrent,
     int? importTotal,
     UnifiedImportResult? importResult,
+    bool clearImportResult = false,
     bool? isImporting,
     String? error,
     bool clearError = false,
   }) {
     return ImportWizardState(
       currentStep: currentStep ?? this.currentStep,
-      bundle: bundle ?? this.bundle,
+      bundle: clearBundle ? null : (bundle ?? this.bundle),
       selections: selections ?? this.selections,
       duplicateActions: duplicateActions ?? this.duplicateActions,
       importPhase: clearImportPhase ? null : (importPhase ?? this.importPhase),
       importCurrent: importCurrent ?? this.importCurrent,
       importTotal: importTotal ?? this.importTotal,
-      importResult: importResult ?? this.importResult,
+      importResult: clearImportResult
+          ? null
+          : (importResult ?? this.importResult),
       isImporting: isImporting ?? this.isImporting,
       error: clearError ? null : (error ?? this.error),
     );
@@ -130,7 +134,8 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
           final result = matchEntry.value;
           if (result.isProbable) {
             actionsForType[index] = DuplicateAction.skip;
-          } else if (result.isPossible) {
+          } else if (result.score >= 0.5) {
+            // Possible but not probable — default to import as new.
             actionsForType[index] = DuplicateAction.importAsNew;
           }
         }
