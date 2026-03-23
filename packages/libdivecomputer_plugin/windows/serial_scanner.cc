@@ -33,6 +33,19 @@ std::vector<std::string> EnumerateAvailableSerialPorts() {
     dev_data.cbSize = sizeof(SP_DEVINFO_DATA);
 
     for (DWORD i = 0; SetupDiEnumDeviceInfo(dev_info, i, &dev_data); i++) {
+        // Only include USB-attached serial ports during auto-detect to avoid
+        // probing unrelated devices (built-in COM ports, GPS modules, etc.).
+        char hw_id[256] = {};
+        if (SetupDiGetDeviceRegistryPropertyA(
+                dev_info, &dev_data, SPDRP_HARDWAREID, nullptr,
+                reinterpret_cast<PBYTE>(hw_id), sizeof(hw_id), nullptr)) {
+            // Hardware IDs for USB devices start with "USB\" or "FTDIBUS\".
+            if (_strnicmp(hw_id, "USB\\", 4) != 0 &&
+                _strnicmp(hw_id, "FTDIBUS\\", 8) != 0) {
+                continue;
+            }
+        }
+
         HKEY key = SetupDiOpenDevRegKey(
             dev_info, &dev_data, DICS_FLAG_GLOBAL, 0,
             DIREG_DEV, KEY_READ);

@@ -140,7 +140,13 @@ gchar** serial_enumerate_ports(void) {
     if (dir) {
         struct dirent* entry;
         while ((entry = readdir(dir)) != NULL) {
-            if (!is_serial_device(entry->d_name)) continue;
+            // Only probe USB-to-serial adapters (ttyUSB*, ttyACM*) during
+            // auto-detect. Motherboard serial ports (ttyS*) are excluded to
+            // avoid sending handshake bytes to unrelated devices.
+            if (!g_str_has_prefix(entry->d_name, "ttyUSB") &&
+                !g_str_has_prefix(entry->d_name, "ttyACM")) {
+                continue;
+            }
 
             g_autofree gchar* dev_path =
                 g_strdup_printf("/dev/%s", entry->d_name);

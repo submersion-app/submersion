@@ -138,6 +138,57 @@ static void test_transport_constants_for_serial_override(void) {
     printf("PASS: test_transport_constants_for_serial_override\n");
 }
 
+// Reproduces the filtering logic used by serial_enumerate_ports() on Linux.
+// Only ttyUSB* and ttyACM* should be included; ttyS* and other devices
+// must be excluded to avoid probing unrelated hardware.
+static int is_auto_probe_candidate(const char *name) {
+    return (strncmp(name, "ttyUSB", 6) == 0 ||
+            strncmp(name, "ttyACM", 6) == 0);
+}
+
+static void test_auto_probe_port_filtering(void) {
+    // USB-to-serial adapters — should be included.
+    assert(is_auto_probe_candidate("ttyUSB0"));
+    assert(is_auto_probe_candidate("ttyUSB1"));
+    assert(is_auto_probe_candidate("ttyACM0"));
+    assert(is_auto_probe_candidate("ttyACM1"));
+
+    // Motherboard serial ports — should be excluded.
+    assert(!is_auto_probe_candidate("ttyS0"));
+    assert(!is_auto_probe_candidate("ttyS1"));
+    assert(!is_auto_probe_candidate("ttyS4"));
+
+    // Other devices — should be excluded.
+    assert(!is_auto_probe_candidate("tty0"));
+    assert(!is_auto_probe_candidate("ttyAMA0"));
+    assert(!is_auto_probe_candidate("console"));
+    assert(!is_auto_probe_candidate("ptmx"));
+
+    printf("PASS: test_auto_probe_port_filtering\n");
+}
+
+// Reproduces the hardware ID filtering used by EnumerateAvailableSerialPorts()
+// on Windows. Only USB-attached serial ports should be included.
+static int is_usb_serial_hw_id(const char *hw_id) {
+    return (strncmp(hw_id, "USB\\", 4) == 0 ||
+            strncmp(hw_id, "FTDIBUS\\", 8) == 0);
+}
+
+static void test_windows_hw_id_filtering(void) {
+    // USB-attached serial adapters — should be included.
+    assert(is_usb_serial_hw_id("USB\\VID_067B&PID_2303"));
+    assert(is_usb_serial_hw_id("USB\\VID_0403&PID_6001"));
+    assert(is_usb_serial_hw_id("FTDIBUS\\VID_0403+PID_6001"));
+
+    // Built-in / non-USB ports — should be excluded.
+    assert(!is_usb_serial_hw_id("ACPI\\PNP0501"));
+    assert(!is_usb_serial_hw_id("PCI\\VEN_8086"));
+    assert(!is_usb_serial_hw_id("BTHENUM\\{00001101}"));
+    assert(!is_usb_serial_hw_id("ROOT\\PORTS"));
+
+    printf("PASS: test_windows_hw_id_filtering\n");
+}
+
 static void test_null_serial_callbacks_are_safe(void) {
     // When serial callbacks are NULL, bridge functions should be safe
     // to skip (the bridge_* functions check for NULL before calling).
@@ -153,6 +204,8 @@ int main(void) {
     test_callbacks_struct_accepts_serial_functions();
     test_configure_receives_parameters();
     test_transport_constants_for_serial_override();
+    test_auto_probe_port_filtering();
+    test_windows_hw_id_filtering();
     test_null_serial_callbacks_are_safe();
     printf("\nAll serial callback tests passed.\n");
     return 0;
