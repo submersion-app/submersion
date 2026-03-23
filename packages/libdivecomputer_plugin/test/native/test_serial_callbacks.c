@@ -1,7 +1,11 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef _WIN32
+#define strncasecmp _strnicmp
+#else
 #include <strings.h>
+#endif
 #include "libdc_wrapper.h"
 
 static int dummy_configure(void *userdata, unsigned int baudrate,
