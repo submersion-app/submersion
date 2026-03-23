@@ -6,6 +6,7 @@ import 'package:submersion/core/presentation/widgets/overlaid_profile_chart.dart
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Shared comparison card for dive duplicate resolution.
@@ -13,15 +14,41 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// Used by both the dive computer download flow ([SummaryStepWidget]) and the
 /// file import flow ([ImportDiveCard]).  Fetches the existing dive and profile
 /// from Riverpod providers and renders the hybrid comparison layout.
+///
+/// ## Modes
+///
+/// **Immediate-action mode** (default, backwards compatible): provide
+/// [onSkip], [onImportAsNew], and/or [onConsolidate] callbacks. Each button
+/// fires its callback immediately when tapped.
+///
+/// **Tri-state selector mode**: provide [selectedAction], [onActionChanged],
+/// and optionally [availableActions]. Buttons render as toggles — the active
+/// action uses a filled style and inactive ones use outlined style. Tapping a
+/// button calls [onActionChanged] with the corresponding [DuplicateAction].
 class DiveComparisonCard extends ConsumerWidget {
   final IncomingDiveData incoming;
   final String existingDiveId;
   final double matchScore;
   final String existingLabel;
   final String incomingLabel;
+
+  // --- Immediate-action mode callbacks (backwards compatible) ---
   final VoidCallback? onSkip;
   final VoidCallback? onImportAsNew;
   final VoidCallback? onConsolidate;
+
+  // --- Tri-state selector mode parameters ---
+
+  /// When non-null, enables tri-state selector mode. The value indicates the
+  /// currently selected action for this card.
+  final DuplicateAction? selectedAction;
+
+  /// Called when the user taps an action button in tri-state mode.
+  final void Function(DuplicateAction)? onActionChanged;
+
+  /// Which action buttons to show. When null, all three are shown.
+  /// In immediate-action mode this has no effect.
+  final Set<DuplicateAction>? availableActions;
 
   const DiveComparisonCard({
     super.key,
@@ -33,6 +60,9 @@ class DiveComparisonCard extends ConsumerWidget {
     this.onSkip,
     this.onImportAsNew,
     this.onConsolidate,
+    this.selectedAction,
+    this.onActionChanged,
+    this.availableActions,
   });
 
   Color _badgeColor(ColorScheme colorScheme) {
@@ -126,7 +156,7 @@ class DiveComparisonCard extends ConsumerWidget {
               ),
 
               // 5. Action Buttons
-              _buildActionButtons(context),
+              _buildActionButtons(context, ref),
             ],
           );
         },
@@ -401,38 +431,82 @@ class DiveComparisonCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
+  Widget _buildActionButtons(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isTriState = selectedAction != null;
+
+    // In tri-state mode, limit buttons to availableActions (default: all).
+    bool showAction(DuplicateAction action) {
+      if (!isTriState) return true;
+      return availableActions == null || availableActions!.contains(action);
+    }
+
+    _ActionButtonStyle styleFor(
+      DuplicateAction action,
+      _ActionButtonStyle fallback,
+    ) {
+      if (!isTriState) return fallback;
+      return selectedAction == action
+          ? _ActionButtonStyle.filledTonal
+          : _ActionButtonStyle.outlined;
+    }
+
+    VoidCallback? callbackFor(DuplicateAction action, VoidCallback? legacyCb) {
+      if (isTriState) return () => onActionChanged?.call(action);
+      return legacyCb;
+    }
+
+    final buttons = <Widget>[];
+
+    if (showAction(DuplicateAction.skip)) {
+      buttons.add(
+        _ActionButton(
+          label: 'Skip',
+          subtitle: 'Discard this download',
+          onPressed: callbackFor(DuplicateAction.skip, onSkip),
+          style: styleFor(DuplicateAction.skip, _ActionButtonStyle.text),
+        ),
+      );
+    }
+
+    if (showAction(DuplicateAction.importAsNew)) {
+      buttons.add(
+        _ActionButton(
+          label: 'Import as New',
+          subtitle: 'Save as separate dive',
+          onPressed: callbackFor(DuplicateAction.importAsNew, onImportAsNew),
+          style: styleFor(
+            DuplicateAction.importAsNew,
+            _ActionButtonStyle.outlined,
+          ),
+        ),
+      );
+    }
+
+    if (showAction(DuplicateAction.consolidate)) {
+      buttons.add(
+        _ActionButton(
+          label: 'Consolidate',
+          subtitle: 'Add as 2nd computer reading',
+          onPressed: callbackFor(DuplicateAction.consolidate, onConsolidate),
+          style: styleFor(
+            DuplicateAction.consolidate,
+            _ActionButtonStyle.outlined,
+          ),
+        ),
+      );
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          _ActionButton(
-            label: 'Skip',
-            subtitle: 'Discard this download',
-            onPressed: onSkip,
-            style: _ActionButtonStyle.text,
-          ),
-          const SizedBox(width: 8),
-          _ActionButton(
-            label: 'Import as New',
-            subtitle: 'Save as separate dive',
-            onPressed: onImportAsNew,
-            style: _ActionButtonStyle.outlined,
-          ),
-          const SizedBox(width: 8),
-          _ActionButton(
-            label: 'Consolidate',
-            subtitle: 'Add as 2nd computer reading',
-            onPressed: onConsolidate,
-            style: _ActionButtonStyle.outlined,
-          ),
-        ],
+      child: Wrap(
+        alignment: WrapAlignment.end,
+        spacing: 8,
+        runSpacing: 4,
+        children: buttons,
       ),
     );
   }
