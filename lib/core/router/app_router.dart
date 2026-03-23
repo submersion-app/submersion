@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_import/presentation/providers/dive_impo
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart'
     hide diveProvider;
 import 'package:submersion/features/import_wizard/data/adapters/fit_adapter.dart';
+import 'package:submersion/features/import_wizard/data/adapters/healthkit_adapter.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/unified_import_wizard.dart';
 import 'package:submersion/features/onboarding/presentation/pages/welcome_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
@@ -763,7 +764,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'wearable-import',
                 name: 'wearableImport',
-                builder: (context, state) => const HealthKitImportPage(),
+                builder: (context, state) =>
+                    const _HealthKitImportWizardRoute(),
               ),
               GoRoute(
                 path: 'backup',
@@ -914,6 +916,38 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+/// Wrapper that creates a [HealthKitAdapter] with dependencies from Riverpod.
+///
+/// Falls back to [HealthKitImportPage] when HealthKit is unavailable on the
+/// current platform (i.e. [healthImportServiceProvider] returns null).
+class _HealthKitImportWizardRoute extends ConsumerWidget {
+  const _HealthKitImportWizardRoute();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final healthService = ref.watch(healthImportServiceProvider);
+
+    if (healthService == null) {
+      // Not on an Apple platform — show the platform-unavailable page.
+      return const HealthKitImportPage();
+    }
+
+    final diverId = ref.watch(currentDiverIdProvider) ?? '';
+    final converter = ref.watch(importedDiveConverterProvider);
+    final diveRepo = ref.watch(diveRepositoryProvider);
+
+    return UnifiedImportWizard(
+      adapter: HealthKitAdapter(
+        healthService: healthService,
+        diveMatcher: const DiveMatcher(),
+        converter: converter,
+        diveRepository: diveRepo,
+        diverId: diverId,
+      ),
+    );
+  }
+}
 
 /// Wrapper that creates a [FitAdapter] with dependencies from Riverpod.
 class _FitImportWizardRoute extends ConsumerWidget {
