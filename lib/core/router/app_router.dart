@@ -123,8 +123,8 @@ import 'package:submersion/features/import_wizard/data/adapters/dive_computer_ad
 import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:submersion/features/dive_planner/presentation/pages/dive_planner_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
-import 'package:submersion/features/dive_import/presentation/pages/healthkit_import_page.dart';
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -941,8 +941,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
 /// Wrapper that creates a [HealthKitAdapter] with dependencies from Riverpod.
 ///
-/// Falls back to [HealthKitImportPage] when HealthKit is unavailable on the
-/// current platform (i.e. [healthImportServiceProvider] returns null).
+/// Falls back to a platform-unavailable screen when HealthKit is unavailable on
+/// the current platform (i.e. [healthImportServiceProvider] returns null).
 class _HealthKitImportWizardRoute extends ConsumerWidget {
   const _HealthKitImportWizardRoute();
 
@@ -951,8 +951,8 @@ class _HealthKitImportWizardRoute extends ConsumerWidget {
     final healthService = ref.watch(healthImportServiceProvider);
 
     if (healthService == null) {
-      // Not on an Apple platform — show the platform-unavailable page.
-      return const HealthKitImportPage();
+      // Not on an Apple platform — show a platform-unavailable screen.
+      return const _HealthKitUnavailableScreen();
     }
 
     final diverId = ref.watch(currentDiverIdProvider) ?? '';
@@ -966,6 +966,56 @@ class _HealthKitImportWizardRoute extends ConsumerWidget {
         converter: converter,
         diveRepository: diveRepo,
         diverId: diverId,
+      ),
+    );
+  }
+}
+
+/// Shown when the HealthKit import route is opened on a non-Apple platform.
+class _HealthKitUnavailableScreen extends StatelessWidget {
+  const _HealthKitUnavailableScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(context.l10n.diveImport_healthkit_watchTitle),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          tooltip: context.l10n.diveImport_healthkit_closeTooltip,
+          onPressed: () => context.pop(),
+        ),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ExcludeSemantics(
+                child: Icon(
+                  Icons.watch_off,
+                  size: 64,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                context.l10n.diveImport_healthkit_notAvailable,
+                style: theme.textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                context.l10n.diveImport_healthkit_notAvailableDescription,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

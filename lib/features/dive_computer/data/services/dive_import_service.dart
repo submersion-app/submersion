@@ -300,7 +300,7 @@ class DiveImportService {
             } else {
               // Import as new (importAsNew or consolidate treated as new here;
               // consolidate at the conflict-resolution level is handled by
-              // resolveConflict / DownloadNotifier.consolidateDive)
+              // resolveConflict / DiveComputerAdapter._consolidateDive)
               final diveId = await _importNewDive(dive, computer.id, diverId);
               importedDiveIds.add(diveId);
               importedDives.add(dive);
@@ -508,7 +508,7 @@ class DiveImportService {
         return null;
 
       case ConflictResolution.consolidate:
-        // Consolidation is handled by DownloadNotifier.consolidateDive()
+        // Consolidation is handled by DiveComputerAdapter._consolidateDive()
         // which calls DiveRepository.consolidateComputer() directly.
         return null;
     }

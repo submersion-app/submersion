@@ -11,8 +11,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 /// Shared comparison card for dive duplicate resolution.
 ///
-/// Used by both the dive computer download flow ([SummaryStepWidget]) and the
-/// file import flow ([ImportDiveCard]).  Fetches the existing dive and profile
+/// Used by the unified import wizard's duplicate resolution step and the
+/// file import flow.  Fetches the existing dive and profile
 /// from Riverpod providers and renders the hybrid comparison layout.
 ///
 /// ## Modes

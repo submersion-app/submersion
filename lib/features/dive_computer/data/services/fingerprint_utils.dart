@@ -5,8 +5,8 @@ import 'package:submersion/features/dive_computer/domain/entities/downloaded_div
 /// Only considers dives that have a non-null fingerprint.
 /// Returns null if the list is empty or no dives have fingerprints.
 ///
-/// IMPORTANT: Call this with only successfully imported dives
-/// (importResult.importedDives), not all downloaded dives.
+/// IMPORTANT: Call this with only successfully imported dives,
+/// not all downloaded dives.
 String? selectNewestFingerprint(List<DownloadedDive> dives) {
   if (dives.isEmpty) return null;
 

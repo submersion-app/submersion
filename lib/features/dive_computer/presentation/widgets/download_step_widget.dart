@@ -5,7 +5,6 @@ import 'package:submersion/features/dive_computer/domain/entities/device_model.d
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/pin_code_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -51,18 +50,11 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     final notifier = ref.read(downloadNotifierProvider.notifier);
 
     // Clear stale state from any previous download immediately so the
-    // next build() cycle does not see old importResult / progress.
+    // next build() cycle does not see old progress.
     notifier.reset();
 
-    // Resolve the diver ID so auto-import assigns the correct owner.
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-
-    // Pass computer + diverId so the notifier can auto-import when done.
-    await notifier.startDownload(
-      widget.device!,
-      computer: widget.computer,
-      diverId: diverId,
-    );
+    // Pass computer so the notifier can persist device info when done.
+    await notifier.startDownload(widget.device!, computer: widget.computer);
   }
 
   @override
@@ -80,13 +72,9 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Reactively detect when the download+import finishes and fire the
-    // onComplete/onError callbacks. importResult being set means the
-    // auto-import has finished (the notifier sets it after importDives).
-    if (!_hasCalledComplete &&
-        _hasStarted &&
-        downloadState.importResult != null &&
-        downloadState.importResult!.isSuccess) {
+    // Reactively detect when the download finishes and fire the
+    // onComplete/onError callbacks.
+    if (!_hasCalledComplete && _hasStarted && downloadState.isComplete) {
       _hasCalledComplete = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.onComplete();

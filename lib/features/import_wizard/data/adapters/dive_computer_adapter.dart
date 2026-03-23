@@ -323,7 +323,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   }
 
   /// Consolidate a downloaded dive as a secondary computer reading on an
-  /// existing dive. Mirrors the logic in [DownloadNotifier.consolidateDive].
+  /// existing dive.
   Future<void> _consolidateDive(
     DownloadedDive dive,
     String targetDiveId,
