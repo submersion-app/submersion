@@ -1,0 +1,275 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+
+/// The summary step shown after the import completes.
+///
+/// Shows a success view with per-entity import counts, consolidated and
+/// skipped summaries, and "Done" / "View Dives" action buttons.
+///
+/// On error, shows an error icon and message with a "Done" button.
+///
+/// While the import is still running, shows a loading indicator.
+class ImportSummaryStep extends ConsumerWidget {
+  /// Called when the user taps the "Done" button.
+  final VoidCallback onDone;
+
+  /// Called when the user taps the "View Dives" button.
+  final VoidCallback onViewDives;
+
+  const ImportSummaryStep({
+    super.key,
+    required this.onDone,
+    required this.onViewDives,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(importWizardProvider);
+    final result = state.importResult;
+
+    if (result == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (result.errorMessage != null) {
+      return _ErrorView(errorMessage: result.errorMessage!, onDone: onDone);
+    }
+
+    return _SuccessView(
+      importedCounts: result.importedCounts,
+      consolidatedCount: result.consolidatedCount,
+      skippedCount: result.skippedCount,
+      onDone: onDone,
+      onViewDives: onViewDives,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Success view
+// ---------------------------------------------------------------------------
+
+class _SuccessView extends StatelessWidget {
+  final Map<ImportEntityType, int> importedCounts;
+  final int consolidatedCount;
+  final int skippedCount;
+  final VoidCallback onDone;
+  final VoidCallback onViewDives;
+
+  const _SuccessView({
+    required this.importedCounts,
+    required this.consolidatedCount,
+    required this.skippedCount,
+    required this.onDone,
+    required this.onViewDives,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.check,
+                size: 36,
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Successfully Imported',
+              key: const Key('import_summary_success_title'),
+              style: theme.textTheme.headlineSmall,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            for (final entry in importedCounts.entries)
+              if (entry.value > 0)
+                _CountRow(
+                  icon: _iconForType(entry.key),
+                  label: _labelForType(entry.key),
+                  count: entry.value,
+                ),
+            if (consolidatedCount > 0)
+              _CountRow(
+                icon: Icons.merge,
+                label: 'Consolidated',
+                count: consolidatedCount,
+                key: const Key('import_summary_consolidated_row'),
+              ),
+            if (skippedCount > 0)
+              _CountRow(
+                icon: Icons.skip_next,
+                label: 'Skipped',
+                count: skippedCount,
+                key: const Key('import_summary_skipped_row'),
+              ),
+            const SizedBox(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                OutlinedButton(onPressed: onDone, child: const Text('Done')),
+                const SizedBox(width: 16),
+                FilledButton(
+                  onPressed: onViewDives,
+                  child: const Text('View Dives'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _iconForType(ImportEntityType type) {
+    switch (type) {
+      case ImportEntityType.dives:
+        return Icons.scuba_diving;
+      case ImportEntityType.sites:
+        return Icons.location_on;
+      case ImportEntityType.buddies:
+        return Icons.people;
+      case ImportEntityType.equipment:
+        return Icons.build;
+      case ImportEntityType.trips:
+        return Icons.luggage;
+      case ImportEntityType.certifications:
+        return Icons.verified;
+      case ImportEntityType.diveCenters:
+        return Icons.store;
+      case ImportEntityType.tags:
+        return Icons.label;
+      case ImportEntityType.diveTypes:
+        return Icons.category;
+      case ImportEntityType.equipmentSets:
+        return Icons.inventory;
+      case ImportEntityType.courses:
+        return Icons.school;
+    }
+  }
+
+  String _labelForType(ImportEntityType type) {
+    switch (type) {
+      case ImportEntityType.dives:
+        return 'Dives';
+      case ImportEntityType.sites:
+        return 'Sites';
+      case ImportEntityType.buddies:
+        return 'Buddies';
+      case ImportEntityType.equipment:
+        return 'Equipment';
+      case ImportEntityType.trips:
+        return 'Trips';
+      case ImportEntityType.certifications:
+        return 'Certifications';
+      case ImportEntityType.diveCenters:
+        return 'Dive Centers';
+      case ImportEntityType.tags:
+        return 'Tags';
+      case ImportEntityType.diveTypes:
+        return 'Dive Types';
+      case ImportEntityType.equipmentSets:
+        return 'Equipment Sets';
+      case ImportEntityType.courses:
+        return 'Courses';
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Error view
+// ---------------------------------------------------------------------------
+
+class _ErrorView extends StatelessWidget {
+  final String errorMessage;
+  final VoidCallback onDone;
+
+  const _ErrorView({required this.errorMessage, required this.onDone});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
+            const SizedBox(height: 20),
+            Text(
+              errorMessage,
+              key: const Key('import_summary_error_message'),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            OutlinedButton(onPressed: onDone, child: const Text('Done')),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Count row
+// ---------------------------------------------------------------------------
+
+class _CountRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final int count;
+
+  const _CountRow({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.count,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 140,
+            child: Text(label, style: theme.textTheme.bodyMedium),
+          ),
+          Text(
+            '$count',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
