@@ -230,7 +230,7 @@ class CsvImportParser implements ImportParser {
       DateTime dateTime = diveData['date'] as DateTime;
       if (diveData.containsKey('time') && diveData['time'] is DateTime) {
         final time = diveData['time'] as DateTime;
-        dateTime = DateTime(
+        dateTime = DateTime.utc(
           dateTime.year,
           dateTime.month,
           dateTime.day,
@@ -238,6 +238,8 @@ class CsvImportParser implements ImportParser {
           time.minute,
           time.second,
         );
+      } else if (!dateTime.isUtc) {
+        dateTime = DateTime.utc(dateTime.year, dateTime.month, dateTime.day);
       }
       diveData['dateTime'] = dateTime;
       diveData.remove('date');

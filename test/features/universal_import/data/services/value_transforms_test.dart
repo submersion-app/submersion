@@ -208,18 +208,23 @@ void main() {
   });
 
   group('parseDate', () {
-    test('parses yyyy-MM-dd', () {
-      expect(service.parseDate('2024-01-15'), DateTime(2024, 1, 15));
+    test('parses yyyy-MM-dd as UTC', () {
+      final result = service.parseDate('2024-01-15');
+      expect(result, DateTime.utc(2024, 1, 15));
+      expect(result!.isUtc, isTrue);
     });
 
-    test('parses MM/dd/yyyy', () {
-      expect(service.parseDate('01/15/2024'), DateTime(2024, 1, 15));
+    test('parses MM/dd/yyyy as UTC', () {
+      final result = service.parseDate('01/15/2024');
+      expect(result, DateTime.utc(2024, 1, 15));
+      expect(result!.isUtc, isTrue);
     });
 
-    test('parses ISO 8601', () {
+    test('parses ISO 8601 as UTC', () {
       final result = service.parseDate('2024-01-15T10:30:00');
       expect(result, isNotNull);
-      expect(result!.year, 2024);
+      expect(result!.isUtc, isTrue);
+      expect(result.year, 2024);
       expect(result.month, 1);
       expect(result.day, 15);
     });
@@ -230,17 +235,19 @@ void main() {
   });
 
   group('parseTime', () {
-    test('parses HH:mm', () {
+    test('parses HH:mm as UTC', () {
       final result = service.parseTime('14:30');
       expect(result, isNotNull);
-      expect(result!.hour, 14);
+      expect(result!.isUtc, isTrue);
+      expect(result.hour, 14);
       expect(result.minute, 30);
     });
 
-    test('parses HH:mm:ss', () {
+    test('parses HH:mm:ss as UTC', () {
       final result = service.parseTime('14:30:45');
       expect(result, isNotNull);
-      expect(result!.hour, 14);
+      expect(result!.isUtc, isTrue);
+      expect(result.hour, 14);
       expect(result.minute, 30);
     });
 

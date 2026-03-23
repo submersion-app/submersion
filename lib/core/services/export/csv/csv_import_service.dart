@@ -107,18 +107,20 @@ class CsvImportService {
         }
       }
 
-      // Combine date and time if both present
+      // Combine date and time if both present (UTC wall-time convention)
       if (diveData['date'] != null) {
         DateTime dateTime = diveData['date'] as DateTime;
         if (diveData['time'] != null) {
           final time = diveData['time'] as DateTime;
-          dateTime = DateTime(
+          dateTime = DateTime.utc(
             dateTime.year,
             dateTime.month,
             dateTime.day,
             time.hour,
             time.minute,
           );
+        } else if (!dateTime.isUtc) {
+          dateTime = DateTime.utc(dateTime.year, dateTime.month, dateTime.day);
         }
         diveData['dateTime'] = dateTime;
         diveData.remove('date');
@@ -135,6 +137,7 @@ class CsvImportService {
 
   // ==================== Parsing Helpers ====================
 
+  /// Parse a date string, returning a UTC DateTime (wall-time convention).
   DateTime? _parseDate(String value) {
     final formats = [
       'yyyy-MM-dd',
@@ -147,21 +150,33 @@ class CsvImportService {
 
     for (final format in formats) {
       try {
-        return DateFormat(format).parse(value);
+        return DateFormat(format).parse(value, true);
       } catch (_) {
         continue;
       }
     }
 
-    return DateTime.tryParse(value);
+    final parsed = DateTime.tryParse(value);
+    if (parsed == null) return null;
+    if (parsed.isUtc) return parsed;
+    return DateTime.utc(
+      parsed.year,
+      parsed.month,
+      parsed.day,
+      parsed.hour,
+      parsed.minute,
+      parsed.second,
+      parsed.millisecond,
+    );
   }
 
+  /// Parse a time string, returning a UTC DateTime (wall-time convention).
   DateTime? _parseTime(String value) {
     final formats = ['HH:mm', 'H:mm', 'hh:mm a', 'h:mm a'];
 
     for (final format in formats) {
       try {
-        return DateFormat(format).parse(value);
+        return DateFormat(format).parse(value, true);
       } catch (_) {
         continue;
       }

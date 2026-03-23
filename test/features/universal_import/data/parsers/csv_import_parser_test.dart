@@ -218,5 +218,76 @@ void main() {
       expect(dateTime.hour, 14);
       expect(dateTime.minute, 30);
     });
+
+    test('produces UTC DateTimes (utc-as-wall-time convention)', () async {
+      const csv =
+          'Date,Time,Max Depth\n'
+          '2024-01-15,14:30,25.5\n';
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        options: const ImportOptions(
+          sourceApp: SourceApp.generic,
+          format: ImportFormat.csv,
+        ),
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(
+        dateTime.isUtc,
+        isTrue,
+        reason: 'CSV import must produce UTC DateTimes for wall-time storage',
+      );
+      expect(dateTime, DateTime.utc(2024, 1, 15, 14, 30));
+    });
+
+    test('date-only CSV produces UTC DateTime at midnight', () async {
+      const csv =
+          'Date,Max Depth\n'
+          '2024-01-15,25.5\n';
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        options: const ImportOptions(
+          sourceApp: SourceApp.generic,
+          format: ImportFormat.csv,
+        ),
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(dateTime.isUtc, isTrue);
+      expect(dateTime, DateTime.utc(2024, 1, 15));
+    });
+
+    test('times are not shifted by local UTC offset (issue #60)', () async {
+      // This is the exact scenario from issue #60: a user at UTC+4 imports
+      // a CSV with time "11:22" and it should remain 11:22, not become 15:22.
+      const csv =
+          'Dive,Date,Time,Depth,Duration,,,Notes\n'
+          '3,1998-08-05,11:22,15,45,,,\n';
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        options: const ImportOptions(
+          sourceApp: SourceApp.generic,
+          format: ImportFormat.csv,
+        ),
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(dateTime.isUtc, isTrue);
+      expect(
+        dateTime.hour,
+        11,
+        reason: 'Time must not be shifted by UTC offset',
+      );
+      expect(dateTime.minute, 22);
+    });
   });
 }
