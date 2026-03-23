@@ -124,7 +124,7 @@ import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.
 import 'package:submersion/features/dive_planner/presentation/pages/dive_planner_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
 import 'package:submersion/features/dive_import/presentation/pages/healthkit_import_page.dart';
-import 'package:submersion/features/universal_import/presentation/pages/universal_import_page.dart';
+import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -736,7 +736,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'import-wizard',
                 name: 'universalImport',
-                builder: (context, state) => const UniversalImportPage(),
+                builder: (context, state) =>
+                    const _UniversalImportWizardRoute(),
               ),
             ],
           ),
@@ -1151,5 +1152,15 @@ class _DiveComputerDownloadWizardRoute extends ConsumerWidget {
         body: Center(child: Text('Error: $e')),
       ),
     );
+  }
+}
+
+/// Wrapper that creates a [UniversalAdapter] with Ref from Riverpod.
+class _UniversalImportWizardRoute extends ConsumerWidget {
+  const _UniversalImportWizardRoute();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return UnifiedImportWizard(adapter: UniversalAdapter(ref: ref));
   }
 }
