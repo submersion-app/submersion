@@ -203,8 +203,10 @@ class ValueTransformService {
 
   /// Parse a date string using common date formats.
   ///
-  /// Returns a UTC DateTime (wall-time convention: the parsed components are
-  /// stored as-is in UTC, with no timezone shift applied).
+  /// Returns a UTC DateTime (wall-time convention). For naive strings without
+  /// timezone info, the parsed components are stored as-is in UTC. For
+  /// offset-aware ISO 8601 strings (e.g. "...Z" or "...+02:00"),
+  /// `DateTime.tryParse` normalizes to UTC per the Dart spec.
   /// Tries multiple formats in order. Returns null if none match.
   DateTime? parseDate(String value) {
     final formats = [
@@ -237,6 +239,7 @@ class ValueTransformService {
       parsed.minute,
       parsed.second,
       parsed.millisecond,
+      parsed.microsecond,
     );
   }
 

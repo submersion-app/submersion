@@ -167,6 +167,7 @@ class CsvImportService {
       parsed.minute,
       parsed.second,
       parsed.millisecond,
+      parsed.microsecond,
     );
   }
 

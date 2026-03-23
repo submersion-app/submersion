@@ -210,14 +210,16 @@ void main() {
   group('parseDate', () {
     test('parses yyyy-MM-dd as UTC', () {
       final result = service.parseDate('2024-01-15');
-      expect(result, DateTime.utc(2024, 1, 15));
+      expect(result, isNotNull);
       expect(result!.isUtc, isTrue);
+      expect(result, DateTime.utc(2024, 1, 15));
     });
 
     test('parses MM/dd/yyyy as UTC', () {
       final result = service.parseDate('01/15/2024');
-      expect(result, DateTime.utc(2024, 1, 15));
+      expect(result, isNotNull);
       expect(result!.isUtc, isTrue);
+      expect(result, DateTime.utc(2024, 1, 15));
     });
 
     test('parses ISO 8601 without timezone as UTC', () {
