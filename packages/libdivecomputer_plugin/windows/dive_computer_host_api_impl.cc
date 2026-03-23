@@ -234,9 +234,8 @@ void DiveComputerHostApiImpl::PerformDownload(
         std::vector<std::string> ports_to_try;
         std::string address = device.address();
         bool is_com_port = (address.size() >= 4 &&
-            (address[0] == 'C' || address[0] == 'c') &&
-            (address[1] == 'O' || address[1] == 'o') &&
-            (address[2] == 'M' || address[2] == 'm'));
+            _strnicmp(address.c_str(), "COM", 3) == 0 &&
+            address[3] >= '0' && address[3] <= '9');
 
         if (is_com_port) {
             ports_to_try.push_back(address);

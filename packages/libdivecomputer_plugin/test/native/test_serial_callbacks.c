@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 #include "libdc_wrapper.h"
 
 static int dummy_configure(void *userdata, unsigned int baudrate,
@@ -189,6 +190,36 @@ static void test_windows_hw_id_filtering(void) {
     printf("PASS: test_windows_hw_id_filtering\n");
 }
 
+// Reproduces the COM port detection logic from the Windows download path.
+// Uses strncasecmp (POSIX) as a portable equivalent of _strnicmp (Win32).
+static int is_com_port(const char *addr) {
+    size_t len = strlen(addr);
+    return (len >= 4 &&
+            strncasecmp(addr, "COM", 3) == 0 &&
+            addr[3] >= '0' && addr[3] <= '9');
+}
+
+static void test_com_port_detection(void) {
+    // Valid COM ports.
+    assert(is_com_port("COM3"));
+    assert(is_com_port("COM10"));
+    assert(is_com_port("com3"));
+    assert(is_com_port("Com1"));
+
+    // Strings that start with COM but aren't ports.
+    assert(!is_com_port("COMBO_device"));
+    assert(!is_com_port("COMMAND"));
+    assert(!is_com_port("COM"));
+    assert(!is_com_port("COMx"));
+
+    // Unrelated strings.
+    assert(!is_com_port(""));
+    assert(!is_com_port("/dev/ttyUSB0"));
+    assert(!is_com_port("Cressi_Leonardo"));
+
+    printf("PASS: test_com_port_detection\n");
+}
+
 static void test_null_serial_callbacks_are_safe(void) {
     // When serial callbacks are NULL, bridge functions should be safe
     // to skip (the bridge_* functions check for NULL before calling).
@@ -206,6 +237,7 @@ int main(void) {
     test_transport_constants_for_serial_override();
     test_auto_probe_port_filtering();
     test_windows_hw_id_filtering();
+    test_com_port_detection();
     test_null_serial_callbacks_are_safe();
     printf("\nAll serial callback tests passed.\n");
     return 0;
