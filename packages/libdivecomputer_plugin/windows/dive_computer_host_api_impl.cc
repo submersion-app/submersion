@@ -175,72 +175,6 @@ void DiveComputerHostApiImpl::PerformDownload(
     }
     download_session_ = session;
 
-    // Connect I/O transport.
-    libdc_io_callbacks_t io_callbacks = {};
-    bool connected = false;
-
-    if (device.transport() == TransportType::kSerial ||
-        device.transport() == TransportType::kUsb) {
-        serial_stream_ = std::make_unique<SerialIoStream>();
-
-        // If the address looks like a COM port, use it directly.
-        // Otherwise (manual model selection), try each available port.
-        std::string address = device.address();
-        bool is_com_port = (address.size() >= 4 &&
-            (address[0] == 'C' || address[0] == 'c') &&
-            (address[1] == 'O' || address[1] == 'o') &&
-            (address[2] == 'M' || address[2] == 'm'));
-
-        if (is_com_port) {
-            if (serial_stream_->Open(address)) {
-                io_callbacks = serial_stream_->MakeCallbacks();
-                connected = true;
-            }
-        } else {
-            // Auto-detect: try each available serial port.
-            auto ports = EnumerateAvailableSerialPorts();
-            for (const auto& port : ports) {
-                if (serial_stream_->Open(port)) {
-                    io_callbacks = serial_stream_->MakeCallbacks();
-                    connected = true;
-                    break;
-                }
-            }
-        }
-    } else {
-        // BLE transport.
-        if (ble_scanner_) {
-            ble_scanner_->Stop();
-            ble_scanner_.reset();
-        }
-
-        uint64_t ble_address = std::strtoull(
-            device.address().c_str(), nullptr, 16);
-        ble_stream_ = std::make_unique<BleIoStream>();
-        ble_stream_->SetDeviceAddress(device.address());
-        ble_stream_->SetOnPinCodeRequired(
-            [this](const std::string& address) {
-                flutter_api_->OnPinCodeRequired(
-                    address, [] {}, [](const auto&) {});
-            });
-        if (ble_stream_->ConnectAndDiscover(ble_address)) {
-            io_callbacks = ble_stream_->MakeCallbacks();
-            connected = true;
-        }
-    }
-
-    if (!connected) {
-        flutter_api_->OnError(
-            DiveComputerError("connect_failed",
-                              "Failed to connect to device"),
-            [] {}, [](const auto&) {});
-        libdc_download_session_free(session);
-        download_session_ = nullptr;
-        ble_stream_.reset();
-        serial_stream_.reset();
-        return;
-    }
-
     // Set up download callbacks.
     libdc_download_callbacks_t dl_callbacks = {};
     dl_callbacks.on_progress = [](unsigned int current, unsigned int maximum,
@@ -288,21 +222,115 @@ void DiveComputerHostApiImpl::PerformDownload(
         }
     }
 
-    // Run the blocking download.
+    // Connect I/O transport and run download.
+    int rc = -1;
     unsigned int serial = 0;
     unsigned int firmware = 0;
     char error_buf[256] = {};
-    int rc = libdc_download_run(
-        session,
-        device.vendor().c_str(), device.product().c_str(),
-        static_cast<unsigned int>(device.model()),
-        transport_value,
-        &io_callbacks,
-        fp_bytes.empty() ? nullptr : fp_bytes.data(),
-        static_cast<unsigned int>(fp_bytes.size()),
-        &dl_callbacks,
-        &serial, &firmware,
-        error_buf, sizeof(error_buf));
+
+    if (device.transport() == TransportType::kSerial ||
+        device.transport() == TransportType::kUsb) {
+        // Build list of candidate serial ports.
+        std::vector<std::string> ports_to_try;
+        std::string address = device.address();
+        bool is_com_port = (address.size() >= 4 &&
+            (address[0] == 'C' || address[0] == 'c') &&
+            (address[1] == 'O' || address[1] == 'o') &&
+            (address[2] == 'M' || address[2] == 'm'));
+
+        if (is_com_port) {
+            ports_to_try.push_back(address);
+        } else {
+            ports_to_try = EnumerateAvailableSerialPorts();
+        }
+
+        // Try each candidate port with a full download attempt.
+        // Simply opening a port is not enough — many ports open successfully
+        // even when they are not the target dive computer.
+        for (const auto& port : ports_to_try) {
+            serial_stream_ = std::make_unique<SerialIoStream>();
+            if (!serial_stream_->Open(port)) {
+                serial_stream_.reset();
+                continue;
+            }
+
+            libdc_io_callbacks_t io_callbacks = serial_stream_->MakeCallbacks();
+            serial = 0;
+            firmware = 0;
+            memset(error_buf, 0, sizeof(error_buf));
+
+            rc = libdc_download_run(
+                session,
+                device.vendor().c_str(), device.product().c_str(),
+                static_cast<unsigned int>(device.model()),
+                transport_value,
+                &io_callbacks,
+                fp_bytes.empty() ? nullptr : fp_bytes.data(),
+                static_cast<unsigned int>(fp_bytes.size()),
+                &dl_callbacks,
+                &serial, &firmware,
+                error_buf, sizeof(error_buf));
+
+            serial_stream_.reset();
+
+            if (rc == 0 || rc == LIBDC_STATUS_CANCELLED) {
+                break;
+            }
+            // Download failed on this port — try the next one.
+        }
+
+        if (ports_to_try.empty()) {
+            flutter_api_->OnError(
+                DiveComputerError("connect_failed",
+                                  "No serial ports found"),
+                [] {}, [](const auto&) {});
+            libdc_download_session_free(session);
+            download_session_ = nullptr;
+            return;
+        }
+    } else {
+        // BLE transport.
+        if (ble_scanner_) {
+            ble_scanner_->Stop();
+            ble_scanner_.reset();
+        }
+
+        uint64_t ble_address = std::strtoull(
+            device.address().c_str(), nullptr, 16);
+        ble_stream_ = std::make_unique<BleIoStream>();
+        ble_stream_->SetDeviceAddress(device.address());
+        ble_stream_->SetOnPinCodeRequired(
+            [this](const std::string& address) {
+                flutter_api_->OnPinCodeRequired(
+                    address, [] {}, [](const auto&) {});
+            });
+        if (!ble_stream_->ConnectAndDiscover(ble_address)) {
+            flutter_api_->OnError(
+                DiveComputerError("connect_failed",
+                                  "Failed to connect to device"),
+                [] {}, [](const auto&) {});
+            libdc_download_session_free(session);
+            download_session_ = nullptr;
+            ble_stream_.reset();
+            return;
+        }
+
+        libdc_io_callbacks_t io_callbacks = ble_stream_->MakeCallbacks();
+
+        rc = libdc_download_run(
+            session,
+            device.vendor().c_str(), device.product().c_str(),
+            static_cast<unsigned int>(device.model()),
+            transport_value,
+            &io_callbacks,
+            fp_bytes.empty() ? nullptr : fp_bytes.data(),
+            static_cast<unsigned int>(fp_bytes.size()),
+            &dl_callbacks,
+            &serial, &firmware,
+            error_buf, sizeof(error_buf));
+
+        ble_stream_.reset();
+    }
 
     // Format device info.
     std::optional<std::string> serial_str =
@@ -328,8 +356,6 @@ void DiveComputerHostApiImpl::PerformDownload(
     // Cleanup.
     libdc_download_session_free(session);
     download_session_ = nullptr;
-    ble_stream_.reset();
-    serial_stream_.reset();
 }
 
 }  // namespace libdivecomputer_plugin
