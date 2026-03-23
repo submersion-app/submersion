@@ -1141,9 +1141,7 @@ class UddfFullImportService {
           'passedtime',
         );
         if (passedTimeText != null) {
-          final seconds =
-              int.tryParse(passedTimeText) ??
-              double.tryParse(passedTimeText)?.round();
+          final seconds = int.tryParse(passedTimeText);
           if (seconds != null && seconds > 0) {
             diveData['surfaceInterval'] = Duration(seconds: seconds);
           }
@@ -1420,8 +1418,7 @@ class UddfFullImportService {
 
         final timeText = UddfImportParsers.getElementText(waypoint, 'divetime');
         if (timeText != null) {
-          point['timestamp'] =
-              int.tryParse(timeText) ?? double.tryParse(timeText)?.round() ?? 0;
+          point['timestamp'] = int.tryParse(timeText) ?? 0;
         }
 
         final depthText = UddfImportParsers.getElementText(waypoint, 'depth');
@@ -1550,9 +1547,7 @@ class UddfFullImportService {
         'diveduration',
       );
       if (durationText != null) {
-        final seconds =
-            int.tryParse(durationText) ??
-            double.tryParse(durationText)?.round();
+        final seconds = int.tryParse(durationText);
         if (seconds != null) {
           diveData['runtime'] = Duration(seconds: seconds);
         }

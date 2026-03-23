@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/services/export/uddf/dialects/macdive_dialect_normalizer.dart';
+import 'package:submersion/core/services/export/uddf/dialects/macdive_dialect.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
 import 'package:xml/xml.dart';
@@ -61,6 +61,9 @@ const _macDiveUddf = '''<?xml version="1.0" encoding="UTF-8" ?>
           <link ref="buddy-1" />
           <datetime>2024-03-10T11:22:37</datetime>
           <divenumber>102</divenumber>
+          <surfaceintervalbeforedive>
+            <passedtime>3600.00</passedtime>
+          </surfaceintervalbeforedive>
         </informationbeforedive>
         <informationafterdive>
           <greatestdepth>22.50</greatestdepth>
@@ -133,24 +136,24 @@ const _standardUddf = '''<uddf version="3.2.1">
 </uddf>''';
 
 void main() {
-  group('MacDiveDialectNormalizer', () {
+  group('MacDiveDialect', () {
     group('isMatch', () {
       test('returns true for UDDF with MacDive namespace', () {
         final doc = XmlDocument.parse(_macDiveUddf);
-        expect(MacDiveDialectNormalizer.isMatch(doc), isTrue);
+        expect(MacDiveDialect().isMatch(doc), isTrue);
       });
 
       test('returns false for UDDF without namespace', () {
         final doc = XmlDocument.parse(_standardUddf);
-        expect(MacDiveDialectNormalizer.isMatch(doc), isFalse);
+        expect(MacDiveDialect().isMatch(doc), isFalse);
       });
     });
 
-    group('normalize - namespace stripping', () {
+    group('normalizeXml - encoding', () {
       test(
         'removes default namespace so elements are in the empty namespace',
         () {
-          final result = MacDiveDialectNormalizer.normalize(_macDiveUddf);
+          final result = MacDiveDialect().normalizeXml(_macDiveUddf);
           final normalized = XmlDocument.parse(result);
           // After stripping, all findElements() calls must work without namespace
           expect(
@@ -165,15 +168,23 @@ void main() {
       );
 
       test('root element local name remains uddf', () {
-        final result = MacDiveDialectNormalizer.normalize(_macDiveUddf);
+        final result = MacDiveDialect().normalizeXml(_macDiveUddf);
         final normalized = XmlDocument.parse(result);
         expect(normalized.rootElement.name.local, 'uddf');
       });
+
+      test('normalises float-encoded integer fields to plain integers', () {
+        final result = MacDiveDialect().normalizeXml(_macDiveUddf);
+        expect(result, contains('<divetime>0</divetime>'));
+        expect(result, contains('<divetime>60</divetime>'));
+        expect(result, contains('<diveduration>3494</diveduration>'));
+        expect(result, contains('<passedtime>3600</passedtime>'));
+      });
     });
 
-    group('normalize - country fix', () {
+    group('normalizeXml - country fix', () {
       test('adds country as direct child of site element', () {
-        final result = MacDiveDialectNormalizer.normalize(_macDiveUddf);
+        final result = MacDiveDialect().normalizeXml(_macDiveUddf);
         final normalized = XmlDocument.parse(result);
 
         final site = normalized.findAllElements('site').firstOrNull;
@@ -185,7 +196,7 @@ void main() {
       });
 
       test('preserves original geography/address/country structure', () {
-        final result = MacDiveDialectNormalizer.normalize(_macDiveUddf);
+        final result = MacDiveDialect().normalizeXml(_macDiveUddf);
         final normalized = XmlDocument.parse(result);
 
         final geo = normalized.findAllElements('geography').firstOrNull;
@@ -199,11 +210,11 @@ void main() {
       });
     });
 
-    group('normalize - equipmentused move', () {
+    group('normalizeXml - equipmentused move', () {
       test(
         'copies equipmentused from informationafterdive to informationbeforedive',
         () {
-          final result = MacDiveDialectNormalizer.normalize(_macDiveUddf);
+          final result = MacDiveDialect().normalizeXml(_macDiveUddf);
           final normalized = XmlDocument.parse(result);
 
           final dive = normalized.findAllElements('dive').firstOrNull;
@@ -221,7 +232,7 @@ void main() {
       );
 
       test('equipmentused content is preserved after move', () {
-        final result = MacDiveDialectNormalizer.normalize(_macDiveUddf);
+        final result = MacDiveDialect().normalizeXml(_macDiveUddf);
         final normalized = XmlDocument.parse(result);
 
         final dive = normalized.findAllElements('dive').firstOrNull;
@@ -232,6 +243,19 @@ void main() {
           '3.0',
         );
       });
+    });
+  });
+
+  group('UddfDialect', () {
+    test('default normalizeXml passes through content unchanged', () {
+      // UddfNormalizer falls back unchanged when no dialect matches
+      final result = UddfNormalizer.normalize(_standardUddf);
+      expect(result, equals(_standardUddf));
+    });
+
+    test('non-MacDive content is not processed by MacDiveDialect', () {
+      final doc = XmlDocument.parse(_standardUddf);
+      expect(MacDiveDialect().isMatch(doc), isFalse);
     });
   });
 
@@ -348,6 +372,12 @@ void main() {
       // First waypoint has temperature 276.15 K = 3.0 °C
       final firstPoint = profile!.first;
       expect(firstPoint['temperature'], closeTo(3.0, 0.01));
+    });
+
+    test('parses surface interval from float-encoded passedtime', () async {
+      final result = await service.importAllDataFromUddf(_macDiveUddf);
+      final dive = result.dives.first;
+      expect(dive['surfaceInterval'], equals(const Duration(hours: 1)));
     });
 
     test(
