@@ -377,6 +377,11 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
     private func connectSerial(
         device: DiscoveredDevice, session: OpaquePointer
     ) -> libdc_io_callbacks_t? {
+        // macOS does not have auto-probe logic (unlike Linux/Windows) because
+        // serial devices are always discovered via SerialScanner first, which
+        // provides the exact /dev/cu.* path. Manual model selection on macOS
+        // also goes through the scanner, so the address is always a valid
+        // device path by the time we reach here.
         let serialStream = SerialIoStream()
         guard serialStream.open(path: device.address) else {
             reportError(
