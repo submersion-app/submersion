@@ -3,6 +3,7 @@ import 'package:xml/xml.dart';
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Handles comprehensive UDDF import including all application data.
@@ -15,8 +16,9 @@ class UddfFullImportService {
   /// Import ALL application data from UDDF file.
   /// Returns [UddfImportResult] with all parsed data.
   Future<UddfImportResult> importAllDataFromUddf(String uddfContent) async {
-    final document = XmlDocument.parse(uddfContent);
-    // Use rootElement instead of findElements to handle XML namespaces properly
+    final normalized = UddfNormalizer.normalize(uddfContent);
+    final document = XmlDocument.parse(normalized);
+    // Namespace handling is performed by UddfNormalizer before parsing
     final uddfElement = document.rootElement;
     if (uddfElement.name.local != 'uddf') {
       throw const FormatException(
