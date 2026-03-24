@@ -13598,6 +13598,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get universalImport_action_selectAll => 'Alles selecteren';
 
   @override
+  String get universalImport_action_changeFile => 'Bestand wijzigen';
+
+  @override
   String get universalImport_action_selectFile => 'Selecteer bestand';
 
   @override

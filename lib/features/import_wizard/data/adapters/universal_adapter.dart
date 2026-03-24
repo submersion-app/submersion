@@ -96,7 +96,10 @@ class UniversalAdapter implements ImportSourceAdapter {
     required WidgetRef ref,
     String displayName = 'Universal Import',
   }) : _ref = ref,
-       _displayName = displayName;
+       _displayName = displayName {
+    // Reset state from any previous import session.
+    ref.read(universalImportNotifierProvider.notifier).reset();
+  }
 
   final WidgetRef _ref;
   final String _displayName;
@@ -124,14 +127,14 @@ class UniversalAdapter implements ImportSourceAdapter {
       icon: Icons.file_open,
       builder: (context) => const FileSelectionStep(),
       canAdvance: universalAdapterFileSelectedProvider,
-      autoAdvance: false,
+      autoAdvance: true,
     ),
     WizardStepDef(
       label: 'Confirm Source',
       icon: Icons.check_circle_outline,
       builder: (context) => const SourceConfirmationStep(),
       canAdvance: universalAdapterSourceConfirmedProvider,
-      autoAdvance: false,
+      autoAdvance: true,
     ),
     WizardStepDef(
       label: 'Map Fields',

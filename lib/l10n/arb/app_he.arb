@@ -4206,6 +4206,7 @@
   "universalImport_action_done": "סיום",
   "universalImport_action_import": "ייבא",
   "universalImport_action_selectAll": "בחר הכל",
+  "universalImport_action_changeFile": "שנה קובץ",
   "universalImport_action_selectFile": "בחר קובץ",
   "universalImport_description_supportedFormats": "בחר קובץ יומן צלילה לייבוא. פורמטים נתמכים כוללים CSV, UDDF, Subsurface XML ו-Garmin FIT.",
   "universalImport_error_unsupportedFormat": "פורמט זה אינו נתמך עדיין. נא לייצא כ-UDDF או CSV.",

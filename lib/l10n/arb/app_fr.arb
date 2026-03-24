@@ -4206,6 +4206,7 @@
   "universalImport_action_done": "Terminé",
   "universalImport_action_import": "Importer",
   "universalImport_action_selectAll": "Tout sélectionner",
+  "universalImport_action_changeFile": "Changer de fichier",
   "universalImport_action_selectFile": "Sélectionner un fichier",
   "universalImport_description_supportedFormats": "Sélectionnez un fichier de carnet de plongée à importer. Les formats pris en charge incluent CSV, UDDF, Subsurface XML et Garmin FIT.",
   "universalImport_error_unsupportedFormat": "Ce format n'est pas encore pris en charge. Veuillez exporter en UDDF ou CSV.",

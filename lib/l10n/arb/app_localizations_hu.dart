@@ -13670,6 +13670,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get universalImport_action_selectAll => 'Összes kijelölése';
 
   @override
+  String get universalImport_action_changeFile => 'Fajl valtas';
+
+  @override
   String get universalImport_action_selectFile => 'Fájl kiválasztása';
 
   @override

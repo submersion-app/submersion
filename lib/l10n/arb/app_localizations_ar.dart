@@ -13441,6 +13441,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_action_selectAll => 'تحديد الكل';
 
   @override
+  String get universalImport_action_changeFile => 'تغيير الملف';
+
+  @override
   String get universalImport_action_selectFile => 'اختيار ملف';
 
   @override

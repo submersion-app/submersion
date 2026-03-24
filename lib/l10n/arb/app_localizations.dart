@@ -23313,6 +23313,12 @@ abstract class AppLocalizations {
   /// **'Select All'**
   String get universalImport_action_selectAll;
 
+  /// No description provided for @universalImport_action_changeFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Change File'**
+  String get universalImport_action_changeFile;
+
   /// Button label for the file picker button
   ///
   /// In en, this message translates to:

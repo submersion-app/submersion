@@ -138,6 +138,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         icon: Icons.bluetooth_searching,
         builder: (context) => _AdapterScanStep(adapter: this),
         canAdvance: dcAdapterScanCanAdvanceProvider,
+        autoAdvance: true,
       ),
       WizardStepDef(
         label: 'Download',
@@ -411,6 +412,9 @@ class _AdapterScanStep extends ConsumerWidget {
     return ScanStepWidget(
       onDeviceSelected: (device) {
         ref.read(discoveryNotifierProvider.notifier).selectDevice(device);
+        // Reset then set so the provider transitions false -> true,
+        // enabling auto-advance even when re-selecting a device.
+        ref.read(dcAdapterScanCanAdvanceProvider.notifier).state = false;
         ref.read(dcAdapterScanCanAdvanceProvider.notifier).state = true;
       },
     );

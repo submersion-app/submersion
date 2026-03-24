@@ -4206,6 +4206,7 @@
   "universalImport_action_done": "Fertig",
   "universalImport_action_import": "Importieren",
   "universalImport_action_selectAll": "Alle auswählen",
+  "universalImport_action_changeFile": "Datei wechseln",
   "universalImport_action_selectFile": "Datei auswählen",
   "universalImport_description_supportedFormats": "Wählen Sie eine Tauchprotokoll-Datei zum Importieren aus. Unterstützte Formate sind CSV, UDDF, Subsurface XML und Garmin FIT.",
   "universalImport_error_unsupportedFormat": "Dieses Format wird noch nicht unterstützt. Bitte exportieren Sie als UDDF oder CSV.",

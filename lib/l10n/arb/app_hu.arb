@@ -4206,6 +4206,7 @@
   "universalImport_action_done": "Kész",
   "universalImport_action_import": "Importálás",
   "universalImport_action_selectAll": "Összes kijelölése",
+  "universalImport_action_changeFile": "Fajl valtas",
   "universalImport_action_selectFile": "Fájl kiválasztása",
   "universalImport_description_supportedFormats": "Válassz egy merülési napló fájlt az importáláshoz. Támogatott formátumok: CSV, UDDF, Subsurface XML és Garmin FIT.",
   "universalImport_error_unsupportedFormat": "Ez a formátum még nem támogatott. Exportálj UDDF vagy CSV formátumban.",

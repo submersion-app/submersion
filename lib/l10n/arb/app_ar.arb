@@ -4206,6 +4206,7 @@
   "universalImport_action_done": "تم",
   "universalImport_action_import": "استيراد",
   "universalImport_action_selectAll": "تحديد الكل",
+  "universalImport_action_changeFile": "تغيير الملف",
   "universalImport_action_selectFile": "اختيار ملف",
   "universalImport_description_supportedFormats": "اختر ملف سجل غوص للاستيراد. الصيغ المدعومة تشمل CSV وUDDF وSubsurface XML وGarmin FIT.",
   "universalImport_error_unsupportedFormat": "هذه الصيغة غير مدعومة بعد. يرجى التصدير كـ UDDF أو CSV.",

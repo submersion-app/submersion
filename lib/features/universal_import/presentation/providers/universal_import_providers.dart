@@ -211,7 +211,14 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
   /// Pick a file and run format detection.
   Future<void> pickFile() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    // Reset to fileSelection so the canAdvance provider transitions
+    // false -> true when detection completes, enabling auto-advance
+    // even when re-selecting a file.
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+      currentStep: ImportWizardStep.fileSelection,
+    );
 
     try {
       final result = await FilePicker.platform.pickFiles(
@@ -261,6 +268,10 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   void confirmSource({SourceApp? overrideApp, ImportFormat? overrideFormat}) {
     final detection = state.detectionResult;
     if (detection == null) return;
+
+    // Reset to sourceConfirmation so the canAdvance provider transitions
+    // false -> true, enabling auto-advance even when re-confirming.
+    state = state.copyWith(currentStep: ImportWizardStep.sourceConfirmation);
 
     final format = overrideFormat ?? detection.format;
     final sourceApp = overrideApp ?? detection.sourceApp ?? SourceApp.generic;

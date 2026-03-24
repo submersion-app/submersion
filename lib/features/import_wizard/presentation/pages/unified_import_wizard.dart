@@ -2,9 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_progress_step.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_step.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/review_step.dart';
@@ -100,7 +112,43 @@ class _UnifiedImportWizardBodyState
   Future<void> _startImport() async {
     await _animateToPage(_importIndex);
     await ref.read(importWizardProvider.notifier).performImport();
+    _invalidateImportedProviders();
     await _animateToPage(_summaryIndex);
+  }
+
+  /// Invalidate list providers for entity types that were imported so
+  /// list screens reflect the new data without requiring an app restart.
+  void _invalidateImportedProviders() {
+    final result = ref.read(importWizardProvider).importResult;
+    if (result == null) return;
+
+    for (final type in result.importedCounts.keys) {
+      if ((result.importedCounts[type] ?? 0) <= 0) continue;
+      switch (type) {
+        case ImportEntityType.dives:
+          ref.invalidate(divesProvider);
+        case ImportEntityType.sites:
+          ref.invalidate(sitesProvider);
+        case ImportEntityType.buddies:
+          ref.invalidate(allBuddiesProvider);
+        case ImportEntityType.equipment:
+          ref.invalidate(allEquipmentProvider);
+        case ImportEntityType.trips:
+          ref.invalidate(allTripsProvider);
+        case ImportEntityType.certifications:
+          ref.invalidate(allCertificationsProvider);
+        case ImportEntityType.diveCenters:
+          ref.invalidate(allDiveCentersProvider);
+        case ImportEntityType.tags:
+          ref.invalidate(tagsProvider);
+        case ImportEntityType.diveTypes:
+          ref.invalidate(diveTypesProvider);
+        case ImportEntityType.equipmentSets:
+          ref.invalidate(equipmentSetsProvider);
+        case ImportEntityType.courses:
+          ref.invalidate(allCoursesProvider);
+      }
+    }
   }
 
   void _close() {
@@ -166,8 +214,7 @@ class _UnifiedImportWizardBodyState
   @override
   Widget build(BuildContext context) {
     final stepLabels = _buildStepLabels();
-    final showBottomBar =
-        _currentPage < _importIndex && _currentPage != _importIndex;
+    final showBottomBar = _currentPage < _reviewIndex;
 
     return Scaffold(
       appBar: AppBar(
@@ -194,7 +241,10 @@ class _UnifiedImportWizardBodyState
                     onAutoAdvance: () => _onNext(),
                   ),
                 ),
-                ReviewStep(onImport: _startImport),
+                ReviewStep(
+                  onImport: _startImport,
+                  onBack: () => _animateToPage(_currentPage - 1),
+                ),
                 const ImportProgressStep(),
                 ImportSummaryStep(
                   onDone: _close,

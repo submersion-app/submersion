@@ -18,7 +18,10 @@ class ReviewStep extends ConsumerWidget {
   /// Fired when the user taps "Import Selected".
   final VoidCallback onImport;
 
-  const ReviewStep({super.key, required this.onImport});
+  /// Fired when the user taps "Back".
+  final VoidCallback? onBack;
+
+  const ReviewStep({super.key, required this.onImport, this.onBack});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,6 +47,7 @@ class ReviewStep extends ConsumerWidget {
         availableActions: availableActions,
         counts: counts,
         onImport: onImport,
+        onBack: onBack,
       );
     }
 
@@ -55,6 +59,7 @@ class ReviewStep extends ConsumerWidget {
       availableActions: availableActions,
       counts: counts,
       onImport: onImport,
+      onBack: onBack,
     );
   }
 }
@@ -71,6 +76,7 @@ class _SingleTypeLayout extends StatelessWidget {
   final Set<DuplicateAction> availableActions;
   final _AggregateCounts counts;
   final VoidCallback onImport;
+  final VoidCallback? onBack;
 
   const _SingleTypeLayout({
     required this.type,
@@ -80,6 +86,7 @@ class _SingleTypeLayout extends StatelessWidget {
     required this.availableActions,
     required this.counts,
     required this.onImport,
+    this.onBack,
   });
 
   @override
@@ -107,7 +114,7 @@ class _SingleTypeLayout extends StatelessWidget {
             ),
           ),
         ),
-        _BottomBar(counts: counts, onImport: onImport),
+        _BottomBar(counts: counts, onImport: onImport, onBack: onBack),
       ],
     );
   }
@@ -125,6 +132,7 @@ class _MultiTypeLayout extends StatelessWidget {
   final Set<DuplicateAction> availableActions;
   final _AggregateCounts counts;
   final VoidCallback onImport;
+  final VoidCallback? onBack;
 
   const _MultiTypeLayout({
     required this.types,
@@ -134,6 +142,7 @@ class _MultiTypeLayout extends StatelessWidget {
     required this.availableActions,
     required this.counts,
     required this.onImport,
+    this.onBack,
   });
 
   @override
@@ -162,7 +171,7 @@ class _MultiTypeLayout extends StatelessWidget {
               ],
             ),
           ),
-          _BottomBar(counts: counts, onImport: onImport),
+          _BottomBar(counts: counts, onImport: onImport, onBack: onBack),
         ],
       ),
     );
@@ -249,21 +258,22 @@ class _EntityTab extends StatelessWidget {
 class _BottomBar extends StatelessWidget {
   final _AggregateCounts counts;
   final VoidCallback onImport;
+  final VoidCallback? onBack;
 
-  const _BottomBar({required this.counts, required this.onImport});
+  const _BottomBar({required this.counts, required this.onImport, this.onBack});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final parts = <String>[];
     if (counts.importing > 0) {
-      parts.add('${counts.importing} importing');
+      parts.add('${counts.importing} new');
     }
     if (counts.consolidating > 0) {
-      parts.add('${counts.consolidating} consolidating');
+      parts.add('${counts.consolidating} merging');
     }
     if (counts.skipping > 0) {
-      parts.add('${counts.skipping} skipping');
+      parts.add('${counts.skipping} skipped');
     }
 
     final countsText = parts.isEmpty ? 'Nothing selected' : parts.join(', ');
@@ -273,12 +283,15 @@ class _BottomBar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
+            if (onBack != null)
+              TextButton(onPressed: onBack, child: const Text('Back')),
             Expanded(
               child: Text(
                 countsText,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
             FilledButton(

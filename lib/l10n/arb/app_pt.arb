@@ -4206,6 +4206,7 @@
   "universalImport_action_done": "Concluir",
   "universalImport_action_import": "Importar",
   "universalImport_action_selectAll": "Selecionar Todos",
+  "universalImport_action_changeFile": "Alterar arquivo",
   "universalImport_action_selectFile": "Selecionar Arquivo",
   "universalImport_description_supportedFormats": "Selecione um arquivo de registro de mergulho para importar. Os formatos suportados incluem CSV, UDDF, Subsurface XML e Garmin FIT.",
   "universalImport_error_unsupportedFormat": "Este formato ainda não é suportado. Exporte como UDDF ou CSV.",

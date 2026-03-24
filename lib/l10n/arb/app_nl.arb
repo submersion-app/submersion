@@ -4206,6 +4206,7 @@
   "universalImport_action_done": "Gereed",
   "universalImport_action_import": "Importeren",
   "universalImport_action_selectAll": "Alles selecteren",
+  "universalImport_action_changeFile": "Bestand wijzigen",
   "universalImport_action_selectFile": "Selecteer bestand",
   "universalImport_description_supportedFormats": "Selecteer een duiklogboekbestand om te importeren. Ondersteunde formaten zijn CSV, UDDF, Subsurface XML en Garmin FIT.",
   "universalImport_error_unsupportedFormat": "Dit formaat wordt nog niet ondersteund. Exporteer als UDDF of CSV.",

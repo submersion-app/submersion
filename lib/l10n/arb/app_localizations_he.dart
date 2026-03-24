@@ -13346,6 +13346,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_action_selectAll => 'בחר הכל';
 
   @override
+  String get universalImport_action_changeFile => 'שנה קובץ';
+
+  @override
   String get universalImport_action_selectFile => 'בחר קובץ';
 
   @override

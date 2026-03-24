@@ -7683,6 +7683,7 @@
   "universalImport_action_done": "Done",
   "universalImport_action_import": "Import",
   "universalImport_action_selectAll": "Select All",
+  "universalImport_action_changeFile": "Change File",
   "universalImport_action_selectFile": "Select File",
   "universalImport_description_supportedFormats": "Select a dive log file to import. Supported formats include CSV, UDDF, Subsurface XML, and Garmin FIT.",
   "universalImport_error_unsupportedFormat": "This format is not yet supported. Please export as UDDF or CSV.",

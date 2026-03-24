@@ -13717,6 +13717,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get universalImport_action_selectAll => 'Selecionar Todos';
 
   @override
+  String get universalImport_action_changeFile => 'Alterar arquivo';
+
+  @override
   String get universalImport_action_selectFile => 'Selecionar Arquivo';
 
   @override
