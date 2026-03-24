@@ -1393,6 +1393,14 @@ class UddfFullImportService {
       }
     }
 
+    // Assign default tank IDs to tanks that don't have explicit IDs
+    // This ensures waypoint tankpressure refs like "T1", "T2" can be mapped correctly
+    for (var i = 0; i < tanks.length; i++) {
+      if (tanks[i]['uddfTankId'] == null) {
+        tanks[i]['uddfTankId'] = 'T${i + 1}';
+      }
+    }
+
     // Build mapping from UDDF tank ref IDs to final tank indices
     // (after filtering, so indices match the actual tanks list order)
     final tankRefToIndex = <String, int>{};

@@ -501,6 +501,16 @@ class UddfImportService {
       }
     }
 
+    // Assign default tank IDs for tanks that don't have them but may be referenced by waypoints
+    // This handles cases where tankdata elements don't have id attributes but waypoints reference "T1", "T2", etc.
+    for (var i = 0; i < tanks.length; i++) {
+      if (tanks[i]['uddfTankId'] == null) {
+        // Assign default ID based on 1-based tank numbering (T1, T2, T3, etc.)
+        final defaultId = 'T${i + 1}';
+        tanks[i]['uddfTankId'] = defaultId;
+      }
+    }
+
     // Build mapping from UDDF tank ref IDs to final tank indices
     // (after filtering, so indices match the actual tanks list order)
     final tankRefToIndex = <String, int>{};

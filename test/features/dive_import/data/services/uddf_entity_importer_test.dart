@@ -715,6 +715,69 @@ void main() {
       expect(dive.notes, contains('Great dive'));
       expect(dive.notes, contains('Weight used: 4.5 kg'));
     });
+
+    test(
+      'imports dive with two tanks and stores pressure data for both',
+      () async {
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+        when(
+          mockTankPressureRepo.insertTankPressures(any, any),
+        ).thenAnswer((_) async {});
+
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 30.0,
+              'tanks': [
+                {'uddfTankId': 'T1', 'volume': 12.0},
+                {'uddfTankId': 'T2', 'volume': 11.0},
+              ],
+              'profile': [
+                {
+                  'timestamp': 0,
+                  'depth': 0.0,
+                  'allTankPressures': [
+                    {'tankIndex': 0, 'pressure': 200.0},
+                    {'tankIndex': 1, 'pressure': 190.0},
+                  ],
+                },
+                {
+                  'timestamp': 60,
+                  'depth': 20.0,
+                  'allTankPressures': [
+                    {'tankIndex': 0, 'pressure': 180.0},
+                    {'tankIndex': 1, 'pressure': 170.0},
+                  ],
+                },
+              ],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: UddfImportSelections.selectAll(data),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        verify(mockDiveRepo.createDive(any)).called(1);
+
+        final captured = verify(
+          mockTankPressureRepo.insertTankPressures(any, captureAny),
+        ).captured;
+
+        final pressuresByTank =
+            captured.first
+                as Map<String, List<({int timestamp, double pressure})>>;
+        expect(pressuresByTank.keys, hasLength(2));
+        expect(pressuresByTank.values.first, isNotEmpty);
+        expect(pressuresByTank.values.last, isNotEmpty);
+      },
+    );
   });
 
   group('Progress callback', () {
