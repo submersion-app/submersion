@@ -135,16 +135,120 @@ const _standardUddf = '''<uddf version="3.2.1">
   </profiledata>
 </uddf>''';
 
+// Submersion-style export: same UDDF 3.2 namespace but with a Submersion
+// generator tag and standard element structure (no MacDive quirks).
+const _submersionUddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.0">
+  <generator><name>Submersion</name><version>1.0.0</version></generator>
+  <diver>
+    <owner id="owner-1">
+      <personal><firstname>Test</firstname><lastname>User</lastname></personal>
+    </owner>
+  </diver>
+  <divesite>
+    <site id="s1">
+      <name>Test Site</name>
+      <country>US</country>
+    </site>
+  </divesite>
+  <profiledata>
+    <repetitiongroup id="rg-1">
+      <dive id="d-1">
+        <informationbeforedive>
+          <link ref="s1" />
+          <datetime>2024-06-01T09:00:00</datetime>
+          <equipmentused><leadquantity>2.0</leadquantity></equipmentused>
+        </informationbeforedive>
+        <informationafterdive>
+          <greatestdepth>18.0</greatestdepth>
+          <diveduration>2400</diveduration>
+        </informationafterdive>
+        <samples>
+          <waypoint><divetime>0</divetime><depth>0.0</depth></waypoint>
+          <waypoint><divetime>60</divetime><depth>10.0</depth></waypoint>
+        </samples>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>''';
+
+// MacDive-style UDDF without <informationbeforedive>, where equipmentused
+// is only in <informationafterdive>.
+const _macDiveNoBeforeInfo = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
+  <diver>
+    <owner id="owner-1">
+      <personal><firstname>Test</firstname></personal>
+    </owner>
+  </diver>
+  <profiledata>
+    <repetitiongroup id="rg-1">
+      <dive id="d-1">
+        <informationafterdive>
+          <greatestdepth>15.0</greatestdepth>
+          <diveduration>1800.00</diveduration>
+          <equipmentused><leadquantity>4.0</leadquantity></equipmentused>
+        </informationafterdive>
+        <samples>
+          <waypoint><divetime>0.00</divetime><depth>0.0</depth></waypoint>
+          <waypoint><divetime>60.00</divetime><depth>10.0</depth></waypoint>
+        </samples>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>''';
+
 void main() {
   group('MacDiveDialect', () {
     group('isMatch', () {
-      test('returns true for UDDF with MacDive namespace', () {
+      test('returns true for UDDF with MacDive structural quirks', () {
         final doc = XmlDocument.parse(_macDiveUddf);
+        expect(MacDiveDialect().isMatch(doc), isTrue);
+      });
+
+      test('returns true when generator tag says MacDive', () {
+        const uddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
+  <generator><name>MacDive</name><version>2.8.1</version></generator>
+  <profiledata>
+    <repetitiongroup id="rg-1">
+      <dive id="d-1">
+        <informationbeforedive><datetime>2024-01-01T10:00:00</datetime></informationbeforedive>
+        <informationafterdive><greatestdepth>20.0</greatestdepth></informationafterdive>
+        <samples><waypoint><divetime>0</divetime><depth>0.0</depth></waypoint></samples>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>''';
+        final doc = XmlDocument.parse(uddf);
         expect(MacDiveDialect().isMatch(doc), isTrue);
       });
 
       test('returns false for UDDF without namespace', () {
         final doc = XmlDocument.parse(_standardUddf);
+        expect(MacDiveDialect().isMatch(doc), isFalse);
+      });
+
+      test('returns false for Submersion export with same namespace', () {
+        final doc = XmlDocument.parse(_submersionUddf);
+        expect(MacDiveDialect().isMatch(doc), isFalse);
+      });
+
+      test('returns false for other app with same namespace and generator', () {
+        const uddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.0">
+  <generator><name>Subsurface Divelog</name><version>3</version></generator>
+  <profiledata>
+    <repetitiongroup id="rg-1">
+      <dive id="d-1">
+        <informationbeforedive><datetime>2024-01-01T10:00:00</datetime></informationbeforedive>
+        <informationafterdive><greatestdepth>20.0</greatestdepth></informationafterdive>
+        <samples><waypoint><divetime>0</divetime><depth>0.0</depth></waypoint></samples>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>''';
+        final doc = XmlDocument.parse(uddf);
         expect(MacDiveDialect().isMatch(doc), isFalse);
       });
     });
@@ -195,6 +299,21 @@ void main() {
         expect(country!.innerText, 'Norway');
       });
 
+      test('does not duplicate country when already a direct child', () {
+        final result = MacDiveDialect().normalizeXml(_macDiveUddf);
+        // Normalize a second time to verify idempotency.
+        final secondPass = MacDiveDialect().normalizeXml(result);
+        final normalized = XmlDocument.parse(secondPass);
+
+        final site = normalized.findAllElements('site').firstOrNull;
+        expect(site, isNotNull);
+        final directCountries = site!.children
+            .whereType<XmlElement>()
+            .where((child) => child.name.local == 'country')
+            .length;
+        expect(directCountries, 1, reason: 'normalization must be idempotent');
+      });
+
       test('preserves original geography/address/country structure', () {
         final result = MacDiveDialect().normalizeXml(_macDiveUddf);
         final normalized = XmlDocument.parse(result);
@@ -243,6 +362,38 @@ void main() {
           '3.0',
         );
       });
+
+      test('creates informationbeforedive when absent', () {
+        final result = MacDiveDialect().normalizeXml(_macDiveNoBeforeInfo);
+        final normalized = XmlDocument.parse(result);
+
+        final dive = normalized.findAllElements('dive').firstOrNull;
+        expect(dive, isNotNull);
+        final before = dive!.findElements('informationbeforedive').firstOrNull;
+        expect(
+          before,
+          isNotNull,
+          reason: 'informationbeforedive should be created when absent',
+        );
+        final equip = before!.findElements('equipmentused').firstOrNull;
+        expect(equip, isNotNull);
+        expect(
+          equip!.findElements('leadquantity').firstOrNull?.innerText,
+          '4.0',
+        );
+      });
+
+      test('does not duplicate equipmentused when already present', () {
+        final result = MacDiveDialect().normalizeXml(_macDiveUddf);
+        // Normalize a second time to verify idempotency.
+        final secondPass = MacDiveDialect().normalizeXml(result);
+        final normalized = XmlDocument.parse(secondPass);
+
+        final dive = normalized.findAllElements('dive').firstOrNull;
+        final before = dive!.findElements('informationbeforedive').firstOrNull;
+        final equipCount = before!.findElements('equipmentused').length;
+        expect(equipCount, 1, reason: 'normalization must be idempotent');
+      });
     });
   });
 
@@ -268,6 +419,11 @@ void main() {
     test('passes through non-MacDive content unchanged', () {
       final result = UddfNormalizer.normalize(_standardUddf);
       expect(result, equals(_standardUddf));
+    });
+
+    test('passes through Submersion export unchanged', () {
+      final result = UddfNormalizer.normalize(_submersionUddf);
+      expect(result, equals(_submersionUddf));
     });
   });
 
