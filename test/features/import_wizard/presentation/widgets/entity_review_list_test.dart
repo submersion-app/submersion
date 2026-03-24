@@ -77,9 +77,9 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      final group = EntityGroup(
-        items: const [_itemA, _itemB, _itemC],
-        duplicateIndices: const {},
+      const group = EntityGroup(
+        items: [_itemA, _itemB, _itemC],
+        duplicateIndices: {},
       );
 
       await tester.pumpWidget(_buildList(group: group));
@@ -96,9 +96,9 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      final group = EntityGroup(
-        items: const [_itemA, _itemB, _itemC],
-        duplicateIndices: const {},
+      const group = EntityGroup(
+        items: [_itemA, _itemB, _itemC],
+        duplicateIndices: {},
       );
 
       await tester.pumpWidget(
@@ -123,10 +123,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
 
       int? toggledIndex;
-      final group = EntityGroup(
-        items: const [_itemA, _itemB],
-        duplicateIndices: const {},
-      );
+      const group = EntityGroup(items: [_itemA, _itemB], duplicateIndices: {});
 
       await tester.pumpWidget(
         _buildList(group: group, onToggleSelection: (i) => toggledIndex = i),
@@ -148,10 +145,10 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      final group = EntityGroup(
-        items: const [_itemA, _dupItem],
-        duplicateIndices: const {1},
-        matchResults: const {1: _likelyMatchResult},
+      const group = EntityGroup(
+        items: [_itemA, _dupItem],
+        duplicateIndices: {1},
+        matchResults: {1: _likelyMatchResult},
       );
 
       await tester.pumpWidget(_buildList(group: group, selectedIndices: {0}));
@@ -168,10 +165,10 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      final group = EntityGroup(
-        items: const [_dupItem],
-        duplicateIndices: const {0},
-        matchResults: const {0: _likelyMatchResult},
+      const group = EntityGroup(
+        items: [_dupItem],
+        duplicateIndices: {0},
+        matchResults: {0: _likelyMatchResult},
       );
 
       await tester.pumpWidget(_buildList(group: group));
@@ -185,10 +182,10 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      final group = EntityGroup(
-        items: const [_dupItem],
-        duplicateIndices: const {0},
-        matchResults: const {0: _likelyMatchResult},
+      const group = EntityGroup(
+        items: [_dupItem],
+        duplicateIndices: {0},
+        matchResults: {0: _likelyMatchResult},
       );
 
       await tester.pumpWidget(_buildList(group: group));
@@ -202,10 +199,10 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      final group = EntityGroup(
-        items: const [_dupItem],
-        duplicateIndices: const {0},
-        matchResults: const {0: _possibleMatchResult},
+      const group = EntityGroup(
+        items: [_dupItem],
+        duplicateIndices: {0},
+        matchResults: {0: _possibleMatchResult},
       );
 
       await tester.pumpWidget(_buildList(group: group));
@@ -224,16 +221,16 @@ void main() {
       int? changedIndex;
       DuplicateAction? changedAction;
 
-      final group = EntityGroup(
-        items: const [_dupItem],
-        duplicateIndices: const {0},
-        matchResults: const {0: _likelyMatchResult},
+      const group = EntityGroup(
+        items: [_dupItem],
+        duplicateIndices: {0},
+        matchResults: {0: _likelyMatchResult},
       );
 
       await tester.pumpWidget(
         _buildList(
           group: group,
-          duplicateActions: const {0: DuplicateAction.skip},
+          duplicateActions: {0: DuplicateAction.skip},
           onDuplicateActionChanged: (i, a) {
             changedIndex = i;
             changedAction = a;
@@ -263,10 +260,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
 
       var selectAllCalled = false;
-      final group = EntityGroup(
-        items: const [_itemA, _itemB],
-        duplicateIndices: const {},
-      );
+      const group = EntityGroup(items: [_itemA, _itemB], duplicateIndices: {});
 
       await tester.pumpWidget(
         _buildList(group: group, onSelectAll: () => selectAllCalled = true),
@@ -285,10 +279,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
 
       var deselectAllCalled = false;
-      final group = EntityGroup(
-        items: const [_itemA, _itemB],
-        duplicateIndices: const {},
-      );
+      const group = EntityGroup(items: [_itemA, _itemB], duplicateIndices: {});
 
       await tester.pumpWidget(
         _buildList(group: group, onDeselectAll: () => deselectAllCalled = true),
@@ -309,10 +300,10 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
 
       // One non-duplicate and one duplicate
-      final group = EntityGroup(
-        items: const [_itemA, _dupItem],
-        duplicateIndices: const {1},
-        matchResults: const {1: _likelyMatchResult},
+      const group = EntityGroup(
+        items: [_itemA, _dupItem],
+        duplicateIndices: {1},
+        matchResults: {1: _likelyMatchResult},
       );
 
       await tester.pumpWidget(_buildList(group: group, selectedIndices: {0}));
@@ -333,10 +324,10 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      final group = EntityGroup(
-        items: const [_itemA, _itemB, _dupItem],
-        duplicateIndices: const {2},
-        matchResults: const {2: _likelyMatchResult},
+      const group = EntityGroup(
+        items: [_itemA, _itemB, _dupItem],
+        duplicateIndices: {2},
+        matchResults: {2: _likelyMatchResult},
       );
 
       await tester.pumpWidget(_buildList(group: group, selectedIndices: {0}));
@@ -355,10 +346,10 @@ void main() {
 
       const dup2 = EntityItem(title: 'Dup 2', subtitle: '10 m · 20 min');
 
-      final group = EntityGroup(
-        items: const [_itemA, _dupItem, dup2],
-        duplicateIndices: const {1, 2},
-        matchResults: const {1: _likelyMatchResult, 2: _possibleMatchResult},
+      const group = EntityGroup(
+        items: [_itemA, _dupItem, dup2],
+        duplicateIndices: {1, 2},
+        matchResults: {1: _likelyMatchResult, 2: _possibleMatchResult},
       );
 
       await tester.pumpWidget(_buildList(group: group, selectedIndices: {0}));
@@ -372,10 +363,7 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      final group = EntityGroup(
-        items: const [_itemA, _itemB],
-        duplicateIndices: const {},
-      );
+      const group = EntityGroup(items: [_itemA, _itemB], duplicateIndices: {});
 
       await tester.pumpWidget(
         _buildList(group: group, selectedIndices: {0, 1}),

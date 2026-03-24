@@ -183,7 +183,7 @@ void main() {
     );
 
     test('creates with source and groups map', () {
-      final bundle = ImportBundle(
+      const bundle = ImportBundle(
         source: sourceInfo,
         groups: {
           ImportEntityType.dives: diveGroup,
@@ -196,7 +196,7 @@ void main() {
     });
 
     test('availableTypes returns types present in groups', () {
-      final bundle = ImportBundle(
+      const bundle = ImportBundle(
         source: sourceInfo,
         groups: {
           ImportEntityType.dives: diveGroup,
@@ -217,7 +217,7 @@ void main() {
     });
 
     test('hasType returns true when group of that type exists', () {
-      final bundle = ImportBundle(
+      const bundle = ImportBundle(
         source: sourceInfo,
         groups: {ImportEntityType.dives: diveGroup},
       );
@@ -226,7 +226,7 @@ void main() {
     });
 
     test('hasType returns false when group of that type does not exist', () {
-      final bundle = ImportBundle(
+      const bundle = ImportBundle(
         source: sourceInfo,
         groups: {ImportEntityType.dives: diveGroup},
       );
