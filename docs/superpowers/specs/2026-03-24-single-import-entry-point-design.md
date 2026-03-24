@@ -11,7 +11,7 @@ the user-facing format shortcuts provide no functional benefit.
 
 The Transfer page currently shows two ways to import files:
 
-1. "Auto-Detect Import" (universal) -- auto-detects format, supports all file types
+1. "Import Data" (universal) -- auto-detects format, supports all file types
 2. "By Format" section -- separate entries for CSV, UDDF, and FIT
 
 Both paths produce identical results. The redundancy adds visual clutter and
@@ -22,7 +22,7 @@ decision fatigue ("which one do I pick?") with no upside.
 ### Approach
 
 Remove format-specific UI paths and routes. Keep all adapters as internal
-implementation. Rename "Auto-Detect Import" to "File Import".
+implementation. Rename "Import Data" to "File Import".
 
 ### Changes
 
@@ -30,7 +30,8 @@ implementation. Rename "Auto-Detect Import" to "File Import".
 
 - Remove the "By Format" section header and card (CSV, UDDF, FIT entries)
 - Remove the legacy `_handleImport` method (only used by the CSV "By Format" entry)
-- Rename "Auto-Detect Import" to "File Import"
+- Rename "Import Data" to "File Import"
+- Change icon from `Icons.auto_fix_high` (magic wand) to `Icons.upload_file`
 - Update subtitle to: "UDDF, Subsurface, CSV, FIT, and more"
 
 #### 2. Router (`app_router.dart`)
@@ -44,7 +45,8 @@ implementation. Rename "Auto-Detect Import" to "File Import".
 - Remove: `transfer_import_byFormatHeader`, `transfer_import_csvTitle`,
   `transfer_import_csvSubtitle`, `transfer_import_uddfTitle`,
   `transfer_import_uddfSubtitle`, `transfer_import_fitTitle`,
-  `transfer_import_fitSubtitle`
+  `transfer_import_fitSubtitle`, `transfer_import_operationCompleted`,
+  `transfer_import_operationFailed`
 - Rename: `transfer_import_autoDetectTitle` -> `transfer_import_fileImportTitle`
   (value: "File Import")
 - Update: `transfer_import_autoDetectSubtitle` -> `transfer_import_fileImportSubtitle`
@@ -52,7 +54,11 @@ implementation. Rename "Auto-Detect Import" to "File Import".
 - Update: `transfer_import_autoDetectSemanticLabel` ->
   `transfer_import_fileImportSemanticLabel`
 
-#### 4. What stays untouched
+#### 4. Documentation (`docs/developer/navigation.md`)
+
+- Remove the `fit-import` and `uddf-import` route entries
+
+#### 5. What stays untouched
 
 - All adapters (`UddfAdapter`, `FitAdapter`, `UniversalAdapter`,
   `HealthKitAdapter`, `DiveComputerAdapter`) -- internal implementation
