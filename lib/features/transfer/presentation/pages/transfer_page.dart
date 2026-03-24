@@ -11,7 +11,6 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
-import 'package:submersion/features/settings/presentation/widgets/import_progress_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/csv_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/transfer_list_content.dart';
@@ -275,48 +274,6 @@ class _ImportSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Legacy import options
-          _buildSectionHeader(
-            context,
-            context.l10n.transfer_import_byFormatHeader,
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.table_chart),
-                  title: Text(context.l10n.transfer_import_csvTitle),
-                  subtitle: Text(context.l10n.transfer_import_csvSubtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _handleImport(
-                    context,
-                    ref,
-                    () => ref
-                        .read(exportNotifierProvider.notifier)
-                        .importDivesFromCsv(),
-                  ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.code),
-                  title: Text(context.l10n.transfer_import_uddfTitle),
-                  subtitle: Text(context.l10n.transfer_import_uddfSubtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/transfer/uddf-import'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.file_open),
-                  title: Text(context.l10n.transfer_import_fitTitle),
-                  subtitle: Text(context.l10n.transfer_import_fitSubtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/transfer/fit-import'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
           _buildInfoCard(
             context,
             context.l10n.transfer_import_aboutTitle,
@@ -325,65 +282,6 @@ class _ImportSectionContent extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  Future<void> _handleImport(
-    BuildContext context,
-    WidgetRef ref,
-    Future<void> Function() importFn,
-  ) async {
-    var dialogShown = false;
-
-    void showDialogIfNeeded(ExportState state) {
-      if (!dialogShown &&
-          state.importPhase != null &&
-          state.status == ExportStatus.exporting &&
-          context.mounted) {
-        dialogShown = true;
-        ImportProgressDialog.show(context);
-      }
-    }
-
-    try {
-      final subscription = ref.listenManual(
-        exportNotifierProvider,
-        (previous, next) => showDialogIfNeeded(next),
-        fireImmediately: true,
-      );
-
-      try {
-        await importFn();
-      } finally {
-        subscription.close();
-      }
-
-      if (context.mounted) {
-        final state = ref.read(exportNotifierProvider);
-        if (state.status != ExportStatus.idle) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                state.message ??
-                    context.l10n.transfer_import_operationCompleted,
-              ),
-              backgroundColor: state.status == ExportStatus.success
-                  ? Colors.green
-                  : Colors.red,
-            ),
-          );
-        }
-        ref.read(exportNotifierProvider.notifier).reset();
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.transfer_import_operationFailed('$e')),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
   }
 }
 
