@@ -158,8 +158,8 @@ void main() {
       await tester.pumpWidget(_buildReviewStep(bundle: bundle));
       await tester.pump();
 
-      // Both dives are selected by default, so "2 importing" should appear.
-      expect(find.textContaining('importing'), findsOneWidget);
+      // Both dives are selected by default, so "2 new" should appear.
+      expect(find.textContaining('new'), findsOneWidget);
     });
 
     testWidgets('tapping Import Selected fires onImport callback', (
@@ -262,8 +262,8 @@ void main() {
       await tester.pumpWidget(_buildReviewStep(bundle: bundle));
       await tester.pump();
 
-      // 3 items total, all selected: "3 importing"
-      expect(find.text('3 importing'), findsOneWidget);
+      // 3 items total, all selected: "3 new"
+      expect(find.text('3 new'), findsOneWidget);
     });
   });
 

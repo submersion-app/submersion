@@ -773,7 +773,7 @@ void main() {
 
       expect(discoveryAdapter.acquisitionSteps, hasLength(2));
       expect(discoveryAdapter.acquisitionSteps[0].label, equals('Scan'));
-      expect(discoveryAdapter.acquisitionSteps[0].autoAdvance, isFalse);
+      expect(discoveryAdapter.acquisitionSteps[0].autoAdvance, isTrue);
       expect(discoveryAdapter.acquisitionSteps[1].label, equals('Download'));
       expect(discoveryAdapter.acquisitionSteps[1].autoAdvance, isTrue);
     });
