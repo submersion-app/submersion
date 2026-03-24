@@ -33,8 +33,8 @@ class FileSelectionStep extends ConsumerWidget {
                 state.isLoading
                     ? context.l10n.universalImport_label_detecting
                     : hasFile
-                        ? context.l10n.universalImport_action_changeFile
-                        : context.l10n.universalImport_action_selectFile,
+                    ? context.l10n.universalImport_action_changeFile
+                    : context.l10n.universalImport_action_selectFile,
               ),
               onPressed: state.isLoading
                   ? null
