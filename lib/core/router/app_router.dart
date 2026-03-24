@@ -11,27 +11,8 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart'
     hide diveProvider;
-import 'package:submersion/features/import_wizard/data/adapters/fit_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/healthkit_adapter.dart';
-import 'package:submersion/features/import_wizard/data/adapters/uddf_adapter.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/unified_import_wizard.dart';
-import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
-import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
-import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
-import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
-import 'package:submersion/features/dive_import/data/services/uddf_duplicate_checker.dart';
-import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
-import 'package:submersion/features/dive_import/data/services/uddf_parser_service.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
-import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
-import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/onboarding/presentation/pages/welcome_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
@@ -724,16 +705,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
             routes: [
               GoRoute(
-                path: 'fit-import',
-                name: 'fitImport',
-                builder: (context, state) => const _FitImportWizardRoute(),
-              ),
-              GoRoute(
-                path: 'uddf-import',
-                name: 'uddfImport',
-                builder: (context, state) => const _UddfImportWizardRoute(),
-              ),
-              GoRoute(
                 path: 'import-wizard',
                 name: 'universalImport',
                 builder: (context, state) =>
@@ -1017,125 +988,6 @@ class _HealthKitUnavailableScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Wrapper that creates a [FitAdapter] with dependencies from Riverpod.
-class _FitImportWizardRoute extends ConsumerWidget {
-  const _FitImportWizardRoute();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final diverId = ref.watch(currentDiverIdProvider) ?? '';
-    final converter = ref.watch(importedDiveConverterProvider);
-    final diveRepo = ref.watch(diveRepositoryProvider);
-
-    return UnifiedImportWizard(
-      adapter: FitAdapter(
-        fitParser: ref.watch(fitParserServiceProvider),
-        diveMatcher: const DiveMatcher(),
-        converter: converter,
-        diveRepository: diveRepo,
-        diverId: diverId,
-      ),
-    );
-  }
-}
-
-/// Wrapper that creates a [UddfAdapter] with dependencies from Riverpod.
-///
-/// Fetches all existing entities for duplicate checking and constructs the
-/// [UddfEntityImporter] with the user's tank preset settings.
-class _UddfImportWizardRoute extends ConsumerWidget {
-  const _UddfImportWizardRoute();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final diverId = ref.watch(currentDiverIdProvider) ?? '';
-    final diveRepo = ref.watch(diveRepositoryProvider);
-    final exportService = ref.watch(exportServiceProvider);
-    final parser = UddfParserService(exportService);
-    final settings = ref.watch(settingsProvider);
-
-    // Fetch existing entities for duplicate checking. These are async
-    // FutureProviders, so we watch the .when result. Show loading while any
-    // are still loading.
-    final tripsAsync = ref.watch(allTripsProvider);
-    final sitesAsync = ref.watch(sitesProvider);
-    final equipmentAsync = ref.watch(allEquipmentProvider);
-    final buddiesAsync = ref.watch(allBuddiesProvider);
-    final diveCentersAsync = ref.watch(allDiveCentersProvider);
-    final certsAsync = ref.watch(allCertificationsProvider);
-    final tagsAsync = ref.watch(tagsProvider);
-    final diveTypesAsync = ref.watch(diveTypesProvider);
-
-    // If any provider is still loading, show a loading indicator.
-    if (tripsAsync.isLoading ||
-        sitesAsync.isLoading ||
-        equipmentAsync.isLoading ||
-        buddiesAsync.isLoading ||
-        diveCentersAsync.isLoading ||
-        certsAsync.isLoading ||
-        tagsAsync.isLoading ||
-        diveTypesAsync.isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    final repositories = ImportRepositories(
-      tripRepository: ref.watch(tripRepositoryProvider),
-      equipmentRepository: ref.watch(equipmentRepositoryProvider),
-      equipmentSetRepository: ref.watch(equipmentSetRepositoryProvider),
-      buddyRepository: ref.watch(buddyRepositoryProvider),
-      diveCenterRepository: ref.watch(diveCenterRepositoryProvider),
-      certificationRepository: ref.watch(certificationRepositoryProvider),
-      tagRepository: ref.watch(tagRepositoryProvider),
-      diveTypeRepository: ref.watch(diveTypeRepositoryProvider),
-      siteRepository: ref.watch(siteRepositoryProvider),
-      diveRepository: diveRepo,
-      tankPressureRepository: ref.watch(tankPressureRepositoryProvider),
-      courseRepository: ref.watch(courseRepositoryProvider),
-    );
-
-    final resolver = DefaultTankPresetResolver(
-      repository: ref.watch(tankPresetRepositoryProvider),
-    );
-
-    return FutureBuilder(
-      future: resolver.resolve(settings.defaultTankPreset),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData && !snapshot.hasError) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        final defaultTankPreset = snapshot.data;
-        final importer = UddfEntityImporter(
-          defaultTankPreset: defaultTankPreset,
-          defaultStartPressure: settings.defaultStartPressure,
-          applyDefaultTankToImports: settings.applyDefaultTankToImports,
-        );
-
-        return UnifiedImportWizard(
-          adapter: UddfAdapter(
-            parser: parser,
-            duplicateChecker: const UddfDuplicateChecker(),
-            entityImporter: importer,
-            repositories: repositories,
-            diveRepository: diveRepo,
-            existingTrips: tripsAsync.valueOrNull ?? const [],
-            existingSites: sitesAsync.valueOrNull ?? const [],
-            existingEquipment: equipmentAsync.valueOrNull ?? const [],
-            existingBuddies: buddiesAsync.valueOrNull ?? const [],
-            existingDiveCenters: diveCentersAsync.valueOrNull ?? const [],
-            existingCertifications: certsAsync.valueOrNull ?? const [],
-            existingTags: tagsAsync.valueOrNull ?? const [],
-            existingDiveTypes: diveTypesAsync.valueOrNull ?? const [],
-            diverId: diverId,
-          ),
-        );
-      },
     );
   }
 }
