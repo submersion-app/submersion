@@ -18,7 +18,7 @@ class UddfFullImportService {
   Future<UddfImportResult> importAllDataFromUddf(String uddfContent) async {
     final normalized = UddfNormalizer.normalize(uddfContent);
     final document = XmlDocument.parse(normalized);
-    // Use rootElement instead of findElements to handle XML namespaces properly
+    // Namespace handling is performed by UddfNormalizer before parsing
     final uddfElement = document.rootElement;
     if (uddfElement.name.local != 'uddf') {
       throw const FormatException(
