@@ -120,12 +120,12 @@ class _UnifiedImportWizardBodyState
     if (_currentPage >= _importIndex) {
       await showDialog<void>(
         context: context,
-        builder: (_) => AlertDialog(
+        builder: (dialogContext) => AlertDialog(
           title: const Text('Import in progress'),
           content: const Text('Import is in progress and cannot be cancelled.'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('OK'),
             ),
           ],
@@ -143,16 +143,16 @@ class _UnifiedImportWizardBodyState
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         content: Text(message),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('No'),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Confirm'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Yes'),
           ),
         ],
       ),
