@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' hide DiscoveredDevice;
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart'
+    hide DiscoveredDevice;
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
@@ -186,8 +187,7 @@ void main() {
   group('error event sets errorCode', () {
     test('DownloadErrorEvent populates errorCode in state', () async {
       final controller = StreamController<DownloadEvent>.broadcast();
-      when(mockService.downloadEvents)
-          .thenAnswer((_) => controller.stream);
+      when(mockService.downloadEvents).thenAnswer((_) => controller.stream);
 
       final testNotifier = DownloadNotifier(
         service: mockService,
@@ -203,14 +203,17 @@ void main() {
         discoveredAt: DateTime(2026, 1, 1),
       );
 
-      when(mockService.startDownload(any, fingerprint: anyNamed('fingerprint')))
-          .thenAnswer((_) async {});
+      when(
+        mockService.startDownload(any, fingerprint: anyNamed('fingerprint')),
+      ).thenAnswer((_) async {});
 
       await testNotifier.startDownload(device);
 
-      controller.add(DownloadErrorEvent(
-        DiveComputerError(code: 'no_serial_ports', message: 'No ports'),
-      ));
+      controller.add(
+        DownloadErrorEvent(
+          DiveComputerError(code: 'no_serial_ports', message: 'No ports'),
+        ),
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(testNotifier.state.errorCode, 'no_serial_ports');
