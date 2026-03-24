@@ -223,7 +223,7 @@ class _ImportSectionContent extends ConsumerWidget {
             clipBehavior: Clip.antiAlias,
             child: Semantics(
               button: true,
-              label: context.l10n.transfer_import_autoDetectSemanticLabel,
+              label: context.l10n.transfer_import_fileImportSemanticLabel,
               child: InkWell(
                 onTap: () => context.push('/transfer/import-wizard'),
                 child: Padding(
@@ -238,7 +238,7 @@ class _ImportSectionContent extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
-                          Icons.auto_fix_high,
+                          Icons.upload_file,
                           color: colorScheme.primary,
                         ),
                       ),
@@ -248,13 +248,13 @@ class _ImportSectionContent extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              context.l10n.transfer_import_autoDetectTitle,
+                              context.l10n.transfer_import_fileImportTitle,
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              context.l10n.transfer_import_autoDetectSubtitle,
+                              context.l10n.transfer_import_fileImportSubtitle,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
