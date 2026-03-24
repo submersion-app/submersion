@@ -777,6 +777,15 @@
   "diveComputer_download_duplicatesSkipped": "Doublons ignores",
   "diveComputer_download_durationMin": "{duration} min",
   "diveComputer_download_errorOccurred": "Une erreur est survenue",
+  "diveComputer_download_noSerialPortsFound": "Aucun port série USB trouvé. L'ordinateur de plongée est-il connecté et allumé ?",
+  "diveComputer_download_serialConnectFailedWithDetails": "Impossible de se connecter à l'ordinateur de plongée.\n\nDétails de diagnostic (à partager avec les développeurs) :\n{details}",
+  "@diveComputer_download_serialConnectFailedWithDetails": {
+    "placeholders": {
+      "details": {
+        "type": "Object"
+      }
+    }
+  },
   "diveComputer_download_errorWithMessage": "Erreur : {error}",
   "diveComputer_download_goBack": "Retour",
   "diveComputer_download_importFailed": "Echec de l'import",

@@ -13809,6 +13809,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_download_errorOccurred => 'אירעה שגיאה';
 
   @override
+  String get diveComputer_download_noSerialPortsFound =>
+      'לא נמצאו חיבורי USB טוריים. האם מחשב הצלילה מחובר ופועל?';
+
+  @override
+  String diveComputer_download_serialConnectFailedWithDetails(Object details) {
+    return 'לא ניתן להתחבר למחשב הצלילה.\n\nפרטי אבחון (שתפו עם המפתחים):\n$details';
+  }
+
+  @override
   String diveComputer_download_errorWithMessage(Object error) {
     return 'שגיאה: $error';
   }

@@ -777,6 +777,15 @@
   "diveComputer_download_duplicatesSkipped": "Duplikate uebersprungen",
   "diveComputer_download_durationMin": "{duration} min",
   "diveComputer_download_errorOccurred": "Ein Fehler ist aufgetreten",
+  "diveComputer_download_noSerialPortsFound": "Keine USB-Seriellports gefunden. Ist der Tauchcomputer angeschlossen und eingeschaltet?",
+  "diveComputer_download_serialConnectFailedWithDetails": "Verbindung zum Tauchcomputer konnte nicht hergestellt werden.\n\nDiagnosedetails (mit Entwicklern teilen):\n{details}",
+  "@diveComputer_download_serialConnectFailedWithDetails": {
+    "placeholders": {
+      "details": {
+        "type": "Object"
+      }
+    }
+  },
   "diveComputer_download_errorWithMessage": "Fehler: {error}",
   "diveComputer_download_goBack": "Zurueck",
   "diveComputer_download_importFailed": "Import fehlgeschlagen",

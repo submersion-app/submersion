@@ -13948,6 +13948,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveComputer_download_errorOccurred => 'An error occurred';
 
   @override
+  String get diveComputer_download_noSerialPortsFound =>
+      'No USB serial ports found. Is the dive computer connected and powered on?';
+
+  @override
+  String diveComputer_download_serialConnectFailedWithDetails(Object details) {
+    return 'Could not connect to dive computer.\n\nDiagnostic details (share with developers):\n$details';
+  }
+
+  @override
   String diveComputer_download_errorWithMessage(Object error) {
     return 'Error: $error';
   }

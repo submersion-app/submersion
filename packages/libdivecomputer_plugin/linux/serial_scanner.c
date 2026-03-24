@@ -132,3 +132,33 @@ void serial_scanner_free(SerialScanner* scanner) {
     serial_scanner_stop(scanner);
     g_free(scanner);
 }
+
+gchar** serial_enumerate_ports(void) {
+    GPtrArray* ports = g_ptr_array_new();
+
+    DIR* dir = opendir("/dev");
+    if (dir) {
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != NULL) {
+            // Only probe USB-to-serial adapters (ttyUSB*, ttyACM*) during
+            // auto-detect. Motherboard serial ports (ttyS*) are excluded to
+            // avoid sending handshake bytes to unrelated devices.
+            if (!g_str_has_prefix(entry->d_name, "ttyUSB") &&
+                !g_str_has_prefix(entry->d_name, "ttyACM")) {
+                continue;
+            }
+
+            g_autofree gchar* dev_path =
+                g_strdup_printf("/dev/%s", entry->d_name);
+
+            struct stat st;
+            if (stat(dev_path, &st) == 0 && S_ISCHR(st.st_mode)) {
+                g_ptr_array_add(ports, g_strdup(dev_path));
+            }
+        }
+        closedir(dir);
+    }
+
+    g_ptr_array_add(ports, NULL);
+    return (gchar**)g_ptr_array_free(ports, FALSE);
+}

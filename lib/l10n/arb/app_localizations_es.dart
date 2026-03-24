@@ -14193,6 +14193,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveComputer_download_errorOccurred => 'Se produjo un error';
 
   @override
+  String get diveComputer_download_noSerialPortsFound =>
+      'No se encontraron puertos serie USB. ¿Está el ordenador de buceo conectado y encendido?';
+
+  @override
+  String diveComputer_download_serialConnectFailedWithDetails(Object details) {
+    return 'No se pudo conectar al ordenador de buceo.\n\nDetalles de diagnóstico (compartir con los desarrolladores):\n$details';
+  }
+
+  @override
   String diveComputer_download_errorWithMessage(Object error) {
     return 'Error: $error';
   }

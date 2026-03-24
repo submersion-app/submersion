@@ -777,6 +777,15 @@
   "diveComputer_download_duplicatesSkipped": "Duplicaten overgeslagen",
   "diveComputer_download_durationMin": "{duration} min",
   "diveComputer_download_errorOccurred": "Er is een fout opgetreden",
+  "diveComputer_download_noSerialPortsFound": "Geen USB-seriële poorten gevonden. Is de duikcomputer aangesloten en ingeschakeld?",
+  "diveComputer_download_serialConnectFailedWithDetails": "Kan geen verbinding maken met de duikcomputer.\n\nDiagnostische gegevens (deel met ontwikkelaars):\n{details}",
+  "@diveComputer_download_serialConnectFailedWithDetails": {
+    "placeholders": {
+      "details": {
+        "type": "Object"
+      }
+    }
+  },
   "diveComputer_download_errorWithMessage": "Fout: {error}",
   "diveComputer_download_goBack": "Terug",
   "diveComputer_download_importFailed": "Importeren mislukt",

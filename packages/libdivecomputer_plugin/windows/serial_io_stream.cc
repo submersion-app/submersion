@@ -73,6 +73,9 @@ libdc_io_callbacks_t SerialIoStream::MakeCallbacks() {
     cbs.read = ReadCallback;
     cbs.write = WriteCallback;
     cbs.close = CloseCallback;
+    cbs.configure = ConfigureCallback;
+    cbs.set_dtr = SetDtrCallback;
+    cbs.set_rts = SetRtsCallback;
     cbs.ioctl = nullptr;
     cbs.poll = nullptr;
     cbs.purge = nullptr;
@@ -121,6 +124,43 @@ int SerialIoStream::CloseCallback(void* userdata) {
     auto* stream = static_cast<SerialIoStream*>(userdata);
     stream->Close();
     return LIBDC_STATUS_SUCCESS;
+}
+
+int SerialIoStream::ConfigureCallback(void* userdata, unsigned int baudrate,
+                                      unsigned int databits, unsigned int parity,
+                                      unsigned int stopbits, unsigned int flowcontrol) {
+    auto* stream = static_cast<SerialIoStream*>(userdata);
+    if (stream->handle_ == INVALID_HANDLE_VALUE) return LIBDC_STATUS_IO;
+
+    DCB dcb = {};
+    dcb.DCBlength = sizeof(DCB);
+    if (!GetCommState(stream->handle_, &dcb)) return LIBDC_STATUS_IO;
+
+    dcb.BaudRate = baudrate;
+    dcb.ByteSize = static_cast<BYTE>(databits);
+    dcb.Parity = static_cast<BYTE>(parity);
+    dcb.StopBits = static_cast<BYTE>(stopbits);
+    // flowcontrol: 0=none, 1=software, 2=hardware (matches dc_flowcontrol_t)
+    dcb.fOutxCtsFlow = (flowcontrol == 2) ? TRUE : FALSE;
+    dcb.fRtsControl = (flowcontrol == 2) ? RTS_CONTROL_HANDSHAKE : RTS_CONTROL_ENABLE;
+    dcb.fOutX = (flowcontrol == 1) ? TRUE : FALSE;
+    dcb.fInX = (flowcontrol == 1) ? TRUE : FALSE;
+
+    return SetCommState(stream->handle_, &dcb) ? LIBDC_STATUS_SUCCESS : LIBDC_STATUS_IO;
+}
+
+int SerialIoStream::SetDtrCallback(void* userdata, unsigned int value) {
+    auto* stream = static_cast<SerialIoStream*>(userdata);
+    if (stream->handle_ == INVALID_HANDLE_VALUE) return LIBDC_STATUS_IO;
+    return EscapeCommFunction(stream->handle_, value ? SETDTR : CLRDTR)
+           ? LIBDC_STATUS_SUCCESS : LIBDC_STATUS_IO;
+}
+
+int SerialIoStream::SetRtsCallback(void* userdata, unsigned int value) {
+    auto* stream = static_cast<SerialIoStream*>(userdata);
+    if (stream->handle_ == INVALID_HANDLE_VALUE) return LIBDC_STATUS_IO;
+    return EscapeCommFunction(stream->handle_, value ? SETRTS : CLRRTS)
+           ? LIBDC_STATUS_SUCCESS : LIBDC_STATUS_IO;
 }
 
 int SerialIoStream::PerformRead(void* data, size_t size, size_t* actual) {

@@ -39,6 +39,10 @@ void serial_scanner_stop(SerialScanner* scanner);
 // Free the scanner and all resources.
 void serial_scanner_free(SerialScanner* scanner);
 
+// Returns a NULL-terminated array of available serial port paths
+// (e.g., "/dev/ttyUSB0"). Free with g_strfreev().
+gchar** serial_enumerate_ports(void);
+
 G_END_DECLS
 
 #endif  // SERIAL_SCANNER_H_

@@ -777,6 +777,15 @@
   "diveComputer_download_duplicatesSkipped": "Duplicados ignorados",
   "diveComputer_download_durationMin": "{duration} min",
   "diveComputer_download_errorOccurred": "Ocorreu um erro",
+  "diveComputer_download_noSerialPortsFound": "Nenhuma porta serial USB encontrada. O computador de mergulho está conectado e ligado?",
+  "diveComputer_download_serialConnectFailedWithDetails": "Não foi possível conectar ao computador de mergulho.\n\nDetalhes de diagnóstico (compartilhe com os desenvolvedores):\n{details}",
+  "@diveComputer_download_serialConnectFailedWithDetails": {
+    "placeholders": {
+      "details": {
+        "type": "Object"
+      }
+    }
+  },
   "diveComputer_download_errorWithMessage": "Erro: {error}",
   "diveComputer_download_goBack": "Voltar",
   "diveComputer_download_importFailed": "Falha na importacao",

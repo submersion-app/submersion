@@ -437,6 +437,28 @@ static dc_status_t bridge_sleep(void *userdata, unsigned int milliseconds) {
     return (dc_status_t)cbs->sleep(cbs->userdata, milliseconds);
 }
 
+static dc_status_t bridge_configure(void *userdata, unsigned int baudrate,
+                                    unsigned int databits, dc_parity_t parity,
+                                    dc_stopbits_t stopbits,
+                                    dc_flowcontrol_t flowcontrol) {
+    libdc_io_callbacks_t *cbs = (libdc_io_callbacks_t *)userdata;
+    if (cbs->configure == NULL) return DC_STATUS_SUCCESS;
+    return (dc_status_t)cbs->configure(cbs->userdata, baudrate, databits,
+                                       parity, stopbits, flowcontrol);
+}
+
+static dc_status_t bridge_set_dtr(void *userdata, unsigned int value) {
+    libdc_io_callbacks_t *cbs = (libdc_io_callbacks_t *)userdata;
+    if (cbs->set_dtr == NULL) return DC_STATUS_SUCCESS;
+    return (dc_status_t)cbs->set_dtr(cbs->userdata, value);
+}
+
+static dc_status_t bridge_set_rts(void *userdata, unsigned int value) {
+    libdc_io_callbacks_t *cbs = (libdc_io_callbacks_t *)userdata;
+    if (cbs->set_rts == NULL) return DC_STATUS_SUCCESS;
+    return (dc_status_t)cbs->set_rts(cbs->userdata, value);
+}
+
 // ============================================================
 // Download Session
 // ============================================================
@@ -501,6 +523,16 @@ int libdc_download_run(
         return LIBDC_STATUS_NODEVICE;
     }
 
+    // Use the descriptor's actual transport if the caller passed a generic
+    // USB transport but the device is really serial (e.g., Cressi Leonardo).
+    unsigned int actual_transport = transport;
+    unsigned int desc_transports = dc_descriptor_get_transports(state.descriptor);
+    if ((transport & (LIBDC_TRANSPORT_USB | LIBDC_TRANSPORT_USBHID)) &&
+        !(desc_transports & (LIBDC_TRANSPORT_USB | LIBDC_TRANSPORT_USBHID)) &&
+        (desc_transports & LIBDC_TRANSPORT_SERIAL)) {
+        actual_transport = LIBDC_TRANSPORT_SERIAL;
+    }
+
     // 2. Create custom iostream bridging to Swift BLE callbacks.
     dc_custom_cbs_t custom_cbs = {0};
     custom_cbs.set_timeout = bridge_set_timeout;
@@ -511,6 +543,9 @@ int libdc_download_run(
     custom_cbs.poll = bridge_poll;
     custom_cbs.purge = bridge_purge;
     custom_cbs.sleep = bridge_sleep;
+    custom_cbs.configure = bridge_configure;
+    custom_cbs.set_dtr = bridge_set_dtr;
+    custom_cbs.set_rts = bridge_set_rts;
 
     // The io_callbacks struct is passed as userdata to the bridge functions.
     // We need a mutable copy since dc_custom_open takes a non-const pointer.
@@ -518,7 +553,7 @@ int libdc_download_run(
 
     dc_iostream_t *iostream = NULL;
     dc_status_t status = dc_custom_open(&iostream, session->context,
-                                         (dc_transport_t)transport,
+                                         (dc_transport_t)actual_transport,
                                          &custom_cbs, &io_cbs_copy);
     if (status != DC_STATUS_SUCCESS) {
         set_error(&state, "Failed to create custom iostream");

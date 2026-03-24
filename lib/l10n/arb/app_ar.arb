@@ -777,6 +777,15 @@
   "diveComputer_download_duplicatesSkipped": "تم تخطي المكررات",
   "diveComputer_download_durationMin": "{duration} min",
   "diveComputer_download_errorOccurred": "حدث خطأ",
+  "diveComputer_download_noSerialPortsFound": "لم يتم العثور على منافذ USB تسلسلية. هل حاسوب الغوص متصل وقيد التشغيل؟",
+  "diveComputer_download_serialConnectFailedWithDetails": "تعذر الاتصال بحاسوب الغوص.\n\nتفاصيل التشخيص (شاركها مع المطورين):\n{details}",
+  "@diveComputer_download_serialConnectFailedWithDetails": {
+    "placeholders": {
+      "details": {
+        "type": "Object"
+      }
+    }
+  },
   "diveComputer_download_errorWithMessage": "خطأ: {error}",
   "diveComputer_download_goBack": "رجوع",
   "diveComputer_download_importFailed": "فشل الاستيراد",

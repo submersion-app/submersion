@@ -21,6 +21,56 @@
 
 namespace libdivecomputer_plugin {
 
+std::vector<std::string> EnumerateAvailableSerialPorts() {
+    std::vector<std::string> ports;
+
+    HDEVINFO dev_info = SetupDiGetClassDevs(
+        &GUID_DEVINTERFACE_COMPORT, nullptr, nullptr,
+        DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
+    if (dev_info == INVALID_HANDLE_VALUE) return ports;
+
+    SP_DEVINFO_DATA dev_data = {};
+    dev_data.cbSize = sizeof(SP_DEVINFO_DATA);
+
+    for (DWORD i = 0; SetupDiEnumDeviceInfo(dev_info, i, &dev_data); i++) {
+        // Only include USB-attached serial ports during auto-detect to avoid
+        // probing unrelated devices (built-in COM ports, GPS modules, etc.).
+        // If the hardware ID cannot be read, skip the port (fail-closed) to
+        // avoid probing unknown devices.
+        char hw_id[256] = {};
+        if (!SetupDiGetDeviceRegistryPropertyA(
+                dev_info, &dev_data, SPDRP_HARDWAREID, nullptr,
+                reinterpret_cast<PBYTE>(hw_id), sizeof(hw_id), nullptr)) {
+            continue;
+        }
+        // Hardware IDs for USB devices start with "USB\" or "FTDIBUS\".
+        if (_strnicmp(hw_id, "USB\\", 4) != 0 &&
+            _strnicmp(hw_id, "FTDIBUS\\", 8) != 0) {
+            continue;
+        }
+
+        HKEY key = SetupDiOpenDevRegKey(
+            dev_info, &dev_data, DICS_FLAG_GLOBAL, 0,
+            DIREG_DEV, KEY_READ);
+        if (key == INVALID_HANDLE_VALUE) continue;
+
+        char port_name[32] = {};
+        DWORD port_name_size = sizeof(port_name);
+        DWORD type = 0;
+        LONG result = RegQueryValueExA(
+            key, "PortName", nullptr, &type,
+            reinterpret_cast<LPBYTE>(port_name), &port_name_size);
+        RegCloseKey(key);
+
+        if (result == ERROR_SUCCESS) {
+            ports.emplace_back(port_name);
+        }
+    }
+
+    SetupDiDestroyDeviceInfoList(dev_info);
+    return ports;
+}
+
 SerialScanner::SerialScanner() = default;
 
 SerialScanner::~SerialScanner() { Stop(); }

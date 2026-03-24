@@ -35,6 +35,11 @@ class SerialIoStream {
   static int WriteCallback(void* userdata, const void* data, size_t size,
                            size_t* actual);
   static int CloseCallback(void* userdata);
+  static int ConfigureCallback(void* userdata, unsigned int baudrate,
+                               unsigned int databits, unsigned int parity,
+                               unsigned int stopbits, unsigned int flowcontrol);
+  static int SetDtrCallback(void* userdata, unsigned int value);
+  static int SetRtsCallback(void* userdata, unsigned int value);
 
   int PerformRead(void* data, size_t size, size_t* actual);
   int PerformWrite(const void* data, size_t size, size_t* actual);

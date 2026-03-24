@@ -14192,6 +14192,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveComputer_download_errorOccurred => 'Ocorreu um erro';
 
   @override
+  String get diveComputer_download_noSerialPortsFound =>
+      'Nenhuma porta serial USB encontrada. O computador de mergulho está conectado e ligado?';
+
+  @override
+  String diveComputer_download_serialConnectFailedWithDetails(Object details) {
+    return 'Não foi possível conectar ao computador de mergulho.\n\nDetalhes de diagnóstico (compartilhe com os desenvolvedores):\n$details';
+  }
+
+  @override
   String diveComputer_download_errorWithMessage(Object error) {
     return 'Erro: $error';
   }

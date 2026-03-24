@@ -777,6 +777,15 @@
   "diveComputer_download_duplicatesSkipped": "Duplicados omitidos",
   "diveComputer_download_durationMin": "{duration} min",
   "diveComputer_download_errorOccurred": "Se produjo un error",
+  "diveComputer_download_noSerialPortsFound": "No se encontraron puertos serie USB. ¿Está el ordenador de buceo conectado y encendido?",
+  "diveComputer_download_serialConnectFailedWithDetails": "No se pudo conectar al ordenador de buceo.\n\nDetalles de diagnóstico (compartir con los desarrolladores):\n{details}",
+  "@diveComputer_download_serialConnectFailedWithDetails": {
+    "placeholders": {
+      "details": {
+        "type": "Object"
+      }
+    }
+  },
   "diveComputer_download_errorWithMessage": "Error: {error}",
   "diveComputer_download_goBack": "Volver",
   "diveComputer_download_importFailed": "La importacion fallo",

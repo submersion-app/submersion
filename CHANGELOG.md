@@ -3,6 +3,78 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.3.7 (2026-03-24)
+
+### Features
+
+- build all platforms on PRs
+- add DenseBuddyListTile and integrate view mode for buddies
+- add DenseEquipmentListTile and integrate view mode for equipment
+- integrate view mode toggle and tile switching for dive centers
+- add CompactDiveCenterListTile and DenseDiveCenterListTile widgets
+- integrate view mode toggle and tile switching for trips
+- add CompactTripListTile and DenseTripListTile widgets
+- integrate view mode toggle and tile switching for sites
+- add CompactSiteListTile and DenseSiteListTile widgets
+- add per-feature list view mode dropdowns to Appearance settings
+- add 5 per-feature list view mode settings
+- add 5 list view mode columns to DiverSettings (schema v52)
+
+### Bug Fixes
+
+- stabilize list tile and header sizing in selection mode (#73)
+- use UTC wall-time for CSV date/time parsing (fixes #60) (#75)
+- allow date pickers to select dates before year 2000
+- preserve original timestamps in site merge undo
+- debounce search inputs and expand dive search to all related fields (#55)
+- quote DART_DEFINES in CodeQL workflow and merge C/C++ analysis into Swift job
+
+### Refactoring
+
+- move ListViewModeToggle to shared/widgets, add availableModes
+- rename DiveListViewMode to ListViewMode
+
+### Documentation
+
+- add git submodule init step to setup instructions
+- add buddy merge implementation plan
+- address spec review feedback for buddy merge design
+- add buddy merge feature design spec
+- add list view modes all features implementation plan
+- update spec with rename, selection mode, and gradient notes
+- add list view density modes design spec for all features
+
+### CI/CD
+
+- revert fork PR support for Claude code review
+- enable Claude code review on fork PRs
+- bump github/codeql-action from 3 to 4 (#80)
+- replace CodeQL default setup with custom workflow for Swift and Java/Kotlin analysis
+- add explicit permissions to workflows to resolve CodeQL alerts
+- exclude generated l10n files from code coverage
+
+### Chores
+
+- bump version to 1.3.7+82
+- regenerate uddf entity importer test mocks
+- update CLAUDE.md
+- add --comment flag to Claude code review prompt
+- allow gh/git CLI in Claude code review workflow
+- enable verbose output for Claude code review workflow
+- disable the swift, java, and c++ codeql steps
+- add CODEOWNERS for automatic review assignment
+
+### Other
+
+- Feature/cressi leonardo import (#43)
+- Fix/macdive uddf import (Fixes #28) (#42)
+- Add search to USB Cable tab when adding a USB dive computer manually for import (#68)
+- Feature/buddy merge (#66)
+- Add reserve pressure user input to dive planner (#67)
+- Feature/sites merge (#54)
+- format dive center tile files
+
+
 ## 1.3.6 (2026-03-21)
 
 ### Features

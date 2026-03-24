@@ -14244,6 +14244,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveComputer_download_errorOccurred => 'Une erreur est survenue';
 
   @override
+  String get diveComputer_download_noSerialPortsFound =>
+      'Aucun port série USB trouvé. L\'ordinateur de plongée est-il connecté et allumé ?';
+
+  @override
+  String diveComputer_download_serialConnectFailedWithDetails(Object details) {
+    return 'Impossible de se connecter à l\'ordinateur de plongée.\n\nDétails de diagnostic (à partager avec les développeurs) :\n$details';
+  }
+
+  @override
   String diveComputer_download_errorWithMessage(Object error) {
     return 'Erreur : $error';
   }

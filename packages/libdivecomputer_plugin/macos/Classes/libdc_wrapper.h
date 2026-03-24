@@ -91,6 +91,11 @@ typedef int (*libdc_io_close_fn)(void *userdata);
 typedef int (*libdc_io_poll_fn)(void *userdata, int timeout);
 typedef int (*libdc_io_purge_fn)(void *userdata, unsigned int direction);
 typedef int (*libdc_io_sleep_fn)(void *userdata, unsigned int milliseconds);
+typedef int (*libdc_io_configure_fn)(void *userdata, unsigned int baudrate,
+                                     unsigned int databits, unsigned int parity,
+                                     unsigned int stopbits, unsigned int flowcontrol);
+typedef int (*libdc_io_set_dtr_fn)(void *userdata, unsigned int value);
+typedef int (*libdc_io_set_rts_fn)(void *userdata, unsigned int value);
 
 typedef struct {
     libdc_io_set_timeout_fn set_timeout;  // may be NULL
@@ -101,6 +106,9 @@ typedef struct {
     libdc_io_poll_fn poll;                // may be NULL
     libdc_io_purge_fn purge;              // may be NULL
     libdc_io_sleep_fn sleep;              // may be NULL
+    libdc_io_configure_fn configure;      // may be NULL (serial port config)
+    libdc_io_set_dtr_fn set_dtr;          // may be NULL (serial DTR line)
+    libdc_io_set_rts_fn set_rts;          // may be NULL (serial RTS line)
     void *userdata;
 } libdc_io_callbacks_t;
 

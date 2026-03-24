@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "dive_computer_api.g.h"
 
@@ -12,6 +13,9 @@ extern "C" {
 }
 
 namespace libdivecomputer_plugin {
+
+// Returns a list of available COM port names (e.g., "COM3", "COM4").
+std::vector<std::string> EnumerateAvailableSerialPorts();
 
 // Enumerates serial (COM) ports using SetupDi and matches against
 // libdivecomputer descriptors.

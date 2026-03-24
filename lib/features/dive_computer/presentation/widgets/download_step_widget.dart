@@ -176,10 +176,7 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
                     Semantics(
                       label: context.l10n
                           .diveComputer_downloadStep_errorSemanticLabel(
-                            downloadState.errorMessage ??
-                                context
-                                    .l10n
-                                    .diveComputer_downloadStep_errorOccurred,
+                            _localizedError(context, downloadState),
                           ),
                       liveRegion: true,
                       child: Card(
@@ -197,10 +194,7 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
-                                  downloadState.errorMessage ??
-                                      context
-                                          .l10n
-                                          .diveComputer_downloadStep_errorOccurred,
+                                  _localizedError(context, downloadState),
                                   style: TextStyle(
                                     color: colorScheme.onErrorContainer,
                                   ),
@@ -467,5 +461,18 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
         ],
       ),
     );
+  }
+
+  String _localizedError(BuildContext context, DownloadState state) {
+    final l10n = context.l10n;
+    if (state.errorCode == 'no_serial_ports') {
+      return l10n.diveComputer_download_noSerialPortsFound;
+    }
+    if (state.errorCode == 'connect_failed' && state.errorMessage != null) {
+      return l10n.diveComputer_download_serialConnectFailedWithDetails(
+        state.errorMessage!,
+      );
+    }
+    return state.errorMessage ?? l10n.diveComputer_downloadStep_errorOccurred;
   }
 }

@@ -13908,6 +13908,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_download_errorOccurred => 'حدث خطأ';
 
   @override
+  String get diveComputer_download_noSerialPortsFound =>
+      'لم يتم العثور على منافذ USB تسلسلية. هل حاسوب الغوص متصل وقيد التشغيل؟';
+
+  @override
+  String diveComputer_download_serialConnectFailedWithDetails(Object details) {
+    return 'تعذر الاتصال بحاسوب الغوص.\n\nتفاصيل التشخيص (شاركها مع المطورين):\n$details';
+  }
+
+  @override
   String diveComputer_download_errorWithMessage(Object error) {
     return 'خطأ: $error';
   }

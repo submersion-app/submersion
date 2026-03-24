@@ -14072,6 +14072,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveComputer_download_errorOccurred => 'Er is een fout opgetreden';
 
   @override
+  String get diveComputer_download_noSerialPortsFound =>
+      'Geen USB-seriële poorten gevonden. Is de duikcomputer aangesloten en ingeschakeld?';
+
+  @override
+  String diveComputer_download_serialConnectFailedWithDetails(Object details) {
+    return 'Kan geen verbinding maken met de duikcomputer.\n\nDiagnostische gegevens (deel met ontwikkelaars):\n$details';
+  }
+
+  @override
   String diveComputer_download_errorWithMessage(Object error) {
     return 'Fout: $error';
   }

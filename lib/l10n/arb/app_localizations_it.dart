@@ -14194,6 +14194,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveComputer_download_errorOccurred => 'Si è verificato un errore';
 
   @override
+  String get diveComputer_download_noSerialPortsFound =>
+      'Nessuna porta seriale USB trovata. Il computer subacqueo è collegato e acceso?';
+
+  @override
+  String diveComputer_download_serialConnectFailedWithDetails(Object details) {
+    return 'Impossibile connettersi al computer subacqueo.\n\nDettagli diagnostici (da condividere con gli sviluppatori):\n$details';
+  }
+
+  @override
   String diveComputer_download_errorWithMessage(Object error) {
     return 'Errore: $error';
   }

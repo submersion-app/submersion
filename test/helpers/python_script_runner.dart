@@ -44,7 +44,10 @@ class PythonScriptRunner {
     args.addAll(['-o', output]);
 
     // Run Python script
-    final result = await Process.run('python3', args);
+    // On Windows, Python 3 is typically 'python', not 'python3'.
+    // The 'python3' command may hit a Microsoft Store alias stub.
+    final python = Platform.isWindows ? 'python' : 'python3';
+    final result = await Process.run(python, args);
 
     if (result.exitCode != 0) {
       throw Exception(

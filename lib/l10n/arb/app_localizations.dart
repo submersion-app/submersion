@@ -24058,6 +24058,18 @@ abstract class AppLocalizations {
   /// **'An error occurred'**
   String get diveComputer_download_errorOccurred;
 
+  /// No description provided for @diveComputer_download_noSerialPortsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No USB serial ports found. Is the dive computer connected and powered on?'**
+  String get diveComputer_download_noSerialPortsFound;
+
+  /// No description provided for @diveComputer_download_serialConnectFailedWithDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect to dive computer.\n\nDiagnostic details (share with developers):\n{details}'**
+  String diveComputer_download_serialConnectFailedWithDetails(Object details);
+
   /// No description provided for @diveComputer_download_errorWithMessage.
   ///
   /// In en, this message translates to:

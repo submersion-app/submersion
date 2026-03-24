@@ -777,6 +777,15 @@
   "diveComputer_download_duplicatesSkipped": "Duplikatumok kihagyva",
   "diveComputer_download_durationMin": "{duration} min",
   "diveComputer_download_errorOccurred": "Hiba tortent",
+  "diveComputer_download_noSerialPortsFound": "Nem található USB soros port. A búvárszámítógép csatlakoztatva van és be van kapcsolva?",
+  "diveComputer_download_serialConnectFailedWithDetails": "Nem sikerült csatlakozni a búvárszámítógéphez.\n\nDiagnosztikai részletek (ossza meg a fejlesztőkkel):\n{details}",
+  "@diveComputer_download_serialConnectFailedWithDetails": {
+    "placeholders": {
+      "details": {
+        "type": "Object"
+      }
+    }
+  },
   "diveComputer_download_errorWithMessage": "Hiba: {error}",
   "diveComputer_download_goBack": "Vissza",
   "diveComputer_download_importFailed": "Az importalas sikertelen",

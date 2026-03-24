@@ -8611,6 +8611,15 @@
     }
   },
   "diveComputer_download_errorOccurred": "An error occurred",
+  "diveComputer_download_noSerialPortsFound": "No USB serial ports found. Is the dive computer connected and powered on?",
+  "diveComputer_download_serialConnectFailedWithDetails": "Could not connect to dive computer.\n\nDiagnostic details (share with developers):\n{details}",
+  "@diveComputer_download_serialConnectFailedWithDetails": {
+    "placeholders": {
+      "details": {
+        "type": "Object"
+      }
+    }
+  },
   "diveComputer_download_errorWithMessage": "Error: {error}",
   "@diveComputer_download_errorWithMessage": {
     "placeholders": {

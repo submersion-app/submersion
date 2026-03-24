@@ -14146,6 +14146,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveComputer_download_errorOccurred => 'Hiba tortent';
 
   @override
+  String get diveComputer_download_noSerialPortsFound =>
+      'Nem található USB soros port. A búvárszámítógép csatlakoztatva van és be van kapcsolva?';
+
+  @override
+  String diveComputer_download_serialConnectFailedWithDetails(Object details) {
+    return 'Nem sikerült csatlakozni a búvárszámítógéphez.\n\nDiagnosztikai részletek (ossza meg a fejlesztőkkel):\n$details';
+  }
+
+  @override
   String diveComputer_download_errorWithMessage(Object error) {
     return 'Hiba: $error';
   }

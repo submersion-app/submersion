@@ -21,6 +21,11 @@ struct HostApiContext {
   SerialIoStream* serial_stream;
   libdc_download_session_t* session;
   GThread* download_thread;
+  // When true, on_dive_downloaded buffers dives instead of dispatching them
+  // immediately. Used during multi-port probing to avoid leaking phantom
+  // dives from a wrong port to Flutter.
+  gboolean buffer_dives;
+  GList* buffered_dives;  // list of LibdivecomputerPluginParsedDive*
 };
 
 static void host_api_context_free(gpointer data) {
@@ -39,6 +44,9 @@ static void host_api_context_free(gpointer data) {
   }
   if (ctx->session != nullptr) {
     libdc_download_session_free(ctx->session);
+  }
+  if (ctx->buffered_dives != nullptr) {
+    g_list_free_full(ctx->buffered_dives, g_object_unref);
   }
   if (ctx->flutter_api != nullptr) {
     g_object_unref(ctx->flutter_api);
@@ -133,15 +141,49 @@ static void download_thread_data_free(DownloadThreadData* data) {
   delete data;
 }
 
+// Dispatch download progress to the main thread via g_idle_add.
+// Flutter API calls must not be made from the download thread.
+struct ProgressCallbackData {
+    LibdivecomputerPluginDiveComputerFlutterApi* flutter_api;
+    int64_t current;
+    int64_t maximum;
+};
+
+static gboolean progress_callback_idle(gpointer data) {
+    auto* cbd = static_cast<ProgressCallbackData*>(data);
+    LibdivecomputerPluginDownloadProgress* progress =
+        libdivecomputer_plugin_download_progress_new(
+            cbd->current, cbd->maximum, "downloading");
+    libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress(
+        cbd->flutter_api, progress, nullptr, nullptr, nullptr);
+    g_object_unref(progress);
+    delete cbd;
+    return G_SOURCE_REMOVE;
+}
+
 static void on_download_progress(unsigned int current, unsigned int maximum,
                                  void* userdata) {
   auto* ctx = static_cast<HostApiContext*>(userdata);
-  LibdivecomputerPluginDownloadProgress* progress =
-      libdivecomputer_plugin_download_progress_new(
-          (int64_t)current, (int64_t)maximum, "downloading");
-  libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress(
-      ctx->flutter_api, progress, nullptr, nullptr, nullptr);
-  g_object_unref(progress);
+  auto* cbd = new ProgressCallbackData();
+  cbd->flutter_api = ctx->flutter_api;
+  cbd->current = (int64_t)current;
+  cbd->maximum = (int64_t)maximum;
+  g_idle_add(progress_callback_idle, cbd);
+}
+
+// Dispatch downloaded dive to the main thread via g_idle_add.
+struct DiveCallbackData {
+    LibdivecomputerPluginDiveComputerFlutterApi* flutter_api;
+    LibdivecomputerPluginParsedDive* parsed;
+};
+
+static gboolean dive_callback_idle(gpointer data) {
+    auto* cbd = static_cast<DiveCallbackData*>(data);
+    libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded(
+        cbd->flutter_api, cbd->parsed, nullptr, nullptr, nullptr);
+    g_object_unref(cbd->parsed);
+    delete cbd;
+    return G_SOURCE_REMOVE;
 }
 
 static void on_dive_downloaded(const libdc_parsed_dive_t* dive,
@@ -149,10 +191,41 @@ static void on_dive_downloaded(const libdc_parsed_dive_t* dive,
   auto* ctx = static_cast<HostApiContext*>(userdata);
   LibdivecomputerPluginParsedDive* parsed = convert_parsed_dive(dive);
   if (parsed != nullptr) {
-    libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded(
-        ctx->flutter_api, parsed, nullptr, nullptr, nullptr);
-    g_object_unref(parsed);
+    if (ctx->buffer_dives) {
+      // During multi-port probing, buffer dives until we confirm the port
+      // is correct. This prevents phantom dives from wrong ports leaking
+      // to Flutter.
+      ctx->buffered_dives = g_list_append(ctx->buffered_dives, parsed);
+    } else {
+      auto* cbd = new DiveCallbackData();
+      cbd->flutter_api = ctx->flutter_api;
+      cbd->parsed = parsed;
+      g_idle_add(dive_callback_idle, cbd);
+    }
   }
+}
+
+// Flush buffered dives to Flutter via g_idle_add. Called after a successful
+// download during multi-port probing.
+static void flush_buffered_dives(HostApiContext* ctx) {
+    for (GList* l = ctx->buffered_dives; l != NULL; l = l->next) {
+        auto* parsed = static_cast<LibdivecomputerPluginParsedDive*>(l->data);
+        auto* cbd = new DiveCallbackData();
+        cbd->flutter_api = ctx->flutter_api;
+        cbd->parsed = parsed;
+        g_object_ref(parsed);
+        g_idle_add(dive_callback_idle, cbd);
+    }
+    g_list_free_full(ctx->buffered_dives, g_object_unref);
+    ctx->buffered_dives = nullptr;
+}
+
+// Discard buffered dives from a failed probe attempt.
+static void clear_buffered_dives(HostApiContext* ctx) {
+    if (ctx->buffered_dives != nullptr) {
+        g_list_free_full(ctx->buffered_dives, g_object_unref);
+        ctx->buffered_dives = nullptr;
+    }
 }
 
 struct PinCallbackData {
@@ -177,76 +250,49 @@ static void on_pin_code_required(const gchar* address, gpointer user_data) {
     g_idle_add(pin_callback_idle, cbd);
 }
 
+// Helper to send error events from the download thread to the main thread.
+struct ErrorCallbackData {
+    LibdivecomputerPluginDiveComputerFlutterApi* flutter_api;
+    gchar* code;
+    gchar* message;
+};
+
+static gboolean error_callback_idle(gpointer data) {
+    auto* cbd = static_cast<ErrorCallbackData*>(data);
+    LibdivecomputerPluginDiveComputerError* error =
+        libdivecomputer_plugin_dive_computer_error_new(cbd->code, cbd->message);
+    libdivecomputer_plugin_dive_computer_flutter_api_on_error(
+        cbd->flutter_api, error, nullptr, nullptr, nullptr);
+    g_object_unref(error);
+    g_free(cbd->code);
+    g_free(cbd->message);
+    delete cbd;
+    return G_SOURCE_REMOVE;
+}
+
+static void send_error_from_thread(HostApiContext* ctx,
+                                   const gchar* code,
+                                   const gchar* message) {
+    auto* cbd = new ErrorCallbackData();
+    cbd->flutter_api = ctx->flutter_api;
+    cbd->code = g_strdup(code);
+    cbd->message = g_strdup(message);
+    g_idle_add(error_callback_idle, cbd);
+}
+
 static gpointer download_thread_func(gpointer data) {
   auto* td = static_cast<DownloadThreadData*>(data);
   HostApiContext* ctx = td->ctx;
 
-  // Create download session.
+  // Create download session. The session holds a dc_context_t (logging) and a
+  // cancelled flag. It is intentionally reused across multiple libdc_download_run
+  // calls during multi-port probing — each call creates its own internal state.
   ctx->session = libdc_download_session_new();
   if (ctx->session == nullptr) {
-    LibdivecomputerPluginDiveComputerError* error =
-        libdivecomputer_plugin_dive_computer_error_new(
-            "session_error", "Failed to create download session");
-    libdivecomputer_plugin_dive_computer_flutter_api_on_error(
-        ctx->flutter_api, error, nullptr, nullptr, nullptr);
-    g_object_unref(error);
+    send_error_from_thread(ctx, "session_error",
+                           "Failed to create download session");
     download_thread_data_free(td);
     return nullptr;
-  }
-
-  // Set up I/O based on transport type.
-  libdc_io_callbacks_t io_callbacks = {0};
-  unsigned int transport_flag = 0;
-
-  if (td->transport == LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_BLE) {
-    transport_flag = LIBDC_TRANSPORT_BLE;
-
-    // Convert BLE address (AA:BB:CC:DD:EE:FF) to D-Bus object path
-    // (/org/bluez/hci0/dev_AA_BB_CC_DD_EE_FF).
-    g_autofree gchar* addr_underscored = g_strdup(td->address);
-    for (gchar* p = addr_underscored; *p; p++) {
-      if (*p == ':') *p = '_';
-    }
-    g_autofree gchar* device_path =
-        g_strdup_printf("/org/bluez/hci0/dev_%s", addr_underscored);
-
-    ctx->ble_stream = ble_io_stream_new();
-    ble_io_stream_set_device_address(ctx->ble_stream, td->address);
-    ble_io_stream_set_pin_callback(ctx->ble_stream, on_pin_code_required, ctx);
-    if (!ble_io_stream_connect(ctx->ble_stream, device_path)) {
-      LibdivecomputerPluginDiveComputerError* error =
-          libdivecomputer_plugin_dive_computer_error_new(
-              "connect_failed", "Failed to connect to BLE device");
-      libdivecomputer_plugin_dive_computer_flutter_api_on_error(
-          ctx->flutter_api, error, nullptr, nullptr, nullptr);
-      g_object_unref(error);
-      ble_io_stream_free(ctx->ble_stream);
-      ctx->ble_stream = nullptr;
-      libdc_download_session_free(ctx->session);
-      ctx->session = nullptr;
-      download_thread_data_free(td);
-      return nullptr;
-    }
-    io_callbacks = ble_io_stream_make_callbacks(ctx->ble_stream);
-  } else {
-    // Serial or USB transport.
-    transport_flag = LIBDC_TRANSPORT_SERIAL;
-    ctx->serial_stream = serial_io_stream_new();
-    if (!serial_io_stream_open(ctx->serial_stream, td->address)) {
-      LibdivecomputerPluginDiveComputerError* error =
-          libdivecomputer_plugin_dive_computer_error_new(
-              "connect_failed", "Failed to open serial port");
-      libdivecomputer_plugin_dive_computer_flutter_api_on_error(
-          ctx->flutter_api, error, nullptr, nullptr, nullptr);
-      g_object_unref(error);
-      serial_io_stream_free(ctx->serial_stream);
-      ctx->serial_stream = nullptr;
-      libdc_download_session_free(ctx->session);
-      ctx->session = nullptr;
-      download_thread_data_free(td);
-      return nullptr;
-    }
-    io_callbacks = serial_io_stream_make_callbacks(ctx->serial_stream);
   }
 
   // Set up download callbacks.
@@ -272,15 +318,160 @@ static gpointer download_thread_func(gpointer data) {
       }
   }
 
-  int rc = libdc_download_run(
-      ctx->session,
-      td->vendor, td->product, td->model,
-      transport_flag,
-      &io_callbacks,
-      fp_data, fp_size,
-      &dl_callbacks,
-      &serial_number, &firmware_version,
-      error_buf, sizeof(error_buf));
+  // Set up I/O based on transport type.
+  libdc_io_callbacks_t io_callbacks = {0};
+  unsigned int transport_flag = 0;
+  int rc = -1;
+
+  if (td->transport == LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_BLE) {
+    transport_flag = LIBDC_TRANSPORT_BLE;
+
+    // Convert BLE address (AA:BB:CC:DD:EE:FF) to D-Bus object path
+    // (/org/bluez/hci0/dev_AA_BB_CC_DD_EE_FF).
+    g_autofree gchar* addr_underscored = g_strdup(td->address);
+    for (gchar* p = addr_underscored; *p; p++) {
+      if (*p == ':') *p = '_';
+    }
+    g_autofree gchar* device_path =
+        g_strdup_printf("/org/bluez/hci0/dev_%s", addr_underscored);
+
+    ctx->ble_stream = ble_io_stream_new();
+    ble_io_stream_set_device_address(ctx->ble_stream, td->address);
+    ble_io_stream_set_pin_callback(ctx->ble_stream, on_pin_code_required, ctx);
+    if (!ble_io_stream_connect(ctx->ble_stream, device_path)) {
+      send_error_from_thread(ctx, "connect_failed",
+                             "Failed to connect to BLE device");
+      ble_io_stream_free(ctx->ble_stream);
+      ctx->ble_stream = nullptr;
+      libdc_download_session_free(ctx->session);
+      ctx->session = nullptr;
+      g_free(fp_data);
+      download_thread_data_free(td);
+      return nullptr;
+    }
+    io_callbacks = ble_io_stream_make_callbacks(ctx->ble_stream);
+
+    rc = libdc_download_run(
+        ctx->session,
+        td->vendor, td->product, td->model,
+        transport_flag,
+        &io_callbacks,
+        fp_data, fp_size,
+        &dl_callbacks,
+        &serial_number, &firmware_version,
+        error_buf, sizeof(error_buf));
+  } else {
+    // Serial or USB transport.
+    transport_flag = LIBDC_TRANSPORT_SERIAL;
+
+    // Build list of candidate ports. If the address is a device path, use it
+    // directly. Otherwise (manual model selection), enumerate available ports.
+    // We attempt a full download per port because many serial devices are
+    // openable but are not the target dive computer.
+    gboolean found = FALSE;
+    gchar* probe_msg = NULL;
+    if (g_str_has_prefix(td->address, "/dev/")) {
+      ctx->serial_stream = serial_io_stream_new();
+      if (serial_io_stream_open(ctx->serial_stream, td->address)) {
+        io_callbacks = serial_io_stream_make_callbacks(ctx->serial_stream);
+        rc = libdc_download_run(
+            ctx->session,
+            td->vendor, td->product, td->model,
+            transport_flag,
+            &io_callbacks,
+            fp_data, fp_size,
+            &dl_callbacks,
+            &serial_number, &firmware_version,
+            error_buf, sizeof(error_buf));
+        found = TRUE;
+      } else {
+        probe_msg = g_strdup_printf(
+            "Failed to open serial port %s", td->address);
+      }
+      serial_io_stream_free(ctx->serial_stream);
+      ctx->serial_stream = nullptr;
+    } else {
+      g_auto(GStrv) ports = serial_enumerate_ports();
+      g_autoptr(GString) probe_log = g_string_new(NULL);
+      int port_count = 0;
+      // Buffer dives during multi-port probing so phantom dives from a
+      // wrong port are not dispatched to Flutter.
+      ctx->buffer_dives = TRUE;
+      if (ports) {
+        for (int i = 0; ports[i] != NULL; i++) {
+          port_count++;
+          clear_buffered_dives(ctx);
+          ctx->serial_stream = serial_io_stream_new();
+          if (!serial_io_stream_open(ctx->serial_stream, ports[i])) {
+            g_string_append_printf(probe_log, "  %s: failed to open\n", ports[i]);
+            serial_io_stream_free(ctx->serial_stream);
+            ctx->serial_stream = nullptr;
+            continue;
+          }
+
+          io_callbacks = serial_io_stream_make_callbacks(ctx->serial_stream);
+          serial_number = 0;
+          firmware_version = 0;
+          memset(error_buf, 0, sizeof(error_buf));
+
+          rc = libdc_download_run(
+              ctx->session,
+              td->vendor, td->product, td->model,
+              transport_flag,
+              &io_callbacks,
+              fp_data, fp_size,
+              &dl_callbacks,
+              &serial_number, &firmware_version,
+              error_buf, sizeof(error_buf));
+
+          serial_io_stream_free(ctx->serial_stream);
+          ctx->serial_stream = nullptr;
+          found = TRUE;
+
+          if (rc == 0 || rc == LIBDC_STATUS_CANCELLED) {
+            break;
+          }
+          g_string_append_printf(probe_log, "  %s: download failed (rc=%d)\n", ports[i], rc);
+        }
+      }
+
+      // Flush or discard buffered dives based on result.
+      if (rc == 0) {
+        flush_buffered_dives(ctx);
+      } else {
+        clear_buffered_dives(ctx);
+      }
+      ctx->buffer_dives = FALSE;
+
+      if (!found) {
+        if (port_count == 0) {
+          send_error_from_thread(ctx, "no_serial_ports",
+              "No USB serial ports found. Is the dive computer connected and powered on?");
+          libdc_download_session_free(ctx->session);
+          ctx->session = nullptr;
+          g_free(fp_data);
+          download_thread_data_free(td);
+          return nullptr;
+        } else {
+          probe_msg = g_strdup_printf(
+              "No dive computer found. Ports tried:\n%s", probe_log->str);
+        }
+      } else if (rc != 0 && probe_log->len > 0) {
+        probe_msg = g_strdup_printf(
+            "No dive computer found. Ports tried:\n%s", probe_log->str);
+      }
+    }
+
+    if (probe_msg != NULL) {
+      send_error_from_thread(ctx, "connect_failed", probe_msg);
+      g_free(probe_msg);
+      libdc_download_session_free(ctx->session);
+      ctx->session = nullptr;
+      g_free(fp_data);
+      download_thread_data_free(td);
+      return nullptr;
+    }
+  }
 
   g_free(fp_data);
 
@@ -288,11 +479,7 @@ static gpointer download_thread_func(gpointer data) {
     gchar* msg = (error_buf[0] != '\0')
         ? g_strdup(error_buf)
         : g_strdup_printf("Download failed with code %d", rc);
-    LibdivecomputerPluginDiveComputerError* error =
-        libdivecomputer_plugin_dive_computer_error_new("download_error", msg);
-    libdivecomputer_plugin_dive_computer_flutter_api_on_error(
-        ctx->flutter_api, error, nullptr, nullptr, nullptr);
-    g_object_unref(error);
+    send_error_from_thread(ctx, "download_error", msg);
     g_free(msg);
   } else {
     // Report completion with device info.
@@ -301,9 +488,23 @@ static gpointer download_thread_func(gpointer data) {
     gchar* firmware_str = (firmware_version != 0)
         ? g_strdup_printf("%u", firmware_version) : nullptr;
 
-    libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(
-        ctx->flutter_api, 0, serial_str, firmware_str,
-        nullptr, nullptr, nullptr);
+    struct CompleteData {
+        LibdivecomputerPluginDiveComputerFlutterApi* api;
+        gchar* serial;
+        gchar* firmware;
+    };
+    auto* cd = new CompleteData{ctx->flutter_api,
+                                g_strdup(serial_str), g_strdup(firmware_str)};
+    g_idle_add([](gpointer data) -> gboolean {
+        auto* d = static_cast<CompleteData*>(data);
+        libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(
+            d->api, 0, d->serial, d->firmware,
+            nullptr, nullptr, nullptr);
+        g_free(d->serial);
+        g_free(d->firmware);
+        delete d;
+        return G_SOURCE_REMOVE;
+    }, cd);
 
     g_free(serial_str);
     g_free(firmware_str);

@@ -777,6 +777,15 @@
   "diveComputer_download_duplicatesSkipped": "כפילויות דולגו",
   "diveComputer_download_durationMin": "{duration} min",
   "diveComputer_download_errorOccurred": "אירעה שגיאה",
+  "diveComputer_download_noSerialPortsFound": "לא נמצאו חיבורי USB טוריים. האם מחשב הצלילה מחובר ופועל?",
+  "diveComputer_download_serialConnectFailedWithDetails": "לא ניתן להתחבר למחשב הצלילה.\n\nפרטי אבחון (שתפו עם המפתחים):\n{details}",
+  "@diveComputer_download_serialConnectFailedWithDetails": {
+    "placeholders": {
+      "details": {
+        "type": "Object"
+      }
+    }
+  },
   "diveComputer_download_errorWithMessage": "שגיאה: {error}",
   "diveComputer_download_goBack": "חזרה",
   "diveComputer_download_importFailed": "הייבוא נכשל",

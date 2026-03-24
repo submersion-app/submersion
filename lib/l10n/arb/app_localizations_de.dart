@@ -14182,6 +14182,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ein Fehler ist aufgetreten';
 
   @override
+  String get diveComputer_download_noSerialPortsFound =>
+      'Keine USB-Seriellports gefunden. Ist der Tauchcomputer angeschlossen und eingeschaltet?';
+
+  @override
+  String diveComputer_download_serialConnectFailedWithDetails(Object details) {
+    return 'Verbindung zum Tauchcomputer konnte nicht hergestellt werden.\n\nDiagnosedetails (mit Entwicklern teilen):\n$details';
+  }
+
+  @override
   String diveComputer_download_errorWithMessage(Object error) {
     return 'Fehler: $error';
   }

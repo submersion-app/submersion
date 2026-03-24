@@ -777,6 +777,15 @@
   "diveComputer_download_duplicatesSkipped": "Duplicati saltati",
   "diveComputer_download_durationMin": "{duration} min",
   "diveComputer_download_errorOccurred": "Si è verificato un errore",
+  "diveComputer_download_noSerialPortsFound": "Nessuna porta seriale USB trovata. Il computer subacqueo è collegato e acceso?",
+  "diveComputer_download_serialConnectFailedWithDetails": "Impossibile connettersi al computer subacqueo.\n\nDettagli diagnostici (da condividere con gli sviluppatori):\n{details}",
+  "@diveComputer_download_serialConnectFailedWithDetails": {
+    "placeholders": {
+      "details": {
+        "type": "Object"
+      }
+    }
+  },
   "diveComputer_download_errorWithMessage": "Errore: {error}",
   "diveComputer_download_goBack": "Torna indietro",
   "diveComputer_download_importFailed": "Importazione fallita",
