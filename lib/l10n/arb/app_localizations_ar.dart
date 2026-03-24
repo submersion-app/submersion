@@ -12518,48 +12518,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_import_aboutTitle => 'حول الاستيراد';
 
   @override
-  String get transfer_import_autoDetectSemanticLabel =>
+  String get transfer_import_fileImportSemanticLabel =>
       'استيراد البيانات مع الكشف التلقائي';
 
   @override
-  String get transfer_import_autoDetectSubtitle =>
+  String get transfer_import_fileImportSubtitle =>
       'يكتشف تلقائيًا CSV و UDDF و FIT والمزيد';
 
   @override
-  String get transfer_import_autoDetectTitle => 'استيراد البيانات';
-
-  @override
-  String get transfer_import_byFormatHeader => 'الاستيراد حسب الصيغة';
-
-  @override
-  String get transfer_import_csvSubtitle => 'استيراد الغوصات من ملف CSV';
-
-  @override
-  String get transfer_import_csvTitle => 'الاستيراد من CSV';
-
-  @override
-  String get transfer_import_fitSubtitle =>
-      'استيراد الغوصات من ملفات تصدير Garmin Descent';
-
-  @override
-  String get transfer_import_fitTitle => 'الاستيراد من ملف FIT';
-
-  @override
-  String get transfer_import_operationCompleted => 'اكتملت العملية';
-
-  @override
-  String transfer_import_operationFailed(Object error) {
-    return 'فشلت العملية: $error';
-  }
+  String get transfer_import_fileImportTitle => 'استيراد البيانات';
 
   @override
   String get transfer_import_sectionHeader => 'استيراد البيانات';
-
-  @override
-  String get transfer_import_uddfSubtitle => 'تنسيق بيانات الغوص العالمي';
-
-  @override
-  String get transfer_import_uddfTitle => 'الاستيراد من UDDF';
 
   @override
   String get transfer_pdfExport_cancelButton => 'إلغاء';

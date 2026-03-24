@@ -12554,48 +12554,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transfer_import_aboutTitle => 'About Import';
 
   @override
-  String get transfer_import_autoDetectSemanticLabel =>
-      'Import data with auto-detection';
+  String get transfer_import_fileImportSemanticLabel =>
+      'Import dive data from file';
 
   @override
-  String get transfer_import_autoDetectSubtitle =>
-      'Auto-detects CSV, UDDF, FIT, and more';
+  String get transfer_import_fileImportSubtitle =>
+      'UDDF, Subsurface, CSV, FIT, and more';
 
   @override
-  String get transfer_import_autoDetectTitle => 'Import Data';
-
-  @override
-  String get transfer_import_byFormatHeader => 'Import by Format';
-
-  @override
-  String get transfer_import_csvSubtitle => 'Import dives from CSV file';
-
-  @override
-  String get transfer_import_csvTitle => 'Import from CSV';
-
-  @override
-  String get transfer_import_fitSubtitle =>
-      'Import dives from Garmin Descent export files';
-
-  @override
-  String get transfer_import_fitTitle => 'Import from FIT File';
-
-  @override
-  String get transfer_import_operationCompleted => 'Operation completed';
-
-  @override
-  String transfer_import_operationFailed(Object error) {
-    return 'Operation failed: $error';
-  }
+  String get transfer_import_fileImportTitle => 'File Import';
 
   @override
   String get transfer_import_sectionHeader => 'Import Data';
-
-  @override
-  String get transfer_import_uddfSubtitle => 'Universal Dive Data Format';
-
-  @override
-  String get transfer_import_uddfTitle => 'Import from UDDF';
 
   @override
   String get transfer_pdfExport_cancelButton => 'Cancel';

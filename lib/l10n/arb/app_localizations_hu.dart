@@ -12736,49 +12736,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get transfer_import_aboutTitle => 'Az importalasrol';
 
   @override
-  String get transfer_import_autoDetectSemanticLabel =>
+  String get transfer_import_fileImportSemanticLabel =>
       'Adatok importalasa automatikus falismeréssel';
 
   @override
-  String get transfer_import_autoDetectSubtitle =>
+  String get transfer_import_fileImportSubtitle =>
       'Automatikusan felismeri a CSV, UDDF, FIT es mas formatumokat';
 
   @override
-  String get transfer_import_autoDetectTitle => 'Adatok importalasa';
-
-  @override
-  String get transfer_import_byFormatHeader => 'Importalas formatum szerint';
-
-  @override
-  String get transfer_import_csvSubtitle => 'Merülesek importalasa CSV fajlbol';
-
-  @override
-  String get transfer_import_csvTitle => 'Importalas CSV-bol';
-
-  @override
-  String get transfer_import_fitSubtitle =>
-      'Merülesek importalasa Garmin Descent export fajlokbol';
-
-  @override
-  String get transfer_import_fitTitle => 'Importalas FIT fajlbol';
-
-  @override
-  String get transfer_import_operationCompleted => 'Muvelet befejezve';
-
-  @override
-  String transfer_import_operationFailed(Object error) {
-    return 'Muvelet sikertelen: $error';
-  }
+  String get transfer_import_fileImportTitle => 'Adatok importalasa';
 
   @override
   String get transfer_import_sectionHeader => 'Adatok importalasa';
-
-  @override
-  String get transfer_import_uddfSubtitle =>
-      'Univerzalis merülesi adat formatum';
-
-  @override
-  String get transfer_import_uddfTitle => 'Importalas UDDF-bol';
 
   @override
   String get transfer_pdfExport_cancelButton => 'Megse';

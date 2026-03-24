@@ -12780,48 +12780,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get transfer_import_aboutTitle => 'Informazioni sull\'importazione';
 
   @override
-  String get transfer_import_autoDetectSemanticLabel =>
+  String get transfer_import_fileImportSemanticLabel =>
       'Importa dati con rilevamento automatico';
 
   @override
-  String get transfer_import_autoDetectSubtitle =>
+  String get transfer_import_fileImportSubtitle =>
       'Rileva automaticamente CSV, UDDF, FIT e altro';
 
   @override
-  String get transfer_import_autoDetectTitle => 'Importa dati';
-
-  @override
-  String get transfer_import_byFormatHeader => 'Importa per formato';
-
-  @override
-  String get transfer_import_csvSubtitle => 'Importa immersioni da file CSV';
-
-  @override
-  String get transfer_import_csvTitle => 'Importa da CSV';
-
-  @override
-  String get transfer_import_fitSubtitle =>
-      'Importa immersioni da file di esportazione Garmin Descent';
-
-  @override
-  String get transfer_import_fitTitle => 'Importa da file FIT';
-
-  @override
-  String get transfer_import_operationCompleted => 'Operazione completata';
-
-  @override
-  String transfer_import_operationFailed(Object error) {
-    return 'Operazione non riuscita: $error';
-  }
+  String get transfer_import_fileImportTitle => 'Importa dati';
 
   @override
   String get transfer_import_sectionHeader => 'Importa dati';
-
-  @override
-  String get transfer_import_uddfSubtitle => 'Universal Dive Data Format';
-
-  @override
-  String get transfer_import_uddfTitle => 'Importa da UDDF';
 
   @override
   String get transfer_pdfExport_cancelButton => 'Annulla';
