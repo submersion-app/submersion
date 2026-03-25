@@ -145,6 +145,7 @@ class _UnifiedImportWizardBodyState
           ref.invalidate(diveListNotifierProvider);
           ref.invalidate(paginatedDiveListProvider);
           ref.invalidate(allDiveComputersProvider);
+          ref.invalidate(nextDiveNumberProvider);
         case ImportEntityType.sites:
           ref.invalidate(sitesProvider);
           ref.invalidate(sitesWithCountsProvider);

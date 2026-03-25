@@ -521,6 +521,7 @@ class UddfImportNotifier extends StateNotifier<UddfImportState> {
     _ref.invalidate(tagsProvider);
     _ref.invalidate(diveListNotifierProvider);
     _ref.invalidate(paginatedDiveListProvider);
+    _ref.invalidate(nextDiveNumberProvider);
   }
 
   /// Reset to initial state.
