@@ -74,9 +74,9 @@ Updated fields on the domain entity (renamed from `DiveComputerReading`):
 
 ```dart
 class DiveDataSource extends Equatable {
-  final int id;
-  final int diveId;
-  final int? computerId;
+  final String id;
+  final String diveId;
+  final String? computerId;
   final bool isPrimary;
   final String? computerModel;
   final String? computerSerial;
@@ -87,15 +87,17 @@ class DiveDataSource extends Equatable {
   final double? avgDepth;
   final int? duration;
   final double? waterTemp;
-  final int? entryTime;
-  final int? exitTime;
+  final DateTime? entryTime;
+  final DateTime? exitTime;
+  final double? maxAscentRate;
+  final double? maxDescentRate;
   final int? surfaceInterval;
   final double? cns;
   final double? otu;
   final String? decoAlgorithm;
   final int? gradientFactorLow;
   final int? gradientFactorHigh;
-  final DateTime? importedAt;
+  final DateTime importedAt;
   final DateTime createdAt;
   // ... copyWith, Equatable props
 }
