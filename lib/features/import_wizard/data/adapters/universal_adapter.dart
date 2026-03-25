@@ -98,7 +98,10 @@ class UniversalAdapter implements ImportSourceAdapter {
   }) : _ref = ref,
        _displayName = displayName {
     // Reset state from any previous import session.
-    ref.read(universalImportNotifierProvider.notifier).reset();
+    // Deferred to avoid modifying provider state during widget build.
+    Future.microtask(
+      () => ref.read(universalImportNotifierProvider.notifier).reset(),
+    );
   }
 
   final WidgetRef _ref;
