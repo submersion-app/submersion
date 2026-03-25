@@ -126,6 +126,7 @@ class UddfEntityImportResult {
   final int sites;
   final int dives;
   final int courses;
+  final List<String> diveIds;
 
   const UddfEntityImportResult({
     this.trips = 0,
@@ -139,6 +140,7 @@ class UddfEntityImportResult {
     this.sites = 0,
     this.dives = 0,
     this.courses = 0,
+    this.diveIds = const [],
   });
 
   int get total =>
@@ -345,6 +347,7 @@ class UddfEntityImporter {
       sites: sitesCount,
       dives: divesResult.count,
       courses: coursesCount,
+      diveIds: divesResult.diveIds,
     );
   }
 
@@ -902,6 +905,7 @@ class UddfEntityImporter {
     if (selected.isEmpty) return const _DiveImportResult(0, 0);
     onProgress?.call('Importing dives', 0, selected.length);
     var count = 0;
+    final importedDiveIds = <String>[];
     final inlineBuddyIds = <String>{};
 
     for (var i = 0; i < items.length; i++) {
@@ -1095,6 +1099,7 @@ class UddfEntityImporter {
       }
 
       await repos.diveRepository.createDive(dive);
+      importedDiveIds.add(diveId);
 
       // Store per-tank pressure data
       if (profileData != null && tanks.isNotEmpty) {
@@ -1171,7 +1176,7 @@ class UddfEntityImporter {
       onProgress?.call('Importing dives', count, selected.length);
     }
 
-    return _DiveImportResult(count, inlineBuddyIds.length);
+    return _DiveImportResult(count, inlineBuddyIds.length, importedDiveIds);
   }
 
   // -- Dive helper methods --
@@ -1475,6 +1480,11 @@ class UddfEntityImporter {
 class _DiveImportResult {
   final int count;
   final int inlineBuddies;
+  final List<String> diveIds;
 
-  const _DiveImportResult(this.count, this.inlineBuddies);
+  const _DiveImportResult(
+    this.count,
+    this.inlineBuddies, [
+    this.diveIds = const [],
+  ]);
 }

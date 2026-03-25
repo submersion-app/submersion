@@ -169,6 +169,12 @@ class _UnifiedImportWizardBodyState
   }
 
   void _navigateToDives() {
+    final result = ref.read(importWizardProvider).importResult;
+    if (result != null && result.importedDiveIds.isNotEmpty) {
+      ref.read(diveFilterProvider.notifier).state = DiveFilterState(
+        diveIds: result.importedDiveIds,
+      );
+    }
     context.go('/dives');
   }
 

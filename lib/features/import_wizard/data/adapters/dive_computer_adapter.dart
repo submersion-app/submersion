@@ -257,6 +257,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     var imported = 0;
     var consolidated = 0;
     final importedDives = <DownloadedDive>[];
+    final importedDiveIds = <String>[];
 
     for (var i = 0; i < allIndices.length; i++) {
       final index = allIndices[i];
@@ -274,7 +275,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         }
       } else {
         // Import as new dive.
-        await _importService.importDives(
+        final importResult = await _importService.importDives(
           dives: [dive],
           computer: comp,
           mode: ImportMode.all,
@@ -283,6 +284,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         );
         imported++;
         importedDives.add(dive);
+        importedDiveIds.addAll(importResult.importedDiveIds);
       }
 
       onProgress?.call('Dives', i + 1, total);
@@ -295,6 +297,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       importedCounts: {ImportEntityType.dives: imported},
       consolidatedCount: consolidated,
       skippedCount: skipped,
+      importedDiveIds: importedDiveIds,
     );
   }
 

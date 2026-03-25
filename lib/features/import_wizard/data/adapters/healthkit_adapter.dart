@@ -232,6 +232,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
     final sortedIndices = indicesToImport.toList()..sort();
     final total = sortedIndices.length;
     var imported = 0;
+    final importedDiveIds = <String>[];
 
     for (var i = 0; i < sortedIndices.length; i++) {
       final index = sortedIndices[i];
@@ -243,6 +244,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
       await _diveRepository.createDive(dive);
 
       imported++;
+      importedDiveIds.add(dive.id);
       onProgress?.call('Dives', i + 1, total);
     }
 
@@ -250,6 +252,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
       importedCounts: {ImportEntityType.dives: imported},
       consolidatedCount: 0,
       skippedCount: skipped,
+      importedDiveIds: importedDiveIds,
     );
   }
 

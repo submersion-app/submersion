@@ -440,6 +440,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       importedCounts: _convertImportCounts(result),
       consolidatedCount: 0,
       skippedCount: skipped,
+      importedDiveIds: result.diveIds,
     );
   }
 

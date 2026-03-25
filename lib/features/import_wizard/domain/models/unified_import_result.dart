@@ -15,6 +15,9 @@ class UnifiedImportResult {
   /// chose not to import).
   final int skippedCount;
 
+  /// IDs of the dives that were imported, for post-import filtering.
+  final List<String> importedDiveIds;
+
   /// Non-null when the import failed with an error.
   final String? errorMessage;
 
@@ -22,6 +25,7 @@ class UnifiedImportResult {
     required this.importedCounts,
     required this.consolidatedCount,
     required this.skippedCount,
+    this.importedDiveIds = const [],
     this.errorMessage,
   });
 }
