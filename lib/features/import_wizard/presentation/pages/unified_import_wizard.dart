@@ -6,6 +6,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
@@ -126,27 +127,35 @@ class _UnifiedImportWizardBodyState
       if ((result.importedCounts[type] ?? 0) <= 0) continue;
       switch (type) {
         case ImportEntityType.dives:
-          ref.invalidate(divesProvider);
+          ref.invalidate(diveListNotifierProvider);
+          ref.invalidate(paginatedDiveListProvider);
+          ref.invalidate(allDiveComputersProvider);
         case ImportEntityType.sites:
           ref.invalidate(sitesProvider);
+          ref.invalidate(sitesWithCountsProvider);
+          ref.invalidate(siteListNotifierProvider);
         case ImportEntityType.buddies:
           ref.invalidate(allBuddiesProvider);
         case ImportEntityType.equipment:
           ref.invalidate(allEquipmentProvider);
+          ref.invalidate(activeEquipmentProvider);
+          ref.invalidate(retiredEquipmentProvider);
+          ref.invalidate(serviceDueEquipmentProvider);
+          ref.invalidate(equipmentListNotifierProvider);
+        case ImportEntityType.equipmentSets:
+          ref.invalidate(equipmentSetsProvider);
         case ImportEntityType.trips:
           ref.invalidate(allTripsProvider);
-        case ImportEntityType.certifications:
-          ref.invalidate(allCertificationsProvider);
         case ImportEntityType.diveCenters:
           ref.invalidate(allDiveCentersProvider);
+        case ImportEntityType.certifications:
+          ref.invalidate(allCertificationsProvider);
+        case ImportEntityType.courses:
+          ref.invalidate(allCoursesProvider);
         case ImportEntityType.tags:
           ref.invalidate(tagsProvider);
         case ImportEntityType.diveTypes:
           ref.invalidate(diveTypesProvider);
-        case ImportEntityType.equipmentSets:
-          ref.invalidate(equipmentSetsProvider);
-        case ImportEntityType.courses:
-          ref.invalidate(allCoursesProvider);
       }
     }
   }
