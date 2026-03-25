@@ -469,7 +469,9 @@ class UniversalAdapter implements ImportSourceAdapter {
     final runtime = data['runtime'] as Duration?;
     final duration = data['duration'] as Duration?;
     final effectiveDuration = runtime ?? duration;
-    final siteName = data['siteName'] as String?;
+    final siteName =
+        data['siteName'] as String? ??
+        (data['site'] as Map<String, dynamic>?)?['name'] as String?;
 
     String title;
     if (dateTime != null) {

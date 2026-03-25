@@ -104,33 +104,9 @@ class DiveComparisonCard extends ConsumerWidget {
             ? '$existingLabel (#$diveNum)'
             : existingLabel;
 
-        final siteName = existingDive.site?.name;
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Site name (if available)
-            if (siteName != null && siteName.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.place,
-                      size: 14,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      siteName,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
             // Overlaid Profiles
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -501,7 +477,7 @@ class _ActionButton extends StatelessWidget {
       children: [
         Text(
           label,
-          style: theme.textTheme.labelMedium?.copyWith(
+          style: theme.textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w600,
             color: isFilled ? Colors.white : null,
           ),
