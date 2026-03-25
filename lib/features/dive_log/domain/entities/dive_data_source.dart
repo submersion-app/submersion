@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-class DiveComputerReading extends Equatable {
+class DiveDataSource extends Equatable {
   final String id;
   final String diveId;
   final String? computerId;
@@ -8,6 +8,8 @@ class DiveComputerReading extends Equatable {
   final String? computerModel;
   final String? computerSerial;
   final String? sourceFormat;
+  final String? sourceFileName;
+  final String? sourceFileFormat;
   final double? maxDepth;
   final double? avgDepth;
   final int? duration;
@@ -25,7 +27,7 @@ class DiveComputerReading extends Equatable {
   final DateTime importedAt;
   final DateTime createdAt;
 
-  const DiveComputerReading({
+  const DiveDataSource({
     required this.id,
     required this.diveId,
     this.computerId,
@@ -33,6 +35,8 @@ class DiveComputerReading extends Equatable {
     this.computerModel,
     this.computerSerial,
     this.sourceFormat,
+    this.sourceFileName,
+    this.sourceFileFormat,
     this.maxDepth,
     this.avgDepth,
     this.duration,
@@ -51,10 +55,10 @@ class DiveComputerReading extends Equatable {
     required this.createdAt,
   });
 
-  /// Display name for the computer (model, or "Unknown Computer").
-  String get displayName => computerModel ?? 'Unknown Computer';
+  /// Display name for the data source (model, or "Unknown Source").
+  String get displayName => computerModel ?? 'Unknown Source';
 
-  DiveComputerReading copyWith({
+  DiveDataSource copyWith({
     String? id,
     String? diveId,
     String? computerId,
@@ -62,6 +66,8 @@ class DiveComputerReading extends Equatable {
     String? computerModel,
     String? computerSerial,
     String? sourceFormat,
+    String? sourceFileName,
+    String? sourceFileFormat,
     double? maxDepth,
     double? avgDepth,
     int? duration,
@@ -79,7 +85,7 @@ class DiveComputerReading extends Equatable {
     DateTime? importedAt,
     DateTime? createdAt,
   }) {
-    return DiveComputerReading(
+    return DiveDataSource(
       id: id ?? this.id,
       diveId: diveId ?? this.diveId,
       computerId: computerId ?? this.computerId,
@@ -87,6 +93,8 @@ class DiveComputerReading extends Equatable {
       computerModel: computerModel ?? this.computerModel,
       computerSerial: computerSerial ?? this.computerSerial,
       sourceFormat: sourceFormat ?? this.sourceFormat,
+      sourceFileName: sourceFileName ?? this.sourceFileName,
+      sourceFileFormat: sourceFileFormat ?? this.sourceFileFormat,
       maxDepth: maxDepth ?? this.maxDepth,
       avgDepth: avgDepth ?? this.avgDepth,
       duration: duration ?? this.duration,
@@ -115,6 +123,8 @@ class DiveComputerReading extends Equatable {
     computerModel,
     computerSerial,
     sourceFormat,
+    sourceFileName,
+    sourceFileFormat,
     maxDepth,
     avgDepth,
     duration,

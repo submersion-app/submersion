@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/database/database.dart'
-    show DiveComputerDataCompanion, DiveProfilesCompanion;
+    show DiveDataSourcesCompanion, DiveProfilesCompanion;
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
@@ -333,7 +333,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     const uuid = Uuid();
     final now = DateTime.now();
 
-    final secondaryReading = DiveComputerDataCompanion.insert(
+    final secondaryReading = DiveDataSourcesCompanion.insert(
       id: uuid.v4(),
       diveId: targetDiveId,
       isPrimary: const Value(false),

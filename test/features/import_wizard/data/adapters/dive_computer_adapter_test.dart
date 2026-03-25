@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:submersion/core/database/database.dart'
-    show DiveComputerDataCompanion, DiveProfilesCompanion;
+    show DiveDataSourcesCompanion, DiveProfilesCompanion;
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
@@ -530,7 +530,7 @@ void main() {
           mockDiveRepo.consolidateComputer(
             targetDiveId: 'existing-dive-1',
             secondaryReading: argThat(
-              isA<DiveComputerDataCompanion>(),
+              isA<DiveDataSourcesCompanion>(),
               named: 'secondaryReading',
             ),
             secondaryProfile: argThat(

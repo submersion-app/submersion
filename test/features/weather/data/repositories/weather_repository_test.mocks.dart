@@ -13,7 +13,7 @@ import 'package:submersion/core/models/sort_state.dart' as _i10;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart'
     as _i3;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart' as _i2;
-import 'package:submersion/features/dive_log/domain/entities/dive_computer_reading.dart'
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart'
     as _i13;
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart'
     as _i8;
@@ -354,9 +354,9 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
           as _i6.Future<_i3.DiveRecords>);
 
   @override
-  _i6.Future<Set<String>> getWearableIds({String? diverId}) =>
+  _i6.Future<Set<String>> getImportIds({String? diverId}) =>
       (super.noSuchMethod(
-            Invocation.method(#getWearableIds, [], {#diverId: diverId}),
+            Invocation.method(#getImportIds, [], {#diverId: diverId}),
             returnValue: _i6.Future<Set<String>>.value(<String>{}),
           )
           as _i6.Future<Set<String>>);
@@ -570,28 +570,26 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
           as _i6.Future<void>);
 
   @override
-  _i6.Future<List<_i13.DiveComputerReading>> getComputerReadings(
-    String? diveId,
-  ) =>
+  _i6.Future<List<_i13.DiveDataSource>> getDataSources(String? diveId) =>
       (super.noSuchMethod(
-            Invocation.method(#getComputerReadings, [diveId]),
-            returnValue: _i6.Future<List<_i13.DiveComputerReading>>.value(
-              <_i13.DiveComputerReading>[],
+            Invocation.method(#getDataSources, [diveId]),
+            returnValue: _i6.Future<List<_i13.DiveDataSource>>.value(
+              <_i13.DiveDataSource>[],
             ),
           )
-          as _i6.Future<List<_i13.DiveComputerReading>>);
+          as _i6.Future<List<_i13.DiveDataSource>>);
 
   @override
-  _i6.Future<bool> hasMultipleComputers(String? diveId) =>
+  _i6.Future<bool> hasMultipleDataSources(String? diveId) =>
       (super.noSuchMethod(
-            Invocation.method(#hasMultipleComputers, [diveId]),
+            Invocation.method(#hasMultipleDataSources, [diveId]),
             returnValue: _i6.Future<bool>.value(false),
           )
           as _i6.Future<bool>);
 
   @override
   _i6.Future<void> saveComputerReading(
-    _i14.DiveComputerDataCompanion? reading,
+    _i14.DiveDataSourcesCompanion? reading,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#saveComputerReading, [reading]),
@@ -610,9 +608,9 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
           as _i6.Future<void>);
 
   @override
-  _i6.Future<void> backfillPrimaryComputerReading(String? diveId) =>
+  _i6.Future<void> backfillPrimaryDataSource(String? diveId) =>
       (super.noSuchMethod(
-            Invocation.method(#backfillPrimaryComputerReading, [diveId]),
+            Invocation.method(#backfillPrimaryDataSource, [diveId]),
             returnValue: _i6.Future<void>.value(),
             returnValueForMissingStub: _i6.Future<void>.value(),
           )
@@ -621,7 +619,7 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
   @override
   _i6.Future<void> consolidateComputer({
     required String? targetDiveId,
-    required _i14.DiveComputerDataCompanion? secondaryReading,
+    required _i14.DiveDataSourcesCompanion? secondaryReading,
     required List<_i14.DiveProfilesCompanion>? secondaryProfile,
   }) =>
       (super.noSuchMethod(
@@ -673,12 +671,12 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
           as _i6.Future<String>);
 
   @override
-  _i6.Future<void> setPrimaryComputer({
+  _i6.Future<void> setPrimaryDataSource({
     required String? diveId,
     required String? computerReadingId,
   }) =>
       (super.noSuchMethod(
-            Invocation.method(#setPrimaryComputer, [], {
+            Invocation.method(#setPrimaryDataSource, [], {
               #diveId: diveId,
               #computerReadingId: computerReadingId,
             }),

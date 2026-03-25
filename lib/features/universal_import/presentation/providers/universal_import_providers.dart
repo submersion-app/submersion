@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:drift/drift.dart' show Value;
 import 'package:file_picker/file_picker.dart';
 import 'package:submersion/core/database/database.dart'
-    show DiveComputerDataCompanion, DiveProfilesCompanion;
+    show DiveDataSourcesCompanion, DiveProfilesCompanion;
 import 'package:uuid/uuid.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
@@ -742,7 +742,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       final effectiveDuration = runtime ?? duration;
       final exitTime = runtime != null ? dateTime.add(runtime) : null;
 
-      final secondaryReading = DiveComputerDataCompanion.insert(
+      final secondaryReading = DiveDataSourcesCompanion.insert(
         id: uuid.v4(),
         diveId: matchResult.diveId,
         isPrimary: const Value(false),

@@ -68,7 +68,7 @@ void main() {
     return diveId;
   }
 
-  DiveComputerDataCompanion buildReading({
+  DiveDataSourcesCompanion buildReading({
     String? id,
     required String diveId,
     bool isPrimary = false,
@@ -77,7 +77,7 @@ void main() {
     double? maxDepth,
   }) {
     final now = DateTime.now();
-    return DiveComputerDataCompanion(
+    return DiveDataSourcesCompanion(
       id: Value(id ?? 'reading-${now.microsecondsSinceEpoch}'),
       diveId: Value(diveId),
       isPrimary: Value(isPrimary),
@@ -90,13 +90,13 @@ void main() {
   }
 
   // ---------------------------------------------------------------------------
-  // getComputerReadings
+  // getDataSources
   // ---------------------------------------------------------------------------
 
-  group('getComputerReadings', () {
+  group('getDataSources', () {
     test('returns empty list when no rows exist for diveId', () async {
       final diveId = await insertTestDive();
-      final readings = await repository.getComputerReadings(diveId);
+      final readings = await repository.getDataSources(diveId);
       expect(readings, isEmpty);
     });
 
@@ -111,7 +111,7 @@ void main() {
         buildReading(id: 'r2', diveId: diveId2),
       );
 
-      final readings = await repository.getComputerReadings(diveId1);
+      final readings = await repository.getDataSources(diveId1);
       expect(readings.length, equals(1));
       expect(readings.first.id, equals('r1'));
     });
@@ -128,7 +128,7 @@ void main() {
           buildReading(id: 'primary', diveId: diveId, isPrimary: true),
         );
 
-        final readings = await repository.getComputerReadings(diveId);
+        final readings = await repository.getDataSources(diveId);
         expect(readings.first.isPrimary, isTrue);
         expect(readings.first.id, equals('primary'));
       },
@@ -141,13 +141,13 @@ void main() {
 
   group('saveComputerReading', () {
     test(
-      'persists a reading that can be retrieved via getComputerReadings',
+      'persists a reading that can be retrieved via getDataSources',
       () async {
         final diveId = await insertTestDive();
         final now = DateTime.now().toUtc();
 
         await repository.saveComputerReading(
-          DiveComputerDataCompanion(
+          DiveDataSourcesCompanion(
             id: const Value('reading-abc'),
             diveId: Value(diveId),
             isPrimary: const Value(true),
@@ -167,7 +167,7 @@ void main() {
           ),
         );
 
-        final readings = await repository.getComputerReadings(diveId);
+        final readings = await repository.getDataSources(diveId);
         expect(readings.length, equals(1));
 
         final r = readings.first;
@@ -206,7 +206,7 @@ void main() {
 
       await repository.deleteComputerReading('to-delete');
 
-      final readings = await repository.getComputerReadings(diveId);
+      final readings = await repository.getDataSources(diveId);
       expect(readings.length, equals(1));
       expect(readings.first.id, equals('to-keep'));
     });
@@ -220,13 +220,13 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
-  // hasMultipleComputers
+  // hasMultipleDataSources
   // ---------------------------------------------------------------------------
 
-  group('hasMultipleComputers', () {
+  group('hasMultipleDataSources', () {
     test('returns false when there are no readings', () async {
       final diveId = await insertTestDive();
-      expect(await repository.hasMultipleComputers(diveId), isFalse);
+      expect(await repository.hasMultipleDataSources(diveId), isFalse);
     });
 
     test('returns false when there is exactly one reading', () async {
@@ -234,7 +234,7 @@ void main() {
       await repository.saveComputerReading(
         buildReading(id: 'r1', diveId: diveId),
       );
-      expect(await repository.hasMultipleComputers(diveId), isFalse);
+      expect(await repository.hasMultipleDataSources(diveId), isFalse);
     });
 
     test('returns true when there are two or more readings', () async {
@@ -245,7 +245,7 @@ void main() {
       await repository.saveComputerReading(
         buildReading(id: 'r2', diveId: diveId),
       );
-      expect(await repository.hasMultipleComputers(diveId), isTrue);
+      expect(await repository.hasMultipleDataSources(diveId), isTrue);
     });
 
     test('counts only readings for the requested diveId', () async {
@@ -263,16 +263,16 @@ void main() {
         buildReading(id: 'r3', diveId: diveId1),
       );
 
-      expect(await repository.hasMultipleComputers(diveId1), isFalse);
-      expect(await repository.hasMultipleComputers(diveId2), isTrue);
+      expect(await repository.hasMultipleDataSources(diveId1), isFalse);
+      expect(await repository.hasMultipleDataSources(diveId2), isTrue);
     });
   });
 
   // ---------------------------------------------------------------------------
-  // backfillPrimaryComputerReading
+  // backfillPrimaryDataSource
   // ---------------------------------------------------------------------------
 
-  group('backfillPrimaryComputerReading', () {
+  group('backfillPrimaryDataSource', () {
     test('creates a primary reading from the dives row', () async {
       final entryMs = DateTime(2024, 6, 1, 9, 0).millisecondsSinceEpoch;
       final exitMs = DateTime(2024, 6, 1, 9, 45).millisecondsSinceEpoch;
@@ -293,9 +293,9 @@ void main() {
         gradientFactorHigh: 75,
       );
 
-      await repository.backfillPrimaryComputerReading(diveId);
+      await repository.backfillPrimaryDataSource(diveId);
 
-      final readings = await repository.getComputerReadings(diveId);
+      final readings = await repository.getDataSources(diveId);
       expect(readings.length, equals(1));
 
       final r = readings.first;
@@ -324,16 +324,16 @@ void main() {
       );
 
       // Calling backfill should not add another reading
-      await repository.backfillPrimaryComputerReading(diveId);
+      await repository.backfillPrimaryDataSource(diveId);
 
-      final readings = await repository.getComputerReadings(diveId);
+      final readings = await repository.getDataSources(diveId);
       expect(readings.length, equals(1));
       expect(readings.first.id, equals('existing-primary'));
     });
 
     test('is a no-op when the dive does not exist', () async {
       await expectLater(
-        repository.backfillPrimaryComputerReading('nonexistent-dive'),
+        repository.backfillPrimaryDataSource('nonexistent-dive'),
         completes,
       );
     });
@@ -341,9 +341,9 @@ void main() {
     test('handles null optional fields gracefully', () async {
       final diveId = await insertTestDive();
 
-      await repository.backfillPrimaryComputerReading(diveId);
+      await repository.backfillPrimaryDataSource(diveId);
 
-      final readings = await repository.getComputerReadings(diveId);
+      final readings = await repository.getDataSources(diveId);
       expect(readings.length, equals(1));
 
       final r = readings.first;

@@ -215,10 +215,10 @@ class Dives extends Table {
   TextColumn get courseId =>
       text().nullable().references(Courses, #id, onDelete: KeyAction.setNull)();
 
-  // Wearable integration (v2.0) - tracks import source for Apple Watch, Garmin, etc.
-  TextColumn get wearableSource =>
+  // Import source tracking - tracks import source for Apple Watch, Garmin, etc.
+  TextColumn get importSource =>
       text().nullable()(); // 'appleWatch', 'garmin', 'suunto'
-  TextColumn get wearableId =>
+  TextColumn get importId =>
       text().nullable()(); // Source-specific ID (e.g., HealthKit UUID)
 
   // Weather conditions
@@ -915,9 +915,10 @@ class DiveComputers extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// Per-computer metadata snapshots for multi-computer dives.
-/// Only populated when a dive has data from multiple computers.
-class DiveComputerData extends Table {
+/// Per-source metadata snapshots for multi-source dives.
+/// Only populated when a dive has data from multiple sources.
+@DataClassName('DiveDataSourcesData')
+class DiveDataSources extends Table {
   TextColumn get id => text()();
   TextColumn get diveId =>
       text().references(Dives, #id, onDelete: KeyAction.cascade)();
@@ -927,6 +928,8 @@ class DiveComputerData extends Table {
   TextColumn get computerModel => text().nullable()();
   TextColumn get computerSerial => text().nullable()();
   TextColumn get sourceFormat => text().nullable()();
+  TextColumn get sourceFileName => text().nullable()();
+  TextColumn get sourceFileFormat => text().nullable()();
   RealColumn get maxDepth => real().nullable()();
   RealColumn get avgDepth => real().nullable()();
   IntColumn get duration => integer().nullable()();
@@ -1203,7 +1206,7 @@ class ScheduledNotifications extends Table {
     DiveTypes,
     TankPresets,
     DiveComputers,
-    DiveComputerData,
+    DiveDataSources,
     DiveProfileEvents,
     GasSwitches,
     TankPressureProfiles,
@@ -1232,7 +1235,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 53;
+  static const int currentSchemaVersion = 54;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -2432,6 +2435,30 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('''
             CREATE INDEX IF NOT EXISTS idx_dive_computer_data_dive_id
             ON dive_computer_data(dive_id)
+          ''');
+        }
+        if (from < 54) {
+          await customStatement(
+            'ALTER TABLE dive_computer_data RENAME TO dive_data_sources',
+          );
+          await customStatement(
+            'ALTER TABLE dive_data_sources ADD COLUMN source_file_name TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dive_data_sources ADD COLUMN source_file_format TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dives RENAME COLUMN wearable_source TO import_source',
+          );
+          await customStatement(
+            'ALTER TABLE dives RENAME COLUMN wearable_id TO import_id',
+          );
+          await customStatement(
+            'DROP INDEX IF EXISTS idx_dive_computer_data_dive_id',
+          );
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_data_sources_dive_id
+            ON dive_data_sources(dive_id)
           ''');
         }
       },

@@ -49,7 +49,7 @@ void main() {
       required DateTime dateTime,
       double maxDepth = 20.0,
       int durationMinutes = 45,
-      String? wearableId,
+      String? importId,
     }) {
       return domain.Dive(
         id: id,
@@ -58,12 +58,12 @@ void main() {
         exitTime: dateTime.add(Duration(minutes: durationMinutes)),
         duration: Duration(minutes: durationMinutes),
         maxDepth: maxDepth,
-        wearableId: wearableId,
+        importId: importId,
       );
     }
 
     group('checkForDuplicates', () {
-      test('marks dives with matching wearableId as alreadyImported', () async {
+      test('marks dives with matching importId as alreadyImported', () async {
         // Set up notifier state with available dives and selection
         final dive1 = createImportedDive(
           sourceId: 'already-imported-id',
@@ -89,7 +89,7 @@ void main() {
 
         // Mock repository
         when(
-          mockRepository.getWearableIds(diverId: anyNamed('diverId')),
+          mockRepository.getImportIds(diverId: anyNamed('diverId')),
         ).thenAnswer((_) async => {'already-imported-id'});
         when(
           mockRepository.getDivesInRange(
@@ -142,7 +142,7 @@ void main() {
         );
 
         when(
-          mockRepository.getWearableIds(diverId: anyNamed('diverId')),
+          mockRepository.getImportIds(diverId: anyNamed('diverId')),
         ).thenAnswer((_) async => <String>{});
         when(
           mockRepository.getDivesInRange(
@@ -192,7 +192,7 @@ void main() {
         );
 
         when(
-          mockRepository.getWearableIds(diverId: anyNamed('diverId')),
+          mockRepository.getImportIds(diverId: anyNamed('diverId')),
         ).thenAnswer((_) async => <String>{});
         when(
           mockRepository.getDivesInRange(
@@ -255,7 +255,7 @@ void main() {
         notifier.selectAll();
 
         when(
-          mockRepository.getWearableIds(diverId: anyNamed('diverId')),
+          mockRepository.getImportIds(diverId: anyNamed('diverId')),
         ).thenThrow(Exception('DB error'));
 
         await notifier.checkForDuplicates(
@@ -299,7 +299,7 @@ void main() {
         // Manually set match results
         // (normally checkForDuplicates does this, but we test import independently)
         when(
-          mockRepository.getWearableIds(diverId: anyNamed('diverId')),
+          mockRepository.getImportIds(diverId: anyNamed('diverId')),
         ).thenAnswer((_) async => {'imported-dive'});
         when(
           mockRepository.getDivesInRange(
@@ -373,7 +373,7 @@ void main() {
         // Time 12 min diff -> score 0.3; Depth same -> score 1.0; Duration same -> score 1.0
         // Composite: 0.3*0.50 + 1.0*0.30 + 1.0*0.20 = 0.15+0.30+0.20 = 0.65
         when(
-          mockRepository.getWearableIds(diverId: anyNamed('diverId')),
+          mockRepository.getImportIds(diverId: anyNamed('diverId')),
         ).thenAnswer((_) async => <String>{});
         when(
           mockRepository.getDivesInRange(

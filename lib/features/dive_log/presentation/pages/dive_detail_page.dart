@@ -210,9 +210,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   Widget _buildContent(BuildContext context, WidgetRef ref, Dive dive) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    final computerReadingsAsync = ref.watch(
-      diveComputerReadingsProvider(dive.id),
-    );
+    final computerReadingsAsync = ref.watch(diveDataSourcesProvider(dive.id));
 
     final body = SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -4327,14 +4325,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     required String readingId,
   }) async {
     final repository = ref.read(diveRepositoryProvider);
-    await repository.setPrimaryComputer(
+    await repository.setPrimaryDataSource(
       diveId: diveId,
       computerReadingId: readingId,
     );
     ref.invalidate(diveProvider(diveId));
     ref.invalidate(diveProfileProvider(diveId));
     ref.invalidate(profilesBySourceProvider(diveId));
-    ref.invalidate(diveComputerReadingsProvider(diveId));
+    ref.invalidate(diveDataSourcesProvider(diveId));
   }
 
   Future<void> _onUnlinkComputer(
@@ -4376,7 +4374,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     ref.invalidate(diveProvider(diveId));
     ref.invalidate(diveProfileProvider(diveId));
     ref.invalidate(profilesBySourceProvider(diveId));
-    ref.invalidate(diveComputerReadingsProvider(diveId));
+    ref.invalidate(diveDataSourcesProvider(diveId));
     ref.invalidate(paginatedDiveListProvider);
   }
 
@@ -4394,7 +4392,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ref.invalidate(diveProvider(diveId));
         ref.invalidate(diveProfileProvider(diveId));
         ref.invalidate(profilesBySourceProvider(diveId));
-        ref.invalidate(diveComputerReadingsProvider(diveId));
+        ref.invalidate(diveDataSourcesProvider(diveId));
         ref.invalidate(paginatedDiveListProvider);
         ref.invalidate(divesProvider);
         if (context.mounted) {

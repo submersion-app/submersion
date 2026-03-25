@@ -31,7 +31,7 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_computer_reading.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/custom_field_input_row.dart';
@@ -1526,9 +1526,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// Opens the profile editor, optionally prompting the user to choose which
   /// computer's profile to start from when the dive has multiple computers.
   Future<void> _openProfileEditor(String diveId, {String? initialMode}) async {
-    final readings = await ref.read(
-      diveComputerReadingsProvider(diveId).future,
-    );
+    final readings = await ref.read(diveDataSourcesProvider(diveId).future);
 
     // Filter to non-edited (original) sources only
     final originalReadings = readings
@@ -1537,7 +1535,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
     if (originalReadings.length > 1 && mounted) {
       // Multi-computer dive: ask which profile to start from
-      final selected = await showModalBottomSheet<DiveComputerReading>(
+      final selected = await showModalBottomSheet<DiveDataSource>(
         context: context,
         builder: (context) =>
             _ComputerSourceSelectionSheet(readings: originalReadings),
@@ -4848,7 +4846,7 @@ class _EquipmentSetTile extends ConsumerWidget {
 /// as the starting point when opening the profile editor on a multi-computer
 /// dive.
 class _ComputerSourceSelectionSheet extends StatelessWidget {
-  final List<DiveComputerReading> readings;
+  final List<DiveDataSource> readings;
 
   const _ComputerSourceSelectionSheet({required this.readings});
 

@@ -37,7 +37,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart'
     as _i15;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart' as _i17;
-import 'package:submersion/features/dive_log/domain/entities/dive_computer_reading.dart'
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart'
     as _i35;
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart'
     as _i30;
@@ -852,9 +852,9 @@ class MockDiveRepository extends _i1.Mock implements _i14.DiveRepository {
           as _i20.Future<_i14.DiveRecords>);
 
   @override
-  _i20.Future<Set<String>> getWearableIds({String? diverId}) =>
+  _i20.Future<Set<String>> getImportIds({String? diverId}) =>
       (super.noSuchMethod(
-            Invocation.method(#getWearableIds, [], {#diverId: diverId}),
+            Invocation.method(#getImportIds, [], {#diverId: diverId}),
             returnValue: _i20.Future<Set<String>>.value(<String>{}),
             returnValueForMissingStub: _i20.Future<Set<String>>.value(
               <String>{},
@@ -1111,25 +1111,23 @@ class MockDiveRepository extends _i1.Mock implements _i14.DiveRepository {
           as _i20.Future<void>);
 
   @override
-  _i20.Future<List<_i35.DiveComputerReading>> getComputerReadings(
-    String? diveId,
-  ) =>
+  _i20.Future<List<_i35.DiveDataSource>> getDataSources(String? diveId) =>
       (super.noSuchMethod(
-            Invocation.method(#getComputerReadings, [diveId]),
-            returnValue: _i20.Future<List<_i35.DiveComputerReading>>.value(
-              <_i35.DiveComputerReading>[],
+            Invocation.method(#getDataSources, [diveId]),
+            returnValue: _i20.Future<List<_i35.DiveDataSource>>.value(
+              <_i35.DiveDataSource>[],
             ),
             returnValueForMissingStub:
-                _i20.Future<List<_i35.DiveComputerReading>>.value(
-                  <_i35.DiveComputerReading>[],
+                _i20.Future<List<_i35.DiveDataSource>>.value(
+                  <_i35.DiveDataSource>[],
                 ),
           )
-          as _i20.Future<List<_i35.DiveComputerReading>>);
+          as _i20.Future<List<_i35.DiveDataSource>>);
 
   @override
-  _i20.Future<bool> hasMultipleComputers(String? diveId) =>
+  _i20.Future<bool> hasMultipleDataSources(String? diveId) =>
       (super.noSuchMethod(
-            Invocation.method(#hasMultipleComputers, [diveId]),
+            Invocation.method(#hasMultipleDataSources, [diveId]),
             returnValue: _i20.Future<bool>.value(false),
             returnValueForMissingStub: _i20.Future<bool>.value(false),
           )
@@ -1137,7 +1135,7 @@ class MockDiveRepository extends _i1.Mock implements _i14.DiveRepository {
 
   @override
   _i20.Future<void> saveComputerReading(
-    _i36.DiveComputerDataCompanion? reading,
+    _i36.DiveDataSourcesCompanion? reading,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#saveComputerReading, [reading]),
@@ -1156,9 +1154,9 @@ class MockDiveRepository extends _i1.Mock implements _i14.DiveRepository {
           as _i20.Future<void>);
 
   @override
-  _i20.Future<void> backfillPrimaryComputerReading(String? diveId) =>
+  _i20.Future<void> backfillPrimaryDataSource(String? diveId) =>
       (super.noSuchMethod(
-            Invocation.method(#backfillPrimaryComputerReading, [diveId]),
+            Invocation.method(#backfillPrimaryDataSource, [diveId]),
             returnValue: _i20.Future<void>.value(),
             returnValueForMissingStub: _i20.Future<void>.value(),
           )
@@ -1167,7 +1165,7 @@ class MockDiveRepository extends _i1.Mock implements _i14.DiveRepository {
   @override
   _i20.Future<void> consolidateComputer({
     required String? targetDiveId,
-    required _i36.DiveComputerDataCompanion? secondaryReading,
+    required _i36.DiveDataSourcesCompanion? secondaryReading,
     required List<_i36.DiveProfilesCompanion>? secondaryProfile,
   }) =>
       (super.noSuchMethod(
@@ -1228,12 +1226,12 @@ class MockDiveRepository extends _i1.Mock implements _i14.DiveRepository {
           as _i20.Future<String>);
 
   @override
-  _i20.Future<void> setPrimaryComputer({
+  _i20.Future<void> setPrimaryDataSource({
     required String? diveId,
     required String? computerReadingId,
   }) =>
       (super.noSuchMethod(
-            Invocation.method(#setPrimaryComputer, [], {
+            Invocation.method(#setPrimaryDataSource, [], {
               #diveId: diveId,
               #computerReadingId: computerReadingId,
             }),

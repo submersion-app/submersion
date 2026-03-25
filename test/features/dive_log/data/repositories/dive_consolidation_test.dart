@@ -67,8 +67,8 @@ void main() {
     return diveId;
   }
 
-  /// Build a [DiveComputerDataCompanion] without a FK-constrained computerId.
-  DiveComputerDataCompanion buildReading({
+  /// Build a [DiveDataSourcesCompanion] without a FK-constrained computerId.
+  DiveDataSourcesCompanion buildReading({
     String? id,
     required String diveId,
     bool isPrimary = false,
@@ -87,7 +87,7 @@ void main() {
     int? gradientFactorHigh,
   }) {
     final now = DateTime.now();
-    return DiveComputerDataCompanion(
+    return DiveDataSourcesCompanion(
       id: Value(id ?? 'reading-${now.microsecondsSinceEpoch}'),
       diveId: Value(diveId),
       isPrimary: Value(isPrimary),
@@ -172,7 +172,7 @@ void main() {
           secondaryProfile: [],
         );
 
-        final readings = await repository.getComputerReadings(diveId);
+        final readings = await repository.getDataSources(diveId);
         // Should have 2 readings: back-filled primary + secondary.
         expect(readings.length, equals(2));
 
@@ -208,7 +208,7 @@ void main() {
           secondaryProfile: [],
         );
 
-        final readings = await repository.getComputerReadings(diveId);
+        final readings = await repository.getDataSources(diveId);
         // Should be exactly 2: existing primary + new secondary.
         expect(readings.length, equals(2));
 
@@ -346,7 +346,7 @@ void main() {
         secondaryDiveId: secondaryId,
       );
 
-      final readings = await repository.getComputerReadings(primaryId);
+      final readings = await repository.getDataSources(primaryId);
       expect(readings.isNotEmpty, isTrue);
 
       // The non-primary reading should contain the secondary's metadata.
@@ -422,7 +422,7 @@ void main() {
       expect(newDive, isNotNull);
 
       // Secondary reading should be removed from the original dive.
-      final originalReadings = await repository.getComputerReadings(diveId);
+      final originalReadings = await repository.getDataSources(diveId);
       expect(originalReadings.any((r) => r.id == 'secondary-reading'), isFalse);
     });
 
@@ -456,7 +456,7 @@ void main() {
         );
 
         // The unlinked reading must be gone from the original dive.
-        final originalReadings = await repository.getComputerReadings(diveId);
+        final originalReadings = await repository.getDataSources(diveId);
         expect(originalReadings.any((r) => r.id == 'reading-b'), isFalse);
 
         // Exactly zero readings remain (single-computer state cleanup).
@@ -512,7 +512,7 @@ void main() {
       );
 
       // primary-reading must be gone from the original dive.
-      final remainingReadings = await repository.getComputerReadings(diveId);
+      final remainingReadings = await repository.getDataSources(diveId);
       expect(remainingReadings.any((r) => r.id == 'primary-reading'), isFalse);
 
       // After promotion + single-reading cleanup the dive has 0 readings
@@ -544,10 +544,10 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
-  // setPrimaryComputer
+  // setPrimaryDataSource
   // ---------------------------------------------------------------------------
 
-  group('setPrimaryComputer', () {
+  group('setPrimaryDataSource', () {
     test('swaps isPrimary flags on dive_computer_data', () async {
       final diveId = await insertTestDive(
         id: 'dive-swap',
@@ -574,12 +574,12 @@ void main() {
         ),
       );
 
-      await repository.setPrimaryComputer(
+      await repository.setPrimaryDataSource(
         diveId: diveId,
         computerReadingId: 'reading-b',
       );
 
-      final readings = await repository.getComputerReadings(diveId);
+      final readings = await repository.getDataSources(diveId);
       final readingA = readings.firstWhere((r) => r.id == 'reading-a');
       final readingB = readings.firstWhere((r) => r.id == 'reading-b');
 
@@ -621,7 +621,7 @@ void main() {
           ),
         );
 
-        await repository.setPrimaryComputer(
+        await repository.setPrimaryDataSource(
           diveId: diveId,
           computerReadingId: 'reading-b',
         );
@@ -686,7 +686,7 @@ void main() {
           depth: 10.0,
         );
 
-        await repository.setPrimaryComputer(
+        await repository.setPrimaryDataSource(
           diveId: diveId,
           computerReadingId: 'reading-b',
         );
@@ -708,7 +708,7 @@ void main() {
         }
 
         // Verify the reading flags were still swapped correctly.
-        final readings = await repository.getComputerReadings(diveId);
+        final readings = await repository.getDataSources(diveId);
         final readingA = readings.firstWhere((r) => r.id == 'reading-a');
         final readingB = readings.firstWhere((r) => r.id == 'reading-b');
         expect(readingA.isPrimary, isFalse);

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_computer_reading.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 
 /// A collapsible section showing per-computer readings for a multi-computer dive.
@@ -12,7 +12,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/collapsible_se
 /// readings offer a "Set as primary" action. All cards have an overflow menu
 /// with an "Unlink computer" option.
 class DiveComputersSection extends StatefulWidget {
-  final List<DiveComputerReading> readings;
+  final List<DiveDataSource> readings;
   final String diveId;
   final UnitFormatter units;
 
@@ -73,9 +73,9 @@ class _DiveComputersSectionState extends State<DiveComputersSection> {
   }
 }
 
-/// Internal card for a single [DiveComputerReading].
+/// Internal card for a single [DiveDataSource].
 class _ComputerReadingCard extends StatelessWidget {
-  final DiveComputerReading reading;
+  final DiveDataSource reading;
   final UnitFormatter units;
   final VoidCallback? onSetPrimary;
   final VoidCallback? onUnlink;

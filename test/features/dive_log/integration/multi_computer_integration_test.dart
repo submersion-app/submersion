@@ -51,7 +51,7 @@ void main() {
     return id;
   }
 
-  DiveComputerDataCompanion buildReading({
+  DiveDataSourcesCompanion buildReading({
     required String id,
     required String diveId,
     bool isPrimary = false,
@@ -63,7 +63,7 @@ void main() {
     double? waterTemp,
   }) {
     final now = DateTime.now();
-    return DiveComputerDataCompanion(
+    return DiveDataSourcesCompanion(
       id: Value(id),
       diveId: Value(diveId),
       isPrimary: Value(isPrimary),
@@ -166,7 +166,7 @@ void main() {
       );
 
       // 3. Verify: 2 computer readings exist.
-      final readings = await repository.getComputerReadings(diveId);
+      final readings = await repository.getDataSources(diveId);
       expect(readings.length, equals(2));
 
       // 4. Verify: getProfilesBySource returns 2 entries
@@ -174,8 +174,8 @@ void main() {
       final profileSources = await repository.getProfilesBySource(diveId);
       expect(profileSources.length, equals(2));
 
-      // 5. Call setPrimaryComputer to swap primary to the secondary reading.
-      await repository.setPrimaryComputer(
+      // 5. Call setPrimaryDataSource to swap primary to the secondary reading.
+      await repository.setPrimaryDataSource(
         diveId: diveId,
         computerReadingId: 'reading-secondary',
       );
@@ -186,7 +186,7 @@ void main() {
       expect(updatedDive!.diveComputerModel, equals('Suunto D5'));
 
       // Confirm reading flags were swapped.
-      final readingsAfterSwap = await repository.getComputerReadings(diveId);
+      final readingsAfterSwap = await repository.getDataSources(diveId);
       final newPrimary = readingsAfterSwap.firstWhere((r) => r.isPrimary);
       expect(newPrimary.id, equals('reading-secondary'));
 
@@ -199,7 +199,7 @@ void main() {
 
       // 8. Verify: original dive back to single-computer (no dive_computer_data
       // rows remain, as unlink cleans up when only one reading is left).
-      final finalReadings = await repository.getComputerReadings(diveId);
+      final finalReadings = await repository.getDataSources(diveId);
       expect(finalReadings.isEmpty, isTrue);
 
       // 9. Verify: new standalone dive created with correct metadata.
@@ -274,7 +274,7 @@ void main() {
       );
 
       // 3. Verify: primary dive has 2 computer readings.
-      final readings = await repository.getComputerReadings(diveAId);
+      final readings = await repository.getDataSources(diveAId);
       expect(readings.length, equals(2));
 
       final primaryReading = readings.firstWhere((r) => r.isPrimary);
@@ -301,7 +301,7 @@ void main() {
       expect(restoredDive, isNotNull);
 
       // Original dive should be back to single-computer state (no readings).
-      final remainingReadings = await repository.getComputerReadings(diveAId);
+      final remainingReadings = await repository.getDataSources(diveAId);
       expect(remainingReadings.isEmpty, isTrue);
     },
   );
