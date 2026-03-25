@@ -302,7 +302,12 @@ class UddfImportNotifier extends StateNotifier<UddfImportState> {
 
       final exportService = _ref.read(exportServiceProvider);
       final parser = UddfParserService(exportService);
-      final data = await parser.parseContent(content);
+      final parsed = await parser.parseContent(content);
+
+      // Attach the source filename so it is available when creating
+      // DiveDataSource records during import.
+      final fileName = filePath.split('/').last;
+      final data = parsed.copyWithSourceFileName(fileName);
 
       // Run duplicate check against existing entities
       final dupResult = await _checkDuplicates(data);

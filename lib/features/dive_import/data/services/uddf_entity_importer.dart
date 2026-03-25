@@ -1,4 +1,7 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart'
+    show DiveDataSourcesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -325,6 +328,7 @@ class UddfEntityImporter {
       tagIdMapping: tagIdMapping,
       siteIdMapping: siteIdMapping,
       courseIdMapping: courseIdMapping,
+      sourceFileName: data.sourceFileName,
       now: now,
       onProgress: onProgress,
     );
@@ -891,6 +895,7 @@ class UddfEntityImporter {
     required Map<String, String> tagIdMapping,
     required Map<String, DiveSite> siteIdMapping,
     required Map<String, String> courseIdMapping,
+    String? sourceFileName,
     required DateTime now,
     ImportProgressCallback? onProgress,
   }) async {
@@ -1139,6 +1144,27 @@ class UddfEntityImporter {
         diveId,
         tagIdMapping,
         repos.tagRepository,
+      );
+
+      // Create a DiveDataSource record to track provenance.
+      await repos.diveRepository.saveComputerReading(
+        DiveDataSourcesCompanion(
+          id: Value(_uuid.v4()),
+          diveId: Value(diveId),
+          isPrimary: const Value(true),
+          computerModel: Value(diveData['diveComputerModel'] as String?),
+          computerSerial: Value(diveData['diveComputerSerial'] as String?),
+          sourceFileName: Value(sourceFileName),
+          sourceFileFormat: const Value('uddf'),
+          maxDepth: Value(diveData['maxDepth'] as double?),
+          avgDepth: Value(diveData['avgDepth'] as double?),
+          duration: Value(dive.duration?.inSeconds),
+          waterTemp: Value(diveData['waterTemp'] as double?),
+          entryTime: Value(dive.entryTime),
+          exitTime: Value(dive.exitTime),
+          importedAt: Value(now),
+          createdAt: Value(now),
+        ),
       );
 
       count++;

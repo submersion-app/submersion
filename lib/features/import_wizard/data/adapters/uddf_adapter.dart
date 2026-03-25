@@ -693,7 +693,12 @@ class _UddfFilePickerStepState extends ConsumerState<_UddfFilePickerStep> {
 
       final file = File(filePath);
       final content = await file.readAsString();
-      final data = await widget.parser.parseContent(content);
+      final parsed = await widget.parser.parseContent(content);
+
+      // Attach the source filename so it flows through to DiveDataSource
+      // records created during import.
+      final fileName = filePath.split('/').last;
+      final data = parsed.copyWithSourceFileName(fileName);
 
       widget.onDataParsed(data);
 
