@@ -103,6 +103,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   // ---------------------------------------------------------------------------
 
   @override
+  void resetState() {}
+
+  @override
   ImportSourceType get sourceType => ImportSourceType.diveComputer;
 
   @override

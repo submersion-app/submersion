@@ -73,6 +73,9 @@ class HealthKitAdapter implements ImportSourceAdapter {
   // ---------------------------------------------------------------------------
 
   @override
+  void resetState() {}
+
+  @override
   ImportSourceType get sourceType => ImportSourceType.healthKit;
 
   @override

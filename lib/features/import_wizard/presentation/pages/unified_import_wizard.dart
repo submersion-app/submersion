@@ -68,6 +68,9 @@ class _UnifiedImportWizardBodyState
   void initState() {
     super.initState();
     _pageController = PageController();
+    // Reset adapter state from any previous import session.
+    // Safe in initState (runs before build, no widget-tree modification issues).
+    widget.adapter.resetState();
   }
 
   @override

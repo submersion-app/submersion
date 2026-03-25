@@ -75,6 +75,9 @@ class FitAdapter implements ImportSourceAdapter {
   // ---------------------------------------------------------------------------
 
   @override
+  void resetState() {}
+
+  @override
   ImportSourceType get sourceType => ImportSourceType.fit;
 
   @override

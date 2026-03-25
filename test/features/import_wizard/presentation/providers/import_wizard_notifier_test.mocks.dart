@@ -92,6 +92,12 @@ class MockImportSourceAdapter extends _i1.Mock
           as Set<_i7.DuplicateAction>);
 
   @override
+  void resetState() => super.noSuchMethod(
+    Invocation.method(#resetState, []),
+    returnValueForMissingStub: null,
+  );
+
+  @override
   _i8.Future<_i2.ImportBundle> buildBundle() =>
       (super.noSuchMethod(
             Invocation.method(#buildBundle, []),

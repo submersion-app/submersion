@@ -16,6 +16,9 @@ import 'package:submersion/features/import_wizard/presentation/widgets/import_pr
 
 class _FakeAdapter implements ImportSourceAdapter {
   @override
+  void resetState() {}
+
+  @override
   ImportSourceType get sourceType => ImportSourceType.uddf;
 
   @override

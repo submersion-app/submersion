@@ -23,6 +23,14 @@ abstract class ImportSourceAdapter {
   /// can proceed to the next step.
   List<WizardStepDef> get acquisitionSteps;
 
+  /// Reset any state from a previous import session.
+  ///
+  /// Called by the wizard in [initState] before the first build to ensure
+  /// stale state from a prior import doesn't trigger premature auto-advance.
+  /// Default implementation is a no-op; adapters with stateful providers
+  /// should override.
+  void resetState() {}
+
   /// Which duplicate actions are available for this source's dives.
   ///
   /// Dive computer sources support [DuplicateAction.consolidate];
