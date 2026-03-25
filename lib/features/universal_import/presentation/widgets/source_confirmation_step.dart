@@ -16,14 +16,12 @@ class SourceConfirmationStep extends ConsumerStatefulWidget {
 
 class _SourceConfirmationStepState
     extends ConsumerState<SourceConfirmationStep> {
-  /// Tracks the user's override selection. Null means no override chosen.
-  SourceApp? _selectedOverride;
-
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(universalImportNotifierProvider);
     final theme = Theme.of(context);
     final detection = state.detectionResult;
+    final selectedOverride = state.pendingSourceOverride;
 
     if (detection == null) return const SizedBox.shrink();
 
@@ -55,11 +53,13 @@ class _SourceConfirmationStepState
             child: Card(
               clipBehavior: Clip.antiAlias,
               child: InkWell(
-                onTap: _selectedOverride != null
-                    ? () => setState(() => _selectedOverride = null)
+                onTap: selectedOverride != null
+                    ? () => ref
+                          .read(universalImportNotifierProvider.notifier)
+                          .setPendingSourceOverride(null)
                     : null,
                 child: Opacity(
-                  opacity: _selectedOverride != null ? 0.5 : 1.0,
+                  opacity: selectedOverride != null ? 0.5 : 1.0,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -69,12 +69,12 @@ class _SourceConfirmationStepState
                           children: [
                             ExcludeSemantics(
                               child: Icon(
-                                _selectedOverride != null
+                                selectedOverride != null
                                     ? Icons.radio_button_unchecked
                                     : detection.isHighConfidence
                                     ? Icons.check_circle
                                     : Icons.help_outline,
-                                color: _selectedOverride != null
+                                color: selectedOverride != null
                                     ? theme.colorScheme.onSurfaceVariant
                                     : detection.isHighConfidence
                                     ? theme.colorScheme.primary
@@ -127,20 +127,11 @@ class _SourceConfirmationStepState
 
           // Override section (collapsed by default)
           _OverrideSection(
-            selectedOverride: _selectedOverride,
-            onChanged: (app) => setState(() => _selectedOverride = app),
+            selectedOverride: selectedOverride,
+            onChanged: (app) => ref
+                .read(universalImportNotifierProvider.notifier)
+                .setPendingSourceOverride(app),
           ),
-
-          const SizedBox(height: 16),
-
-          // Confirm button
-          if (detection.isFormatSupported)
-            FilledButton(
-              onPressed: () => ref
-                  .read(universalImportNotifierProvider.notifier)
-                  .confirmSource(overrideApp: _selectedOverride),
-              child: Text(context.l10n.universalImport_action_continue),
-            ),
         ],
       ),
     );

@@ -11,6 +11,8 @@ import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 ///   "Next" button should be enabled.
 /// - An [autoAdvance] flag that causes the wizard to move to the next step
 ///   automatically as soon as [canAdvance] becomes true.
+/// - An optional [onBeforeAdvance] callback that the wizard invokes just
+///   before transitioning to the next step (e.g. to persist pending state).
 class WizardStepDef {
   /// Short label displayed in the wizard step indicator.
   final String label;
@@ -29,11 +31,18 @@ class WizardStepDef {
   /// [canAdvance] emits true.
   final bool autoAdvance;
 
+  /// Optional callback invoked by the wizard just before advancing past this
+  /// step. Adapters use this to commit pending user choices (e.g. confirming
+  /// a source selection or finalising a field mapping) so the wizard itself
+  /// stays generic.
+  final VoidCallback? onBeforeAdvance;
+
   const WizardStepDef({
     required this.label,
     this.icon,
     required this.builder,
     required this.canAdvance,
     this.autoAdvance = false,
+    this.onBeforeAdvance,
   });
 }

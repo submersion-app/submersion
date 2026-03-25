@@ -67,6 +67,7 @@ class UniversalImportState {
     this.fileBytes,
     this.fileName,
     this.detectionResult,
+    this.pendingSourceOverride,
     this.options,
     this.fieldMapping,
     this.payload,
@@ -90,6 +91,12 @@ class UniversalImportState {
 
   /// Format detection result (set after file selection).
   final DetectionResult? detectionResult;
+
+  /// Source app override chosen by the user but not yet confirmed.
+  ///
+  /// Stored here so the wizard's [onBeforeAdvance] callback can pass it to
+  /// [confirmSource] when the user taps "Next".
+  final SourceApp? pendingSourceOverride;
 
   /// Confirmed import options (set after source confirmation).
   final ImportOptions? options;
@@ -140,6 +147,8 @@ class UniversalImportState {
     String? importPhase,
     int? importCurrent,
     int? importTotal,
+    SourceApp? pendingSourceOverride,
+    bool clearPendingSourceOverride = false,
   }) {
     return UniversalImportState(
       currentStep: currentStep ?? this.currentStep,
@@ -149,6 +158,9 @@ class UniversalImportState {
       fileBytes: fileBytes ?? this.fileBytes,
       fileName: fileName ?? this.fileName,
       detectionResult: detectionResult ?? this.detectionResult,
+      pendingSourceOverride: clearPendingSourceOverride
+          ? null
+          : (pendingSourceOverride ?? this.pendingSourceOverride),
       options: options ?? this.options,
       fieldMapping: clearFieldMapping
           ? null
@@ -264,7 +276,19 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
   // -- Step 1: Source Confirmation --
 
+  /// Store a pending source-app override chosen by the user.
+  ///
+  /// This is persisted in state so the wizard's [onBeforeAdvance] callback
+  /// can pass it through to [confirmSource] when the user taps "Next".
+  void setPendingSourceOverride(SourceApp? app) {
+    state = app == null
+        ? state.copyWith(clearPendingSourceOverride: true)
+        : state.copyWith(pendingSourceOverride: app);
+  }
+
   /// Confirm the detected source or override with a user selection.
+  ///
+  /// When [overrideApp] is null the pending override from state is used.
   void confirmSource({SourceApp? overrideApp, ImportFormat? overrideFormat}) {
     final detection = state.detectionResult;
     if (detection == null) return;
@@ -273,8 +297,11 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     // false -> true, enabling auto-advance even when re-confirming.
     state = state.copyWith(currentStep: ImportWizardStep.sourceConfirmation);
 
+    final effectiveOverride = overrideApp ?? state.pendingSourceOverride;
+
     final format = overrideFormat ?? detection.format;
-    final sourceApp = overrideApp ?? detection.sourceApp ?? SourceApp.generic;
+    final sourceApp =
+        effectiveOverride ?? detection.sourceApp ?? SourceApp.generic;
 
     final options = ImportOptions(
       sourceApp: sourceApp,
@@ -284,6 +311,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
     state = state.copyWith(
       options: options,
+      clearPendingSourceOverride: true,
       currentStep: format == ImportFormat.csv
           ? ImportWizardStep.fieldMapping
           : ImportWizardStep.review,
@@ -303,7 +331,12 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   }
 
   /// Confirm field mapping and proceed to parsing.
+  ///
+  /// This is a no-op if the payload has already been produced (e.g. for
+  /// non-CSV formats where parsing happens immediately after source
+  /// confirmation).
   void confirmFieldMapping() {
+    if (state.payload != null) return;
     state = state.copyWith(currentStep: ImportWizardStep.review);
     _parseAndCheckDuplicates();
   }

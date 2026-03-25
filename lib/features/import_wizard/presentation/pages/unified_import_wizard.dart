@@ -98,6 +98,10 @@ class _UnifiedImportWizardBodyState
 
   Future<void> _onNext() async {
     if (_currentPage < _reviewIndex) {
+      // Let the current step commit any pending state before we leave it.
+      final step = _acquisitionSteps[_currentPage];
+      step.onBeforeAdvance?.call();
+
       // Last acquisition step: build bundle then advance to review.
       if (_currentPage == _reviewIndex - 1) {
         final bundle = await widget.adapter.buildBundle();
@@ -277,15 +281,15 @@ class _UnifiedImportWizardBodyState
             if (_currentPage > 0 &&
                 _currentPage < _importIndex &&
                 _currentPage != _summaryIndex)
-              TextButton(
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(100, 48),
+                ),
                 onPressed: () => _animateToPage(_currentPage - 1),
                 child: const Text('Back'),
               ),
             const Spacer(),
-            // Hide "Next" for autoAdvance steps — they have inline action
-            // buttons that trigger advancement.
-            if (_currentPage < _reviewIndex &&
-                !_acquisitionSteps[_currentPage].autoAdvance)
+            if (_currentPage < _reviewIndex)
               _AcquisitionNextButton(
                 stepIndex: _currentPage,
                 step: _acquisitionSteps[_currentPage],
@@ -293,6 +297,7 @@ class _UnifiedImportWizardBodyState
               )
             else if (_currentPage == _reviewIndex)
               FilledButton(
+                style: FilledButton.styleFrom(minimumSize: const Size(120, 48)),
                 onPressed: _startImport,
                 child: const Text('Import Selected'),
               ),
@@ -354,6 +359,7 @@ class _AcquisitionNextButton extends ConsumerWidget {
     final canAdvance = ref.watch(step.canAdvance);
 
     return FilledButton(
+      style: FilledButton.styleFrom(minimumSize: const Size(120, 48)),
       onPressed: canAdvance ? onNext : null,
       child: const Text('Next'),
     );

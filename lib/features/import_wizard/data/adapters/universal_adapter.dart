@@ -56,24 +56,30 @@ final universalAdapterFileSelectedProvider = Provider<bool>((ref) {
       state.currentStep != ImportWizardStep.fileSelection;
 });
 
-/// Signals whether the "Confirm Source" acquisition step may advance.
+/// Signals whether the "Confirm Source" step is ready to advance.
 ///
-/// True once the notifier has confirmed options and moved past
-/// [ImportWizardStep.sourceConfirmation].
-final universalAdapterSourceConfirmedProvider = Provider<bool>((ref) {
+/// True once detection has completed and the format is supported. The user
+/// does not need to have pressed "Confirm" yet — the wizard's Next button
+/// and [onBeforeAdvance] handle committing the choice.
+final universalAdapterSourceReadyProvider = Provider<bool>((ref) {
   final state = ref.watch(universalImportNotifierProvider);
-  return state.options != null &&
-      state.currentStep != ImportWizardStep.sourceConfirmation;
+  final detection = state.detectionResult;
+  return detection != null && detection.isFormatSupported;
 });
 
-/// Signals whether the "Map Fields" acquisition step may advance.
+/// Signals whether the "Map Fields" step is ready to advance.
 ///
-/// True for non-CSV formats immediately (the notifier auto-skips field
-/// mapping), or for CSV once the user has confirmed the mapping and the
-/// payload is present.
-final universalAdapterMappingConfirmedProvider = Provider<bool>((ref) {
+/// For non-CSV formats the payload is produced immediately after source
+/// confirmation, so the step auto-advances. For CSV, it is ready once the
+/// user has mapped at least one column (the mapping is saved to the notifier
+/// on every change).
+final universalAdapterMappingReadyProvider = Provider<bool>((ref) {
   final state = ref.watch(universalImportNotifierProvider);
-  return state.payload != null;
+  // Non-CSV: payload was already produced — ready immediately.
+  if (state.payload != null) return true;
+  // CSV: ready when the user has configured at least one column mapping.
+  final mapping = state.fieldMapping;
+  return mapping != null && mapping.columns.isNotEmpty;
 });
 
 // =============================================================================
@@ -136,15 +142,24 @@ class UniversalAdapter implements ImportSourceAdapter {
       label: 'Confirm Source',
       icon: Icons.check_circle_outline,
       builder: (context) => const SourceConfirmationStep(),
-      canAdvance: universalAdapterSourceConfirmedProvider,
-      autoAdvance: true,
+      canAdvance: universalAdapterSourceReadyProvider,
+      onBeforeAdvance: () {
+        _ref.read(universalImportNotifierProvider.notifier).confirmSource();
+      },
     ),
     WizardStepDef(
       label: 'Map Fields',
       icon: Icons.table_chart_outlined,
       builder: (context) => const FieldMappingStep(),
-      canAdvance: universalAdapterMappingConfirmedProvider,
+      canAdvance: universalAdapterMappingReadyProvider,
+      // Non-CSV formats auto-advance because the payload is produced
+      // immediately after source confirmation (the notifier skips field
+      // mapping). CSV formats wait for the user to tap "Next".
       autoAdvance: true,
+      onBeforeAdvance: () {
+        final notifier = _ref.read(universalImportNotifierProvider.notifier);
+        notifier.confirmFieldMapping();
+      },
     ),
   ];
 
