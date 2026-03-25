@@ -282,7 +282,10 @@ class _UnifiedImportWizardBodyState
                 child: const Text('Back'),
               ),
             const Spacer(),
-            if (_currentPage < _reviewIndex)
+            // Hide "Next" for autoAdvance steps — they have inline action
+            // buttons that trigger advancement.
+            if (_currentPage < _reviewIndex &&
+                !_acquisitionSteps[_currentPage].autoAdvance)
               _AcquisitionNextButton(
                 stepIndex: _currentPage,
                 step: _acquisitionSteps[_currentPage],
