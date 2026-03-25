@@ -107,11 +107,11 @@ DiveComparisonResult compareForConsolidation(
     diff: diff,
   );
 
-  // --- Duration ---
+  // --- Duration (runtime = total time, not bottom time) ---
   _compareNumeric(
     name: 'duration',
     type: ComparisonFieldType.duration,
-    existingVal: existing.duration?.inSeconds.toDouble(),
+    existingVal: existing.runtime?.inSeconds.toDouble(),
     incomingVal: incoming.durationSeconds?.toDouble(),
     tolerance: 60,
     same: same,

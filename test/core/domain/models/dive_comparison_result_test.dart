@@ -10,6 +10,7 @@ Dive _makeDive({
   double? maxDepth,
   double? avgDepth,
   Duration? duration,
+  Duration? runtime,
   double? waterTemp,
   String? diveComputerModel,
   String? diveComputerSerial,
@@ -22,6 +23,7 @@ Dive _makeDive({
     maxDepth: maxDepth,
     avgDepth: avgDepth,
     duration: duration,
+    runtime: runtime,
     waterTemp: waterTemp,
     diveComputerModel: diveComputerModel,
     diveComputerSerial: diveComputerSerial,
@@ -45,7 +47,7 @@ void main() {
         entryTime: DateTime(2026, 3, 19, 22, 23, 0),
         maxDepth: 15.0,
         avgDepth: 10.0,
-        duration: const Duration(minutes: 45),
+        runtime: const Duration(minutes: 45),
         waterTemp: 26.0,
         diveComputerModel: 'Teric',
         diveComputerSerial: '111',
@@ -79,7 +81,7 @@ void main() {
       final existing = _makeDive(
         entryTime: DateTime(2026, 3, 19, 22, 23),
         maxDepth: 15.0,
-        duration: const Duration(minutes: 45),
+        runtime: const Duration(minutes: 45),
       );
       final incoming = IncomingDiveData(
         startTime: DateTime(2026, 3, 19, 22, 23),
