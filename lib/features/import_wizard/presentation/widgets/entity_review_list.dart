@@ -132,7 +132,10 @@ class EntityReviewList extends StatelessWidget {
 
         // Likely duplicates section
         if (likelyDuplicateIndices.isNotEmpty) ...[
-          _SectionLabel(label: 'Likely Duplicates', color: colorScheme.error),
+          _SectionLabel(
+            label: 'Potential Duplicates',
+            color: colorScheme.error,
+          ),
           for (final index in likelyDuplicateIndices)
             _buildDuplicateCard(index),
         ],
@@ -239,32 +242,37 @@ class _NonDuplicateRow extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    Widget? secondary;
-    if (projectedDiveNumber != null) {
-      secondary = Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-        decoration: BoxDecoration(
-          color: colorScheme.primaryContainer,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          '#$projectedDiveNumber',
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: colorScheme.onPrimaryContainer,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      );
-    } else if (item.icon != null) {
-      secondary = Icon(item.icon);
-    }
+    final titleWidget = projectedDiveNumber != null
+        ? Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '#$projectedDiveNumber',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(item.title, overflow: TextOverflow.ellipsis),
+              ),
+            ],
+          )
+        : Text(item.title);
 
     return CheckboxListTile(
       value: isSelected,
       onChanged: (_) => onToggle(),
-      title: Text(item.title),
+      title: titleWidget,
       subtitle: Text(item.subtitle),
-      secondary: secondary,
+      secondary: item.icon != null ? Icon(item.icon) : null,
       controlAffinity: ListTileControlAffinity.leading,
       dense: true,
     );

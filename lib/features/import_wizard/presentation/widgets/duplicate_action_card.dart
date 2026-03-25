@@ -149,46 +149,15 @@ class _CollapsedHeader extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
-            // Title, subtitle, and badges
+            // Title with dive number prefix
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // First row: title + match % badge
+                  // First row: dive number + title
                   Row(
                     children: [
-                      Flexible(
-                        child: Text(
-                          item.title,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: badgeBorderColor,
-                            width: 1.5,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '$percent% match',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: badgeBorderColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
                       if (projectedDiveNumber != null) ...[
-                        const SizedBox(width: 4),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 7,
@@ -206,7 +175,17 @@ class _CollapsedHeader extends StatelessWidget {
                             ),
                           ),
                         ),
+                        const SizedBox(width: 8),
                       ],
+                      Flexible(
+                        child: Text(
+                          item.title,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
                   // Second row: subtitle (depth, duration, etc.)
@@ -221,6 +200,22 @@ class _CollapsedHeader extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
+            // Match % badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                border: Border.all(color: badgeBorderColor, width: 1.5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '$percent% match',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: badgeBorderColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
             // Action badge
             _ActionBadge(action: selectedAction),
             const SizedBox(width: 4),

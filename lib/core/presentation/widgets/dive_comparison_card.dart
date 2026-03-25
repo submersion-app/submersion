@@ -402,11 +402,8 @@ class DiveComparisonCard extends ConsumerWidget {
       );
     }
 
-    return Container(
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
-      ),
       child: Wrap(
         alignment: WrapAlignment.start,
         spacing: 8,

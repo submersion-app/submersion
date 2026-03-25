@@ -191,7 +191,7 @@ void main() {
       await tester.pumpWidget(_buildList(group: group));
       await tester.pump();
 
-      expect(find.text('LIKELY DUPLICATES'), findsOneWidget);
+      expect(find.text('POTENTIAL DUPLICATES'), findsOneWidget);
     });
 
     testWidgets('possible duplicate section label is shown', (tester) async {
