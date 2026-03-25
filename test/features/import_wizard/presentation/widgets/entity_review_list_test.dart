@@ -85,7 +85,7 @@ void main() {
       await tester.pumpWidget(_buildList(group: group));
       await tester.pump();
 
-      expect(find.byType(CheckboxListTile), findsNWidgets(3));
+      expect(find.byType(Checkbox), findsNWidgets(3));
       expect(find.text('Dive A'), findsOneWidget);
       expect(find.text('Dive B'), findsOneWidget);
       expect(find.text('Dive C'), findsOneWidget);
@@ -107,7 +107,7 @@ void main() {
       await tester.pump();
 
       final checkboxes = tester
-          .widgetList<CheckboxListTile>(find.byType(CheckboxListTile))
+          .widgetList<Checkbox>(find.byType(Checkbox))
           .toList();
 
       expect(checkboxes[0].value, isTrue); // index 0 selected
@@ -154,7 +154,7 @@ void main() {
       await tester.pumpWidget(_buildList(group: group, selectedIndices: {0}));
       await tester.pump();
 
-      expect(find.byType(CheckboxListTile), findsOneWidget);
+      expect(find.byType(Checkbox), findsOneWidget);
       expect(find.byType(DuplicateActionCard), findsOneWidget);
     });
 
@@ -312,7 +312,7 @@ void main() {
       // DuplicateActionCard is still rendered regardless of Select All
       expect(find.byType(DuplicateActionCard), findsOneWidget);
       // Only one checkbox for the non-duplicate
-      expect(find.byType(CheckboxListTile), findsOneWidget);
+      expect(find.byType(Checkbox), findsOneWidget);
     });
   });
 

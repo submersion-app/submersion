@@ -242,9 +242,27 @@ class _NonDuplicateRow extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final titleWidget = projectedDiveNumber != null
-        ? Row(
-            children: [
+    return InkWell(
+      onTap: onToggle,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            // Checkbox
+            Checkbox(
+              value: isSelected,
+              onChanged: (_) => onToggle(),
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            const SizedBox(width: 4),
+            // Optional icon
+            if (item.icon != null) ...[
+              Icon(item.icon, size: 20, color: colorScheme.onSurfaceVariant),
+              const SizedBox(width: 12),
+            ],
+            // Dive number badge (centered vertically between title and subtitle)
+            if (projectedDiveNumber != null) ...[
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                 decoration: BoxDecoration(
@@ -260,21 +278,70 @@ class _NonDuplicateRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(
-                child: Text(item.title, overflow: TextOverflow.ellipsis),
-              ),
             ],
-          )
-        : Text(item.title);
-
-    return CheckboxListTile(
-      value: isSelected,
-      onChanged: (_) => onToggle(),
-      title: titleWidget,
-      subtitle: Text(item.subtitle),
-      secondary: item.icon != null ? Icon(item.icon) : null,
-      controlAffinity: ListTileControlAffinity.leading,
-      dense: true,
+            // Title + subtitle column
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: theme.textTheme.bodyMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (item.subtitle.isNotEmpty)
+                    Text(
+                      item.subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Import/Skip badge
+            if (isSelected)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: Colors.green, width: 1),
+                ),
+                child: Text(
+                  'IMPORT',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: Colors.green,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  ),
+                ),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: colorScheme.onSurface.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: colorScheme.onSurface.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  'SKIP',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.4),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

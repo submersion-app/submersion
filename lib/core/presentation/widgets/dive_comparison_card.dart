@@ -50,6 +50,12 @@ class DiveComparisonCard extends ConsumerWidget {
   /// In immediate-action mode this has no effect.
   final Set<DuplicateAction>? availableActions;
 
+  /// When true, skips the outer [Card] wrapper and renders content directly.
+  ///
+  /// Use this when the comparison card is embedded inside another card to
+  /// avoid a nested card outline (grey line artifact).
+  final bool embedded;
+
   const DiveComparisonCard({
     super.key,
     required this.incoming,
@@ -63,6 +69,7 @@ class DiveComparisonCard extends ConsumerWidget {
     this.selectedAction,
     this.onActionChanged,
     this.availableActions,
+    this.embedded = false,
   });
 
   @override
@@ -73,79 +80,80 @@ class DiveComparisonCard extends ConsumerWidget {
     final existingAsync = ref.watch(diveProvider(existingDiveId));
     final profileAsync = ref.watch(diveProfileProvider(existingDiveId));
 
+    final content = existingAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      ),
+      error: (_, _) => const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text('Error loading dive data'),
+      ),
+      data: (existingDive) {
+        if (existingDive == null) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('Existing dive not found'),
+          );
+        }
+
+        final comparison = compareForConsolidation(existingDive, incoming);
+        final existingProfile = profileAsync.valueOrNull ?? [];
+        final diveNum = existingDive.diveNumber;
+        final effectiveExistingLabel = diveNum != null
+            ? '$existingLabel (#$diveNum)'
+            : existingLabel;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 1. Overlaid Profiles (no grey header bar — site/metrics
+            // are shown in the collapsed header's subtitle)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: OverlaidProfileChart(
+                existingProfile: existingProfile,
+                incomingProfile: incoming.profile,
+                existingLabel: _computerLabel(
+                  null,
+                  existingDive.diveComputerModel,
+                  existingDive.diveComputerSerial,
+                ),
+                incomingLabel: _computerLabel(
+                  incoming.computerName,
+                  incoming.computerModel,
+                  incoming.computerSerial,
+                ),
+                height: 80,
+              ),
+            ),
+
+            // 3. Same Fields Summary
+            if (comparison.sameFields.isNotEmpty)
+              _buildSameSummary(context, comparison, units),
+
+            // 4. Differences Table
+            if (comparison.diffFields.isNotEmpty)
+              _buildDiffTable(
+                context,
+                comparison,
+                effectiveExistingLabel,
+                units,
+              ),
+
+            // 5. Action Buttons
+            _buildActionButtons(context, ref),
+          ],
+        );
+      },
+    );
+
+    if (embedded) return content;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
-      child: existingAsync.when(
-        loading: () => const Padding(
-          padding: EdgeInsets.all(24),
-          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        ),
-        error: (_, _) => const Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('Error loading dive data'),
-        ),
-        data: (existingDive) {
-          if (existingDive == null) {
-            return const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('Existing dive not found'),
-            );
-          }
-
-          final comparison = compareForConsolidation(existingDive, incoming);
-          final existingProfile = profileAsync.valueOrNull ?? [];
-          final diveNum = existingDive.diveNumber;
-          final effectiveExistingLabel = diveNum != null
-              ? '$existingLabel (#$diveNum)'
-              : existingLabel;
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 1. Overlaid Profiles (no grey header bar — site/metrics
-              // are shown in the collapsed header's subtitle)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: OverlaidProfileChart(
-                  existingProfile: existingProfile,
-                  incomingProfile: incoming.profile,
-                  existingLabel: _computerLabel(
-                    null,
-                    existingDive.diveComputerModel,
-                    existingDive.diveComputerSerial,
-                  ),
-                  incomingLabel: _computerLabel(
-                    incoming.computerName,
-                    incoming.computerModel,
-                    incoming.computerSerial,
-                  ),
-                  height: 80,
-                ),
-              ),
-
-              // 3. Same Fields Summary
-              if (comparison.sameFields.isNotEmpty)
-                _buildSameSummary(context, comparison, units),
-
-              // 4. Differences Table
-              if (comparison.diffFields.isNotEmpty)
-                _buildDiffTable(
-                  context,
-                  comparison,
-                  effectiveExistingLabel,
-                  units,
-                ),
-
-              // 5. Action Buttons
-              _buildActionButtons(context, ref),
-            ],
-          );
-        },
-      ),
+      child: content,
     );
   }
 

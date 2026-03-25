@@ -375,6 +375,7 @@ class UddfAdapter implements ImportSourceAdapter {
     final runtime = data['runtime'] as Duration?;
     final duration = data['duration'] as Duration?;
     final effectiveDuration = runtime ?? duration;
+    final siteName = data['siteName'] as String?;
 
     String title;
     if (dateTime != null) {
@@ -386,6 +387,7 @@ class UddfAdapter implements ImportSourceAdapter {
     }
 
     final parts = <String>[];
+    if (siteName != null && siteName.isNotEmpty) parts.add(siteName);
     if (maxDepth != null) {
       parts.add('${maxDepth.toStringAsFixed(1)}m max');
     }

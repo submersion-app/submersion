@@ -182,6 +182,7 @@ class _ImportDiveCardState extends State<ImportDiveCard> {
             Padding(
               padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
               child: DiveComparisonCard(
+                embedded: true,
                 incoming: IncomingDiveData.fromImportMap(widget.diveData),
                 existingDiveId: widget.matchResult!.diveId,
                 matchScore: widget.matchResult!.score,
