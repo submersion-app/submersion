@@ -33,6 +33,8 @@ class ImportedDive extends Equatable {
   final double? latitude;
   final double? longitude;
   final List<ImportedProfileSample> profile;
+  final String? sourceFileName;
+  final String? sourceFileFormat;
 
   const ImportedDive({
     required this.sourceId,
@@ -47,6 +49,8 @@ class ImportedDive extends Equatable {
     this.latitude,
     this.longitude,
     required this.profile,
+    this.sourceFileName,
+    this.sourceFileFormat,
   });
 
   Duration get duration => endTime.difference(startTime);
@@ -66,6 +70,8 @@ class ImportedDive extends Equatable {
     latitude,
     longitude,
     profile,
+    sourceFileName,
+    sourceFileFormat,
   ];
 }
 

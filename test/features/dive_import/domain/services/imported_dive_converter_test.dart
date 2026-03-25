@@ -214,6 +214,25 @@ void main() {
         expect(dive.profile, isEmpty);
         expect(dive.isFavorite, isFalse);
       });
+
+      test(
+        'converter preserves importSource and importId from ImportedDive',
+        () {
+          final importedDive = ImportedDive(
+            sourceId: 'abc123',
+            source: ImportSource.suunto,
+            startTime: DateTime(2026, 3, 15, 10, 0),
+            endTime: DateTime(2026, 3, 15, 11, 0),
+            maxDepth: 28.3,
+            profile: [],
+            sourceFileName: 'Suunto_Export.uddf',
+            sourceFileFormat: 'uddf',
+          );
+          final dive = const ImportedDiveConverter().convert(importedDive);
+          expect(dive.importSource, 'suunto');
+          expect(dive.importId, 'abc123');
+        },
+      );
     });
   });
 }
