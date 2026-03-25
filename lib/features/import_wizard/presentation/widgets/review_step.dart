@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
@@ -35,8 +36,15 @@ class ReviewStep extends ConsumerWidget {
 
     final types = bundle.availableTypes;
     final availableActions = notifier.supportedDuplicateActions;
-
     final counts = _AggregateCounts.compute(state);
+
+    // Compute projected dive numbers for the review list.
+    final nextDiveNumber = ref.watch(nextDiveNumberProvider).whenData((v) => v);
+    final projectedDiveNumbers = _computeProjectedDiveNumbers(
+      bundle: bundle,
+      nextDiveNumber: nextDiveNumber.value,
+      retainSource: state.retainSourceDiveNumbers,
+    );
 
     if (types.length == 1) {
       return _SingleTypeLayout(
@@ -46,6 +54,7 @@ class ReviewStep extends ConsumerWidget {
         notifier: notifier,
         availableActions: availableActions,
         counts: counts,
+        projectedDiveNumbers: projectedDiveNumbers,
         onImport: onImport,
         onBack: onBack,
       );
@@ -58,9 +67,41 @@ class ReviewStep extends ConsumerWidget {
       notifier: notifier,
       availableActions: availableActions,
       counts: counts,
+      projectedDiveNumbers: projectedDiveNumbers,
       onImport: onImport,
       onBack: onBack,
     );
+  }
+
+  /// Compute a map from item index → projected dive number.
+  ///
+  /// Sorts dive items by startTime (oldest first) and assigns sequential
+  /// numbers starting from [nextDiveNumber].
+  static Map<int, int>? _computeProjectedDiveNumbers({
+    required ImportBundle bundle,
+    required int? nextDiveNumber,
+    required bool retainSource,
+  }) {
+    final group = bundle.groups[ImportEntityType.dives];
+    if (group == null || nextDiveNumber == null) return null;
+
+    final items = group.items;
+
+    // Build (index, startTime) pairs for sorting.
+    final indexed = <(int, DateTime)>[];
+    for (var i = 0; i < items.length; i++) {
+      final time = items[i].diveData?.startTime ?? DateTime(0);
+      indexed.add((i, time));
+    }
+    indexed.sort((a, b) => a.$2.compareTo(b.$2));
+
+    // Assign numbers oldest-first.
+    final result = <int, int>{};
+    for (var n = 0; n < indexed.length; n++) {
+      final itemIndex = indexed[n].$1;
+      result[itemIndex] = nextDiveNumber + n;
+    }
+    return result;
   }
 }
 
@@ -75,6 +116,7 @@ class _SingleTypeLayout extends StatelessWidget {
   final ImportWizardNotifier notifier;
   final Set<DuplicateAction> availableActions;
   final _AggregateCounts counts;
+  final Map<int, int>? projectedDiveNumbers;
   final VoidCallback onImport;
   final VoidCallback? onBack;
 
@@ -85,6 +127,7 @@ class _SingleTypeLayout extends StatelessWidget {
     required this.notifier,
     required this.availableActions,
     required this.counts,
+    this.projectedDiveNumbers,
     required this.onImport,
     this.onBack,
   });
@@ -114,6 +157,9 @@ class _SingleTypeLayout extends StatelessWidget {
               onDeselectAll: () => notifier.deselectAll(type),
               existingDiveIdForIndex: (i) =>
                   group.matchResults?[i]?.diveId ?? '',
+              projectedDiveNumbers: type == ImportEntityType.dives
+                  ? projectedDiveNumbers
+                  : null,
             ),
           ),
         ),
@@ -134,6 +180,7 @@ class _MultiTypeLayout extends StatelessWidget {
   final ImportWizardNotifier notifier;
   final Set<DuplicateAction> availableActions;
   final _AggregateCounts counts;
+  final Map<int, int>? projectedDiveNumbers;
   final VoidCallback onImport;
   final VoidCallback? onBack;
 
@@ -144,6 +191,7 @@ class _MultiTypeLayout extends StatelessWidget {
     required this.notifier,
     required this.availableActions,
     required this.counts,
+    this.projectedDiveNumbers,
     required this.onImport,
     this.onBack,
   });
@@ -174,6 +222,9 @@ class _MultiTypeLayout extends StatelessWidget {
                     state: state,
                     notifier: notifier,
                     availableActions: availableActions,
+                    projectedDiveNumbers: type == ImportEntityType.dives
+                        ? projectedDiveNumbers
+                        : null,
                   ),
               ],
             ),
@@ -226,6 +277,7 @@ class _EntityTab extends StatelessWidget {
   final ImportWizardState state;
   final ImportWizardNotifier notifier;
   final Set<DuplicateAction> availableActions;
+  final Map<int, int>? projectedDiveNumbers;
 
   const _EntityTab({
     required this.type,
@@ -233,6 +285,7 @@ class _EntityTab extends StatelessWidget {
     required this.state,
     required this.notifier,
     required this.availableActions,
+    this.projectedDiveNumbers,
   });
 
   @override
@@ -253,6 +306,7 @@ class _EntityTab extends StatelessWidget {
         onSelectAll: () => notifier.selectAll(type),
         onDeselectAll: () => notifier.deselectAll(type),
         existingDiveIdForIndex: (i) => group.matchResults?[i]?.diveId ?? '',
+        projectedDiveNumbers: projectedDiveNumbers,
       ),
     );
   }

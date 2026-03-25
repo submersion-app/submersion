@@ -29,6 +29,11 @@ class DuplicateActionCard extends StatefulWidget {
   /// The ID of the matched existing dive, passed to [DiveComparisonCard].
   final String existingDiveId;
 
+  /// Optional projected dive number to display when this item will be imported.
+  ///
+  /// Only shown when [selectedAction] is [DuplicateAction.importAsNew].
+  final int? projectedDiveNumber;
+
   const DuplicateActionCard({
     super.key,
     required this.item,
@@ -37,6 +42,7 @@ class DuplicateActionCard extends StatefulWidget {
     required this.availableActions,
     required this.onActionChanged,
     required this.existingDiveId,
+    this.projectedDiveNumber,
   });
 
   @override
@@ -70,6 +76,10 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
             selectedAction: widget.selectedAction,
             expanded: _expanded,
             onToggle: () => setState(() => _expanded = !_expanded),
+            projectedDiveNumber:
+                widget.selectedAction == DuplicateAction.importAsNew
+                ? widget.projectedDiveNumber
+                : null,
           ),
           if (_expanded) _buildExpanded(context, colorScheme),
         ],
@@ -109,6 +119,7 @@ class _CollapsedHeader extends StatelessWidget {
   final DuplicateAction selectedAction;
   final bool expanded;
   final VoidCallback onToggle;
+  final int? projectedDiveNumber;
 
   const _CollapsedHeader({
     required this.item,
@@ -116,6 +127,7 @@ class _CollapsedHeader extends StatelessWidget {
     required this.selectedAction,
     required this.expanded,
     required this.onToggle,
+    this.projectedDiveNumber,
   });
 
   @override
@@ -148,6 +160,23 @@ class _CollapsedHeader extends StatelessWidget {
                 ),
               ),
             ),
+            if (projectedDiveNumber != null) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '#$projectedDiveNumber',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(width: 10),
             // Title and subtitle
             Expanded(

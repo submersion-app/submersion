@@ -40,6 +40,12 @@ class EntityReviewList extends StatelessWidget {
   /// Returns the matched existing dive ID for a duplicate item at [index].
   final String Function(int index) existingDiveIdForIndex;
 
+  /// Optional projected dive numbers keyed by item index.
+  ///
+  /// When provided, each row shows a `#N` badge indicating the dive number
+  /// that will be assigned on import. Only meaningful for dive entity lists.
+  final Map<int, int>? projectedDiveNumbers;
+
   const EntityReviewList({
     super.key,
     required this.group,
@@ -51,6 +57,7 @@ class EntityReviewList extends StatelessWidget {
     required this.onSelectAll,
     required this.onDeselectAll,
     required this.existingDiveIdForIndex,
+    this.projectedDiveNumbers,
   });
 
   @override
@@ -119,6 +126,7 @@ class EntityReviewList extends StatelessWidget {
               index: index,
               isSelected: selectedIndices.contains(index),
               onToggle: () => onToggleSelection(index),
+              projectedDiveNumber: projectedDiveNumbers?[index],
             ),
         ],
 
@@ -160,6 +168,7 @@ class EntityReviewList extends StatelessWidget {
         availableActions: availableActions,
         onActionChanged: (a) => onDuplicateActionChanged(index, a),
         existingDiveId: existingDiveIdForIndex(index),
+        projectedDiveNumber: projectedDiveNumbers?[index],
       ),
     );
   }
@@ -215,22 +224,47 @@ class _NonDuplicateRow extends StatelessWidget {
   final int index;
   final bool isSelected;
   final VoidCallback onToggle;
+  final int? projectedDiveNumber;
 
   const _NonDuplicateRow({
     required this.item,
     required this.index,
     required this.isSelected,
     required this.onToggle,
+    this.projectedDiveNumber,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    Widget? secondary;
+    if (projectedDiveNumber != null) {
+      secondary = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        decoration: BoxDecoration(
+          color: colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          '#$projectedDiveNumber',
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: colorScheme.onPrimaryContainer,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    } else if (item.icon != null) {
+      secondary = Icon(item.icon);
+    }
+
     return CheckboxListTile(
       value: isSelected,
       onChanged: (_) => onToggle(),
       title: Text(item.title),
       subtitle: Text(item.subtitle),
-      secondary: item.icon != null ? Icon(item.icon) : null,
+      secondary: secondary,
       controlAffinity: ListTileControlAffinity.leading,
       dense: true,
     );
