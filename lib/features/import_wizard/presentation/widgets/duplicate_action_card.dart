@@ -144,13 +144,18 @@ class _CollapsedHeader extends StatelessWidget {
 
     final badgeBorderColor = score >= 0.7 ? colorScheme.error : Colors.orange;
 
-    // Build subtitle with site name from the matched existing dive.
-    final subtitleParts = <String>[
-      if (matchResult.siteName != null && matchResult.siteName!.isNotEmpty)
-        matchResult.siteName!,
-      if (item.subtitle.isNotEmpty) item.subtitle,
-    ];
-    final effectiveSubtitle = subtitleParts.join(' \u00b7 ');
+    // Use subtitle from the adapter (already includes site name when available).
+    // Fall back to the matched existing dive's site name if the adapter didn't
+    // have one (e.g., import data lacks site info but existing dive has it).
+    final String effectiveSubtitle;
+    if (item.subtitle.isNotEmpty) {
+      effectiveSubtitle = item.subtitle;
+    } else if (matchResult.siteName != null &&
+        matchResult.siteName!.isNotEmpty) {
+      effectiveSubtitle = matchResult.siteName!;
+    } else {
+      effectiveSubtitle = '';
+    }
 
     return InkWell(
       onTap: onToggle,
