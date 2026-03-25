@@ -457,6 +457,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       _showTankPressure[entry.key] = entry.value;
     }
 
+    // Initialize tank pressure visibility for any tanks not yet in the legend state
+    if (_hasMultiTankPressure && widget.tankPressures != null) {
+      for (final tankId in widget.tankPressures!.keys) {
+        if (!_showTankPressure.containsKey(tankId)) {
+          _showTankPressure[tankId] = true;
+        }
+      }
+    }
+
     // Check data availability for advanced curves
     final hasNdlData = widget.ndlCurve != null && widget.ndlCurve!.isNotEmpty;
     final hasPpO2Data =
@@ -1988,7 +1997,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final tankId = sortedTankIds[i];
 
       // Skip if tank is hidden
-      if (!(_showTankPressure[tankId] ?? true)) continue;
+      if (_showTankPressure[tankId] == false) continue;
 
       final pressurePoints = tankPressures[tankId]!;
       if (pressurePoints.isEmpty) continue;

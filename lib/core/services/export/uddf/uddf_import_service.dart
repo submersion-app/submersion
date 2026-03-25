@@ -1,6 +1,7 @@
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' as enums;
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -9,6 +10,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 /// Parses standard UDDF elements (diver, divesite, gasdefinitions,
 /// decomodel, profiledata) and returns dive and site maps.
 class UddfImportService {
+  static final _logger = LoggerService.forClass(UddfImportService);
+
   Future<Map<String, List<Map<String, dynamic>>>> importDivesFromUddf(
     String uddfContent,
   ) async {
@@ -370,6 +373,11 @@ class UddfImportService {
       final tankId = tankDataElement.getAttribute('id');
       if (tankId != null) {
         tankInfo['uddfTankId'] = tankId;
+      } else {
+        _logger.debug(
+          'UDDF import: <tankdata> is missing required "id" attribute; '
+          'falling back to ordered tank ref resolution.',
+        );
       }
 
       // Get tank volume (in liters)
@@ -510,6 +518,12 @@ class UddfImportService {
         tankRefToIndex[uddfTankId] = i;
       }
     }
+    final fallbackTankIndices = <int>[
+      for (var i = 0; i < tanks.length; i++)
+        if (tanks[i]['uddfTankId'] == null) i,
+    ];
+    final fallbackRefToIndex = <String, int>{};
+    var nextFallbackTankIndex = 0;
 
     if (tanks.isNotEmpty) {
       diveData['tanks'] = tanks;
@@ -567,6 +581,21 @@ class UddfImportService {
             int tankIdx;
             if (tankRef != null && tankRefToIndex.containsKey(tankRef)) {
               tankIdx = tankRefToIndex[tankRef]!;
+            } else if (tankRef != null) {
+              final fallbackTankIndex = fallbackRefToIndex[tankRef];
+              if (fallbackTankIndex != null) {
+                tankIdx = fallbackTankIndex;
+              } else if (nextFallbackTankIndex < fallbackTankIndices.length) {
+                tankIdx = fallbackTankIndices[nextFallbackTankIndex++];
+                fallbackRefToIndex[tankRef] = tankIdx;
+              } else {
+                _logger.debug(
+                  'UDDF import: ${tanks.length} tank records but '
+                  '${fallbackRefToIndex.length + 1} unique unmatched tank refs; '
+                  'dropping ref "$tankRef" from import.',
+                );
+                continue;
+              }
             } else {
               // Default to primary tank (index 0) when no ref attribute
               tankIdx = 0;
