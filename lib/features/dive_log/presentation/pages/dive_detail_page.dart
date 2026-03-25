@@ -40,6 +40,8 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_play
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
+import 'package:submersion/features/dive_log/domain/services/field_attribution_service.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/merge_dive_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
@@ -119,6 +121,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// Currently selected point index on the profile timeline
   final ValueNotifier<int?> _selectedPointNotifier = ValueNotifier<int?>(null);
 
+  /// Currently viewed data source ID (tap-to-view interaction)
+  final ValueNotifier<String?> _viewedSourceIdNotifier = ValueNotifier<String?>(
+    null,
+  );
+
   /// Non-null when the selection came from heat map hover (drives chart cursor)
   int? _heatMapHoverIndex;
 
@@ -144,8 +151,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   String get diveId => widget.diveId;
 
   @override
+  void didUpdateWidget(DiveDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.diveId != widget.diveId) {
+      _viewedSourceIdNotifier.value = null;
+    }
+  }
+
+  @override
   void dispose() {
     _selectedPointNotifier.dispose();
+    _viewedSourceIdNotifier.dispose();
     super.dispose();
   }
 
@@ -219,7 +235,25 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeaderSection(context, ref, dive, units),
+            ValueListenableBuilder<String?>(
+              valueListenable: _viewedSourceIdNotifier,
+              builder: (context, viewedSourceId, _) {
+                final dataSources = computerReadingsAsync.valueOrNull ?? [];
+                final attribution = FieldAttributionService.computeAttribution(
+                  dataSources,
+                  viewedSourceId: viewedSourceId,
+                );
+                final showBadges =
+                    settings.showDataSourceBadges && attribution.isNotEmpty;
+                return _buildHeaderSection(
+                  context,
+                  ref,
+                  dive,
+                  units,
+                  attribution: showBadges ? attribution : null,
+                );
+              },
+            ),
             const SizedBox(height: 24),
             if (dive.profile.isNotEmpty) ...[
               _buildProfileSection(context, ref, dive),
@@ -248,7 +282,25 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 },
               ),
             ],
-            _buildDetailsSection(context, ref, dive, units),
+            ValueListenableBuilder<String?>(
+              valueListenable: _viewedSourceIdNotifier,
+              builder: (context, viewedSourceId, _) {
+                final dataSources = computerReadingsAsync.valueOrNull ?? [];
+                final attribution = FieldAttributionService.computeAttribution(
+                  dataSources,
+                  viewedSourceId: viewedSourceId,
+                );
+                final showBadges =
+                    settings.showDataSourceBadges && attribution.isNotEmpty;
+                return _buildDetailsSection(
+                  context,
+                  ref,
+                  dive,
+                  units,
+                  attribution: showBadges ? attribution : null,
+                );
+              },
+            ),
             if (_hasEnvironmentData(dive)) ...[
               const SizedBox(height: 24),
               _buildEnvironmentSection(context, dive, units),
@@ -270,33 +322,39 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             _buildBuddiesSection(context, ref),
             const SizedBox(height: 24),
             BuddySignaturesSection(diveId: diveId),
-            computerReadingsAsync.whenData((readings) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 24),
-                      DataSourcesSection(
-                        dataSources: readings,
-                        diveCreatedAt: dive.dateTime,
-                        diveId: dive.id,
-                        units: units,
-                        onSetPrimary: (readingId) => _onSetPrimaryComputer(
-                          context,
-                          ref,
-                          diveId: dive.id,
-                          readingId: readingId,
-                        ),
-                        onUnlink: (readingId) => _onUnlinkComputer(
-                          context,
-                          ref,
-                          diveId: dive.id,
-                          readingId: readingId,
-                        ),
-                      ),
-                    ],
-                  );
-                }).valueOrNull ??
-                const SizedBox.shrink(),
+            const SizedBox(height: 24),
+            ValueListenableBuilder<String?>(
+              valueListenable: _viewedSourceIdNotifier,
+              builder: (context, viewedSourceId, _) {
+                final dataSources = computerReadingsAsync.valueOrNull ?? [];
+                return DataSourcesSection(
+                  dataSources: dataSources,
+                  diveCreatedAt: dive.dateTime,
+                  diveId: dive.id,
+                  units: units,
+                  viewedSourceId: viewedSourceId,
+                  onTapSource: (sourceId) {
+                    if (_viewedSourceIdNotifier.value == sourceId) {
+                      _viewedSourceIdNotifier.value = null;
+                    } else {
+                      _viewedSourceIdNotifier.value = sourceId;
+                    }
+                  },
+                  onSetPrimary: (readingId) => _onSetPrimaryDataSource(
+                    context,
+                    ref,
+                    diveId: dive.id,
+                    readingId: readingId,
+                  ),
+                  onUnlink: (readingId) => _onUnlinkDataSource(
+                    context,
+                    ref,
+                    diveId: dive.id,
+                    readingId: readingId,
+                  ),
+                );
+              },
+            ),
             const SizedBox(height: 24),
             if (dive.tanks.isNotEmpty) ...[
               _buildTanksSection(context, ref, dive, units),
@@ -556,8 +614,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     BuildContext context,
     WidgetRef ref,
     Dive dive,
-    UnitFormatter units,
-  ) {
+    UnitFormatter units, {
+    Map<String, String>? attribution,
+  }) {
     final hasLocation = dive.site?.location != null;
     final colorScheme = Theme.of(context).colorScheme;
     final cardColor = Theme.of(context).cardColor;
@@ -641,12 +700,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 Icons.arrow_downward,
                 units.formatDepth(dive.maxDepth),
                 context.l10n.diveLog_detail_stat_maxDepth,
+                sourceName: attribution?['maxDepth'],
               ),
               _buildStatItem(
                 context,
                 Icons.timelapse,
                 _formatRuntime(dive),
                 context.l10n.diveLog_detail_stat_runtime,
+                sourceName: attribution?['duration'],
               ),
               _buildStatItem(
                 context,
@@ -655,12 +716,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     ? '${dive.duration!.inMinutes} min'
                     : '--',
                 context.l10n.diveLog_detail_stat_bottomTime,
+                sourceName: attribution?['duration'],
               ),
               _buildStatItem(
                 context,
                 Icons.thermostat,
                 units.formatTemperature(dive.waterTemp),
                 context.l10n.diveLog_detail_stat_waterTemp,
+                sourceName: attribution?['waterTemp'],
               ),
             ],
           ),
@@ -820,8 +883,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     BuildContext context,
     IconData icon,
     String value,
-    String label,
-  ) {
+    String label, {
+    String? sourceName,
+  }) {
     return Column(
       children: [
         ExcludeSemantics(
@@ -835,6 +899,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
+        if (sourceName != null) ...[
+          const SizedBox(height: 2),
+          FieldAttributionBadge(sourceName: sourceName),
+        ],
       ],
     );
   }
@@ -2282,8 +2350,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     BuildContext context,
     WidgetRef ref,
     Dive dive,
-    UnitFormatter units,
-  ) {
+    UnitFormatter units, {
+    Map<String, String>? attribution,
+  }) {
     final surfaceIntervalAsync = ref.watch(surfaceIntervalProvider(diveId));
 
     return Card(
@@ -2315,6 +2384,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 context,
                 context.l10n.diveLog_detail_label_avgDepth,
                 units.formatDepth(dive.avgDepth),
+                sourceName: attribution?['avgDepth'],
               ),
             if (dive.waterType != null)
               _buildDetailRow(
@@ -2359,6 +2429,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     context,
                     context.l10n.diveLog_detail_label_surfaceInterval,
                     intervalText,
+                    sourceName: attribution?['surfaceInterval'],
                   );
                 },
               )
@@ -2375,6 +2446,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     context,
                     context.l10n.diveLog_detail_label_surfaceInterval,
                     intervalText,
+                    sourceName: attribution?['surfaceInterval'],
                   );
                 },
                 loading: () => const SizedBox.shrink(),
@@ -3188,7 +3260,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     }
   }
 
-  Widget _buildDetailRow(BuildContext context, String label, String value) {
+  Widget _buildDetailRow(
+    BuildContext context,
+    String label,
+    String value, {
+    String? sourceName,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -3200,7 +3277,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          Text(value, style: Theme.of(context).textTheme.bodyMedium),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(value, style: Theme.of(context).textTheme.bodyMedium),
+              if (sourceName != null) ...[
+                const SizedBox(width: 6),
+                FieldAttributionBadge(sourceName: sourceName),
+              ],
+            ],
+          ),
         ],
       ),
     );
@@ -4318,7 +4404,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  Future<void> _onSetPrimaryComputer(
+  Future<void> _onSetPrimaryDataSource(
     BuildContext context,
     WidgetRef ref, {
     required String diveId,
@@ -4335,7 +4421,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     ref.invalidate(diveDataSourcesProvider(diveId));
   }
 
-  Future<void> _onUnlinkComputer(
+  Future<void> _onUnlinkDataSource(
     BuildContext context,
     WidgetRef ref, {
     required String diveId,
@@ -4344,10 +4430,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Unlink computer'),
+        title: const Text('Unlink data source'),
         content: const Text(
-          'This will split the computer data into a separate dive. '
-          'The linked profile and readings from this computer will be removed '
+          'This will split the data source into a separate dive. '
+          'The linked profile and readings from this source will be removed '
           'from the current dive. This cannot be undone.',
         ),
         actions: [
