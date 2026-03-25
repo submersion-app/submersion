@@ -13,7 +13,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 ///
 /// If only one profile is present, renders a single-line chart.
 /// If both are empty, shows a "No profile data" placeholder.
-class OverlaidProfileChart extends StatelessWidget {
+class OverlaidProfileChart extends StatefulWidget {
   final List<DiveProfilePoint> existingProfile;
   final List<DiveProfilePoint> incomingProfile;
   final String? existingLabel;
@@ -30,12 +30,39 @@ class OverlaidProfileChart extends StatelessWidget {
   });
 
   @override
+  State<OverlaidProfileChart> createState() => _OverlaidProfileChartState();
+}
+
+class _OverlaidProfileChartState extends State<OverlaidProfileChart> {
+  final Set<String> _hidden = {};
+
+  static const _existingKey = 'existing';
+  static const _incomingKey = 'incoming';
+
+  void _toggleSeries(String key) {
+    setState(() {
+      if (_hidden.contains(key)) {
+        _hidden.remove(key);
+      } else {
+        // Don't allow hiding both series.
+        final otherKey = key == _existingKey ? _incomingKey : _existingKey;
+        final otherHasData = key == _existingKey
+            ? widget.incomingProfile.isNotEmpty
+            : widget.existingProfile.isNotEmpty;
+        if (!_hidden.contains(otherKey) || !otherHasData) {
+          _hidden.add(key);
+        }
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    if (existingProfile.isEmpty && incomingProfile.isEmpty) {
+    if (widget.existingProfile.isEmpty && widget.incomingProfile.isEmpty) {
       return SizedBox(
-        height: height,
+        height: widget.height,
         child: Center(
           child: Text(
             'No profile data',
@@ -47,14 +74,20 @@ class OverlaidProfileChart extends StatelessWidget {
       );
     }
 
-    // Compute shared axis bounds across both profiles.
+    final showExisting =
+        widget.existingProfile.isNotEmpty && !_hidden.contains(_existingKey);
+    final showIncoming =
+        widget.incomingProfile.isNotEmpty && !_hidden.contains(_incomingKey);
+
+    // Compute shared axis bounds across both profiles (always use both for
+    // consistent axes regardless of visibility).
     final allDepths = [
-      ...existingProfile.map((p) => p.depth),
-      ...incomingProfile.map((p) => p.depth),
+      ...widget.existingProfile.map((p) => p.depth),
+      ...widget.incomingProfile.map((p) => p.depth),
     ];
     final allTimes = [
-      ...existingProfile.map((p) => p.timestamp),
-      ...incomingProfile.map((p) => p.timestamp),
+      ...widget.existingProfile.map((p) => p.timestamp),
+      ...widget.incomingProfile.map((p) => p.timestamp),
     ];
     final maxDepth = allDepths.reduce(math.max) * 1.1;
     final maxTime = allTimes.reduce(math.max).toDouble();
@@ -64,10 +97,10 @@ class OverlaidProfileChart extends StatelessWidget {
 
     final bars = <LineChartBarData>[];
 
-    if (existingProfile.isNotEmpty) {
+    if (showExisting) {
       bars.add(
         LineChartBarData(
-          spots: existingProfile
+          spots: widget.existingProfile
               .map((p) => FlSpot(p.timestamp.toDouble(), -p.depth))
               .toList(),
           isCurved: true,
@@ -84,10 +117,10 @@ class OverlaidProfileChart extends StatelessWidget {
       );
     }
 
-    if (incomingProfile.isNotEmpty) {
+    if (showIncoming) {
       bars.add(
         LineChartBarData(
-          spots: incomingProfile
+          spots: widget.incomingProfile
               .map((p) => FlSpot(p.timestamp.toDouble(), -p.depth))
               .toList(),
           isCurved: true,
@@ -105,11 +138,14 @@ class OverlaidProfileChart extends StatelessWidget {
       );
     }
 
+    final existingHidden = _hidden.contains(_existingKey);
+    final incomingHidden = _hidden.contains(_incomingKey);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          height: height,
+          height: widget.height,
           child: LineChart(
             LineChartData(
               minX: 0,
@@ -129,31 +165,61 @@ class OverlaidProfileChart extends StatelessWidget {
           padding: const EdgeInsets.only(top: 4),
           child: Row(
             children: [
-              if (existingProfile.isNotEmpty) ...[
-                _LegendDot(color: existingColor),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    existingLabel ?? 'Existing',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+              if (widget.existingProfile.isNotEmpty) ...[
+                GestureDetector(
+                  onTap: () => _toggleSeries(_existingKey),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _LegendDot(
+                        color: existingHidden
+                            ? existingColor.withValues(alpha: 0.3)
+                            : existingColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        widget.existingLabel ?? 'Existing',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: existingHidden
+                              ? colorScheme.onSurfaceVariant.withValues(
+                                  alpha: 0.4,
+                                )
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
               ],
-              if (existingProfile.isNotEmpty && incomingProfile.isNotEmpty)
+              if (widget.existingProfile.isNotEmpty &&
+                  widget.incomingProfile.isNotEmpty)
                 const SizedBox(width: 16),
-              if (incomingProfile.isNotEmpty) ...[
-                _LegendDot(color: incomingColor, dashed: true),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    incomingLabel ?? 'Incoming',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+              if (widget.incomingProfile.isNotEmpty) ...[
+                GestureDetector(
+                  onTap: () => _toggleSeries(_incomingKey),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _LegendDot(
+                        color: incomingHidden
+                            ? incomingColor.withValues(alpha: 0.3)
+                            : incomingColor,
+                        dashed: true,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        widget.incomingLabel ?? 'Incoming',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: incomingHidden
+                              ? colorScheme.onSurfaceVariant.withValues(
+                                  alpha: 0.4,
+                                )
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
               ],

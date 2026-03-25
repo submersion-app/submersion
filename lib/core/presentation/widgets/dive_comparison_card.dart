@@ -65,12 +65,6 @@ class DiveComparisonCard extends ConsumerWidget {
     this.availableActions,
   });
 
-  Color _badgeColor(ColorScheme colorScheme) {
-    if (matchScore >= 0.9) return colorScheme.primary;
-    if (matchScore >= 0.7) return Colors.amber.shade700;
-    return colorScheme.error;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
@@ -148,12 +142,13 @@ class DiveComparisonCard extends ConsumerWidget {
                 _buildSameSummary(context, comparison, units),
 
               // 4. Differences Table
-              _buildDiffTable(
-                context,
-                comparison,
-                effectiveExistingLabel,
-                units,
-              ),
+              if (comparison.diffFields.isNotEmpty)
+                _buildDiffTable(
+                  context,
+                  comparison,
+                  effectiveExistingLabel,
+                  units,
+                ),
 
               // 5. Action Buttons
               _buildActionButtons(context, ref),
@@ -175,8 +170,6 @@ class DiveComparisonCard extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final percent = (matchScore * 100).toStringAsFixed(0);
-
     // Format date/times.
     final existingDateStr = _formatDateTimeStr(existingDateTime);
     final incomingDateStr = incomingDateTime != null
@@ -203,36 +196,15 @@ class DiveComparisonCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // First row: badge + date
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: _badgeColor(colorScheme),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '$percent%',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  datesMatch
-                      ? existingDateStr
-                      : '$existingDateStr vs ${incomingDateStr ?? "unknown"}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+          // Date row
+          Text(
+            datesMatch
+                ? existingDateStr
+                : '$existingDateStr vs ${incomingDateStr ?? "unknown"}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
           // Second row: site and shared metrics
           if (siteName != null || metricParts.isNotEmpty) ...[
@@ -447,8 +419,17 @@ class DiveComparisonCard extends ConsumerWidget {
     ) {
       if (!isTriState) return fallback;
       return selectedAction == action
-          ? _ActionButtonStyle.filledTonal
+          ? _ActionButtonStyle.filled
           : _ActionButtonStyle.outlined;
+    }
+
+    Color? colorFor(DuplicateAction action) {
+      if (!isTriState || selectedAction != action) return null;
+      return switch (action) {
+        DuplicateAction.skip => colorScheme.error,
+        DuplicateAction.importAsNew => Colors.green,
+        DuplicateAction.consolidate => colorScheme.primary,
+      };
     }
 
     VoidCallback? callbackFor(DuplicateAction action, VoidCallback? legacyCb) {
@@ -465,6 +446,7 @@ class DiveComparisonCard extends ConsumerWidget {
           subtitle: 'Discard this download',
           onPressed: callbackFor(DuplicateAction.skip, onSkip),
           style: styleFor(DuplicateAction.skip, _ActionButtonStyle.text),
+          color: colorFor(DuplicateAction.skip),
         ),
       );
     }
@@ -479,6 +461,7 @@ class DiveComparisonCard extends ConsumerWidget {
             DuplicateAction.importAsNew,
             _ActionButtonStyle.outlined,
           ),
+          color: colorFor(DuplicateAction.importAsNew),
         ),
       );
     }
@@ -493,6 +476,7 @@ class DiveComparisonCard extends ConsumerWidget {
             DuplicateAction.consolidate,
             _ActionButtonStyle.outlined,
           ),
+          color: colorFor(DuplicateAction.consolidate),
         ),
       );
     }
@@ -503,7 +487,7 @@ class DiveComparisonCard extends ConsumerWidget {
         border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Wrap(
-        alignment: WrapAlignment.end,
+        alignment: WrapAlignment.start,
         spacing: 8,
         runSpacing: 4,
         children: buttons,
@@ -540,19 +524,21 @@ class DiveComparisonCard extends ConsumerWidget {
   }
 }
 
-enum _ActionButtonStyle { text, outlined, filledTonal }
+enum _ActionButtonStyle { text, outlined, filled }
 
 class _ActionButton extends StatelessWidget {
   final String label;
   final String subtitle;
   final VoidCallback? onPressed;
   final _ActionButtonStyle style;
+  final Color? color;
 
   const _ActionButton({
     required this.label,
     required this.subtitle,
     this.onPressed,
     required this.style,
+    this.color,
   });
 
   @override
@@ -571,7 +557,9 @@ class _ActionButton extends StatelessWidget {
         Text(
           subtitle,
           style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+            color: style == _ActionButtonStyle.filled
+                ? Colors.white70
+                : theme.colorScheme.onSurfaceVariant,
             fontSize: 10,
           ),
         ),
@@ -583,8 +571,14 @@ class _ActionButton extends StatelessWidget {
         return TextButton(onPressed: onPressed, child: child);
       case _ActionButtonStyle.outlined:
         return OutlinedButton(onPressed: onPressed, child: child);
-      case _ActionButtonStyle.filledTonal:
-        return FilledButton.tonal(onPressed: onPressed, child: child);
+      case _ActionButtonStyle.filled:
+        return FilledButton(
+          onPressed: onPressed,
+          style: color != null
+              ? FilledButton.styleFrom(backgroundColor: color)
+              : null,
+          child: child,
+        );
     }
   }
 }

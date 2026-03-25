@@ -58,7 +58,11 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
     final colorScheme = theme.colorScheme;
     final score = widget.matchResult.score;
 
-    final borderColor = score >= 0.7 ? colorScheme.error : Colors.orange;
+    final borderColor = switch (widget.selectedAction) {
+      DuplicateAction.importAsNew => Colors.green,
+      DuplicateAction.consolidate => colorScheme.primary,
+      DuplicateAction.skip => score >= 0.7 ? colorScheme.error : Colors.orange,
+    };
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
