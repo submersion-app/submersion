@@ -129,23 +129,29 @@ DiveComparisonResult compareForConsolidation(
     diff: diff,
   );
 
-  // --- Computer (always diff — different devices by definition) ---
-  diff.add(
-    DiffField(
-      name: 'computer',
-      type: ComparisonFieldType.text,
-      existingText: _formatComputer(
-        name: null,
-        model: existing.diveComputerModel,
-        serial: existing.diveComputerSerial,
-      ),
-      incomingText: _formatComputer(
-        name: incoming.computerName,
-        model: incoming.computerModel,
-        serial: incoming.computerSerial,
-      ),
-    ),
+  // --- Computer ---
+  final existingComputer = _formatComputer(
+    name: null,
+    model: existing.diveComputerModel,
+    serial: existing.diveComputerSerial,
   );
+  final incomingComputer = _formatComputer(
+    name: incoming.computerName,
+    model: incoming.computerModel,
+    serial: incoming.computerSerial,
+  );
+  if (existingComputer == incomingComputer) {
+    same.add(const SameField(name: 'computer', type: ComparisonFieldType.text));
+  } else {
+    diff.add(
+      DiffField(
+        name: 'computer',
+        type: ComparisonFieldType.text,
+        existingText: existingComputer,
+        incomingText: incomingComputer,
+      ),
+    );
+  }
 
   return DiveComparisonResult(sameFields: same, diffFields: diff);
 }

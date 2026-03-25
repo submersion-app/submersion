@@ -385,10 +385,13 @@ class ImportDuplicateChecker {
   }
 
   int _diveSeconds(Dive dive) {
-    if (dive.duration != null) return dive.duration!.inSeconds;
+    // Use runtime (total time), not duration (bottom time), to match
+    // the incoming side which uses runtime ?? duration.
+    if (dive.runtime != null) return dive.runtime!.inSeconds;
     if (dive.exitTime != null && dive.entryTime != null) {
       return dive.exitTime!.difference(dive.entryTime!).inSeconds;
     }
+    if (dive.duration != null) return dive.duration!.inSeconds;
     return 0;
   }
 

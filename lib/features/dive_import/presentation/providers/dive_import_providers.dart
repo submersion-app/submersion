@@ -304,7 +304,10 @@ class DiveImportNotifier extends StateNotifier<DiveImportState> {
             wearableDurationSeconds: iDive.durationSeconds,
             existingStartTime: existing.effectiveEntryTime,
             existingMaxDepth: existing.maxDepth ?? 0,
-            existingDurationSeconds: existing.duration?.inSeconds ?? 0,
+            existingDurationSeconds:
+                existing.runtime?.inSeconds ??
+                existing.duration?.inSeconds ??
+                0,
           );
           if (score > bestScore) bestScore = score;
         }
