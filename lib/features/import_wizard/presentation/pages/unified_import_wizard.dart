@@ -69,8 +69,13 @@ class _UnifiedImportWizardBodyState
     super.initState();
     _pageController = PageController();
     // Reset adapter state from any previous import session.
-    // Safe in initState (runs before build, no widget-tree modification issues).
-    widget.adapter.resetState();
+    // Scheduled as a post-frame callback so it runs after the widget tree is
+    // built (Riverpod forbids provider modifications during initState/build).
+    // This callback is registered before any auto-advance callbacks from
+    // _AcquisitionStepPage.build, so it executes first in the queue.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.adapter.resetState();
+    });
   }
 
   @override
