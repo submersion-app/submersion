@@ -180,7 +180,7 @@ class _CollapsedHeader extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          '$percent%',
+                          '$percent% match',
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: badgeBorderColor,
                             fontWeight: FontWeight.bold,
