@@ -58,6 +58,7 @@ class _UnifiedImportWizardBodyState
   late final PageController _pageController;
   int _currentPage = 0;
   bool _navigatingForward = true;
+  bool _resetComplete = false;
 
   List<WizardStepDef> get _acquisitionSteps => widget.adapter.acquisitionSteps;
   int get _reviewIndex => _acquisitionSteps.length;
@@ -69,12 +70,12 @@ class _UnifiedImportWizardBodyState
     super.initState();
     _pageController = PageController();
     // Reset adapter state from any previous import session.
-    // Scheduled as a post-frame callback so it runs after the widget tree is
-    // built (Riverpod forbids provider modifications during initState/build).
-    // This callback is registered before any auto-advance callbacks from
-    // _AcquisitionStepPage.build, so it executes first in the queue.
+    // Deferred to post-frame because Riverpod forbids provider modifications
+    // during initState/build. The _resetComplete flag prevents auto-advance
+    // from firing during the first frame while stale state is still present.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.adapter.resetState();
+      if (mounted) setState(() => _resetComplete = true);
     });
   }
 
@@ -268,6 +269,7 @@ class _UnifiedImportWizardBodyState
                     step: step,
                     isCurrentPage: _currentPage == i,
                     navigatingForward: _navigatingForward,
+                    resetComplete: _resetComplete,
                     onAutoAdvance: () => _onNext(),
                   ),
                 ),
@@ -341,6 +343,7 @@ class _AcquisitionStepPage extends ConsumerWidget {
     required this.step,
     required this.isCurrentPage,
     required this.navigatingForward,
+    required this.resetComplete,
     required this.onAutoAdvance,
   });
 
@@ -348,11 +351,15 @@ class _AcquisitionStepPage extends ConsumerWidget {
   final WizardStepDef step;
   final bool isCurrentPage;
   final bool navigatingForward;
+  final bool resetComplete;
   final VoidCallback onAutoAdvance;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (step.autoAdvance && isCurrentPage && navigatingForward) {
+    if (step.autoAdvance &&
+        isCurrentPage &&
+        navigatingForward &&
+        resetComplete) {
       // Listen for transitions from false → true.
       ref.listen<bool>(step.canAdvance, (previous, next) {
         if (next && previous != true) {
