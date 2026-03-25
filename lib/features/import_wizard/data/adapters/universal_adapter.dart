@@ -348,6 +348,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     ImportBundle bundle,
     Map<wizard.ImportEntityType, Set<int>> selections,
     Map<wizard.ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
+    bool retainSourceDiveNumbers = false,
     void Function(String phase, int current, int total)? onProgress,
   }) async {
     final notifierState = _ref.read(universalImportNotifierProvider);
@@ -433,6 +434,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       selections: uddfSelections,
       repositories: repos,
       diverId: currentDiver.id,
+      retainSourceDiveNumbers: retainSourceDiveNumbers,
       onProgress: onProgress,
     );
 

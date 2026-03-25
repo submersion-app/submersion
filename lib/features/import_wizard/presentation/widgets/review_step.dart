@@ -94,9 +94,12 @@ class _SingleTypeLayout extends StatelessWidget {
     final group = bundle.groups[type]!;
     final selectedIndices = state.selections[type] ?? const <int>{};
     final duplicateActions = state.duplicateActions[type] ?? const {};
+    final hasDives = bundle.groups.containsKey(ImportEntityType.dives);
 
     return Column(
       children: [
+        if (hasDives)
+          _RetainDiveNumbersToggle(state: state, notifier: notifier),
         Expanded(
           child: SingleChildScrollView(
             child: EntityReviewList(
@@ -147,10 +150,14 @@ class _MultiTypeLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasDives = bundle.groups.containsKey(ImportEntityType.dives);
+
     return DefaultTabController(
       length: types.length,
       child: Column(
         children: [
+          if (hasDives)
+            _RetainDiveNumbersToggle(state: state, notifier: notifier),
           TabBar(
             tabs: [
               for (final type in types)
@@ -247,6 +254,29 @@ class _EntityTab extends StatelessWidget {
         onDeselectAll: () => notifier.deselectAll(type),
         existingDiveIdForIndex: (i) => group.matchResults?[i]?.diveId ?? '',
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Retain dive numbers toggle
+// ---------------------------------------------------------------------------
+
+class _RetainDiveNumbersToggle extends StatelessWidget {
+  final ImportWizardState state;
+  final ImportWizardNotifier notifier;
+
+  const _RetainDiveNumbersToggle({required this.state, required this.notifier});
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      title: const Text('Retain source dive numbers'),
+      subtitle: const Text(
+        'Use dive numbers from the imported file instead of auto-assigning',
+      ),
+      value: state.retainSourceDiveNumbers,
+      onChanged: (value) => notifier.setRetainSourceDiveNumbers(value),
     );
   }
 }

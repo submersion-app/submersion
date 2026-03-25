@@ -384,6 +384,7 @@ void main() {
             any,
             any,
             any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
           ),
         ).thenAnswer((_) async {
@@ -430,6 +431,7 @@ void main() {
               captureAny,
               captureAny,
               captureAny,
+              retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
               onProgress: anyNamed('onProgress'),
             ),
           ).captured;
@@ -465,6 +467,7 @@ void main() {
             any,
             any,
             any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
           ),
         ).thenAnswer((_) async => importResult);
@@ -485,6 +488,7 @@ void main() {
             any,
             any,
             any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
           ),
         ).thenThrow(Exception('DB error'));
@@ -511,6 +515,7 @@ void main() {
             any,
             any,
             any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
           ),
         ).thenAnswer((_) async => importResult);
@@ -536,6 +541,7 @@ void main() {
             any,
             any,
             any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
           ),
         ).thenAnswer((invocation) async {
@@ -570,6 +576,7 @@ void main() {
             any,
             any,
             any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
           ),
         );

@@ -183,6 +183,7 @@ class FitAdapter implements ImportSourceAdapter {
     ImportBundle bundle,
     Map<ImportEntityType, Set<int>> selections,
     Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
+    bool retainSourceDiveNumbers = false,
     void Function(String phase, int current, int total)? onProgress,
   }) async {
     final baseSelections = Set<int>.from(

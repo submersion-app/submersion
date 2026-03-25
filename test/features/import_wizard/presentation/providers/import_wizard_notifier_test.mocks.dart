@@ -129,13 +129,17 @@ class MockImportSourceAdapter extends _i1.Mock
     Map<_i2.ImportEntityType, Set<int>>? selections,
     Map<_i2.ImportEntityType, Map<int, _i7.DuplicateAction>>?
     duplicateActions, {
+    bool? retainSourceDiveNumbers,
     void Function(String, int, int)? onProgress,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
               #performImport,
               [bundle, selections, duplicateActions],
-              {#onProgress: onProgress},
+              {
+                #retainSourceDiveNumbers: retainSourceDiveNumbers,
+                #onProgress: onProgress,
+              },
             ),
             returnValue: _i8.Future<_i3.UnifiedImportResult>.value(
               _FakeUnifiedImportResult_1(
@@ -143,7 +147,10 @@ class MockImportSourceAdapter extends _i1.Mock
                 Invocation.method(
                   #performImport,
                   [bundle, selections, duplicateActions],
-                  {#onProgress: onProgress},
+                  {
+                    #retainSourceDiveNumbers: retainSourceDiveNumbers,
+                    #onProgress: onProgress,
+                  },
                 ),
               ),
             ),
@@ -154,7 +161,10 @@ class MockImportSourceAdapter extends _i1.Mock
                     Invocation.method(
                       #performImport,
                       [bundle, selections, duplicateActions],
-                      {#onProgress: onProgress},
+                      {
+                        #retainSourceDiveNumbers: retainSourceDiveNumbers,
+                        #onProgress: onProgress,
+                      },
                     ),
                   ),
                 ),

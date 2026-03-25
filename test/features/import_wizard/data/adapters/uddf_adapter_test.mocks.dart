@@ -320,6 +320,7 @@ class MockUddfEntityImporter extends _i1.Mock
     required _i4.UddfImportSelections? selections,
     required _i4.ImportRepositories? repositories,
     required String? diverId,
+    bool? retainSourceDiveNumbers = false,
     _i4.ImportProgressCallback? onProgress,
   }) =>
       (super.noSuchMethod(
@@ -328,6 +329,7 @@ class MockUddfEntityImporter extends _i1.Mock
               #selections: selections,
               #repositories: repositories,
               #diverId: diverId,
+              #retainSourceDiveNumbers: retainSourceDiveNumbers,
               #onProgress: onProgress,
             }),
             returnValue: _i20.Future<_i4.UddfEntityImportResult>.value(
@@ -338,6 +340,7 @@ class MockUddfEntityImporter extends _i1.Mock
                   #selections: selections,
                   #repositories: repositories,
                   #diverId: diverId,
+                  #retainSourceDiveNumbers: retainSourceDiveNumbers,
                   #onProgress: onProgress,
                 }),
               ),
@@ -351,6 +354,7 @@ class MockUddfEntityImporter extends _i1.Mock
                       #selections: selections,
                       #repositories: repositories,
                       #diverId: diverId,
+                      #retainSourceDiveNumbers: retainSourceDiveNumbers,
                       #onProgress: onProgress,
                     }),
                   ),

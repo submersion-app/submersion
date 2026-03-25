@@ -15,6 +15,7 @@ class ImportWizardState {
     this.bundle,
     this.selections = const {},
     this.duplicateActions = const {},
+    this.retainSourceDiveNumbers = false,
     this.importPhase,
     this.importCurrent = 0,
     this.importTotal = 0,
@@ -34,6 +35,10 @@ class ImportWizardState {
 
   /// User-chosen action per duplicate item, keyed by entity type and index.
   final Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions;
+
+  /// When true, imported dives keep their original dive numbers from the
+  /// source file instead of being auto-assigned sequential numbers.
+  final bool retainSourceDiveNumbers;
 
   /// Human-readable label for the current import phase (e.g. "dives").
   final String? importPhase;
@@ -59,6 +64,7 @@ class ImportWizardState {
     bool clearBundle = false,
     Map<ImportEntityType, Set<int>>? selections,
     Map<ImportEntityType, Map<int, DuplicateAction>>? duplicateActions,
+    bool? retainSourceDiveNumbers,
     String? importPhase,
     bool clearImportPhase = false,
     int? importCurrent,
@@ -74,6 +80,8 @@ class ImportWizardState {
       bundle: clearBundle ? null : (bundle ?? this.bundle),
       selections: selections ?? this.selections,
       duplicateActions: duplicateActions ?? this.duplicateActions,
+      retainSourceDiveNumbers:
+          retainSourceDiveNumbers ?? this.retainSourceDiveNumbers,
       importPhase: clearImportPhase ? null : (importPhase ?? this.importPhase),
       importCurrent: importCurrent ?? this.importCurrent,
       importTotal: importTotal ?? this.importTotal,
@@ -197,6 +205,16 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   }
 
   // -------------------------------------------------------------------------
+  // Retain source dive numbers
+  // -------------------------------------------------------------------------
+
+  /// Toggle whether imported dives retain their original dive numbers from
+  /// the source file.
+  void setRetainSourceDiveNumbers(bool value) {
+    state = state.copyWith(retainSourceDiveNumbers: value);
+  }
+
+  // -------------------------------------------------------------------------
   // Duplicate action management
   // -------------------------------------------------------------------------
 
@@ -234,6 +252,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
         bundle,
         state.selections,
         state.duplicateActions,
+        retainSourceDiveNumbers: state.retainSourceDiveNumbers,
         onProgress: (phase, current, total) {
           state = state.copyWith(
             importPhase: phase,

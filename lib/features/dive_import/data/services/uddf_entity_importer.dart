@@ -206,6 +206,7 @@ class UddfEntityImporter {
     required UddfImportSelections selections,
     required ImportRepositories repositories,
     required String diverId,
+    bool retainSourceDiveNumbers = false,
     ImportProgressCallback? onProgress,
   }) async {
     final now = DateTime.now();
@@ -331,6 +332,7 @@ class UddfEntityImporter {
       siteIdMapping: siteIdMapping,
       courseIdMapping: courseIdMapping,
       sourceFileName: data.sourceFileName,
+      retainSourceDiveNumbers: retainSourceDiveNumbers,
       now: now,
       onProgress: onProgress,
     );
@@ -899,6 +901,7 @@ class UddfEntityImporter {
     required Map<String, DiveSite> siteIdMapping,
     required Map<String, String> courseIdMapping,
     String? sourceFileName,
+    bool retainSourceDiveNumbers = false,
     required DateTime now,
     ImportProgressCallback? onProgress,
   }) async {
@@ -908,8 +911,21 @@ class UddfEntityImporter {
     final importedDiveIds = <String>[];
     final inlineBuddyIds = <String>{};
 
-    for (var i = 0; i < items.length; i++) {
-      if (!selected.contains(i)) continue;
+    // Sort selected indices by dateTime (oldest first) for sequential numbering.
+    final sortedSelected = selected.toList()
+      ..sort((a, b) {
+        final aTime = items[a]['dateTime'] as DateTime? ?? DateTime(0);
+        final bTime = items[b]['dateTime'] as DateTime? ?? DateTime(0);
+        return aTime.compareTo(bTime);
+      });
+
+    // Auto-assign dive numbers starting from the next available number,
+    // unless the user opted to retain source file numbering.
+    var nextDiveNumber = retainSourceDiveNumbers
+        ? null
+        : await repos.diveRepository.getNextDiveNumber(diverId: diverId);
+
+    for (final i in sortedSelected) {
       final diveData = items[i];
 
       // Build profile (include setpoint/ppO2 sensor readings)
@@ -1031,7 +1047,9 @@ class UddfEntityImporter {
       var dive = Dive(
         id: diveId,
         diverId: diverId,
-        diveNumber: diveData['diveNumber'] as int?,
+        diveNumber: nextDiveNumber != null
+            ? nextDiveNumber++
+            : diveData['diveNumber'] as int?,
         dateTime: dateTime,
         entryTime: entryTime,
         exitTime: exitTime,
