@@ -113,12 +113,16 @@ class DiveMatchResult {
   /// Duration difference between the dives in seconds (optional).
   final int? durationDifferenceSeconds;
 
+  /// Site name of the matched existing dive (for display in review UI).
+  final String? siteName;
+
   const DiveMatchResult({
     required this.diveId,
     required this.score,
     required this.timeDifferenceMs,
     this.depthDifferenceMeters,
     this.durationDifferenceSeconds,
+    this.siteName,
   });
 
   /// Returns true if this is a probable duplicate (score >= 0.7).

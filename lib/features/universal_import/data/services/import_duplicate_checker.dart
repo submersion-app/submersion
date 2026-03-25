@@ -371,6 +371,7 @@ class ImportDuplicateChecker {
               durationDifferenceSeconds: existingDurationSeconds > 0
                   ? (durationSeconds - existingDurationSeconds).abs()
                   : null,
+              siteName: existing.site?.name,
             );
           }
         }

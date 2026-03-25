@@ -144,6 +144,14 @@ class _CollapsedHeader extends StatelessWidget {
 
     final badgeBorderColor = score >= 0.7 ? colorScheme.error : Colors.orange;
 
+    // Build subtitle with site name from the matched existing dive.
+    final subtitleParts = <String>[
+      if (matchResult.siteName != null && matchResult.siteName!.isNotEmpty)
+        matchResult.siteName!,
+      if (item.subtitle.isNotEmpty) item.subtitle,
+    ];
+    final effectiveSubtitle = subtitleParts.join(' \u00b7 ');
+
     return InkWell(
       onTap: onToggle,
       child: Padding(
@@ -180,9 +188,9 @@ class _CollapsedHeader extends StatelessWidget {
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (item.subtitle.isNotEmpty)
+                  if (effectiveSubtitle.isNotEmpty)
                     Text(
-                      item.subtitle,
+                      effectiveSubtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),

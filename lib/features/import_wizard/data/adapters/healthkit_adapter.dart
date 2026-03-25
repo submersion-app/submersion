@@ -167,6 +167,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
                   (imported.durationSeconds -
                           (existing.duration?.inSeconds ?? 0))
                       .abs(),
+              siteName: existing.site?.name,
             );
           }
         }
