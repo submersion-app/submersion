@@ -39,7 +39,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_computers_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/merge_dive_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
@@ -271,13 +271,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             const SizedBox(height: 24),
             BuddySignaturesSection(diveId: diveId),
             computerReadingsAsync.whenData((readings) {
-                  if (readings.length < 2) return const SizedBox.shrink();
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 24),
-                      DiveComputersSection(
-                        readings: readings,
+                      DataSourcesSection(
+                        dataSources: readings,
+                        diveCreatedAt: dive.dateTime,
                         diveId: dive.id,
                         units: units,
                         onSetPrimary: (readingId) => _onSetPrimaryComputer(
