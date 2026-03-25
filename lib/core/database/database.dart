@@ -714,6 +714,9 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('[7, 14, 30]'))(); // JSON array
   TextColumn get reminderTime =>
       text().withDefault(const Constant('09:00'))(); // HH:mm format
+  // Data source badge visibility (v55)
+  BoolColumn get showDataSourceBadges =>
+      boolean().withDefault(const Constant(true))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -1235,7 +1238,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 54;
+  static const int currentSchemaVersion = 55;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -2460,6 +2463,12 @@ class AppDatabase extends _$AppDatabase {
             CREATE INDEX IF NOT EXISTS idx_dive_data_sources_dive_id
             ON dive_data_sources(dive_id)
           ''');
+        }
+        if (from < 55) {
+          // Add data source badge visibility setting to diver_settings
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN show_data_source_badges INTEGER NOT NULL DEFAULT 1',
+          );
         }
       },
       beforeOpen: (details) async {

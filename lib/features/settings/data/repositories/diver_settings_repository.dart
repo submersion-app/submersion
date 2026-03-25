@@ -130,6 +130,7 @@ class DiverSettingsRepository {
                 _formatReminderDays(s.serviceReminderDays),
               ),
               reminderTime: Value(_formatReminderTime(s.reminderTime)),
+              showDataSourceBadges: Value(s.showDataSourceBadges),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -248,6 +249,7 @@ class DiverSettingsRepository {
             _formatReminderDays(settings.serviceReminderDays),
           ),
           reminderTime: Value(_formatReminderTime(settings.reminderTime)),
+          showDataSourceBadges: Value(settings.showDataSourceBadges),
           updatedAt: Value(now),
         ),
       );
@@ -389,6 +391,7 @@ class DiverSettingsRepository {
       notificationsEnabled: row.notificationsEnabled,
       serviceReminderDays: _parseReminderDays(row.serviceReminderDays),
       reminderTime: _parseReminderTime(row.reminderTime),
+      showDataSourceBadges: row.showDataSourceBadges,
     );
   }
 
