@@ -103,18 +103,8 @@ class DiveComparisonCard extends ConsumerWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. Match Header
-              _buildMatchHeader(
-                context,
-                comparison,
-                effectiveExistingLabel,
-                units,
-                existingDive.effectiveEntryTime,
-                incoming.startTime,
-                existingDive.site?.name,
-              ),
-
-              // 2. Overlaid Profiles
+              // 1. Overlaid Profiles (no grey header bar — site/metrics
+              // are shown in the collapsed header's subtitle)
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -157,75 +147,6 @@ class DiveComparisonCard extends ConsumerWidget {
         },
       ),
     );
-  }
-
-  Widget _buildMatchHeader(
-    BuildContext context,
-    DiveComparisonResult comparison,
-    String label,
-    UnitFormatter units,
-    DateTime existingDateTime,
-    DateTime? incomingDateTime,
-    String? siteName,
-  ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    // Format date/times.
-    final existingDateStr = _formatDateTimeStr(existingDateTime);
-    final incomingDateStr = incomingDateTime != null
-        ? _formatDateTimeStr(incomingDateTime)
-        : null;
-
-    // Check if dates are the same (within tolerance, already classified).
-    final datesMatch = comparison.sameFields.any((f) => f.name == 'date/time');
-
-    // Gather shared metric data for the header line.
-    final metricParts = <String>[];
-    for (final f in comparison.sameFields) {
-      if (f.name == 'max depth' && f.rawValue != null) {
-        metricParts.add(_formatFieldValue(f.type, f.rawValue, units));
-      }
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Date row
-          Text(
-            datesMatch
-                ? existingDateStr
-                : '$existingDateStr vs ${incomingDateStr ?? "unknown"}',
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-          // Second row: site and shared metrics
-          if (siteName != null || metricParts.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              [if (siteName != null) siteName, ...metricParts].join(' \u00b7 '),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  static String _formatDateTimeStr(DateTime dt) {
-    return '${dt.month}/${dt.day}/${dt.year} '
-        '${dt.hour.toString().padLeft(2, '0')}:'
-        '${dt.minute.toString().padLeft(2, '0')}';
   }
 
   Widget _buildSameSummary(
@@ -545,6 +466,8 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    final isFilled = style == _ActionButtonStyle.filled;
+
     final child = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -552,13 +475,14 @@ class _ActionButton extends StatelessWidget {
           label,
           style: theme.textTheme.labelMedium?.copyWith(
             fontWeight: FontWeight.w600,
+            color: isFilled ? Colors.white : null,
           ),
         ),
         Text(
           subtitle,
           style: theme.textTheme.labelSmall?.copyWith(
-            color: style == _ActionButtonStyle.filled
-                ? Colors.white70
+            color: isFilled
+                ? Colors.white.withValues(alpha: 0.85)
                 : theme.colorScheme.onSurfaceVariant,
             fontSize: 10,
           ),
@@ -575,7 +499,10 @@ class _ActionButton extends StatelessWidget {
         return FilledButton(
           onPressed: onPressed,
           style: color != null
-              ? FilledButton.styleFrom(backgroundColor: color)
+              ? FilledButton.styleFrom(
+                  backgroundColor: color,
+                  foregroundColor: Colors.white,
+                )
               : null,
           child: child,
         );

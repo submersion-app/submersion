@@ -174,7 +174,7 @@ void main() {
       await tester.pumpWidget(_buildList(group: group));
       await tester.pump();
 
-      expect(find.text('85% MATCH'), findsOneWidget);
+      expect(find.text('85%'), findsOneWidget);
     });
 
     testWidgets('likely duplicate section label is shown', (tester) async {

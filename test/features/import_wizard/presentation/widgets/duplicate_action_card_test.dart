@@ -79,7 +79,7 @@ void main() {
       await tester.pumpWidget(_buildCard(card: _makeCard()));
       await tester.pump();
 
-      expect(find.text('92% MATCH'), findsOneWidget);
+      expect(find.text('92%'), findsOneWidget);
     });
 
     testWidgets('likely duplicate (score >= 0.7) shows red border', (
@@ -99,7 +99,7 @@ void main() {
       expect(find.byType(Card), findsOneWidget);
 
       // Verify the match badge text reflects the likely score.
-      expect(find.text('92% MATCH'), findsOneWidget);
+      expect(find.text('92%'), findsOneWidget);
     });
 
     testWidgets('possible duplicate (score < 0.7) shows orange border', (
@@ -115,7 +115,7 @@ void main() {
       await tester.pump();
 
       expect(find.byType(Card), findsOneWidget);
-      expect(find.text('55% MATCH'), findsOneWidget);
+      expect(find.text('55%'), findsOneWidget);
     });
 
     testWidgets('SKIP action badge is rendered for skip action', (

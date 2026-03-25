@@ -39,6 +39,10 @@ class _OverlaidProfileChartState extends State<OverlaidProfileChart> {
   static const _existingKey = 'existing';
   static const _incomingKey = 'incoming';
 
+  // Use very distinct colors: blue for existing, orange for incoming.
+  static const _existingColor = Colors.blue;
+  static final _incomingColor = Colors.orange.shade700;
+
   void _toggleSeries(String key) {
     setState(() {
       if (_hidden.contains(key)) {
@@ -92,9 +96,6 @@ class _OverlaidProfileChartState extends State<OverlaidProfileChart> {
     final maxDepth = allDepths.reduce(math.max) * 1.1;
     final maxTime = allTimes.reduce(math.max).toDouble();
 
-    final existingColor = colorScheme.primary;
-    final incomingColor = Colors.teal.shade400;
-
     final bars = <LineChartBarData>[];
 
     if (showExisting) {
@@ -105,13 +106,13 @@ class _OverlaidProfileChartState extends State<OverlaidProfileChart> {
               .toList(),
           isCurved: true,
           curveSmoothness: 0.3,
-          color: existingColor,
-          barWidth: 1.5,
+          color: _existingColor,
+          barWidth: 2,
           isStrokeCapRound: true,
           dotData: const FlDotData(show: false),
           belowBarData: BarAreaData(
             show: true,
-            color: existingColor.withValues(alpha: 0.15),
+            color: _existingColor.withValues(alpha: 0.12),
           ),
         ),
       );
@@ -125,14 +126,13 @@ class _OverlaidProfileChartState extends State<OverlaidProfileChart> {
               .toList(),
           isCurved: true,
           curveSmoothness: 0.3,
-          color: incomingColor,
-          barWidth: 1.5,
+          color: _incomingColor,
+          barWidth: 2,
           isStrokeCapRound: true,
-          dashArray: [4, 2],
           dotData: const FlDotData(show: false),
           belowBarData: BarAreaData(
             show: true,
-            color: incomingColor.withValues(alpha: 0.08),
+            color: _incomingColor.withValues(alpha: 0.08),
           ),
         ),
       );
@@ -160,67 +160,28 @@ class _OverlaidProfileChartState extends State<OverlaidProfileChart> {
             ),
           ),
         ),
-        // Legend
+        // Legend with checkboxes
         Padding(
           padding: const EdgeInsets.only(top: 4),
           child: Row(
             children: [
               if (widget.existingProfile.isNotEmpty) ...[
-                GestureDetector(
+                _LegendCheckbox(
+                  color: _existingColor,
+                  label: 'Existing: ${widget.existingLabel ?? "Unknown"}',
+                  checked: !existingHidden,
                   onTap: () => _toggleSeries(_existingKey),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _LegendDot(
-                        color: existingHidden
-                            ? existingColor.withValues(alpha: 0.3)
-                            : existingColor,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        widget.existingLabel ?? 'Existing',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: existingHidden
-                              ? colorScheme.onSurfaceVariant.withValues(
-                                  alpha: 0.4,
-                                )
-                              : colorScheme.onSurfaceVariant,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
                 ),
               ],
               if (widget.existingProfile.isNotEmpty &&
                   widget.incomingProfile.isNotEmpty)
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
               if (widget.incomingProfile.isNotEmpty) ...[
-                GestureDetector(
+                _LegendCheckbox(
+                  color: _incomingColor,
+                  label: 'Incoming: ${widget.incomingLabel ?? "Unknown"}',
+                  checked: !incomingHidden,
                   onTap: () => _toggleSeries(_incomingKey),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _LegendDot(
-                        color: incomingHidden
-                            ? incomingColor.withValues(alpha: 0.3)
-                            : incomingColor,
-                        dashed: true,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        widget.incomingLabel ?? 'Incoming',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: incomingHidden
-                              ? colorScheme.onSurfaceVariant.withValues(
-                                  alpha: 0.4,
-                                )
-                              : colorScheme.onSurfaceVariant,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
                 ),
               ],
             ],
@@ -231,21 +192,55 @@ class _OverlaidProfileChartState extends State<OverlaidProfileChart> {
   }
 }
 
-class _LegendDot extends StatelessWidget {
+class _LegendCheckbox extends StatelessWidget {
   final Color color;
-  final bool dashed;
+  final String label;
+  final bool checked;
+  final VoidCallback onTap;
 
-  const _LegendDot({required this.color, this.dashed = false});
+  const _LegendCheckbox({
+    required this.color,
+    required this.label,
+    required this.checked,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 16,
-      height: 3,
-      decoration: BoxDecoration(
-        color: dashed ? null : color,
-        borderRadius: BorderRadius.circular(1.5),
-        border: dashed ? Border.all(color: color, width: 1) : null,
+    final effectiveColor = checked ? color : color.withValues(alpha: 0.3);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 18,
+            height: 18,
+            child: Checkbox(
+              value: checked,
+              onChanged: (_) => onTap(),
+              activeColor: color,
+              side: BorderSide(color: effectiveColor, width: 1.5),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: checked
+                    ? Theme.of(context).colorScheme.onSurfaceVariant
+                    : Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

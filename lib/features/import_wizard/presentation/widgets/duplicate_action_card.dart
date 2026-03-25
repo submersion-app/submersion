@@ -149,51 +149,67 @@ class _CollapsedHeader extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
-            // Match percentage badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                border: Border.all(color: badgeBorderColor, width: 1.5),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '$percent% MATCH',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: badgeBorderColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            if (projectedDiveNumber != null) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '#$projectedDiveNumber',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(width: 10),
-            // Title and subtitle
+            // Title, subtitle, and badges
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    item.title,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                  // First row: title + match % badge
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          item.title,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: badgeBorderColor,
+                            width: 1.5,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '$percent%',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: badgeBorderColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      if (projectedDiveNumber != null) ...[
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '#$projectedDiveNumber',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
+                  // Second row: subtitle (depth, duration, etc.)
                   Text(
                     item.subtitle,
                     style: theme.textTheme.bodySmall?.copyWith(
