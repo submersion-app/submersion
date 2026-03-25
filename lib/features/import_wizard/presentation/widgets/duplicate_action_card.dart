@@ -234,7 +234,7 @@ class _ActionBadge extends StatelessWidget {
     final theme = Theme.of(context);
     final (label, color) = switch (action) {
       DuplicateAction.skip => ('SKIP', theme.colorScheme.error),
-      DuplicateAction.importAsNew => ('IMPORT', Colors.blue.shade700),
+      DuplicateAction.importAsNew => ('IMPORT', Colors.green.shade700),
       DuplicateAction.consolidate => ('CONSOLIDATE', Colors.green.shade700),
     };
 

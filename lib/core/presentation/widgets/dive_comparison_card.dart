@@ -104,11 +104,34 @@ class DiveComparisonCard extends ConsumerWidget {
             ? '$existingLabel (#$diveNum)'
             : existingLabel;
 
+        final siteName = existingDive.site?.name;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 1. Overlaid Profiles (no grey header bar — site/metrics
-            // are shown in the collapsed header's subtitle)
+            // Site name (if available)
+            if (siteName != null && siteName.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.place,
+                      size: 14,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      siteName,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Overlaid Profiles
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: OverlaidProfileChart(
@@ -495,20 +518,29 @@ class _ActionButton extends StatelessWidget {
       ],
     );
 
+    const minSize = Size(0, 48);
+
     switch (style) {
       case _ActionButtonStyle.text:
-        return TextButton(onPressed: onPressed, child: child);
+        return TextButton(
+          onPressed: onPressed,
+          style: TextButton.styleFrom(minimumSize: minSize),
+          child: child,
+        );
       case _ActionButtonStyle.outlined:
-        return OutlinedButton(onPressed: onPressed, child: child);
+        return OutlinedButton(
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(minimumSize: minSize),
+          child: child,
+        );
       case _ActionButtonStyle.filled:
         return FilledButton(
           onPressed: onPressed,
-          style: color != null
-              ? FilledButton.styleFrom(
-                  backgroundColor: color,
-                  foregroundColor: Colors.white,
-                )
-              : null,
+          style: FilledButton.styleFrom(
+            minimumSize: minSize,
+            backgroundColor: color,
+            foregroundColor: color != null ? Colors.white : null,
+          ),
           child: child,
         );
     }
