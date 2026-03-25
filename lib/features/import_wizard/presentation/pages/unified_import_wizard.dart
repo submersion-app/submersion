@@ -334,11 +334,19 @@ class _AcquisitionStepPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (step.autoAdvance && isCurrentPage) {
+      // Listen for transitions from false → true.
       ref.listen<bool>(step.canAdvance, (previous, next) {
         if (next && previous != true) {
           onAutoAdvance();
         }
       });
+
+      // Also advance if already true when we arrive (e.g., the Map Fields
+      // step for non-CSV imports where the payload is already produced).
+      final alreadyReady = ref.read(step.canAdvance);
+      if (alreadyReady) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => onAutoAdvance());
+      }
     }
 
     return step.builder(context);
