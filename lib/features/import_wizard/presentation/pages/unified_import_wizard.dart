@@ -57,6 +57,7 @@ class _UnifiedImportWizardBodyState
     extends ConsumerState<_UnifiedImportWizardBody> {
   late final PageController _pageController;
   int _currentPage = 0;
+  bool _navigatingForward = true;
 
   List<WizardStepDef> get _acquisitionSteps => widget.adapter.acquisitionSteps;
   int get _reviewIndex => _acquisitionSteps.length;
@@ -97,6 +98,7 @@ class _UnifiedImportWizardBodyState
   }
 
   Future<void> _onNext() async {
+    _navigatingForward = true;
     if (_currentPage < _reviewIndex) {
       // Let the current step commit any pending state before we leave it.
       final step = _acquisitionSteps[_currentPage];
@@ -257,12 +259,16 @@ class _UnifiedImportWizardBodyState
                     stepIndex: i,
                     step: step,
                     isCurrentPage: _currentPage == i,
+                    navigatingForward: _navigatingForward,
                     onAutoAdvance: () => _onNext(),
                   ),
                 ),
                 ReviewStep(
                   onImport: _startImport,
-                  onBack: () => _animateToPage(_currentPage - 1),
+                  onBack: () {
+                    _navigatingForward = false;
+                    _animateToPage(_currentPage - 1);
+                  },
                 ),
                 const ImportProgressStep(),
                 ImportSummaryStep(
@@ -291,7 +297,10 @@ class _UnifiedImportWizardBodyState
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(100, 48),
                 ),
-                onPressed: () => _animateToPage(_currentPage - 1),
+                onPressed: () {
+                  _navigatingForward = false;
+                  _animateToPage(_currentPage - 1);
+                },
                 child: const Text('Back'),
               ),
             const Spacer(),
@@ -323,17 +332,19 @@ class _AcquisitionStepPage extends ConsumerWidget {
     required this.stepIndex,
     required this.step,
     required this.isCurrentPage,
+    required this.navigatingForward,
     required this.onAutoAdvance,
   });
 
   final int stepIndex;
   final WizardStepDef step;
   final bool isCurrentPage;
+  final bool navigatingForward;
   final VoidCallback onAutoAdvance;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (step.autoAdvance && isCurrentPage) {
+    if (step.autoAdvance && isCurrentPage && navigatingForward) {
       // Listen for transitions from false → true.
       ref.listen<bool>(step.canAdvance, (previous, next) {
         if (next && previous != true) {
