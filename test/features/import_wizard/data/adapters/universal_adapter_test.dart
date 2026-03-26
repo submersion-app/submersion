@@ -88,7 +88,7 @@ Diver _testDiver() =>
     Diver(id: 'diver-1', name: 'Test Diver', createdAt: _now, updatedAt: _now);
 
 /// Simple settings notifier for tests. Uses the same pattern as other adapter
-/// tests: extends StateNotifier<AppSettings> and implements SettingsNotifier.
+/// tests: extends `StateNotifier<AppSettings>` and implements SettingsNotifier.
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _TestSettingsNotifier() : super(const AppSettings());
@@ -418,7 +418,7 @@ void main() {
     });
 
     testWidgets('dive with null dateTime shows "Unknown date"', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.dives: [
             {'maxDepth': 20.0},
@@ -549,7 +549,7 @@ void main() {
 
   group('buildBundle() - site entity items', () {
     testWidgets('converts site with name and coordinates', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.sites: [
             {'name': 'Blue Hole', 'latitude': 17.3155, 'longitude': -87.5347},
@@ -576,7 +576,7 @@ void main() {
     testWidgets('site with location string uses location as subtitle', (
       tester,
     ) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.sites: [
             {'name': 'Reef Site', 'location': 'Cozumel, Mexico'},
@@ -600,7 +600,7 @@ void main() {
     testWidgets('site with no location info has empty subtitle', (
       tester,
     ) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.sites: [
             {'name': 'Mystery Site'},
@@ -621,7 +621,7 @@ void main() {
     });
 
     testWidgets('site with null name shows Unnamed', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.sites: [
             {'latitude': 17.0, 'longitude': -87.0},
@@ -648,7 +648,7 @@ void main() {
 
   group('buildBundle() - buddy entity items', () {
     testWidgets('converts buddy with firstName and lastName', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.buddies: [
             {'firstName': 'Jane', 'lastName': 'Doe'},
@@ -669,7 +669,7 @@ void main() {
     });
 
     testWidgets('buddy with only firstName shows firstName', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.buddies: [
             {'firstName': 'Jane'},
@@ -690,7 +690,7 @@ void main() {
     });
 
     testWidgets('buddy with only name uses name field', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.buddies: [
             {'name': 'Captain Jack'},
@@ -711,7 +711,7 @@ void main() {
     });
 
     testWidgets('buddy with no name shows Unnamed', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.buddies: [<String, dynamic>{}],
         },
@@ -736,7 +736,7 @@ void main() {
 
   group('buildBundle() - equipment entity items', () {
     testWidgets('converts equipment with EquipmentType enum', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.equipment: [
             {'name': 'Aqualung Regulator', 'type': EquipmentType.regulator},
@@ -758,7 +758,7 @@ void main() {
     });
 
     testWidgets('converts equipment with String type', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.equipment: [
             {'name': 'Custom Gear', 'type': 'Special Equipment'},
@@ -780,7 +780,7 @@ void main() {
     });
 
     testWidgets('equipment with no type has empty subtitle', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.equipment: [
             {'name': 'Mystery Gear'},
@@ -801,7 +801,7 @@ void main() {
     });
 
     testWidgets('equipment with null name shows Unnamed', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.equipment: [<String, dynamic>{}],
         },
@@ -875,7 +875,7 @@ void main() {
     });
 
     testWidgets('trip with no dates has empty subtitle', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.trips: [
             {'name': 'Undated Trip'},
@@ -904,7 +904,7 @@ void main() {
     testWidgets(
       'converts certification with level and CertificationAgency enum',
       (tester) async {
-        final payload = ImportPayload(
+        const payload = ImportPayload(
           entities: {
             ui.ImportEntityType.certifications: [
               {'level': 'Open Water', 'agency': CertificationAgency.padi},
@@ -928,7 +928,7 @@ void main() {
     );
 
     testWidgets('certification with String agency', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.certifications: [
             {'name': 'Advanced OW', 'agency': 'SSI'},
@@ -953,7 +953,7 @@ void main() {
     testWidgets('certification with no agency has empty subtitle', (
       tester,
     ) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.certifications: [
             {'level': 'Rescue Diver'},
@@ -976,7 +976,7 @@ void main() {
     });
 
     testWidgets('certification uses name when level is null', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.certifications: [
             {'name': 'Divemaster'},
@@ -1004,7 +1004,7 @@ void main() {
 
   group('buildBundle() - dive center entity items', () {
     testWidgets('converts dive center with name and location', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.diveCenters: [
             {'name': 'Reef Divers', 'location': 'Grand Cayman'},
@@ -1026,7 +1026,7 @@ void main() {
     });
 
     testWidgets('dive center with country and city', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.diveCenters: [
             {'name': 'Island Divers', 'country': 'Mexico', 'city': 'Cozumel'},
@@ -1047,7 +1047,7 @@ void main() {
     });
 
     testWidgets('dive center with only country', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.diveCenters: [
             {'name': 'Dive Shop', 'country': 'Thailand'},
@@ -1068,7 +1068,7 @@ void main() {
     });
 
     testWidgets('dive center with only city', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.diveCenters: [
             {'name': 'Local Dive', 'city': 'Honolulu'},
@@ -1091,7 +1091,7 @@ void main() {
     testWidgets('dive center with no location info has empty subtitle', (
       tester,
     ) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.diveCenters: [
             {'name': 'Unknown Center'},
@@ -1119,7 +1119,7 @@ void main() {
 
   group('buildBundle() - simple entity items', () {
     testWidgets('converts tag with name', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.tags: [
             {'name': 'Night Dive'},
@@ -1141,7 +1141,7 @@ void main() {
     });
 
     testWidgets('tag with null name shows Unnamed', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.tags: [<String, dynamic>{}],
         },
@@ -1160,7 +1160,7 @@ void main() {
     });
 
     testWidgets('converts dive type with name', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.diveTypes: [
             {'name': 'Deep Dive'},
@@ -1182,7 +1182,7 @@ void main() {
     });
 
     testWidgets('converts equipment set with name', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.equipmentSets: [
             {'name': 'Tropical Setup'},
@@ -1205,7 +1205,7 @@ void main() {
     });
 
     testWidgets('converts course with name and agency', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.courses: [
             {'name': 'Nitrox Course', 'agency': 'PADI'},
@@ -1227,7 +1227,7 @@ void main() {
     });
 
     testWidgets('course with no agency has empty subtitle', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.courses: [
             {'name': 'Solo Course'},
@@ -1373,7 +1373,7 @@ void main() {
 
   group('checkDuplicates()', () {
     testWidgets('marks duplicate sites in duplicateIndices', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.sites: [
             {'name': 'Blue Hole'},
@@ -1381,7 +1381,7 @@ void main() {
         },
       );
 
-      final existingSite = DiveSite(id: 'site-1', name: 'Blue Hole');
+      const existingSite = DiveSite(id: 'site-1', name: 'Blue Hole');
 
       await _runWithAdapter(
         tester,
@@ -1402,7 +1402,7 @@ void main() {
     });
 
     testWidgets('marks duplicate tags in duplicateIndices', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.tags: [
             {'name': 'Night Dive'},
@@ -1490,7 +1490,7 @@ void main() {
     });
 
     testWidgets('non-duplicate entities are not marked', (tester) async {
-      final payload = ImportPayload(
+      const payload = ImportPayload(
         entities: {
           ui.ImportEntityType.sites: [
             {'name': 'Unique Site'},
@@ -1826,7 +1826,7 @@ void main() {
         },
       );
 
-      final options = ImportOptions(
+      const options = ImportOptions(
         sourceApp: ui.SourceApp.subsurface,
         format: ui.ImportFormat.subsurfaceXml,
         batchTag: 'Subsurface Import 2026-03-15',

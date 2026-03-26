@@ -775,7 +775,7 @@ void main() {
           DiveDataSourcesCompanion(
             id: const Value('ds-primary'),
             diveId: Value(diveId),
-            computerId: Value(computerId),
+            computerId: const Value(computerId),
             isPrimary: const Value(true),
             computerModel: const Value('Shearwater Petrel'),
             importedAt: Value(DateTime.now()),

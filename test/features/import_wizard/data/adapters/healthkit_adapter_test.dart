@@ -893,8 +893,8 @@ void main() {
   group('checkDuplicates() edge cases', () {
     test('returns bundle unchanged when dives group is null', () async {
       // Build a bundle with no dives group at all.
-      final bundle = ImportBundle(
-        source: const ImportSourceInfo(
+      const bundle = ImportBundle(
+        source: ImportSourceInfo(
           type: ImportSourceType.healthKit,
           displayName: 'Test',
         ),
