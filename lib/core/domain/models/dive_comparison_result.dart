@@ -59,8 +59,9 @@ class DiveComparisonResult {
 /// Tolerances: time 60s, depth 0.5m, temperature 1.0C, duration 60s.
 DiveComparisonResult compareForConsolidation(
   Dive existing,
-  IncomingDiveData incoming,
-) {
+  IncomingDiveData incoming, {
+  String? existingComputerName,
+}) {
   final same = <SameField>[];
   final diff = <DiffField>[];
 
@@ -131,7 +132,7 @@ DiveComparisonResult compareForConsolidation(
 
   // --- Computer ---
   final existingComputer = _formatComputer(
-    name: null,
+    name: existingComputerName ?? existing.diveComputerModel,
     model: existing.diveComputerModel,
     serial: existing.diveComputerSerial,
   );

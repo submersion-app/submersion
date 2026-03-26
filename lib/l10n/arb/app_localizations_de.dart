@@ -13682,7 +13682,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get universalImport_action_consolidate =>
-      'Consolidate as additional computer';
+      'Als zusaetzlichen Computer zusammenfuehren';
 
   @override
   String get universalImport_action_continue => 'Weiter';

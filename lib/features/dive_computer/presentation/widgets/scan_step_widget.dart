@@ -555,7 +555,8 @@ class _DeviceListTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: Semantics(
         button: true,
-        label: 'Bluetooth device: ${device.displayName}',
+        label:
+            'Bluetooth device: ${savedComputer?.displayName ?? device.displayName}',
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -594,12 +595,29 @@ class _DeviceListTile extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              device.displayName,
+                              savedComputer?.displayName ?? device.displayName,
                               style: theme.textTheme.titleMedium,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (device.isRecognized)
+                          if (savedComputer != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.tertiary,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'Known',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.onTertiary,
+                                ),
+                              ),
+                            )
+                          else if (device.isRecognized)
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,

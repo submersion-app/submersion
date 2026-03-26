@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
@@ -69,6 +70,17 @@ class _UnifiedImportWizardBodyState
   void initState() {
     super.initState();
     _pageController = PageController();
+
+    // Provide a go-back callback so step widgets with hideBottomBar can
+    // navigate backward (e.g. the dive computer confirm step).
+    final adapter = widget.adapter;
+    if (adapter is DiveComputerAdapter) {
+      adapter.goBackFromConfirm = () {
+        _navigatingForward = false;
+        _animateToPage(_currentPage - 1);
+      };
+    }
+
     // Reset adapter state from any previous import session.
     // Deferred to post-frame because Riverpod forbids provider modifications
     // during initState/build. The _resetComplete flag prevents auto-advance
@@ -138,12 +150,21 @@ class _UnifiedImportWizardBodyState
     final result = ref.read(importWizardProvider).importResult;
     if (result == null) return;
 
+    // Always refresh the computers list — ensureComputer() may have created
+    // a new record even when all dives were skipped.
+    if (widget.adapter.sourceType == ImportSourceType.diveComputer) {
+      ref.invalidate(allDiveComputersProvider);
+    }
+
     for (final type in result.importedCounts.keys) {
       if ((result.importedCounts[type] ?? 0) <= 0) continue;
       switch (type) {
         case ImportEntityType.dives:
           ref.invalidate(diveListNotifierProvider);
           ref.invalidate(paginatedDiveListProvider);
+          ref.invalidate(divesProvider);
+          ref.invalidate(diveStatisticsProvider);
+          ref.invalidate(diveRecordsProvider);
           ref.invalidate(allDiveComputersProvider);
           ref.invalidate(nextDiveNumberProvider);
           // Dives link to sites, buddies, trips, etc. — their counts/lists
@@ -249,7 +270,12 @@ class _UnifiedImportWizardBodyState
   @override
   Widget build(BuildContext context) {
     final stepLabels = _buildStepLabels();
-    final showBottomBar = _currentPage < _reviewIndex;
+    final currentStepDef = _currentPage < _acquisitionSteps.length
+        ? _acquisitionSteps[_currentPage]
+        : null;
+    final showBottomBar =
+        _currentPage < _reviewIndex &&
+        !(currentStepDef?.hideBottomBar ?? false);
 
     return Scaffold(
       appBar: AppBar(

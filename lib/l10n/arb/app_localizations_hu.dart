@@ -13652,7 +13652,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_action_consolidate =>
-      'Consolidate as additional computer';
+      'Egyesietes masodik szamitogepi adatkent';
 
   @override
   String get universalImport_action_continue => 'Folytatás';

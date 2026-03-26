@@ -3,6 +3,23 @@ import 'package:submersion/features/dive_computer/domain/entities/downloaded_div
 
 /// Convert a Pigeon ParsedDive to the app's DownloadedDive format.
 DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
+  // Some computers (e.g. Shearwater) don't provide top-level min/max
+  // temperature — derive from profile samples when missing.
+  final sampleTemps = parsed.samples
+      .map((s) => s.temperatureCelsius)
+      .whereType<double>()
+      .toList();
+  final minTemp =
+      parsed.minTemperatureCelsius ??
+      (sampleTemps.isNotEmpty
+          ? sampleTemps.reduce((a, b) => a < b ? a : b)
+          : null);
+  final maxTemp =
+      parsed.maxTemperatureCelsius ??
+      (sampleTemps.isNotEmpty
+          ? sampleTemps.reduce((a, b) => a > b ? a : b)
+          : null);
+
   return DownloadedDive(
     startTime: DateTime.utc(
       parsed.dateTimeYear,
@@ -15,8 +32,8 @@ DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
     durationSeconds: parsed.durationSeconds,
     maxDepth: parsed.maxDepthMeters,
     avgDepth: parsed.avgDepthMeters,
-    minTemperature: parsed.minTemperatureCelsius,
-    maxTemperature: parsed.maxTemperatureCelsius,
+    minTemperature: minTemp,
+    maxTemperature: maxTemp,
     fingerprint: parsed.fingerprint,
     decoAlgorithm: parsed.decoAlgorithm,
     gfLow: parsed.gfLow,

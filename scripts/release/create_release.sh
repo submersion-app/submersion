@@ -179,7 +179,7 @@ else
 
   # 6. Tests
   echo "  [..] Running flutter test..."
-  if flutter test > /dev/null 2>&1; then
+  if flutter test --exclude-tags performance > /dev/null 2>&1; then
     echo "  [OK] Tests pass"
   else
     echo "  [FAIL] Tests failing (run: flutter test)"

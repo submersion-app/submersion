@@ -309,19 +309,40 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               const SizedBox(height: 24),
               _buildAltitudeSection(context, ref, dive),
             ],
-            _buildTideSection(context, ref, dive),
             if (_hasWeights(dive)) ...[
               const SizedBox(height: 24),
               _buildWeightSection(context, dive, units),
-            ],
-            if (dive.tags.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              _buildTagsSection(context, dive),
             ],
             const SizedBox(height: 24),
             _buildBuddiesSection(context, ref),
             const SizedBox(height: 24),
             BuddySignaturesSection(diveId: diveId),
+            const SizedBox(height: 24),
+            if (dive.tanks.isNotEmpty) ...[
+              _buildTanksSection(context, ref, dive, units),
+            ],
+            if (dive.equipment.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _buildEquipmentSection(context, ref, dive),
+            ],
+            _buildSightingsSection(context, ref),
+            const SizedBox(height: 24),
+            _buildMediaSection(context, ref, dive),
+            if (dive.tags.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _buildTagsSection(context, dive),
+            ],
+            const SizedBox(height: 24),
+            _buildNotesSection(context, dive),
+            if (dive.customFields.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _buildCustomFieldsSection(context, dive),
+            ],
+            if (dive.courseId != null) ...[
+              const SizedBox(height: 24),
+              _buildSignatureSection(context, ref, dive),
+            ],
+            _buildTideSection(context, ref, dive),
             const SizedBox(height: 24),
             ValueListenableBuilder<String?>(
               valueListenable: _viewedSourceIdNotifier,
@@ -355,27 +376,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 );
               },
             ),
-            const SizedBox(height: 24),
-            if (dive.tanks.isNotEmpty) ...[
-              _buildTanksSection(context, ref, dive, units),
-            ],
-            if (dive.equipment.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              _buildEquipmentSection(context, ref, dive),
-            ],
-            _buildSightingsSection(context, ref),
-            const SizedBox(height: 24),
-            _buildMediaSection(context, ref, dive),
-            const SizedBox(height: 24),
-            _buildNotesSection(context, dive),
-            if (dive.customFields.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              _buildCustomFieldsSection(context, dive),
-            ],
-            if (dive.courseId != null) ...[
-              const SizedBox(height: 24),
-              _buildSignatureSection(context, ref, dive),
-            ],
             const SizedBox(height: 32),
           ],
         ),
@@ -440,6 +440,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 ),
               ),
               const PopupMenuItem(
+                enabled: false,
                 value: 'merge',
                 child: ListTile(
                   leading: Icon(Icons.merge),
@@ -585,6 +586,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 ),
               ),
               const PopupMenuItem(
+                enabled: false,
                 value: 'merge',
                 child: ListTile(
                   leading: Icon(Icons.merge),

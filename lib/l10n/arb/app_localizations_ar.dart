@@ -13422,8 +13422,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get units_weight_pounds => 'lbs';
 
   @override
-  String get universalImport_action_consolidate =>
-      'Consolidate as additional computer';
+  String get universalImport_action_consolidate => 'دمج كقراءة كمبيوتر إضافية';
 
   @override
   String get universalImport_action_continue => 'متابعة';

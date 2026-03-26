@@ -13698,7 +13698,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get universalImport_action_consolidate =>
-      'Consolidate as additional computer';
+      'Consolidar como ordenador adicional';
 
   @override
   String get universalImport_action_continue => 'Continuar';

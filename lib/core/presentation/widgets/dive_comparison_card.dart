@@ -5,6 +5,7 @@ import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/presentation/widgets/overlaid_profile_chart.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -97,7 +98,23 @@ class DiveComparisonCard extends ConsumerWidget {
           );
         }
 
-        final comparison = compareForConsolidation(existingDive, incoming);
+        // Look up the personalized computer name from data sources.
+        final dataSources =
+            ref.watch(diveDataSourcesProvider(existingDiveId)).valueOrNull ??
+            [];
+        final primarySource = dataSources.isEmpty ? null : dataSources.first;
+        final existingComputerName = primarySource?.computerId != null
+            ? ref
+                  .watch(diveComputerByIdProvider(primarySource!.computerId!))
+                  .valueOrNull
+                  ?.displayName
+            : null;
+
+        final comparison = compareForConsolidation(
+          existingDive,
+          incoming,
+          existingComputerName: existingComputerName,
+        );
         final existingProfile = profileAsync.valueOrNull ?? [];
         final diveNum = existingDive.diveNumber;
         final effectiveExistingLabel = diveNum != null
@@ -399,7 +416,7 @@ class DiveComparisonCard extends ConsumerWidget {
         _ActionButton(
           label: 'Consolidate',
           subtitle: 'Add as 2nd computer reading',
-          onPressed: callbackFor(DuplicateAction.consolidate, onConsolidate),
+          onPressed: null, // Disabled — consolidation is under development.
           style: styleFor(
             DuplicateAction.consolidate,
             _ActionButtonStyle.outlined,

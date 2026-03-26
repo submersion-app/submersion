@@ -178,6 +178,7 @@ class DiveComputerNotifier
     await _load();
     _ref.invalidate(allDiveComputersProvider);
     _ref.invalidate(favoriteDiveComputerProvider);
+    _ref.invalidate(diveComputerByIdProvider(computer.id));
   }
 
   Future<void> delete(String id) async {
@@ -185,6 +186,7 @@ class DiveComputerNotifier
     await _load();
     _ref.invalidate(allDiveComputersProvider);
     _ref.invalidate(favoriteDiveComputerProvider);
+    _ref.invalidate(diveComputerByIdProvider(id));
   }
 
   Future<void> setFavorite(String id) async {

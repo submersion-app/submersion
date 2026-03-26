@@ -301,7 +301,12 @@ class DiveImportService {
               // Import as new (importAsNew or consolidate treated as new here;
               // consolidate at the conflict-resolution level is handled by
               // resolveConflict / DiveComputerAdapter._consolidateDive)
-              final diveId = await _importNewDive(dive, computer.id, diverId);
+              final diveId = await _importNewDive(
+                dive,
+                computer.id,
+                diverId,
+                forceNew: true,
+              );
               importedDiveIds.add(diveId);
               importedDives.add(dive);
               imported++;

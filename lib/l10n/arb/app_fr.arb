@@ -4210,6 +4210,7 @@
   "units_volume_liters": "L",
   "units_weight_kilograms": "kg",
   "units_weight_pounds": "lbs",
+  "universalImport_action_consolidate": "Consolider comme ordinateur supplementaire",
   "universalImport_action_continue": "Continuer",
   "universalImport_action_deselectAll": "Tout désélectionner",
   "universalImport_action_done": "Terminé",

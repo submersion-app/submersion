@@ -121,9 +121,7 @@ void main() {
         expect(importCalled, isTrue);
       });
 
-      testWidgets('fires onConsolidate when Consolidate tapped', (
-        tester,
-      ) async {
+      testWidgets('Consolidate button is disabled', (tester) async {
         var consolidateCalled = false;
         await tester.pumpWidget(
           _buildCard(
@@ -137,10 +135,12 @@ void main() {
         );
         await tester.pumpAndSettle();
 
+        // Consolidate button should be visible but disabled.
+        expect(find.text('Consolidate'), findsOneWidget);
         await tester.tap(find.text('Consolidate'));
         await tester.pump();
 
-        expect(consolidateCalled, isTrue);
+        expect(consolidateCalled, isFalse);
       });
     },
   );
@@ -244,29 +244,30 @@ void main() {
       },
     );
 
-    testWidgets(
-      'tapping Consolidate calls onActionChanged with DuplicateAction.consolidate',
-      (tester) async {
-        DuplicateAction? received;
-        await tester.pumpWidget(
-          _buildCard(
-            card: DiveComparisonCard(
-              incoming: _testIncoming,
-              existingDiveId: _existingDiveId,
-              matchScore: 0.95,
-              selectedAction: DuplicateAction.skip,
-              onActionChanged: (action) => received = action,
-            ),
+    testWidgets('Consolidate button is disabled in tri-state mode', (
+      tester,
+    ) async {
+      DuplicateAction? received;
+      await tester.pumpWidget(
+        _buildCard(
+          card: DiveComparisonCard(
+            incoming: _testIncoming,
+            existingDiveId: _existingDiveId,
+            matchScore: 0.95,
+            selectedAction: DuplicateAction.skip,
+            onActionChanged: (action) => received = action,
           ),
-        );
-        await tester.pumpAndSettle();
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        await tester.tap(find.text('Consolidate'));
-        await tester.pump();
+      // Consolidate button should be visible but disabled.
+      expect(find.text('Consolidate'), findsOneWidget);
+      await tester.tap(find.text('Consolidate'));
+      await tester.pump();
 
-        expect(received, DuplicateAction.consolidate);
-      },
-    );
+      expect(received, isNull);
+    });
 
     testWidgets('availableActions hides Consolidate button when not in set', (
       tester,

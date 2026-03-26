@@ -763,7 +763,7 @@ void main() {
       expect(adapter.acquisitionSteps.first.autoAdvance, isTrue);
     });
 
-    test('discovery adapter has two acquisition steps', () {
+    test('discovery adapter has three acquisition steps', () {
       final discoveryAdapter = DiveComputerAdapter(
         importService: mockImportService,
         computerRepository: mockComputerRepo,
@@ -771,11 +771,14 @@ void main() {
         diverId: diverId,
       );
 
-      expect(discoveryAdapter.acquisitionSteps, hasLength(2));
+      expect(discoveryAdapter.acquisitionSteps, hasLength(3));
       expect(discoveryAdapter.acquisitionSteps[0].label, equals('Scan'));
       expect(discoveryAdapter.acquisitionSteps[0].autoAdvance, isTrue);
-      expect(discoveryAdapter.acquisitionSteps[1].label, equals('Download'));
+      expect(discoveryAdapter.acquisitionSteps[1].label, equals('Confirm'));
       expect(discoveryAdapter.acquisitionSteps[1].autoAdvance, isTrue);
+      expect(discoveryAdapter.acquisitionSteps[1].hideBottomBar, isTrue);
+      expect(discoveryAdapter.acquisitionSteps[2].label, equals('Download'));
+      expect(discoveryAdapter.acquisitionSteps[2].autoAdvance, isTrue);
     });
 
     test('isKnownComputer returns true when knownComputer is provided', () {

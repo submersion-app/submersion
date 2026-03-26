@@ -70,6 +70,27 @@ class _SuccessView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final totalImported = importedCounts.values.fold<int>(
+      0,
+      (sum, v) => sum + v,
+    );
+    final hasNewDives = totalImported > 0 || consolidatedCount > 0;
+
+    final String title;
+    final IconData icon;
+    final Color iconColor;
+    final Color iconBg;
+    if (hasNewDives) {
+      title = 'Successfully Imported';
+      icon = Icons.check;
+      iconColor = theme.colorScheme.onPrimaryContainer;
+      iconBg = theme.colorScheme.primaryContainer;
+    } else {
+      title = 'No Dives Imported';
+      icon = Icons.info_outline;
+      iconColor = theme.colorScheme.onSurfaceVariant;
+      iconBg = theme.colorScheme.surfaceContainerHighest;
+    }
 
     return Center(
       child: SingleChildScrollView(
@@ -80,23 +101,26 @@ class _SuccessView extends StatelessWidget {
             Container(
               width: 64,
               height: 64,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.check,
-                size: 36,
-                color: theme.colorScheme.onPrimaryContainer,
-              ),
+              decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+              child: Icon(icon, size: 36, color: iconColor),
             ),
             const SizedBox(height: 20),
             Text(
-              'Successfully Imported',
+              title,
               key: const Key('import_summary_success_title'),
               style: theme.textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
+            if (!hasNewDives && skippedCount > 0) ...[
+              const SizedBox(height: 8),
+              Text(
+                'All dives were skipped.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
             const SizedBox(height: 24),
             for (final entry in importedCounts.entries)
               if (entry.value > 0)
@@ -124,11 +148,13 @@ class _SuccessView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 OutlinedButton(onPressed: onDone, child: const Text('Done')),
-                const SizedBox(width: 16),
-                FilledButton(
-                  onPressed: onViewDives,
-                  child: const Text('View Dives'),
-                ),
+                if (hasNewDives) ...[
+                  const SizedBox(width: 16),
+                  FilledButton(
+                    onPressed: onViewDives,
+                    child: const Text('View Dives'),
+                  ),
+                ],
               ],
             ),
           ],

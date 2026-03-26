@@ -13699,7 +13699,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get universalImport_action_consolidate =>
-      'Consolidate as additional computer';
+      'Consolidar como computador adicional';
 
   @override
   String get universalImport_action_continue => 'Continuar';

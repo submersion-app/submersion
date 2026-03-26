@@ -81,12 +81,15 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
       ];
     }
 
-    return widget.dataSources.map((source) {
+    final children = <Widget>[];
+    for (var i = 0; i < widget.dataSources.length; i++) {
+      final source = widget.dataSources[i];
       final isViewing = widget.viewedSourceId == source.id;
-
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: _DataSourceCard(
+      if (i > 0) {
+        children.add(const Divider(height: 1));
+      }
+      children.add(
+        _DataSourceCard(
           source: source,
           units: widget.units,
           showBadges: isMultiSource,
@@ -102,7 +105,9 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
               : null,
         ),
       );
-    }).toList();
+    }
+
+    return children;
   }
 }
 
@@ -122,47 +127,44 @@ class _ManualEntryCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header row: icon + "Manual Entry" + badge
-            Row(
-              children: [
-                Icon(Icons.edit, size: 18, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Text(
-                        'Manual Entry',
-                        style: textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header row: icon + "Manual Entry" + badge
+          Row(
+            children: [
+              Icon(Icons.edit, size: 18, color: colorScheme.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Row(
+                  children: [
+                    Text(
+                      'Manual Entry',
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
-                      const SizedBox(width: 6),
-                      _Badge(
-                        label: 'Manual',
-                        color: colorScheme.surfaceContainerHighest,
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 6),
+                    _Badge(
+                      label: 'Manual',
+                      color: colorScheme.surfaceContainerHighest,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Creation date
-            Text(
-              'Created ${_formatDate(diveCreatedAt)}',
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
               ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Creation date
+          Text(
+            'Created ${_formatDate(diveCreatedAt)}',
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -239,152 +241,148 @@ class _DataSourceCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      child: Card(
-        margin: EdgeInsets.zero,
-        clipBehavior: Clip.antiAlias,
-        child: Container(
-          decoration: cardDecoration,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header: icon + model name + badges + overflow menu
-                Row(
-                  children: [
-                    Icon(Icons.watch, size: 18, color: colorScheme.primary),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              source.displayName,
-                              style: textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+      child: Container(
+        decoration: cardDecoration,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header: icon + model name + badges + overflow menu
+              Row(
+                children: [
+                  Icon(Icons.watch, size: 18, color: colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            source.displayName,
+                            style: textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (showBadges) ...[
+                          const SizedBox(width: 6),
+                          if (isViewing)
+                            _Badge(
+                              label: 'Viewing',
+                              color: colorScheme.tertiaryContainer,
+                            )
+                          else if (source.isPrimary)
+                            _Badge(
+                              label: 'Primary',
+                              color: colorScheme.primaryContainer,
+                            )
+                          else
+                            _Badge(
+                              label: 'Secondary',
+                              color: colorScheme.surfaceContainerHighest,
+                            ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  if (hasOverflowMenu)
+                    PopupMenuButton<_SourceMenuAction>(
+                      icon: const Icon(Icons.more_vert, size: 20),
+                      iconSize: 20,
+                      onSelected: (action) {
+                        switch (action) {
+                          case _SourceMenuAction.setPrimary:
+                            onSetPrimary?.call();
+                          case _SourceMenuAction.unlink:
+                            onUnlink?.call();
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        if (!source.isPrimary && onSetPrimary != null)
+                          const PopupMenuItem(
+                            value: _SourceMenuAction.setPrimary,
+                            child: ListTile(
+                              leading: Icon(Icons.star_outline),
+                              title: Text('Set as primary'),
+                              contentPadding: EdgeInsets.zero,
                             ),
                           ),
-                          if (showBadges) ...[
-                            const SizedBox(width: 6),
-                            if (isViewing)
-                              _Badge(
-                                label: 'Viewing',
-                                color: colorScheme.tertiaryContainer,
-                              )
-                            else if (source.isPrimary)
-                              _Badge(
-                                label: 'Primary',
-                                color: colorScheme.primaryContainer,
-                              )
-                            else
-                              _Badge(
-                                label: 'Secondary',
-                                color: colorScheme.surfaceContainerHighest,
-                              ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    if (hasOverflowMenu)
-                      PopupMenuButton<_SourceMenuAction>(
-                        icon: const Icon(Icons.more_vert, size: 20),
-                        iconSize: 20,
-                        onSelected: (action) {
-                          switch (action) {
-                            case _SourceMenuAction.setPrimary:
-                              onSetPrimary?.call();
-                            case _SourceMenuAction.unlink:
-                              onUnlink?.call();
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          if (!source.isPrimary && onSetPrimary != null)
-                            const PopupMenuItem(
-                              value: _SourceMenuAction.setPrimary,
-                              child: ListTile(
-                                leading: Icon(Icons.star_outline),
-                                title: Text('Set as primary'),
-                                contentPadding: EdgeInsets.zero,
-                              ),
+                        if (onUnlink != null)
+                          const PopupMenuItem(
+                            value: _SourceMenuAction.unlink,
+                            child: ListTile(
+                              leading: Icon(Icons.link_off),
+                              title: Text('Unlink'),
+                              contentPadding: EdgeInsets.zero,
                             ),
-                          if (onUnlink != null)
-                            const PopupMenuItem(
-                              value: _SourceMenuAction.unlink,
-                              child: ListTile(
-                                leading: Icon(Icons.link_off),
-                                title: Text('Unlink'),
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                            ),
-                        ],
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Details grid: serial, format, entry/exit times, import date
-                _DetailsGrid(
-                  source: source,
-                  labelStyle: labelStyle,
-                  valueStyle: valueStyle,
-                  formatTime: _formatTime,
-                  formatDate: _formatDate,
-                ),
-                const SizedBox(height: 8),
-                // Metrics row: max depth, duration, temp, CNS
-                Row(
-                  children: [
-                    Expanded(
-                      child: _MetricCell(
-                        label: 'Max depth',
-                        value: units.formatDepth(source.maxDepth),
-                        labelStyle: labelStyle,
-                        valueStyle: valueStyle,
-                      ),
+                          ),
+                      ],
                     ),
-                    Expanded(
-                      child: _MetricCell(
-                        label: 'Duration',
-                        value: _formatDuration(source.duration),
-                        labelStyle: labelStyle,
-                        valueStyle: valueStyle,
-                      ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Details grid: serial, format, entry/exit times, import date
+              _DetailsGrid(
+                source: source,
+                labelStyle: labelStyle,
+                valueStyle: valueStyle,
+                formatTime: _formatTime,
+                formatDate: _formatDate,
+              ),
+              const SizedBox(height: 8),
+              // Metrics row: max depth, duration, temp, CNS
+              Row(
+                children: [
+                  Expanded(
+                    child: _MetricCell(
+                      label: 'Max depth',
+                      value: units.formatDepth(source.maxDepth),
+                      labelStyle: labelStyle,
+                      valueStyle: valueStyle,
                     ),
-                    Expanded(
-                      child: _MetricCell(
-                        label: 'Water temp',
-                        value: units.formatTemperature(source.waterTemp),
-                        labelStyle: labelStyle,
-                        valueStyle: valueStyle,
-                      ),
+                  ),
+                  Expanded(
+                    child: _MetricCell(
+                      label: 'Duration',
+                      value: _formatDuration(source.duration),
+                      labelStyle: labelStyle,
+                      valueStyle: valueStyle,
                     ),
-                    Expanded(
-                      child: _MetricCell(
-                        label: 'CNS%',
-                        value: source.cns != null
-                            ? '${source.cns!.toStringAsFixed(1)}%'
-                            : '--',
-                        labelStyle: labelStyle,
-                        valueStyle: valueStyle,
-                      ),
+                  ),
+                  Expanded(
+                    child: _MetricCell(
+                      label: 'Water temp',
+                      value: units.formatTemperature(source.waterTemp),
+                      labelStyle: labelStyle,
+                      valueStyle: valueStyle,
                     ),
-                  ],
-                ),
-                // Filename at bottom
-                if (source.sourceFileName != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    source.sourceFileName!,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontStyle: FontStyle.italic,
+                  ),
+                  Expanded(
+                    child: _MetricCell(
+                      label: 'CNS%',
+                      value: source.cns != null
+                          ? '${source.cns!.toStringAsFixed(1)}%'
+                          : '--',
+                      labelStyle: labelStyle,
+                      valueStyle: valueStyle,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
+              ),
+              // Filename at bottom
+              if (source.sourceFileName != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  source.sourceFileName!,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
-            ),
+            ],
           ),
         ),
       ),
@@ -392,7 +390,8 @@ class _DataSourceCard extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
 // Details Grid
 // ---------------------------------------------------------------------------
 

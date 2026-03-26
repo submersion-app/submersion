@@ -610,7 +610,7 @@ class DeviceDetailPage extends ConsumerWidget {
   ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Computer?'),
         content: Text(
           'Are you sure you want to remove "${computer.displayName}"? '
@@ -618,18 +618,18 @@ class DeviceDetailPage extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancel'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
             ),
             onPressed: () {
               ref
                   .read(diveComputerNotifierProvider.notifier)
                   .delete(computer.id);
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
               context.pop(); // Go back to list
             },
             child: const Text('Delete'),

@@ -37,6 +37,10 @@ class WizardStepDef {
   /// stays generic.
   final VoidCallback? onBeforeAdvance;
 
+  /// When true, the wizard hides the standard bottom bar (Back/Next) for this
+  /// step. The step widget is responsible for its own navigation controls.
+  final bool hideBottomBar;
+
   const WizardStepDef({
     required this.label,
     this.icon,
@@ -44,5 +48,6 @@ class WizardStepDef {
     required this.canAdvance,
     this.autoAdvance = false,
     this.onBeforeAdvance,
+    this.hideBottomBar = false,
   });
 }

@@ -13580,7 +13580,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_action_consolidate =>
-      'Consolidate as additional computer';
+      'Samenvoegen als extra computer';
 
   @override
   String get universalImport_action_continue => 'Doorgaan';

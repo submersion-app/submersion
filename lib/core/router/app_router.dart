@@ -1009,6 +1009,7 @@ class _DiveComputerDiscoveryWizardRoute extends ConsumerWidget {
         computerRepository: computerRepo,
         diveRepository: diveRepo,
         diverId: diverId,
+        ref: ref,
       ),
     );
   }
@@ -1044,6 +1045,7 @@ class _DiveComputerDownloadWizardRoute extends ConsumerWidget {
             diveRepository: diveRepo,
             diverId: diverId,
             knownComputer: computer,
+            ref: ref,
           ),
         );
       },

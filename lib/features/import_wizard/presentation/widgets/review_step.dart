@@ -44,6 +44,11 @@ class ReviewStep extends ConsumerWidget {
       bundle: bundle,
       nextDiveNumber: nextDiveNumber.value,
       retainSource: state.retainSourceDiveNumbers,
+      selections: state.selections[ImportEntityType.dives] ?? const {},
+      duplicateActions:
+          state.duplicateActions[ImportEntityType.dives] ?? const {},
+      duplicateIndices:
+          bundle.groups[ImportEntityType.dives]?.duplicateIndices ?? const {},
     );
 
     if (types.length == 1) {
@@ -75,21 +80,39 @@ class ReviewStep extends ConsumerWidget {
 
   /// Compute a map from item index → projected dive number.
   ///
-  /// Sorts dive items by startTime (oldest first) and assigns sequential
-  /// numbers starting from [nextDiveNumber].
+  /// Only assigns numbers to dives that will actually be imported as new
+  /// (selected non-duplicates + duplicates with "Import as New" action).
+  /// Skipped and consolidated dives are excluded.
   static Map<int, int>? _computeProjectedDiveNumbers({
     required ImportBundle bundle,
     required int? nextDiveNumber,
     required bool retainSource,
+    required Set<int> selections,
+    required Map<int, DuplicateAction> duplicateActions,
+    required Set<int> duplicateIndices,
   }) {
     final group = bundle.groups[ImportEntityType.dives];
     if (group == null || nextDiveNumber == null) return null;
 
     final items = group.items;
 
+    // Determine which indices will be imported as new dives.
+    final importIndices = <int>{};
+    for (var i = 0; i < items.length; i++) {
+      if (duplicateIndices.contains(i)) {
+        // Duplicate: only include if action is importAsNew.
+        if (duplicateActions[i] == DuplicateAction.importAsNew) {
+          importIndices.add(i);
+        }
+      } else if (selections.contains(i)) {
+        // Non-duplicate: include if selected.
+        importIndices.add(i);
+      }
+    }
+
     // Build (index, startTime) pairs for sorting.
     final indexed = <(int, DateTime)>[];
-    for (var i = 0; i < items.length; i++) {
+    for (final i in importIndices) {
       final time = items[i].diveData?.startTime ?? DateTime(0);
       indexed.add((i, time));
     }
