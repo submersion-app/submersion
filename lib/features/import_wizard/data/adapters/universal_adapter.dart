@@ -99,12 +99,14 @@ class UniversalAdapter implements ImportSourceAdapter {
 
   @override
   String get defaultTagName {
+    final state = _ref.read(universalImportNotifierProvider);
+    final name = state.fileName ?? _displayName;
     final now = DateTime.now();
     final date =
         '${now.year}-'
         '${now.month.toString().padLeft(2, '0')}-'
         '${now.day.toString().padLeft(2, '0')}';
-    return '$_displayName Import $date';
+    return '$name Import $date';
   }
 
   @override
