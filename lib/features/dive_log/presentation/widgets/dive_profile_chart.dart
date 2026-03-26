@@ -368,6 +368,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showCeiling = widget.showCeiling;
     _showAscentRateColors = widget.showAscentRateColors;
     _showEvents = widget.showEvents;
+    _scheduleTankPressureVisibilityInitialization();
   }
 
   @override
@@ -377,6 +378,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       _lastTooltipSpotIndex = null;
       _lastTooltipItems = [];
     }
+    if (oldWidget.tankPressures != widget.tankPressures) {
+      _scheduleTankPressureVisibilityInitialization();
+    }
+  }
+
+  void _scheduleTankPressureVisibilityInitialization() {
+    if (!_hasMultiTankPressure) return;
+    final tankIds = widget.tankPressures!.keys.toList();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || tankIds.isEmpty) return;
+      ref.read(profileLegendProvider.notifier).initializeTankPressures(tankIds);
+    });
   }
 
   void _resetZoom() {
@@ -1988,7 +2001,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final tankId = sortedTankIds[i];
 
       // Skip if tank is hidden
-      if (!(_showTankPressure[tankId] ?? true)) continue;
+      if (_showTankPressure[tankId] == false) continue;
 
       final pressurePoints = tankPressures[tankId]!;
       if (pressurePoints.isEmpty) continue;

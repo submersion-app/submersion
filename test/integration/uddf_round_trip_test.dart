@@ -399,5 +399,165 @@ void main() {
         reason: 'Total tank count should match through round-trip',
       );
     });
+
+    test('imports multi-tank dive and stores separate pressure data', () async {
+      // 1. Manually create a UDDF string for a two-tank dive
+      const uddfContent = '''
+<uddf version="3.2.0">
+  <profiledata>
+    <repetitiongroup>
+      <dive id="dive_1">
+        <informationbeforedive>
+          <datetime>2024-01-01T12:00:00</datetime>
+          <divenumber>1</divenumber>
+        </informationbeforedive>
+        <tankdata id="T1">
+          <tankvolume>12.0</tankvolume>
+        </tankdata>
+        <tankdata id="T2">
+          <tankvolume>11.0</tankvolume>
+        </tankdata>
+        <samples>
+          <waypoint>
+            <divetime>10</divetime>
+            <depth>10.0</depth>
+            <tankpressure ref="T1">20000000</tankpressure>
+            <tankpressure ref="T2">19000000</tankpressure>
+          </waypoint>
+          <waypoint>
+            <divetime>20</divetime>
+            <depth>20.0</depth>
+            <tankpressure ref="T1">18000000</tankpressure>
+            <tankpressure ref="T2">17000000</tankpressure>
+          </waypoint>
+        </samples>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>
+''';
+
+      // 2. Import the data into the database
+      final importer = createImporter();
+      await importer.importFromContent(uddfContent);
+
+      // 3. Verify the dive was created
+      final diveRepository = DiveRepository();
+      final dives = await diveRepository.getAllDives();
+      expect(dives, hasLength(1));
+      final diveId = dives.first.id;
+
+      // 4. Query the tank pressure data from the repository
+      final tankPressureRepository = TankPressureRepository();
+      final pressuresByTank = await tankPressureRepository
+          .getTankPressuresForDive(diveId);
+
+      // 5. Assert that pressure data for two separate tanks was stored
+      expect(
+        pressuresByTank.keys,
+        hasLength(2),
+        reason: 'Should have pressure data for two tanks.',
+      );
+
+      final pressureSeries = pressuresByTank.values.toList()
+        ..sort((a, b) => a.first.pressure.compareTo(b.first.pressure));
+      final pressuresLower = pressureSeries[0];
+      final pressuresHigher = pressureSeries[1];
+
+      expect(pressuresLower, hasLength(2));
+      expect(pressuresHigher, hasLength(2));
+      expect(pressuresHigher.first.pressure, closeTo(200.0, 0.1));
+      expect(pressuresLower.first.pressure, closeTo(190.0, 0.1));
+    });
+
+    test(
+      'imports multi-tank dive without tank IDs and stores separate pressure data',
+      () async {
+        // Test case for UDDF files where tankdata elements don't have id attributes
+        // but waypoints reference tanks as "T1", "T2", etc. (like Perdix AI exports)
+        const uddfContent = '''
+<uddf version="3.2.3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.streit.cc/uddf/3.2/">
+  <profiledata>
+    <repetitiongroup>
+      <dive id="1190044691756736304">
+        <informationbeforedive>
+          <divenumber>235</divenumber>
+          <datetime>2025-09-01T14:18:24Z</datetime>
+        </informationbeforedive>
+        <tankdata>
+          <tankpressurebegin>20049962</tankpressurebegin>
+          <tankpressureend>12879411</tankpressureend>
+        </tankdata>
+        <tankdata>
+          <tankpressurebegin>21952916</tankpressurebegin>
+          <tankpressureend>14244574</tankpressureend>
+        </tankdata>
+        <tankdata>
+          <tankpressurebegin>0</tankpressurebegin>
+          <tankpressureend>0</tankpressureend>
+        </tankdata>
+        <tankdata>
+          <tankpressurebegin>0</tankpressurebegin>
+          <tankpressureend>0</tankpressureend>
+        </tankdata>
+        <samples>
+          <waypoint>
+            <depth>1</depth>
+            <divetime>0</divetime>
+            <tankpressure ref="T1">20049962</tankpressure>
+            <tankpressure ref="T2">21952916</tankpressure>
+          </waypoint>
+          <waypoint>
+            <depth>3</depth>
+            <divetime>10</divetime>
+            <tankpressure ref="T1">19939646</tankpressure>
+            <tankpressure ref="T2">21939126</tankpressure>
+          </waypoint>
+        </samples>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>
+''';
+
+        // 2. Import the data into the database
+        final importer = createImporter();
+        await importer.importFromContent(uddfContent);
+
+        // 3. Verify the dive was created
+        final diveRepository = DiveRepository();
+        final dives = await diveRepository.getAllDives();
+        expect(dives, hasLength(1));
+        final diveId = dives.first.id;
+
+        // 4. Query the tank pressure data from the repository
+        final tankPressureRepository = TankPressureRepository();
+        final pressuresByTank = await tankPressureRepository
+            .getTankPressuresForDive(diveId);
+
+        // 5. Assert that pressure data for two separate tanks was stored
+        // (tanks 3-4 have zero pressures and should be filtered out)
+        expect(
+          pressuresByTank.keys,
+          hasLength(2),
+          reason:
+              'Should have pressure data for two tanks with non-zero pressures.',
+        );
+
+        final pressureSeries = pressuresByTank.values.toList()
+          ..sort((a, b) => a.first.pressure.compareTo(b.first.pressure));
+        final pressuresT1 = pressureSeries[0];
+        final pressuresT2 = pressureSeries[1];
+
+        expect(pressuresT1, hasLength(2));
+        expect(pressuresT2, hasLength(2));
+        // First waypoint pressures
+        expect(pressuresT1.first.pressure, closeTo(200.5, 0.1));
+        expect(pressuresT2.first.pressure, closeTo(219.5, 0.1));
+        // Second waypoint pressures
+        expect(pressuresT1.last.pressure, closeTo(199.4, 0.1));
+        expect(pressuresT2.last.pressure, closeTo(219.4, 0.1));
+      },
+    );
   });
 }
