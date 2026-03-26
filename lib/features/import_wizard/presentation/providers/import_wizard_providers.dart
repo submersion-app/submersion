@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/tag_selection.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 
 // ============================================================================
@@ -16,6 +17,7 @@ class ImportWizardState {
     this.selections = const {},
     this.duplicateActions = const {},
     this.retainSourceDiveNumbers = false,
+    this.importTags = const [],
     this.importPhase,
     this.importCurrent = 0,
     this.importTotal = 0,
@@ -39,6 +41,9 @@ class ImportWizardState {
   /// When true, imported dives keep their original dive numbers from the
   /// source file instead of being auto-assigned sequential numbers.
   final bool retainSourceDiveNumbers;
+
+  /// Tags to apply to all imported dives.
+  final List<TagSelection> importTags;
 
   /// Human-readable label for the current import phase (e.g. "dives").
   final String? importPhase;
@@ -65,6 +70,7 @@ class ImportWizardState {
     Map<ImportEntityType, Set<int>>? selections,
     Map<ImportEntityType, Map<int, DuplicateAction>>? duplicateActions,
     bool? retainSourceDiveNumbers,
+    List<TagSelection>? importTags,
     String? importPhase,
     bool clearImportPhase = false,
     int? importCurrent,
@@ -82,6 +88,7 @@ class ImportWizardState {
       duplicateActions: duplicateActions ?? this.duplicateActions,
       retainSourceDiveNumbers:
           retainSourceDiveNumbers ?? this.retainSourceDiveNumbers,
+      importTags: importTags ?? this.importTags,
       importPhase: clearImportPhase ? null : (importPhase ?? this.importPhase),
       importCurrent: importCurrent ?? this.importCurrent,
       importTotal: importTotal ?? this.importTotal,
@@ -212,6 +219,48 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// the source file.
   void setRetainSourceDiveNumbers(bool value) {
     state = state.copyWith(retainSourceDiveNumbers: value);
+  }
+
+  // -------------------------------------------------------------------------
+  // Import tags
+  // -------------------------------------------------------------------------
+
+  /// Pre-populate [importTags] with the adapter's default tag.
+  ///
+  /// Safe to call multiple times — skips if a tag with the same name already
+  /// exists.
+  void initializeDefaultTag() {
+    final defaultName = _adapter.defaultTagName;
+    final alreadyExists = state.importTags.any(
+      (t) => t.name.toLowerCase() == defaultName.toLowerCase(),
+    );
+    if (alreadyExists) return;
+
+    state = state.copyWith(
+      importTags: [
+        ...state.importTags,
+        TagSelection(name: defaultName),
+      ],
+    );
+  }
+
+  /// Add a tag to the import list.
+  ///
+  /// Silently ignores duplicates (case-insensitive name match).
+  void addImportTag(TagSelection tag) {
+    final alreadyExists = state.importTags.any(
+      (t) => t.name.toLowerCase() == tag.name.toLowerCase(),
+    );
+    if (alreadyExists) return;
+
+    state = state.copyWith(importTags: [...state.importTags, tag]);
+  }
+
+  /// Remove a tag from the import list by index.
+  void removeImportTag(int index) {
+    if (index < 0 || index >= state.importTags.length) return;
+    final updated = List<TagSelection>.from(state.importTags)..removeAt(index);
+    state = state.copyWith(importTags: updated);
   }
 
   // -------------------------------------------------------------------------

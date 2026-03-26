@@ -74,6 +74,21 @@ class MockImportSourceAdapter extends _i1.Mock
           as String);
 
   @override
+  String get defaultTagName =>
+      (super.noSuchMethod(
+            Invocation.getter(#defaultTagName),
+            returnValue: _i5.dummyValue<String>(
+              this,
+              Invocation.getter(#defaultTagName),
+            ),
+            returnValueForMissingStub: _i5.dummyValue<String>(
+              this,
+              Invocation.getter(#defaultTagName),
+            ),
+          )
+          as String);
+
+  @override
   List<_i6.WizardStepDef> get acquisitionSteps =>
       (super.noSuchMethod(
             Invocation.getter(#acquisitionSteps),

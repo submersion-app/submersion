@@ -4,6 +4,7 @@ import 'package:mockito/mockito.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/tag_selection.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
@@ -603,6 +604,93 @@ void main() {
         expect(notifier.state.isImporting, isFalse);
         expect(notifier.state.importResult, isNull);
         expect(notifier.state.error, isNull);
+        expect(notifier.state.importTags, isEmpty);
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    // Import tags
+    // -------------------------------------------------------------------------
+
+    group('initializeDefaultTag', () {
+      test('adds default tag from adapter when bundle is set', () {
+        when(
+          mockAdapter.defaultTagName,
+        ).thenReturn('test.uddf Import 2026-03-26');
+        final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);
+        notifier.setBundle(bundle);
+
+        notifier.initializeDefaultTag();
+
+        expect(notifier.state.importTags.length, equals(1));
+        expect(
+          notifier.state.importTags.first.name,
+          equals('test.uddf Import 2026-03-26'),
+        );
+        expect(notifier.state.importTags.first.isNew, isTrue);
+      });
+
+      test('does not add duplicate default tag on repeated calls', () {
+        when(
+          mockAdapter.defaultTagName,
+        ).thenReturn('test.uddf Import 2026-03-26');
+        final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);
+        notifier.setBundle(bundle);
+
+        notifier.initializeDefaultTag();
+        notifier.initializeDefaultTag();
+
+        expect(notifier.state.importTags.length, equals(1));
+      });
+    });
+
+    group('addImportTag', () {
+      test('appends a tag to the list', () {
+        const tag = TagSelection(name: 'Vacation');
+        notifier.addImportTag(tag);
+
+        expect(notifier.state.importTags, contains(tag));
+      });
+
+      test('ignores duplicate tag names case-insensitively', () {
+        const tag1 = TagSelection(name: 'Vacation');
+        const tag2 = TagSelection(name: 'vacation');
+        notifier.addImportTag(tag1);
+        notifier.addImportTag(tag2);
+
+        expect(notifier.state.importTags.length, equals(1));
+      });
+
+      test('allows tags with different names', () {
+        const tag1 = TagSelection(name: 'Vacation');
+        const tag2 = TagSelection(name: 'Training');
+        notifier.addImportTag(tag1);
+        notifier.addImportTag(tag2);
+
+        expect(notifier.state.importTags.length, equals(2));
+      });
+    });
+
+    group('removeImportTag', () {
+      test('removes tag at given index', () {
+        const tag1 = TagSelection(name: 'Vacation');
+        const tag2 = TagSelection(name: 'Training');
+        notifier.addImportTag(tag1);
+        notifier.addImportTag(tag2);
+
+        notifier.removeImportTag(0);
+
+        expect(notifier.state.importTags.length, equals(1));
+        expect(notifier.state.importTags.first.name, equals('Training'));
+      });
+
+      test('no-op for out of range index', () {
+        const tag = TagSelection(name: 'Vacation');
+        notifier.addImportTag(tag);
+
+        notifier.removeImportTag(5);
+
+        expect(notifier.state.importTags.length, equals(1));
       });
     });
 
