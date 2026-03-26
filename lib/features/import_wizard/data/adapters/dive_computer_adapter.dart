@@ -198,7 +198,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
   @override
   String get defaultTagName {
-    final name = _customDeviceName ?? _displayName;
+    final name = _customDeviceName ?? _computer?.name ?? _displayName;
     final now = DateTime.now();
     final date =
         '${now.year}-'
