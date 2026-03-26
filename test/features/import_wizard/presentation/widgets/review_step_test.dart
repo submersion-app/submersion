@@ -114,7 +114,7 @@ Widget _buildReviewStep({
 
 void main() {
   group('ReviewStep - single entity type', () {
-    testWidgets('no TabBar when only one entity type', (tester) async {
+    testWidgets('shows TabBar even with one entity type', (tester) async {
       await tester.binding.setSurfaceSize(const Size(800, 600));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -125,7 +125,7 @@ void main() {
       await tester.pumpWidget(_buildReviewStep(bundle: bundle));
       await tester.pump();
 
-      expect(find.byType(TabBar), findsNothing);
+      expect(find.byType(TabBar), findsOneWidget);
     });
 
     testWidgets('EntityReviewList is rendered for single type', (tester) async {

@@ -58,21 +58,6 @@ class ReviewStep extends ConsumerWidget {
     final existingTags =
         ref.watch(allTagsProvider).valueOrNull ?? const <Tag>[];
 
-    if (types.length == 1) {
-      return _SingleTypeLayout(
-        type: types.first,
-        bundle: bundle,
-        state: state,
-        notifier: notifier,
-        availableActions: availableActions,
-        counts: counts,
-        projectedDiveNumbers: projectedDiveNumbers,
-        existingTags: existingTags,
-        onImport: onImport,
-        onBack: onBack,
-      );
-    }
-
     return _MultiTypeLayout(
       types: types,
       bundle: bundle,
@@ -134,78 +119,6 @@ class ReviewStep extends ConsumerWidget {
       result[itemIndex] = nextDiveNumber + n;
     }
     return result;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Single-type layout (no tab bar)
-// ---------------------------------------------------------------------------
-
-class _SingleTypeLayout extends StatelessWidget {
-  final ImportEntityType type;
-  final ImportBundle bundle;
-  final ImportWizardState state;
-  final ImportWizardNotifier notifier;
-  final Set<DuplicateAction> availableActions;
-  final _AggregateCounts counts;
-  final Map<int, int>? projectedDiveNumbers;
-  final List<Tag> existingTags;
-  final VoidCallback onImport;
-  final VoidCallback? onBack;
-
-  const _SingleTypeLayout({
-    required this.type,
-    required this.bundle,
-    required this.state,
-    required this.notifier,
-    required this.availableActions,
-    required this.counts,
-    this.projectedDiveNumbers,
-    required this.existingTags,
-    required this.onImport,
-    this.onBack,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final group = bundle.groups[type]!;
-    final selectedIndices = state.selections[type] ?? const <int>{};
-    final duplicateActions = state.duplicateActions[type] ?? const {};
-    final hasDives = bundle.groups.containsKey(ImportEntityType.dives);
-
-    return Column(
-      children: [
-        if (hasDives)
-          _RetainDiveNumbersToggle(state: state, notifier: notifier),
-        ImportTagsField(
-          tags: state.importTags,
-          existingTags: existingTags,
-          onAdd: (tag) => notifier.addImportTag(tag),
-          onRemove: (index) => notifier.removeImportTag(index),
-        ),
-        Expanded(
-          child: SingleChildScrollView(
-            child: EntityReviewList(
-              group: group,
-              selectedIndices: selectedIndices,
-              duplicateActions: duplicateActions,
-              availableActions: availableActions,
-              onToggleSelection: (i) => notifier.toggleSelection(type, i),
-              onDuplicateActionChanged: (i, a) =>
-                  notifier.setDuplicateAction(type, i, a),
-              onSelectAll: () => notifier.selectAll(type),
-              onDeselectAll: () => notifier.deselectAll(type),
-              existingDiveIdForIndex: (i) =>
-                  group.matchResults?[i]?.diveId ?? '',
-              projectedDiveNumbers: type == ImportEntityType.dives
-                  ? projectedDiveNumbers
-                  : null,
-            ),
-          ),
-        ),
-        _BottomBar(counts: counts, onImport: onImport, onBack: onBack),
-      ],
-    );
   }
 }
 
