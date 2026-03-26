@@ -16,6 +16,19 @@ abstract class ImportSourceAdapter {
   /// Display name for the source (e.g., "Shearwater Perdix", "dive_log.uddf").
   String get displayName;
 
+  /// Default tag name for this import source.
+  ///
+  /// Format: "{source name} Import {YYYY-MM-DD}".
+  /// Used to pre-populate the import tag field in the review step.
+  String get defaultTagName {
+    final now = DateTime.now();
+    final date =
+        '${now.year}-'
+        '${now.month.toString().padLeft(2, '0')}-'
+        '${now.day.toString().padLeft(2, '0')}';
+    return '$displayName Import $date';
+  }
+
   /// Source-specific acquisition step definitions.
   ///
   /// These steps are shown before the shared Review/Import/Summary steps.

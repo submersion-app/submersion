@@ -197,6 +197,17 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   String get displayName => _displayName;
 
   @override
+  String get defaultTagName {
+    final name = _customDeviceName ?? _displayName;
+    final now = DateTime.now();
+    final date =
+        '${now.year}-'
+        '${now.month.toString().padLeft(2, '0')}-'
+        '${now.day.toString().padLeft(2, '0')}';
+    return '$name Import $date';
+  }
+
+  @override
   Set<DuplicateAction> get supportedDuplicateActions => const {
     DuplicateAction.skip,
     DuplicateAction.importAsNew,

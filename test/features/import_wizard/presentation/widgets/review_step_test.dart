@@ -32,6 +32,9 @@ class _FakeAdapter implements ImportSourceAdapter {
   String get displayName => 'test.uddf';
 
   @override
+  String get defaultTagName => 'test.uddf Import 2026-03-26';
+
+  @override
   List<WizardStepDef> get acquisitionSteps => [];
 
   @override
