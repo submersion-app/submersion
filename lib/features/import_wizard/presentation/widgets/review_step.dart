@@ -26,8 +26,8 @@ class ReviewStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(importWizardProvider);
-    final notifier = ref.read(importWizardProvider.notifier);
+    final state = ref.watch(importWizardNotifierProvider);
+    final notifier = ref.read(importWizardNotifierProvider.notifier);
     final bundle = state.bundle;
 
     if (bundle == null) {

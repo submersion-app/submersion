@@ -60,7 +60,7 @@ Widget _buildWidget(
   VoidCallback? onViewDives,
 }) {
   return ProviderScope(
-    overrides: [importWizardProvider.overrideWith((_) => notifier)],
+    overrides: [importWizardNotifierProvider.overrideWith((_) => notifier)],
     child: MaterialApp(
       home: Scaffold(
         body: ImportSummaryStep(

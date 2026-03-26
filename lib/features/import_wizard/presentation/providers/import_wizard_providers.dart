@@ -290,10 +290,10 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
 ///
 /// Override this via [ProviderScope] for each wizard instance, supplying
 /// the appropriate [ImportSourceAdapter].
-final importWizardProvider =
+final importWizardNotifierProvider =
     StateNotifierProvider<ImportWizardNotifier, ImportWizardState>((ref) {
       throw UnsupportedError(
-        'importWizardProvider must be overridden with a ProviderScope '
+        'importWizardNotifierProvider must be overridden with a ProviderScope '
         'that supplies an ImportSourceAdapter.',
       );
     });

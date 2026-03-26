@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_import/presentation/providers/dive_impo
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart'
     hide diveProvider;
 import 'package:submersion/features/import_wizard/data/adapters/healthkit_adapter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/unified_import_wizard.dart';
 import 'package:submersion/features/onboarding/presentation/pages/welcome_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
@@ -930,6 +931,8 @@ class _HealthKitImportWizardRoute extends ConsumerWidget {
     final converter = ref.watch(importedDiveConverterProvider);
     final diveRepo = ref.watch(diveRepositoryProvider);
 
+    final settings = ref.watch(settingsProvider);
+
     return UnifiedImportWizard(
       adapter: HealthKitAdapter(
         healthService: healthService,
@@ -937,6 +940,7 @@ class _HealthKitImportWizardRoute extends ConsumerWidget {
         converter: converter,
         diveRepository: diveRepo,
         diverId: diverId,
+        settings: settings,
       ),
     );
   }

@@ -1,11 +1,10 @@
-import 'dart:io';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -19,6 +18,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/uddf_file_picker_step.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
@@ -58,6 +58,7 @@ class UddfAdapter implements ImportSourceAdapter {
     required List<Tag> existingTags,
     required List<DiveTypeEntity> existingDiveTypes,
     required String diverId,
+    AppSettings settings = const AppSettings(),
     String displayName = 'UDDF Import',
   }) : _parser = parser,
        _duplicateChecker = duplicateChecker,
@@ -73,6 +74,7 @@ class UddfAdapter implements ImportSourceAdapter {
        _existingTags = existingTags,
        _existingDiveTypes = existingDiveTypes,
        _diverId = diverId,
+       _settings = settings,
        _displayName = displayName;
 
   final UddfParserService _parser;
@@ -89,6 +91,7 @@ class UddfAdapter implements ImportSourceAdapter {
   final List<Tag> _existingTags;
   final List<DiveTypeEntity> _existingDiveTypes;
   final String _diverId;
+  final AppSettings _settings;
   final String _displayName;
 
   UddfImportResult? _parsedData;
@@ -126,7 +129,7 @@ class UddfAdapter implements ImportSourceAdapter {
     WizardStepDef(
       label: 'Select File',
       icon: Icons.file_open,
-      builder: (context) => _UddfFilePickerStep(
+      builder: (context) => UddfFilePickerStep(
         parser: _parser,
         onDataParsed: (data) {
           setParsedData(data);
@@ -403,7 +406,8 @@ class UddfAdapter implements ImportSourceAdapter {
     final parts = <String>[];
     if (siteName != null && siteName.isNotEmpty) parts.add(siteName);
     if (maxDepth != null) {
-      parts.add('${maxDepth.toStringAsFixed(1)}m max');
+      final units = UnitFormatter(_settings);
+      parts.add('${units.formatDepth(maxDepth)} max');
     }
     if (effectiveDuration != null) {
       parts.add('${effectiveDuration.inMinutes} min');
@@ -648,218 +652,5 @@ class UddfAdapter implements ImportSourceAdapter {
     if (result.courses > 0) counts[ImportEntityType.courses] = result.courses;
 
     return counts;
-  }
-}
-
-// =============================================================================
-// Private widgets
-// =============================================================================
-
-/// File picker step for the UDDF import wizard.
-///
-/// Presents a button to select a .uddf or .xml file, parses it with
-/// [UddfParserService], and invokes [onDataParsed] with the results.
-/// Sets [uddfAdapterCanAdvanceProvider] to true once parsing succeeds.
-class _UddfFilePickerStep extends ConsumerStatefulWidget {
-  const _UddfFilePickerStep({required this.parser, required this.onDataParsed});
-
-  final UddfParserService parser;
-  final void Function(UddfImportResult data) onDataParsed;
-
-  @override
-  ConsumerState<_UddfFilePickerStep> createState() =>
-      _UddfFilePickerStepState();
-}
-
-class _UddfFilePickerStepState extends ConsumerState<_UddfFilePickerStep> {
-  bool _isParsing = false;
-  String? _error;
-  UddfImportResult? _parsedData;
-
-  Future<void> _pickAndParseFile() async {
-    setState(() {
-      _isParsing = true;
-      _error = null;
-    });
-
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.any,
-        allowMultiple: false,
-      );
-
-      if (result == null || result.files.isEmpty) {
-        setState(() => _isParsing = false);
-        return;
-      }
-
-      final pickedFile = result.files.first;
-      final ext = pickedFile.extension?.toLowerCase();
-      if (ext != 'uddf' && ext != 'xml') {
-        setState(() {
-          _isParsing = false;
-          _error = 'Please select a UDDF or XML file';
-        });
-        return;
-      }
-
-      final filePath = pickedFile.path;
-      if (filePath == null) {
-        setState(() {
-          _isParsing = false;
-          _error = 'Could not access file';
-        });
-        return;
-      }
-
-      final file = File(filePath);
-      final content = await file.readAsString();
-      final parsed = await widget.parser.parseContent(content);
-
-      // Attach the source filename so it flows through to DiveDataSource
-      // records created during import.
-      final fileName = filePath.split('/').last;
-      final data = parsed.copyWithSourceFileName(fileName);
-
-      widget.onDataParsed(data);
-
-      if (mounted) {
-        setState(() {
-          _isParsing = false;
-          _parsedData = data;
-        });
-        ref.read(uddfAdapterCanAdvanceProvider.notifier).state = !data.isEmpty;
-      }
-    } on UddfParseException catch (e) {
-      if (mounted) {
-        setState(() {
-          _isParsing = false;
-          _error = e.message;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isParsing = false;
-          _error = 'Failed to parse file: $e';
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: OutlinedButton.icon(
-            icon: _isParsing
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.file_open),
-            label: Text(_isParsing ? 'Parsing...' : 'Select File'),
-            onPressed: _isParsing ? null : _pickAndParseFile,
-          ),
-        ),
-        if (_error != null) ...[
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              _error!,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.error,
-              ),
-            ),
-          ),
-        ],
-        if (_parsedData != null) ...[
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              _parsedData!.summary,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-        ],
-        const SizedBox(height: 16),
-        Expanded(
-          child: _parsedData == null
-              ? _buildEmptyState(context, theme)
-              : _buildSummary(theme),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context, ThemeData theme) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ExcludeSemantics(
-              child: Icon(
-                Icons.file_open,
-                size: 64,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text('No file loaded', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(
-              'Select a .uddf or .xml file to import dive data.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSummary(ThemeData theme) {
-    final data = _parsedData!;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ExcludeSemantics(
-              child: Icon(
-                Icons.check_circle,
-                size: 64,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text('File parsed successfully', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(
-              '${data.totalItems} items found',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

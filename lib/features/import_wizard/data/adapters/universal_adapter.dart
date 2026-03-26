@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -43,37 +44,22 @@ import 'package:submersion/features/universal_import/presentation/widgets/field_
 import 'package:submersion/features/universal_import/presentation/widgets/file_selection_step.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/source_confirmation_step.dart';
 
-// =============================================================================
-// canAdvance providers
-// =============================================================================
-
-/// Signals whether the "Select File" acquisition step may advance.
-///
-/// True once the notifier has a successful detection result and has moved
-/// past [ImportWizardStep.fileSelection].
+/// True once a file has been detected and the wizard moved past file selection.
 final universalAdapterFileSelectedProvider = Provider<bool>((ref) {
   final state = ref.watch(universalImportNotifierProvider);
   return state.detectionResult != null &&
       state.currentStep != ImportWizardStep.fileSelection;
 });
 
-/// Signals whether the "Confirm Source" step is ready to advance.
-///
-/// True once detection has completed and the format is supported. The user
-/// does not need to have pressed "Confirm" yet — the wizard's Next button
-/// and [onBeforeAdvance] handle committing the choice.
+/// True once detection completed and the format is supported.
 final universalAdapterSourceReadyProvider = Provider<bool>((ref) {
   final state = ref.watch(universalImportNotifierProvider);
   final detection = state.detectionResult;
   return detection != null && detection.isFormatSupported;
 });
 
-/// Signals whether the "Map Fields" step is ready to advance.
-///
-/// For non-CSV formats the payload is produced immediately after source
-/// confirmation, so the step auto-advances. For CSV, it is ready once the
-/// user has mapped at least one column (the mapping is saved to the notifier
-/// on every change).
+/// True once field mapping is ready (non-CSV: immediate, CSV: at least one
+/// column mapped).
 final universalAdapterMappingReadyProvider = Provider<bool>((ref) {
   final state = ref.watch(universalImportNotifierProvider);
   // Non-CSV: payload was already produced — ready immediately.
@@ -83,21 +69,9 @@ final universalAdapterMappingReadyProvider = Provider<bool>((ref) {
   return mapping != null && mapping.columns.isNotEmpty;
 });
 
-// =============================================================================
-// UniversalAdapter
-// =============================================================================
-
 /// Import source adapter for universal file imports (CSV, Subsurface XML,
-/// UDDF, auto-detected formats).
-///
-/// Wraps the existing [UniversalImportNotifier] state management into the
-/// unified import wizard framework. The three acquisition steps embed the
-/// existing [FileSelectionStep], [SourceConfirmationStep], and
-/// [FieldMappingStep] widgets directly so their mature UI is fully reused.
-///
-/// For the "Map Fields" step the wizard auto-advances for non-CSV formats
-/// because the notifier skips that step automatically after source
-/// confirmation.
+/// UDDF, auto-detected formats). Wraps [UniversalImportNotifier] into the
+/// unified import wizard framework.
 class UniversalAdapter implements ImportSourceAdapter {
   UniversalAdapter({
     required WidgetRef ref,
@@ -500,7 +474,9 @@ class UniversalAdapter implements ImportSourceAdapter {
     final parts = <String>[];
     if (siteName != null && siteName.isNotEmpty) parts.add(siteName);
     if (maxDepth != null) {
-      parts.add('${maxDepth.toStringAsFixed(1)}m max');
+      final settings = _ref.read(settingsProvider);
+      final units = UnitFormatter(settings);
+      parts.add('${units.formatDepth(maxDepth)} max');
     }
     if (effectiveDuration != null) {
       parts.add('${effectiveDuration.inMinutes} min');

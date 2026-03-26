@@ -56,7 +56,7 @@ class _FakeAdapter implements ImportSourceAdapter {
 
 Widget _buildWidget(ImportWizardNotifier notifier) {
   return ProviderScope(
-    overrides: [importWizardProvider.overrideWith((_) => notifier)],
+    overrides: [importWizardNotifierProvider.overrideWith((_) => notifier)],
     child: const MaterialApp(home: Scaffold(body: ImportProgressStep())),
   );
 }

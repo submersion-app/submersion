@@ -98,7 +98,7 @@ Widget _buildReviewStep({
   final notifier = ImportWizardNotifier(adapter)..setBundle(bundle);
 
   return ProviderScope(
-    overrides: [importWizardProvider.overrideWith((_) => notifier)],
+    overrides: [importWizardNotifierProvider.overrideWith((_) => notifier)],
     child: MaterialApp(
       home: Scaffold(body: ReviewStep(onImport: onImport ?? () {})),
     ),
@@ -281,7 +281,7 @@ void main() {
       final notifier = ImportWizardNotifier(adapter);
 
       final widget = ProviderScope(
-        overrides: [importWizardProvider.overrideWith((_) => notifier)],
+        overrides: [importWizardNotifierProvider.overrideWith((_) => notifier)],
         child: const MaterialApp(
           home: Scaffold(body: ReviewStep(onImport: _noop)),
         ),

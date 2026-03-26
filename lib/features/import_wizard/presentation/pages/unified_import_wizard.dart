@@ -37,7 +37,9 @@ class UnifiedImportWizard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProviderScope(
       overrides: [
-        importWizardProvider.overrideWith((_) => ImportWizardNotifier(adapter)),
+        importWizardNotifierProvider.overrideWith(
+          (_) => ImportWizardNotifier(adapter),
+        ),
       ],
       child: _UnifiedImportWizardBody(adapter: adapter),
     );
@@ -129,7 +131,9 @@ class _UnifiedImportWizardBodyState
       if (_currentPage == _reviewIndex - 1) {
         final bundle = await widget.adapter.buildBundle();
         final checkedBundle = await widget.adapter.checkDuplicates(bundle);
-        ref.read(importWizardProvider.notifier).setBundle(checkedBundle);
+        ref
+            .read(importWizardNotifierProvider.notifier)
+            .setBundle(checkedBundle);
       }
       await _animateToPage(_currentPage + 1);
     } else if (_currentPage == _reviewIndex) {
@@ -139,7 +143,7 @@ class _UnifiedImportWizardBodyState
 
   Future<void> _startImport() async {
     await _animateToPage(_importIndex);
-    await ref.read(importWizardProvider.notifier).performImport();
+    await ref.read(importWizardNotifierProvider.notifier).performImport();
     _invalidateImportedProviders();
     await _animateToPage(_summaryIndex);
   }
@@ -147,7 +151,7 @@ class _UnifiedImportWizardBodyState
   /// Invalidate list providers for entity types that were imported so
   /// list screens reflect the new data without requiring an app restart.
   void _invalidateImportedProviders() {
-    final result = ref.read(importWizardProvider).importResult;
+    final result = ref.read(importWizardNotifierProvider).importResult;
     if (result == null) return;
 
     // Always refresh the computers list — ensureComputer() may have created
@@ -206,7 +210,7 @@ class _UnifiedImportWizardBodyState
   }
 
   void _navigateToDives() {
-    final result = ref.read(importWizardProvider).importResult;
+    final result = ref.read(importWizardNotifierProvider).importResult;
     if (result != null && result.importedDiveIds.isNotEmpty) {
       ref.read(diveFilterProvider.notifier).state = DiveFilterState(
         diveIds: result.importedDiveIds,

@@ -12,7 +12,7 @@ class ImportProgressStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(importWizardProvider);
+    final state = ref.watch(importWizardNotifierProvider);
     final theme = Theme.of(context);
 
     final phase = state.importPhase;

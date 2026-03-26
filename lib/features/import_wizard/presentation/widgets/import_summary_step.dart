@@ -27,7 +27,7 @@ class ImportSummaryStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(importWizardProvider);
+    final state = ref.watch(importWizardNotifierProvider);
     final result = state.importResult;
 
     if (result == null) {

@@ -7,7 +7,9 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_import/data/services/fit_parser_service.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_import/domain/services/imported_dive_converter.dart';
@@ -43,12 +45,14 @@ class FitAdapter implements ImportSourceAdapter {
     required ImportedDiveConverter converter,
     required DiveRepository diveRepository,
     required String diverId,
+    AppSettings settings = const AppSettings(),
     String displayName = 'FIT Import',
   }) : _fitParser = fitParser,
        _diveMatcher = diveMatcher,
        _converter = converter,
        _diveRepository = diveRepository,
        _diverId = diverId,
+       _settings = settings,
        _displayName = displayName;
 
   // ignore: unused_field
@@ -57,6 +61,7 @@ class FitAdapter implements ImportSourceAdapter {
   final ImportedDiveConverter _converter;
   final DiveRepository _diveRepository;
   final String _diverId;
+  final AppSettings _settings;
   final String _displayName;
 
   List<ImportedDive> _parsedDives = [];
@@ -133,13 +138,14 @@ class FitAdapter implements ImportSourceAdapter {
       DiveMatchResult? bestMatch;
 
       for (final existing in existingDives) {
+        final existingSeconds = _diveSeconds(existing);
         final score = _diveMatcher.calculateMatchScore(
           wearableStartTime: imported.startTime,
           wearableMaxDepth: imported.maxDepth,
           wearableDurationSeconds: imported.durationSeconds,
           existingStartTime: existing.effectiveEntryTime,
           existingMaxDepth: existing.maxDepth ?? 0.0,
-          existingDurationSeconds: existing.duration?.inSeconds ?? 0,
+          existingDurationSeconds: existingSeconds,
         );
 
         if (score >= 0.5) {
@@ -154,9 +160,7 @@ class FitAdapter implements ImportSourceAdapter {
               depthDifferenceMeters:
                   ((imported.maxDepth) - (existing.maxDepth ?? 0.0)).abs(),
               durationDifferenceSeconds:
-                  (imported.durationSeconds -
-                          (existing.duration?.inSeconds ?? 0))
-                      .abs(),
+                  (imported.durationSeconds - existingSeconds).abs(),
               siteName: existing.site?.name,
             );
           }
@@ -252,6 +256,17 @@ class FitAdapter implements ImportSourceAdapter {
   // Helpers
   // ---------------------------------------------------------------------------
 
+  /// Use runtime (total time), not duration (bottom time), to match the
+  /// incoming side which uses runtime ?? duration.
+  static int _diveSeconds(Dive dive) {
+    if (dive.runtime != null) return dive.runtime!.inSeconds;
+    if (dive.exitTime != null && dive.entryTime != null) {
+      return dive.exitTime!.difference(dive.entryTime!).inSeconds;
+    }
+    if (dive.duration != null) return dive.duration!.inSeconds;
+    return 0;
+  }
+
   static final _dateFormatter = DateFormat('MMM d, yyyy');
   static final _timeFormatter = DateFormat('h:mm a');
 
@@ -260,12 +275,13 @@ class FitAdapter implements ImportSourceAdapter {
     final timeStr = _timeFormatter.format(dive.startTime);
     final title = '$dateStr \u2014 $timeStr';
 
-    final depthStr = dive.maxDepth.toStringAsFixed(1);
+    final units = UnitFormatter(_settings);
     final durationMin = dive.duration.inMinutes;
     final tempStr = dive.minTemperature != null
-        ? ' \u00b7 ${dive.minTemperature!.toStringAsFixed(1)}\u00b0C'
+        ? ' \u00b7 ${units.formatTemperature(dive.minTemperature!, decimals: 1)}'
         : '';
-    final subtitle = '${depthStr}m max \u00b7 $durationMin min$tempStr';
+    final subtitle =
+        '${units.formatDepth(dive.maxDepth)} max \u00b7 $durationMin min$tempStr';
 
     final profile = dive.profile
         .map(
