@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/app.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -153,6 +154,41 @@ void main() {
 
       // Should NOT be English
       expect(find.text('Save'), findsNothing);
+    });
+  });
+
+  group('App locale resolution', () {
+    test('falls back to English for unsupported C locale', () {
+      final resolved = resolveAppLocale(const [
+        Locale('c'),
+      ], AppLocalizations.supportedLocales);
+
+      expect(resolved, const Locale('en'));
+    });
+
+    test('falls back to English for unsupported POSIX locale', () {
+      final resolved = resolveAppLocale(const [
+        Locale('posix'),
+      ], AppLocalizations.supportedLocales);
+
+      expect(resolved, const Locale('en'));
+    });
+
+    test('keeps supported system locales', () {
+      final resolved = resolveAppLocale(const [
+        Locale('fr', 'CA'),
+      ], AppLocalizations.supportedLocales);
+
+      expect(resolved, const Locale('fr'));
+    });
+
+    test('prefers first matching supported locale from system list', () {
+      final resolved = resolveAppLocale(const [
+        Locale('zz'),
+        Locale('de'),
+      ], AppLocalizations.supportedLocales);
+
+      expect(resolved, const Locale('de'));
     });
   });
 

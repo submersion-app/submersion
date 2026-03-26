@@ -9,6 +9,45 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_menu_channel.dart';
 
+const Locale _defaultFallbackLocale = Locale('en');
+const Set<String> _invalidSystemLocaleLanguageCodes = {'c', 'posix'};
+
+Locale resolveAppLocale(
+  List<Locale>? preferredLocales,
+  Iterable<Locale> supportedLocales, {
+  Locale fallbackLocale = _defaultFallbackLocale,
+}) {
+  // Some Linux environments report generic locales like C.UTF-8/POSIX, which
+  // Flutter can't match to our translations. Without this guard, Flutter falls
+  // back to the first supported locale, which can accidentally select an RTL UI.
+  final sanitizedLocales = preferredLocales
+      ?.where((locale) => _isUsableSystemLocale(locale))
+      .toList();
+
+  if (sanitizedLocales == null || sanitizedLocales.isEmpty) {
+    return fallbackLocale;
+  }
+
+  final hasSupportedLanguage = sanitizedLocales.any(
+    (preferredLocale) => supportedLocales.any(
+      (supportedLocale) =>
+          supportedLocale.languageCode == preferredLocale.languageCode,
+    ),
+  );
+
+  if (!hasSupportedLanguage) {
+    return fallbackLocale;
+  }
+
+  return basicLocaleListResolution(sanitizedLocales, supportedLocales);
+}
+
+bool _isUsableSystemLocale(Locale locale) {
+  final languageCode = locale.languageCode.trim().toLowerCase();
+  return languageCode.isNotEmpty &&
+      !_invalidSystemLocaleLanguageCodes.contains(languageCode);
+}
+
 class SubmersionApp extends ConsumerStatefulWidget {
   const SubmersionApp({super.key});
 
@@ -75,6 +114,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       darkTheme: AppThemeRegistry.resolveTheme(themePreset, Brightness.dark),
       themeMode: themeMode,
       locale: _resolveLocale(localeSetting),
+      localeListResolutionCallback: (preferredLocales, supportedLocales) {
+        return resolveAppLocale(preferredLocales, supportedLocales);
+      },
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
