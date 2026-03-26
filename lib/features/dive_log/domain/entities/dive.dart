@@ -899,6 +899,8 @@ class GasMix extends Equatable {
   const GasMix({this.o2 = 21.0, this.he = 0.0});
 
   double get n2 => 100.0 - o2 - he;
+  int get roundedO2 => o2.round();
+  int get roundedHe => he.round();
 
   bool get isAir => o2 >= 20 && o2 <= 22 && he == 0;
   bool get isNitrox => o2 > 22 && he == 0;
@@ -906,9 +908,9 @@ class GasMix extends Equatable {
 
   String get name {
     if (isAir) return 'Air';
-    if (isTrimix) return 'Tx ${o2.toInt()}/${he.toInt()}';
-    if (isNitrox) return 'EAN${o2.toInt()}';
-    return '${o2.toInt()}% O2';
+    if (isTrimix) return 'Tx $roundedO2/$roundedHe';
+    if (isNitrox) return 'EAN$roundedO2';
+    return '$roundedO2% O2';
   }
 
   /// Maximum Operating Depth (MOD) at given ppO2

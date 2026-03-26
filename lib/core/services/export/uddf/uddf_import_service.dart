@@ -72,7 +72,7 @@ class UddfImportService {
       for (final mixElement in gasDefsElement.findElements('mix')) {
         final mixId = mixElement.getAttribute('id');
         if (mixId != null) {
-          gasMixes[mixId] = _parseUddfGasMix(mixElement);
+          gasMixes[mixId] = UddfImportParsers.parseGasMix(mixElement);
         }
       }
     }
@@ -191,17 +191,6 @@ class UddfImportService {
     site['description'] = _getElementText(siteElement, 'notes');
 
     return site;
-  }
-
-  GasMix _parseUddfGasMix(XmlElement mixElement) {
-    final o2Text = _getElementText(mixElement, 'o2');
-    final heText = _getElementText(mixElement, 'he');
-
-    // UDDF stores as fractions (0.21 for 21%)
-    final o2 = o2Text != null ? (double.tryParse(o2Text) ?? 0.21) * 100 : 21.0;
-    final he = heText != null ? (double.tryParse(heText) ?? 0.0) * 100 : 0.0;
-
-    return GasMix(o2: o2, he: he);
   }
 
   Map<String, dynamic> _parseUddfDive(

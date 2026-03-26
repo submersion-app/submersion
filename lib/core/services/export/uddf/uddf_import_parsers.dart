@@ -1,6 +1,7 @@
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' as enums;
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Static parser methods for UDDF entity elements.
 ///
@@ -24,6 +25,17 @@ class UddfImportParsers {
     return element?.innerText.trim().isEmpty == true
         ? null
         : element?.innerText.trim();
+  }
+
+  static GasMix parseGasMix(XmlElement mixElement) {
+    final o2Text = getElementText(mixElement, 'o2');
+    final heText = getElementText(mixElement, 'he');
+
+    // UDDF stores gas values as fractions (0.21 for 21%).
+    final o2 = o2Text != null ? (double.tryParse(o2Text) ?? 0.21) * 100 : 21.0;
+    final he = heText != null ? (double.tryParse(heText) ?? 0.0) * 100 : 0.0;
+
+    return GasMix(o2: o2, he: he);
   }
 
   /// Parse a UDDF datetime string using the wall-clock-as-UTC convention.

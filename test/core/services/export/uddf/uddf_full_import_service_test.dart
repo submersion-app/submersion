@@ -1,8 +1,66 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 
+const _uddfEan29 = '''<uddf version="3.2.1">
+  <gasdefinitions>
+    <mix id="mix(29/0)">
+      <name>EANx 29</name>
+      <o2>0.29</o2>
+      <he>0.00</he>
+    </mix>
+  </gasdefinitions>
+  <profiledata>
+    <repetitiongroup id="id4">
+      <dive id="id4">
+        <informationbeforedive>
+          <divenumber>107</divenumber>
+          <datetime>2025-03-19T08:19:54</datetime>
+          <equipmentused>
+            <leadquantity>5</leadquantity>
+          </equipmentused>
+        </informationbeforedive>
+        <tankdata>
+          <link ref="mix(29/0)"/>
+          <tankvolume>24.0</tankvolume>
+          <tankpressurebegin>20500000</tankpressurebegin>
+          <tankpressureend>11000000</tankpressureend>
+        </tankdata>
+        <samples>
+          <waypoint>
+            <depth>1.7</depth>
+            <divetime>2</divetime>
+            <switchmix ref="mix(29/0)"/>
+            <temperature>290.15</temperature>
+          </waypoint>
+          <waypoint>
+            <depth>2</depth>
+            <divetime>4</divetime>
+          </waypoint>
+        </samples>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>''';
+
 void main() {
   group('UddfFullImportService', () {
+    late UddfFullImportService service;
+
+    setUp(() {
+      service = UddfFullImportService();
+    });
+
+    test('keeps a 0.29 UDDF mix labeled as EAN29', () async {
+      final result = await service.importAllDataFromUddf(_uddfEan29);
+      final dive = result.dives.first;
+      final tanks = dive['tanks'] as List<Map<String, dynamic>>;
+      final gasMix = tanks.first['gasMix'] as dynamic;
+
+      expect(gasMix, isNotNull);
+      expect(gasMix.o2, closeTo(29.0, 0.000001));
+      expect(gasMix.name, 'EAN29');
+    });
+
     test(
       'maps tankpressure refs by tank order when tankdata entries omit ids',
       () async {
@@ -36,8 +94,6 @@ void main() {
   </profiledata>
 </uddf>
 ''';
-
-        final service = UddfFullImportService();
 
         final result = await service.importAllDataFromUddf(uddfContent);
         expect(result.dives, hasLength(1));
@@ -94,8 +150,6 @@ void main() {
 </uddf>
 ''';
 
-        final service = UddfFullImportService();
-
         final result = await service.importAllDataFromUddf(uddfContent);
         expect(result.dives, hasLength(1));
 
@@ -146,8 +200,6 @@ void main() {
   </profiledata>
 </uddf>
 ''';
-
-      final service = UddfFullImportService();
 
       final result = await service.importAllDataFromUddf(uddfContent);
       final dive = result.dives.first;

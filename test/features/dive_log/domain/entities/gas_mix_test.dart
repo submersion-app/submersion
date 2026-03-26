@@ -2,6 +2,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 void main() {
+  group('GasMix.name', () {
+    test('rounds near-integer nitrox percentages for display', () {
+      const ean29 = GasMix(o2: 28.999999999, he: 0.0);
+      expect(ean29.name, 'EAN29');
+    });
+
+    test('rounds near-integer trimix percentages for display', () {
+      const tx2135 = GasMix(o2: 20.999999999, he: 34.999999999);
+      expect(tx2135.name, 'Tx 21/35');
+    });
+  });
+
   group('GasMix.mnd', () {
     test('air with O2 narcotic returns depth equal to END limit', () {
       const air = GasMix(o2: 21.0, he: 0.0);

@@ -2757,10 +2757,7 @@ class DiveRepository {
 
   /// Format gas mix as a readable name (e.g., "Air", "EAN32", "Tx 21/35")
   String _formatGasMixName(double o2, double he) {
-    if (he > 0) return 'Tx ${o2.toInt()}/${he.toInt()}';
-    if (o2 > 22) return 'EAN${o2.toInt()}';
-    if (o2 >= 20 && o2 <= 22) return 'Air';
-    return '${o2.toInt()}% O2';
+    return domain.GasMix(o2: o2, he: he).name;
   }
 
   /// Create a gas switch record
