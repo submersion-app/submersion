@@ -18,6 +18,12 @@ final tagsProvider = FutureProvider<List<Tag>>((ref) async {
   return repository.getAllTags(diverId: validatedDiverId);
 });
 
+/// All tags for the active diver, used for autocomplete suggestions.
+final allTagsProvider = FutureProvider<List<Tag>>((ref) {
+  final repo = ref.watch(tagRepositoryProvider);
+  return repo.getAllTags();
+});
+
 /// Single tag provider
 final tagProvider = FutureProvider.family<Tag?, String>((ref, id) async {
   final repository = ref.watch(tagRepositoryProvider);

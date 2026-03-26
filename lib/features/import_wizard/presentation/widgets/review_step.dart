@@ -6,6 +6,10 @@ import 'package:submersion/features/import_wizard/domain/models/duplicate_action
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/entity_review_list.dart';
+import 'package:submersion/core/providers/async_value_extensions.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/import_tags_field.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 
 /// The review step of the import wizard.
 ///
@@ -51,6 +55,9 @@ class ReviewStep extends ConsumerWidget {
           bundle.groups[ImportEntityType.dives]?.duplicateIndices ?? const {},
     );
 
+    final existingTags =
+        ref.watch(allTagsProvider).valueOrNull ?? const <Tag>[];
+
     if (types.length == 1) {
       return _SingleTypeLayout(
         type: types.first,
@@ -60,6 +67,7 @@ class ReviewStep extends ConsumerWidget {
         availableActions: availableActions,
         counts: counts,
         projectedDiveNumbers: projectedDiveNumbers,
+        existingTags: existingTags,
         onImport: onImport,
         onBack: onBack,
       );
@@ -73,6 +81,7 @@ class ReviewStep extends ConsumerWidget {
       availableActions: availableActions,
       counts: counts,
       projectedDiveNumbers: projectedDiveNumbers,
+      existingTags: existingTags,
       onImport: onImport,
       onBack: onBack,
     );
@@ -140,6 +149,7 @@ class _SingleTypeLayout extends StatelessWidget {
   final Set<DuplicateAction> availableActions;
   final _AggregateCounts counts;
   final Map<int, int>? projectedDiveNumbers;
+  final List<Tag> existingTags;
   final VoidCallback onImport;
   final VoidCallback? onBack;
 
@@ -151,6 +161,7 @@ class _SingleTypeLayout extends StatelessWidget {
     required this.availableActions,
     required this.counts,
     this.projectedDiveNumbers,
+    required this.existingTags,
     required this.onImport,
     this.onBack,
   });
@@ -166,6 +177,12 @@ class _SingleTypeLayout extends StatelessWidget {
       children: [
         if (hasDives)
           _RetainDiveNumbersToggle(state: state, notifier: notifier),
+        ImportTagsField(
+          tags: state.importTags,
+          existingTags: existingTags,
+          onAdd: (tag) => notifier.addImportTag(tag),
+          onRemove: (index) => notifier.removeImportTag(index),
+        ),
         Expanded(
           child: SingleChildScrollView(
             child: EntityReviewList(
@@ -204,6 +221,7 @@ class _MultiTypeLayout extends StatelessWidget {
   final Set<DuplicateAction> availableActions;
   final _AggregateCounts counts;
   final Map<int, int>? projectedDiveNumbers;
+  final List<Tag> existingTags;
   final VoidCallback onImport;
   final VoidCallback? onBack;
 
@@ -215,6 +233,7 @@ class _MultiTypeLayout extends StatelessWidget {
     required this.availableActions,
     required this.counts,
     this.projectedDiveNumbers,
+    required this.existingTags,
     required this.onImport,
     this.onBack,
   });
@@ -234,6 +253,12 @@ class _MultiTypeLayout extends StatelessWidget {
               for (final type in types)
                 Tab(text: _tabLabel(type, bundle.groups[type]!.items.length)),
             ],
+          ),
+          ImportTagsField(
+            tags: state.importTags,
+            existingTags: existingTags,
+            onAdd: (tag) => notifier.addImportTag(tag),
+            onRemove: (index) => notifier.removeImportTag(index),
           ),
           Expanded(
             child: TabBarView(

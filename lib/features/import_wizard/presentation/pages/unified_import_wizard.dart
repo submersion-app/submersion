@@ -137,6 +137,7 @@ class _UnifiedImportWizardBodyState
         ref
             .read(importWizardNotifierProvider.notifier)
             .setBundle(checkedBundle);
+        ref.read(importWizardNotifierProvider.notifier).initializeDefaultTag();
       }
       await _animateToPage(_currentPage + 1);
     } else if (_currentPage == _reviewIndex) {
