@@ -73,12 +73,7 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
 
   List<Widget> _buildCards(bool isMultiSource) {
     if (widget.dataSources.isEmpty) {
-      return [
-        _ManualEntryCard(
-          diveCreatedAt: widget.diveCreatedAt,
-          units: widget.units,
-        ),
-      ];
+      return [_ManualEntryCard(diveCreatedAt: widget.diveCreatedAt)];
     }
 
     final children = <Widget>[];
@@ -118,9 +113,8 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
 /// Card shown when a dive has no imported data sources (manual entry).
 class _ManualEntryCard extends StatelessWidget {
   final DateTime diveCreatedAt;
-  final UnitFormatter units;
 
-  const _ManualEntryCard({required this.diveCreatedAt, required this.units});
+  const _ManualEntryCard({required this.diveCreatedAt});
 
   @override
   Widget build(BuildContext context) {

@@ -13,6 +13,7 @@ import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/computer_toggle_bar.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
@@ -1902,21 +1903,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return lines;
   }
 
-  /// Returns a color for a computer at the given index, matching
-  /// [computerColorAt] in computer_toggle_bar.dart.
-  Color _computerColorAt(int index) {
-    const palette = [
-      Color(0xFF00D4FF),
-      Color(0xFFFF9500),
-      Color(0xFF2ECC71),
-      Color(0xFFE91E8C),
-    ];
-    final base = palette[index % palette.length];
-    if (index >= palette.length) {
-      return base.withValues(alpha: 0.6);
-    }
-    return base;
-  }
+  /// Returns a color for a computer at the given index.
+  /// Delegates to the shared [computerColorAt] in computer_toggle_bar.dart.
+  Color _computerColorAt(int index) => computerColorAt(index);
 
   /// Build a single depth line segment with the given color
   LineChartBarData _buildSingleDepthSegment(

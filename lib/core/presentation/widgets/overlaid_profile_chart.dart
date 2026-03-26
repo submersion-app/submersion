@@ -53,7 +53,7 @@ class _OverlaidProfileChartState extends State<OverlaidProfileChart> {
         final otherHasData = key == _existingKey
             ? widget.incomingProfile.isNotEmpty
             : widget.existingProfile.isNotEmpty;
-        if (!_hidden.contains(otherKey) || !otherHasData) {
+        if (!_hidden.contains(otherKey) && otherHasData) {
           _hidden.add(key);
         }
       }

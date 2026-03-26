@@ -47,15 +47,16 @@ class FitAdapter implements ImportSourceAdapter {
     required String diverId,
     AppSettings settings = const AppSettings(),
     String displayName = 'FIT Import',
+    WidgetRef? ref,
   }) : _fitParser = fitParser,
        _diveMatcher = diveMatcher,
        _converter = converter,
        _diveRepository = diveRepository,
        _diverId = diverId,
        _settings = settings,
-       _displayName = displayName;
+       _displayName = displayName,
+       _ref = ref;
 
-  // ignore: unused_field
   final FitParserService _fitParser;
   final DiveMatcher _diveMatcher;
   final ImportedDiveConverter _converter;
@@ -63,6 +64,7 @@ class FitAdapter implements ImportSourceAdapter {
   final String _diverId;
   final AppSettings _settings;
   final String _displayName;
+  final WidgetRef? _ref;
 
   List<ImportedDive> _parsedDives = [];
 
@@ -80,7 +82,10 @@ class FitAdapter implements ImportSourceAdapter {
   // ---------------------------------------------------------------------------
 
   @override
-  void resetState() {}
+  void resetState() {
+    _parsedDives = [];
+    _ref?.invalidate(fitAdapterCanAdvanceProvider);
+  }
 
   @override
   ImportSourceType get sourceType => ImportSourceType.fit;
@@ -480,6 +485,9 @@ class _FitFilePickerStepState extends ConsumerState<_FitFilePickerStep> {
   }
 
   Widget _buildDiveList(ThemeData theme) {
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: _parsedDives.length,
@@ -488,14 +496,15 @@ class _FitFilePickerStepState extends ConsumerState<_FitFilePickerStep> {
         final dive = _parsedDives[index];
         final dateStr = _dateFormatter.format(dive.startTime);
         final timeStr = _timeFormatter.format(dive.startTime);
-        final depthStr = dive.maxDepth.toStringAsFixed(1);
         final durationMin = dive.duration.inMinutes;
 
         return Card(
           child: ListTile(
             leading: const Icon(Icons.water),
             title: Text('$dateStr \u2014 $timeStr'),
-            subtitle: Text('${depthStr}m max \u00b7 $durationMin min'),
+            subtitle: Text(
+              '${units.formatDepth(dive.maxDepth)} max \u00b7 $durationMin min',
+            ),
           ),
         );
       },

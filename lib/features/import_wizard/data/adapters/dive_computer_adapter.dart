@@ -465,6 +465,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           (p) => DiveProfilesCompanion.insert(
             id: uuid.v4(),
             diveId: targetDiveId,
+            computerId: Value(comp.id),
             isPrimary: const Value(false),
             timestamp: p.timeSeconds,
             depth: p.depth,

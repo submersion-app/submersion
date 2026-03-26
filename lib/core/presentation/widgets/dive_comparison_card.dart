@@ -102,7 +102,12 @@ class DiveComparisonCard extends ConsumerWidget {
         final dataSources =
             ref.watch(diveDataSourcesProvider(existingDiveId)).valueOrNull ??
             [];
-        final primarySource = dataSources.isEmpty ? null : dataSources.first;
+        final primarySource = dataSources.isEmpty
+            ? null
+            : dataSources.firstWhere(
+                (source) => source.isPrimary,
+                orElse: () => dataSources.first,
+              );
         final existingComputerName = primarySource?.computerId != null
             ? ref
                   .watch(diveComputerByIdProvider(primarySource!.computerId!))

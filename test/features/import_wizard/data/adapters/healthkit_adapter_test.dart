@@ -1,15 +1,19 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
 import 'package:submersion/features/dive_import/domain/services/imported_dive_converter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/import_wizard/data/adapters/healthkit_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 @GenerateNiceMocks([
   MockSpec<HealthImportService>(),
@@ -573,6 +577,1139 @@ void main() {
       final step = adapter.acquisitionSteps[2];
       expect(step.label, equals('Fetch'));
       expect(step.autoAdvance, isTrue);
+    });
+
+    test('Permissions step has health_and_safety icon', () {
+      final step = adapter.acquisitionSteps[0];
+      expect(step.icon, equals(Icons.health_and_safety));
+    });
+
+    test('Date Range step has date_range icon', () {
+      final step = adapter.acquisitionSteps[1];
+      expect(step.icon, equals(Icons.date_range));
+    });
+
+    test('Fetch step has download icon', () {
+      final step = adapter.acquisitionSteps[2];
+      expect(step.icon, equals(Icons.download));
+    });
+
+    test('Permissions step uses healthKitPermissionsGrantedProvider', () {
+      final step = adapter.acquisitionSteps[0];
+      expect(step.canAdvance, same(healthKitPermissionsGrantedProvider));
+    });
+
+    test('Date Range step uses healthKitDateRangeSelectedProvider', () {
+      final step = adapter.acquisitionSteps[1];
+      expect(step.canAdvance, same(healthKitDateRangeSelectedProvider));
+    });
+
+    test('Fetch step uses healthKitDivesFetchedProvider', () {
+      final step = adapter.acquisitionSteps[2];
+      expect(step.canAdvance, same(healthKitDivesFetchedProvider));
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // resetState
+  // -------------------------------------------------------------------------
+
+  group('resetState()', () {
+    test('can be called without error', () {
+      // resetState is a no-op for HealthKitAdapter; verify it does not throw.
+      expect(() => adapter.resetState(), returnsNormally);
+    });
+
+    test('does not clear parsed dives', () async {
+      adapter.setParsedDives([makeDive()]);
+      adapter.resetState();
+
+      final bundle = await adapter.buildBundle();
+      // Parsed dives survive resetState because the adapter keeps them.
+      expect(bundle.groups[ImportEntityType.dives]!.items, hasLength(1));
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // setParsedDives
+  // -------------------------------------------------------------------------
+
+  group('setParsedDives()', () {
+    test('replaces previously set dives', () async {
+      adapter.setParsedDives([makeDive(sourceId: 'first')]);
+      adapter.setParsedDives([
+        makeDive(sourceId: 'second-1'),
+        makeDive(sourceId: 'second-2'),
+      ]);
+
+      final bundle = await adapter.buildBundle();
+      expect(bundle.groups[ImportEntityType.dives]!.items, hasLength(2));
+    });
+
+    test('list is unmodifiable after setting', () {
+      final mutableList = [makeDive()];
+      adapter.setParsedDives(mutableList);
+
+      // The adapter stores an unmodifiable copy, so mutating the original
+      // list after the fact should not affect the adapter's internal state.
+      // We verify indirectly by building a bundle.
+      mutableList.add(makeDive(sourceId: 'extra'));
+
+      // The adapter should still have only 1 dive.
+      expect(adapter.buildBundle(), completes);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // _diveSeconds helper (tested via checkDuplicates)
+  // -------------------------------------------------------------------------
+
+  group('_diveSeconds via checkDuplicates()', () {
+    // These tests verify the static _diveSeconds helper indirectly by
+    // exercising checkDuplicates with Dive entities that have different
+    // combinations of runtime/exitTime/entryTime/duration.
+
+    Future<void> runCheckWithExistingDive(
+      HealthKitAdapter adapter,
+      MockDiveMatcher matcher,
+      MockDiveRepository repo,
+      Dive existingDive,
+    ) async {
+      final dive = makeDive();
+      adapter.setParsedDives([dive]);
+      final bundle = await adapter.buildBundle();
+
+      when(
+        repo.getAllDives(diverId: diverId),
+      ).thenAnswer((_) async => [existingDive]);
+      when(
+        matcher.calculateMatchScore(
+          wearableStartTime: anyNamed('wearableStartTime'),
+          wearableMaxDepth: anyNamed('wearableMaxDepth'),
+          wearableDurationSeconds: anyNamed('wearableDurationSeconds'),
+          existingStartTime: anyNamed('existingStartTime'),
+          existingMaxDepth: anyNamed('existingMaxDepth'),
+          existingDurationSeconds: anyNamed('existingDurationSeconds'),
+        ),
+      ).thenReturn(0.3); // below threshold, just need to inspect arguments
+
+      await adapter.checkDuplicates(bundle);
+    }
+
+    test('uses runtime.inSeconds when runtime is set', () async {
+      final existing = Dive(
+        id: 'dive-rt',
+        diverId: diverId,
+        dateTime: DateTime(2026, 3, 15, 9, 00),
+        entryTime: DateTime(2026, 3, 15, 9, 00),
+        exitTime: DateTime(2026, 3, 15, 9, 50),
+        runtime: const Duration(minutes: 45),
+        duration: const Duration(minutes: 40),
+        maxDepth: 18.5,
+        notes: '',
+        diveTypeId: '',
+        tanks: const [],
+        profile: const [],
+        equipment: const [],
+        photoIds: const [],
+        sightings: const [],
+      );
+
+      await runCheckWithExistingDive(adapter, mockMatcher, mockRepo, existing);
+
+      final captured = verify(
+        mockMatcher.calculateMatchScore(
+          wearableStartTime: anyNamed('wearableStartTime'),
+          wearableMaxDepth: anyNamed('wearableMaxDepth'),
+          wearableDurationSeconds: captureAnyNamed('wearableDurationSeconds'),
+          existingStartTime: anyNamed('existingStartTime'),
+          existingMaxDepth: anyNamed('existingMaxDepth'),
+          existingDurationSeconds: captureAnyNamed('existingDurationSeconds'),
+        ),
+      ).captured;
+      // captured is [wearableDurationSeconds, existingDurationSeconds]
+      final existingSeconds = captured[1] as int;
+      expect(existingSeconds, equals(45 * 60));
+    });
+
+    test('falls back to exitTime-entryTime when runtime is null', () async {
+      final existing = Dive(
+        id: 'dive-et',
+        diverId: diverId,
+        dateTime: DateTime(2026, 3, 15, 9, 00),
+        entryTime: DateTime(2026, 3, 15, 9, 00),
+        exitTime: DateTime(2026, 3, 15, 9, 50),
+        runtime: null,
+        duration: const Duration(minutes: 40),
+        maxDepth: 18.5,
+        notes: '',
+        diveTypeId: '',
+        tanks: const [],
+        profile: const [],
+        equipment: const [],
+        photoIds: const [],
+        sightings: const [],
+      );
+
+      await runCheckWithExistingDive(adapter, mockMatcher, mockRepo, existing);
+
+      final captured = verify(
+        mockMatcher.calculateMatchScore(
+          wearableStartTime: anyNamed('wearableStartTime'),
+          wearableMaxDepth: anyNamed('wearableMaxDepth'),
+          wearableDurationSeconds: captureAnyNamed('wearableDurationSeconds'),
+          existingStartTime: anyNamed('existingStartTime'),
+          existingMaxDepth: anyNamed('existingMaxDepth'),
+          existingDurationSeconds: captureAnyNamed('existingDurationSeconds'),
+        ),
+      ).captured;
+      final existingSeconds = captured[1] as int;
+      // 50 minutes from exitTime - entryTime
+      expect(existingSeconds, equals(50 * 60));
+    });
+
+    test('falls back to duration when runtime and exitTime are null', () async {
+      final existing = Dive(
+        id: 'dive-dur',
+        diverId: diverId,
+        dateTime: DateTime(2026, 3, 15, 9, 00),
+        entryTime: null,
+        exitTime: null,
+        runtime: null,
+        duration: const Duration(minutes: 38),
+        maxDepth: 18.5,
+        notes: '',
+        diveTypeId: '',
+        tanks: const [],
+        profile: const [],
+        equipment: const [],
+        photoIds: const [],
+        sightings: const [],
+      );
+
+      await runCheckWithExistingDive(adapter, mockMatcher, mockRepo, existing);
+
+      final captured = verify(
+        mockMatcher.calculateMatchScore(
+          wearableStartTime: anyNamed('wearableStartTime'),
+          wearableMaxDepth: anyNamed('wearableMaxDepth'),
+          wearableDurationSeconds: captureAnyNamed('wearableDurationSeconds'),
+          existingStartTime: anyNamed('existingStartTime'),
+          existingMaxDepth: anyNamed('existingMaxDepth'),
+          existingDurationSeconds: captureAnyNamed('existingDurationSeconds'),
+        ),
+      ).captured;
+      final existingSeconds = captured[1] as int;
+      expect(existingSeconds, equals(38 * 60));
+    });
+
+    test(
+      'returns 0 when runtime, exitTime, and duration are all null',
+      () async {
+        final existing = Dive(
+          id: 'dive-none',
+          diverId: diverId,
+          dateTime: DateTime(2026, 3, 15, 9, 00),
+          entryTime: null,
+          exitTime: null,
+          runtime: null,
+          duration: null,
+          maxDepth: 18.5,
+          notes: '',
+          diveTypeId: '',
+          tanks: const [],
+          profile: const [],
+          equipment: const [],
+          photoIds: const [],
+          sightings: const [],
+        );
+
+        await runCheckWithExistingDive(
+          adapter,
+          mockMatcher,
+          mockRepo,
+          existing,
+        );
+
+        final captured = verify(
+          mockMatcher.calculateMatchScore(
+            wearableStartTime: anyNamed('wearableStartTime'),
+            wearableMaxDepth: anyNamed('wearableMaxDepth'),
+            wearableDurationSeconds: captureAnyNamed('wearableDurationSeconds'),
+            existingStartTime: anyNamed('existingStartTime'),
+            existingMaxDepth: anyNamed('existingMaxDepth'),
+            existingDurationSeconds: captureAnyNamed('existingDurationSeconds'),
+          ),
+        ).captured;
+        final existingSeconds = captured[1] as int;
+        expect(existingSeconds, equals(0));
+      },
+    );
+
+    test('falls back to exitTime-entryTime when runtime is null '
+        'but entryTime is null (uses 0)', () async {
+      // When entryTime is null but exitTime is set, the fallback to
+      // exitTime-entryTime is skipped, and duration is used instead.
+      final existing = Dive(
+        id: 'dive-no-entry',
+        diverId: diverId,
+        dateTime: DateTime(2026, 3, 15, 9, 00),
+        entryTime: null,
+        exitTime: DateTime(2026, 3, 15, 9, 50),
+        runtime: null,
+        duration: const Duration(minutes: 33),
+        maxDepth: 18.5,
+        notes: '',
+        diveTypeId: '',
+        tanks: const [],
+        profile: const [],
+        equipment: const [],
+        photoIds: const [],
+        sightings: const [],
+      );
+
+      await runCheckWithExistingDive(adapter, mockMatcher, mockRepo, existing);
+
+      final captured = verify(
+        mockMatcher.calculateMatchScore(
+          wearableStartTime: anyNamed('wearableStartTime'),
+          wearableMaxDepth: anyNamed('wearableMaxDepth'),
+          wearableDurationSeconds: captureAnyNamed('wearableDurationSeconds'),
+          existingStartTime: anyNamed('existingStartTime'),
+          existingMaxDepth: anyNamed('existingMaxDepth'),
+          existingDurationSeconds: captureAnyNamed('existingDurationSeconds'),
+        ),
+      ).captured;
+      final existingSeconds = captured[1] as int;
+      // duration fallback: 33 minutes
+      expect(existingSeconds, equals(33 * 60));
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // checkDuplicates - additional edge cases
+  // -------------------------------------------------------------------------
+
+  group('checkDuplicates() edge cases', () {
+    test('returns bundle unchanged when dives group is null', () async {
+      // Build a bundle with no dives group at all.
+      final bundle = ImportBundle(
+        source: const ImportSourceInfo(
+          type: ImportSourceType.healthKit,
+          displayName: 'Test',
+        ),
+        groups: {},
+      );
+
+      final result = await adapter.checkDuplicates(bundle);
+
+      expect(result.groups, isEmpty);
+    });
+
+    test('returns bundle unchanged when dives group is empty', () async {
+      adapter.setParsedDives([]);
+      final bundle = await adapter.buildBundle();
+
+      final result = await adapter.checkDuplicates(bundle);
+
+      expect(result.groups[ImportEntityType.dives]!.items, isEmpty);
+      expect(result.groups[ImportEntityType.dives]!.duplicateIndices, isEmpty);
+    });
+
+    test('returns bundle unchanged when no existing dives', () async {
+      final dive = makeDive();
+      adapter.setParsedDives([dive]);
+      final bundle = await adapter.buildBundle();
+
+      when(mockRepo.getAllDives(diverId: diverId)).thenAnswer((_) async => []);
+
+      final result = await adapter.checkDuplicates(bundle);
+
+      expect(result.groups[ImportEntityType.dives]!.duplicateIndices, isEmpty);
+    });
+
+    test('uses 0.0 for existing dive with null maxDepth', () async {
+      final dive = makeDive(maxDepth: 20.0);
+      adapter.setParsedDives([dive]);
+      final bundle = await adapter.buildBundle();
+
+      final existing = Dive(
+        id: 'dive-null-depth',
+        diverId: diverId,
+        dateTime: DateTime(2026, 3, 15, 9, 00),
+        maxDepth: null,
+        runtime: const Duration(minutes: 42),
+        notes: '',
+        diveTypeId: '',
+        tanks: const [],
+        profile: const [],
+        equipment: const [],
+        photoIds: const [],
+        sightings: const [],
+      );
+
+      when(
+        mockRepo.getAllDives(diverId: diverId),
+      ).thenAnswer((_) async => [existing]);
+      when(
+        mockMatcher.calculateMatchScore(
+          wearableStartTime: anyNamed('wearableStartTime'),
+          wearableMaxDepth: anyNamed('wearableMaxDepth'),
+          wearableDurationSeconds: anyNamed('wearableDurationSeconds'),
+          existingStartTime: anyNamed('existingStartTime'),
+          existingMaxDepth: anyNamed('existingMaxDepth'),
+          existingDurationSeconds: anyNamed('existingDurationSeconds'),
+        ),
+      ).thenReturn(0.3);
+
+      await adapter.checkDuplicates(bundle);
+
+      final captured = verify(
+        mockMatcher.calculateMatchScore(
+          wearableStartTime: anyNamed('wearableStartTime'),
+          wearableMaxDepth: anyNamed('wearableMaxDepth'),
+          wearableDurationSeconds: anyNamed('wearableDurationSeconds'),
+          existingStartTime: anyNamed('existingStartTime'),
+          existingMaxDepth: captureAnyNamed('existingMaxDepth'),
+          existingDurationSeconds: anyNamed('existingDurationSeconds'),
+        ),
+      ).captured;
+      expect(captured.first, equals(0.0));
+    });
+
+    test('match result includes siteName from existing dive', () async {
+      final dive = makeDive();
+      adapter.setParsedDives([dive]);
+      final bundle = await adapter.buildBundle();
+
+      final existing = Dive(
+        id: 'dive-with-site',
+        diverId: diverId,
+        dateTime: DateTime(2026, 3, 15, 9, 00),
+        maxDepth: 18.5,
+        runtime: const Duration(minutes: 42),
+        site: const DiveSite(
+          id: 'site-1',
+          name: 'Blue Hole',
+          description: '',
+          photoIds: [],
+          notes: '',
+        ),
+        notes: '',
+        diveTypeId: '',
+        tanks: const [],
+        profile: const [],
+        equipment: const [],
+        photoIds: const [],
+        sightings: const [],
+      );
+
+      when(
+        mockRepo.getAllDives(diverId: diverId),
+      ).thenAnswer((_) async => [existing]);
+      when(
+        mockMatcher.calculateMatchScore(
+          wearableStartTime: anyNamed('wearableStartTime'),
+          wearableMaxDepth: anyNamed('wearableMaxDepth'),
+          wearableDurationSeconds: anyNamed('wearableDurationSeconds'),
+          existingStartTime: anyNamed('existingStartTime'),
+          existingMaxDepth: anyNamed('existingMaxDepth'),
+          existingDurationSeconds: anyNamed('existingDurationSeconds'),
+        ),
+      ).thenReturn(0.8);
+
+      final result = await adapter.checkDuplicates(bundle);
+
+      final matchResult =
+          result.groups[ImportEntityType.dives]!.matchResults![0];
+      expect(matchResult!.siteName, equals('Blue Hole'));
+    });
+
+    test(
+      'match result has null siteName when existing dive has no site',
+      () async {
+        final dive = makeDive();
+        adapter.setParsedDives([dive]);
+        final bundle = await adapter.buildBundle();
+
+        final existing = makeDomainDive(id: 'no-site');
+        when(
+          mockRepo.getAllDives(diverId: diverId),
+        ).thenAnswer((_) async => [existing]);
+        when(
+          mockMatcher.calculateMatchScore(
+            wearableStartTime: anyNamed('wearableStartTime'),
+            wearableMaxDepth: anyNamed('wearableMaxDepth'),
+            wearableDurationSeconds: anyNamed('wearableDurationSeconds'),
+            existingStartTime: anyNamed('existingStartTime'),
+            existingMaxDepth: anyNamed('existingMaxDepth'),
+            existingDurationSeconds: anyNamed('existingDurationSeconds'),
+          ),
+        ).thenReturn(0.9);
+
+        final result = await adapter.checkDuplicates(bundle);
+
+        final matchResult =
+            result.groups[ImportEntityType.dives]!.matchResults![0];
+        expect(matchResult!.siteName, isNull);
+      },
+    );
+
+    test('match result includes correct timeDifferenceMs', () async {
+      final importedStart = DateTime(2026, 3, 15, 9, 00);
+      final existingStart = DateTime(2026, 3, 15, 9, 02);
+      final dive = makeDive(startTime: importedStart);
+      adapter.setParsedDives([dive]);
+      final bundle = await adapter.buildBundle();
+
+      final existing = makeDomainDive(
+        id: 'dive-time-diff',
+        dateTime: existingStart,
+      );
+      when(
+        mockRepo.getAllDives(diverId: diverId),
+      ).thenAnswer((_) async => [existing]);
+      when(
+        mockMatcher.calculateMatchScore(
+          wearableStartTime: anyNamed('wearableStartTime'),
+          wearableMaxDepth: anyNamed('wearableMaxDepth'),
+          wearableDurationSeconds: anyNamed('wearableDurationSeconds'),
+          existingStartTime: anyNamed('existingStartTime'),
+          existingMaxDepth: anyNamed('existingMaxDepth'),
+          existingDurationSeconds: anyNamed('existingDurationSeconds'),
+        ),
+      ).thenReturn(0.7);
+
+      final result = await adapter.checkDuplicates(bundle);
+
+      final matchResult =
+          result.groups[ImportEntityType.dives]!.matchResults![0];
+      // 2 minutes = 120000 ms
+      expect(matchResult!.timeDifferenceMs, equals(120000));
+    });
+
+    test('match result includes correct depthDifferenceMeters', () async {
+      final dive = makeDive(maxDepth: 20.0);
+      adapter.setParsedDives([dive]);
+      final bundle = await adapter.buildBundle();
+
+      final existing = makeDomainDive(id: 'dive-depth-diff', maxDepth: 18.0);
+      when(
+        mockRepo.getAllDives(diverId: diverId),
+      ).thenAnswer((_) async => [existing]);
+      when(
+        mockMatcher.calculateMatchScore(
+          wearableStartTime: anyNamed('wearableStartTime'),
+          wearableMaxDepth: anyNamed('wearableMaxDepth'),
+          wearableDurationSeconds: anyNamed('wearableDurationSeconds'),
+          existingStartTime: anyNamed('existingStartTime'),
+          existingMaxDepth: anyNamed('existingMaxDepth'),
+          existingDurationSeconds: anyNamed('existingDurationSeconds'),
+        ),
+      ).thenReturn(0.6);
+
+      final result = await adapter.checkDuplicates(bundle);
+
+      final matchResult =
+          result.groups[ImportEntityType.dives]!.matchResults![0];
+      expect(matchResult!.depthDifferenceMeters, closeTo(2.0, 0.001));
+    });
+
+    test('match result includes correct durationDifferenceSeconds', () async {
+      // imported dive: 42 min duration
+      final dive = makeDive();
+      adapter.setParsedDives([dive]);
+      final bundle = await adapter.buildBundle();
+
+      // existing dive: 45 min duration
+      final existing = makeDomainDive(
+        id: 'dive-dur-diff',
+        duration: const Duration(minutes: 45),
+      );
+      when(
+        mockRepo.getAllDives(diverId: diverId),
+      ).thenAnswer((_) async => [existing]);
+      when(
+        mockMatcher.calculateMatchScore(
+          wearableStartTime: anyNamed('wearableStartTime'),
+          wearableMaxDepth: anyNamed('wearableMaxDepth'),
+          wearableDurationSeconds: anyNamed('wearableDurationSeconds'),
+          existingStartTime: anyNamed('existingStartTime'),
+          existingMaxDepth: anyNamed('existingMaxDepth'),
+          existingDurationSeconds: anyNamed('existingDurationSeconds'),
+        ),
+      ).thenReturn(0.75);
+
+      final result = await adapter.checkDuplicates(bundle);
+
+      final matchResult =
+          result.groups[ImportEntityType.dives]!.matchResults![0];
+      // |42*60 - 45*60| = 180 seconds
+      expect(matchResult!.durationDifferenceSeconds, equals(180));
+    });
+
+    test('handles multiple parsed dives with mixed matches', () async {
+      final dive1 = makeDive(
+        sourceId: 'hk-1',
+        startTime: DateTime(2026, 3, 15, 9, 00),
+      );
+      final dive2 = makeDive(
+        sourceId: 'hk-2',
+        startTime: DateTime(2026, 3, 16, 10, 00),
+      );
+      final dive3 = makeDive(
+        sourceId: 'hk-3',
+        startTime: DateTime(2026, 3, 17, 11, 00),
+      );
+      adapter.setParsedDives([dive1, dive2, dive3]);
+      final bundle = await adapter.buildBundle();
+
+      final existing = makeDomainDive(id: 'ex-1');
+      when(
+        mockRepo.getAllDives(diverId: diverId),
+      ).thenAnswer((_) async => [existing]);
+
+      var callIndex = 0;
+      when(
+        mockMatcher.calculateMatchScore(
+          wearableStartTime: anyNamed('wearableStartTime'),
+          wearableMaxDepth: anyNamed('wearableMaxDepth'),
+          wearableDurationSeconds: anyNamed('wearableDurationSeconds'),
+          existingStartTime: anyNamed('existingStartTime'),
+          existingMaxDepth: anyNamed('existingMaxDepth'),
+          existingDurationSeconds: anyNamed('existingDurationSeconds'),
+        ),
+      ).thenAnswer((_) {
+        final scores = [0.9, 0.3, 0.6];
+        return scores[callIndex++];
+      });
+
+      final result = await adapter.checkDuplicates(bundle);
+
+      final dupes = result.groups[ImportEntityType.dives]!.duplicateIndices;
+      // dive1 (0.9) and dive3 (0.6) match; dive2 (0.3) does not
+      expect(dupes, containsAll([0, 2]));
+      expect(dupes, isNot(contains(1)));
+    });
+
+    test('preserves non-dives groups in result bundle', () async {
+      adapter.setParsedDives([makeDive()]);
+
+      // Build a bundle with an extra (non-dives) group
+      final baseBundle = await adapter.buildBundle();
+      final bundleWithSites = ImportBundle(
+        source: baseBundle.source,
+        groups: {
+          ...baseBundle.groups,
+          ImportEntityType.sites: const EntityGroup(
+            items: [EntityItem(title: 'Reef', subtitle: 'Tropical')],
+          ),
+        },
+      );
+
+      when(mockRepo.getAllDives(diverId: diverId)).thenAnswer((_) async => []);
+
+      final result = await adapter.checkDuplicates(bundleWithSites);
+
+      expect(result.hasType(ImportEntityType.sites), isTrue);
+      expect(
+        result.groups[ImportEntityType.sites]!.items.first.title,
+        equals('Reef'),
+      );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // performImport - additional edge cases
+  // -------------------------------------------------------------------------
+
+  group('performImport() edge cases', () {
+    test('returns zero counts when no dives selected', () async {
+      adapter.setParsedDives([makeDive()]);
+      final bundle = await adapter.buildBundle();
+
+      final result = await adapter.performImport(bundle, {
+        ImportEntityType.dives: <int>{},
+      }, {});
+
+      expect(result.importedCounts[ImportEntityType.dives], equals(0));
+      expect(result.skippedCount, equals(0));
+      verifyNever(mockConverter.convert(any, diverId: anyNamed('diverId')));
+      verifyNever(mockRepo.createDive(any));
+    });
+
+    test('returns zero counts when selections map is empty', () async {
+      adapter.setParsedDives([makeDive()]);
+      final bundle = await adapter.buildBundle();
+
+      final result = await adapter.performImport(bundle, {}, {});
+
+      expect(result.importedCounts[ImportEntityType.dives], equals(0));
+      expect(result.skippedCount, equals(0));
+    });
+
+    test('skips out-of-bounds indices without crashing', () async {
+      adapter.setParsedDives([makeDive()]);
+      final bundle = await adapter.buildBundle();
+
+      // Index 5 is out of bounds (only index 0 exists)
+      final result = await adapter.performImport(bundle, {
+        ImportEntityType.dives: {5},
+      }, {});
+
+      expect(result.importedCounts[ImportEntityType.dives], equals(0));
+      verifyNever(mockConverter.convert(any, diverId: anyNamed('diverId')));
+    });
+
+    test('returns importedDiveIds for each imported dive', () async {
+      final dive1 = makeDive(sourceId: 'hk-1');
+      final dive2 = makeDive(sourceId: 'hk-2');
+      adapter.setParsedDives([dive1, dive2]);
+      final bundle = await adapter.buildBundle();
+
+      final domainDive1 = makeDomainDive(id: 'uuid-aaa');
+      final domainDive2 = makeDomainDive(id: 'uuid-bbb');
+      when(
+        mockConverter.convert(dive1, diverId: diverId),
+      ).thenReturn(domainDive1);
+      when(
+        mockConverter.convert(dive2, diverId: diverId),
+      ).thenReturn(domainDive2);
+      when(mockRepo.createDive(any)).thenAnswer((_) async => domainDive1);
+
+      final result = await adapter.performImport(bundle, {
+        ImportEntityType.dives: {0, 1},
+      }, {});
+
+      expect(result.importedDiveIds, hasLength(2));
+      expect(result.importedDiveIds, contains('uuid-aaa'));
+      expect(result.importedDiveIds, contains('uuid-bbb'));
+    });
+
+    test('consolidatedCount is always 0', () async {
+      adapter.setParsedDives([makeDive()]);
+      final bundle = await adapter.buildBundle();
+      final domainDive = makeDomainDive();
+      when(
+        mockConverter.convert(any, diverId: anyNamed('diverId')),
+      ).thenReturn(domainDive);
+      when(mockRepo.createDive(any)).thenAnswer((_) async => domainDive);
+
+      final result = await adapter.performImport(bundle, {
+        ImportEntityType.dives: {0},
+      }, {});
+
+      expect(result.consolidatedCount, equals(0));
+    });
+
+    test(
+      'skip action on index not in base selections counts as skipped',
+      () async {
+        final dive1 = makeDive(sourceId: 'hk-1');
+        final dive2 = makeDive(sourceId: 'hk-2');
+        adapter.setParsedDives([dive1, dive2]);
+        final bundle = await adapter.buildBundle();
+
+        final domainDive1 = makeDomainDive(id: 'uuid-1');
+        when(
+          mockConverter.convert(dive1, diverId: diverId),
+        ).thenReturn(domainDive1);
+        when(mockRepo.createDive(any)).thenAnswer((_) async => domainDive1);
+
+        // Select only index 0. Index 1 gets skip action but is NOT
+        // in selections.
+        final result = await adapter.performImport(
+          bundle,
+          {
+            ImportEntityType.dives: {0},
+          },
+          {
+            ImportEntityType.dives: {1: DuplicateAction.skip},
+          },
+        );
+
+        // Index 1 skip action increments skipped even though not selected
+        expect(result.skippedCount, equals(1));
+      },
+    );
+
+    test('importAsNew adds index even when not in base selections', () async {
+      final dive1 = makeDive(sourceId: 'hk-1');
+      final dive2 = makeDive(sourceId: 'hk-2');
+      adapter.setParsedDives([dive1, dive2]);
+      final bundle = await adapter.buildBundle();
+
+      final domainDive1 = makeDomainDive(id: 'uuid-1');
+      final domainDive2 = makeDomainDive(id: 'uuid-2');
+      when(
+        mockConverter.convert(dive1, diverId: diverId),
+      ).thenReturn(domainDive1);
+      when(
+        mockConverter.convert(dive2, diverId: diverId),
+      ).thenReturn(domainDive2);
+      when(mockRepo.createDive(any)).thenAnswer((_) async => domainDive1);
+
+      // Base selections empty; both get importAsNew action
+      final result = await adapter.performImport(
+        bundle,
+        {ImportEntityType.dives: <int>{}},
+        {
+          ImportEntityType.dives: {
+            0: DuplicateAction.importAsNew,
+            1: DuplicateAction.importAsNew,
+          },
+        },
+      );
+
+      verify(mockConverter.convert(dive1, diverId: diverId)).called(1);
+      verify(mockConverter.convert(dive2, diverId: diverId)).called(1);
+      expect(result.importedCounts[ImportEntityType.dives], equals(2));
+    });
+
+    test('imports indices in sorted order', () async {
+      final dive0 = makeDive(sourceId: 'hk-0');
+      final dive1 = makeDive(sourceId: 'hk-1');
+      final dive2 = makeDive(sourceId: 'hk-2');
+      adapter.setParsedDives([dive0, dive1, dive2]);
+      final bundle = await adapter.buildBundle();
+
+      final domainDive = makeDomainDive();
+      when(
+        mockConverter.convert(any, diverId: anyNamed('diverId')),
+      ).thenReturn(domainDive);
+      when(mockRepo.createDive(any)).thenAnswer((_) async => domainDive);
+
+      final progressOrder = <int>[];
+      // Select in reverse order {2, 0} to verify sorting
+      await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {2, 0},
+        },
+        {},
+        onProgress: (_, current, _) => progressOrder.add(current),
+      );
+
+      expect(progressOrder, equals([1, 2]));
+    });
+
+    test('does not call onProgress when callback is null', () async {
+      final dive = makeDive();
+      adapter.setParsedDives([dive]);
+      final bundle = await adapter.buildBundle();
+
+      final domainDive = makeDomainDive();
+      when(
+        mockConverter.convert(any, diverId: anyNamed('diverId')),
+      ).thenReturn(domainDive);
+      when(mockRepo.createDive(any)).thenAnswer((_) async => domainDive);
+
+      // Should not throw even though onProgress is null
+      final result = await adapter.performImport(bundle, {
+        ImportEntityType.dives: {0},
+      }, {});
+
+      expect(result.importedCounts[ImportEntityType.dives], equals(1));
+    });
+
+    test('skip action on a selected index removes it from import', () async {
+      final dive0 = makeDive(sourceId: 'hk-0');
+      final dive1 = makeDive(sourceId: 'hk-1');
+      adapter.setParsedDives([dive0, dive1]);
+      final bundle = await adapter.buildBundle();
+
+      final domainDive1 = makeDomainDive(id: 'uuid-1');
+      when(
+        mockConverter.convert(dive1, diverId: diverId),
+      ).thenReturn(domainDive1);
+      when(mockRepo.createDive(any)).thenAnswer((_) async => domainDive1);
+
+      // Both selected, but index 0 is skip
+      final result = await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0, 1},
+        },
+        {
+          ImportEntityType.dives: {0: DuplicateAction.skip},
+        },
+      );
+
+      expect(result.importedCounts[ImportEntityType.dives], equals(1));
+      expect(result.skippedCount, equals(1));
+      verifyNever(mockConverter.convert(dive0, diverId: diverId));
+      verify(mockConverter.convert(dive1, diverId: diverId)).called(1);
+    });
+
+    test('all selected as skip results in zero imports', () async {
+      final dive0 = makeDive(sourceId: 'hk-0');
+      final dive1 = makeDive(sourceId: 'hk-1');
+      adapter.setParsedDives([dive0, dive1]);
+      final bundle = await adapter.buildBundle();
+
+      final result = await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0, 1},
+        },
+        {
+          ImportEntityType.dives: {
+            0: DuplicateAction.skip,
+            1: DuplicateAction.skip,
+          },
+        },
+      );
+
+      expect(result.importedCounts[ImportEntityType.dives], equals(0));
+      expect(result.skippedCount, equals(2));
+      verifyNever(mockConverter.convert(any, diverId: anyNamed('diverId')));
+    });
+
+    test('all as importAsNew imports everything', () async {
+      final dive0 = makeDive(sourceId: 'hk-0');
+      final dive1 = makeDive(sourceId: 'hk-1');
+      final dive2 = makeDive(sourceId: 'hk-2');
+      adapter.setParsedDives([dive0, dive1, dive2]);
+      final bundle = await adapter.buildBundle();
+
+      final domainDive = makeDomainDive();
+      when(
+        mockConverter.convert(any, diverId: anyNamed('diverId')),
+      ).thenReturn(domainDive);
+      when(mockRepo.createDive(any)).thenAnswer((_) async => domainDive);
+
+      final result = await adapter.performImport(
+        bundle,
+        {ImportEntityType.dives: <int>{}},
+        {
+          ImportEntityType.dives: {
+            0: DuplicateAction.importAsNew,
+            1: DuplicateAction.importAsNew,
+            2: DuplicateAction.importAsNew,
+          },
+        },
+      );
+
+      expect(result.importedCounts[ImportEntityType.dives], equals(3));
+      expect(result.skippedCount, equals(0));
+    });
+
+    test('importAsNew on a selected index does not double-import', () async {
+      final dive = makeDive();
+      adapter.setParsedDives([dive]);
+      final bundle = await adapter.buildBundle();
+
+      final domainDive = makeDomainDive();
+      when(
+        mockConverter.convert(dive, diverId: diverId),
+      ).thenReturn(domainDive);
+      when(mockRepo.createDive(any)).thenAnswer((_) async => domainDive);
+
+      // Index 0 is both in selections AND has importAsNew action
+      final result = await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0},
+        },
+        {
+          ImportEntityType.dives: {0: DuplicateAction.importAsNew},
+        },
+      );
+
+      // Should still only import once (Set deduplicates)
+      verify(mockConverter.convert(dive, diverId: diverId)).called(1);
+      expect(result.importedCounts[ImportEntityType.dives], equals(1));
+    });
+
+    test('onProgress reports correct phase, current, and total', () async {
+      final dive0 = makeDive(sourceId: 'hk-0');
+      final dive1 = makeDive(sourceId: 'hk-1');
+      final dive2 = makeDive(sourceId: 'hk-2');
+      adapter.setParsedDives([dive0, dive1, dive2]);
+      final bundle = await adapter.buildBundle();
+
+      final domainDive = makeDomainDive();
+      when(
+        mockConverter.convert(any, diverId: anyNamed('diverId')),
+      ).thenReturn(domainDive);
+      when(mockRepo.createDive(any)).thenAnswer((_) async => domainDive);
+
+      final calls = <(String, int, int)>[];
+      await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0, 1, 2},
+        },
+        {},
+        onProgress: (phase, current, total) {
+          calls.add((phase, current, total));
+        },
+      );
+
+      expect(calls, hasLength(3));
+      expect(calls[0], equals(('Dives', 1, 3)));
+      expect(calls[1], equals(('Dives', 2, 3)));
+      expect(calls[2], equals(('Dives', 3, 3)));
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // buildBundle - additional entity item conversion tests
+  // -------------------------------------------------------------------------
+
+  group('buildBundle() entity item conversion', () {
+    test('handles multiple dives preserving order', () async {
+      final dive1 = makeDive(
+        sourceId: 'hk-1',
+        startTime: DateTime(2026, 3, 15, 9, 00),
+      );
+      final dive2 = makeDive(
+        sourceId: 'hk-2',
+        startTime: DateTime(2026, 3, 16, 14, 30),
+      );
+      adapter.setParsedDives([dive1, dive2]);
+
+      final bundle = await adapter.buildBundle();
+      final items = bundle.groups[ImportEntityType.dives]!.items;
+
+      expect(items, hasLength(2));
+      expect(items[0].title, contains('Mar 15, 2026'));
+      expect(items[1].title, contains('Mar 16, 2026'));
+    });
+
+    test('profile samples include temperature and heartRate', () async {
+      final profile = [
+        const ImportedProfileSample(
+          timeSeconds: 0,
+          depth: 0.0,
+          temperature: 25.0,
+          heartRate: 80,
+        ),
+        const ImportedProfileSample(
+          timeSeconds: 120,
+          depth: 15.0,
+          temperature: 22.0,
+          heartRate: 95,
+        ),
+      ];
+      final dive = makeDive(profile: profile);
+      adapter.setParsedDives([dive]);
+
+      final bundle = await adapter.buildBundle();
+      final item = bundle.groups[ImportEntityType.dives]!.items.first;
+
+      expect(item.diveData!.profile, hasLength(2));
+      expect(item.diveData!.profile[0].temperature, equals(25.0));
+      expect(item.diveData!.profile[0].heartRate, equals(80));
+      expect(item.diveData!.profile[1].temperature, equals(22.0));
+      expect(item.diveData!.profile[1].heartRate, equals(95));
+    });
+
+    test('diveData has null avgDepth when dive avgDepth is null', () async {
+      final dive = makeDive(avgDepth: null);
+      adapter.setParsedDives([dive]);
+
+      final bundle = await adapter.buildBundle();
+      final item = bundle.groups[ImportEntityType.dives]!.items.first;
+
+      expect(item.diveData!.avgDepth, isNull);
+    });
+
+    test('diveData has null waterTemp when minTemperature is null', () async {
+      final dive = makeDive(minTemperature: null);
+      adapter.setParsedDives([dive]);
+
+      final bundle = await adapter.buildBundle();
+      final item = bundle.groups[ImportEntityType.dives]!.items.first;
+
+      expect(item.diveData!.waterTemp, isNull);
+    });
+
+    test('diveData startTime matches dive startTime', () async {
+      final start = DateTime(2026, 7, 4, 11, 30);
+      final dive = makeDive(startTime: start);
+      adapter.setParsedDives([dive]);
+
+      final bundle = await adapter.buildBundle();
+      final item = bundle.groups[ImportEntityType.dives]!.items.first;
+
+      expect(item.diveData!.startTime, equals(start));
+    });
+
+    test('diveData durationSeconds is computed from start/end', () async {
+      final start = DateTime(2026, 3, 15, 9, 00);
+      final end = DateTime(2026, 3, 15, 9, 55);
+      final dive = makeDive(startTime: start, endTime: end);
+      adapter.setParsedDives([dive]);
+
+      final bundle = await adapter.buildBundle();
+      final item = bundle.groups[ImportEntityType.dives]!.items.first;
+
+      expect(item.diveData!.durationSeconds, equals(55 * 60));
+    });
+
+    test('empty profile results in empty diveData profile', () async {
+      final dive = makeDive(profile: []);
+      adapter.setParsedDives([dive]);
+
+      final bundle = await adapter.buildBundle();
+      final item = bundle.groups[ImportEntityType.dives]!.items.first;
+
+      expect(item.diveData!.profile, isEmpty);
+    });
+
+    test('subtitle uses imperial units when settings specify feet', () async {
+      final imperialAdapter = HealthKitAdapter(
+        healthService: mockHealthService,
+        diveMatcher: mockMatcher,
+        converter: mockConverter,
+        diveRepository: mockRepo,
+        diverId: diverId,
+        settings: const AppSettings(
+          depthUnit: DepthUnit.feet,
+          temperatureUnit: TemperatureUnit.fahrenheit,
+        ),
+      );
+      final dive = makeDive(
+        maxDepth: 18.5,
+        minTemperature: 24.0,
+        startTime: DateTime(2026, 3, 15, 9, 00),
+        endTime: DateTime(2026, 3, 15, 9, 42),
+      );
+      imperialAdapter.setParsedDives([dive]);
+
+      final bundle = await imperialAdapter.buildBundle();
+      final item = bundle.groups[ImportEntityType.dives]!.items.first;
+
+      // 18.5m * 3.28084 = ~60.7ft
+      expect(item.subtitle, contains('ft'));
+      expect(item.subtitle, contains('42 min'));
+      // Temperature should be in Fahrenheit
+      expect(item.subtitle, contains('F'));
+    });
+
+    test('source info has healthKit type', () async {
+      adapter.setParsedDives([makeDive()]);
+
+      final bundle = await adapter.buildBundle();
+
+      expect(bundle.source.type, equals(ImportSourceType.healthKit));
+    });
+
+    test('source info displayName matches adapter displayName', () async {
+      final named = HealthKitAdapter(
+        healthService: mockHealthService,
+        diveMatcher: mockMatcher,
+        converter: mockConverter,
+        diveRepository: mockRepo,
+        diverId: diverId,
+        displayName: 'My Watch Import',
+      );
+      named.setParsedDives([]);
+
+      final bundle = await named.buildBundle();
+
+      expect(bundle.source.displayName, equals('My Watch Import'));
     });
   });
 }

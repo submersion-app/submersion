@@ -127,6 +127,70 @@ void main() {
       expect(source.displayName, 'Unknown Source');
     });
 
+    test('equality holds for identical field values', () {
+      final now = DateTime(2026, 3, 20, 10, 0);
+      final a = DiveDataSource(
+        id: 'r1',
+        diveId: 'd1',
+        isPrimary: true,
+        maxDepth: 30.0,
+        importedAt: now,
+        createdAt: now,
+      );
+      final b = DiveDataSource(
+        id: 'r1',
+        diveId: 'd1',
+        isPrimary: true,
+        maxDepth: 30.0,
+        importedAt: now,
+        createdAt: now,
+      );
+
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+    });
+
+    test('equality fails when a field differs', () {
+      final now = DateTime(2026, 3, 20, 10, 0);
+      final a = DiveDataSource(
+        id: 'r1',
+        diveId: 'd1',
+        isPrimary: true,
+        importedAt: now,
+        createdAt: now,
+      );
+      final b = DiveDataSource(
+        id: 'r2',
+        diveId: 'd1',
+        isPrimary: true,
+        importedAt: now,
+        createdAt: now,
+      );
+
+      expect(a, isNot(equals(b)));
+    });
+
+    test('props includes all fields', () {
+      final now = DateTime(2026, 3, 20, 10, 0);
+      final source = DiveDataSource(
+        id: 'r1',
+        diveId: 'd1',
+        isPrimary: true,
+        computerModel: 'Perdix',
+        maxDepth: 30.0,
+        importedAt: now,
+        createdAt: now,
+      );
+
+      // 25 fields total in props list
+      expect(source.props, hasLength(25));
+      expect(source.props, contains('r1'));
+      expect(source.props, contains('d1'));
+      expect(source.props, contains(true));
+      expect(source.props, contains('Perdix'));
+      expect(source.props, contains(30.0));
+    });
+
     test('copyWith handles sourceFileName and sourceFileFormat', () {
       final now = DateTime.now();
       final source = DiveDataSource(

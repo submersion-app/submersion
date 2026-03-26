@@ -138,7 +138,6 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   Future<void> startDownload(
     DiscoveredDevice device, {
     DiveComputer? computer,
-    String? diverId,
   }) async {
     _computer = computer;
 

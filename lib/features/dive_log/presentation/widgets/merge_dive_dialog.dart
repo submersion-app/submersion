@@ -65,7 +65,12 @@ class _MergeDiveDialogState extends ConsumerState<MergeDiveDialog> {
                 child: Icon(Icons.merge, color: colorScheme.primary),
               ),
               const SizedBox(width: 12),
-              Text('Merge with another dive', style: textTheme.headlineSmall),
+              Flexible(
+                child: Text(
+                  'Merge with another dive',
+                  style: textTheme.headlineSmall,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -179,7 +184,9 @@ class _MergeDiveDialogState extends ConsumerState<MergeDiveDialog> {
                 ),
               ),
               const SizedBox(width: 12),
-              Text('Confirm merge', style: textTheme.headlineSmall),
+              Flexible(
+                child: Text('Confirm merge', style: textTheme.headlineSmall),
+              ),
             ],
           ),
           const SizedBox(height: 16),
