@@ -620,7 +620,7 @@ void main() {
             updatedAt: DateTime(2026),
           ),
         );
-        when(mockTagRepo.addTagToDive(any, any)).thenAnswer((_) async => null);
+        when(mockTagRepo.addTagToDive(any, any)).thenAnswer((_) async {});
 
         await notifier.performImport();
 
@@ -659,7 +659,7 @@ void main() {
 
           when(
             mockTagRepo.addTagToDive(any, any),
-          ).thenAnswer((_) async => null);
+          ).thenAnswer((_) async {});
 
           await notifier.performImport();
 
