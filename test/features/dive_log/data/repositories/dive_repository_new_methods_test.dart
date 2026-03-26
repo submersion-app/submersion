@@ -1030,4 +1030,269 @@ void main() {
       },
     );
   });
+
+  // ---------------------------------------------------------------------------
+  // setPrimaryDataSource
+  // ---------------------------------------------------------------------------
+
+  group('setPrimaryDataSource', () {
+    test('promotes specified reading and demotes others', () async {
+      final diveId = await insertTestDive(id: 'dive-set-primary');
+
+      await repository.saveComputerReading(
+        buildReading(
+          id: 'reading-a',
+          diveId: diveId,
+          isPrimary: true,
+          computerModel: 'Computer A',
+          maxDepth: 30.0,
+        ),
+      );
+      await repository.saveComputerReading(
+        buildReading(
+          id: 'reading-b',
+          diveId: diveId,
+          isPrimary: false,
+          computerModel: 'Computer B',
+          maxDepth: 40.0,
+        ),
+      );
+
+      await repository.setPrimaryDataSource(
+        diveId: diveId,
+        computerReadingId: 'reading-b',
+      );
+
+      final sources = await repository.getDataSources(diveId);
+      final readingA = sources.firstWhere((s) => s.id == 'reading-a');
+      final readingB = sources.firstWhere((s) => s.id == 'reading-b');
+
+      expect(readingA.isPrimary, isFalse);
+      expect(readingB.isPrimary, isTrue);
+    });
+
+    test('updates dive metadata from new primary reading', () async {
+      final diveId = await insertTestDive(
+        id: 'dive-meta-update',
+        diveComputerModel: 'Computer A',
+        maxDepth: 30.0,
+      );
+
+      await repository.saveComputerReading(
+        buildReading(
+          id: 'reading-old',
+          diveId: diveId,
+          isPrimary: true,
+          computerModel: 'Computer A',
+          computerSerial: 'SN-OLD',
+          maxDepth: 30.0,
+        ),
+      );
+      await repository.saveComputerReading(
+        buildReading(
+          id: 'reading-new',
+          diveId: diveId,
+          isPrimary: false,
+          computerModel: 'Computer B',
+          computerSerial: 'SN-NEW',
+          maxDepth: 45.0,
+          avgDepth: 25.0,
+          duration: 3600,
+          waterTemp: 18.0,
+        ),
+      );
+
+      await repository.setPrimaryDataSource(
+        diveId: diveId,
+        computerReadingId: 'reading-new',
+      );
+
+      final diveRow = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+
+      expect(diveRow.diveComputerModel, equals('Computer B'));
+      expect(diveRow.diveComputerSerial, equals('SN-NEW'));
+      expect(diveRow.maxDepth, equals(45.0));
+      expect(diveRow.avgDepth, equals(25.0));
+      expect(diveRow.duration, equals(3600));
+      expect(diveRow.waterTemp, equals(18.0));
+    });
+
+    test('no-ops when computerReadingId does not exist', () async {
+      final diveId = await insertTestDive(id: 'dive-noop-primary');
+
+      await repository.saveComputerReading(
+        buildReading(
+          id: 'reading-existing',
+          diveId: diveId,
+          isPrimary: true,
+          computerModel: 'Original',
+        ),
+      );
+
+      // Non-existent reading should not change anything.
+      await repository.setPrimaryDataSource(
+        diveId: diveId,
+        computerReadingId: 'non-existent-reading',
+      );
+
+      final sources = await repository.getDataSources(diveId);
+      expect(sources.length, equals(1));
+      expect(sources.first.isPrimary, isTrue);
+      expect(sources.first.computerModel, equals('Original'));
+    });
+
+    test('swaps profile isPrimary for the new primary computer', () async {
+      // Create a dive computer row to use as FK.
+      const compAId = 'comp-a-primary';
+      const compBId = 'comp-b-primary';
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion(
+              id: const Value(compAId),
+              name: const Value('Computer A'),
+              model: const Value('Computer A'),
+              serialNumber: const Value('SN-A'),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion(
+              id: const Value(compBId),
+              name: const Value('Computer B'),
+              model: const Value('Computer B'),
+              serialNumber: const Value('SN-B'),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+
+      final diveId = await insertTestDive(id: 'dive-swap-profiles');
+
+      // Save two readings, one with each computer.
+      await repository.saveComputerReading(
+        DiveDataSourcesCompanion(
+          id: const Value('ds-a'),
+          diveId: Value(diveId),
+          computerId: const Value(compAId),
+          isPrimary: const Value(true),
+          computerModel: const Value('Computer A'),
+          importedAt: Value(DateTime.now()),
+          createdAt: Value(DateTime.now()),
+        ),
+      );
+      await repository.saveComputerReading(
+        DiveDataSourcesCompanion(
+          id: const Value('ds-b'),
+          diveId: Value(diveId),
+          computerId: const Value(compBId),
+          isPrimary: const Value(false),
+          computerModel: const Value('Computer B'),
+          importedAt: Value(DateTime.now()),
+          createdAt: Value(DateTime.now()),
+        ),
+      );
+
+      // Insert profiles for both computers.
+      await insertTestProfile(
+        diveId: diveId,
+        sourceTag: 'a-1',
+        isPrimary: true,
+        timestamp: 0,
+        depth: 10.0,
+        computerId: compAId,
+      );
+      await insertTestProfile(
+        diveId: diveId,
+        sourceTag: 'b-1',
+        isPrimary: false,
+        timestamp: 0,
+        depth: 12.0,
+        computerId: compBId,
+      );
+
+      // Switch primary to Computer B.
+      await repository.setPrimaryDataSource(
+        diveId: diveId,
+        computerReadingId: 'ds-b',
+      );
+
+      final profiles = await (db.select(
+        db.diveProfiles,
+      )..where((t) => t.diveId.equals(diveId))).get();
+
+      final compAProfiles = profiles.where((p) => p.computerId == compAId);
+      final compBProfiles = profiles.where((p) => p.computerId == compBId);
+
+      // Computer A profiles should be demoted.
+      for (final p in compAProfiles) {
+        expect(p.isPrimary, isFalse);
+      }
+      // Computer B profiles should be promoted.
+      for (final p in compBProfiles) {
+        expect(p.isPrimary, isTrue);
+      }
+    });
+
+    test('handles reading with null computerId (no profile swap)', () async {
+      final diveId = await insertTestDive(id: 'dive-null-comp');
+
+      // Save a reading without computerId.
+      await repository.saveComputerReading(
+        buildReading(
+          id: 'reading-no-comp',
+          diveId: diveId,
+          isPrimary: false,
+          computerModel: 'Manual Entry',
+          maxDepth: 20.0,
+        ),
+      );
+
+      await repository.saveComputerReading(
+        buildReading(
+          id: 'reading-primary',
+          diveId: diveId,
+          isPrimary: true,
+          computerModel: 'Original',
+        ),
+      );
+
+      // Insert a profile with no computerId.
+      await insertTestProfile(
+        diveId: diveId,
+        sourceTag: 'p1',
+        isPrimary: true,
+        timestamp: 0,
+        depth: 15.0,
+      );
+
+      // Switch primary to reading with no computerId.
+      await repository.setPrimaryDataSource(
+        diveId: diveId,
+        computerReadingId: 'reading-no-comp',
+      );
+
+      // The data source should be promoted.
+      final sources = await repository.getDataSources(diveId);
+      final promoted = sources.firstWhere((s) => s.id == 'reading-no-comp');
+      expect(promoted.isPrimary, isTrue);
+
+      // Profile should be demoted (since computerId is null, no profiles
+      // are re-promoted).
+      final profiles = await (db.select(
+        db.diveProfiles,
+      )..where((t) => t.diveId.equals(diveId))).get();
+
+      for (final p in profiles) {
+        expect(p.isPrimary, isFalse);
+      }
+    });
+  });
 }

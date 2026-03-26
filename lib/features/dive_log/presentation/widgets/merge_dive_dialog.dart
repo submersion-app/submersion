@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -146,10 +147,15 @@ class _MergeDiveDialogState extends ConsumerState<MergeDiveDialog> {
       itemBuilder: (context, index) {
         final dive = candidates[index];
         final isSelected = _selectedDive?.id == dive.id;
+        final settings = ref.watch(settingsProvider);
+        final units = UnitFormatter(settings);
         return _DiveCandidateTile(
           dive: dive,
           isSelected: isSelected,
           timePattern: ref.watch(timeFormatProvider).pattern,
+          depthStr: dive.maxDepth != null
+              ? units.formatDepth(dive.maxDepth!)
+              : null,
           onTap: () => setState(() => _selectedDive = dive),
         );
       },
@@ -280,12 +286,14 @@ class _DiveCandidateTile extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
   final String timePattern;
+  final String? depthStr;
 
   const _DiveCandidateTile({
     required this.dive,
     required this.isSelected,
     required this.timePattern,
     required this.onTap,
+    this.depthStr,
   });
 
   @override
@@ -295,10 +303,6 @@ class _DiveCandidateTile extends StatelessWidget {
 
     final entryTime = dive.entryTime ?? dive.dateTime;
     final timeStr = DateFormat(timePattern).format(entryTime);
-
-    final depthStr = dive.maxDepth != null
-        ? '${dive.maxDepth!.toStringAsFixed(1)} m'
-        : null;
 
     final durationStr = dive.duration != null
         ? _formatDuration(dive.duration!)

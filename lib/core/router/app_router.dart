@@ -940,6 +940,7 @@ class _HealthKitImportWizardRoute extends ConsumerWidget {
         converter: converter,
         diveRepository: diveRepo,
         diverId: diverId,
+        ref: ref,
         settings: settings,
       ),
     );

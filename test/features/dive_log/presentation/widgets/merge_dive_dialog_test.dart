@@ -208,8 +208,8 @@ void main() {
     ) async {
       await _pumpAndOpenDialog(tester, allDives: _sameDayCandidates());
 
-      // Candidate-1: 25.0 m, 45min, Shearwater Perdix
-      expect(find.textContaining('25.0 m'), findsOneWidget);
+      // Candidate-1: 25.0m (UnitFormatter format), 45min, Shearwater Perdix
+      expect(find.textContaining('25.0m'), findsOneWidget);
       expect(find.textContaining('45min'), findsOneWidget);
       expect(find.textContaining('Shearwater Perdix'), findsOneWidget);
     });

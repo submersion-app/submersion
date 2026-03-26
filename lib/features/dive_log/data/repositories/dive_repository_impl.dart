@@ -412,10 +412,14 @@ class DiveRepository {
       _log.info('Restoring original profile for dive: $diveId');
 
       await _db.transaction(() async {
-        // Delete user-edited profiles (isPrimary=true, computerId=null)
+        // Delete user-edited profiles (isPrimary=true, computerId=null).
+        // The computerId.isNull() filter is critical: without it, computer-
+        // sourced profiles that were promoted to isPrimary=true by
+        // setPrimaryDataSource would be permanently deleted.
         await (_db.delete(_db.diveProfiles)
               ..where((t) => t.diveId.equals(diveId))
-              ..where((t) => t.isPrimary.equals(true)))
+              ..where((t) => t.isPrimary.equals(true))
+              ..where((t) => t.computerId.isNull()))
             .go();
 
         // Find the primary computer from dive_data_sources

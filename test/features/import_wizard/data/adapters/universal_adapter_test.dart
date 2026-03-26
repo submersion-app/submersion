@@ -2079,4 +2079,322 @@ void main() {
       expect(updatedDives[1]['tagRefs'], equals(['existing-ref']));
     });
   });
+
+  // -------------------------------------------------------------------------
+  // resetState
+  // -------------------------------------------------------------------------
+
+  group('resetState()', () {
+    testWidgets('resets the universal import notifier state', (tester) async {
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.dives: [
+            {'dateTime': DateTime(2026, 1, 1)},
+          ],
+        },
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: _buildBundleOverrides(payload: payload),
+        callback: (adapter) async {
+          // buildBundle should find dives before reset.
+          final bundleBefore = await adapter.buildBundle();
+          expect(bundleBefore.hasType(ImportEntityType.dives), isTrue);
+
+          // After reset, the notifier state is cleared. Since we cannot
+          // rebuild the bundle after reset (the notifier has new state), just
+          // verify the call does not throw.
+          adapter.resetState();
+        },
+      );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // checkDuplicates -- additional entity types
+  // -------------------------------------------------------------------------
+
+  group('checkDuplicates() - additional entity types', () {
+    testWidgets('marks duplicate equipment in duplicateIndices', (
+      tester,
+    ) async {
+      const payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.equipment: [
+            {'name': 'Aqualung Regulator', 'type': EquipmentType.regulator},
+            {'name': 'Unique BCD', 'type': EquipmentType.bcd},
+          ],
+        },
+      );
+
+      const existingEquipment = EquipmentItem(
+        id: 'equip-1',
+        name: 'Aqualung Regulator',
+        type: EquipmentType.regulator,
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: _fullOverrides(
+          payload: payload,
+          diver: _testDiver(),
+          existingEquipment: [existingEquipment],
+        ),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final result = await adapter.checkDuplicates(bundle);
+
+          final equipGroup = result.groups[ImportEntityType.equipment];
+          expect(equipGroup, isNotNull);
+          expect(equipGroup!.duplicateIndices, contains(0));
+          expect(equipGroup.duplicateIndices, isNot(contains(1)));
+        },
+      );
+    });
+
+    testWidgets('marks duplicate buddies in duplicateIndices', (tester) async {
+      const payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.buddies: [
+            {'name': 'Jane Doe'},
+            {'name': 'Unique Buddy'},
+          ],
+        },
+      );
+
+      final existingBuddy = Buddy(
+        id: 'buddy-1',
+        name: 'Jane Doe',
+        createdAt: _now,
+        updatedAt: _now,
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: _fullOverrides(
+          payload: payload,
+          diver: _testDiver(),
+          existingBuddies: [existingBuddy],
+        ),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final result = await adapter.checkDuplicates(bundle);
+
+          final buddyGroup = result.groups[ImportEntityType.buddies];
+          expect(buddyGroup, isNotNull);
+          expect(buddyGroup!.duplicateIndices, contains(0));
+          expect(buddyGroup.duplicateIndices, isNot(contains(1)));
+        },
+      );
+    });
+
+    testWidgets('marks duplicate dive centers in duplicateIndices', (
+      tester,
+    ) async {
+      const payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.diveCenters: [
+            {'name': 'Reef Divers'},
+          ],
+        },
+      );
+
+      final existingCenter = DiveCenter(
+        id: 'dc-1',
+        name: 'Reef Divers',
+        createdAt: _now,
+        updatedAt: _now,
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: _fullOverrides(
+          payload: payload,
+          diver: _testDiver(),
+          existingDiveCenters: [existingCenter],
+        ),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final result = await adapter.checkDuplicates(bundle);
+
+          final dcGroup = result.groups[ImportEntityType.diveCenters];
+          expect(dcGroup, isNotNull);
+          expect(dcGroup!.duplicateIndices, contains(0));
+        },
+      );
+    });
+
+    testWidgets('marks duplicate certifications in duplicateIndices', (
+      tester,
+    ) async {
+      const payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.certifications: [
+            {'name': 'Open Water', 'agency': CertificationAgency.padi},
+          ],
+        },
+      );
+
+      final existingCert = Certification(
+        id: 'cert-1',
+        name: 'Open Water',
+        agency: CertificationAgency.padi,
+        createdAt: _now,
+        updatedAt: _now,
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: _fullOverrides(
+          payload: payload,
+          diver: _testDiver(),
+          existingCertifications: [existingCert],
+        ),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final result = await adapter.checkDuplicates(bundle);
+
+          final certGroup = result.groups[ImportEntityType.certifications];
+          expect(certGroup, isNotNull);
+          expect(certGroup!.duplicateIndices, contains(0));
+        },
+      );
+    });
+
+    testWidgets('marks duplicate dive types in duplicateIndices', (
+      tester,
+    ) async {
+      const payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.diveTypes: [
+            {'name': 'Night Dive'},
+            {'name': 'Unique Type'},
+          ],
+        },
+      );
+
+      final existingDiveType = DiveTypeEntity(
+        id: 'dt-1',
+        name: 'Night Dive',
+        createdAt: _now,
+        updatedAt: _now,
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: _fullOverrides(
+          payload: payload,
+          diver: _testDiver(),
+          existingDiveTypes: [existingDiveType],
+        ),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final result = await adapter.checkDuplicates(bundle);
+
+          final dtGroup = result.groups[ImportEntityType.diveTypes];
+          expect(dtGroup, isNotNull);
+          expect(dtGroup!.duplicateIndices, contains(0));
+          expect(dtGroup.duplicateIndices, isNot(contains(1)));
+        },
+      );
+    });
+
+    testWidgets('marks duplicate trips in duplicateIndices', (tester) async {
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.trips: [
+            {
+              'name': 'Belize Trip',
+              'startDate': DateTime(2026, 3, 1),
+              'endDate': DateTime(2026, 3, 7),
+            },
+          ],
+        },
+      );
+
+      final existingTrip = Trip(
+        id: 'trip-1',
+        name: 'Belize Trip',
+        startDate: DateTime(2026, 3, 1),
+        endDate: DateTime(2026, 3, 7),
+        createdAt: _now,
+        updatedAt: _now,
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: _fullOverrides(
+          payload: payload,
+          diver: _testDiver(),
+          existingTrips: [existingTrip],
+        ),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final result = await adapter.checkDuplicates(bundle);
+
+          final tripGroup = result.groups[ImportEntityType.trips];
+          expect(tripGroup, isNotNull);
+          expect(tripGroup!.duplicateIndices, contains(0));
+        },
+      );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // _resolveSelections -- consolidate action edge case
+  // -------------------------------------------------------------------------
+
+  group('performImport() - _resolveSelections edge cases', () {
+    testWidgets(
+      'items with no duplicate action are included from base selection',
+      (tester) async {
+        final payload = ImportPayload(
+          entities: {
+            ui.ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 3, 15, 10, 0),
+                'maxDepth': 20.0,
+                'runtime': const Duration(minutes: 30),
+              },
+              {
+                'dateTime': DateTime(2026, 3, 16, 10, 0),
+                'maxDepth': 15.0,
+                'runtime': const Duration(minutes: 25),
+              },
+            ],
+          },
+        );
+
+        final mockDiveRepo = MockDiveRepository();
+        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
+
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            mockDiveRepo: mockDiveRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+          ),
+          callback: (adapter) async {
+            final bundle = await adapter.buildBundle();
+            final result = await adapter.performImport(bundle, {
+              // Both dives selected, no duplicate actions.
+              wizard.ImportEntityType.dives: {0, 1},
+            }, {});
+
+            // Both should be imported, zero skipped.
+            expect(result.skippedCount, equals(0));
+            expect(result.errorMessage, isNull);
+          },
+        );
+      },
+    );
+  });
 }
