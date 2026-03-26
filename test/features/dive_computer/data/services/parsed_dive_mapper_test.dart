@@ -260,6 +260,135 @@ void main() {
       expect(downloaded.tanks, isEmpty);
     });
 
+    // --- Temperature derivation from samples ---
+
+    test(
+      'derives minTemperature from samples when top-level value is null',
+      () {
+        final parsed = makeParsedDive(
+          fingerprint: 'temp-derive-min',
+          minTemperatureCelsius: null,
+          samples: [
+            pigeon.ProfileSample(
+              timeSeconds: 0,
+              depthMeters: 0.0,
+              temperatureCelsius: 22.0,
+            ),
+            pigeon.ProfileSample(
+              timeSeconds: 60,
+              depthMeters: 10.0,
+              temperatureCelsius: 18.0,
+            ),
+            pigeon.ProfileSample(
+              timeSeconds: 120,
+              depthMeters: 5.0,
+              temperatureCelsius: 20.0,
+            ),
+          ],
+        );
+
+        final downloaded = parsedDiveToDownloaded(parsed);
+
+        expect(downloaded.minTemperature, 18.0);
+      },
+    );
+
+    test(
+      'derives maxTemperature from samples when top-level value is null',
+      () {
+        final parsed = makeParsedDive(
+          fingerprint: 'temp-derive-max',
+          maxTemperatureCelsius: null,
+          samples: [
+            pigeon.ProfileSample(
+              timeSeconds: 0,
+              depthMeters: 0.0,
+              temperatureCelsius: 22.0,
+            ),
+            pigeon.ProfileSample(
+              timeSeconds: 60,
+              depthMeters: 10.0,
+              temperatureCelsius: 18.0,
+            ),
+            pigeon.ProfileSample(
+              timeSeconds: 120,
+              depthMeters: 5.0,
+              temperatureCelsius: 20.0,
+            ),
+          ],
+        );
+
+        final downloaded = parsedDiveToDownloaded(parsed);
+
+        expect(downloaded.maxTemperature, 22.0);
+      },
+    );
+
+    test('uses top-level temperature when provided, ignoring samples', () {
+      final parsed = makeParsedDive(
+        fingerprint: 'temp-top-level',
+        minTemperatureCelsius: 15.0,
+        maxTemperatureCelsius: 25.0,
+        samples: [
+          pigeon.ProfileSample(
+            timeSeconds: 60,
+            depthMeters: 10.0,
+            temperatureCelsius: 18.0,
+          ),
+        ],
+      );
+
+      final downloaded = parsedDiveToDownloaded(parsed);
+
+      expect(downloaded.minTemperature, 15.0);
+      expect(downloaded.maxTemperature, 25.0);
+    });
+
+    test(
+      'returns null temperature when both top-level and samples lack temps',
+      () {
+        final parsed = makeParsedDive(
+          fingerprint: 'temp-none',
+          minTemperatureCelsius: null,
+          maxTemperatureCelsius: null,
+          samples: [pigeon.ProfileSample(timeSeconds: 60, depthMeters: 10.0)],
+        );
+
+        final downloaded = parsedDiveToDownloaded(parsed);
+
+        expect(downloaded.minTemperature, isNull);
+        expect(downloaded.maxTemperature, isNull);
+      },
+    );
+
+    test('derives temperature from samples with mixed null/non-null temps', () {
+      final parsed = makeParsedDive(
+        fingerprint: 'temp-mixed',
+        minTemperatureCelsius: null,
+        maxTemperatureCelsius: null,
+        samples: [
+          pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0.0),
+          pigeon.ProfileSample(
+            timeSeconds: 60,
+            depthMeters: 10.0,
+            temperatureCelsius: 19.0,
+          ),
+          pigeon.ProfileSample(timeSeconds: 120, depthMeters: 15.0),
+          pigeon.ProfileSample(
+            timeSeconds: 180,
+            depthMeters: 5.0,
+            temperatureCelsius: 21.0,
+          ),
+        ],
+      );
+
+      final downloaded = parsedDiveToDownloaded(parsed);
+
+      // Only non-null samples considered: 19.0 and 21.0
+      expect(downloaded.minTemperature, 19.0);
+      expect(downloaded.maxTemperature, 21.0);
+    });
+
     test('maps all new sample fields when populated', () {
       final parsed = makeParsedDive(
         fingerprint: 'all-fields',

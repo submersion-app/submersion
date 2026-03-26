@@ -2,6 +2,8 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -964,5 +966,68 @@ void main() {
 
       expect(summaries.length, equals(2));
     });
+  });
+
+  // ---------------------------------------------------------------------------
+  // createDive and updateDive with importSource / importId
+  // ---------------------------------------------------------------------------
+
+  group('importSource / importId round-trip', () {
+    test('createDive persists importSource and importId', () async {
+      final dive = domain.Dive(
+        id: 'dive-import-src',
+        dateTime: DateTime(2026, 3, 20, 10, 0),
+        notes: '',
+        importSource: 'garmin',
+        importId: 'garmin-activity-12345',
+      );
+
+      final created = await repository.createDive(dive);
+      expect(created.importSource, equals('garmin'));
+      expect(created.importId, equals('garmin-activity-12345'));
+
+      // Verify via raw query that the columns were set.
+      final row = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('dive-import-src'))).getSingle();
+      expect(row.importSource, equals('garmin'));
+      expect(row.importId, equals('garmin-activity-12345'));
+    });
+
+    test('updateDive persists changed importSource and importId', () async {
+      // Create a dive with no import fields.
+      final dive = domain.Dive(
+        id: 'dive-upd-import',
+        dateTime: DateTime(2026, 3, 20, 10, 0),
+        notes: '',
+      );
+      await repository.createDive(dive);
+
+      // Update with import fields.
+      await repository.updateDive(
+        dive.copyWith(importSource: 'suunto', importId: 'suunto-abc-999'),
+      );
+
+      final row = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('dive-upd-import'))).getSingle();
+      expect(row.importSource, equals('suunto'));
+      expect(row.importId, equals('suunto-abc-999'));
+    });
+
+    test(
+      'getAllDives returns importSource and importId on domain entity',
+      () async {
+        await insertTestDive(
+          id: 'dive-read-import',
+          importId: 'garmin-xyz',
+          diveNumber: 1,
+        );
+
+        final dives = await repository.getAllDives();
+        final dive = dives.firstWhere((d) => d.id == 'dive-read-import');
+        expect(dive.importId, equals('garmin-xyz'));
+      },
+    );
   });
 }

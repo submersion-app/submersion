@@ -4,6 +4,7 @@ import 'package:mockito/mockito.dart';
 import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion, DiveProfilesCompanion;
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
+import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart'
@@ -794,5 +795,347 @@ void main() {
       );
       expect(discoveryAdapter.isKnownComputer, isFalse);
     });
+  });
+
+  // -------------------------------------------------------------------------
+  // resolveKnownComputer
+  // -------------------------------------------------------------------------
+
+  group('resolveKnownComputer()', () {
+    test('looks up computer by BLE address when computer is null', () async {
+      // Use a discovery adapter (no knownComputer).
+      final discoveryAdapter = DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        diverId: diverId,
+      );
+
+      final existingComputer = makeComputer(id: 'found-computer');
+      when(
+        mockComputerRepo.findByBluetoothAddress('AA:BB:CC:DD:EE:FF'),
+      ).thenAnswer((_) async => existingComputer);
+
+      final device = DiscoveredDevice(
+        id: 'device-1',
+        name: 'Perdix 2',
+        connectionType: DeviceConnectionType.ble,
+        address: 'AA:BB:CC:DD:EE:FF',
+        discoveredAt: DateTime(2026, 3, 20),
+      );
+
+      await discoveryAdapter.resolveKnownComputer(device);
+
+      expect(discoveryAdapter.computer, equals(existingComputer));
+      verify(
+        mockComputerRepo.findByBluetoothAddress('AA:BB:CC:DD:EE:FF'),
+      ).called(1);
+    });
+
+    test('looks up computer by bluetoothClassic address', () async {
+      final discoveryAdapter = DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        diverId: diverId,
+      );
+
+      when(
+        mockComputerRepo.findByBluetoothAddress('11:22:33:44:55:66'),
+      ).thenAnswer((_) async => null);
+
+      final device = DiscoveredDevice(
+        id: 'device-2',
+        name: 'Perdix Classic',
+        connectionType: DeviceConnectionType.bluetoothClassic,
+        address: '11:22:33:44:55:66',
+        discoveredAt: DateTime(2026, 3, 20),
+      );
+
+      await discoveryAdapter.resolveKnownComputer(device);
+
+      verify(
+        mockComputerRepo.findByBluetoothAddress('11:22:33:44:55:66'),
+      ).called(1);
+      // No computer found, so it stays null.
+      expect(discoveryAdapter.computer, isNull);
+    });
+
+    test('is a no-op for USB devices', () async {
+      final discoveryAdapter = DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        diverId: diverId,
+      );
+
+      final device = DiscoveredDevice(
+        id: 'device-3',
+        name: 'USB Computer',
+        connectionType: DeviceConnectionType.usb,
+        address: '/dev/ttyUSB0',
+        discoveredAt: DateTime(2026, 3, 20),
+      );
+
+      await discoveryAdapter.resolveKnownComputer(device);
+
+      verifyNever(mockComputerRepo.findByBluetoothAddress(any));
+      expect(discoveryAdapter.computer, isNull);
+    });
+
+    test('is a no-op when computer is already set', () async {
+      // Known computer adapter already has a computer.
+      final device = DiscoveredDevice(
+        id: 'device-1',
+        name: 'Perdix 2',
+        connectionType: DeviceConnectionType.ble,
+        address: 'AA:BB:CC:DD:EE:FF',
+        discoveredAt: DateTime(2026, 3, 20),
+      );
+
+      await adapter.resolveKnownComputer(device);
+
+      verifyNever(mockComputerRepo.findByBluetoothAddress(any));
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // ensureComputer
+  // -------------------------------------------------------------------------
+
+  group('ensureComputer()', () {
+    test('creates new computer record in discovery mode', () async {
+      final discoveryAdapter = DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        diverId: diverId,
+      );
+
+      final createdComputer = makeComputer(id: 'new-computer-id');
+      when(
+        mockComputerRepo.createComputer(any),
+      ).thenAnswer((_) async => createdComputer);
+
+      final device = DiscoveredDevice(
+        id: 'device-1',
+        name: 'Perdix 2',
+        connectionType: DeviceConnectionType.ble,
+        address: 'AA:BB:CC:DD:EE:FF',
+        discoveredAt: DateTime(2026, 3, 20),
+      );
+
+      await discoveryAdapter.ensureComputer(
+        device: device,
+        serialNumber: 'SN-99999',
+        firmwareVersion: 'v4.0',
+      );
+
+      expect(discoveryAdapter.computer, equals(createdComputer));
+      verify(mockComputerRepo.createComputer(any)).called(1);
+    });
+
+    test(
+      'is a no-op when computer already set (known-computer mode)',
+      () async {
+        final device = DiscoveredDevice(
+          id: 'device-1',
+          name: 'Perdix 2',
+          connectionType: DeviceConnectionType.ble,
+          address: 'AA:BB:CC:DD:EE:FF',
+          discoveredAt: DateTime(2026, 3, 20),
+        );
+
+        await adapter.ensureComputer(device: device);
+
+        verifyNever(mockComputerRepo.createComputer(any));
+      },
+    );
+
+    test('uses custom device name when set', () async {
+      final discoveryAdapter = DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        diverId: diverId,
+      );
+
+      discoveryAdapter.setCustomDeviceName('My Custom Name');
+
+      when(mockComputerRepo.createComputer(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as DiveComputer,
+      );
+
+      final device = DiscoveredDevice(
+        id: 'device-1',
+        name: 'Perdix 2',
+        connectionType: DeviceConnectionType.ble,
+        address: 'AA:BB:CC:DD:EE:FF',
+        discoveredAt: DateTime(2026, 3, 20),
+      );
+
+      await discoveryAdapter.ensureComputer(device: device);
+
+      final captured =
+          verify(mockComputerRepo.createComputer(captureAny)).captured.single
+              as DiveComputer;
+      expect(captured.name, equals('My Custom Name'));
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // setCustomDeviceName
+  // -------------------------------------------------------------------------
+
+  group('setCustomDeviceName()', () {
+    test('stores trimmed non-empty name', () async {
+      final discoveryAdapter = DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        diverId: diverId,
+      );
+
+      discoveryAdapter.setCustomDeviceName('  Custom  ');
+
+      when(mockComputerRepo.createComputer(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as DiveComputer,
+      );
+
+      final device = DiscoveredDevice(
+        id: 'device-1',
+        name: 'Perdix 2',
+        connectionType: DeviceConnectionType.ble,
+        address: 'AA:BB:CC:DD:EE:FF',
+        discoveredAt: DateTime(2026, 3, 20),
+      );
+
+      await discoveryAdapter.ensureComputer(device: device);
+
+      final captured =
+          verify(mockComputerRepo.createComputer(captureAny)).captured.single
+              as DiveComputer;
+      expect(captured.name, equals('Custom'));
+    });
+
+    test('falls back to device displayName when name is blank', () async {
+      final discoveryAdapter = DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        diverId: diverId,
+      );
+
+      discoveryAdapter.setCustomDeviceName('   ');
+
+      when(mockComputerRepo.createComputer(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as DiveComputer,
+      );
+
+      final device = DiscoveredDevice(
+        id: 'device-1',
+        name: 'Perdix 2',
+        connectionType: DeviceConnectionType.ble,
+        address: 'AA:BB:CC:DD:EE:FF',
+        discoveredAt: DateTime(2026, 3, 20),
+      );
+
+      await discoveryAdapter.ensureComputer(device: device);
+
+      final captured =
+          verify(mockComputerRepo.createComputer(captureAny)).captured.single
+              as DiveComputer;
+      expect(captured.name, equals('Perdix 2'));
+    });
+
+    test('falls back to device displayName when name is null', () async {
+      final discoveryAdapter = DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        diverId: diverId,
+      );
+
+      discoveryAdapter.setCustomDeviceName(null);
+
+      when(mockComputerRepo.createComputer(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as DiveComputer,
+      );
+
+      final device = DiscoveredDevice(
+        id: 'device-1',
+        name: 'Perdix 2',
+        connectionType: DeviceConnectionType.ble,
+        address: 'AA:BB:CC:DD:EE:FF',
+        discoveredAt: DateTime(2026, 3, 20),
+      );
+
+      await discoveryAdapter.ensureComputer(device: device);
+
+      final captured =
+          verify(mockComputerRepo.createComputer(captureAny)).captured.single
+              as DiveComputer;
+      expect(captured.name, equals('Perdix 2'));
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // _updateComputerAfterImport (via performImport)
+  // -------------------------------------------------------------------------
+
+  group('_updateComputerAfterImport()', () {
+    test('skips incrementDiveCount when zero dives imported', () async {
+      final dive = makeDownloadedDive();
+      adapter.setDownloadedDives([dive]);
+      final bundle = await adapter.buildBundle();
+
+      // Skip all dives (zero imported)
+      await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0},
+        },
+        {
+          ImportEntityType.dives: {0: DuplicateAction.skip},
+        },
+      );
+
+      verifyNever(mockComputerRepo.incrementDiveCount(any, by: anyNamed('by')));
+      // updateLastDownload is always called
+      verify(mockComputerRepo.updateLastDownload('computer-1')).called(1);
+    });
+
+    test(
+      'does not update fingerprint when no dives have fingerprints',
+      () async {
+        final dive = makeDownloadedDive(fingerprint: null);
+        adapter.setDownloadedDives([dive]);
+        final bundle = await adapter.buildBundle();
+
+        when(
+          mockImportService.importDives(
+            dives: anyNamed('dives'),
+            computer: anyNamed('computer'),
+            mode: anyNamed('mode'),
+            defaultResolution: anyNamed('defaultResolution'),
+            diverId: anyNamed('diverId'),
+          ),
+        ).thenAnswer(
+          (_) async => ImportResult.success(
+            imported: 1,
+            skipped: 0,
+            updated: 0,
+            importedDiveIds: ['id'],
+            importedDives: [dive],
+          ),
+        );
+
+        await adapter.performImport(bundle, {
+          ImportEntityType.dives: {0},
+        }, {});
+
+        verifyNever(mockComputerRepo.updateLastFingerprint(any, any));
+      },
+    );
   });
 }
