@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -22,9 +24,14 @@ class ImportDuplicateResult {
   /// Dive-specific match results with detailed scores.
   final Map<int, DiveMatchResult> diveMatches;
 
+  /// Entity match results for non-dive duplicates, keyed by entity type and
+  /// item index.
+  final Map<ImportEntityType, Map<int, EntityMatchResult>> entityMatches;
+
   const ImportDuplicateResult({
     this.duplicates = const {},
     this.diveMatches = const {},
+    this.entityMatches = const {},
   });
 
   bool get hasDuplicates =>
@@ -56,6 +63,8 @@ class ImportDuplicateResult {
 class ImportDuplicateChecker {
   const ImportDuplicateChecker();
 
+  static final _dateFormatter = DateFormat('MMM d, yyyy');
+
   /// Check all entity types in [payload] against existing data.
   ImportDuplicateResult check({
     required ImportPayload payload,
@@ -71,66 +80,67 @@ class ImportDuplicateChecker {
     DiveMatcher matcher = const DiveMatcher(),
   }) {
     final duplicates = <ImportEntityType, Set<int>>{};
+    final entityMatches = <ImportEntityType, Map<int, EntityMatchResult>>{};
 
-    _checkIfPresent(
+    _checkEntityIfPresent(
       duplicates,
+      entityMatches,
       ImportEntityType.trips,
       payload,
-      (items) =>
-          _checkNameDuplicates(items, existingTrips.map((t) => t.name).toSet()),
+      (items) => _checkTripDuplicates(items, existingTrips),
     );
 
-    _checkIfPresent(
+    _checkEntityIfPresent(
       duplicates,
+      entityMatches,
       ImportEntityType.sites,
       payload,
       (items) => _checkSiteDuplicates(items, existingSites),
     );
 
-    _checkIfPresent(
+    _checkEntityIfPresent(
       duplicates,
+      entityMatches,
       ImportEntityType.equipment,
       payload,
       (items) => _checkEquipmentDuplicates(items, existingEquipment),
     );
 
-    _checkIfPresent(
+    _checkEntityIfPresent(
       duplicates,
+      entityMatches,
       ImportEntityType.buddies,
       payload,
-      (items) => _checkNameDuplicates(
-        items,
-        existingBuddies.map((b) => b.name).toSet(),
-      ),
+      (items) => _checkBuddyDuplicates(items, existingBuddies),
     );
 
-    _checkIfPresent(
+    _checkEntityIfPresent(
       duplicates,
+      entityMatches,
       ImportEntityType.diveCenters,
       payload,
-      (items) => _checkNameDuplicates(
-        items,
-        existingDiveCenters.map((c) => c.name).toSet(),
-      ),
+      (items) => _checkDiveCenterDuplicates(items, existingDiveCenters),
     );
 
-    _checkIfPresent(
+    _checkEntityIfPresent(
       duplicates,
+      entityMatches,
       ImportEntityType.certifications,
       payload,
       (items) => _checkCertificationDuplicates(items, existingCertifications),
     );
 
-    _checkIfPresent(
+    _checkEntityIfPresent(
       duplicates,
+      entityMatches,
       ImportEntityType.tags,
       payload,
-      (items) =>
-          _checkNameDuplicates(items, existingTags.map((t) => t.name).toSet()),
+      (items) => _checkTagDuplicates(items, existingTags),
     );
 
-    _checkIfPresent(
+    _checkEntityIfPresent(
       duplicates,
+      entityMatches,
       ImportEntityType.diveTypes,
       payload,
       (items) => _checkDiveTypeDuplicates(items, existingDiveTypes),
@@ -144,63 +154,247 @@ class ImportDuplicateChecker {
     return ImportDuplicateResult(
       duplicates: duplicates,
       diveMatches: diveMatches,
+      entityMatches: entityMatches,
     );
   }
 
   // ======================== Orchestration Helper ========================
 
-  void _checkIfPresent(
+  void _checkEntityIfPresent(
     Map<ImportEntityType, Set<int>> duplicates,
+    Map<ImportEntityType, Map<int, EntityMatchResult>> entityMatches,
     ImportEntityType type,
     ImportPayload payload,
-    Set<int> Function(List<Map<String, dynamic>>) checker,
+    _EntityCheckResult Function(List<Map<String, dynamic>>) checker,
   ) {
     final items = payload.entitiesOf(type);
     if (items.isNotEmpty) {
       final result = checker(items);
-      if (result.isNotEmpty) {
-        duplicates[type] = result;
+      if (result.indices.isNotEmpty) {
+        duplicates[type] = result.indices;
+      }
+      if (result.matches.isNotEmpty) {
+        entityMatches[type] = result.matches;
       }
     }
   }
 
-  // ======================== Name Matching ========================
+  // ======================== Trip Matching ========================
 
-  Set<int> _checkNameDuplicates(
+  _EntityCheckResult _checkTripDuplicates(
     List<Map<String, dynamic>> importedItems,
-    Set<String> existingNames,
+    List<Trip> existingTrips,
   ) {
-    final existingLower = existingNames.map((n) => n.toLowerCase()).toSet();
-    final duplicates = <int>{};
+    final existingByLower = <String, Trip>{};
+    for (final trip in existingTrips) {
+      existingByLower[trip.name.toLowerCase()] = trip;
+    }
+
+    final indices = <int>{};
+    final matches = <int, EntityMatchResult>{};
 
     for (var i = 0; i < importedItems.length; i++) {
       final name = importedItems[i]['name'] as String?;
-      if (name != null && existingLower.contains(name.toLowerCase())) {
-        duplicates.add(i);
+      if (name == null) continue;
+
+      final existing = existingByLower[name.toLowerCase()];
+      if (existing != null) {
+        indices.add(i);
+        matches[i] = _buildTripMatch(importedItems[i], existing);
       }
     }
 
-    return duplicates;
+    return _EntityCheckResult(indices: indices, matches: matches);
+  }
+
+  EntityMatchResult _buildTripMatch(
+    Map<String, dynamic> incoming,
+    Trip existing,
+  ) {
+    final startDate = incoming['startDate'] as DateTime?;
+    final endDate = incoming['endDate'] as DateTime?;
+    final location = incoming['location'] as String?;
+
+    return EntityMatchResult(
+      existingId: existing.id,
+      existingName: existing.name,
+      existingFields: {
+        'Name': existing.name,
+        'Start Date': _dateFormatter.format(existing.startDate),
+        'End Date': _dateFormatter.format(existing.endDate),
+        'Location': existing.location,
+      },
+      incomingFields: {
+        'Name': incoming['name'] as String?,
+        'Start Date': startDate != null
+            ? _dateFormatter.format(startDate)
+            : null,
+        'End Date': endDate != null ? _dateFormatter.format(endDate) : null,
+        'Location': location,
+      },
+    );
+  }
+
+  // ======================== Buddy Matching ========================
+
+  _EntityCheckResult _checkBuddyDuplicates(
+    List<Map<String, dynamic>> importedItems,
+    List<Buddy> existingBuddies,
+  ) {
+    final existingByLower = <String, Buddy>{};
+    for (final buddy in existingBuddies) {
+      existingByLower[buddy.name.toLowerCase()] = buddy;
+    }
+
+    final indices = <int>{};
+    final matches = <int, EntityMatchResult>{};
+
+    for (var i = 0; i < importedItems.length; i++) {
+      final name = importedItems[i]['name'] as String?;
+      if (name == null) continue;
+
+      final existing = existingByLower[name.toLowerCase()];
+      if (existing != null) {
+        indices.add(i);
+        matches[i] = _buildBuddyMatch(importedItems[i], existing);
+      }
+    }
+
+    return _EntityCheckResult(indices: indices, matches: matches);
+  }
+
+  EntityMatchResult _buildBuddyMatch(
+    Map<String, dynamic> incoming,
+    Buddy existing,
+  ) {
+    return EntityMatchResult(
+      existingId: existing.id,
+      existingName: existing.name,
+      existingFields: {
+        'Name': existing.name,
+        'Email': existing.email,
+        'Phone': existing.phone,
+      },
+      incomingFields: {
+        'Name': incoming['name'] as String?,
+        'Email': incoming['email'] as String?,
+        'Phone': incoming['phone'] as String?,
+      },
+    );
+  }
+
+  // ======================== Tag Matching ========================
+
+  _EntityCheckResult _checkTagDuplicates(
+    List<Map<String, dynamic>> importedItems,
+    List<Tag> existingTags,
+  ) {
+    final existingByLower = <String, Tag>{};
+    for (final tag in existingTags) {
+      existingByLower[tag.name.toLowerCase()] = tag;
+    }
+
+    final indices = <int>{};
+    final matches = <int, EntityMatchResult>{};
+
+    for (var i = 0; i < importedItems.length; i++) {
+      final name = importedItems[i]['name'] as String?;
+      if (name == null) continue;
+
+      final existing = existingByLower[name.toLowerCase()];
+      if (existing != null) {
+        indices.add(i);
+        matches[i] = EntityMatchResult(
+          existingId: existing.id,
+          existingName: existing.name,
+          existingFields: {'Name': existing.name},
+          incomingFields: {'Name': name},
+        );
+      }
+    }
+
+    return _EntityCheckResult(indices: indices, matches: matches);
+  }
+
+  // ======================== Dive Center Matching ========================
+
+  _EntityCheckResult _checkDiveCenterDuplicates(
+    List<Map<String, dynamic>> importedItems,
+    List<DiveCenter> existingDiveCenters,
+  ) {
+    final existingByLower = <String, DiveCenter>{};
+    for (final center in existingDiveCenters) {
+      existingByLower[center.name.toLowerCase()] = center;
+    }
+
+    final indices = <int>{};
+    final matches = <int, EntityMatchResult>{};
+
+    for (var i = 0; i < importedItems.length; i++) {
+      final name = importedItems[i]['name'] as String?;
+      if (name == null) continue;
+
+      final existing = existingByLower[name.toLowerCase()];
+      if (existing != null) {
+        indices.add(i);
+        matches[i] = _buildDiveCenterMatch(importedItems[i], existing);
+      }
+    }
+
+    return _EntityCheckResult(indices: indices, matches: matches);
+  }
+
+  EntityMatchResult _buildDiveCenterMatch(
+    Map<String, dynamic> incoming,
+    DiveCenter existing,
+  ) {
+    return EntityMatchResult(
+      existingId: existing.id,
+      existingName: existing.name,
+      existingFields: {
+        'Name': existing.name,
+        'Location': existing.fullLocationString,
+        'Phone': existing.phone,
+        'Email': existing.email,
+      },
+      incomingFields: {
+        'Name': incoming['name'] as String?,
+        'Location':
+            incoming['location'] as String? ?? incoming['country'] as String?,
+        'Phone': incoming['phone'] as String?,
+        'Email': incoming['email'] as String?,
+      },
+    );
   }
 
   // ======================== Site Matching ========================
 
-  Set<int> _checkSiteDuplicates(
+  _EntityCheckResult _checkSiteDuplicates(
     List<Map<String, dynamic>> importedSites,
     List<DiveSite> existingSites,
   ) {
-    final existingNameLower = existingSites
-        .map((s) => s.name.toLowerCase())
-        .toSet();
-    final duplicates = <int>{};
+    final existingByNameLower = <String, DiveSite>{};
+    for (final site in existingSites) {
+      existingByNameLower[site.name.toLowerCase()] = site;
+    }
+
+    final indices = <int>{};
+    final matches = <int, EntityMatchResult>{};
 
     for (var i = 0; i < importedSites.length; i++) {
       final name = importedSites[i]['name'] as String?;
-      if (name != null && existingNameLower.contains(name.toLowerCase())) {
-        duplicates.add(i);
-        continue;
+
+      // Check name match first.
+      if (name != null) {
+        final existing = existingByNameLower[name.toLowerCase()];
+        if (existing != null) {
+          indices.add(i);
+          matches[i] = _buildSiteMatch(importedSites[i], existing);
+          continue;
+        }
       }
 
+      // Secondary: lat/lon proximity (within 100 meters).
       final lat = importedSites[i]['latitude'] as double?;
       final lon = importedSites[i]['longitude'] as double?;
       if (lat != null && lon != null) {
@@ -213,7 +407,8 @@ class ImportDuplicateChecker {
               existing.location!.longitude,
             );
             if (distance <= 100) {
-              duplicates.add(i);
+              indices.add(i);
+              matches[i] = _buildSiteMatch(importedSites[i], existing);
               break;
             }
           }
@@ -221,23 +416,63 @@ class ImportDuplicateChecker {
       }
     }
 
-    return duplicates;
+    return _EntityCheckResult(indices: indices, matches: matches);
+  }
+
+  EntityMatchResult _buildSiteMatch(
+    Map<String, dynamic> incoming,
+    DiveSite existing,
+  ) {
+    final lat = incoming['latitude'] as double?;
+    final lon = incoming['longitude'] as double?;
+    final incomingLocation = (lat != null && lon != null)
+        ? '${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}'
+        : incoming['location'] as String?;
+
+    final existingLocation = existing.location?.toString();
+
+    final maxDepth = incoming['maxDepth'] as double?;
+    final existingMaxDepth = existing.maxDepth;
+
+    return EntityMatchResult(
+      existingId: existing.id,
+      existingName: existing.name,
+      existingFields: {
+        'Name': existing.name,
+        'Location': existingLocation,
+        'Max Depth': existingMaxDepth != null
+            ? '${existingMaxDepth.toStringAsFixed(1)}m'
+            : null,
+        'Country': existing.country,
+        'Region': existing.region,
+      },
+      incomingFields: {
+        'Name': incoming['name'] as String?,
+        'Location': incomingLocation,
+        'Max Depth': maxDepth != null
+            ? '${maxDepth.toStringAsFixed(1)}m'
+            : null,
+        'Country': incoming['country'] as String?,
+        'Region': incoming['region'] as String?,
+      },
+    );
   }
 
   // ======================== Equipment Matching ========================
 
-  Set<int> _checkEquipmentDuplicates(
+  _EntityCheckResult _checkEquipmentDuplicates(
     List<Map<String, dynamic>> importedEquipment,
     List<EquipmentItem> existingEquipment,
   ) {
-    final existingKeys = <String>{};
+    final existingByKey = <String, EquipmentItem>{};
     for (final item in existingEquipment) {
-      existingKeys.add(
-        '${item.name.toLowerCase()}|${item.type.name.toLowerCase()}',
-      );
+      existingByKey['${item.name.toLowerCase()}|${item.type.name.toLowerCase()}'] =
+          item;
     }
 
-    final duplicates = <int>{};
+    final indices = <int>{};
+    final matches = <int, EntityMatchResult>{};
+
     for (var i = 0; i < importedEquipment.length; i++) {
       final name = importedEquipment[i]['name'] as String?;
       if (name == null) continue;
@@ -252,28 +487,64 @@ class ImportDuplicateChecker {
         typeStr = 'other';
       }
 
-      if (existingKeys.contains('${name.toLowerCase()}|$typeStr')) {
-        duplicates.add(i);
+      final key = '${name.toLowerCase()}|$typeStr';
+      final existing = existingByKey[key];
+      if (existing != null) {
+        indices.add(i);
+        matches[i] = _buildEquipmentMatch(importedEquipment[i], existing);
       }
     }
 
-    return duplicates;
+    return _EntityCheckResult(indices: indices, matches: matches);
+  }
+
+  EntityMatchResult _buildEquipmentMatch(
+    Map<String, dynamic> incoming,
+    EquipmentItem existing,
+  ) {
+    final typeValue = incoming['type'];
+    String? typeStr;
+    if (typeValue is EquipmentType) {
+      typeStr = typeValue.displayName;
+    } else if (typeValue is String) {
+      typeStr = typeValue;
+    }
+
+    return EntityMatchResult(
+      existingId: existing.id,
+      existingName: existing.name,
+      existingFields: {
+        'Name': existing.name,
+        'Type': existing.type.displayName,
+        'Brand': existing.brand,
+        'Model': existing.model,
+        'Serial': existing.serialNumber,
+      },
+      incomingFields: {
+        'Name': incoming['name'] as String?,
+        'Type': typeStr,
+        'Brand': incoming['brand'] as String?,
+        'Model': incoming['model'] as String?,
+        'Serial': incoming['serialNumber'] as String?,
+      },
+    );
   }
 
   // ======================== Certification Matching ========================
 
-  Set<int> _checkCertificationDuplicates(
+  _EntityCheckResult _checkCertificationDuplicates(
     List<Map<String, dynamic>> importedCerts,
     List<Certification> existingCerts,
   ) {
-    final existingKeys = <String>{};
+    final existingByKey = <String, Certification>{};
     for (final cert in existingCerts) {
-      existingKeys.add(
-        '${cert.name.toLowerCase()}|${cert.agency.name.toLowerCase()}',
-      );
+      existingByKey['${cert.name.toLowerCase()}|${cert.agency.name.toLowerCase()}'] =
+          cert;
     }
 
-    final duplicates = <int>{};
+    final indices = <int>{};
+    final matches = <int, EntityMatchResult>{};
+
     for (var i = 0; i < importedCerts.length; i++) {
       final name = importedCerts[i]['name'] as String?;
       if (name == null) continue;
@@ -288,38 +559,90 @@ class ImportDuplicateChecker {
         continue;
       }
 
-      if (existingKeys.contains('${name.toLowerCase()}|$agencyStr')) {
-        duplicates.add(i);
+      final key = '${name.toLowerCase()}|$agencyStr';
+      final existing = existingByKey[key];
+      if (existing != null) {
+        indices.add(i);
+        matches[i] = _buildCertificationMatch(importedCerts[i], existing);
       }
     }
 
-    return duplicates;
+    return _EntityCheckResult(indices: indices, matches: matches);
+  }
+
+  EntityMatchResult _buildCertificationMatch(
+    Map<String, dynamic> incoming,
+    Certification existing,
+  ) {
+    final agencyValue = incoming['agency'];
+    String? agencyStr;
+    if (agencyValue is CertificationAgency) {
+      agencyStr = agencyValue.displayName;
+    } else if (agencyValue is String) {
+      agencyStr = agencyValue;
+    }
+
+    final date =
+        incoming['date'] as DateTime? ?? incoming['issueDate'] as DateTime?;
+
+    return EntityMatchResult(
+      existingId: existing.id,
+      existingName: existing.name,
+      existingFields: {
+        'Name': existing.name,
+        'Agency': existing.agency.displayName,
+        'Date': existing.issueDate != null
+            ? _dateFormatter.format(existing.issueDate!)
+            : null,
+      },
+      incomingFields: {
+        'Name': incoming['name'] as String?,
+        'Agency': agencyStr,
+        'Date': date != null ? _dateFormatter.format(date) : null,
+      },
+    );
   }
 
   // ======================== Dive Type Matching ========================
 
-  Set<int> _checkDiveTypeDuplicates(
+  _EntityCheckResult _checkDiveTypeDuplicates(
     List<Map<String, dynamic>> importedTypes,
     List<DiveTypeEntity> existingTypes,
   ) {
-    final existingNames = existingTypes
-        .map((t) => t.name.toLowerCase())
-        .toSet();
-    final existingIds = existingTypes.map((t) => t.id.toLowerCase()).toSet();
-    final duplicates = <int>{};
+    final existingByName = <String, DiveTypeEntity>{};
+    final existingById = <String, DiveTypeEntity>{};
+    for (final t in existingTypes) {
+      existingByName[t.name.toLowerCase()] = t;
+      existingById[t.id.toLowerCase()] = t;
+    }
+
+    final indices = <int>{};
+    final matches = <int, EntityMatchResult>{};
 
     for (var i = 0; i < importedTypes.length; i++) {
       final name = importedTypes[i]['name'] as String?;
       final id = importedTypes[i]['id'] as String?;
 
-      if (name != null && existingNames.contains(name.toLowerCase())) {
-        duplicates.add(i);
-      } else if (id != null && existingIds.contains(id.toLowerCase())) {
-        duplicates.add(i);
+      DiveTypeEntity? existing;
+      if (name != null) {
+        existing = existingByName[name.toLowerCase()];
+      }
+      if (existing == null && id != null) {
+        existing = existingById[id.toLowerCase()];
+      }
+
+      if (existing != null) {
+        indices.add(i);
+        matches[i] = EntityMatchResult(
+          existingId: existing.id,
+          existingName: existing.name,
+          existingFields: {'Name': existing.name},
+          incomingFields: {'Name': name},
+        );
       }
     }
 
-    return duplicates;
+    return _EntityCheckResult(indices: indices, matches: matches);
   }
 
   // ======================== Dive Matching ========================
@@ -418,4 +741,12 @@ class ImportDuplicateChecker {
   }
 
   static double _toRadians(double degrees) => degrees * math.pi / 180;
+}
+
+/// Internal result from an entity-type duplicate check.
+class _EntityCheckResult {
+  final Set<int> indices;
+  final Map<int, EntityMatchResult> matches;
+
+  const _EntityCheckResult({required this.indices, required this.matches});
 }

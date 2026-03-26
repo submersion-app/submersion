@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/duplicate_action_card.dart';
 
@@ -130,7 +131,7 @@ class EntityReviewList extends StatelessWidget {
             ),
         ],
 
-        // Likely duplicates section
+        // Scored duplicates (dives with matchResults)
         if (likelyDuplicateIndices.isNotEmpty) ...[
           _SectionLabel(
             label: 'Potential Duplicates',
@@ -140,7 +141,6 @@ class EntityReviewList extends StatelessWidget {
             _buildDuplicateCard(index),
         ],
 
-        // Possible duplicates section
         if (possibleDuplicateIndices.isNotEmpty) ...[
           const _SectionLabel(
             label: 'Possible Duplicates',
@@ -148,6 +148,16 @@ class EntityReviewList extends StatelessWidget {
           ),
           for (final index in possibleDuplicateIndices)
             _buildDuplicateCard(index),
+        ],
+
+        // Unscored duplicates (non-dive entities without matchResults)
+        if (_unscoredDuplicateIndices().isNotEmpty) ...[
+          _SectionLabel(
+            label: 'Potential Duplicates',
+            color: colorScheme.error,
+          ),
+          for (final index in _unscoredDuplicateIndices())
+            _buildEntityDuplicateCard(index),
         ],
       ],
     );
@@ -208,6 +218,29 @@ class EntityReviewList extends StatelessWidget {
     });
 
     return indices;
+  }
+
+  /// Returns duplicate indices that have no match score (non-dive entities).
+  List<int> _unscoredDuplicateIndices() {
+    final matchResults = group.matchResults;
+    if (matchResults != null) {
+      // Entities with matchResults are handled by _sortedDuplicateIndices.
+      return [];
+    }
+    return group.duplicateIndices.toList()..sort();
+  }
+
+  Widget _buildEntityDuplicateCard(int index) {
+    final item = group.items[index];
+    final action = duplicateActions[index] ?? DuplicateAction.skip;
+    final entityMatch = group.entityMatches?[index];
+
+    return _EntityDuplicateCard(
+      item: item,
+      entityMatch: entityMatch,
+      selectedAction: action,
+      onActionChanged: (a) => onDuplicateActionChanged(index, a),
+    );
   }
 
   String _itemCountText(int nonDuplicates, int duplicates, int selectedCount) {
@@ -340,6 +373,390 @@ class _NonDuplicateRow extends StatelessWidget {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// An expandable card for a non-dive duplicate entity.
+///
+/// Collapsed state shows the entity name, subtitle, action badge, and a
+/// chevron to expand. Expanded state adds a two-column comparison table
+/// showing existing vs incoming field values, plus Skip/Import action buttons.
+class _EntityDuplicateCard extends StatefulWidget {
+  final EntityItem item;
+  final EntityMatchResult? entityMatch;
+  final DuplicateAction selectedAction;
+  final ValueChanged<DuplicateAction> onActionChanged;
+
+  const _EntityDuplicateCard({
+    required this.item,
+    required this.entityMatch,
+    required this.selectedAction,
+    required this.onActionChanged,
+  });
+
+  @override
+  State<_EntityDuplicateCard> createState() => _EntityDuplicateCardState();
+}
+
+class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final isImporting = widget.selectedAction == DuplicateAction.importAsNew;
+    final borderColor = isImporting ? Colors.green : colorScheme.error;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Card(
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: borderColor, width: 1.5),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Collapsed header
+            InkWell(
+              borderRadius: widget.entityMatch != null
+                  ? const BorderRadius.vertical(top: Radius.circular(12))
+                  : BorderRadius.circular(12),
+              onTap: widget.entityMatch != null
+                  ? () => setState(() => _expanded = !_expanded)
+                  : () => widget.onActionChanged(
+                      isImporting
+                          ? DuplicateAction.skip
+                          : DuplicateAction.importAsNew,
+                    ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                child: Row(
+                  children: [
+                    // Icon
+                    if (widget.item.icon != null) ...[
+                      Icon(
+                        widget.item.icon,
+                        size: 20,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    // Title + subtitle
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.item.title,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (widget.item.subtitle.isNotEmpty)
+                            Text(
+                              widget.item.subtitle,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Action badge
+                    _SimpleActionBadge(isImporting: isImporting),
+                    // Expand/collapse chevron (only when comparison data exists)
+                    if (widget.entityMatch != null) ...[
+                      const SizedBox(width: 4),
+                      Icon(
+                        _expanded ? Icons.expand_less : Icons.expand_more,
+                        size: 20,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            // Expanded comparison
+            if (_expanded && widget.entityMatch != null)
+              _EntityComparisonPanel(
+                entityMatch: widget.entityMatch!,
+                selectedAction: widget.selectedAction,
+                onActionChanged: widget.onActionChanged,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The expanded comparison panel showing existing vs incoming fields.
+class _EntityComparisonPanel extends StatelessWidget {
+  final EntityMatchResult entityMatch;
+  final DuplicateAction selectedAction;
+  final ValueChanged<DuplicateAction> onActionChanged;
+
+  const _EntityComparisonPanel({
+    required this.entityMatch,
+    required this.selectedAction,
+    required this.onActionChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    // Collect all field labels from both maps to handle asymmetric data.
+    final labels = <String>{
+      ...entityMatch.existingFields.keys,
+      ...entityMatch.incomingFields.keys,
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Divider(height: 1),
+        // Column headers
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+          child: Row(
+            children: [
+              const SizedBox(width: 80),
+              Expanded(
+                child: Text(
+                  'Existing',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  'Incoming',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Field rows
+        for (final label in labels)
+          _ComparisonRow(
+            label: label,
+            existingValue: entityMatch.existingFields[label],
+            incomingValue: entityMatch.incomingFields[label],
+          ),
+        // Action buttons — match dive card style
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Wrap(
+            alignment: WrapAlignment.start,
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              _EntityActionButton(
+                label: 'Skip',
+                subtitle: 'Discard this import',
+                isSelected: selectedAction == DuplicateAction.skip,
+                color: colorScheme.error,
+                onPressed: () => onActionChanged(DuplicateAction.skip),
+              ),
+              _EntityActionButton(
+                label: 'Import as New',
+                subtitle: 'Create separate entry',
+                isSelected: selectedAction == DuplicateAction.importAsNew,
+                color: Colors.green.shade700,
+                onPressed: () => onActionChanged(DuplicateAction.importAsNew),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A single row in the comparison table.
+class _ComparisonRow extends StatelessWidget {
+  final String label;
+  final String? existingValue;
+  final String? incomingValue;
+
+  const _ComparisonRow({
+    required this.label,
+    required this.existingValue,
+    required this.incomingValue,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final existing = existingValue ?? '';
+    final incoming = incomingValue ?? '';
+    final isDifferent =
+        existing.toLowerCase() != incoming.toLowerCase() &&
+        (existing.isNotEmpty || incoming.isNotEmpty);
+
+    // Dimmed style for matching values, normal for differing values.
+    final valueColor = isDifferent
+        ? colorScheme.onSurface
+        : colorScheme.onSurface.withValues(alpha: 0.5);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              existing.isEmpty ? '-' : existing,
+              style: theme.textTheme.bodySmall?.copyWith(color: valueColor),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              incoming.isEmpty ? '-' : incoming,
+              style: theme.textTheme.bodySmall?.copyWith(color: valueColor),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Action button for the entity comparison panel.
+///
+/// Matches the dive comparison card's button style: [FilledButton] when
+/// selected (with color background + white text), [OutlinedButton] when not.
+class _EntityActionButton extends StatelessWidget {
+  final String label;
+  final String subtitle;
+  final bool isSelected;
+  final Color color;
+  final VoidCallback onPressed;
+
+  const _EntityActionButton({
+    required this.label,
+    this.subtitle = '',
+    required this.isSelected,
+    required this.color,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    const minSize = Size(0, 48);
+
+    final child = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.white : null,
+          ),
+        ),
+        if (subtitle.isNotEmpty)
+          Text(
+            subtitle,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: isSelected
+                  ? Colors.white.withValues(alpha: 0.85)
+                  : theme.colorScheme.onSurfaceVariant,
+              fontSize: 10,
+            ),
+          ),
+      ],
+    );
+
+    if (isSelected) {
+      return FilledButton(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          minimumSize: minSize,
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+        ),
+        child: child,
+      );
+    }
+
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(minimumSize: minSize),
+      child: child,
+    );
+  }
+}
+
+class _SimpleActionBadge extends StatelessWidget {
+  final bool isImporting;
+
+  const _SimpleActionBadge({required this.isImporting});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final (label, color) = isImporting
+        ? ('IMPORT', Colors.green.shade700)
+        : ('SKIP', theme.colorScheme.error);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color, width: 1),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 10,
         ),
       ),
     );

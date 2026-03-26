@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
@@ -261,41 +262,49 @@ class UddfAdapter implements ImportSourceAdapter {
       updatedGroups,
       ImportEntityType.trips,
       dupResult.duplicateTrips,
+      entityMatches: dupResult.entityMatchesFor('trips'),
     );
     _applyDuplicateIndices(
       updatedGroups,
       ImportEntityType.sites,
       dupResult.duplicateSites,
+      entityMatches: dupResult.entityMatchesFor('sites'),
     );
     _applyDuplicateIndices(
       updatedGroups,
       ImportEntityType.equipment,
       dupResult.duplicateEquipment,
+      entityMatches: dupResult.entityMatchesFor('equipment'),
     );
     _applyDuplicateIndices(
       updatedGroups,
       ImportEntityType.buddies,
       dupResult.duplicateBuddies,
+      entityMatches: dupResult.entityMatchesFor('buddies'),
     );
     _applyDuplicateIndices(
       updatedGroups,
       ImportEntityType.diveCenters,
       dupResult.duplicateDiveCenters,
+      entityMatches: dupResult.entityMatchesFor('diveCenters'),
     );
     _applyDuplicateIndices(
       updatedGroups,
       ImportEntityType.certifications,
       dupResult.duplicateCertifications,
+      entityMatches: dupResult.entityMatchesFor('certifications'),
     );
     _applyDuplicateIndices(
       updatedGroups,
       ImportEntityType.tags,
       dupResult.duplicateTags,
+      entityMatches: dupResult.entityMatchesFor('tags'),
     );
     _applyDuplicateIndices(
       updatedGroups,
       ImportEntityType.diveTypes,
       dupResult.duplicateDiveTypes,
+      entityMatches: dupResult.entityMatchesFor('diveTypes'),
     );
 
     return ImportBundle(source: bundle.source, groups: updatedGroups);
@@ -544,6 +553,7 @@ class UddfAdapter implements ImportSourceAdapter {
     ImportEntityType type,
     Set<int> duplicateIndices, {
     Map<int, DiveMatchResult>? matchResults,
+    Map<int, EntityMatchResult>? entityMatches,
   }) {
     final group = groups[type];
     if (group == null || duplicateIndices.isEmpty) return;
@@ -552,6 +562,7 @@ class UddfAdapter implements ImportSourceAdapter {
       items: group.items,
       duplicateIndices: duplicateIndices,
       matchResults: matchResults,
+      entityMatches: entityMatches,
     );
   }
 

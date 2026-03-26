@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
+import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 
 /// The source system that produced an [ImportBundle].
 enum ImportSourceType {
@@ -114,10 +115,16 @@ class EntityGroup {
   /// Null when no duplicate matching has been performed.
   final Map<int, DiveMatchResult>? matchResults;
 
+  /// Entity match results for non-dive duplicates, keyed by item index.
+  ///
+  /// Null when no entity duplicate matching has been performed.
+  final Map<int, EntityMatchResult>? entityMatches;
+
   const EntityGroup({
     required this.items,
     this.duplicateIndices = const {},
     this.matchResults,
+    this.entityMatches,
   });
 }
 

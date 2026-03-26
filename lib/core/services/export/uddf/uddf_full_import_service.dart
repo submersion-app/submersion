@@ -38,10 +38,10 @@ class UddfFullImportService {
         owner = UddfImportParsers.parseOwner(ownerElement);
       }
 
-      // Parse buddies
+      // Parse buddies (skip entries with no name — they can't be imported)
       for (final buddyElement in diverElement.findElements('buddy')) {
         final buddyData = UddfImportParsers.parseFullBuddy(buddyElement);
-        if (buddyData.isNotEmpty) {
+        if (buddyData.isNotEmpty && buddyData['name'] != null) {
           final buddyId = buddyElement.getAttribute('id');
           if (buddyId != null) {
             buddyMap[buddyId] = buddyData;

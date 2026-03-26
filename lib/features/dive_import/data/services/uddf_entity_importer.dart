@@ -709,6 +709,26 @@ class UddfEntityImporter {
     Map<String, DiveSite> idMapping,
     ImportProgressCallback? onProgress,
   ) async {
+    // For deselected sites (duplicates the user chose not to re-import),
+    // resolve their UDDF IDs to existing database sites by name so that
+    // dives referencing them still get linked correctly.
+    final existingSites = await repository.getAllSites(diverId: diverId);
+    final existingByName = <String, DiveSite>{};
+    for (final site in existingSites) {
+      existingByName[site.name.toLowerCase()] = site;
+    }
+    for (var i = 0; i < items.length; i++) {
+      if (selected.contains(i)) continue; // will be imported below
+      final uddfId = items[i]['uddfId'] as String?;
+      final name = items[i]['name'] as String?;
+      if (uddfId != null && name != null) {
+        final existing = existingByName[name.toLowerCase()];
+        if (existing != null) {
+          idMapping[uddfId] = existing;
+        }
+      }
+    }
+
     if (selected.isEmpty) return 0;
     onProgress?.call('Importing sites', 0, selected.length);
     var count = 0;

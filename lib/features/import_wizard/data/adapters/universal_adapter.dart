@@ -18,6 +18,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 // Import wizard bundle types: hide ImportEntityType to avoid name clash with
 // universal_import's same-named enum. Access it via the ImportSourceAdapter
 // interface which already uses the wizard's ImportEntityType.
@@ -262,16 +263,20 @@ class UniversalAdapter implements ImportSourceAdapter {
 
     const checker = ImportDuplicateChecker();
 
-    final existingTrips = await _ref.read(allTripsProvider.future);
-    final existingSites = await _ref.read(sitesProvider.future);
-    final existingEquipment = await _ref.read(allEquipmentProvider.future);
-    final existingBuddies = await _ref.read(allBuddiesProvider.future);
-    final existingDiveCenters = await _ref.read(allDiveCentersProvider.future);
-    final existingCertifications = await _ref.read(
+    // Use refresh() to force re-fetch from the database. read() may return
+    // stale cached data if a provider was invalidated but not yet re-fetched.
+    final existingTrips = await _ref.refresh(allTripsProvider.future);
+    final existingSites = await _ref.refresh(sitesProvider.future);
+    final existingEquipment = await _ref.refresh(allEquipmentProvider.future);
+    final existingBuddies = await _ref.refresh(allBuddiesProvider.future);
+    final existingDiveCenters = await _ref.refresh(
+      allDiveCentersProvider.future,
+    );
+    final existingCertifications = await _ref.refresh(
       allCertificationsProvider.future,
     );
-    final existingTags = await _ref.read(tagsProvider.future);
-    final existingDiveTypes = await _ref.read(diveTypesProvider.future);
+    final existingTags = await _ref.refresh(tagsProvider.future);
+    final existingDiveTypes = await _ref.refresh(diveTypesProvider.future);
     final diveRepo = _ref.read(diveRepositoryProvider);
     final existingDives = await diveRepo.getAllDives();
 
@@ -302,41 +307,50 @@ class UniversalAdapter implements ImportSourceAdapter {
       updatedGroups,
       wizard.ImportEntityType.trips,
       dupResult.duplicates[ui.ImportEntityType.trips] ?? const {},
+      entityMatches: dupResult.entityMatches[ui.ImportEntityType.trips],
     );
     _applyDuplicateIndices(
       updatedGroups,
       wizard.ImportEntityType.sites,
       dupResult.duplicates[ui.ImportEntityType.sites] ?? const {},
+      entityMatches: dupResult.entityMatches[ui.ImportEntityType.sites],
     );
     _applyDuplicateIndices(
       updatedGroups,
       wizard.ImportEntityType.equipment,
       dupResult.duplicates[ui.ImportEntityType.equipment] ?? const {},
+      entityMatches: dupResult.entityMatches[ui.ImportEntityType.equipment],
     );
     _applyDuplicateIndices(
       updatedGroups,
       wizard.ImportEntityType.buddies,
       dupResult.duplicates[ui.ImportEntityType.buddies] ?? const {},
+      entityMatches: dupResult.entityMatches[ui.ImportEntityType.buddies],
     );
     _applyDuplicateIndices(
       updatedGroups,
       wizard.ImportEntityType.diveCenters,
       dupResult.duplicates[ui.ImportEntityType.diveCenters] ?? const {},
+      entityMatches: dupResult.entityMatches[ui.ImportEntityType.diveCenters],
     );
     _applyDuplicateIndices(
       updatedGroups,
       wizard.ImportEntityType.certifications,
       dupResult.duplicates[ui.ImportEntityType.certifications] ?? const {},
+      entityMatches:
+          dupResult.entityMatches[ui.ImportEntityType.certifications],
     );
     _applyDuplicateIndices(
       updatedGroups,
       wizard.ImportEntityType.tags,
       dupResult.duplicates[ui.ImportEntityType.tags] ?? const {},
+      entityMatches: dupResult.entityMatches[ui.ImportEntityType.tags],
     );
     _applyDuplicateIndices(
       updatedGroups,
       wizard.ImportEntityType.diveTypes,
       dupResult.duplicates[ui.ImportEntityType.diveTypes] ?? const {},
+      entityMatches: dupResult.entityMatches[ui.ImportEntityType.diveTypes],
     );
 
     return ImportBundle(source: bundle.source, groups: updatedGroups);
@@ -372,24 +386,26 @@ class UniversalAdapter implements ImportSourceAdapter {
       );
     }
 
-    final diveSelections = _resolveDiveSelections(selections, duplicateActions);
     final skipped = _countSkipped(selections, duplicateActions);
+
+    // Resolve selections for all entity types: include duplicate items
+    // whose action is importAsNew (not just the base selection set).
+    Set<int> resolve(wizard.ImportEntityType type) =>
+        _resolveSelections(type, selections, duplicateActions);
 
     var uddfData = _payloadToUddfResult(payload);
     var uddfSelections = UddfImportSelections(
-      dives: diveSelections,
-      sites: selections[wizard.ImportEntityType.sites] ?? const {},
-      buddies: selections[wizard.ImportEntityType.buddies] ?? const {},
-      equipment: selections[wizard.ImportEntityType.equipment] ?? const {},
-      trips: selections[wizard.ImportEntityType.trips] ?? const {},
-      certifications:
-          selections[wizard.ImportEntityType.certifications] ?? const {},
-      diveCenters: selections[wizard.ImportEntityType.diveCenters] ?? const {},
-      tags: selections[wizard.ImportEntityType.tags] ?? const {},
-      diveTypes: selections[wizard.ImportEntityType.diveTypes] ?? const {},
-      equipmentSets:
-          selections[wizard.ImportEntityType.equipmentSets] ?? const {},
-      courses: selections[wizard.ImportEntityType.courses] ?? const {},
+      dives: resolve(wizard.ImportEntityType.dives),
+      sites: resolve(wizard.ImportEntityType.sites),
+      buddies: resolve(wizard.ImportEntityType.buddies),
+      equipment: resolve(wizard.ImportEntityType.equipment),
+      trips: resolve(wizard.ImportEntityType.trips),
+      certifications: resolve(wizard.ImportEntityType.certifications),
+      diveCenters: resolve(wizard.ImportEntityType.diveCenters),
+      tags: resolve(wizard.ImportEntityType.tags),
+      diveTypes: resolve(wizard.ImportEntityType.diveTypes),
+      equipmentSets: resolve(wizard.ImportEntityType.equipmentSets),
+      courses: resolve(wizard.ImportEntityType.courses),
     );
 
     // Inject batch tag if present so it flows through the import pipeline.
@@ -633,6 +649,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     wizard.ImportEntityType type,
     Set<int> duplicateIndices, {
     Map<int, DiveMatchResult>? matchResults,
+    Map<int, EntityMatchResult>? entityMatches,
   }) {
     final group = groups[type];
     if (group == null || duplicateIndices.isEmpty) return;
@@ -641,6 +658,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       items: group.items,
       duplicateIndices: duplicateIndices,
       matchResults: matchResults,
+      entityMatches: entityMatches,
     );
   }
 
@@ -648,30 +666,33 @@ class UniversalAdapter implements ImportSourceAdapter {
   // Helpers — import
   // ---------------------------------------------------------------------------
 
-  Set<int> _resolveDiveSelections(
+  /// Resolve the final selection set for [type] by merging the base
+  /// selections with duplicate actions. Duplicate items whose action is
+  /// [DuplicateAction.importAsNew] are added; items in the base set whose
+  /// action is [DuplicateAction.skip] are removed.
+  Set<int> _resolveSelections(
+    wizard.ImportEntityType type,
     Map<wizard.ImportEntityType, Set<int>> selections,
     Map<wizard.ImportEntityType, Map<int, DuplicateAction>> duplicateActions,
   ) {
-    final baseSelections = Set<int>.from(
-      selections[wizard.ImportEntityType.dives] ?? <int>{},
-    );
-    final diveActions = duplicateActions[wizard.ImportEntityType.dives] ?? {};
-    final indicesToImport = <int>{};
+    final baseSelections = Set<int>.from(selections[type] ?? <int>{});
+    final actions = duplicateActions[type] ?? {};
+    final resolved = <int>{};
 
     for (final index in baseSelections) {
-      final action = diveActions[index];
+      final action = actions[index];
       if (action != DuplicateAction.skip) {
-        indicesToImport.add(index);
+        resolved.add(index);
       }
     }
 
-    for (final entry in diveActions.entries) {
+    for (final entry in actions.entries) {
       if (entry.value == DuplicateAction.importAsNew) {
-        indicesToImport.add(entry.key);
+        resolved.add(entry.key);
       }
     }
 
-    return indicesToImport;
+    return resolved;
   }
 
   int _countSkipped(

@@ -81,6 +81,11 @@ void main() {
       mockDiveRepo.getNextDiveNumber(diverId: anyNamed('diverId')),
     ).thenAnswer((_) async => 1);
 
+    // Stub getAllSites for deselected-site resolution.
+    when(
+      mockSiteRepo.getAllSites(diverId: anyNamed('diverId')),
+    ).thenAnswer((_) async => []);
+
     repos = ImportRepositories(
       tripRepository: mockTripRepo,
       equipmentRepository: mockEquipmentRepo,

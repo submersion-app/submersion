@@ -146,6 +146,10 @@ class _UnifiedImportWizardBodyState
           ref.invalidate(paginatedDiveListProvider);
           ref.invalidate(allDiveComputersProvider);
           ref.invalidate(nextDiveNumberProvider);
+          // Dives link to sites, buddies, trips, etc. — their counts/lists
+          // may change even when those entities weren't imported.
+          ref.invalidate(sitesWithCountsProvider);
+          ref.invalidate(siteListNotifierProvider);
         case ImportEntityType.sites:
           ref.invalidate(sitesProvider);
           ref.invalidate(sitesWithCountsProvider);
