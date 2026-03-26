@@ -4,7 +4,7 @@ import 'package:submersion/core/services/export/uddf/uddf_import_service.dart';
 void main() {
   group('UddfImportService', () {
     test(
-      'assigns default tank IDs when tankdata entries omit ids but waypoints reference T1/T2',
+      'maps T1/T2 refs to tanks by order when tankdata entries omit ids',
       () async {
         const uddfContent = '''
 <uddf version="3.2.3">
@@ -72,6 +72,61 @@ void main() {
         expect(secondPointPressures, hasLength(2));
         expect(secondPointPressures[0]['tankIndex'], 0);
         expect(secondPointPressures[1]['tankIndex'], 1);
+      },
+    );
+
+    test(
+      'treats empty and whitespace tankdata ids as missing for fallback mapping',
+      () async {
+        const uddfContent = '''
+<uddf version="3.2.3">
+  <profiledata>
+    <repetitiongroup>
+      <dive id="dive-1">
+        <informationbeforedive>
+          <datetime>2025-09-01T14:18:24Z</datetime>
+          <divenumber>235</divenumber>
+        </informationbeforedive>
+        <tankdata id="">
+          <tankpressurebegin>20049962</tankpressurebegin>
+          <tankpressureend>12879411</tankpressureend>
+        </tankdata>
+        <tankdata id="   ">
+          <tankpressurebegin>21952916</tankpressurebegin>
+          <tankpressureend>14244574</tankpressureend>
+        </tankdata>
+        <samples>
+          <waypoint>
+            <depth>1</depth>
+            <divetime>0</divetime>
+            <tankpressure ref="T1">20049962</tankpressure>
+            <tankpressure ref="T2">21952916</tankpressure>
+          </waypoint>
+        </samples>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>
+''';
+
+        final service = UddfImportService();
+
+        final result = await service.importDivesFromUddf(uddfContent);
+        final dives = result['dives']!;
+        expect(dives, hasLength(1));
+
+        final dive = dives.first;
+        final tanks = dive['tanks'] as List<Map<String, dynamic>>;
+        final profile = dive['profile'] as List<Map<String, dynamic>>;
+        final firstPointPressures =
+            profile.first['allTankPressures'] as List<Map<String, dynamic>>;
+
+        expect(tanks, hasLength(2));
+        expect(tanks[0]['uddfTankId'], isNull);
+        expect(tanks[1]['uddfTankId'], isNull);
+        expect(firstPointPressures, hasLength(2));
+        expect(firstPointPressures[0]['tankIndex'], 0);
+        expect(firstPointPressures[1]['tankIndex'], 1);
       },
     );
 

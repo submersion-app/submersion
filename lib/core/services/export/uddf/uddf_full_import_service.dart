@@ -1247,12 +1247,14 @@ class UddfFullImportService {
       final tankInfo = <String, dynamic>{};
 
       // Capture tank ID for reference mapping (used by waypoint tankpressure refs)
-      final tankId = tankDataElement.getAttribute('id');
-      if (tankId != null) {
+      final rawTankId = tankDataElement.getAttribute('id');
+      final tankId = rawTankId?.trim();
+      if (tankId != null && tankId.isNotEmpty) {
         tankInfo['uddfTankId'] = tankId;
       } else {
         _logger.debug(
-          'UDDF import: <tankdata> is missing required "id" attribute; '
+          'UDDF import: <tankdata> is missing or has empty/whitespace '
+          'required "id" attribute; '
           'falling back to ordered tank ref resolution.',
         );
       }

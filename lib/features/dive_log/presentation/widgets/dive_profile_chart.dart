@@ -368,6 +368,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showCeiling = widget.showCeiling;
     _showAscentRateColors = widget.showAscentRateColors;
     _showEvents = widget.showEvents;
+    _scheduleTankPressureVisibilityInitialization();
   }
 
   @override
@@ -377,6 +378,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       _lastTooltipSpotIndex = null;
       _lastTooltipItems = [];
     }
+    if (oldWidget.tankPressures != widget.tankPressures) {
+      _scheduleTankPressureVisibilityInitialization();
+    }
+  }
+
+  void _scheduleTankPressureVisibilityInitialization() {
+    if (!_hasMultiTankPressure) return;
+    final tankIds = widget.tankPressures!.keys.toList();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || tankIds.isEmpty) return;
+      ref.read(profileLegendProvider.notifier).initializeTankPressures(tankIds);
+    });
   }
 
   void _resetZoom() {
@@ -455,15 +468,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // Sync per-tank pressure visibility
     for (final entry in legendState.showTankPressure.entries) {
       _showTankPressure[entry.key] = entry.value;
-    }
-
-    // Initialize tank pressure visibility for any tanks not yet in the legend state
-    if (_hasMultiTankPressure && widget.tankPressures != null) {
-      for (final tankId in widget.tankPressures!.keys) {
-        if (!_showTankPressure.containsKey(tankId)) {
-          _showTankPressure[tankId] = true;
-        }
-      }
     }
 
     // Check data availability for advanced curves

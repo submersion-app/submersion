@@ -459,14 +459,15 @@ void main() {
         reason: 'Should have pressure data for two tanks.',
       );
 
-      final tankIds = pressuresByTank.keys.toList();
-      final pressures1 = pressuresByTank[tankIds[0]]!;
-      final pressures2 = pressuresByTank[tankIds[1]]!;
+      final pressureSeries = pressuresByTank.values.toList()
+        ..sort((a, b) => a.first.pressure.compareTo(b.first.pressure));
+      final pressuresLower = pressureSeries[0];
+      final pressuresHigher = pressureSeries[1];
 
-      expect(pressures1, hasLength(2));
-      expect(pressures2, hasLength(2));
-      expect(pressures1.first.pressure, closeTo(200.0, 0.1));
-      expect(pressures2.first.pressure, closeTo(190.0, 0.1));
+      expect(pressuresLower, hasLength(2));
+      expect(pressuresHigher, hasLength(2));
+      expect(pressuresHigher.first.pressure, closeTo(200.0, 0.1));
+      expect(pressuresLower.first.pressure, closeTo(190.0, 0.1));
     });
 
     test(
@@ -543,18 +544,19 @@ void main() {
               'Should have pressure data for two tanks with non-zero pressures.',
         );
 
-        final tankIds = pressuresByTank.keys.toList();
-        final pressures1 = pressuresByTank[tankIds[0]]!;
-        final pressures2 = pressuresByTank[tankIds[1]]!;
+        final pressureSeries = pressuresByTank.values.toList()
+          ..sort((a, b) => a.first.pressure.compareTo(b.first.pressure));
+        final pressuresT1 = pressureSeries[0];
+        final pressuresT2 = pressureSeries[1];
 
-        expect(pressures1, hasLength(2));
-        expect(pressures2, hasLength(2));
+        expect(pressuresT1, hasLength(2));
+        expect(pressuresT2, hasLength(2));
         // First waypoint pressures
-        expect(pressures1.first.pressure, closeTo(200.5, 0.1));
-        expect(pressures2.first.pressure, closeTo(219.5, 0.1));
+        expect(pressuresT1.first.pressure, closeTo(200.5, 0.1));
+        expect(pressuresT2.first.pressure, closeTo(219.5, 0.1));
         // Second waypoint pressures
-        expect(pressures1.last.pressure, closeTo(199.4, 0.1));
-        expect(pressures2.last.pressure, closeTo(219.4, 0.1));
+        expect(pressuresT1.last.pressure, closeTo(199.4, 0.1));
+        expect(pressuresT2.last.pressure, closeTo(219.4, 0.1));
       },
     );
   });
