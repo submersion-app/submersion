@@ -13612,14 +13612,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dit formaat wordt nog niet ondersteund. Exporteer als UDDF of CSV.';
 
   @override
-  String get universalImport_hint_tagDescription =>
-      'Tag alle geïmporteerde duiken voor eenvoudig filteren';
-
-  @override
-  String get universalImport_hint_tagExample =>
-      'bijv. MacDive Import 2026-02-09';
-
-  @override
   String get universalImport_label_columnMapping => 'Kolomtoewijzing';
 
   @override
@@ -13645,9 +13637,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_label_importComplete => 'Import voltooid';
-
-  @override
-  String get universalImport_label_importTag => 'Import tag';
 
   @override
   String get universalImport_label_importing => 'Importeren';
@@ -13762,9 +13751,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_title => 'Gegevens importeren';
-
-  @override
-  String get universalImport_tooltip_clearTag => 'Tag wissen';
 
   @override
   String get universalImport_tooltip_closeWizard => 'Importwizard sluiten';

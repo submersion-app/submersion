@@ -13359,14 +13359,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'פורמט זה אינו נתמך עדיין. נא לייצא כ-UDDF או CSV.';
 
   @override
-  String get universalImport_hint_tagDescription =>
-      'תייג את כל הצלילות המיובאות לסינון קל';
-
-  @override
-  String get universalImport_hint_tagExample =>
-      'לדוגמה: ייבוא MacDive 2026-02-09';
-
-  @override
   String get universalImport_label_columnMapping => 'מיפוי עמודות';
 
   @override
@@ -13392,9 +13384,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_label_importComplete => 'ייבוא הושלם';
-
-  @override
-  String get universalImport_label_importTag => 'תגית ייבוא';
 
   @override
   String get universalImport_label_importing => 'מייבא';
@@ -13507,9 +13496,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_title => 'ייבא נתונים';
-
-  @override
-  String get universalImport_tooltip_clearTag => 'נקה תגית';
 
   @override
   String get universalImport_tooltip_closeWizard => 'סגור אשף ייבוא';

@@ -13684,14 +13684,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez a formátum még nem támogatott. Exportálj UDDF vagy CSV formátumban.';
 
   @override
-  String get universalImport_hint_tagDescription =>
-      'Címkézd meg az összes importált merülést a könnyű szűréshez';
-
-  @override
-  String get universalImport_hint_tagExample =>
-      'pl. MacDive Importálás 2026-02-09';
-
-  @override
   String get universalImport_label_columnMapping => 'Oszlop leképezés';
 
   @override
@@ -13717,9 +13709,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_label_importComplete => 'Importálás kész';
-
-  @override
-  String get universalImport_label_importTag => 'Import címke';
 
   @override
   String get universalImport_label_importing => 'Importálás';
@@ -13834,9 +13823,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_title => 'Adatok importálása';
-
-  @override
-  String get universalImport_tooltip_clearTag => 'Címke törlése';
 
   @override
   String get universalImport_tooltip_closeWizard => 'Import varázsló bezárása';

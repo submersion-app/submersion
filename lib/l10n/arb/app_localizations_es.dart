@@ -13730,14 +13730,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Este formato aún no es compatible. Por favor exporta como UDDF o CSV.';
 
   @override
-  String get universalImport_hint_tagDescription =>
-      'Etiqueta todas las inmersiones importadas para filtrado fácil';
-
-  @override
-  String get universalImport_hint_tagExample =>
-      'ej., Importación MacDive 2026-02-09';
-
-  @override
   String get universalImport_label_columnMapping => 'Mapeo de Columnas';
 
   @override
@@ -13763,9 +13755,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get universalImport_label_importComplete => 'Importación Completa';
-
-  @override
-  String get universalImport_label_importTag => 'Etiqueta de Importación';
 
   @override
   String get universalImport_label_importing => 'Importando';
@@ -13879,9 +13868,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get universalImport_title => 'Importar Datos';
-
-  @override
-  String get universalImport_tooltip_clearTag => 'Limpiar etiqueta';
 
   @override
   String get universalImport_tooltip_closeWizard =>
