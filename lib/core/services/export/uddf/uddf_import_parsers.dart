@@ -1,6 +1,7 @@
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' as enums;
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Static parser methods for UDDF entity elements.
 ///
@@ -8,6 +9,18 @@ import 'package:submersion/core/constants/enums.dart' as enums;
 /// from UDDF XML elements into maps.
 class UddfImportParsers {
   UddfImportParsers._();
+
+  static void assignGasMixToTankIfMissing({
+    required List<Map<String, dynamic>> tanks,
+    required int tankIndex,
+    required GasMix gasMix,
+  }) {
+    if (tankIndex < 0 || tankIndex >= tanks.length) {
+      return;
+    }
+
+    tanks[tankIndex].putIfAbsent('gasMix', () => gasMix);
+  }
 
   static T? parseEnumValue<T extends Enum>(String value, List<T> values) {
     final lowerValue = value.toLowerCase();

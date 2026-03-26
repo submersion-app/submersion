@@ -1428,6 +1428,7 @@ class UddfFullImportService {
     if (samplesElement != null) {
       final profile = <Map<String, dynamic>>[];
       GasMix? currentMix;
+      GasMix? pendingSwitchMix;
 
       for (final waypoint in samplesElement.findElements('waypoint')) {
         final point = <String, dynamic>{};
@@ -1453,6 +1454,24 @@ class UddfFullImportService {
             // Validate reasonable water temperature range (-2C to 40C)
             if (celsius >= -2 && celsius <= 40) {
               point['temperature'] = celsius;
+            }
+          }
+        }
+
+        final switchMix = waypoint.findElements('switchmix').firstOrNull;
+        if (switchMix != null) {
+          final mixRef = switchMix.getAttribute('ref');
+          if (mixRef != null && gasMixes.containsKey(mixRef)) {
+            currentMix = gasMixes[mixRef];
+            pendingSwitchMix = currentMix;
+
+            if (tanks.length == 1) {
+              UddfImportParsers.assignGasMixToTankIfMissing(
+                tanks: tanks,
+                tankIndex: 0,
+                gasMix: currentMix!,
+              );
+              pendingSwitchMix = null;
             }
           }
         }
@@ -1498,6 +1517,15 @@ class UddfFullImportService {
               tankIdx = 0;
             }
 
+            if (pendingSwitchMix != null) {
+              UddfImportParsers.assignGasMixToTankIfMissing(
+                tanks: tanks,
+                tankIndex: tankIdx,
+                gasMix: pendingSwitchMix,
+              );
+              pendingSwitchMix = null;
+            }
+
             allTankPressures.add({'pressure': pressure, 'tankIndex': tankIdx});
 
             // Store first tank's pressure in legacy fields for backward compatibility
@@ -1520,15 +1548,6 @@ class UddfFullImportService {
         );
         if (heartRateText != null) {
           point['heartRate'] = int.tryParse(heartRateText);
-        }
-
-        // Check for gas switch
-        final switchMix = waypoint.findElements('switchmix').firstOrNull;
-        if (switchMix != null) {
-          final mixRef = switchMix.getAttribute('ref');
-          if (mixRef != null && gasMixes.containsKey(mixRef)) {
-            currentMix = gasMixes[mixRef];
-          }
         }
 
         if (point.containsKey('timestamp') && point.containsKey('depth')) {
