@@ -3,20 +3,23 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i8;
+import 'dart:async' as _i9;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i5;
+import 'package:mockito/src/dummies.dart' as _i6;
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart'
-    as _i4;
+    as _i5;
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart'
-    as _i7;
+    as _i8;
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart'
     as _i2;
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart'
     as _i3;
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart'
-    as _i6;
+    as _i7;
+import 'package:submersion/features/tags/data/repositories/tag_repository.dart'
+    as _i10;
+import 'package:submersion/features/tags/domain/entities/tag.dart' as _i4;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -44,11 +47,16 @@ class _FakeUnifiedImportResult_1 extends _i1.SmartFake
     : super(parent, parentInvocation);
 }
 
+class _FakeTag_2 extends _i1.SmartFake implements _i4.Tag {
+  _FakeTag_2(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [ImportSourceAdapter].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockImportSourceAdapter extends _i1.Mock
-    implements _i4.ImportSourceAdapter {
+    implements _i5.ImportSourceAdapter {
   @override
   _i2.ImportSourceType get sourceType =>
       (super.noSuchMethod(
@@ -62,11 +70,11 @@ class MockImportSourceAdapter extends _i1.Mock
   String get displayName =>
       (super.noSuchMethod(
             Invocation.getter(#displayName),
-            returnValue: _i5.dummyValue<String>(
+            returnValue: _i6.dummyValue<String>(
               this,
               Invocation.getter(#displayName),
             ),
-            returnValueForMissingStub: _i5.dummyValue<String>(
+            returnValueForMissingStub: _i6.dummyValue<String>(
               this,
               Invocation.getter(#displayName),
             ),
@@ -77,11 +85,11 @@ class MockImportSourceAdapter extends _i1.Mock
   String get defaultTagName =>
       (super.noSuchMethod(
             Invocation.getter(#defaultTagName),
-            returnValue: _i5.dummyValue<String>(
+            returnValue: _i6.dummyValue<String>(
               this,
               Invocation.getter(#defaultTagName),
             ),
-            returnValueForMissingStub: _i5.dummyValue<String>(
+            returnValueForMissingStub: _i6.dummyValue<String>(
               this,
               Invocation.getter(#defaultTagName),
             ),
@@ -89,22 +97,22 @@ class MockImportSourceAdapter extends _i1.Mock
           as String);
 
   @override
-  List<_i6.WizardStepDef> get acquisitionSteps =>
+  List<_i7.WizardStepDef> get acquisitionSteps =>
       (super.noSuchMethod(
             Invocation.getter(#acquisitionSteps),
-            returnValue: <_i6.WizardStepDef>[],
-            returnValueForMissingStub: <_i6.WizardStepDef>[],
+            returnValue: <_i7.WizardStepDef>[],
+            returnValueForMissingStub: <_i7.WizardStepDef>[],
           )
-          as List<_i6.WizardStepDef>);
+          as List<_i7.WizardStepDef>);
 
   @override
-  Set<_i7.DuplicateAction> get supportedDuplicateActions =>
+  Set<_i8.DuplicateAction> get supportedDuplicateActions =>
       (super.noSuchMethod(
             Invocation.getter(#supportedDuplicateActions),
-            returnValue: <_i7.DuplicateAction>{},
-            returnValueForMissingStub: <_i7.DuplicateAction>{},
+            returnValue: <_i8.DuplicateAction>{},
+            returnValueForMissingStub: <_i8.DuplicateAction>{},
           )
-          as Set<_i7.DuplicateAction>);
+          as Set<_i8.DuplicateAction>);
 
   @override
   void resetState() => super.noSuchMethod(
@@ -113,42 +121,42 @@ class MockImportSourceAdapter extends _i1.Mock
   );
 
   @override
-  _i8.Future<_i2.ImportBundle> buildBundle() =>
+  _i9.Future<_i2.ImportBundle> buildBundle() =>
       (super.noSuchMethod(
             Invocation.method(#buildBundle, []),
-            returnValue: _i8.Future<_i2.ImportBundle>.value(
+            returnValue: _i9.Future<_i2.ImportBundle>.value(
               _FakeImportBundle_0(this, Invocation.method(#buildBundle, [])),
             ),
-            returnValueForMissingStub: _i8.Future<_i2.ImportBundle>.value(
+            returnValueForMissingStub: _i9.Future<_i2.ImportBundle>.value(
               _FakeImportBundle_0(this, Invocation.method(#buildBundle, [])),
             ),
           )
-          as _i8.Future<_i2.ImportBundle>);
+          as _i9.Future<_i2.ImportBundle>);
 
   @override
-  _i8.Future<_i2.ImportBundle> checkDuplicates(_i2.ImportBundle? bundle) =>
+  _i9.Future<_i2.ImportBundle> checkDuplicates(_i2.ImportBundle? bundle) =>
       (super.noSuchMethod(
             Invocation.method(#checkDuplicates, [bundle]),
-            returnValue: _i8.Future<_i2.ImportBundle>.value(
+            returnValue: _i9.Future<_i2.ImportBundle>.value(
               _FakeImportBundle_0(
                 this,
                 Invocation.method(#checkDuplicates, [bundle]),
               ),
             ),
-            returnValueForMissingStub: _i8.Future<_i2.ImportBundle>.value(
+            returnValueForMissingStub: _i9.Future<_i2.ImportBundle>.value(
               _FakeImportBundle_0(
                 this,
                 Invocation.method(#checkDuplicates, [bundle]),
               ),
             ),
           )
-          as _i8.Future<_i2.ImportBundle>);
+          as _i9.Future<_i2.ImportBundle>);
 
   @override
-  _i8.Future<_i3.UnifiedImportResult> performImport(
+  _i9.Future<_i3.UnifiedImportResult> performImport(
     _i2.ImportBundle? bundle,
     Map<_i2.ImportEntityType, Set<int>>? selections,
-    Map<_i2.ImportEntityType, Map<int, _i7.DuplicateAction>>?
+    Map<_i2.ImportEntityType, Map<int, _i8.DuplicateAction>>?
     duplicateActions, {
     bool? retainSourceDiveNumbers,
     void Function(String, int, int)? onProgress,
@@ -162,7 +170,7 @@ class MockImportSourceAdapter extends _i1.Mock
                 #onProgress: onProgress,
               },
             ),
-            returnValue: _i8.Future<_i3.UnifiedImportResult>.value(
+            returnValue: _i9.Future<_i3.UnifiedImportResult>.value(
               _FakeUnifiedImportResult_1(
                 this,
                 Invocation.method(
@@ -176,7 +184,7 @@ class MockImportSourceAdapter extends _i1.Mock
               ),
             ),
             returnValueForMissingStub:
-                _i8.Future<_i3.UnifiedImportResult>.value(
+                _i9.Future<_i3.UnifiedImportResult>.value(
                   _FakeUnifiedImportResult_1(
                     this,
                     Invocation.method(
@@ -190,5 +198,221 @@ class MockImportSourceAdapter extends _i1.Mock
                   ),
                 ),
           )
-          as _i8.Future<_i3.UnifiedImportResult>);
+          as _i9.Future<_i3.UnifiedImportResult>);
+}
+
+/// A class which mocks [TagRepository].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockTagRepository extends _i1.Mock implements _i10.TagRepository {
+  @override
+  _i9.Future<List<_i4.Tag>> getAllTags({String? diverId}) =>
+      (super.noSuchMethod(
+            Invocation.method(#getAllTags, [], {#diverId: diverId}),
+            returnValue: _i9.Future<List<_i4.Tag>>.value(<_i4.Tag>[]),
+            returnValueForMissingStub: _i9.Future<List<_i4.Tag>>.value(
+              <_i4.Tag>[],
+            ),
+          )
+          as _i9.Future<List<_i4.Tag>>);
+
+  @override
+  _i9.Future<_i4.Tag?> getTagById(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTagById, [id]),
+            returnValue: _i9.Future<_i4.Tag?>.value(),
+            returnValueForMissingStub: _i9.Future<_i4.Tag?>.value(),
+          )
+          as _i9.Future<_i4.Tag?>);
+
+  @override
+  _i9.Future<_i4.Tag?> getTagByName(String? name, {String? diverId}) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTagByName, [name], {#diverId: diverId}),
+            returnValue: _i9.Future<_i4.Tag?>.value(),
+            returnValueForMissingStub: _i9.Future<_i4.Tag?>.value(),
+          )
+          as _i9.Future<_i4.Tag?>);
+
+  @override
+  _i9.Future<_i4.Tag> createTag(_i4.Tag? tag) =>
+      (super.noSuchMethod(
+            Invocation.method(#createTag, [tag]),
+            returnValue: _i9.Future<_i4.Tag>.value(
+              _FakeTag_2(this, Invocation.method(#createTag, [tag])),
+            ),
+            returnValueForMissingStub: _i9.Future<_i4.Tag>.value(
+              _FakeTag_2(this, Invocation.method(#createTag, [tag])),
+            ),
+          )
+          as _i9.Future<_i4.Tag>);
+
+  @override
+  _i9.Future<_i4.Tag> getOrCreateTag(
+    String? name, {
+    String? colorHex,
+    String? diverId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #getOrCreateTag,
+              [name],
+              {#colorHex: colorHex, #diverId: diverId},
+            ),
+            returnValue: _i9.Future<_i4.Tag>.value(
+              _FakeTag_2(
+                this,
+                Invocation.method(
+                  #getOrCreateTag,
+                  [name],
+                  {#colorHex: colorHex, #diverId: diverId},
+                ),
+              ),
+            ),
+            returnValueForMissingStub: _i9.Future<_i4.Tag>.value(
+              _FakeTag_2(
+                this,
+                Invocation.method(
+                  #getOrCreateTag,
+                  [name],
+                  {#colorHex: colorHex, #diverId: diverId},
+                ),
+              ),
+            ),
+          )
+          as _i9.Future<_i4.Tag>);
+
+  @override
+  _i9.Future<void> updateTag(_i4.Tag? tag) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateTag, [tag]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
+
+  @override
+  _i9.Future<void> deleteTag(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteTag, [id]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
+
+  @override
+  _i9.Future<List<_i4.Tag>> getTagsForDive(String? diveId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTagsForDive, [diveId]),
+            returnValue: _i9.Future<List<_i4.Tag>>.value(<_i4.Tag>[]),
+            returnValueForMissingStub: _i9.Future<List<_i4.Tag>>.value(
+              <_i4.Tag>[],
+            ),
+          )
+          as _i9.Future<List<_i4.Tag>>);
+
+  @override
+  _i9.Future<Map<String, List<_i4.Tag>>> getTagsForDives(
+    List<String>? diveIds,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTagsForDives, [diveIds]),
+            returnValue: _i9.Future<Map<String, List<_i4.Tag>>>.value(
+              <String, List<_i4.Tag>>{},
+            ),
+            returnValueForMissingStub:
+                _i9.Future<Map<String, List<_i4.Tag>>>.value(
+                  <String, List<_i4.Tag>>{},
+                ),
+          )
+          as _i9.Future<Map<String, List<_i4.Tag>>>);
+
+  @override
+  _i9.Future<void> setTagsForDive(String? diveId, List<_i4.Tag>? tags) =>
+      (super.noSuchMethod(
+            Invocation.method(#setTagsForDive, [diveId, tags]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
+
+  @override
+  _i9.Future<void> addTagToDive(String? diveId, String? tagId) =>
+      (super.noSuchMethod(
+            Invocation.method(#addTagToDive, [diveId, tagId]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
+
+  @override
+  _i9.Future<void> removeTagFromDive(String? diveId, String? tagId) =>
+      (super.noSuchMethod(
+            Invocation.method(#removeTagFromDive, [diveId, tagId]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
+
+  @override
+  _i9.Future<List<_i10.TagStatistic>> getTagStatistics({String? diverId}) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTagStatistics, [], {#diverId: diverId}),
+            returnValue: _i9.Future<List<_i10.TagStatistic>>.value(
+              <_i10.TagStatistic>[],
+            ),
+            returnValueForMissingStub:
+                _i9.Future<List<_i10.TagStatistic>>.value(
+                  <_i10.TagStatistic>[],
+                ),
+          )
+          as _i9.Future<List<_i10.TagStatistic>>);
+
+  @override
+  _i9.Future<int> getTagUsageCount(String? tagId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTagUsageCount, [tagId]),
+            returnValue: _i9.Future<int>.value(0),
+            returnValueForMissingStub: _i9.Future<int>.value(0),
+          )
+          as _i9.Future<int>);
+
+  @override
+  _i9.Future<int> getMergedDiveCount(List<String>? tagIds) =>
+      (super.noSuchMethod(
+            Invocation.method(#getMergedDiveCount, [tagIds]),
+            returnValue: _i9.Future<int>.value(0),
+            returnValueForMissingStub: _i9.Future<int>.value(0),
+          )
+          as _i9.Future<int>);
+
+  @override
+  _i9.Future<List<_i4.Tag>> searchTags(String? query, {String? diverId}) =>
+      (super.noSuchMethod(
+            Invocation.method(#searchTags, [query], {#diverId: diverId}),
+            returnValue: _i9.Future<List<_i4.Tag>>.value(<_i4.Tag>[]),
+            returnValueForMissingStub: _i9.Future<List<_i4.Tag>>.value(
+              <_i4.Tag>[],
+            ),
+          )
+          as _i9.Future<List<_i4.Tag>>);
+
+  @override
+  _i9.Future<void> mergeTags({
+    required List<String>? sourceTagIds,
+    required String? survivingTagId,
+    required String? name,
+    required String? colorHex,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#mergeTags, [], {
+              #sourceTagIds: sourceTagIds,
+              #survivingTagId: survivingTagId,
+              #name: name,
+              #colorHex: colorHex,
+            }),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 }

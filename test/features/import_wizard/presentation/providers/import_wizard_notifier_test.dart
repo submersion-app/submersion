@@ -8,13 +8,16 @@ import 'package:submersion/features/import_wizard/domain/models/tag_selection.da
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
+import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 
-@GenerateNiceMocks([MockSpec<ImportSourceAdapter>()])
+@GenerateNiceMocks([MockSpec<ImportSourceAdapter>(), MockSpec<TagRepository>()])
 import 'import_wizard_notifier_test.mocks.dart';
 
 void main() {
   group('ImportWizardNotifier', () {
     late MockImportSourceAdapter mockAdapter;
+    late MockTagRepository mockTagRepo;
     late ImportWizardNotifier notifier;
 
     // Test data helpers
@@ -61,13 +64,14 @@ void main() {
 
     setUp(() {
       mockAdapter = MockImportSourceAdapter();
+      mockTagRepo = MockTagRepository();
       when(mockAdapter.sourceType).thenReturn(ImportSourceType.uddf);
       when(mockAdapter.displayName).thenReturn('test.uddf');
       when(mockAdapter.acquisitionSteps).thenReturn([]);
       when(
         mockAdapter.supportedDuplicateActions,
       ).thenReturn({DuplicateAction.skip, DuplicateAction.importAsNew});
-      notifier = ImportWizardNotifier(mockAdapter);
+      notifier = ImportWizardNotifier(mockAdapter, tagRepository: mockTagRepo);
     });
 
     tearDown(() {
@@ -582,6 +586,113 @@ void main() {
           ),
         );
         expect(notifier.state.isImporting, isFalse);
+      });
+
+      test('applies import tags to all imported dives after import', () async {
+        final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);
+        notifier.setBundle(bundle);
+
+        const tag = TagSelection(name: 'Vacation');
+        notifier.addImportTag(tag);
+
+        const importResult = UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 1},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          importedDiveIds: ['dive-1'],
+        );
+
+        when(
+          mockAdapter.performImport(
+            any,
+            any,
+            any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+            onProgress: anyNamed('onProgress'),
+          ),
+        ).thenAnswer((_) async => importResult);
+
+        when(mockTagRepo.getOrCreateTag('Vacation')).thenAnswer(
+          (_) async => Tag(
+            id: 'tag-new',
+            name: 'Vacation',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+        );
+        when(mockTagRepo.addTagToDive(any, any)).thenAnswer((_) async => null);
+
+        await notifier.performImport();
+
+        verify(mockTagRepo.getOrCreateTag('Vacation')).called(1);
+        verify(mockTagRepo.addTagToDive('dive-1', 'tag-new')).called(1);
+      });
+
+      test(
+        'uses existing tag ID directly without calling getOrCreateTag',
+        () async {
+          final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);
+          notifier.setBundle(bundle);
+
+          const tag = TagSelection(
+            existingTagId: 'tag-existing',
+            name: 'Existing',
+          );
+          notifier.addImportTag(tag);
+
+          const importResult = UnifiedImportResult(
+            importedCounts: {ImportEntityType.dives: 1},
+            consolidatedCount: 0,
+            skippedCount: 0,
+            importedDiveIds: ['dive-1'],
+          );
+
+          when(
+            mockAdapter.performImport(
+              any,
+              any,
+              any,
+              retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+              onProgress: anyNamed('onProgress'),
+            ),
+          ).thenAnswer((_) async => importResult);
+
+          when(
+            mockTagRepo.addTagToDive(any, any),
+          ).thenAnswer((_) async => null);
+
+          await notifier.performImport();
+
+          verifyNever(mockTagRepo.getOrCreateTag(any));
+          verify(mockTagRepo.addTagToDive('dive-1', 'tag-existing')).called(1);
+        },
+      );
+
+      test('skips tag application when importTags is empty', () async {
+        final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);
+        notifier.setBundle(bundle);
+
+        const importResult = UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 1},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          importedDiveIds: ['dive-1'],
+        );
+
+        when(
+          mockAdapter.performImport(
+            any,
+            any,
+            any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+            onProgress: anyNamed('onProgress'),
+          ),
+        ).thenAnswer((_) async => importResult);
+
+        await notifier.performImport();
+
+        verifyNever(mockTagRepo.getOrCreateTag(any));
+        verifyNever(mockTagRepo.addTagToDive(any, any));
       });
     });
 

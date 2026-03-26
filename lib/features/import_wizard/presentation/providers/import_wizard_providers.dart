@@ -4,6 +4,7 @@ import 'package:submersion/features/import_wizard/domain/models/duplicate_action
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/tag_selection.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
+import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 
 // ============================================================================
 // State
@@ -110,9 +111,12 @@ class ImportWizardState {
 /// Orchestrates review selections, duplicate actions, import progress,
 /// and results. Source-specific logic is delegated to an [ImportSourceAdapter].
 class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
-  ImportWizardNotifier(this._adapter) : super(const ImportWizardState());
+  ImportWizardNotifier(this._adapter, {TagRepository? tagRepository})
+    : _tagRepository = tagRepository,
+      super(const ImportWizardState());
 
   final ImportSourceAdapter _adapter;
+  final TagRepository? _tagRepository;
 
   /// The duplicate actions supported by the underlying adapter.
   Set<DuplicateAction> get supportedDuplicateActions =>
@@ -310,6 +314,37 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
           );
         },
       );
+
+      // Apply import tags to all imported dives.
+      if (state.importTags.isNotEmpty &&
+          result.importedDiveIds.isNotEmpty &&
+          _tagRepository != null) {
+        state = state.copyWith(
+          importPhase: 'Applying tags',
+          importCurrent: 0,
+          importTotal: result.importedDiveIds.length,
+        );
+
+        // Resolve tag selections to tag IDs.
+        final tagIds = <String>[];
+        for (final tagSelection in state.importTags) {
+          if (tagSelection.isNew) {
+            final tag = await _tagRepository.getOrCreateTag(tagSelection.name);
+            tagIds.add(tag.id);
+          } else {
+            tagIds.add(tagSelection.existingTagId!);
+          }
+        }
+
+        // Apply each tag to each imported dive.
+        for (var i = 0; i < result.importedDiveIds.length; i++) {
+          final diveId = result.importedDiveIds[i];
+          for (final tagId in tagIds) {
+            await _tagRepository.addTagToDive(diveId, tagId);
+          }
+          state = state.copyWith(importCurrent: i + 1);
+        }
+      }
 
       state = state.copyWith(
         isImporting: false,

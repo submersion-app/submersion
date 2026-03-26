@@ -38,7 +38,10 @@ class UnifiedImportWizard extends StatelessWidget {
     return ProviderScope(
       overrides: [
         importWizardNotifierProvider.overrideWith(
-          (_) => ImportWizardNotifier(adapter),
+          (ref) => ImportWizardNotifier(
+            adapter,
+            tagRepository: ref.read(tagRepositoryProvider),
+          ),
         ),
       ],
       child: _UnifiedImportWizardBody(adapter: adapter),
