@@ -331,6 +331,17 @@ class AppearancePage extends ConsumerWidget {
                   .setDefaultShowGasSwitchMarkers(value);
             },
           ),
+          SwitchListTile(
+            title: const Text('Show data source badges'),
+            subtitle: const Text('Display source attribution on dive metrics'),
+            secondary: const Icon(Icons.label_outline),
+            value: settings.showDataSourceBadges,
+            onChanged: (value) {
+              ref
+                  .read(settingsProvider.notifier)
+                  .setShowDataSourceBadges(value);
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.visibility),
             title: Text(

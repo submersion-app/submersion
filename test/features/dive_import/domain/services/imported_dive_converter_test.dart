@@ -38,8 +38,8 @@ void main() {
         expect(dive.maxDepth, equals(25.3));
         expect(dive.avgDepth, equals(14.2));
         expect(dive.waterTemp, equals(18.5));
-        expect(dive.wearableSource, equals('appleWatch'));
-        expect(dive.wearableId, equals('hk-uuid-123'));
+        expect(dive.importSource, equals('appleWatch'));
+        expect(dive.importId, equals('hk-uuid-123'));
       });
 
       test('calculates bottom time from profile when available', () {
@@ -103,7 +103,7 @@ void main() {
         expect(dive.waterTemp, isNull);
         expect(dive.diverId, isNull);
         expect(dive.diveNumber, isNull);
-        expect(dive.wearableSource, equals('garmin'));
+        expect(dive.importSource, equals('garmin'));
       });
 
       test('converts profile samples to DiveProfilePoints', () {
@@ -190,7 +190,7 @@ void main() {
 
           final dive = converter.convert(importedDive);
 
-          expect(dive.wearableSource, equals(source.name));
+          expect(dive.importSource, equals(source.name));
         }
       });
 
@@ -214,6 +214,25 @@ void main() {
         expect(dive.profile, isEmpty);
         expect(dive.isFavorite, isFalse);
       });
+
+      test(
+        'converter preserves importSource and importId from ImportedDive',
+        () {
+          final importedDive = ImportedDive(
+            sourceId: 'abc123',
+            source: ImportSource.suunto,
+            startTime: DateTime(2026, 3, 15, 10, 0),
+            endTime: DateTime(2026, 3, 15, 11, 0),
+            maxDepth: 28.3,
+            profile: [],
+            sourceFileName: 'Suunto_Export.uddf',
+            sourceFileFormat: 'uddf',
+          );
+          final dive = const ImportedDiveConverter().convert(importedDive);
+          expect(dive.importSource, 'suunto');
+          expect(dive.importId, 'abc123');
+        },
+      );
     });
   });
 }

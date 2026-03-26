@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -136,6 +137,17 @@ final diveProfileProvider =
     ) async {
       final repository = ref.watch(diveRepositoryProvider);
       return repository.getDiveProfile(diveId);
+    });
+
+/// Profiles grouped by source (computer ID / 'user-edited' / 'original').
+/// Used for multi-computer toggle rendering in the dive profile chart.
+final profilesBySourceProvider =
+    FutureProvider.family<Map<String?, List<domain.DiveProfilePoint>>, String>((
+      ref,
+      diveId,
+    ) async {
+      final repository = ref.watch(diveRepositoryProvider);
+      return repository.getProfilesBySource(diveId);
     });
 
 /// Batch profile cache for mini charts in the dive list.
@@ -778,3 +790,20 @@ final tankPressuresProvider =
       final repository = ref.watch(tankPressureRepositoryProvider);
       return repository.getTankPressuresForDive(diveId);
     });
+
+/// Provider to load data sources for a dive.
+/// Returns empty list for single-source dives.
+final diveDataSourcesProvider =
+    FutureProvider.family<List<DiveDataSource>, String>((ref, diveId) async {
+      final repository = ref.watch(diveRepositoryProvider);
+      return repository.getDataSources(diveId);
+    });
+
+/// Provider to check if a dive has multiple data sources.
+final isMultiDataSourceDiveProvider = FutureProvider.family<bool, String>((
+  ref,
+  diveId,
+) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  return repository.hasMultipleDataSources(diveId);
+});

@@ -11,7 +11,6 @@ import 'package:submersion/features/dive_computer/data/services/dive_import_serv
 import 'package:submersion/features/dive_computer/data/services/parsed_dive_mapper.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
-import 'package:submersion/features/dive_computer/data/services/fingerprint_utils.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 
 /// Provider for the dive computer repository.
@@ -36,11 +35,14 @@ final downloadEventsProvider = StreamProvider<pigeon.DownloadEvent>((ref) {
 });
 
 /// State for the download process.
+///
+/// Tracks download phase, progress, downloaded dives, and device metadata.
+/// Import/consolidation logic is handled by the unified import wizard via
+/// [DiveComputerAdapter].
 class DownloadState {
   final DownloadPhase phase;
   final DownloadProgress? progress;
   final List<DownloadedDive> downloadedDives;
-  final ImportResult? importResult;
   final String? errorMessage;
   final String? errorCode;
   final bool newDivesOnly;
@@ -51,7 +53,6 @@ class DownloadState {
     this.phase = DownloadPhase.initializing,
     this.progress,
     this.downloadedDives = const [],
-    this.importResult,
     this.errorMessage,
     this.errorCode,
     this.newDivesOnly = true,
@@ -63,22 +64,17 @@ class DownloadState {
     DownloadPhase? phase,
     DownloadProgress? progress,
     List<DownloadedDive>? downloadedDives,
-    ImportResult? importResult,
     String? errorMessage,
     String? errorCode,
     bool? newDivesOnly,
     String? serialNumber,
     String? firmwareVersion,
     bool clearError = false,
-    bool clearImportResult = false,
   }) {
     return DownloadState(
       phase: phase ?? this.phase,
       progress: progress ?? this.progress,
       downloadedDives: downloadedDives ?? this.downloadedDives,
-      importResult: clearImportResult
-          ? null
-          : (importResult ?? this.importResult),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       errorCode: clearError ? null : (errorCode ?? this.errorCode),
       newDivesOnly: newDivesOnly ?? this.newDivesOnly,
@@ -110,25 +106,22 @@ class DownloadState {
 /// native platform backends. Listens to downloadEvents stream for
 /// progress, dives, completion, and errors.
 ///
-/// When [startDownload] is called with a [DiveComputer] and diverId,
-/// the notifier automatically imports dives into the database when the
-/// download completes. This eliminates widget lifecycle dependencies.
+/// When a [DiveComputer] is provided to [startDownload], the notifier
+/// persists device info (serial number, firmware version) on the computer
+/// record when the download completes. Import and consolidation are handled
+/// by the unified import wizard via [DiveComputerAdapter].
 class DownloadNotifier extends StateNotifier<DownloadState> {
   final pigeon.DiveComputerService _service;
-  final DiveImportService _importService;
   final DiveComputerRepository _repository;
   StreamSubscription<pigeon.DownloadEvent>? _downloadSubscription;
 
-  // Stored for auto-import after download completes.
-  DiveComputer? _autoImportComputer;
-  String? _autoImportDiverId;
+  // Stored for device info persistence after download completes.
+  DiveComputer? _computer;
 
   DownloadNotifier({
     required pigeon.DiveComputerService service,
-    required DiveImportService importService,
     required DiveComputerRepository repository,
   }) : _service = service,
-       _importService = importService,
        _repository = repository,
        super(const DownloadState());
 
@@ -139,22 +132,19 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
 
   /// Start downloading dives from the selected device.
   ///
-  /// When [computer] and [diverId] are provided, the notifier will
-  /// automatically import dives into the database when the download
-  /// completes. This eliminates widget lifecycle dependencies.
+  /// When [computer] is provided, the notifier persists device info
+  /// (serial number, firmware version) on the computer record when the
+  /// download completes.
   Future<void> startDownload(
     DiscoveredDevice device, {
     DiveComputer? computer,
-    String? diverId,
   }) async {
-    _autoImportComputer = computer;
-    _autoImportDiverId = diverId;
+    _computer = computer;
 
     try {
       state = state.copyWith(
         phase: DownloadPhase.connecting,
         clearError: true,
-        clearImportResult: true,
         downloadedDives: [],
         progress: DownloadProgress.connecting(),
       );
@@ -164,9 +154,8 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
 
       // Determine fingerprint for incremental download.
       String? fingerprint;
-      if (state.newDivesOnly &&
-          _autoImportComputer?.lastDiveFingerprint != null) {
-        fingerprint = _autoImportComputer!.lastDiveFingerprint;
+      if (state.newDivesOnly && _computer?.lastDiveFingerprint != null) {
+        fingerprint = _computer!.lastDiveFingerprint;
       }
 
       await _service.startDownload(device.toPigeon(), fingerprint: fingerprint);
@@ -208,8 +197,8 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         );
         _downloadSubscription?.cancel();
         _downloadSubscription = null;
-        // Persist device info on computer, then auto-import.
-        _persistDeviceInfoAndImport(serialNumber, firmwareVersion);
+        // Persist device info on the computer record.
+        _persistDeviceInfo(serialNumber, firmwareVersion);
       case pigeon.DownloadErrorEvent(:final error):
         state = state.copyWith(
           phase: DownloadPhase.error,
@@ -221,52 +210,26 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
     }
   }
 
-  /// Persist device info on the computer record, then auto-import dives.
-  ///
-  /// The computer record must be updated BEFORE import so that
-  /// `importProfile()` can read the serial/firmware and copy them
-  /// onto each dive record for self-contained data.
-  Future<void> _persistDeviceInfoAndImport(
+  /// Persist device info (serial number, firmware version) on the computer
+  /// record after a successful download.
+  Future<void> _persistDeviceInfo(
     String? serialNumber,
     String? firmwareVersion,
   ) async {
-    final computer = _autoImportComputer;
+    final computer = _computer;
     if (computer == null) return;
 
     try {
-      // Update computer with device info from DC_EVENT_DEVINFO.
       if (serialNumber != null || firmwareVersion != null) {
         final updated = computer.copyWith(
           serialNumber: serialNumber ?? computer.serialNumber,
           firmwareVersion: firmwareVersion ?? computer.firmwareVersion,
         );
         await _repository.updateComputer(updated);
-        _autoImportComputer = updated;
-      }
-
-      // Auto-import dives if any were downloaded.
-      if (state.downloadedDives.isNotEmpty) {
-        await importDives(
-          computer: _autoImportComputer!,
-          mode: ImportMode.newOnly,
-          defaultResolution: ConflictResolution.skip,
-          diverId: _autoImportDiverId,
-        );
-      } else {
-        // Zero new dives (incremental download found nothing new).
-        // Set an empty import result so the UI can show "up to date".
-        state = state.copyWith(
-          importResult: ImportResult.success(
-            imported: 0,
-            skipped: 0,
-            updated: 0,
-            importedDiveIds: [],
-            importedDives: [],
-          ),
-        );
+        _computer = updated;
       }
     } catch (e) {
-      debugPrint('[DownloadNotifier] Device info persist/import failed: $e');
+      debugPrint('[DownloadNotifier] Device info persist failed: $e');
     }
   }
 
@@ -284,53 +247,6 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
     _downloadSubscription = null;
     await _service.cancelDownload();
     state = state.copyWith(phase: DownloadPhase.cancelled);
-  }
-
-  /// Import downloaded dives into the app.
-  Future<ImportResult> importDives({
-    required DiveComputer computer,
-    ImportMode mode = ImportMode.newOnly,
-    ConflictResolution defaultResolution = ConflictResolution.skip,
-    String? diverId,
-  }) async {
-    try {
-      state = state.copyWith(phase: DownloadPhase.processing);
-
-      final result = await _importService.importDives(
-        dives: state.downloadedDives,
-        computer: computer,
-        mode: mode,
-        defaultResolution: defaultResolution,
-        diverId: diverId,
-      );
-
-      // Update the computer's dive count and last download
-      await _repository.incrementDiveCount(computer.id, by: result.imported);
-      await _repository.updateLastDownload(computer.id);
-
-      // Persist the newest fingerprint for incremental downloads.
-      final newestFingerprint = selectNewestFingerprint(result.importedDives);
-      if (newestFingerprint != null) {
-        await _repository.updateLastFingerprint(computer.id, newestFingerprint);
-        _autoImportComputer = _autoImportComputer?.copyWith(
-          lastDiveFingerprint: newestFingerprint,
-        );
-      }
-
-      state = state.copyWith(
-        phase: DownloadPhase.complete,
-        importResult: result,
-      );
-
-      return result;
-    } catch (e) {
-      state = state.copyWith(
-        phase: DownloadPhase.error,
-        errorMessage: 'Import failed: $e',
-      );
-
-      return ImportResult.failure('$e');
-    }
   }
 
   /// Reset the download state.
@@ -351,14 +267,9 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
 final downloadNotifierProvider =
     StateNotifierProvider<DownloadNotifier, DownloadState>((ref) {
       final service = ref.watch(diveComputerServiceProvider);
-      final importService = ref.watch(diveImportServiceProvider);
       final repository = ref.watch(diveComputerRepositoryProvider);
 
-      return DownloadNotifier(
-        service: service,
-        importService: importService,
-        repository: repository,
-      );
+      return DownloadNotifier(service: service, repository: repository);
     });
 
 /// Provider for checking if a download is in progress.

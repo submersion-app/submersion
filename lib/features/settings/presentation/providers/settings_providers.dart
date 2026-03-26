@@ -243,6 +243,9 @@ class AppSettings {
   final List<int> serviceReminderDays;
   final TimeOfDay reminderTime;
 
+  /// Show field-level data source attribution badges on dive details
+  final bool showDataSourceBadges;
+
   const AppSettings({
     this.depthUnit = DepthUnit.meters,
     this.temperatureUnit = TemperatureUnit.celsius,
@@ -320,6 +323,7 @@ class AppSettings {
     this.notificationsEnabled = true,
     this.serviceReminderDays = const [7, 14, 30],
     this.reminderTime = const TimeOfDay(hour: 9, minute: 0),
+    this.showDataSourceBadges = true,
   });
 
   /// Compute the current unit preset based on actual unit values
@@ -430,6 +434,7 @@ class AppSettings {
     bool? notificationsEnabled,
     List<int>? serviceReminderDays,
     TimeOfDay? reminderTime,
+    bool? showDataSourceBadges,
   }) {
     return AppSettings(
       depthUnit: depthUnit ?? this.depthUnit,
@@ -520,6 +525,7 @@ class AppSettings {
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       serviceReminderDays: serviceReminderDays ?? this.serviceReminderDays,
       reminderTime: reminderTime ?? this.reminderTime,
+      showDataSourceBadges: showDataSourceBadges ?? this.showDataSourceBadges,
     );
   }
 }
@@ -1025,6 +1031,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setReminderTime(TimeOfDay time) async {
     state = state.copyWith(reminderTime: time);
+    await _saveSettings();
+  }
+
+  Future<void> setShowDataSourceBadges(bool value) async {
+    state = state.copyWith(showDataSourceBadges: value);
     await _saveSettings();
   }
 

@@ -18,7 +18,7 @@ class ImportedDiveConverter {
   /// - [ImportedDive.startTime] mapped to both [Dive.dateTime] and [Dive.entryTime]
   /// - [ImportedDive.endTime] mapped to [Dive.exitTime]
   /// - Profile samples converted to [DiveProfilePoint] list
-  /// - [wearableSource] and [wearableId] set for dedup tracking
+  /// - [importSource] and [importId] set for dedup tracking
   Dive convert(ImportedDive importedDive, {String? diverId, int? diveNumber}) {
     final profile = _convertProfile(importedDive);
     final sourceName = _sourceToString(importedDive.source);
@@ -37,8 +37,8 @@ class ImportedDiveConverter {
       avgDepth: importedDive.avgDepth,
       waterTemp: importedDive.minTemperature,
       profile: profile,
-      wearableSource: sourceName,
-      wearableId: importedDive.sourceId,
+      importSource: sourceName,
+      importId: importedDive.sourceId,
     );
 
     // Calculate bottom time from profile if available

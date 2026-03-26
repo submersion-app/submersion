@@ -47,11 +47,9 @@ class DetectionResult extends Equatable {
   /// A human-readable description of the detection result.
   String get description {
     if (sourceApp != null) {
-      return 'Detected ${sourceApp!.displayName} ${format.displayName} file '
-          '(${(confidence * 100).toStringAsFixed(0)}% confidence)';
+      return 'Detected ${sourceApp!.displayName} ${format.displayName} file';
     }
-    return 'Detected ${format.displayName} file '
-        '(${(confidence * 100).toStringAsFixed(0)}% confidence)';
+    return 'Detected ${format.displayName} file';
   }
 
   @override

@@ -8,9 +8,9 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
-import 'package:submersion/features/settings/presentation/widgets/import_progress_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/csv_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/transfer_list_content.dart';
@@ -223,7 +223,7 @@ class _ImportSectionContent extends ConsumerWidget {
             clipBehavior: Clip.antiAlias,
             child: Semantics(
               button: true,
-              label: context.l10n.transfer_import_autoDetectSemanticLabel,
+              label: context.l10n.transfer_import_fileImportSemanticLabel,
               child: InkWell(
                 onTap: () => context.push('/transfer/import-wizard'),
                 child: Padding(
@@ -238,7 +238,7 @@ class _ImportSectionContent extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
-                          Icons.auto_fix_high,
+                          Icons.upload_file,
                           color: colorScheme.primary,
                         ),
                       ),
@@ -248,13 +248,13 @@ class _ImportSectionContent extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              context.l10n.transfer_import_autoDetectTitle,
+                              context.l10n.transfer_import_fileImportTitle,
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              context.l10n.transfer_import_autoDetectSubtitle,
+                              context.l10n.transfer_import_fileImportSubtitle,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
@@ -274,48 +274,6 @@ class _ImportSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Legacy import options
-          _buildSectionHeader(
-            context,
-            context.l10n.transfer_import_byFormatHeader,
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.table_chart),
-                  title: Text(context.l10n.transfer_import_csvTitle),
-                  subtitle: Text(context.l10n.transfer_import_csvSubtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _handleImport(
-                    context,
-                    ref,
-                    () => ref
-                        .read(exportNotifierProvider.notifier)
-                        .importDivesFromCsv(),
-                  ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.code),
-                  title: Text(context.l10n.transfer_import_uddfTitle),
-                  subtitle: Text(context.l10n.transfer_import_uddfSubtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/transfer/uddf-import'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.file_open),
-                  title: Text(context.l10n.transfer_import_fitTitle),
-                  subtitle: Text(context.l10n.transfer_import_fitSubtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/transfer/fit-import'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
           _buildInfoCard(
             context,
             context.l10n.transfer_import_aboutTitle,
@@ -324,65 +282,6 @@ class _ImportSectionContent extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  Future<void> _handleImport(
-    BuildContext context,
-    WidgetRef ref,
-    Future<void> Function() importFn,
-  ) async {
-    var dialogShown = false;
-
-    void showDialogIfNeeded(ExportState state) {
-      if (!dialogShown &&
-          state.importPhase != null &&
-          state.status == ExportStatus.exporting &&
-          context.mounted) {
-        dialogShown = true;
-        ImportProgressDialog.show(context);
-      }
-    }
-
-    try {
-      final subscription = ref.listenManual(
-        exportNotifierProvider,
-        (previous, next) => showDialogIfNeeded(next),
-        fireImmediately: true,
-      );
-
-      try {
-        await importFn();
-      } finally {
-        subscription.close();
-      }
-
-      if (context.mounted) {
-        final state = ref.read(exportNotifierProvider);
-        if (state.status != ExportStatus.idle) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                state.message ??
-                    context.l10n.transfer_import_operationCompleted,
-              ),
-              backgroundColor: state.status == ExportStatus.success
-                  ? Colors.green
-                  : Colors.red,
-            ),
-          );
-        }
-        ref.read(exportNotifierProvider.notifier).reset();
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.transfer_import_operationFailed('$e')),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
   }
 }
 
@@ -674,52 +573,94 @@ class _ComputersSectionContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final computersAsync = ref.watch(allDiveComputersProvider);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(
-            context,
-            context.l10n.transfer_computers_sectionHeader,
-          ),
-          const SizedBox(height: 8),
+          // Connect new computer
           Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.bluetooth_searching),
-                  title: Text(context.l10n.transfer_computers_connectTitle),
-                  subtitle: Text(
-                    context.l10n.transfer_computers_connectSubtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/dive-computers/discover'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.devices),
-                  title: Text(context.l10n.transfer_computers_manageTitle),
-                  subtitle: computersAsync.when(
-                    data: (computers) => Text(
-                      computers.isEmpty
-                          ? context.l10n.transfer_computers_noComputersSaved
-                          : context.l10n.transfer_computers_savedCount(
-                              computers.length,
-                            ),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () => context.push('/dive-computers/discover'),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.bluetooth_searching,
+                        color: colorScheme.primary,
+                      ),
                     ),
-                    loading: () =>
-                        Text(context.l10n.transfer_computers_loading),
-                    error: (e, st) =>
-                        Text(context.l10n.transfer_computers_errorLoading),
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/dive-computers'),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.l10n.transfer_computers_connectTitle,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            context.l10n.transfer_computers_connectSubtitle,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
+
+          // Known computers list
+          computersAsync.when(
+            data: (computers) {
+              if (computers.isEmpty) return const SizedBox.shrink();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  _buildSectionHeader(context, 'Known Computers'),
+                  const SizedBox(height: 8),
+                  ...computers.map(
+                    (computer) => _buildComputerCard(
+                      context,
+                      computer,
+                      theme,
+                      colorScheme,
+                    ),
+                  ),
+                ],
+              );
+            },
+            loading: () => const Padding(
+              padding: EdgeInsets.all(32),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (_, _) => const SizedBox.shrink(),
+          ),
+
           if (Platform.isIOS) ...[
             const SizedBox(height: 16),
             _buildSectionHeader(
@@ -739,15 +680,131 @@ class _ComputersSectionContent extends ConsumerWidget {
               ),
             ),
           ],
-          const SizedBox(height: 16),
-          _buildInfoCard(
-            context,
-            context.l10n.transfer_computers_aboutTitle,
-            context.l10n.transfer_computers_aboutContent,
-          ),
         ],
       ),
     );
+  }
+
+  Widget _buildComputerCard(
+    BuildContext context,
+    DiveComputer computer,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: () => context.push('/dive-computers/${computer.id}'),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: computer.isFavorite
+                      ? colorScheme.primaryContainer
+                      : colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  _getConnectionIcon(computer.connectionType),
+                  size: 20,
+                  color: computer.isFavorite
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            computer.displayName,
+                            style: theme.textTheme.titleSmall,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (computer.isFavorite)
+                          Icon(
+                            Icons.star,
+                            size: 16,
+                            color: colorScheme.primary,
+                          ),
+                      ],
+                    ),
+                    Text(
+                      computer.fullName,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.scuba_diving,
+                          size: 12,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${computer.diveCount} dives',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Icon(
+                          Icons.access_time,
+                          size: 12,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          computer.lastDownloadFormatted,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () =>
+                    context.push('/dive-computers/${computer.id}/download'),
+                icon: const Icon(Icons.download, size: 20),
+                tooltip: 'Download dives',
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  IconData _getConnectionIcon(String? connectionType) {
+    switch (connectionType?.toLowerCase()) {
+      case 'bluetooth':
+        return Icons.bluetooth;
+      case 'ble':
+        return Icons.bluetooth;
+      case 'usb':
+        return Icons.usb;
+      default:
+        return Icons.watch;
+    }
   }
 }
 

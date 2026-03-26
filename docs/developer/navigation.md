@@ -264,8 +264,6 @@ GoRoute(
 | Path | Name | Screen |
 |------|------|--------|
 | `/transfer` | transfer | TransferPage |
-| `/transfer/fit-import` | fitImport | FitImportPage |
-| `/transfer/uddf-import` | uddfImport | UddfImportPage |
 | `/transfer/import-wizard` | universalImport | UniversalImportPage |
 
 ### Settings

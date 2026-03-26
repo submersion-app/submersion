@@ -477,7 +477,9 @@
   "buddies_list_selection_count": "{count} selected",
   "@buddies_list_selection_count": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "buddies_list_selection_selectAllTooltip": "Select All",
@@ -487,7 +489,9 @@
   "buddies_list_merge_snackbar": "Merged {count} {count, plural, =1{buddy} other{buddies}}",
   "@buddies_list_merge_snackbar": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "buddies_list_merge_undo": "Undo",
@@ -496,7 +500,9 @@
   "buddies_list_bulkDelete_content": "Are you sure you want to delete {count} {count, plural, =1{buddy} other{buddies}}? This action cannot be undone.",
   "@buddies_list_bulkDelete_content": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "buddies_list_bulkDelete_cancel": "Cancel",
@@ -504,7 +510,9 @@
   "buddies_list_bulkDelete_snackbar": "Deleted {count} {count, plural, =1{buddy} other{buddies}}",
   "@buddies_list_bulkDelete_snackbar": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "buddies_edit_merge_title": "Merge Buddies",
@@ -512,23 +520,33 @@
   "buddies_edit_merge_fieldSourceLabel": "From {buddyName} ({current}/{total})",
   "@buddies_edit_merge_fieldSourceLabel": {
     "placeholders": {
-      "buddyName": {"type": "String"},
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "buddyName": {
+        "type": "String"
+      },
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "buddies_edit_merge_confirmTitle": "Merge Buddies",
   "buddies_edit_merge_confirmBody": "This will merge {count} buddies into one. Dive associations will be combined under the surviving buddy. The other buddies will be deleted.",
   "@buddies_edit_merge_confirmBody": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "buddies_edit_merge_loadingErrorTitle": "Merge Buddies",
   "buddies_edit_merge_loadingErrorBody": "Failed to load buddies: {error}",
   "@buddies_edit_merge_loadingErrorBody": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "buddies_edit_merge_notEnoughTitle": "Merge Buddies",
@@ -2161,7 +2179,7 @@
   "diveLog_tank_label_workingPressure": "Working P",
   "diveLog_tank_mndHelper": "Set to auto-calculate He%",
   "diveLog_tank_modInfo": "MOD: {depth} (ppO2 1.4)",
-  "diveLog_tank_modMndInfo": "MOD: {mod} (ppO\u2082 1.4) | MND: {mnd}",
+  "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ 1.4) | MND: {mnd}",
   "diveLog_tank_section_gasMix": "Gas Mix",
   "diveLog_tank_selectPreset": "Select Preset...",
   "diveLog_tank_title": "Tank {number}",
@@ -5249,8 +5267,12 @@
   "settings_appearance_metricsEnabledCount": "{count} of {total} enabled",
   "@settings_appearance_metricsEnabledCount": {
     "placeholders": {
-      "count": {"type": "int"},
-      "total": {"type": "int"}
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "settings_appearance_pressureThresholdMarkers": "Pressure threshold markers",
@@ -7030,19 +7052,10 @@
   "transfer_export_uddfTitle": "UDDF Export",
   "transfer_import_aboutContent": "Use \"Import Data\" for the best experience -- it auto-detects your file format and source app. The individual format options below are also available for direct access.",
   "transfer_import_aboutTitle": "About Import",
-  "transfer_import_autoDetectSemanticLabel": "Import data with auto-detection",
-  "transfer_import_autoDetectSubtitle": "Auto-detects CSV, UDDF, FIT, and more",
-  "transfer_import_autoDetectTitle": "Import Data",
-  "transfer_import_byFormatHeader": "Import by Format",
-  "transfer_import_csvSubtitle": "Import dives from CSV file",
-  "transfer_import_csvTitle": "Import from CSV",
-  "transfer_import_fitSubtitle": "Import dives from Garmin Descent export files",
-  "transfer_import_fitTitle": "Import from FIT File",
-  "transfer_import_operationCompleted": "Operation completed",
-  "transfer_import_operationFailed": "Operation failed: {error}",
+  "transfer_import_fileImportSemanticLabel": "Import dive data from file",
+  "transfer_import_fileImportSubtitle": "UDDF, Subsurface, CSV, FIT, and more",
+  "transfer_import_fileImportTitle": "File Import",
   "transfer_import_sectionHeader": "Import Data",
-  "transfer_import_uddfSubtitle": "Universal Dive Data Format",
-  "transfer_import_uddfTitle": "Import from UDDF",
   "transfer_pdfExport_cancelButton": "Cancel",
   "transfer_pdfExport_dialogTitle": "Export PDF Logbook",
   "transfer_pdfExport_exportButton": "Export PDF",
@@ -7090,13 +7103,6 @@
     }
   },
   "@transfer_export_failed": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@transfer_import_operationFailed": {
     "placeholders": {
       "error": {
         "type": "Object"
@@ -7162,40 +7168,52 @@
   "trips_diveScan_addButton": "Add {count} Dives",
   "@trips_diveScan_addButton": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "trips_diveScan_added": "Added {count} dives to trip",
   "@trips_diveScan_added": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "trips_diveScan_cancel": "Cancel",
   "trips_diveScan_currentTrip": "Currently on: {tripName}",
   "@trips_diveScan_currentTrip": {
     "placeholders": {
-      "tripName": {"type": "String"}
+      "tripName": {
+        "type": "String"
+      }
     }
   },
   "trips_diveScan_deselectAll": "Deselect all",
   "trips_diveScan_error": "Error scanning for dives: {error}",
   "@trips_diveScan_error": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "trips_diveScan_findButton": "Find matching dives",
   "trips_diveScan_groupOtherTrips": "On other trips ({count})",
   "@trips_diveScan_groupOtherTrips": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "trips_diveScan_groupUnassigned": "Unassigned ({count})",
   "@trips_diveScan_groupUnassigned": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "trips_diveScan_noMatches": "No matching dives found",
@@ -7203,7 +7221,9 @@
   "trips_diveScan_subtitle": "{count} dives found in date range",
   "@trips_diveScan_subtitle": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "trips_diveScan_title": "Add Dives to Trip",
@@ -7657,11 +7677,13 @@
   "@units_weight_pounds": {
     "description": "Symbol for pounds weight unit"
   },
+  "universalImport_action_consolidate": "Consolidate as additional computer",
   "universalImport_action_continue": "Continue",
   "universalImport_action_deselectAll": "Deselect All",
   "universalImport_action_done": "Done",
   "universalImport_action_import": "Import",
   "universalImport_action_selectAll": "Select All",
+  "universalImport_action_changeFile": "Change File",
   "universalImport_action_selectFile": "Select File",
   "universalImport_description_supportedFormats": "Select a dive log file to import. Supported formats include CSV, UDDF, Subsurface XML, and Garmin FIT.",
   "universalImport_error_unsupportedFormat": "This format is not yet supported. Please export as UDDF or CSV.",
@@ -7704,6 +7726,9 @@
   "universalImport_title": "Import Data",
   "universalImport_tooltip_clearTag": "Clear tag",
   "universalImport_tooltip_closeWizard": "Close import wizard",
+  "@universalImport_action_consolidate": {
+    "description": "Button label to consolidate an imported dive as a secondary computer reading on the matched existing dive"
+  },
   "@universalImport_action_continue": {
     "description": "Label for the continue button in the import wizard"
   },

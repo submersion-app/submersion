@@ -12829,49 +12829,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transfer_import_aboutTitle => 'A propos de l\'import';
 
   @override
-  String get transfer_import_autoDetectSemanticLabel =>
+  String get transfer_import_fileImportSemanticLabel =>
       'Importer des donnees avec detection automatique';
 
   @override
-  String get transfer_import_autoDetectSubtitle =>
+  String get transfer_import_fileImportSubtitle =>
       'Detection automatique CSV, UDDF, FIT, et plus';
 
   @override
-  String get transfer_import_autoDetectTitle => 'Importer des donnees';
-
-  @override
-  String get transfer_import_byFormatHeader => 'Importer par format';
-
-  @override
-  String get transfer_import_csvSubtitle =>
-      'Importer des plongees depuis un fichier CSV';
-
-  @override
-  String get transfer_import_csvTitle => 'Importer depuis CSV';
-
-  @override
-  String get transfer_import_fitSubtitle =>
-      'Importer des plongees depuis des fichiers d\'export Garmin Descent';
-
-  @override
-  String get transfer_import_fitTitle => 'Importer depuis un fichier FIT';
-
-  @override
-  String get transfer_import_operationCompleted => 'Operation terminee';
-
-  @override
-  String transfer_import_operationFailed(Object error) {
-    return 'Echec de l\'operation : $error';
-  }
+  String get transfer_import_fileImportTitle => 'Importer des donnees';
 
   @override
   String get transfer_import_sectionHeader => 'Importer des donnees';
-
-  @override
-  String get transfer_import_uddfSubtitle => 'Universal Dive Data Format';
-
-  @override
-  String get transfer_import_uddfTitle => 'Importer depuis UDDF';
 
   @override
   String get transfer_pdfExport_cancelButton => 'Annuler';
@@ -13781,6 +13750,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get units_weight_pounds => 'lbs';
 
   @override
+  String get universalImport_action_consolidate =>
+      'Consolider comme ordinateur supplementaire';
+
+  @override
   String get universalImport_action_continue => 'Continuer';
 
   @override
@@ -13794,6 +13767,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get universalImport_action_selectAll => 'Tout sélectionner';
+
+  @override
+  String get universalImport_action_changeFile => 'Changer de fichier';
 
   @override
   String get universalImport_action_selectFile => 'Sélectionner un fichier';

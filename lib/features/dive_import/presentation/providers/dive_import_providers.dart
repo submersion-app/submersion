@@ -232,7 +232,7 @@ class DiveImportNotifier extends StateNotifier<DiveImportState> {
   /// Check selected dives for duplicates against existing dive log.
   ///
   /// For each selected dive:
-  /// 1. Exact match on wearableId -> alreadyImported
+  /// 1. Exact match on importId -> alreadyImported
   /// 2. Fuzzy match score >= 0.7 -> probable
   /// 3. Fuzzy match score >= 0.5 -> possible
   /// 4. No match -> none
@@ -244,7 +244,7 @@ class DiveImportNotifier extends StateNotifier<DiveImportState> {
 
     try {
       // Get all previously imported wearable IDs for exact matching
-      final importedIds = await repository.getWearableIds();
+      final importedIds = await repository.getImportIds();
 
       // Get existing dives in a wide range around selected dives
       final selectedDives = state.availableDives
@@ -289,7 +289,7 @@ class DiveImportNotifier extends StateNotifier<DiveImportState> {
       final results = <String, ImportMatchStatus>{};
 
       for (final iDive in selectedDives) {
-        // 1. Exact wearableId match
+        // 1. Exact importId match
         if (importedIds.contains(iDive.sourceId)) {
           results[iDive.sourceId] = ImportMatchStatus.alreadyImported;
           continue;
@@ -304,7 +304,10 @@ class DiveImportNotifier extends StateNotifier<DiveImportState> {
             wearableDurationSeconds: iDive.durationSeconds,
             existingStartTime: existing.effectiveEntryTime,
             existingMaxDepth: existing.maxDepth ?? 0,
-            existingDurationSeconds: existing.duration?.inSeconds ?? 0,
+            existingDurationSeconds:
+                existing.runtime?.inSeconds ??
+                existing.duration?.inSeconds ??
+                0,
           );
           if (score > bestScore) bestScore = score;
         }

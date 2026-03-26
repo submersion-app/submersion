@@ -12422,48 +12422,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_import_aboutTitle => 'אודות ייבוא';
 
   @override
-  String get transfer_import_autoDetectSemanticLabel =>
+  String get transfer_import_fileImportSemanticLabel =>
       'ייבא נתונים עם זיהוי אוטומטי';
 
   @override
-  String get transfer_import_autoDetectSubtitle =>
+  String get transfer_import_fileImportSubtitle =>
       'מזהה אוטומטית CSV, UDDF, FIT ועוד';
 
   @override
-  String get transfer_import_autoDetectTitle => 'ייבוא נתונים';
-
-  @override
-  String get transfer_import_byFormatHeader => 'ייבוא לפי פורמט';
-
-  @override
-  String get transfer_import_csvSubtitle => 'ייבא צלילות מקובץ CSV';
-
-  @override
-  String get transfer_import_csvTitle => 'ייבוא מ-CSV';
-
-  @override
-  String get transfer_import_fitSubtitle =>
-      'ייבא צלילות מקבצי ייצוא של Garmin Descent';
-
-  @override
-  String get transfer_import_fitTitle => 'ייבוא מקובץ FIT';
-
-  @override
-  String get transfer_import_operationCompleted => 'הפעולה הושלמה';
-
-  @override
-  String transfer_import_operationFailed(Object error) {
-    return 'הפעולה נכשלה: $error';
-  }
+  String get transfer_import_fileImportTitle => 'ייבוא נתונים';
 
   @override
   String get transfer_import_sectionHeader => 'ייבוא נתונים';
-
-  @override
-  String get transfer_import_uddfSubtitle => 'פורמט נתוני צלילה אוניברסלי';
-
-  @override
-  String get transfer_import_uddfTitle => 'ייבוא מ-UDDF';
 
   @override
   String get transfer_pdfExport_cancelButton => 'ביטול';
@@ -13357,6 +13327,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get units_weight_pounds => 'lbs';
 
   @override
+  String get universalImport_action_consolidate => 'איחוד כמחשב צלילה נוסף';
+
+  @override
   String get universalImport_action_continue => 'המשך';
 
   @override
@@ -13370,6 +13343,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_action_selectAll => 'בחר הכל';
+
+  @override
+  String get universalImport_action_changeFile => 'שנה קובץ';
 
   @override
   String get universalImport_action_selectFile => 'בחר קובץ';

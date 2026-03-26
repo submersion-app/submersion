@@ -9,6 +9,7 @@ import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -793,6 +794,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
   late int? _minRating;
   late int? _minDurationMinutes;
   late int? _maxDurationMinutes;
+  late String? _computerSerial;
 
   final _minDepthController = TextEditingController();
   final _maxDepthController = TextEditingController();
@@ -823,6 +825,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     _minRating = filter.minRating;
     _minDurationMinutes = filter.minDurationMinutes;
     _maxDurationMinutes = filter.maxDurationMinutes;
+    _computerSerial = filter.computerSerial;
     _minDurationController.text = _minDurationMinutes?.toString() ?? '';
     _maxDurationController.text = _maxDurationMinutes?.toString() ?? '';
   }
@@ -1000,6 +1003,78 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                 ),
                 loading: () => const LinearProgressIndicator(),
                 error: (_, _) => const Text('Error loading sites'),
+              ),
+              const SizedBox(height: 24),
+
+              // Dive Computer Section
+              Text(
+                'Dive Computer',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Consumer(
+                builder: (context, ref, child) {
+                  final computersAsync = ref.watch(allDiveComputersProvider);
+                  return computersAsync.when(
+                    loading: () => const LinearProgressIndicator(),
+                    error: (_, _) => const Text('Error loading computers'),
+                    data: (computers) {
+                      // Only include computers with serial numbers,
+                      // deduplicated by serial.
+                      final seen = <String>{};
+                      final filterable = computers
+                          .where(
+                            (c) =>
+                                c.serialNumber != null &&
+                                seen.add(c.serialNumber!),
+                          )
+                          .toList();
+                      if (filterable.isEmpty) {
+                        return Text(
+                          'No dive computers registered',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        );
+                      }
+                      // Reset to null if the saved serial is not in the list.
+                      final validSerial =
+                          filterable.any(
+                            (c) => c.serialNumber == _computerSerial,
+                          )
+                          ? _computerSerial
+                          : null;
+                      if (validSerial != _computerSerial) {
+                        _computerSerial = validSerial;
+                      }
+                      return DropdownButtonFormField<String?>(
+                        initialValue: validSerial,
+                        decoration: const InputDecoration(
+                          hintText: 'All computers',
+                          prefixIcon: Icon(Icons.watch),
+                        ),
+                        items: [
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('All computers'),
+                          ),
+                          ...filterable.map(
+                            (c) => DropdownMenuItem(
+                              value: c.serialNumber,
+                              child: Text(c.displayName),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() => _computerSerial = value);
+                        },
+                      );
+                    },
+                  );
+                },
               ),
               const SizedBox(height: 24),
 
@@ -1324,6 +1399,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
       minRating: _minRating,
       minDurationMinutes: _minDurationMinutes,
       maxDurationMinutes: _maxDurationMinutes,
+      computerSerial: _computerSerial,
     );
     Navigator.of(context).pop();
   }

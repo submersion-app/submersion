@@ -105,9 +105,9 @@ class Dive extends Equatable {
   // Training course (v1.5)
   final String? courseId; // FK to training course
 
-  // Wearable integration (v2.0)
-  final String? wearableSource; // 'appleWatch', 'garmin', 'suunto'
-  final String? wearableId; // Source-specific ID (e.g., HealthKit UUID)
+  // Import source tracking
+  final String? importSource; // 'appleWatch', 'garmin', 'suunto'
+  final String? importId; // Source-specific ID (e.g., HealthKit UUID)
 
   // User-defined custom fields
   final List<DiveCustomField> customFields;
@@ -192,9 +192,9 @@ class Dive extends Equatable {
     this.isPlanned = false,
     // Training course (v1.5)
     this.courseId,
-    // Wearable integration (v2.0)
-    this.wearableSource,
-    this.wearableId,
+    // Import source tracking
+    this.importSource,
+    this.importId,
     // User-defined custom fields
     this.customFields = const [],
     // Weather fields
@@ -506,9 +506,9 @@ class Dive extends Equatable {
     bool? isPlanned,
     // Training course
     String? courseId,
-    // Wearable integration
-    String? wearableSource,
-    String? wearableId,
+    // Import source tracking
+    String? importSource,
+    String? importId,
     // User-defined custom fields
     List<DiveCustomField>? customFields,
     // Weather fields
@@ -591,9 +591,9 @@ class Dive extends Equatable {
       isPlanned: isPlanned ?? this.isPlanned,
       // Training course
       courseId: courseId ?? this.courseId,
-      // Wearable integration
-      wearableSource: wearableSource ?? this.wearableSource,
-      wearableId: wearableId ?? this.wearableId,
+      // Import source tracking
+      importSource: importSource ?? this.importSource,
+      importId: importId ?? this.importId,
       // User-defined custom fields
       customFields: customFields ?? this.customFields,
       // Weather fields
@@ -679,9 +679,9 @@ class Dive extends Equatable {
     isPlanned,
     // Training course
     courseId,
-    // Wearable integration
-    wearableSource,
-    wearableId,
+    // Import source tracking
+    importSource,
+    importId,
     // User-defined custom fields
     customFields,
     // Weather fields

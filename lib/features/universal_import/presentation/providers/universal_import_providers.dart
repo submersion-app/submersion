@@ -1,7 +1,11 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:file_picker/file_picker.dart';
+import 'package:submersion/core/database/database.dart'
+    show DiveDataSourcesCompanion, DiveProfilesCompanion;
+import 'package:uuid/uuid.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -9,6 +13,7 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
@@ -62,11 +67,13 @@ class UniversalImportState {
     this.fileBytes,
     this.fileName,
     this.detectionResult,
+    this.pendingSourceOverride,
     this.options,
     this.fieldMapping,
     this.payload,
     this.duplicateResult,
     this.selections = const {},
+    this.diveResolutions = const {},
     this.importCounts = const {},
     this.importPhase = '',
     this.importCurrent = 0,
@@ -85,6 +92,12 @@ class UniversalImportState {
   /// Format detection result (set after file selection).
   final DetectionResult? detectionResult;
 
+  /// Source app override chosen by the user but not yet confirmed.
+  ///
+  /// Stored here so the wizard's [onBeforeAdvance] callback can pass it to
+  /// [confirmSource] when the user taps "Next".
+  final SourceApp? pendingSourceOverride;
+
   /// Confirmed import options (set after source confirmation).
   final ImportOptions? options;
 
@@ -99,6 +112,12 @@ class UniversalImportState {
 
   /// Selected indices per entity type.
   final Map<ImportEntityType, Set<int>> selections;
+
+  /// Per-dive duplicate resolution choices (keyed by dive index).
+  ///
+  /// Only present for dives that were flagged as potential duplicates.
+  /// Absent entries default to [DiveDuplicateResolution.skip].
+  final Map<int, DiveDuplicateResolution> diveResolutions;
 
   /// Import result counts per entity type.
   final Map<ImportEntityType, int> importCounts;
@@ -123,10 +142,13 @@ class UniversalImportState {
     ImportPayload? payload,
     ImportDuplicateResult? duplicateResult,
     Map<ImportEntityType, Set<int>>? selections,
+    Map<int, DiveDuplicateResolution>? diveResolutions,
     Map<ImportEntityType, int>? importCounts,
     String? importPhase,
     int? importCurrent,
     int? importTotal,
+    SourceApp? pendingSourceOverride,
+    bool clearPendingSourceOverride = false,
   }) {
     return UniversalImportState(
       currentStep: currentStep ?? this.currentStep,
@@ -136,6 +158,9 @@ class UniversalImportState {
       fileBytes: fileBytes ?? this.fileBytes,
       fileName: fileName ?? this.fileName,
       detectionResult: detectionResult ?? this.detectionResult,
+      pendingSourceOverride: clearPendingSourceOverride
+          ? null
+          : (pendingSourceOverride ?? this.pendingSourceOverride),
       options: options ?? this.options,
       fieldMapping: clearFieldMapping
           ? null
@@ -143,6 +168,7 @@ class UniversalImportState {
       payload: payload ?? this.payload,
       duplicateResult: duplicateResult ?? this.duplicateResult,
       selections: selections ?? this.selections,
+      diveResolutions: diveResolutions ?? this.diveResolutions,
       importCounts: importCounts ?? this.importCounts,
       importPhase: importPhase ?? this.importPhase,
       importCurrent: importCurrent ?? this.importCurrent,
@@ -197,7 +223,14 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
   /// Pick a file and run format detection.
   Future<void> pickFile() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    // Reset to fileSelection so the canAdvance provider transitions
+    // false -> true when detection completes, enabling auto-advance
+    // even when re-selecting a file.
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+      currentStep: ImportWizardStep.fileSelection,
+    );
 
     try {
       final result = await FilePicker.platform.pickFiles(
@@ -243,13 +276,32 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
   // -- Step 1: Source Confirmation --
 
+  /// Store a pending source-app override chosen by the user.
+  ///
+  /// This is persisted in state so the wizard's [onBeforeAdvance] callback
+  /// can pass it through to [confirmSource] when the user taps "Next".
+  void setPendingSourceOverride(SourceApp? app) {
+    state = app == null
+        ? state.copyWith(clearPendingSourceOverride: true)
+        : state.copyWith(pendingSourceOverride: app);
+  }
+
   /// Confirm the detected source or override with a user selection.
+  ///
+  /// When [overrideApp] is null the pending override from state is used.
   void confirmSource({SourceApp? overrideApp, ImportFormat? overrideFormat}) {
     final detection = state.detectionResult;
     if (detection == null) return;
 
+    // Reset to sourceConfirmation so the canAdvance provider transitions
+    // false -> true, enabling auto-advance even when re-confirming.
+    state = state.copyWith(currentStep: ImportWizardStep.sourceConfirmation);
+
+    final effectiveOverride = overrideApp ?? state.pendingSourceOverride;
+
     final format = overrideFormat ?? detection.format;
-    final sourceApp = overrideApp ?? detection.sourceApp ?? SourceApp.generic;
+    final sourceApp =
+        effectiveOverride ?? detection.sourceApp ?? SourceApp.generic;
 
     final options = ImportOptions(
       sourceApp: sourceApp,
@@ -259,6 +311,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
     state = state.copyWith(
       options: options,
+      clearPendingSourceOverride: true,
       currentStep: format == ImportFormat.csv
           ? ImportWizardStep.fieldMapping
           : ImportWizardStep.review,
@@ -278,7 +331,12 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   }
 
   /// Confirm field mapping and proceed to parsing.
+  ///
+  /// This is a no-op if the payload has already been produced (e.g. for
+  /// non-CSV formats where parsing happens immediately after source
+  /// confirmation).
   void confirmFieldMapping() {
+    if (state.payload != null) return;
     state = state.copyWith(currentStep: ImportWizardStep.review);
     _parseAndCheckDuplicates();
   }
@@ -411,6 +469,35 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     );
   }
 
+  /// Set the duplicate resolution for a specific dive index.
+  ///
+  /// When [resolution] is [DiveDuplicateResolution.consolidate] or
+  /// [DiveDuplicateResolution.importAsNew], the dive index is added to the
+  /// selection so it participates in the import step. When [resolution] is
+  /// [DiveDuplicateResolution.skip], it is removed from the selection.
+  void setDiveResolution(int index, DiveDuplicateResolution resolution) {
+    final updatedResolutions = Map<int, DiveDuplicateResolution>.from(
+      state.diveResolutions,
+    )..[index] = resolution;
+
+    final currentSelection = Set<int>.from(
+      state.selectionFor(ImportEntityType.dives),
+    );
+    if (resolution == DiveDuplicateResolution.skip) {
+      currentSelection.remove(index);
+    } else {
+      currentSelection.add(index);
+    }
+
+    state = state.copyWith(
+      diveResolutions: updatedResolutions,
+      selections: {
+        ...state.selections,
+        ImportEntityType.dives: currentSelection,
+      },
+    );
+  }
+
   /// Update the batch tag.
   void updateBatchTag(String? tag) {
     if (state.options == null) return;
@@ -446,9 +533,24 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         return;
       }
 
+      // Partition dive selections: consolidate vs normal import.
+      final consolidateIndices = <int>{};
+      final normalDiveSelection = Set<int>.from(
+        state.selectionFor(ImportEntityType.dives),
+      );
+      for (final entry in state.diveResolutions.entries) {
+        if (entry.value == DiveDuplicateResolution.consolidate) {
+          consolidateIndices.add(entry.key);
+          normalDiveSelection.remove(entry.key);
+        }
+      }
+
       // Convert to UDDF format for reuse of UddfEntityImporter
       var uddfData = _toUddfResult(payload);
-      var uddfSelections = _toUddfSelections(state.selections);
+      var uddfSelections = _toUddfSelections({
+        ...state.selections,
+        ImportEntityType.dives: normalDiveSelection,
+      });
 
       // Inject batch tag into the data so it flows through the import pipeline
       final batchTag = state.options?.batchTag;
@@ -499,10 +601,26 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         },
       );
 
+      // Run consolidations for dives marked with the consolidate resolution.
+      var consolidatedCount = 0;
+      if (consolidateIndices.isNotEmpty) {
+        final diveRepo = _ref.read(diveRepositoryProvider);
+        final diveItems = payload.entitiesOf(ImportEntityType.dives);
+        final dupResult = state.duplicateResult;
+        consolidatedCount = await _performConsolidations(
+          indices: consolidateIndices,
+          diveItems: diveItems,
+          diveResolutions: state.diveResolutions,
+          duplicateResult: dupResult,
+          diveRepository: diveRepo,
+        );
+      }
+
       _invalidateProviders();
 
       final counts = <ImportEntityType, int>{
-        if (result.dives > 0) ImportEntityType.dives: result.dives,
+        if ((result.dives + consolidatedCount) > 0)
+          ImportEntityType.dives: result.dives + consolidatedCount,
         if (result.sites > 0) ImportEntityType.sites: result.sites,
         if (result.trips > 0) ImportEntityType.trips: result.trips,
         if (result.equipment > 0) ImportEntityType.equipment: result.equipment,
@@ -627,6 +745,80 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       dives: sel[ImportEntityType.dives] ?? const {},
       courses: sel[ImportEntityType.courses] ?? const {},
     );
+  }
+
+  // -- Consolidation --
+
+  /// Attaches each consolidate-flagged imported dive as a secondary computer
+  /// reading on the matched existing dive.
+  ///
+  /// Returns the number of successful consolidations.
+  Future<int> _performConsolidations({
+    required Set<int> indices,
+    required List<Map<String, dynamic>> diveItems,
+    required Map<int, DiveDuplicateResolution> diveResolutions,
+    required ImportDuplicateResult? duplicateResult,
+    required DiveRepository diveRepository,
+  }) async {
+    const uuid = Uuid();
+    final now = DateTime.now();
+    var count = 0;
+
+    for (final index in indices) {
+      final matchResult = duplicateResult?.diveMatchFor(index);
+      if (matchResult == null) continue;
+
+      final diveData = diveItems[index];
+      final dateTime = diveData['dateTime'] as DateTime? ?? now;
+      final runtime = diveData['runtime'] as Duration?;
+      final duration = diveData['duration'] as Duration?;
+      final effectiveDuration = runtime ?? duration;
+      final exitTime = runtime != null ? dateTime.add(runtime) : null;
+
+      final secondaryReading = DiveDataSourcesCompanion.insert(
+        id: uuid.v4(),
+        diveId: matchResult.diveId,
+        isPrimary: const Value(false),
+        computerModel: Value(diveData['diveComputerModel'] as String?),
+        computerSerial: Value(diveData['diveComputerSerial'] as String?),
+        sourceFormat: Value(diveData['sourceFormat'] as String?),
+        maxDepth: Value(diveData['maxDepth'] as double?),
+        avgDepth: Value(diveData['avgDepth'] as double?),
+        duration: Value(effectiveDuration?.inSeconds),
+        waterTemp: Value(diveData['waterTemp'] as double?),
+        entryTime: Value(dateTime),
+        exitTime: Value(exitTime),
+        importedAt: now,
+        createdAt: now,
+      );
+
+      final profileData =
+          diveData['profile'] as List<Map<String, dynamic>>? ?? [];
+      final secondaryProfile = profileData
+          .map(
+            (p) => DiveProfilesCompanion.insert(
+              id: uuid.v4(),
+              diveId: matchResult.diveId,
+              isPrimary: const Value(false),
+              timestamp: p['timestamp'] as int? ?? 0,
+              depth: p['depth'] as double? ?? 0.0,
+              temperature: Value(p['temperature'] as double?),
+              pressure: Value(p['pressure'] as double?),
+              setpoint: Value(p['setpoint'] as double?),
+              ppO2: Value(p['ppO2'] as double?),
+            ),
+          )
+          .toList();
+
+      await diveRepository.consolidateComputer(
+        targetDiveId: matchResult.diveId,
+        secondaryReading: secondaryReading,
+        secondaryProfile: secondaryProfile,
+      );
+      count++;
+    }
+
+    return count;
   }
 
   // -- Provider Invalidation --

@@ -22,6 +22,12 @@ class UddfImportResult {
   final List<Map<String, dynamic>> equipmentSets;
   final List<Map<String, dynamic>> courses;
 
+  /// The original filename of the imported file (e.g. "my_dives.uddf").
+  ///
+  /// Set by the caller after parsing so that downstream consumers (such as
+  /// [UddfEntityImporter]) can record it on [DiveDataSource] records.
+  final String? sourceFileName;
+
   const UddfImportResult({
     this.dives = const [],
     this.sites = const [],
@@ -40,6 +46,7 @@ class UddfImportResult {
     this.diveComputers = const [],
     this.equipmentSets = const [],
     this.courses = const [],
+    this.sourceFileName,
   });
 
   /// Check if any data was imported
@@ -110,5 +117,29 @@ class UddfImportResult {
     if (courses.isNotEmpty) parts.add('${courses.length} courses');
     if (settings.isNotEmpty) parts.add('${settings.length} settings');
     return parts.isEmpty ? 'No data' : parts.join(', ');
+  }
+
+  /// Returns a copy with [sourceFileName] replaced.
+  UddfImportResult copyWithSourceFileName(String? sourceFileName) {
+    return UddfImportResult(
+      dives: dives,
+      sites: sites,
+      equipment: equipment,
+      buddies: buddies,
+      certifications: certifications,
+      diveCenters: diveCenters,
+      species: species,
+      sightings: sightings,
+      serviceRecords: serviceRecords,
+      settings: settings,
+      owner: owner,
+      trips: trips,
+      tags: tags,
+      customDiveTypes: customDiveTypes,
+      diveComputers: diveComputers,
+      equipmentSets: equipmentSets,
+      courses: courses,
+      sourceFileName: sourceFileName,
+    );
   }
 }

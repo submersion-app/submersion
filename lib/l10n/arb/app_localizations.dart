@@ -21663,83 +21663,29 @@ abstract class AppLocalizations {
   /// **'About Import'**
   String get transfer_import_aboutTitle;
 
-  /// No description provided for @transfer_import_autoDetectSemanticLabel.
+  /// No description provided for @transfer_import_fileImportSemanticLabel.
   ///
   /// In en, this message translates to:
-  /// **'Import data with auto-detection'**
-  String get transfer_import_autoDetectSemanticLabel;
+  /// **'Import dive data from file'**
+  String get transfer_import_fileImportSemanticLabel;
 
-  /// No description provided for @transfer_import_autoDetectSubtitle.
+  /// No description provided for @transfer_import_fileImportSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Auto-detects CSV, UDDF, FIT, and more'**
-  String get transfer_import_autoDetectSubtitle;
+  /// **'UDDF, Subsurface, CSV, FIT, and more'**
+  String get transfer_import_fileImportSubtitle;
 
-  /// No description provided for @transfer_import_autoDetectTitle.
+  /// No description provided for @transfer_import_fileImportTitle.
   ///
   /// In en, this message translates to:
-  /// **'Import Data'**
-  String get transfer_import_autoDetectTitle;
-
-  /// No description provided for @transfer_import_byFormatHeader.
-  ///
-  /// In en, this message translates to:
-  /// **'Import by Format'**
-  String get transfer_import_byFormatHeader;
-
-  /// No description provided for @transfer_import_csvSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Import dives from CSV file'**
-  String get transfer_import_csvSubtitle;
-
-  /// No description provided for @transfer_import_csvTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Import from CSV'**
-  String get transfer_import_csvTitle;
-
-  /// No description provided for @transfer_import_fitSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Import dives from Garmin Descent export files'**
-  String get transfer_import_fitSubtitle;
-
-  /// No description provided for @transfer_import_fitTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Import from FIT File'**
-  String get transfer_import_fitTitle;
-
-  /// No description provided for @transfer_import_operationCompleted.
-  ///
-  /// In en, this message translates to:
-  /// **'Operation completed'**
-  String get transfer_import_operationCompleted;
-
-  /// No description provided for @transfer_import_operationFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Operation failed: {error}'**
-  String transfer_import_operationFailed(Object error);
+  /// **'File Import'**
+  String get transfer_import_fileImportTitle;
 
   /// No description provided for @transfer_import_sectionHeader.
   ///
   /// In en, this message translates to:
   /// **'Import Data'**
   String get transfer_import_sectionHeader;
-
-  /// No description provided for @transfer_import_uddfSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Universal Dive Data Format'**
-  String get transfer_import_uddfSubtitle;
-
-  /// No description provided for @transfer_import_uddfTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Import from UDDF'**
-  String get transfer_import_uddfTitle;
 
   /// No description provided for @transfer_pdfExport_cancelButton.
   ///
@@ -23331,6 +23277,12 @@ abstract class AppLocalizations {
   /// **'lbs'**
   String get units_weight_pounds;
 
+  /// Button label to consolidate an imported dive as a secondary computer reading on the matched existing dive
+  ///
+  /// In en, this message translates to:
+  /// **'Consolidate as additional computer'**
+  String get universalImport_action_consolidate;
+
   /// Label for the continue button in the import wizard
   ///
   /// In en, this message translates to:
@@ -23360,6 +23312,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select All'**
   String get universalImport_action_selectAll;
+
+  /// No description provided for @universalImport_action_changeFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Change File'**
+  String get universalImport_action_changeFile;
 
   /// Button label for the file picker button
   ///

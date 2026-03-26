@@ -272,6 +272,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultShowOtu(bool value) async =>
       state = state.copyWith(defaultShowOtu: value);
+  @override
+  Future<void> setShowDataSourceBadges(bool value) async =>
+      state = state.copyWith(showDataSourceBadges: value);
 }
 
 /// Mock CurrentDiverIdNotifier that doesn't access the database

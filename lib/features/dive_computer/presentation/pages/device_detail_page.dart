@@ -7,6 +7,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 
 /// Page displaying details about a specific dive computer.
@@ -102,7 +103,7 @@ class DeviceDetailPage extends ConsumerWidget {
             const SizedBox(height: 16),
             _buildStatsCard(context, ref, computer, colorScheme),
             const SizedBox(height: 16),
-            _buildActionsCard(context, computer, colorScheme),
+            _buildActionsCard(context, ref, computer, colorScheme),
             if (computer.notes.isNotEmpty) ...[
               const SizedBox(height: 16),
               _buildNotesCard(context, computer, colorScheme),
@@ -143,21 +144,9 @@ class DeviceDetailPage extends ConsumerWidget {
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        computer.fullName,
-                        style: theme.textTheme.titleLarge,
-                      ),
-                      if (computer.serialNumber != null)
-                        Text(
-                          'S/N: ${computer.serialNumber}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                    ],
+                  child: Text(
+                    computer.fullName,
+                    style: theme.textTheme.titleLarge,
                   ),
                 ),
               ],
@@ -165,23 +154,20 @@ class DeviceDetailPage extends ConsumerWidget {
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 8),
+            _buildInfoRow(context, 'Name', computer.name),
             _buildInfoRow(
               context,
               'Manufacturer',
               computer.manufacturer ?? 'Unknown',
             ),
             _buildInfoRow(context, 'Model', computer.model ?? 'Unknown'),
+            if (computer.serialNumber != null)
+              _buildInfoRow(context, 'Serial Number', computer.serialNumber!),
             _buildInfoRow(
               context,
               'Connection',
               _getConnectionName(computer.connectionType),
             ),
-            if (computer.bluetoothAddress != null)
-              _buildInfoRow(
-                context,
-                'Bluetooth Address',
-                computer.bluetoothAddress!,
-              ),
           ],
         ),
       ),
@@ -474,6 +460,7 @@ class DeviceDetailPage extends ConsumerWidget {
 
   Widget _buildActionsCard(
     BuildContext context,
+    WidgetRef ref,
     DiveComputer computer,
     ColorScheme colorScheme,
   ) {
@@ -491,12 +478,7 @@ class DeviceDetailPage extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
-              onPressed: () {
-                // TODO: Show dives from this computer
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('View dives coming soon')),
-                );
-              },
+              onPressed: () => _viewDivesFromComputer(context, ref, computer),
               icon: const Icon(Icons.list),
               label: const Text('View Dives from This Computer'),
             ),
@@ -530,6 +512,25 @@ class DeviceDetailPage extends ConsumerWidget {
 
   void _setFavorite(WidgetRef ref, DiveComputer computer) {
     ref.read(diveComputerNotifierProvider.notifier).setFavorite(computer.id);
+  }
+
+  void _viewDivesFromComputer(
+    BuildContext context,
+    WidgetRef ref,
+    DiveComputer computer,
+  ) {
+    if (computer.serialNumber != null && computer.serialNumber!.isNotEmpty) {
+      ref.read(diveFilterProvider.notifier).state = DiveFilterState(
+        computerSerial: computer.serialNumber,
+      );
+      context.go('/dives');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cannot filter: no serial number for this computer.'),
+        ),
+      );
+    }
   }
 
   void _handleMenuAction(
@@ -609,7 +610,7 @@ class DeviceDetailPage extends ConsumerWidget {
   ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Computer?'),
         content: Text(
           'Are you sure you want to remove "${computer.displayName}"? '
@@ -617,18 +618,18 @@ class DeviceDetailPage extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancel'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
             ),
             onPressed: () {
               ref
                   .read(diveComputerNotifierProvider.notifier)
                   .delete(computer.id);
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
               context.pop(); // Go back to list
             },
             child: const Text('Delete'),
@@ -640,12 +641,16 @@ class DeviceDetailPage extends ConsumerWidget {
 
   IconData _getConnectionIcon(String? connectionType) {
     switch (connectionType?.toLowerCase()) {
+      case 'ble':
       case 'bluetooth':
+      case 'bluetoothclassic':
         return Icons.bluetooth;
       case 'usb':
         return Icons.usb;
       case 'wifi':
         return Icons.wifi;
+      case 'infrared':
+        return Icons.sensors;
       default:
         return Icons.watch;
     }
@@ -653,7 +658,10 @@ class DeviceDetailPage extends ConsumerWidget {
 
   String _getConnectionName(String? connectionType) {
     switch (connectionType?.toLowerCase()) {
+      case 'ble':
+        return 'Bluetooth LE';
       case 'bluetooth':
+      case 'bluetoothclassic':
         return 'Bluetooth';
       case 'usb':
         return 'USB';

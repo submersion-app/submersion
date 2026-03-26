@@ -16,18 +16,16 @@ class SourceConfirmationStep extends ConsumerStatefulWidget {
 
 class _SourceConfirmationStepState
     extends ConsumerState<SourceConfirmationStep> {
-  /// Tracks the user's override selection. Null means no override chosen.
-  SourceApp? _selectedOverride;
-
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(universalImportNotifierProvider);
     final theme = Theme.of(context);
     final detection = state.detectionResult;
+    final selectedOverride = state.pendingSourceOverride;
 
     if (detection == null) return const SizedBox.shrink();
 
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -43,7 +41,7 @@ class _SourceConfirmationStepState
             const SizedBox(height: 16),
           ],
 
-          // Detection result card
+          // Detection result card — tappable to clear override
           Semantics(
             label: detection.isHighConfidence
                 ? context.l10n.universalImport_semantics_sourceDetected(
@@ -53,82 +51,86 @@ class _SourceConfirmationStepState
                     detection.description,
                   ),
             child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: selectedOverride != null
+                    ? () => ref
+                          .read(universalImportNotifierProvider.notifier)
+                          .setPendingSourceOverride(null)
+                    : null,
+                child: Opacity(
+                  opacity: selectedOverride != null ? 0.5 : 1.0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ExcludeSemantics(
-                          child: Icon(
-                            detection.isHighConfidence
-                                ? Icons.check_circle
-                                : Icons.help_outline,
-                            color: detection.isHighConfidence
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.tertiary,
-                          ),
+                        Row(
+                          children: [
+                            ExcludeSemantics(
+                              child: Icon(
+                                selectedOverride != null
+                                    ? Icons.radio_button_unchecked
+                                    : detection.isHighConfidence
+                                    ? Icons.check_circle
+                                    : Icons.help_outline,
+                                color: selectedOverride != null
+                                    ? theme.colorScheme.onSurfaceVariant
+                                    : detection.isHighConfidence
+                                    ? theme.colorScheme.primary
+                                    : theme.colorScheme.tertiary,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                detection.description,
+                                style: theme.textTheme.bodyLarge,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            detection.description,
-                            style: theme.textTheme.bodyLarge,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (!detection.isFormatSupported) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        detection.sourceApp?.exportInstructions ??
-                            context
-                                .l10n
-                                .universalImport_error_unsupportedFormat,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.error,
-                        ),
-                      ),
-                    ],
-                    if (detection.warnings.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      for (final warning in detection.warnings)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text(
-                            warning,
+                        if (!detection.isFormatSupported) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            detection.sourceApp?.exportInstructions ??
+                                context
+                                    .l10n
+                                    .universalImport_error_unsupportedFormat,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                              color: theme.colorScheme.error,
                             ),
                           ),
-                        ),
-                    ],
-                  ],
+                        ],
+                        if (detection.warnings.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          for (final warning in detection.warnings)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: Text(
+                                warning,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
 
-          const SizedBox(height: 24),
-
-          // Confirm button
-          if (detection.isFormatSupported)
-            FilledButton(
-              onPressed: () => ref
-                  .read(universalImportNotifierProvider.notifier)
-                  .confirmSource(overrideApp: _selectedOverride),
-              child: Text(context.l10n.universalImport_action_continue),
-            ),
-
           const SizedBox(height: 12),
 
-          // Override section (collapsible)
-          Expanded(
-            child: _OverrideSection(
-              selectedOverride: _selectedOverride,
-              onChanged: (app) => setState(() => _selectedOverride = app),
-            ),
+          // Override section (collapsed by default)
+          _OverrideSection(
+            selectedOverride: selectedOverride,
+            onChanged: (app) => ref
+                .read(universalImportNotifierProvider.notifier)
+                .setPendingSourceOverride(app),
           ),
         ],
       ),
@@ -151,35 +153,35 @@ class _OverrideSection extends StatelessWidget {
     final theme = Theme.of(context);
     final apps = SourceApp.values.where((a) => a != SourceApp.generic).toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: ExpansionTile(
+        title: Text(
           context.l10n.universalImport_label_selectCorrectSource,
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: RadioGroup<SourceApp?>(
+        dense: true,
+        visualDensity: VisualDensity.compact,
+        children: [
+          RadioGroup<SourceApp?>(
             groupValue: selectedOverride,
             onChanged: onChanged,
-            child: ListView.builder(
-              itemCount: apps.length,
-              itemBuilder: (context, index) {
-                final app = apps[index];
-                return ListTile(
-                  dense: true,
-                  title: Text(app.displayName),
-                  leading: Radio<SourceApp?>(value: app),
-                  onTap: () => onChanged(app),
-                );
-              },
+            child: Column(
+              children: [
+                for (final app in apps)
+                  ListTile(
+                    dense: true,
+                    title: Text(app.displayName),
+                    leading: Radio<SourceApp?>(value: app),
+                    onTap: () => onChanged(app),
+                  ),
+              ],
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -215,10 +215,10 @@ class Dives extends Table {
   TextColumn get courseId =>
       text().nullable().references(Courses, #id, onDelete: KeyAction.setNull)();
 
-  // Wearable integration (v2.0) - tracks import source for Apple Watch, Garmin, etc.
-  TextColumn get wearableSource =>
+  // Import source tracking - tracks import source for Apple Watch, Garmin, etc.
+  TextColumn get importSource =>
       text().nullable()(); // 'appleWatch', 'garmin', 'suunto'
-  TextColumn get wearableId =>
+  TextColumn get importId =>
       text().nullable()(); // Source-specific ID (e.g., HealthKit UUID)
 
   // Weather conditions
@@ -714,6 +714,9 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('[7, 14, 30]'))(); // JSON array
   TextColumn get reminderTime =>
       text().withDefault(const Constant('09:00'))(); // HH:mm format
+  // Data source badge visibility (v55)
+  BoolColumn get showDataSourceBadges =>
+      boolean().withDefault(const Constant(true))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -910,6 +913,42 @@ class DiveComputers extends Table {
   TextColumn get notes => text().withDefault(const Constant(''))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Per-source metadata snapshots for multi-source dives.
+/// Only populated when a dive has data from multiple sources.
+@DataClassName('DiveDataSourcesData')
+class DiveDataSources extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get computerId =>
+      text().nullable().references(DiveComputers, #id)();
+  BoolColumn get isPrimary => boolean().withDefault(const Constant(false))();
+  TextColumn get computerModel => text().nullable()();
+  TextColumn get computerSerial => text().nullable()();
+  TextColumn get sourceFormat => text().nullable()();
+  TextColumn get sourceFileName => text().nullable()();
+  TextColumn get sourceFileFormat => text().nullable()();
+  RealColumn get maxDepth => real().nullable()();
+  RealColumn get avgDepth => real().nullable()();
+  IntColumn get duration => integer().nullable()();
+  RealColumn get waterTemp => real().nullable()();
+  DateTimeColumn get entryTime => dateTime().nullable()();
+  DateTimeColumn get exitTime => dateTime().nullable()();
+  RealColumn get maxAscentRate => real().nullable()();
+  RealColumn get maxDescentRate => real().nullable()();
+  IntColumn get surfaceInterval => integer().nullable()();
+  RealColumn get cns => real().nullable()();
+  RealColumn get otu => real().nullable()();
+  TextColumn get decoAlgorithm => text().nullable()();
+  IntColumn get gradientFactorLow => integer().nullable()();
+  IntColumn get gradientFactorHigh => integer().nullable()();
+  DateTimeColumn get importedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1170,6 +1209,7 @@ class ScheduledNotifications extends Table {
     DiveTypes,
     TankPresets,
     DiveComputers,
+    DiveDataSources,
     DiveProfileEvents,
     GasSwitches,
     TankPressureProfiles,
@@ -1198,7 +1238,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 52;
+  static const int currentSchemaVersion = 55;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -2365,6 +2405,69 @@ class AppDatabase extends _$AppDatabase {
           );
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN dive_center_list_view_mode TEXT NOT NULL DEFAULT 'detailed'",
+          );
+        }
+        if (from < 53) {
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS dive_computer_data (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+              computer_id TEXT REFERENCES dive_computers(id),
+              is_primary INTEGER NOT NULL DEFAULT 0,
+              computer_model TEXT,
+              computer_serial TEXT,
+              source_format TEXT,
+              max_depth REAL,
+              avg_depth REAL,
+              duration INTEGER,
+              water_temp REAL,
+              entry_time INTEGER,
+              exit_time INTEGER,
+              max_ascent_rate REAL,
+              max_descent_rate REAL,
+              surface_interval INTEGER,
+              cns REAL,
+              otu REAL,
+              deco_algorithm TEXT,
+              gradient_factor_low INTEGER,
+              gradient_factor_high INTEGER,
+              imported_at INTEGER NOT NULL,
+              created_at INTEGER NOT NULL
+            )
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_computer_data_dive_id
+            ON dive_computer_data(dive_id)
+          ''');
+        }
+        if (from < 54) {
+          await customStatement(
+            'ALTER TABLE dive_computer_data RENAME TO dive_data_sources',
+          );
+          await customStatement(
+            'ALTER TABLE dive_data_sources ADD COLUMN source_file_name TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dive_data_sources ADD COLUMN source_file_format TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dives RENAME COLUMN wearable_source TO import_source',
+          );
+          await customStatement(
+            'ALTER TABLE dives RENAME COLUMN wearable_id TO import_id',
+          );
+          await customStatement(
+            'DROP INDEX IF EXISTS idx_dive_computer_data_dive_id',
+          );
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_data_sources_dive_id
+            ON dive_data_sources(dive_id)
+          ''');
+        }
+        if (from < 55) {
+          // Add data source badge visibility setting to diver_settings
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN show_data_source_badges INTEGER NOT NULL DEFAULT 1',
           );
         }
       },

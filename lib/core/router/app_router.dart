@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +7,13 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
+import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart'
+    hide diveProvider;
+import 'package:submersion/features/import_wizard/data/adapters/healthkit_adapter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/import_wizard/presentation/pages/unified_import_wizard.dart';
 import 'package:submersion/features/onboarding/presentation/pages/welcome_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
@@ -91,15 +98,15 @@ import 'package:submersion/features/deco_calculator/presentation/pages/deco_calc
 import 'package:submersion/features/gas_calculators/presentation/pages/gas_calculators_page.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/device_list_page.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/device_detail_page.dart';
-import 'package:submersion/features/dive_computer/presentation/pages/device_download_page.dart';
-import 'package:submersion/features/dive_computer/presentation/pages/device_discovery_page.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart'
+    show diveImportServiceProvider;
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:submersion/features/dive_planner/presentation/pages/dive_planner_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
-import 'package:submersion/features/dive_import/presentation/pages/fit_import_page.dart';
-import 'package:submersion/features/dive_import/presentation/pages/healthkit_import_page.dart';
-import 'package:submersion/features/dive_import/presentation/pages/uddf_import_page.dart';
-import 'package:submersion/features/universal_import/presentation/pages/universal_import_page.dart';
+import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -699,19 +706,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
             routes: [
               GoRoute(
-                path: 'fit-import',
-                name: 'fitImport',
-                builder: (context, state) => const FitImportPage(),
-              ),
-              GoRoute(
-                path: 'uddf-import',
-                name: 'uddfImport',
-                builder: (context, state) => const UddfImportPage(),
-              ),
-              GoRoute(
                 path: 'import-wizard',
                 name: 'universalImport',
-                builder: (context, state) => const UniversalImportPage(),
+                builder: (context, state) =>
+                    const _UniversalImportWizardRoute(),
               ),
             ],
           ),
@@ -758,7 +756,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'wearable-import',
                 name: 'wearableImport',
-                builder: (context, state) => const HealthKitImportPage(),
+                builder: (context, state) =>
+                    const _HealthKitImportWizardRoute(),
               ),
               GoRoute(
                 path: 'backup',
@@ -884,7 +883,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'discover',
                 name: 'discoverDevice',
-                builder: (context, state) => const DeviceDiscoveryPage(),
+                builder: (context, state) =>
+                    const _DiveComputerDiscoveryWizardRoute(),
               ),
               GoRoute(
                 path: ':computerId',
@@ -896,9 +896,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'download',
                     name: 'computerDownload',
-                    builder: (context, state) => DeviceDownloadPage(
-                      computerId: state.pathParameters['computerId']!,
-                    ),
+                    builder: (context, state) =>
+                        _DiveComputerDownloadWizardRoute(
+                          computerId: state.pathParameters['computerId']!,
+                        ),
                   ),
                 ],
               ),
@@ -909,3 +910,166 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+/// Wrapper that creates a [HealthKitAdapter] with dependencies from Riverpod.
+///
+/// Falls back to a platform-unavailable screen when HealthKit is unavailable on
+/// the current platform (i.e. [healthImportServiceProvider] returns null).
+class _HealthKitImportWizardRoute extends ConsumerWidget {
+  const _HealthKitImportWizardRoute();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final healthService = ref.watch(healthImportServiceProvider);
+
+    if (healthService == null) {
+      // Not on an Apple platform — show a platform-unavailable screen.
+      return const _HealthKitUnavailableScreen();
+    }
+
+    final diverId = ref.watch(currentDiverIdProvider) ?? '';
+    final converter = ref.watch(importedDiveConverterProvider);
+    final diveRepo = ref.watch(diveRepositoryProvider);
+
+    final settings = ref.watch(settingsProvider);
+
+    return UnifiedImportWizard(
+      adapter: HealthKitAdapter(
+        healthService: healthService,
+        diveMatcher: const DiveMatcher(),
+        converter: converter,
+        diveRepository: diveRepo,
+        diverId: diverId,
+        ref: ref,
+        settings: settings,
+      ),
+    );
+  }
+}
+
+/// Shown when the HealthKit import route is opened on a non-Apple platform.
+class _HealthKitUnavailableScreen extends StatelessWidget {
+  const _HealthKitUnavailableScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(context.l10n.diveImport_healthkit_watchTitle),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          tooltip: context.l10n.diveImport_healthkit_closeTooltip,
+          onPressed: () => context.pop(),
+        ),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ExcludeSemantics(
+                child: Icon(
+                  Icons.watch_off,
+                  size: 64,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                context.l10n.diveImport_healthkit_notAvailable,
+                style: theme.textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                context.l10n.diveImport_healthkit_notAvailableDescription,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Wrapper that creates a [DiveComputerAdapter] for device discovery.
+class _DiveComputerDiscoveryWizardRoute extends ConsumerWidget {
+  const _DiveComputerDiscoveryWizardRoute();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final diverId = ref.watch(currentDiverIdProvider) ?? '';
+    final importService = ref.watch(diveImportServiceProvider);
+    final computerRepo = ref.watch(diveComputerRepositoryProvider);
+    final diveRepo = ref.watch(diveRepositoryProvider);
+
+    return UnifiedImportWizard(
+      adapter: DiveComputerAdapter(
+        importService: importService,
+        computerRepository: computerRepo,
+        diveRepository: diveRepo,
+        diverId: diverId,
+        ref: ref,
+      ),
+    );
+  }
+}
+
+/// Wrapper that creates a [DiveComputerAdapter] for quick download
+/// from a known (previously paired) computer.
+class _DiveComputerDownloadWizardRoute extends ConsumerWidget {
+  const _DiveComputerDownloadWizardRoute({required this.computerId});
+
+  final String computerId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final diverId = ref.watch(currentDiverIdProvider) ?? '';
+    final importService = ref.watch(diveImportServiceProvider);
+    final computerRepo = ref.watch(diveComputerRepositoryProvider);
+    final diveRepo = ref.watch(diveRepositoryProvider);
+    final computerAsync = ref.watch(diveComputerByIdProvider(computerId));
+
+    return computerAsync.when(
+      data: (computer) {
+        if (computer == null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Download')),
+            body: const Center(child: Text('Computer not found')),
+          );
+        }
+        return UnifiedImportWizard(
+          adapter: DiveComputerAdapter(
+            importService: importService,
+            computerRepository: computerRepo,
+            diveRepository: diveRepo,
+            diverId: diverId,
+            knownComputer: computer,
+            ref: ref,
+          ),
+        );
+      },
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(
+        appBar: AppBar(title: const Text('Download')),
+        body: Center(child: Text('Error: $e')),
+      ),
+    );
+  }
+}
+
+/// Wrapper that creates a [UniversalAdapter] with Ref from Riverpod.
+class _UniversalImportWizardRoute extends ConsumerWidget {
+  const _UniversalImportWizardRoute();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return UnifiedImportWizard(adapter: UniversalAdapter(ref: ref));
+  }
+}

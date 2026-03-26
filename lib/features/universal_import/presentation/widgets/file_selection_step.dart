@@ -13,6 +13,8 @@ class FileSelectionStep extends ConsumerWidget {
     final state = ref.watch(universalImportNotifierProvider);
     final theme = Theme.of(context);
 
+    final hasFile = state.fileName != null;
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -30,6 +32,8 @@ class FileSelectionStep extends ConsumerWidget {
               label: Text(
                 state.isLoading
                     ? context.l10n.universalImport_label_detecting
+                    : hasFile
+                    ? context.l10n.universalImport_action_changeFile
                     : context.l10n.universalImport_action_selectFile,
               ),
               onPressed: state.isLoading
@@ -42,6 +46,30 @@ class FileSelectionStep extends ConsumerWidget {
           if (state.error != null) ...[
             const SizedBox(height: 16),
             _ErrorBanner(message: state.error!),
+          ],
+          if (hasFile) ...[
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.insert_drive_file,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        state.fileName!,
+                        style: theme.textTheme.bodyMedium,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
           const Spacer(),
           ExcludeSemantics(

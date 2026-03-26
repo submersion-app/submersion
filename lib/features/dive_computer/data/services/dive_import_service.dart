@@ -29,6 +29,9 @@ enum ConflictResolution {
 
   /// Ask the user for each conflict
   askUser,
+
+  /// Merge as additional computer data on the matched dive
+  consolidate,
 }
 
 /// Confidence level for duplicate detection.
@@ -106,6 +109,31 @@ class ImportConflict {
   });
 }
 
+/// A skipped duplicate that can be offered to the user for consolidation.
+///
+/// Collected during import when a dive is skipped as a duplicate, so the
+/// caller can present a post-download review step.
+class DuplicateCandidate {
+  /// The downloaded dive that was skipped
+  final DownloadedDive dive;
+
+  /// ID of the existing dive that matched
+  final String matchedDiveId;
+
+  /// Match quality score from 0.0 to 1.0
+  final double matchScore;
+
+  /// Confidence level of the match
+  final DuplicateConfidence confidence;
+
+  const DuplicateCandidate({
+    required this.dive,
+    required this.matchedDiveId,
+    required this.matchScore,
+    required this.confidence,
+  });
+}
+
 /// Result of an import operation.
 class ImportResult {
   /// Number of dives successfully imported
@@ -126,6 +154,12 @@ class ImportResult {
   /// The actual dive objects that were successfully imported
   final List<DownloadedDive> importedDives;
 
+  /// Dives that were skipped as duplicates but could be consolidated.
+  ///
+  /// These are populated when [ConflictResolution.skip] is used, giving the
+  /// caller an opportunity to offer a post-download consolidation review.
+  final List<DuplicateCandidate> duplicateCandidates;
+
   /// Error message if import failed
   final String? errorMessage;
 
@@ -136,6 +170,7 @@ class ImportResult {
     required this.conflicts,
     required this.importedDiveIds,
     this.importedDives = const [],
+    this.duplicateCandidates = const [],
     this.errorMessage,
   });
 
@@ -147,6 +182,7 @@ class ImportResult {
     required List<String> importedDiveIds,
     required List<DownloadedDive> importedDives,
     List<ImportConflict> conflicts = const [],
+    List<DuplicateCandidate> duplicateCandidates = const [],
   }) => ImportResult(
     imported: imported,
     skipped: skipped,
@@ -154,6 +190,7 @@ class ImportResult {
     conflicts: conflicts,
     importedDiveIds: importedDiveIds,
     importedDives: importedDives,
+    duplicateCandidates: duplicateCandidates,
   );
 
   /// Create a failed result
@@ -164,6 +201,7 @@ class ImportResult {
     conflicts: [],
     importedDiveIds: [],
     importedDives: [],
+    duplicateCandidates: [],
     errorMessage: error,
   );
 
@@ -198,6 +236,10 @@ class DiveImportService {
   /// [mode] - How to handle imports (newOnly, all, replace).
   /// [defaultResolution] - Default resolution for duplicates.
   /// [diverId] - Owner diver ID for new dives.
+  ///
+  /// When [defaultResolution] is [ConflictResolution.skip], skipped duplicates
+  /// are collected into [ImportResult.duplicateCandidates] so the caller can
+  /// offer a post-download consolidation review step.
   Future<ImportResult> importDives({
     required List<DownloadedDive> dives,
     required DiveComputer computer,
@@ -211,6 +253,7 @@ class DiveImportService {
     final importedDiveIds = <String>[];
     final importedDives = <DownloadedDive>[];
     final conflicts = <ImportConflict>[];
+    final duplicateCandidates = <DuplicateCandidate>[];
 
     // Sort dives chronologically (oldest first) so that sequential
     // getDiveNumberForDate() calls produce correct numbering.
@@ -236,7 +279,16 @@ class DiveImportService {
                 ),
               );
             } else if (defaultResolution == ConflictResolution.skip) {
-              skipped++;
+              // Record as a consolidation candidate for post-download review.
+              // Don't count as "skipped" — pending review is a distinct state.
+              duplicateCandidates.add(
+                DuplicateCandidate(
+                  dive: dive,
+                  matchedDiveId: duplicateResult.matchingDiveId!,
+                  matchScore: duplicateResult.score,
+                  confidence: duplicateResult.confidence,
+                ),
+              );
             } else if (defaultResolution == ConflictResolution.replace) {
               // Update existing dive
               await _updateExistingDive(
@@ -246,8 +298,15 @@ class DiveImportService {
               );
               updated++;
             } else {
-              // Import as new
-              final diveId = await _importNewDive(dive, computer.id, diverId);
+              // Import as new (importAsNew or consolidate treated as new here;
+              // consolidate at the conflict-resolution level is handled by
+              // resolveConflict / DiveComputerAdapter._consolidateDive)
+              final diveId = await _importNewDive(
+                dive,
+                computer.id,
+                diverId,
+                forceNew: true,
+              );
               importedDiveIds.add(diveId);
               importedDives.add(dive);
               imported++;
@@ -287,6 +346,7 @@ class DiveImportService {
       importedDiveIds: importedDiveIds,
       importedDives: importedDives,
       conflicts: conflicts,
+      duplicateCandidates: duplicateCandidates,
     );
   }
 
@@ -336,8 +396,9 @@ class DiveImportService {
   Future<String> _importNewDive(
     DownloadedDive dive,
     String computerId,
-    String? diverId,
-  ) async {
+    String? diverId, {
+    bool forceNew = false,
+  }) async {
     // Calculate chronological dive number
     int? diveNumber;
     if (_diveRepository != null) {
@@ -373,9 +434,22 @@ class DiveImportService {
       decoConservatism: dive.decoConservatism,
       events: events,
       diveNumber: diveNumber,
+      forceNew: forceNew,
     );
 
     return diveId;
+  }
+
+  /// Import a single dive as a new dive, ignoring any duplicate match.
+  ///
+  /// Used when the user explicitly chooses "Import as New" from the
+  /// post-download consolidation review.
+  Future<String> importSingleDiveAsNew(
+    DownloadedDive dive, {
+    required String computerId,
+    String? diverId,
+  }) async {
+    return _importNewDive(dive, computerId, diverId, forceNew: true);
   }
 
   /// Update an existing dive with downloaded data.
@@ -436,6 +510,11 @@ class DiveImportService {
 
       case ConflictResolution.askUser:
         // This shouldn't be called with askUser
+        return null;
+
+      case ConflictResolution.consolidate:
+        // Consolidation is handled by DiveComputerAdapter._consolidateDive()
+        // which calls DiveRepository.consolidateComputer() directly.
         return null;
     }
   }

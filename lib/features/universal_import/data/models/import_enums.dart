@@ -83,6 +83,26 @@ enum SourceApp {
   };
 }
 
+/// Resolution choice for a dive that was flagged as a potential duplicate.
+///
+/// When a dive match is detected during import, the user can choose how to
+/// handle it:
+/// - [skip]: Do not import this dive at all (default for matched dives).
+/// - [importAsNew]: Import the dive as a brand-new separate entry.
+/// - [consolidate]: Attach the imported data as a secondary computer reading
+///   on the matched existing dive.
+enum DiveDuplicateResolution {
+  skip,
+  importAsNew,
+  consolidate;
+
+  String get displayName => switch (this) {
+    skip => 'Skip',
+    importAsNew => 'Import as New',
+    consolidate => 'Consolidate as additional computer',
+  };
+}
+
 /// Entity types that can be included in an import payload.
 ///
 /// Mirrors the existing `UddfEntityType` but used across all import formats.

@@ -5,7 +5,6 @@ import 'package:submersion/features/dive_computer/domain/entities/device_model.d
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/pin_code_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -51,18 +50,11 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     final notifier = ref.read(downloadNotifierProvider.notifier);
 
     // Clear stale state from any previous download immediately so the
-    // next build() cycle does not see old importResult / progress.
+    // next build() cycle does not see old progress.
     notifier.reset();
 
-    // Resolve the diver ID so auto-import assigns the correct owner.
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-
-    // Pass computer + diverId so the notifier can auto-import when done.
-    await notifier.startDownload(
-      widget.device!,
-      computer: widget.computer,
-      diverId: diverId,
-    );
+    // Pass computer so the notifier can persist device info when done.
+    await notifier.startDownload(widget.device!, computer: widget.computer);
   }
 
   @override
@@ -80,13 +72,9 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Reactively detect when the download+import finishes and fire the
-    // onComplete/onError callbacks. importResult being set means the
-    // auto-import has finished (the notifier sets it after importDives).
-    if (!_hasCalledComplete &&
-        _hasStarted &&
-        downloadState.importResult != null &&
-        downloadState.importResult!.isSuccess) {
+    // Reactively detect when the download finishes and fire the
+    // onComplete/onError callbacks.
+    if (!_hasCalledComplete && _hasStarted && downloadState.isComplete) {
       _hasCalledComplete = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.onComplete();
@@ -129,117 +117,123 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
       liveRegion: downloadState.isDownloading,
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Progress indicator
-            ExcludeSemantics(
-              child: _buildProgressIndicator(downloadState, colorScheme),
-            ),
-            const SizedBox(height: 32),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Progress indicator
+              ExcludeSemantics(
+                child: _buildProgressIndicator(downloadState, colorScheme),
+              ),
+              const SizedBox(height: 32),
 
-            // Status text
-            Text(
-              statusText,
-              style: theme.textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-
-            // Progress percentage
-            if (showPercent)
+              // Status text
               Text(
-                context.l10n.diveComputer_downloadStep_progressPercent(
-                  (downloadState.progress!.percentage * 100).toStringAsFixed(0),
-                ),
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
-                ),
+                statusText,
+                style: theme.textTheme.titleMedium,
+                textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 8),
 
-            const SizedBox(height: 32),
+              // Progress percentage
+              if (showPercent)
+                Text(
+                  context.l10n.diveComputer_downloadStep_progressPercent(
+                    (downloadState.progress!.percentage * 100).toStringAsFixed(
+                      0,
+                    ),
+                  ),
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                  ),
+                ),
 
-            // Downloaded dives count
-            if (downloadState.downloadedDives.isNotEmpty)
-              _buildDivesList(context, downloadState),
+              const SizedBox(height: 32),
 
-            const Spacer(),
+              // Downloaded dives count
+              if (downloadState.downloadedDives.isNotEmpty)
+                _buildDivesList(context, downloadState),
 
-            // Cancel button
-            if (downloadState.isDownloading)
-              OutlinedButton.icon(
-                onPressed: () {
-                  ref.read(downloadNotifierProvider.notifier).cancelDownload();
-                },
-                icon: const Icon(Icons.cancel),
-                label: Text(context.l10n.diveComputer_downloadStep_cancel),
-              ),
+              const SizedBox(height: 24),
 
-            // Error state
-            if (downloadState.hasError)
-              Column(
-                children: [
-                  Semantics(
-                    label: context.l10n
-                        .diveComputer_downloadStep_errorSemanticLabel(
-                          _localizedError(context, downloadState),
-                        ),
-                    liveRegion: true,
-                    child: Card(
-                      color: colorScheme.errorContainer,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            ExcludeSemantics(
-                              child: Icon(
-                                Icons.error,
-                                color: colorScheme.error,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                _localizedError(context, downloadState),
-                                style: TextStyle(
-                                  color: colorScheme.onErrorContainer,
+              // Cancel button
+              if (downloadState.isDownloading)
+                OutlinedButton.icon(
+                  onPressed: () {
+                    ref
+                        .read(downloadNotifierProvider.notifier)
+                        .cancelDownload();
+                  },
+                  icon: const Icon(Icons.cancel),
+                  label: Text(context.l10n.diveComputer_downloadStep_cancel),
+                ),
+
+              // Error state
+              if (downloadState.hasError)
+                Column(
+                  children: [
+                    Semantics(
+                      label: context.l10n
+                          .diveComputer_downloadStep_errorSemanticLabel(
+                            _localizedError(context, downloadState),
+                          ),
+                      liveRegion: true,
+                      child: Card(
+                        color: colorScheme.errorContainer,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              ExcludeSemantics(
+                                child: Icon(
+                                  Icons.error,
+                                  color: colorScheme.error,
                                 ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _localizedError(context, downloadState),
+                                  style: TextStyle(
+                                    color: colorScheme.onErrorContainer,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed: () {
-                      _hasStarted = false;
-                      _startDownload();
-                    },
-                    icon: const Icon(Icons.refresh),
-                    label: Text(context.l10n.diveComputer_downloadStep_retry),
-                  ),
-                ],
-              ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: () {
+                        _hasStarted = false;
+                        _startDownload();
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: Text(context.l10n.diveComputer_downloadStep_retry),
+                    ),
+                  ],
+                ),
 
-            // Cancelled state
-            if (downloadState.isCancelled)
-              Column(
-                children: [
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed: () {
-                      _hasStarted = false;
-                      _startDownload();
-                    },
-                    icon: const Icon(Icons.refresh),
-                    label: Text(context.l10n.diveComputer_downloadStep_retry),
-                  ),
-                ],
-              ),
-          ],
+              // Cancelled state
+              if (downloadState.isCancelled)
+                Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: () {
+                        _hasStarted = false;
+                        _startDownload();
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: Text(context.l10n.diveComputer_downloadStep_retry),
+                    ),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -345,6 +339,7 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
@@ -365,45 +360,105 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
               ],
             ),
             const SizedBox(height: 12),
-            // Show last few dives
-            ...state.downloadedDives.take(3).map((dive) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Text(
-                      _formatDate(dive.startTime),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      context.l10n.diveComputer_downloadStep_depthMeters(
-                        dive.maxDepth.toStringAsFixed(1),
-                      ),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      context.l10n.diveComputer_downloadStep_durationMin(
-                        dive.durationSeconds ~/ 60,
-                      ),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              );
-            }),
-            if (state.downloadedDives.length > 3)
-              Text(
-                context.l10n.diveComputer_downloadStep_andMoreDives(
-                  state.downloadedDives.length - 3,
-                ),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: state.downloadedDives.length,
+                separatorBuilder: (_, _) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final dive = state.downloadedDives[index];
+                  return _buildDiveRow(context, dive, theme, colorScheme);
+                },
               ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDiveRow(
+    BuildContext context,
+    DownloadedDive dive,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
+    final date = dive.startTime;
+    final dateStr =
+        '${date.month}/${date.day}/${date.year} '
+        '${date.hour.toString().padLeft(2, '0')}:'
+        '${date.minute.toString().padLeft(2, '0')}';
+    final durationMin = dive.durationSeconds ~/ 60;
+
+    // Build detail chips
+    final details = <String>[
+      '${dive.maxDepth.toStringAsFixed(1)}m',
+      '${durationMin}min',
+    ];
+    if (dive.avgDepth != null) {
+      details.add('avg ${dive.avgDepth!.toStringAsFixed(1)}m');
+    }
+    if (dive.minTemperature != null) {
+      details.add('${dive.minTemperature!.toStringAsFixed(0)}C');
+    }
+
+    // Gas mix info from tanks
+    final gasMixes = dive.tanks
+        .where((t) => t.o2Percent != 21.0)
+        .map((t) => 'EAN${t.o2Percent.round()}')
+        .toSet();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (dive.diveNumber != null) ...[
+                Text(
+                  '#${dive.diveNumber}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Expanded(child: Text(dateStr, style: theme.textTheme.bodySmall)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 12,
+            children: [
+              for (final detail in details)
+                Text(detail, style: theme.textTheme.bodySmall),
+              if (gasMixes.isNotEmpty)
+                Text(
+                  gasMixes.join(', '),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.tertiary,
+                  ),
+                ),
+              if (dive.decoAlgorithm != null)
+                Text(
+                  dive.decoAlgorithm!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              if (dive.gfLow != null && dive.gfHigh != null)
+                Text(
+                  'GF ${dive.gfLow}/${dive.gfHigh}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -419,9 +474,5 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
       );
     }
     return state.errorMessage ?? l10n.diveComputer_downloadStep_errorOccurred;
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.month}/${date.day}/${date.year}';
   }
 }

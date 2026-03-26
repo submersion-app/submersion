@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -60,6 +61,21 @@ class _FieldMappingStepState extends ConsumerState<FieldMappingStep> {
             sourceApp: state.options!.sourceApp,
           );
       _initialized = true;
+
+      // Persist the initial mapping to the notifier so the wizard's
+      // canAdvance provider and onBeforeAdvance callback can access it.
+      // Deferred to a post-frame callback to avoid modifying provider
+      // state during build.
+      if (state.fieldMapping == null) {
+        final initialMapping = _mapping;
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ref
+                .read(universalImportNotifierProvider.notifier)
+                .updateFieldMapping(initialMapping);
+          }
+        });
+      }
     }
 
     if (!_initialized) return const SizedBox.shrink();
@@ -115,24 +131,6 @@ class _FieldMappingStepState extends ConsumerState<FieldMappingStep> {
             },
           ),
         ),
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: FilledButton(
-              onPressed: _mapping.columns.isNotEmpty
-                  ? () {
-                      ref
-                          .read(universalImportNotifierProvider.notifier)
-                          .updateFieldMapping(_mapping);
-                      ref
-                          .read(universalImportNotifierProvider.notifier)
-                          .confirmFieldMapping();
-                    }
-                  : null,
-              child: Text(context.l10n.universalImport_action_continue),
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -150,13 +148,21 @@ class _FieldMappingStepState extends ConsumerState<FieldMappingStep> {
       );
     }
 
+    final newMapping = FieldMapping(
+      name: _mapping.name,
+      sourceApp: _mapping.sourceApp,
+      columns: updated,
+    );
+
     setState(() {
-      _mapping = FieldMapping(
-        name: _mapping.name,
-        sourceApp: _mapping.sourceApp,
-        columns: updated,
-      );
+      _mapping = newMapping;
     });
+
+    // Persist to the notifier so the wizard's onBeforeAdvance callback
+    // can call confirmFieldMapping() with the current mapping already saved.
+    ref
+        .read(universalImportNotifierProvider.notifier)
+        .updateFieldMapping(newMapping);
   }
 }
 

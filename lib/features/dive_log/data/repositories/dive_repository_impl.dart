@@ -10,6 +10,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as domain;
@@ -396,23 +397,53 @@ class DiveRepository {
 
   /// Restore the original profile as primary.
   ///
-  /// Deletes the edited (currently primary) profiles and promotes the
-  /// original (non-primary) profiles back to primary.
+  /// Deletes the edited (currently primary, computerId=null) profiles and
+  /// promotes the original profiles back to primary.
+  ///
+  /// For multi-computer dives the primary [DiveDataSources] row identifies
+  /// which computer was the original primary source.  Only that computer's
+  /// profile rows are restored to isPrimary=true; the other computers' rows
+  /// remain demoted so the profile chart continues to show a single trace.
+  ///
+  /// For single-computer dives (or when no primary computer reading exists)
+  /// all remaining profile rows are promoted to primary as before.
   Future<void> restoreOriginalProfile(String diveId) async {
     try {
       _log.info('Restoring original profile for dive: $diveId');
 
       await _db.transaction(() async {
-        // Delete edited profiles (currently marked as primary)
+        // Delete user-edited profiles (isPrimary=true, computerId=null).
+        // The computerId.isNull() filter is critical: without it, computer-
+        // sourced profiles that were promoted to isPrimary=true by
+        // setPrimaryDataSource would be permanently deleted.
         await (_db.delete(_db.diveProfiles)
               ..where((t) => t.diveId.equals(diveId))
-              ..where((t) => t.isPrimary.equals(true)))
+              ..where((t) => t.isPrimary.equals(true))
+              ..where((t) => t.computerId.isNull()))
             .go();
 
-        // Restore original profiles to primary
-        await (_db.update(_db.diveProfiles)
-              ..where((t) => t.diveId.equals(diveId)))
-            .write(const DiveProfilesCompanion(isPrimary: Value(true)));
+        // Find the primary computer from dive_data_sources
+        final primaryReading =
+            await (_db.select(_db.diveDataSources)
+                  ..where((t) => t.diveId.equals(diveId))
+                  ..where((t) => t.isPrimary.equals(true))
+                  ..limit(1))
+                .getSingleOrNull();
+
+        final primaryComputerId = primaryReading?.computerId;
+
+        if (primaryComputerId != null) {
+          // Multi-computer dive: only restore the previously-primary computer
+          await (_db.update(_db.diveProfiles)
+                ..where((t) => t.diveId.equals(diveId))
+                ..where((t) => t.computerId.equals(primaryComputerId)))
+              .write(const DiveProfilesCompanion(isPrimary: Value(true)));
+        } else {
+          // Single-computer dive (or no computer reading): restore all rows
+          await (_db.update(_db.diveProfiles)
+                ..where((t) => t.diveId.equals(diveId)))
+              .write(const DiveProfilesCompanion(isPrimary: Value(true)));
+        }
       });
 
       SyncEventBus.notifyLocalChange();
@@ -575,9 +606,9 @@ class DiveRepository {
               isPlanned: Value(dive.isPlanned),
               // Training course (v1.5)
               courseId: Value(dive.courseId),
-              // Wearable integration (v2.0)
-              wearableSource: Value(dive.wearableSource),
-              wearableId: Value(dive.wearableId),
+              // Import source tracking
+              importSource: Value(dive.importSource),
+              importId: Value(dive.importId),
               importVersion: const Value(1),
               createdAt: Value(now),
               updatedAt: Value(now),
@@ -788,9 +819,9 @@ class DiveRepository {
           isPlanned: Value(dive.isPlanned),
           // Training course (v1.5)
           courseId: Value(dive.courseId),
-          // Wearable integration (v2.0)
-          wearableSource: Value(dive.wearableSource),
-          wearableId: Value(dive.wearableId),
+          // Import source tracking
+          importSource: Value(dive.importSource),
+          importId: Value(dive.importId),
           updatedAt: Value(now),
         ),
       );
@@ -1288,6 +1319,10 @@ class DiveRepository {
         args.add(Variable(diveId));
       }
     }
+    if (filter.computerSerial != null) {
+      clauses.add('d.dive_computer_serial = ?');
+      args.add(Variable(filter.computerSerial!));
+    }
     if (filter.minO2Percent != null || filter.maxO2Percent != null) {
       final tankClauses = <String>[];
       if (filter.minO2Percent != null) {
@@ -1441,45 +1476,16 @@ class DiveRepository {
     }
   }
 
-  /// Get the dive number based on chronological position for a given date
-  /// Counts how many dives exist before [dateTime] and returns count + startFrom
-  /// This ensures dive numbers match chronological order
+  /// Get the next dive number for a given date.
+  ///
+  /// Delegates to [getNextDiveNumber] (MAX + 1) to avoid duplicate numbers
+  /// when importing from multiple computers with overlapping dates.
   Future<int> getDiveNumberForDate(
     DateTime dateTime, {
     String? diverId,
     int startFrom = 1,
   }) async {
-    try {
-      final timestamp = dateTime.millisecondsSinceEpoch;
-      final String sql;
-      final List<Object> args;
-
-      if (diverId != null) {
-        sql = '''
-          SELECT COUNT(*) as count FROM dives
-          WHERE diver_id = ? AND (
-            entry_time < ? OR (entry_time IS NULL AND dive_date_time < ?)
-          )
-        ''';
-        args = [diverId, timestamp, timestamp];
-      } else {
-        sql = '''
-          SELECT COUNT(*) as count FROM dives
-          WHERE entry_time < ? OR (entry_time IS NULL AND dive_date_time < ?)
-        ''';
-        args = [timestamp, timestamp];
-      }
-
-      final result = await _db
-          .customSelect(sql, variables: args.map((a) => Variable(a)).toList())
-          .getSingle();
-
-      final count = result.data['count'] as int;
-      return count + startFrom;
-    } catch (e, stackTrace) {
-      _log.error('Failed to get dive number for date', e, stackTrace);
-      rethrow;
-    }
+    return getNextDiveNumber(diverId: diverId);
   }
 
   /// Search dives by notes or buddy name
@@ -2076,9 +2082,9 @@ class DiveRepository {
       isPlanned: row.isPlanned,
       // Training course (v1.5)
       courseId: row.courseId,
-      // Wearable integration (v2.0)
-      wearableSource: row.wearableSource,
-      wearableId: row.wearableId,
+      // Import source tracking
+      importSource: row.importSource,
+      importId: row.importId,
       // User-defined custom fields
       customFields: customFields,
     );
@@ -2448,31 +2454,31 @@ class DiveRepository {
       isPlanned: row.isPlanned,
       // Training course (v1.5)
       courseId: row.courseId,
-      // Wearable integration (v2.0)
-      wearableSource: row.wearableSource,
-      wearableId: row.wearableId,
+      // Import source tracking
+      importSource: row.importSource,
+      importId: row.importId,
       // User-defined custom fields
       customFields: customFields,
     );
   }
 
   // ============================================================================
-  // Wearable Import Operations
+  // Import ID Operations
   // ============================================================================
 
-  /// Get all wearable IDs that have already been imported.
+  /// Get all import IDs that have already been imported.
   ///
-  /// Used for fast duplicate detection during wearable imports.
-  Future<Set<String>> getWearableIds({String? diverId}) async {
+  /// Used for fast duplicate detection during imports.
+  Future<Set<String>> getImportIds({String? diverId}) async {
     final query = _db.selectOnly(_db.dives)
-      ..addColumns([_db.dives.wearableId])
-      ..where(_db.dives.wearableId.isNotNull());
+      ..addColumns([_db.dives.importId])
+      ..where(_db.dives.importId.isNotNull());
     if (diverId != null) {
       query.where(_db.dives.diverId.equals(diverId));
     }
     final rows = await query.get();
     return rows
-        .map((row) => row.read(_db.dives.wearableId))
+        .map((row) => row.read(_db.dives.importId))
         .whereType<String>()
         .toSet();
   }
@@ -3238,6 +3244,537 @@ class DiveRepository {
       }
     }
     return min;
+  }
+
+  // ============================================================================
+  // Dive Data Sources (multi-source reading snapshots)
+  // ============================================================================
+
+  /// Get all data source snapshots for a dive.
+  Future<List<DiveDataSource>> getDataSources(String diveId) async {
+    try {
+      final query = _db.select(_db.diveDataSources)
+        ..where((t) => t.diveId.equals(diveId))
+        ..orderBy([
+          (t) => OrderingTerm.desc(t.isPrimary),
+          (t) => OrderingTerm.asc(t.createdAt),
+        ]);
+      final rows = await query.get();
+      return rows.map(_mapRowToDataSource).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get computer readings for dive: $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Return true if a dive has readings from 2 or more computers.
+  Future<bool> hasMultipleDataSources(String diveId) async {
+    try {
+      final result = await _db
+          .customSelect(
+            'SELECT COUNT(*) as cnt FROM dive_data_sources WHERE dive_id = ?',
+            variables: [Variable(diveId)],
+          )
+          .getSingle();
+      return (result.data['cnt'] as int) >= 2;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to check multiple computers for dive: $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Insert a new computer reading snapshot.
+  Future<void> saveComputerReading(DiveDataSourcesCompanion reading) async {
+    try {
+      await _db.into(_db.diveDataSources).insert(reading);
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error('Failed to save computer reading', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Delete a computer reading snapshot by its ID.
+  Future<void> deleteComputerReading(String id) async {
+    try {
+      await (_db.delete(
+        _db.diveDataSources,
+      )..where((t) => t.id.equals(id))).go();
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error('Failed to delete computer reading: $id', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Create a primary [DiveDataSource] by back-filling metadata from the
+  /// existing [Dives] row.  No-ops if a primary reading already exists.
+  Future<void> backfillPrimaryDataSource(String diveId) async {
+    try {
+      // Skip if a primary reading already exists.
+      final existing =
+          await (_db.select(_db.diveDataSources)
+                ..where((t) => t.diveId.equals(diveId))
+                ..where((t) => t.isPrimary.equals(true))
+                ..limit(1))
+              .getSingleOrNull();
+      if (existing != null) return;
+
+      // Load the raw DB row so we can access columns not exposed on the
+      // domain Dive entity (e.g. computerId, surfaceIntervalSeconds, cnsEnd).
+      final diveRow = await (_db.select(
+        _db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+      if (diveRow == null) return;
+
+      final now = DateTime.now();
+      final id = _uuid.v4();
+
+      await saveComputerReading(
+        DiveDataSourcesCompanion(
+          id: Value(id),
+          diveId: Value(diveId),
+          computerId: Value(diveRow.computerId),
+          isPrimary: const Value(true),
+          computerModel: Value(diveRow.diveComputerModel),
+          computerSerial: Value(diveRow.diveComputerSerial),
+          maxDepth: Value(diveRow.maxDepth),
+          avgDepth: Value(diveRow.avgDepth),
+          duration: Value(diveRow.duration),
+          waterTemp: Value(diveRow.waterTemp),
+          entryTime: Value(
+            diveRow.entryTime != null
+                ? DateTime.fromMillisecondsSinceEpoch(
+                    diveRow.entryTime!,
+                    isUtc: true,
+                  )
+                : null,
+          ),
+          exitTime: Value(
+            diveRow.exitTime != null
+                ? DateTime.fromMillisecondsSinceEpoch(
+                    diveRow.exitTime!,
+                    isUtc: true,
+                  )
+                : null,
+          ),
+          surfaceInterval: Value(diveRow.surfaceIntervalSeconds),
+          cns: Value(diveRow.cnsEnd),
+          decoAlgorithm: Value(diveRow.decoAlgorithm),
+          gradientFactorLow: Value(diveRow.gradientFactorLow),
+          gradientFactorHigh: Value(diveRow.gradientFactorHigh),
+          importedAt: Value(now),
+          createdAt: Value(now),
+        ),
+      );
+
+      _log.info('Backfilled primary computer reading for dive: $diveId');
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to backfill primary computer reading for dive: $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  // ============================================================================
+  // Consolidation and merge operations
+  // ============================================================================
+
+  /// Adds a secondary computer's data to an existing dive.
+  ///
+  /// If no [DiveDataSources] rows exist yet for [targetDiveId], the primary
+  /// source's data is back-filled from the [Dives] row before the secondary
+  /// reading is inserted.
+  Future<void> consolidateComputer({
+    required String targetDiveId,
+    required DiveDataSourcesCompanion secondaryReading,
+    required List<DiveProfilesCompanion> secondaryProfile,
+  }) async {
+    try {
+      await _db.transaction(() async {
+        // Back-fill primary if this is the first consolidation.
+        final existingReadings = await getDataSources(targetDiveId);
+        if (existingReadings.isEmpty) {
+          await backfillPrimaryDataSource(targetDiveId);
+        }
+
+        // Save the secondary computer reading.
+        await saveComputerReading(secondaryReading);
+
+        // Batch-insert secondary profile points with isPrimary=false.
+        if (secondaryProfile.isNotEmpty) {
+          await _db.batch((batch) {
+            for (final point in secondaryProfile) {
+              batch.insert(
+                _db.diveProfiles,
+                point.copyWith(
+                  diveId: Value(targetDiveId),
+                  isPrimary: const Value(false),
+                ),
+              );
+            }
+          });
+        }
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to consolidate computer for dive: $targetDiveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Merges Dive B into Dive A.
+  ///
+  /// Re-parents all of B's profile rows to A, creates a [DiveDataSources]
+  /// snapshot from B's metadata, then deletes B (cascade cleans up tanks,
+  /// equipment, etc.).
+  Future<void> mergeDives({
+    required String primaryDiveId,
+    required String secondaryDiveId,
+  }) async {
+    try {
+      await _db.transaction(() async {
+        // Back-fill primary if this is the first consolidation.
+        final existingReadings = await getDataSources(primaryDiveId);
+        if (existingReadings.isEmpty) {
+          await backfillPrimaryDataSource(primaryDiveId);
+        }
+
+        // Load the secondary dive's raw DB row for metadata.
+        final secondaryRow = await (_db.select(
+          _db.dives,
+        )..where((t) => t.id.equals(secondaryDiveId))).getSingleOrNull();
+
+        if (secondaryRow != null) {
+          // Create a DiveDataSource from the secondary dive's metadata.
+          final now = DateTime.now();
+          await saveComputerReading(
+            DiveDataSourcesCompanion(
+              id: Value(_uuid.v4()),
+              diveId: Value(primaryDiveId),
+              computerId: Value(secondaryRow.computerId),
+              isPrimary: const Value(false),
+              computerModel: Value(secondaryRow.diveComputerModel),
+              computerSerial: Value(secondaryRow.diveComputerSerial),
+              maxDepth: Value(secondaryRow.maxDepth),
+              avgDepth: Value(secondaryRow.avgDepth),
+              duration: Value(secondaryRow.duration),
+              waterTemp: Value(secondaryRow.waterTemp),
+              entryTime: Value(
+                secondaryRow.entryTime != null
+                    ? DateTime.fromMillisecondsSinceEpoch(
+                        secondaryRow.entryTime!,
+                        isUtc: true,
+                      )
+                    : null,
+              ),
+              exitTime: Value(
+                secondaryRow.exitTime != null
+                    ? DateTime.fromMillisecondsSinceEpoch(
+                        secondaryRow.exitTime!,
+                        isUtc: true,
+                      )
+                    : null,
+              ),
+              surfaceInterval: Value(secondaryRow.surfaceIntervalSeconds),
+              cns: Value(secondaryRow.cnsEnd),
+              decoAlgorithm: Value(secondaryRow.decoAlgorithm),
+              gradientFactorLow: Value(secondaryRow.gradientFactorLow),
+              gradientFactorHigh: Value(secondaryRow.gradientFactorHigh),
+              importedAt: Value(now),
+              createdAt: Value(now),
+            ),
+          );
+
+          // Re-parent all of the secondary dive's profiles to the primary
+          // dive, marking them as non-primary.
+          await (_db.update(
+            _db.diveProfiles,
+          )..where((t) => t.diveId.equals(secondaryDiveId))).write(
+            DiveProfilesCompanion(
+              diveId: Value(primaryDiveId),
+              isPrimary: const Value(false),
+            ),
+          );
+        }
+
+        // Delete the secondary dive (cascade deletes tanks, equipment, etc.).
+        await (_db.delete(
+          _db.dives,
+        )..where((t) => t.id.equals(secondaryDiveId))).go();
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to merge dive $secondaryDiveId into $primaryDiveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Reverses a consolidation by detaching one computer's data into a new
+  /// standalone dive.
+  ///
+  /// Re-parents the matching profile rows to the new dive, removes the
+  /// [DiveDataSources] row from the original dive, and — when the primary
+  /// data source is being unlinked — promotes the next source via
+  /// [setPrimaryDataSource].
+  ///
+  /// Returns the ID of the newly created dive.
+  Future<String> unlinkComputer({
+    required String diveId,
+    required String computerReadingId,
+  }) async {
+    try {
+      // Load the reading to unlink.
+      final reading = await (_db.select(
+        _db.diveDataSources,
+      )..where((t) => t.id.equals(computerReadingId))).getSingleOrNull();
+
+      if (reading == null) {
+        throw StateError(
+          'Computer reading $computerReadingId not found for dive $diveId',
+        );
+      }
+
+      final now = DateTime.now();
+      final newDiveId = _uuid.v4();
+
+      await _db.transaction(() async {
+        // Load original dive row for baseline metadata.
+        final originalRow = await (_db.select(
+          _db.dives,
+        )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+
+        // Create a new standalone dive from the reading's metadata.
+        await _db
+            .into(_db.dives)
+            .insert(
+              DivesCompanion(
+                id: Value(newDiveId),
+                diveDateTime: Value(
+                  reading.entryTime?.millisecondsSinceEpoch ??
+                      originalRow?.diveDateTime ??
+                      now.millisecondsSinceEpoch,
+                ),
+                entryTime: Value(reading.entryTime?.millisecondsSinceEpoch),
+                exitTime: Value(reading.exitTime?.millisecondsSinceEpoch),
+                duration: Value(reading.duration),
+                maxDepth: Value(reading.maxDepth),
+                avgDepth: Value(reading.avgDepth),
+                waterTemp: Value(reading.waterTemp),
+                computerId: Value(reading.computerId),
+                diveComputerModel: Value(reading.computerModel),
+                diveComputerSerial: Value(reading.computerSerial),
+                surfaceIntervalSeconds: Value(reading.surfaceInterval),
+                cnsEnd: Value(reading.cns),
+                decoAlgorithm: Value(reading.decoAlgorithm),
+                gradientFactorLow: Value(reading.gradientFactorLow),
+                gradientFactorHigh: Value(reading.gradientFactorHigh),
+                createdAt: Value(now.millisecondsSinceEpoch),
+                updatedAt: Value(now.millisecondsSinceEpoch),
+              ),
+            );
+
+        // Re-parent this computer's profiles to the new dive.
+        // Match by computerId when available; fall back to non-primary, null
+        // computerId rows (but never re-parent user-edited isPrimary=true rows).
+        if (reading.computerId != null) {
+          await (_db.update(_db.diveProfiles)..where(
+                (t) =>
+                    t.diveId.equals(diveId) &
+                    t.computerId.equals(reading.computerId!),
+              ))
+              .write(
+                DiveProfilesCompanion(
+                  diveId: Value(newDiveId),
+                  isPrimary: const Value(true),
+                ),
+              );
+        } else {
+          // No computerId — match non-primary rows with null computerId.
+          // Exclude isPrimary=true to protect user-edited profiles.
+          await (_db.update(_db.diveProfiles)..where(
+                (t) =>
+                    t.diveId.equals(diveId) &
+                    t.computerId.isNull() &
+                    t.isPrimary.equals(false),
+              ))
+              .write(
+                DiveProfilesCompanion(
+                  diveId: Value(newDiveId),
+                  isPrimary: const Value(true),
+                ),
+              );
+        }
+
+        // Delete the computer reading from the original dive.
+        await (_db.delete(
+          _db.diveDataSources,
+        )..where((t) => t.id.equals(computerReadingId))).go();
+
+        // If unlinking the primary, promote the next computer.
+        if (reading.isPrimary) {
+          final remaining =
+              await (_db.select(_db.diveDataSources)
+                    ..where((t) => t.diveId.equals(diveId))
+                    ..orderBy([(t) => OrderingTerm.asc(t.createdAt)])
+                    ..limit(1))
+                  .getSingleOrNull();
+
+          if (remaining != null) {
+            await setPrimaryDataSource(
+              diveId: diveId,
+              computerReadingId: remaining.id,
+            );
+          }
+        }
+
+        // If only one computer reading remains, clean it up (the dive returns
+        // to single-source state — no need for dive_data_sources rows).
+        final remainingReadings = await (_db.select(
+          _db.diveDataSources,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        if (remainingReadings.length == 1) {
+          await (_db.delete(
+            _db.diveDataSources,
+          )..where((t) => t.diveId.equals(diveId))).go();
+        }
+      });
+
+      SyncEventBus.notifyLocalChange();
+      return newDiveId;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to unlink computer $computerReadingId from dive $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Swaps which computer is primary for a dive.
+  ///
+  /// Updates both [DiveDataSources] `isPrimary` flags and the parent [Dives]
+  /// record.  Also swaps `isPrimary` on the associated [DiveProfiles] rows.
+  Future<void> setPrimaryDataSource({
+    required String diveId,
+    required String computerReadingId,
+  }) async {
+    try {
+      await _db.transaction(() async {
+        // Load the reading that is being promoted.
+        final newPrimary = await (_db.select(
+          _db.diveDataSources,
+        )..where((t) => t.id.equals(computerReadingId))).getSingleOrNull();
+
+        if (newPrimary == null) return;
+
+        // Demote all readings for this dive to non-primary.
+        await (_db.update(_db.diveDataSources)
+              ..where((t) => t.diveId.equals(diveId)))
+            .write(const DiveDataSourcesCompanion(isPrimary: Value(false)));
+
+        // Promote the selected reading.
+        await (_db.update(_db.diveDataSources)
+              ..where((t) => t.id.equals(computerReadingId)))
+            .write(const DiveDataSourcesCompanion(isPrimary: Value(true)));
+
+        // Update the dives record with the new primary's metadata.
+        final now = DateTime.now().millisecondsSinceEpoch;
+        await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+          DivesCompanion(
+            diveComputerModel: Value(newPrimary.computerModel),
+            diveComputerSerial: Value(newPrimary.computerSerial),
+            maxDepth: Value(newPrimary.maxDepth),
+            avgDepth: Value(newPrimary.avgDepth),
+            duration: Value(newPrimary.duration),
+            waterTemp: Value(newPrimary.waterTemp),
+            entryTime: Value(newPrimary.entryTime?.millisecondsSinceEpoch),
+            exitTime: Value(newPrimary.exitTime?.millisecondsSinceEpoch),
+            surfaceIntervalSeconds: Value(newPrimary.surfaceInterval),
+            cnsEnd: Value(newPrimary.cns),
+            decoAlgorithm: Value(newPrimary.decoAlgorithm),
+            gradientFactorLow: Value(newPrimary.gradientFactorLow),
+            gradientFactorHigh: Value(newPrimary.gradientFactorHigh),
+            updatedAt: Value(now),
+          ),
+        );
+
+        // Swap isPrimary on dive_profiles:
+        // Demote all profiles for this dive.
+        await (_db.update(_db.diveProfiles)
+              ..where((t) => t.diveId.equals(diveId)))
+            .write(const DiveProfilesCompanion(isPrimary: Value(false)));
+
+        // Promote profiles belonging to the new primary computer.
+        if (newPrimary.computerId != null) {
+          await (_db.update(_db.diveProfiles)..where(
+                (t) =>
+                    t.diveId.equals(diveId) &
+                    t.computerId.equals(newPrimary.computerId!),
+              ))
+              .write(const DiveProfilesCompanion(isPrimary: Value(true)));
+        }
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set primary computer $computerReadingId for dive $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Map a [DiveDataSourcesData] DB row to a [DiveDataSource] entity.
+  DiveDataSource _mapRowToDataSource(DiveDataSourcesData row) {
+    return DiveDataSource(
+      id: row.id,
+      diveId: row.diveId,
+      computerId: row.computerId,
+      isPrimary: row.isPrimary,
+      computerModel: row.computerModel,
+      computerSerial: row.computerSerial,
+      sourceFormat: row.sourceFormat,
+      sourceFileName: row.sourceFileName,
+      sourceFileFormat: row.sourceFileFormat,
+      maxDepth: row.maxDepth,
+      avgDepth: row.avgDepth,
+      duration: row.duration,
+      waterTemp: row.waterTemp,
+      entryTime: row.entryTime,
+      exitTime: row.exitTime,
+      maxAscentRate: row.maxAscentRate,
+      maxDescentRate: row.maxDescentRate,
+      surfaceInterval: row.surfaceInterval,
+      cns: row.cns,
+      otu: row.otu,
+      decoAlgorithm: row.decoAlgorithm,
+      gradientFactorLow: row.gradientFactorLow,
+      gradientFactorHigh: row.gradientFactorHigh,
+      importedAt: row.importedAt,
+      createdAt: row.createdAt,
+    );
   }
 }
 

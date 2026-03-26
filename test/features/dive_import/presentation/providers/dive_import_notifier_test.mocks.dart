@@ -8,14 +8,17 @@ import 'dart:async' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i10;
 import 'package:submersion/core/constants/sort_options.dart' as _i9;
+import 'package:submersion/core/database/database.dart' as _i12;
 import 'package:submersion/core/models/sort_state.dart' as _i8;
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart'
-    as _i12;
+    as _i14;
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart'
-    as _i11;
+    as _i13;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart'
     as _i3;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart' as _i2;
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart'
+    as _i11;
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart'
     as _i6;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart'
@@ -324,9 +327,9 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
           as _i5.Future<_i3.DiveRecords>);
 
   @override
-  _i5.Future<Set<String>> getWearableIds({String? diverId}) =>
+  _i5.Future<Set<String>> getImportIds({String? diverId}) =>
       (super.noSuchMethod(
-            Invocation.method(#getWearableIds, [], {#diverId: diverId}),
+            Invocation.method(#getImportIds, [], {#diverId: diverId}),
             returnValue: _i5.Future<Set<String>>.value(<String>{}),
           )
           as _i5.Future<Set<String>>);
@@ -538,24 +541,140 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
             returnValueForMissingStub: _i5.Future<void>.value(),
           )
           as _i5.Future<void>);
+
+  @override
+  _i5.Future<List<_i11.DiveDataSource>> getDataSources(String? diveId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getDataSources, [diveId]),
+            returnValue: _i5.Future<List<_i11.DiveDataSource>>.value(
+              <_i11.DiveDataSource>[],
+            ),
+          )
+          as _i5.Future<List<_i11.DiveDataSource>>);
+
+  @override
+  _i5.Future<bool> hasMultipleDataSources(String? diveId) =>
+      (super.noSuchMethod(
+            Invocation.method(#hasMultipleDataSources, [diveId]),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
+
+  @override
+  _i5.Future<void> saveComputerReading(
+    _i12.DiveDataSourcesCompanion? reading,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveComputerReading, [reading]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> deleteComputerReading(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteComputerReading, [id]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> backfillPrimaryDataSource(String? diveId) =>
+      (super.noSuchMethod(
+            Invocation.method(#backfillPrimaryDataSource, [diveId]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> consolidateComputer({
+    required String? targetDiveId,
+    required _i12.DiveDataSourcesCompanion? secondaryReading,
+    required List<_i12.DiveProfilesCompanion>? secondaryProfile,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#consolidateComputer, [], {
+              #targetDiveId: targetDiveId,
+              #secondaryReading: secondaryReading,
+              #secondaryProfile: secondaryProfile,
+            }),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> mergeDives({
+    required String? primaryDiveId,
+    required String? secondaryDiveId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#mergeDives, [], {
+              #primaryDiveId: primaryDiveId,
+              #secondaryDiveId: secondaryDiveId,
+            }),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<String> unlinkComputer({
+    required String? diveId,
+    required String? computerReadingId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#unlinkComputer, [], {
+              #diveId: diveId,
+              #computerReadingId: computerReadingId,
+            }),
+            returnValue: _i5.Future<String>.value(
+              _i10.dummyValue<String>(
+                this,
+                Invocation.method(#unlinkComputer, [], {
+                  #diveId: diveId,
+                  #computerReadingId: computerReadingId,
+                }),
+              ),
+            ),
+          )
+          as _i5.Future<String>);
+
+  @override
+  _i5.Future<void> setPrimaryDataSource({
+    required String? diveId,
+    required String? computerReadingId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#setPrimaryDataSource, [], {
+              #diveId: diveId,
+              #computerReadingId: computerReadingId,
+            }),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
 }
 
 /// A class which mocks [HealthImportService].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockHealthImportService extends _i1.Mock
-    implements _i11.HealthImportService {
+    implements _i13.HealthImportService {
   MockHealthImportService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i12.ImportSource get source =>
+  _i14.ImportSource get source =>
       (super.noSuchMethod(
             Invocation.getter(#source),
-            returnValue: _i12.ImportSource.appleWatch,
+            returnValue: _i14.ImportSource.appleWatch,
           )
-          as _i12.ImportSource);
+          as _i14.ImportSource);
 
   @override
   _i5.Future<bool> isAvailable() =>
@@ -582,7 +701,7 @@ class MockHealthImportService extends _i1.Mock
           as _i5.Future<bool>);
 
   @override
-  _i5.Future<List<_i12.ImportedDive>> fetchDives({
+  _i5.Future<List<_i14.ImportedDive>> fetchDives({
     required DateTime? startDate,
     required DateTime? endDate,
   }) =>
@@ -591,21 +710,21 @@ class MockHealthImportService extends _i1.Mock
               #startDate: startDate,
               #endDate: endDate,
             }),
-            returnValue: _i5.Future<List<_i12.ImportedDive>>.value(
-              <_i12.ImportedDive>[],
+            returnValue: _i5.Future<List<_i14.ImportedDive>>.value(
+              <_i14.ImportedDive>[],
             ),
           )
-          as _i5.Future<List<_i12.ImportedDive>>);
+          as _i5.Future<List<_i14.ImportedDive>>);
 
   @override
-  _i5.Future<List<_i12.ImportedProfileSample>> fetchDiveProfile(
+  _i5.Future<List<_i14.ImportedProfileSample>> fetchDiveProfile(
     String? sourceId,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#fetchDiveProfile, [sourceId]),
-            returnValue: _i5.Future<List<_i12.ImportedProfileSample>>.value(
-              <_i12.ImportedProfileSample>[],
+            returnValue: _i5.Future<List<_i14.ImportedProfileSample>>.value(
+              <_i14.ImportedProfileSample>[],
             ),
           )
-          as _i5.Future<List<_i12.ImportedProfileSample>>);
+          as _i5.Future<List<_i14.ImportedProfileSample>>);
 }

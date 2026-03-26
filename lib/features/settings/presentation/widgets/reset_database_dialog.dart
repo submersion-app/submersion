@@ -4,7 +4,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Confirmation dialog for database reset with type-to-confirm safety gate.
 ///
-/// The user must type "Delete" (case-insensitive) before the destructive
+/// The user must type "Delete" (case-sensitive) before the destructive
 /// Reset button becomes enabled. Mirrors the pattern from
 /// [RestoreConfirmationDialog] but adds the text confirmation step.
 class ResetDatabaseDialog extends StatefulWidget {
@@ -40,7 +40,7 @@ class _ResetDatabaseDialogState extends State<ResetDatabaseDialog> {
   }
 
   void _onTextChanged() {
-    final confirmed = _controller.text.trim().toLowerCase() == 'delete';
+    final confirmed = _controller.text.trim() == 'Delete';
     if (confirmed != _isConfirmed) {
       setState(() => _isConfirmed = confirmed);
     }

@@ -1,4 +1,7 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart'
+    show DiveDataSourcesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -123,6 +126,7 @@ class UddfEntityImportResult {
   final int sites;
   final int dives;
   final int courses;
+  final List<String> diveIds;
 
   const UddfEntityImportResult({
     this.trips = 0,
@@ -136,6 +140,7 @@ class UddfEntityImportResult {
     this.sites = 0,
     this.dives = 0,
     this.courses = 0,
+    this.diveIds = const [],
   });
 
   int get total =>
@@ -201,6 +206,7 @@ class UddfEntityImporter {
     required UddfImportSelections selections,
     required ImportRepositories repositories,
     required String diverId,
+    bool retainSourceDiveNumbers = false,
     ImportProgressCallback? onProgress,
   }) async {
     final now = DateTime.now();
@@ -325,6 +331,8 @@ class UddfEntityImporter {
       tagIdMapping: tagIdMapping,
       siteIdMapping: siteIdMapping,
       courseIdMapping: courseIdMapping,
+      sourceFileName: data.sourceFileName,
+      retainSourceDiveNumbers: retainSourceDiveNumbers,
       now: now,
       onProgress: onProgress,
     );
@@ -341,6 +349,7 @@ class UddfEntityImporter {
       sites: sitesCount,
       dives: divesResult.count,
       courses: coursesCount,
+      diveIds: divesResult.diveIds,
     );
   }
 
@@ -700,6 +709,26 @@ class UddfEntityImporter {
     Map<String, DiveSite> idMapping,
     ImportProgressCallback? onProgress,
   ) async {
+    // For deselected sites (duplicates the user chose not to re-import),
+    // resolve their UDDF IDs to existing database sites by name so that
+    // dives referencing them still get linked correctly.
+    final existingSites = await repository.getAllSites(diverId: diverId);
+    final existingByName = <String, DiveSite>{};
+    for (final site in existingSites) {
+      existingByName[site.name.toLowerCase()] = site;
+    }
+    for (var i = 0; i < items.length; i++) {
+      if (selected.contains(i)) continue; // will be imported below
+      final uddfId = items[i]['uddfId'] as String?;
+      final name = items[i]['name'] as String?;
+      if (uddfId != null && name != null) {
+        final existing = existingByName[name.toLowerCase()];
+        if (existing != null) {
+          idMapping[uddfId] = existing;
+        }
+      }
+    }
+
     if (selected.isEmpty) return 0;
     onProgress?.call('Importing sites', 0, selected.length);
     var count = 0;
@@ -891,16 +920,32 @@ class UddfEntityImporter {
     required Map<String, String> tagIdMapping,
     required Map<String, DiveSite> siteIdMapping,
     required Map<String, String> courseIdMapping,
+    String? sourceFileName,
+    bool retainSourceDiveNumbers = false,
     required DateTime now,
     ImportProgressCallback? onProgress,
   }) async {
     if (selected.isEmpty) return const _DiveImportResult(0, 0);
     onProgress?.call('Importing dives', 0, selected.length);
     var count = 0;
+    final importedDiveIds = <String>[];
     final inlineBuddyIds = <String>{};
 
-    for (var i = 0; i < items.length; i++) {
-      if (!selected.contains(i)) continue;
+    // Sort selected indices by dateTime (oldest first) for sequential numbering.
+    final sortedSelected = selected.toList()
+      ..sort((a, b) {
+        final aTime = items[a]['dateTime'] as DateTime? ?? DateTime(0);
+        final bTime = items[b]['dateTime'] as DateTime? ?? DateTime(0);
+        return aTime.compareTo(bTime);
+      });
+
+    // Auto-assign dive numbers starting from the next available number,
+    // unless the user opted to retain source file numbering.
+    var nextDiveNumber = retainSourceDiveNumbers
+        ? null
+        : await repos.diveRepository.getNextDiveNumber(diverId: diverId);
+
+    for (final i in sortedSelected) {
       final diveData = items[i];
 
       // Build profile (include setpoint/ppO2 sensor readings)
@@ -1022,7 +1067,9 @@ class UddfEntityImporter {
       var dive = Dive(
         id: diveId,
         diverId: diverId,
-        diveNumber: diveData['diveNumber'] as int?,
+        diveNumber: nextDiveNumber != null
+            ? nextDiveNumber++
+            : diveData['diveNumber'] as int?,
         dateTime: dateTime,
         entryTime: entryTime,
         exitTime: exitTime,
@@ -1090,6 +1137,7 @@ class UddfEntityImporter {
       }
 
       await repos.diveRepository.createDive(dive);
+      importedDiveIds.add(diveId);
 
       // Store per-tank pressure data
       if (profileData != null && tanks.isNotEmpty) {
@@ -1141,11 +1189,32 @@ class UddfEntityImporter {
         repos.tagRepository,
       );
 
+      // Create a DiveDataSource record to track provenance.
+      await repos.diveRepository.saveComputerReading(
+        DiveDataSourcesCompanion(
+          id: Value(_uuid.v4()),
+          diveId: Value(diveId),
+          isPrimary: const Value(true),
+          computerModel: Value(diveData['diveComputerModel'] as String?),
+          computerSerial: Value(diveData['diveComputerSerial'] as String?),
+          sourceFileName: Value(sourceFileName),
+          sourceFileFormat: const Value('uddf'),
+          maxDepth: Value(diveData['maxDepth'] as double?),
+          avgDepth: Value(diveData['avgDepth'] as double?),
+          duration: Value(dive.duration?.inSeconds),
+          waterTemp: Value(diveData['waterTemp'] as double?),
+          entryTime: Value(dive.entryTime),
+          exitTime: Value(dive.exitTime),
+          importedAt: Value(now),
+          createdAt: Value(now),
+        ),
+      );
+
       count++;
       onProgress?.call('Importing dives', count, selected.length);
     }
 
-    return _DiveImportResult(count, inlineBuddyIds.length);
+    return _DiveImportResult(count, inlineBuddyIds.length, importedDiveIds);
   }
 
   // -- Dive helper methods --
@@ -1449,6 +1518,11 @@ class UddfEntityImporter {
 class _DiveImportResult {
   final int count;
   final int inlineBuddies;
+  final List<String> diveIds;
 
-  const _DiveImportResult(this.count, this.inlineBuddies);
+  const _DiveImportResult(
+    this.count,
+    this.inlineBuddies, [
+    this.diveIds = const [],
+  ]);
 }

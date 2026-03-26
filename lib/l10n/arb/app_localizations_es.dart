@@ -12775,49 +12775,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transfer_import_aboutTitle => 'Acerca de la importacion';
 
   @override
-  String get transfer_import_autoDetectSemanticLabel =>
+  String get transfer_import_fileImportSemanticLabel =>
       'Importar datos con deteccion automatica';
 
   @override
-  String get transfer_import_autoDetectSubtitle =>
+  String get transfer_import_fileImportSubtitle =>
       'Detecta automaticamente CSV, UDDF, FIT y mas';
 
   @override
-  String get transfer_import_autoDetectTitle => 'Importar datos';
-
-  @override
-  String get transfer_import_byFormatHeader => 'Importar por formato';
-
-  @override
-  String get transfer_import_csvSubtitle =>
-      'Importar inmersiones desde archivo CSV';
-
-  @override
-  String get transfer_import_csvTitle => 'Importar desde CSV';
-
-  @override
-  String get transfer_import_fitSubtitle =>
-      'Importar inmersiones desde archivos de exportacion Garmin Descent';
-
-  @override
-  String get transfer_import_fitTitle => 'Importar desde archivo FIT';
-
-  @override
-  String get transfer_import_operationCompleted => 'Operacion completada';
-
-  @override
-  String transfer_import_operationFailed(Object error) {
-    return 'La operacion fallo: $error';
-  }
+  String get transfer_import_fileImportTitle => 'Importar datos';
 
   @override
   String get transfer_import_sectionHeader => 'Importar datos';
-
-  @override
-  String get transfer_import_uddfSubtitle => 'Universal Dive Data Format';
-
-  @override
-  String get transfer_import_uddfTitle => 'Importar desde UDDF';
 
   @override
   String get transfer_pdfExport_cancelButton => 'Cancelar';
@@ -13728,6 +13697,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get units_weight_pounds => 'lbs';
 
   @override
+  String get universalImport_action_consolidate =>
+      'Consolidar como ordenador adicional';
+
+  @override
   String get universalImport_action_continue => 'Continuar';
 
   @override
@@ -13741,6 +13714,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get universalImport_action_selectAll => 'Seleccionar Todo';
+
+  @override
+  String get universalImport_action_changeFile => 'Cambiar archivo';
 
   @override
   String get universalImport_action_selectFile => 'Seleccionar Archivo';

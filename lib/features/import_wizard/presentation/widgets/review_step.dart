@@ -1,0 +1,499 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/entity_review_list.dart';
+
+/// The review step of the import wizard.
+///
+/// When the bundle contains a single entity type, renders an [EntityReviewList]
+/// directly without a tab bar. When multiple types are present, a [TabBar] is
+/// shown with one tab per type, each with a count badge.
+///
+/// A bottom bar is always shown with aggregate counts and an "Import Selected"
+/// button that calls [onImport].
+class ReviewStep extends ConsumerWidget {
+  /// Fired when the user taps "Import Selected".
+  final VoidCallback onImport;
+
+  /// Fired when the user taps "Back".
+  final VoidCallback? onBack;
+
+  const ReviewStep({super.key, required this.onImport, this.onBack});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(importWizardNotifierProvider);
+    final notifier = ref.read(importWizardNotifierProvider.notifier);
+    final bundle = state.bundle;
+
+    if (bundle == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final types = bundle.availableTypes;
+    final availableActions = notifier.supportedDuplicateActions;
+    final counts = _AggregateCounts.compute(state);
+
+    // Compute projected dive numbers for the review list.
+    final nextDiveNumber = ref.watch(nextDiveNumberProvider).whenData((v) => v);
+    final projectedDiveNumbers = _computeProjectedDiveNumbers(
+      bundle: bundle,
+      nextDiveNumber: nextDiveNumber.value,
+      retainSource: state.retainSourceDiveNumbers,
+      selections: state.selections[ImportEntityType.dives] ?? const {},
+      duplicateActions:
+          state.duplicateActions[ImportEntityType.dives] ?? const {},
+      duplicateIndices:
+          bundle.groups[ImportEntityType.dives]?.duplicateIndices ?? const {},
+    );
+
+    if (types.length == 1) {
+      return _SingleTypeLayout(
+        type: types.first,
+        bundle: bundle,
+        state: state,
+        notifier: notifier,
+        availableActions: availableActions,
+        counts: counts,
+        projectedDiveNumbers: projectedDiveNumbers,
+        onImport: onImport,
+        onBack: onBack,
+      );
+    }
+
+    return _MultiTypeLayout(
+      types: types,
+      bundle: bundle,
+      state: state,
+      notifier: notifier,
+      availableActions: availableActions,
+      counts: counts,
+      projectedDiveNumbers: projectedDiveNumbers,
+      onImport: onImport,
+      onBack: onBack,
+    );
+  }
+
+  /// Compute a map from item index → projected dive number.
+  ///
+  /// Only assigns numbers to dives that will actually be imported as new
+  /// (selected non-duplicates + duplicates with "Import as New" action).
+  /// Skipped and consolidated dives are excluded.
+  static Map<int, int>? _computeProjectedDiveNumbers({
+    required ImportBundle bundle,
+    required int? nextDiveNumber,
+    required bool retainSource,
+    required Set<int> selections,
+    required Map<int, DuplicateAction> duplicateActions,
+    required Set<int> duplicateIndices,
+  }) {
+    final group = bundle.groups[ImportEntityType.dives];
+    if (group == null || nextDiveNumber == null) return null;
+
+    final items = group.items;
+
+    // Determine which indices will be imported as new dives.
+    final importIndices = <int>{};
+    for (var i = 0; i < items.length; i++) {
+      if (duplicateIndices.contains(i)) {
+        // Duplicate: only include if action is importAsNew.
+        if (duplicateActions[i] == DuplicateAction.importAsNew) {
+          importIndices.add(i);
+        }
+      } else if (selections.contains(i)) {
+        // Non-duplicate: include if selected.
+        importIndices.add(i);
+      }
+    }
+
+    // Build (index, startTime) pairs for sorting.
+    final indexed = <(int, DateTime)>[];
+    for (final i in importIndices) {
+      final time = items[i].diveData?.startTime ?? DateTime(0);
+      indexed.add((i, time));
+    }
+    indexed.sort((a, b) => a.$2.compareTo(b.$2));
+
+    // Assign numbers oldest-first.
+    final result = <int, int>{};
+    for (var n = 0; n < indexed.length; n++) {
+      final itemIndex = indexed[n].$1;
+      result[itemIndex] = nextDiveNumber + n;
+    }
+    return result;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Single-type layout (no tab bar)
+// ---------------------------------------------------------------------------
+
+class _SingleTypeLayout extends StatelessWidget {
+  final ImportEntityType type;
+  final ImportBundle bundle;
+  final ImportWizardState state;
+  final ImportWizardNotifier notifier;
+  final Set<DuplicateAction> availableActions;
+  final _AggregateCounts counts;
+  final Map<int, int>? projectedDiveNumbers;
+  final VoidCallback onImport;
+  final VoidCallback? onBack;
+
+  const _SingleTypeLayout({
+    required this.type,
+    required this.bundle,
+    required this.state,
+    required this.notifier,
+    required this.availableActions,
+    required this.counts,
+    this.projectedDiveNumbers,
+    required this.onImport,
+    this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final group = bundle.groups[type]!;
+    final selectedIndices = state.selections[type] ?? const <int>{};
+    final duplicateActions = state.duplicateActions[type] ?? const {};
+    final hasDives = bundle.groups.containsKey(ImportEntityType.dives);
+
+    return Column(
+      children: [
+        if (hasDives)
+          _RetainDiveNumbersToggle(state: state, notifier: notifier),
+        Expanded(
+          child: SingleChildScrollView(
+            child: EntityReviewList(
+              group: group,
+              selectedIndices: selectedIndices,
+              duplicateActions: duplicateActions,
+              availableActions: availableActions,
+              onToggleSelection: (i) => notifier.toggleSelection(type, i),
+              onDuplicateActionChanged: (i, a) =>
+                  notifier.setDuplicateAction(type, i, a),
+              onSelectAll: () => notifier.selectAll(type),
+              onDeselectAll: () => notifier.deselectAll(type),
+              existingDiveIdForIndex: (i) =>
+                  group.matchResults?[i]?.diveId ?? '',
+              projectedDiveNumbers: type == ImportEntityType.dives
+                  ? projectedDiveNumbers
+                  : null,
+            ),
+          ),
+        ),
+        _BottomBar(counts: counts, onImport: onImport, onBack: onBack),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Multi-type layout (tab bar)
+// ---------------------------------------------------------------------------
+
+class _MultiTypeLayout extends StatelessWidget {
+  final List<ImportEntityType> types;
+  final ImportBundle bundle;
+  final ImportWizardState state;
+  final ImportWizardNotifier notifier;
+  final Set<DuplicateAction> availableActions;
+  final _AggregateCounts counts;
+  final Map<int, int>? projectedDiveNumbers;
+  final VoidCallback onImport;
+  final VoidCallback? onBack;
+
+  const _MultiTypeLayout({
+    required this.types,
+    required this.bundle,
+    required this.state,
+    required this.notifier,
+    required this.availableActions,
+    required this.counts,
+    this.projectedDiveNumbers,
+    required this.onImport,
+    this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasDives = bundle.groups.containsKey(ImportEntityType.dives);
+
+    return DefaultTabController(
+      length: types.length,
+      child: Column(
+        children: [
+          if (hasDives)
+            _RetainDiveNumbersToggle(state: state, notifier: notifier),
+          TabBar(
+            tabs: [
+              for (final type in types)
+                Tab(text: _tabLabel(type, bundle.groups[type]!.items.length)),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                for (final type in types)
+                  _EntityTab(
+                    type: type,
+                    bundle: bundle,
+                    state: state,
+                    notifier: notifier,
+                    availableActions: availableActions,
+                    projectedDiveNumbers: type == ImportEntityType.dives
+                        ? projectedDiveNumbers
+                        : null,
+                  ),
+              ],
+            ),
+          ),
+          _BottomBar(counts: counts, onImport: onImport, onBack: onBack),
+        ],
+      ),
+    );
+  }
+
+  String _tabLabel(ImportEntityType type, int count) {
+    return '${_typeDisplayName(type)} ($count)';
+  }
+
+  String _typeDisplayName(ImportEntityType type) {
+    switch (type) {
+      case ImportEntityType.dives:
+        return 'Dives';
+      case ImportEntityType.sites:
+        return 'Sites';
+      case ImportEntityType.buddies:
+        return 'Buddies';
+      case ImportEntityType.equipment:
+        return 'Equipment';
+      case ImportEntityType.trips:
+        return 'Trips';
+      case ImportEntityType.certifications:
+        return 'Certifications';
+      case ImportEntityType.diveCenters:
+        return 'Dive Centers';
+      case ImportEntityType.tags:
+        return 'Tags';
+      case ImportEntityType.diveTypes:
+        return 'Dive Types';
+      case ImportEntityType.equipmentSets:
+        return 'Equipment Sets';
+      case ImportEntityType.courses:
+        return 'Courses';
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Single tab content (used by multi-type layout)
+// ---------------------------------------------------------------------------
+
+class _EntityTab extends StatelessWidget {
+  final ImportEntityType type;
+  final ImportBundle bundle;
+  final ImportWizardState state;
+  final ImportWizardNotifier notifier;
+  final Set<DuplicateAction> availableActions;
+  final Map<int, int>? projectedDiveNumbers;
+
+  const _EntityTab({
+    required this.type,
+    required this.bundle,
+    required this.state,
+    required this.notifier,
+    required this.availableActions,
+    this.projectedDiveNumbers,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final group = bundle.groups[type]!;
+    final selectedIndices = state.selections[type] ?? const <int>{};
+    final duplicateActions = state.duplicateActions[type] ?? const {};
+
+    return SingleChildScrollView(
+      child: EntityReviewList(
+        group: group,
+        selectedIndices: selectedIndices,
+        duplicateActions: duplicateActions,
+        availableActions: availableActions,
+        onToggleSelection: (i) => notifier.toggleSelection(type, i),
+        onDuplicateActionChanged: (i, a) =>
+            notifier.setDuplicateAction(type, i, a),
+        onSelectAll: () => notifier.selectAll(type),
+        onDeselectAll: () => notifier.deselectAll(type),
+        existingDiveIdForIndex: (i) => group.matchResults?[i]?.diveId ?? '',
+        projectedDiveNumbers: projectedDiveNumbers,
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Retain dive numbers toggle
+// ---------------------------------------------------------------------------
+
+class _RetainDiveNumbersToggle extends StatelessWidget {
+  final ImportWizardState state;
+  final ImportWizardNotifier notifier;
+
+  const _RetainDiveNumbersToggle({required this.state, required this.notifier});
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      title: const Text('Retain source dive numbers'),
+      subtitle: const Text(
+        'Use dive numbers from the imported file instead of auto-assigning',
+      ),
+      value: state.retainSourceDiveNumbers,
+      onChanged: (value) => notifier.setRetainSourceDiveNumbers(value),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Bottom bar
+// ---------------------------------------------------------------------------
+
+class _BottomBar extends StatelessWidget {
+  final _AggregateCounts counts;
+  final VoidCallback onImport;
+  final VoidCallback? onBack;
+
+  const _BottomBar({required this.counts, required this.onImport, this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final parts = <String>[];
+    if (counts.importing > 0) {
+      parts.add('${counts.importing} new');
+    }
+    if (counts.consolidating > 0) {
+      parts.add('${counts.consolidating} merging');
+    }
+    if (counts.skipping > 0) {
+      parts.add('${counts.skipping} skipped');
+    }
+
+    final countsText = parts.isEmpty ? 'Nothing selected' : parts.join(', ');
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            if (onBack != null)
+              TextButton(onPressed: onBack, child: const Text('Back')),
+            Expanded(
+              child: Text(
+                countsText,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            FilledButton(
+              onPressed: onImport,
+              child: const Text('Import Selected'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Aggregate counts
+// ---------------------------------------------------------------------------
+
+/// Computed aggregate counts for the bottom bar summary text.
+class _AggregateCounts {
+  final int importing;
+  final int consolidating;
+  final int skipping;
+
+  const _AggregateCounts({
+    required this.importing,
+    required this.consolidating,
+    required this.skipping,
+  });
+
+  /// Compute counts from [ImportWizardState].
+  ///
+  /// - importing: selected non-duplicate items + duplicates with
+  ///   [DuplicateAction.importAsNew]
+  /// - consolidating: duplicates with [DuplicateAction.consolidate]
+  /// - skipping: duplicates with [DuplicateAction.skip] + non-selected
+  ///   non-duplicate items
+  static _AggregateCounts compute(ImportWizardState state) {
+    final bundle = state.bundle;
+    if (bundle == null) {
+      return const _AggregateCounts(
+        importing: 0,
+        consolidating: 0,
+        skipping: 0,
+      );
+    }
+
+    var importing = 0;
+    var consolidating = 0;
+    var skipping = 0;
+
+    for (final entry in bundle.groups.entries) {
+      final type = entry.key;
+      final group = entry.value;
+      final selectedIndices = state.selections[type] ?? const <int>{};
+      final duplicateActions =
+          state.duplicateActions[type] ?? const <int, DuplicateAction>{};
+
+      // Non-duplicate items
+      for (int i = 0; i < group.items.length; i++) {
+        if (!group.duplicateIndices.contains(i)) {
+          if (selectedIndices.contains(i)) {
+            importing++;
+          } else {
+            skipping++;
+          }
+        }
+      }
+
+      // Duplicate items
+      for (final dupIndex in group.duplicateIndices) {
+        final action =
+            duplicateActions[dupIndex] ?? _defaultAction(group, dupIndex);
+        switch (action) {
+          case DuplicateAction.importAsNew:
+            importing++;
+          case DuplicateAction.consolidate:
+            consolidating++;
+          case DuplicateAction.skip:
+            skipping++;
+        }
+      }
+    }
+
+    return _AggregateCounts(
+      importing: importing,
+      consolidating: consolidating,
+      skipping: skipping,
+    );
+  }
+
+  static DuplicateAction _defaultAction(EntityGroup group, int index) {
+    final result = group.matchResults?[index];
+    if (result == null) return DuplicateAction.skip;
+    return result.isProbable
+        ? DuplicateAction.skip
+        : DuplicateAction.importAsNew;
+  }
+}

@@ -162,6 +162,8 @@ class HealthKitService implements HealthImportService {
       latitude: gps?.latitude,
       longitude: gps?.longitude,
       profile: samples,
+      sourceFileName: null,
+      sourceFileFormat: 'healthkit',
     );
   }
 

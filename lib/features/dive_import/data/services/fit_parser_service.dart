@@ -130,6 +130,8 @@ class FitParserService {
       latitude: latitude,
       longitude: longitude,
       profile: profile,
+      sourceFileName: fileName,
+      sourceFileFormat: 'fit',
     );
   }
 
