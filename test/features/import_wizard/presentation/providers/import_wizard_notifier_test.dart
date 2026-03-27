@@ -657,9 +657,7 @@ void main() {
             ),
           ).thenAnswer((_) async => importResult);
 
-          when(
-            mockTagRepo.addTagToDive(any, any),
-          ).thenAnswer((_) async {});
+          when(mockTagRepo.addTagToDive(any, any)).thenAnswer((_) async {});
 
           await notifier.performImport();
 
