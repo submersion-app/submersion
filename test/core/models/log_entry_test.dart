@@ -114,5 +114,44 @@ void main() {
         isNull,
       );
     });
+
+    test('two instances with identical fields compare as equal', () {
+      final timestamp = DateTime(2026, 3, 27, 14, 32, 1, 123);
+      final a = LogEntry(
+        timestamp: timestamp,
+        category: LogCategory.bluetooth,
+        level: LogLevel.info,
+        message: 'Connected to Shearwater Perdix',
+      );
+      final b = LogEntry(
+        timestamp: timestamp,
+        category: LogCategory.bluetooth,
+        level: LogLevel.info,
+        message: 'Connected to Shearwater Perdix',
+      );
+
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+    });
+
+    test('copyWith returns a new instance with the given fields replaced', () {
+      final original = LogEntry(
+        timestamp: DateTime(2026, 3, 27, 14, 32, 1, 123),
+        category: LogCategory.bluetooth,
+        level: LogLevel.info,
+        message: 'Connected to Shearwater Perdix',
+      );
+
+      final updated = original.copyWith(
+        level: LogLevel.error,
+        message: 'Connection lost',
+      );
+
+      expect(updated.timestamp, original.timestamp);
+      expect(updated.category, original.category);
+      expect(updated.level, LogLevel.error);
+      expect(updated.message, 'Connection lost');
+      expect(updated, isNot(equals(original)));
+    });
   });
 }

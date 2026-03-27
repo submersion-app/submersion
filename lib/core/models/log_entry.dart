@@ -89,4 +89,32 @@ class LogEntry {
       message: match.group(4)!,
     );
   }
+
+  /// Returns a copy of this entry with the given fields replaced.
+  LogEntry copyWith({
+    DateTime? timestamp,
+    LogCategory? category,
+    LogLevel? level,
+    String? message,
+  }) {
+    return LogEntry(
+      timestamp: timestamp ?? this.timestamp,
+      category: category ?? this.category,
+      level: level ?? this.level,
+      message: message ?? this.message,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is LogEntry &&
+        other.timestamp == timestamp &&
+        other.category == category &&
+        other.level == level &&
+        other.message == message;
+  }
+
+  @override
+  int get hashCode => Object.hash(timestamp, category, level, message);
 }
