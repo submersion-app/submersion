@@ -32,7 +32,7 @@ class TripRepository {
       final rows = await query.get();
       return rows.map(_mapRowToTrip).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get all trips', e, stackTrace);
+      _log.error('Failed to get all trips', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -45,7 +45,11 @@ class TripRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToTrip(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get trip by id: $id', e, stackTrace);
+      _log.error(
+        'Failed to get trip by id: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -136,7 +140,11 @@ class TripRepository {
       _log.info('Created trip with id: $id');
       return trip.copyWith(id: id, createdAt: now, updatedAt: now);
     } catch (e, stackTrace) {
-      _log.error('Failed to create trip: ${trip.name}', e, stackTrace);
+      _log.error(
+        'Failed to create trip: ${trip.name}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -168,7 +176,11 @@ class TripRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Updated trip: ${trip.id}');
     } catch (e, stackTrace) {
-      _log.error('Failed to update trip: ${trip.id}', e, stackTrace);
+      _log.error(
+        'Failed to update trip: ${trip.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -197,7 +209,11 @@ class TripRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted trip: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete trip: $id', e, stackTrace);
+      _log.error(
+        'Failed to delete trip: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -245,7 +261,11 @@ class TripRepository {
       );
       _log.info('Assigned dive to trip');
     } catch (e, stackTrace) {
-      _log.error('Failed to assign dive to trip', e, stackTrace);
+      _log.error(
+        'Failed to assign dive to trip',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -261,7 +281,11 @@ class TripRepository {
       );
       _log.info('Removed dive from trip');
     } catch (e, stackTrace) {
-      _log.error('Failed to remove dive from trip', e, stackTrace);
+      _log.error(
+        'Failed to remove dive from trip',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -329,7 +353,11 @@ class TripRepository {
       _log.info('Found ${candidates.length} candidate dives');
       return candidates;
     } catch (e, stackTrace) {
-      _log.error('Failed to find candidate dives', e, stackTrace);
+      _log.error(
+        'Failed to find candidate dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -368,7 +396,11 @@ class TripRepository {
 
       _log.info('Batch assigned ${diveIds.length} dives to trip $tripId');
     } catch (e, stackTrace) {
-      _log.error('Failed to batch assign dives to trip', e, stackTrace);
+      _log.error(
+        'Failed to batch assign dives to trip',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }

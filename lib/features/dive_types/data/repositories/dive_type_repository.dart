@@ -47,7 +47,11 @@ class DiveTypeRepository {
       final rows = await query.get();
       return rows.map(_mapRowToDiveType).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get all dive types', e, stackTrace);
+      _log.error(
+        'Failed to get all dive types',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -64,7 +68,11 @@ class DiveTypeRepository {
       final rows = await query.get();
       return rows.map(_mapRowToDiveType).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get built-in dive types', e, stackTrace);
+      _log.error(
+        'Failed to get built-in dive types',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -90,7 +98,11 @@ class DiveTypeRepository {
       final rows = await query.get();
       return rows.map(_mapRowToDiveType).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get custom dive types', e, stackTrace);
+      _log.error(
+        'Failed to get custom dive types',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -102,7 +114,11 @@ class DiveTypeRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToDiveType(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get dive type by id: $id', e, stackTrace);
+      _log.error(
+        'Failed to get dive type by id: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -115,7 +131,11 @@ class DiveTypeRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToDiveType(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get dive type by name: $name', e, stackTrace);
+      _log.error(
+        'Failed to get dive type by name: $name',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -187,7 +207,11 @@ class DiveTypeRepository {
             : maxSortOrder + 1,
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to create dive type', e, stackTrace);
+      _log.error(
+        'Failed to create dive type',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -221,7 +245,11 @@ class DiveTypeRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Updated dive type: ${diveType.id}');
     } catch (e, stackTrace) {
-      _log.error('Failed to update dive type: ${diveType.id}', e, stackTrace);
+      _log.error(
+        'Failed to update dive type: ${diveType.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -241,7 +269,11 @@ class DiveTypeRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted dive type: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete dive type: $id', e, stackTrace);
+      _log.error(
+        'Failed to delete dive type: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -301,7 +333,11 @@ class DiveTypeRepository {
           )
           .toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get dive type statistics', e, stackTrace);
+      _log.error(
+        'Failed to get dive type statistics',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -319,7 +355,11 @@ class DiveTypeRepository {
           .getSingle();
       return (result.data['count'] as int) > 0;
     } catch (e, stackTrace) {
-      _log.error('Failed to check if dive type is in use: $id', e, stackTrace);
+      _log.error(
+        'Failed to check if dive type is in use: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }

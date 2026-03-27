@@ -32,7 +32,11 @@ class TankPresetRepository {
       // Return custom first, then built-in
       return [...customPresets, ...builtInPresets];
     } catch (e, stackTrace) {
-      _log.error('Failed to get all tank presets', e, stackTrace);
+      _log.error(
+        'Failed to get all tank presets',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -55,7 +59,11 @@ class TankPresetRepository {
       final rows = await query.get();
       return rows.map(_mapRowToEntity).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get custom tank presets', e, stackTrace);
+      _log.error(
+        'Failed to get custom tank presets',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -78,7 +86,11 @@ class TankPresetRepository {
 
       return null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get tank preset by id: $id', e, stackTrace);
+      _log.error(
+        'Failed to get tank preset by id: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -104,7 +116,11 @@ class TankPresetRepository {
 
       return null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get tank preset by name: $name', e, stackTrace);
+      _log.error(
+        'Failed to get tank preset by name: $name',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -177,7 +193,11 @@ class TankPresetRepository {
         updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to create tank preset', e, stackTrace);
+      _log.error(
+        'Failed to create tank preset',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -215,7 +235,11 @@ class TankPresetRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Updated tank preset: ${preset.id}');
     } catch (e, stackTrace) {
-      _log.error('Failed to update tank preset: ${preset.id}', e, stackTrace);
+      _log.error(
+        'Failed to update tank preset: ${preset.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -238,7 +262,11 @@ class TankPresetRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted tank preset: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete tank preset: $id', e, stackTrace);
+      _log.error(
+        'Failed to delete tank preset: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }

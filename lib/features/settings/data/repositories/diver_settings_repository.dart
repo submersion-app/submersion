@@ -29,7 +29,11 @@ class DiverSettingsRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToAppSettings(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get settings for diver: $diverId', e, stackTrace);
+      _log.error(
+        'Failed to get settings for diver: $diverId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -148,8 +152,8 @@ class DiverSettingsRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to create settings for diver: $diverId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -268,8 +272,8 @@ class DiverSettingsRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to update settings for diver: $diverId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -307,8 +311,8 @@ class DiverSettingsRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to delete settings for diver: $diverId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }

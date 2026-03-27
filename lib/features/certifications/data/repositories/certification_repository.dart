@@ -34,7 +34,11 @@ class CertificationRepository {
       final rows = await query.get();
       return rows.map(_mapRowToCertification).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get all certifications', e, stackTrace);
+      _log.error(
+        'Failed to get all certifications',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -48,7 +52,11 @@ class CertificationRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToCertification(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get certification by id: $id', e, stackTrace);
+      _log.error(
+        'Failed to get certification by id: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -143,7 +151,11 @@ class CertificationRepository {
       _log.info('Created certification with id: $id');
       return cert.copyWith(id: id, createdAt: now, updatedAt: now);
     } catch (e, stackTrace) {
-      _log.error('Failed to create certification: ${cert.name}', e, stackTrace);
+      _log.error(
+        'Failed to create certification: ${cert.name}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -180,7 +192,11 @@ class CertificationRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Updated certification: ${cert.id}');
     } catch (e, stackTrace) {
-      _log.error('Failed to update certification: ${cert.id}', e, stackTrace);
+      _log.error(
+        'Failed to update certification: ${cert.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -199,7 +215,11 @@ class CertificationRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted certification: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete certification: $id', e, stackTrace);
+      _log.error(
+        'Failed to delete certification: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }

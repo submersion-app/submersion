@@ -139,7 +139,7 @@ class AssetResolutionService {
     try {
       candidates = await _getAssetsCoalesced(start, end);
     } catch (e) {
-      _log.error('Gallery query failed for media ${item.id}', e);
+      _log.error('Gallery query failed for media ${item.id}', error: e);
       return const ResolutionResult(status: ResolutionStatus.unavailable);
     }
 

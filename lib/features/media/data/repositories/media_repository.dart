@@ -37,7 +37,11 @@ class MediaRepository {
         return _mapRowToMediaItem(mediaRow, enrichmentRow);
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get media for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to get media for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -60,7 +64,11 @@ class MediaRepository {
       final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
       return _mapRowToMediaItem(mediaRow, enrichmentRow);
     } catch (e, stackTrace) {
-      _log.error('Failed to get media by id: $id', e, stackTrace);
+      _log.error(
+        'Failed to get media by id: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -115,7 +123,11 @@ class MediaRepository {
       _log.info('Created media with id: $id');
       return item.copyWith(id: id, createdAt: now, updatedAt: now);
     } catch (e, stackTrace) {
-      _log.error('Failed to create media: ${item.filePath}', e, stackTrace);
+      _log.error(
+        'Failed to create media: ${item.filePath}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -161,7 +173,11 @@ class MediaRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Updated media: ${item.id}');
     } catch (e, stackTrace) {
-      _log.error('Failed to update media: ${item.id}', e, stackTrace);
+      _log.error(
+        'Failed to update media: ${item.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -175,7 +191,11 @@ class MediaRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted media: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete media: $id', e, stackTrace);
+      _log.error(
+        'Failed to delete media: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -195,7 +215,11 @@ class MediaRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted ${ids.length} media items');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete multiple media', e, stackTrace);
+      _log.error(
+        'Failed to delete multiple media',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -218,7 +242,11 @@ class MediaRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Marked media as orphaned: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to mark media as orphaned: $id', e, stackTrace);
+      _log.error(
+        'Failed to mark media as orphaned: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -245,7 +273,11 @@ class MediaRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Marked media as verified: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to mark media as verified: $id', e, stackTrace);
+      _log.error(
+        'Failed to mark media as verified: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -268,7 +300,11 @@ class MediaRepository {
         return _mapRowToMediaItem(mediaRow, enrichmentRow);
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get orphaned media', e, stackTrace);
+      _log.error(
+        'Failed to get orphaned media',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -305,7 +341,11 @@ class MediaRepository {
         return deletedCount;
       });
     } catch (e, stackTrace) {
-      _log.error('Failed to delete orphaned media', e, stackTrace);
+      _log.error(
+        'Failed to delete orphaned media',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -319,7 +359,11 @@ class MediaRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToEnrichment(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get enrichment for media: $mediaId', e, stackTrace);
+      _log.error(
+        'Failed to get enrichment for media: $mediaId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -385,8 +429,8 @@ class MediaRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to save enrichment for media: ${enrichment.mediaId}',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -408,7 +452,11 @@ class MediaRepository {
 
       return result.data['count'] as int? ?? 0;
     } catch (e, stackTrace) {
-      _log.error('Failed to get media count for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to get media count for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -431,8 +479,8 @@ class MediaRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get linked asset IDs for dive: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -474,7 +522,11 @@ class MediaRepository {
           )
           .toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get GPS from dive media: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to get GPS from dive media: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -516,8 +568,8 @@ class MediaRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get pending suggestion count for dive: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }

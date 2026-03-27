@@ -102,7 +102,11 @@ class MediaImportService {
         imported.add(saved);
         _log.info('Imported asset ${asset.id} as media ${saved.id}');
       } catch (e, stackTrace) {
-        _log.error('Failed to import asset ${asset.id}', e, stackTrace);
+        _log.error(
+          'Failed to import asset ${asset.id}',
+          error: e,
+          stackTrace: stackTrace,
+        );
         failures[asset.id] = e.toString();
       }
     }

@@ -194,8 +194,7 @@ class SyncService {
         } catch (e) {
           _log.error(
             'Failed to parse conflict data for ${record.recordId}',
-            e,
-            null,
+            error: e,
           );
         }
       }
@@ -236,7 +235,7 @@ class SyncService {
     _log.debug('performSync() called');
     final provider = _cloudProvider;
     if (provider == null) {
-      _log.error('No cloud provider configured', null, null);
+      _log.error('No cloud provider configured');
       return const SyncResult(
         status: SyncResultStatus.error,
         message: 'No cloud provider configured',
@@ -288,7 +287,10 @@ class SyncService {
         _log.warning('Timed out checking for remote sync file');
         remoteFileId = null;
       } catch (e, stackTrace) {
-        _log.warning('Failed to check remote sync file: $e', stackTrace);
+        _log.warning(
+          'Failed to check remote sync file: $e',
+          stackTrace: stackTrace,
+        );
         remoteFileId = null;
       }
 
@@ -304,7 +306,10 @@ class SyncService {
             }
           }
         } catch (e, stackTrace) {
-          _log.warning('Failed to check remote file info: $e', stackTrace);
+          _log.warning(
+            'Failed to check remote file info: $e',
+            stackTrace: stackTrace,
+          );
         }
       }
 
@@ -317,7 +322,10 @@ class SyncService {
           try {
             remotePayload = _serializer.deserializePayload(remoteJson);
           } catch (e, stackTrace) {
-            _log.warning('Failed to parse remote sync payload: $e', stackTrace);
+            _log.warning(
+              'Failed to parse remote sync payload: $e',
+              stackTrace: stackTrace,
+            );
             remotePayload = null;
           }
 
@@ -459,13 +467,17 @@ class SyncService {
     } on SyncStepException catch (e) {
       return SyncResult(status: SyncResultStatus.error, message: e.toString());
     } on CloudStorageException catch (e) {
-      _log.error('Cloud storage error during sync', e, e.stackTrace);
+      _log.error(
+        'Cloud storage error during sync',
+        error: e,
+        stackTrace: e.stackTrace,
+      );
       return SyncResult(
         status: SyncResultStatus.networkError,
         message: e.message,
       );
     } catch (e, stackTrace) {
-      _log.error('Sync failed', e, stackTrace);
+      _log.error('Sync failed', error: e, stackTrace: stackTrace);
       return SyncResult(
         status: SyncResultStatus.error,
         message: _formatSyncError(e, stackTrace),
@@ -477,7 +489,7 @@ class SyncService {
     try {
       return await action();
     } catch (e, stackTrace) {
-      _log.error('Sync step failed: $step', e, stackTrace);
+      _log.error('Sync step failed: $step', error: e, stackTrace: stackTrace);
       throw SyncStepException(step, e);
     }
   }
@@ -486,7 +498,7 @@ class SyncService {
     try {
       return action();
     } catch (e, stackTrace) {
-      _log.error('Sync step failed: $step', e, stackTrace);
+      _log.error('Sync step failed: $step', error: e, stackTrace: stackTrace);
       throw SyncStepException(step, e);
     }
   }
@@ -790,8 +802,8 @@ class SyncService {
       } catch (e, stackTrace) {
         _log.error(
           'Failed to merge $entityType record ${recordId ?? '(unknown)'}',
-          e,
-          stackTrace,
+          error: e,
+          stackTrace: stackTrace,
         );
         conflicts += 1;
         if (recordId != null) {

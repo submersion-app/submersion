@@ -31,8 +31,8 @@ class ItineraryDayRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get itinerary days for trip: $tripId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -85,7 +85,11 @@ class ItineraryDayRepository {
 
       _log.info('Saved ${days.length} itinerary days');
     } catch (e, stackTrace) {
-      _log.error('Failed to save itinerary days', e, stackTrace);
+      _log.error(
+        'Failed to save itinerary days',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -120,7 +124,11 @@ class ItineraryDayRepository {
 
       _log.info('Updated itinerary day: ${day.id}');
     } catch (e, stackTrace) {
-      _log.error('Failed to update itinerary day: ${day.id}', e, stackTrace);
+      _log.error(
+        'Failed to update itinerary day: ${day.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -153,8 +161,8 @@ class ItineraryDayRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to delete itinerary days for trip: $tripId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -229,8 +237,8 @@ class ItineraryDayRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to regenerate itinerary days for trip: $tripId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }

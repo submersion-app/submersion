@@ -48,7 +48,11 @@ class DiveComputerRepository {
       final rows = await query.get();
       return rows.map((row) => _mapRowToComputer(row)).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get all dive computers', e, stackTrace);
+      _log.error(
+        'Failed to get all dive computers',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -62,7 +66,11 @@ class DiveComputerRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToComputer(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get dive computer by id: $id', e, stackTrace);
+      _log.error(
+        'Failed to get dive computer by id: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -81,7 +89,11 @@ class DiveComputerRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToComputer(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get favorite dive computer', e, stackTrace);
+      _log.error(
+        'Failed to get favorite dive computer',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -99,8 +111,8 @@ class DiveComputerRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to find dive computer by bluetooth address: $address',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -153,7 +165,11 @@ class DiveComputerRepository {
         updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to create dive computer', e, stackTrace);
+      _log.error(
+        'Failed to create dive computer',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -196,8 +212,8 @@ class DiveComputerRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to update dive computer: ${computer.id}',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -231,7 +247,11 @@ class DiveComputerRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted dive computer: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete dive computer: $id', e, stackTrace);
+      _log.error(
+        'Failed to delete dive computer: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -283,7 +303,11 @@ class DiveComputerRepository {
 
       _log.info('Set favorite computer: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to set favorite computer: $id', e, stackTrace);
+      _log.error(
+        'Failed to set favorite computer: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -308,7 +332,11 @@ class DiveComputerRepository {
       );
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
-      _log.error('Failed to increment dive count for: $id', e, stackTrace);
+      _log.error(
+        'Failed to increment dive count for: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -332,7 +360,11 @@ class DiveComputerRepository {
       );
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
-      _log.error('Failed to update last download for: $id', e, stackTrace);
+      _log.error(
+        'Failed to update last download for: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -359,7 +391,11 @@ class DiveComputerRepository {
       );
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
-      _log.error('Failed to update last fingerprint for: $id', e, stackTrace);
+      _log.error(
+        'Failed to update last fingerprint for: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -384,7 +420,11 @@ class DiveComputerRepository {
 
       return await query.get();
     } catch (e, stackTrace) {
-      _log.error('Failed to get profiles for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to get profiles for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -408,7 +448,11 @@ class DiveComputerRepository {
           .whereType<String>()
           .toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get computer ids for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to get computer ids for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -425,7 +469,11 @@ class DiveComputerRepository {
       final rows = await query.get();
       return rows.map((row) => _mapRowToComputer(row)).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get computers for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to get computers for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -449,8 +497,8 @@ class DiveComputerRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get primary computer for dive: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       return null;
     }
@@ -509,8 +557,8 @@ class DiveComputerRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to set primary profile for dive: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -542,7 +590,11 @@ class DiveComputerRepository {
       );
       return match?.diveId;
     } catch (e, stackTrace) {
-      _log.error('Failed to find matching dive for profile', e, stackTrace);
+      _log.error(
+        'Failed to find matching dive for profile',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return null;
     }
   }
@@ -637,7 +689,11 @@ class DiveComputerRepository {
 
       return null;
     } catch (e, stackTrace) {
-      _log.error('Failed to find matching dive with score', e, stackTrace);
+      _log.error(
+        'Failed to find matching dive with score',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return null;
     }
   }
@@ -691,7 +747,11 @@ class DiveComputerRepository {
         totalBottomTime: data['total_time'] as int?,
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to get computer stats: $computerId', e, stackTrace);
+      _log.error(
+        'Failed to get computer stats: $computerId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return DiveComputerStats.empty();
     }
   }
@@ -720,8 +780,8 @@ class DiveComputerRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get dive ids for computer: $computerId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       return [];
     }
@@ -1107,7 +1167,7 @@ class DiveComputerRepository {
       _log.info('Imported ${points.length} profile points for dive $diveId');
       return diveId;
     } catch (e, stackTrace) {
-      _log.error('Failed to import profile', e, stackTrace);
+      _log.error('Failed to import profile', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -1154,7 +1214,11 @@ class DiveComputerRepository {
 
       return await createComputer(computer);
     } catch (e, stackTrace) {
-      _log.error('Failed to find or create computer', e, stackTrace);
+      _log.error(
+        'Failed to find or create computer',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -1172,7 +1236,11 @@ class DiveComputerRepository {
 
       return await query.get();
     } catch (e, stackTrace) {
-      _log.error('Failed to get events for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to get events for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -1221,7 +1289,11 @@ class DiveComputerRepository {
       );
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
-      _log.error('Failed to add profile event', e, stackTrace);
+      _log.error(
+        'Failed to add profile event',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -1252,7 +1324,11 @@ class DiveComputerRepository {
       );
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
-      _log.error('Failed to clear events for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to clear events for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }

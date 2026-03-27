@@ -102,14 +102,14 @@ class GoogleDriveStorageProvider
           stackTrace,
         );
       }
-      _log.error('Google Sign-In failed', e, stackTrace);
+      _log.error('Google Sign-In failed', error: e, stackTrace: stackTrace);
       throw CloudStorageException(
         'Google Sign-In failed: ${e.description ?? e.code.name}',
         e,
         stackTrace,
       );
     } catch (e, stackTrace) {
-      _log.error('Google Sign-In failed', e, stackTrace);
+      _log.error('Google Sign-In failed', error: e, stackTrace: stackTrace);
       throw CloudStorageException('Google Sign-In failed: $e', e, stackTrace);
     }
   }
@@ -185,7 +185,11 @@ class GoogleDriveStorageProvider
 
       return UploadResult(fileId: result.id!, uploadTime: DateTime.now());
     } catch (e, stackTrace) {
-      _log.error('Failed to upload file: $filename', e, stackTrace);
+      _log.error(
+        'Failed to upload file: $filename',
+        error: e,
+        stackTrace: stackTrace,
+      );
       throw CloudStorageException('Upload failed: $e', e, stackTrace);
     }
   }
@@ -211,7 +215,11 @@ class GoogleDriveStorageProvider
       _log.info('Downloaded file: $fileId (${allBytes.length} bytes)');
       return Uint8List.fromList(allBytes);
     } catch (e, stackTrace) {
-      _log.error('Failed to download file: $fileId', e, stackTrace);
+      _log.error(
+        'Failed to download file: $fileId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       throw CloudStorageException('Download failed: $e', e, stackTrace);
     }
   }
@@ -266,7 +274,7 @@ class GoogleDriveStorageProvider
           )
           .toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to list files', e, stackTrace);
+      _log.error('Failed to list files', error: e, stackTrace: stackTrace);
       throw CloudStorageException('List files failed: $e', e, stackTrace);
     }
   }
@@ -277,7 +285,11 @@ class GoogleDriveStorageProvider
       await _api.files.delete(fileId);
       _log.info('Deleted file: $fileId');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete file: $fileId', e, stackTrace);
+      _log.error(
+        'Failed to delete file: $fileId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       throw CloudStorageException('Delete failed: $e', e, stackTrace);
     }
   }
@@ -307,7 +319,11 @@ class GoogleDriveStorageProvider
       _log.info('Created folder: $folderName (${folder.id})');
       return folder.id!;
     } catch (e, stackTrace) {
-      _log.error('Failed to create folder: $folderName', e, stackTrace);
+      _log.error(
+        'Failed to create folder: $folderName',
+        error: e,
+        stackTrace: stackTrace,
+      );
       throw CloudStorageException('Create folder failed: $e', e, stackTrace);
     }
   }
@@ -346,7 +362,11 @@ class GoogleDriveStorageProvider
       );
       return _syncFolderId!;
     } catch (e, stackTrace) {
-      _log.error('Failed to get/create sync folder', e, stackTrace);
+      _log.error(
+        'Failed to get/create sync folder',
+        error: e,
+        stackTrace: stackTrace,
+      );
       throw CloudStorageException(
         'Get/create sync folder failed: $e',
         e,

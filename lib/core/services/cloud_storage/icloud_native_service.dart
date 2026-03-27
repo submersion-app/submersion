@@ -23,7 +23,10 @@ class ICloudNativeService {
       );
       return path;
     } catch (e, stackTrace) {
-      _log.warning('Failed to get iCloud container path: $e', stackTrace);
+      _log.warning(
+        'Failed to get iCloud container path: $e',
+        stackTrace: stackTrace,
+      );
       return null;
     }
   }
@@ -37,7 +40,10 @@ class ICloudNativeService {
       });
       return result ?? false;
     } catch (e, stackTrace) {
-      _log.warning('Failed to download iCloud file: $e', stackTrace);
+      _log.warning(
+        'Failed to download iCloud file: $e',
+        stackTrace: stackTrace,
+      );
       return false;
     }
   }
@@ -68,7 +74,10 @@ class ICloudNativeService {
       await _channel.invokeMethod<bool>('refreshFolder', {'path': path});
       _log.info('refreshFolder: done');
     } catch (e, stackTrace) {
-      _log.warning('Failed to refresh iCloud folder: $e', stackTrace);
+      _log.warning(
+        'Failed to refresh iCloud folder: $e',
+        stackTrace: stackTrace,
+      );
       // Don't throw - folder refresh is best-effort
     }
   }
@@ -86,7 +95,7 @@ class ICloudNativeService {
       });
       return result ?? false;
     } catch (e, stackTrace) {
-      _log.warning('Failed to move iCloud file: $e', stackTrace);
+      _log.warning('Failed to move iCloud file: $e', stackTrace: stackTrace);
       return false;
     }
   }

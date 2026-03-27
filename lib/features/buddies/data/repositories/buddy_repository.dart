@@ -34,7 +34,7 @@ class BuddyRepository {
       final rows = await query.get();
       return rows.map(_mapRowToBuddy).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get all buddies', e, stackTrace);
+      _log.error('Failed to get all buddies', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -47,7 +47,11 @@ class BuddyRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToBuddy(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get buddy by id: $id', e, stackTrace);
+      _log.error(
+        'Failed to get buddy by id: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -135,7 +139,11 @@ class BuddyRepository {
       _log.info('Created buddy with id: $id');
       return buddy.copyWith(id: id, createdAt: now, updatedAt: now);
     } catch (e, stackTrace) {
-      _log.error('Failed to create buddy: ${buddy.name}', e, stackTrace);
+      _log.error(
+        'Failed to create buddy: ${buddy.name}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -198,7 +206,11 @@ class BuddyRepository {
 
       return createBuddy(newBuddy);
     } catch (e, stackTrace) {
-      _log.error('Failed to find or create buddy: $name', e, stackTrace);
+      _log.error(
+        'Failed to find or create buddy: $name',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -232,7 +244,11 @@ class BuddyRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Updated buddy: ${buddy.id}');
     } catch (e, stackTrace) {
-      _log.error('Failed to update buddy: ${buddy.id}', e, stackTrace);
+      _log.error(
+        'Failed to update buddy: ${buddy.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -247,7 +263,11 @@ class BuddyRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted buddy: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete buddy: $id', e, stackTrace);
+      _log.error(
+        'Failed to delete buddy: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -477,7 +497,11 @@ class BuddyRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get buddies with dive counts', e, stackTrace);
+      _log.error(
+        'Failed to get buddies with dive counts',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
