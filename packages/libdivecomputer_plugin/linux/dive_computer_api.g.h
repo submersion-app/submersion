@@ -1337,6 +1337,48 @@ const gchar* libdivecomputer_plugin_dive_computer_flutter_api_on_pin_code_requir
  */
 FlValue* libdivecomputer_plugin_dive_computer_flutter_api_on_pin_code_required_response_get_error_details(LibdivecomputerPluginDiveComputerFlutterApiOnPinCodeRequiredResponse* response);
 
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerFlutterApiOnLogEventResponse, libdivecomputer_plugin_dive_computer_flutter_api_on_log_event_response, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_FLUTTER_API_ON_LOG_EVENT_RESPONSE, GObject)
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_log_event_response_is_error:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnLogEventResponse.
+ *
+ * Checks if a response to DiveComputerFlutterApi.onLogEvent is an error.
+ *
+ * Returns: a %TRUE if this response is an error.
+ */
+gboolean libdivecomputer_plugin_dive_computer_flutter_api_on_log_event_response_is_error(LibdivecomputerPluginDiveComputerFlutterApiOnLogEventResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_log_event_response_get_error_code:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnLogEventResponse.
+ *
+ * Get the error code for this response.
+ *
+ * Returns: an error code or %NULL if not an error.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_flutter_api_on_log_event_response_get_error_code(LibdivecomputerPluginDiveComputerFlutterApiOnLogEventResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_log_event_response_get_error_message:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnLogEventResponse.
+ *
+ * Get the error message for this response.
+ *
+ * Returns: an error message.
+ */
+const gchar* libdivecomputer_plugin_dive_computer_flutter_api_on_log_event_response_get_error_message(LibdivecomputerPluginDiveComputerFlutterApiOnLogEventResponse* response);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_log_event_response_get_error_details:
+ * @response: a #LibdivecomputerPluginDiveComputerFlutterApiOnLogEventResponse.
+ *
+ * Get the error details for this response.
+ *
+ * Returns: (allow-none): an error details or %NULL.
+ */
+FlValue* libdivecomputer_plugin_dive_computer_flutter_api_on_log_event_response_get_error_details(LibdivecomputerPluginDiveComputerFlutterApiOnLogEventResponse* response);
+
 /**
  * LibdivecomputerPluginDiveComputerFlutterApi:
  *
@@ -1516,6 +1558,31 @@ void libdivecomputer_plugin_dive_computer_flutter_api_on_pin_code_required(Libdi
  * Returns: a #LibdivecomputerPluginDiveComputerFlutterApiOnPinCodeRequiredResponse or %NULL on error.
  */
 LibdivecomputerPluginDiveComputerFlutterApiOnPinCodeRequiredResponse* libdivecomputer_plugin_dive_computer_flutter_api_on_pin_code_required_finish(LibdivecomputerPluginDiveComputerFlutterApi* api, GAsyncResult* result, GError** error);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_log_event:
+ * @api: a #LibdivecomputerPluginDiveComputerFlutterApi.
+ * @category: parameter for this method.
+ * @level: parameter for this method.
+ * @message: parameter for this method.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): (allow-none): a #GAsyncReadyCallback to call when the call is complete or %NULL to ignore the response.
+ * @user_data: (closure): user data to pass to @callback.
+ *
+ */
+void libdivecomputer_plugin_dive_computer_flutter_api_on_log_event(LibdivecomputerPluginDiveComputerFlutterApi* api, const gchar* category, const gchar* level, const gchar* message, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data);
+
+/**
+ * libdivecomputer_plugin_dive_computer_flutter_api_on_log_event_finish:
+ * @api: a #LibdivecomputerPluginDiveComputerFlutterApi.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Completes a libdivecomputer_plugin_dive_computer_flutter_api_on_log_event() call.
+ *
+ * Returns: a #LibdivecomputerPluginDiveComputerFlutterApiOnLogEventResponse or %NULL on error.
+ */
+LibdivecomputerPluginDiveComputerFlutterApiOnLogEventResponse* libdivecomputer_plugin_dive_computer_flutter_api_on_log_event_finish(LibdivecomputerPluginDiveComputerFlutterApi* api, GAsyncResult* result, GError** error);
 
 G_END_DECLS
 

@@ -685,6 +685,12 @@ class DiveComputerFlutterApi {
     const std::string& device_address,
     std::function<void(void)>&& on_success,
     std::function<void(const FlutterError&)>&& on_error);
+  void OnLogEvent(
+    const std::string& category,
+    const std::string& level,
+    const std::string& message,
+    std::function<void(void)>&& on_success,
+    std::function<void(const FlutterError&)>&& on_error);
 
  private:
   flutter::BinaryMessenger* binary_messenger_;

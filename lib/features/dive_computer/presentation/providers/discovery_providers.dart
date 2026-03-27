@@ -3,13 +3,32 @@ import 'dart:io';
 
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 
 /// Provider for the DiveComputerService singleton.
 final diveComputerServiceProvider = Provider<pigeon.DiveComputerService>((ref) {
   final service = pigeon.DiveComputerService();
   pigeon.DiveComputerFlutterApi.setUp(service);
+
+  const nativeLog = LoggerService('Native');
+  service.logEvents.listen((event) {
+    final category = LogCategory.fromTag(event.category);
+    if (category == null) return;
+    switch (event.level) {
+      case 'DEBUG':
+        nativeLog.debug(event.message, category: category);
+      case 'INFO':
+        nativeLog.info(event.message, category: category);
+      case 'WARN':
+        nativeLog.warning(event.message, category: category);
+      case 'ERROR':
+        nativeLog.error(event.message, category: category);
+    }
+  });
+
   ref.onDispose(() => service.dispose());
   return service;
 });
