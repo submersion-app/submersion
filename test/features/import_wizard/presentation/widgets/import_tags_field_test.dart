@@ -46,8 +46,8 @@ void main() {
         ),
       );
 
-      // InputChip delete button is the cancel icon
-      await tester.tap(find.byIcon(Icons.cancel));
+      // Chip delete button is the close icon
+      await tester.tap(find.byIcon(Icons.close));
       await tester.pump();
 
       expect(removedIndex, equals(0));
@@ -126,7 +126,7 @@ void main() {
       );
 
       expect(find.byIcon(Icons.label_outline), findsOneWidget);
-      expect(find.text('Import Tags'), findsOneWidget);
+      expect(find.text('Tags'), findsOneWidget);
     });
   });
 }

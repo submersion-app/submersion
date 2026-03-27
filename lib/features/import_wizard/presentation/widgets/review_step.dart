@@ -167,12 +167,27 @@ class _MultiTypeLayout extends StatelessWidget {
                 Tab(text: _tabLabel(type, bundle.groups[type]!.items.length)),
             ],
           ),
-          ImportTagsField(
-            tags: state.importTags,
-            existingTags: existingTags,
-            onAdd: (tag) => notifier.addImportTag(tag),
-            onRemove: (index) => notifier.removeImportTag(index),
-          ),
+          if (hasDives)
+            Builder(
+              builder: (context) {
+                final tabController = DefaultTabController.of(context);
+                final divesIndex = types.indexOf(ImportEntityType.dives);
+                return ListenableBuilder(
+                  listenable: tabController,
+                  builder: (context, _) {
+                    if (tabController.index != divesIndex) {
+                      return const SizedBox.shrink();
+                    }
+                    return ImportTagsField(
+                      tags: state.importTags,
+                      existingTags: existingTags,
+                      onAdd: (tag) => notifier.addImportTag(tag),
+                      onRemove: (index) => notifier.removeImportTag(index),
+                    );
+                  },
+                );
+              },
+            ),
           Expanded(
             child: TabBarView(
               children: [

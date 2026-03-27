@@ -388,17 +388,17 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           consolidated++;
         }
       } else {
-        // Import as new dive.
-        final importResult = await _importService.importDives(
-          dives: [dive],
-          computer: comp,
-          mode: ImportMode.all,
-          defaultResolution: ConflictResolution.importAsNew,
+        // Import as new dive. Use importSingleDiveAsNew to bypass the
+        // service's internal duplicate detection — the wizard has already
+        // resolved duplicates and the user's choice must be respected.
+        final diveId = await _importService.importSingleDiveAsNew(
+          dive,
+          computerId: comp.id,
           diverId: _diverId,
         );
         imported++;
         importedDives.add(dive);
-        importedDiveIds.addAll(importResult.importedDiveIds);
+        importedDiveIds.add(diveId);
       }
 
       onProgress?.call('Dives', i + 1, total);

@@ -368,39 +368,27 @@ void main() {
   // -------------------------------------------------------------------------
 
   group('performImport()', () {
-    test('imports non-duplicate dives via DiveImportService', () async {
+    test('imports non-duplicate dives via importSingleDiveAsNew', () async {
       final dive = makeDownloadedDive();
       adapter.setDownloadedDives([dive]);
       final bundle = await adapter.buildBundle();
 
       when(
-        mockImportService.importDives(
-          dives: [dive],
-          computer: computer,
-          mode: ImportMode.all,
-          defaultResolution: ConflictResolution.importAsNew,
+        mockImportService.importSingleDiveAsNew(
+          dive,
+          computerId: computer.id,
           diverId: diverId,
         ),
-      ).thenAnswer(
-        (_) async => ImportResult.success(
-          imported: 1,
-          skipped: 0,
-          updated: 0,
-          importedDiveIds: ['new-dive-1'],
-          importedDives: [dive],
-        ),
-      );
+      ).thenAnswer((_) async => 'new-dive-1');
 
       final result = await adapter.performImport(bundle, {
         ImportEntityType.dives: {0},
       }, {});
 
       verify(
-        mockImportService.importDives(
-          dives: [dive],
-          computer: computer,
-          mode: ImportMode.all,
-          defaultResolution: ConflictResolution.importAsNew,
+        mockImportService.importSingleDiveAsNew(
+          dive,
+          computerId: computer.id,
           diverId: diverId,
         ),
       ).called(1);
@@ -423,11 +411,9 @@ void main() {
       );
 
       verifyNever(
-        mockImportService.importDives(
-          dives: anyNamed('dives'),
-          computer: anyNamed('computer'),
-          mode: anyNamed('mode'),
-          defaultResolution: anyNamed('defaultResolution'),
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
           diverId: anyNamed('diverId'),
         ),
       );
@@ -441,22 +427,12 @@ void main() {
       final bundle = await adapter.buildBundle();
 
       when(
-        mockImportService.importDives(
-          dives: [dive],
-          computer: computer,
-          mode: ImportMode.all,
-          defaultResolution: ConflictResolution.importAsNew,
+        mockImportService.importSingleDiveAsNew(
+          dive,
+          computerId: computer.id,
           diverId: diverId,
         ),
-      ).thenAnswer(
-        (_) async => ImportResult.success(
-          imported: 1,
-          skipped: 0,
-          updated: 0,
-          importedDiveIds: ['new-dive-1'],
-          importedDives: [dive],
-        ),
-      );
+      ).thenAnswer((_) async => 'new-dive-1');
 
       // Index 0 is NOT in plain selections but has importAsNew action
       final result = await adapter.performImport(
@@ -468,11 +444,9 @@ void main() {
       );
 
       verify(
-        mockImportService.importDives(
-          dives: [dive],
-          computer: computer,
-          mode: ImportMode.all,
-          defaultResolution: ConflictResolution.importAsNew,
+        mockImportService.importSingleDiveAsNew(
+          dive,
+          computerId: computer.id,
           diverId: diverId,
         ),
       ).called(1);

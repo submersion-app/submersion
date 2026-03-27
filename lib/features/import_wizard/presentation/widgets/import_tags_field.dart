@@ -62,6 +62,20 @@ class _ImportTagsFieldState extends State<ImportTagsField> {
     _textController.clear();
   }
 
+  /// Resolve the display color for a [TagSelection] by looking up its
+  /// matching [Tag] in [widget.existingTags]. Falls back to the theme
+  /// primary color for brand-new tags not yet in the database.
+  Color _resolveColor(TagSelection selection) {
+    final match = widget.existingTags.cast<Tag?>().firstWhere(
+      (t) =>
+          (selection.existingTagId != null &&
+              t!.id == selection.existingTagId) ||
+          t!.name.toLowerCase() == selection.name.toLowerCase(),
+      orElse: () => null,
+    );
+    return match?.color ?? Colors.blue;
+  }
+
   /// Filter existing tags that match the query and aren't already selected.
   List<Tag> _filteredSuggestions(String query) {
     if (query.isEmpty) return [];
@@ -92,7 +106,7 @@ class _ImportTagsFieldState extends State<ImportTagsField> {
               Icon(Icons.label_outline, size: 18, color: colorScheme.primary),
               const SizedBox(width: 8),
               Text(
-                'Import Tags',
+                'Tags',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -116,11 +130,22 @@ class _ImportTagsFieldState extends State<ImportTagsField> {
                 runSpacing: 4,
                 children: [
                   for (var i = 0; i < widget.tags.length; i++)
-                    InputChip(
-                      label: Text(widget.tags[i].name),
-                      deleteIcon: const Icon(Icons.cancel),
-                      onDeleted: () => widget.onRemove(i),
-                    ),
+                    () {
+                      final tagColor = _resolveColor(widget.tags[i]);
+                      return Chip(
+                        label: Text(widget.tags[i].name),
+                        backgroundColor: tagColor.withValues(alpha: 0.2),
+                        side: BorderSide(color: tagColor),
+                        labelStyle: TextStyle(color: tagColor),
+                        deleteIcon: Icon(
+                          Icons.close,
+                          size: 18,
+                          color: tagColor,
+                        ),
+                        onDeleted: () => widget.onRemove(i),
+                        visualDensity: VisualDensity.compact,
+                      );
+                    }(),
                   IntrinsicWidth(
                     child: TextField(
                       controller: controller,
