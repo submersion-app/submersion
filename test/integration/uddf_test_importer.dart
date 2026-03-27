@@ -696,9 +696,9 @@ class UddfTestImporter {
 
       // Auto-calculate bottom time from profile if not set and profile exists
       if (dive.bottomTime == null && dive.profile.isNotEmpty) {
-        final calculatedDuration = dive.calculateBottomTimeFromProfile();
-        if (calculatedDuration != null) {
-          dive = dive.copyWith(bottomTime: calculatedDuration);
+        final calculatedBottomTime = dive.calculateBottomTimeFromProfile();
+        if (calculatedBottomTime != null) {
+          dive = dive.copyWith(bottomTime: calculatedBottomTime);
         }
       }
 
