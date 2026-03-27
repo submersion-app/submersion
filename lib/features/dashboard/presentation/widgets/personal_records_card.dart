@@ -49,7 +49,7 @@ class PersonalRecordsCard extends ConsumerWidget {
             _RecordChip(
               icon: Icons.timer,
               label: context.l10n.dashboard_personalRecords_longest,
-              value: '${records.longestDive!.duration!.inMinutes}min',
+              value: '${records.longestDive!.bottomTime!.inMinutes}min',
               subtitle: records.longestDive!.site?.name,
               color: Colors.teal,
               onTap: () => context.push('/dives/${records.longestDive!.id}'),

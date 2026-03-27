@@ -303,7 +303,7 @@ class DiverRepository {
     try {
       final result = await _db
           .customSelect(
-            'SELECT COALESCE(SUM(duration), 0) as total FROM dives WHERE diver_id = ?',
+            'SELECT COALESCE(SUM(bottom_time), 0) as total FROM dives WHERE diver_id = ?',
             variables: [Variable.withString(diverId)],
           )
           .getSingle();

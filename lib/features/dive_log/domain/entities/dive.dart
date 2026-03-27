@@ -18,7 +18,7 @@ class Dive extends Equatable {
   final DateTime dateTime; // Legacy field, kept for compatibility
   final DateTime? entryTime; // When diver entered water
   final DateTime? exitTime; // When diver exited water
-  final Duration? duration; // Bottom time
+  final Duration? bottomTime; // Bottom time
   final Duration? runtime; // Total runtime (includes descent/ascent)
   final double? maxDepth; // meters
   final double? avgDepth; // meters
@@ -129,7 +129,7 @@ class Dive extends Equatable {
     required this.dateTime,
     this.entryTime,
     this.exitTime,
-    this.duration,
+    this.bottomTime,
     this.runtime,
     this.maxDepth,
     this.avgDepth,
@@ -227,7 +227,7 @@ class Dive extends Equatable {
     if (entryTime != null && exitTime != null) {
       return exitTime!.difference(entryTime!);
     }
-    return duration;
+    return bottomTime;
   }
 
   /// Total weight from all weight entries
@@ -260,9 +260,9 @@ class Dive extends Equatable {
   /// Air consumption rate in L/min at surface (Surface Air Consumption)
   /// Calculates total gas consumed across all tanks with valid data.
   double? get sac {
-    if (tanks.isEmpty || duration == null || avgDepth == null) return null;
+    if (tanks.isEmpty || bottomTime == null || avgDepth == null) return null;
 
-    final minutes = duration!.inSeconds / 60;
+    final minutes = bottomTime!.inSeconds / 60;
     if (minutes <= 0) return null;
 
     final avgPressureAtm = (avgDepth! / 10) + 1; // Convert depth to ATM
@@ -298,9 +298,9 @@ class Dive extends Equatable {
   /// This is a simpler calculation that doesn't require tank volume.
   /// It calculates the average pressure drop per minute adjusted for depth.
   double? get sacPressure {
-    if (tanks.isEmpty || duration == null || avgDepth == null) return null;
+    if (tanks.isEmpty || bottomTime == null || avgDepth == null) return null;
 
-    final minutes = duration!.inSeconds / 60;
+    final minutes = bottomTime!.inSeconds / 60;
     if (minutes <= 0) return null;
 
     final avgPressureAtm = (avgDepth! / 10) + 1; // Convert depth to ATM
@@ -443,7 +443,7 @@ class Dive extends Equatable {
     DateTime? dateTime,
     DateTime? entryTime,
     DateTime? exitTime,
-    Duration? duration,
+    Duration? bottomTime,
     Duration? runtime,
     double? maxDepth,
     double? avgDepth,
@@ -528,7 +528,7 @@ class Dive extends Equatable {
       dateTime: dateTime ?? this.dateTime,
       entryTime: entryTime ?? this.entryTime,
       exitTime: exitTime ?? this.exitTime,
-      duration: duration ?? this.duration,
+      bottomTime: bottomTime ?? this.bottomTime,
       runtime: runtime ?? this.runtime,
       maxDepth: maxDepth ?? this.maxDepth,
       avgDepth: avgDepth ?? this.avgDepth,
@@ -616,7 +616,7 @@ class Dive extends Equatable {
     dateTime,
     entryTime,
     exitTime,
-    duration,
+    bottomTime,
     runtime,
     maxDepth,
     avgDepth,

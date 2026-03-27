@@ -70,7 +70,7 @@ void main() {
       id: 'test-1',
       dateTime: DateTime(2024, 6, 15),
       maxDepth: 30.0,
-      duration: const Duration(minutes: 45),
+      bottomTime: const Duration(minutes: 45),
       waterTemp: 22.5,
       sortTimestamp: DateTime(2024, 6, 15).millisecondsSinceEpoch,
     );

@@ -56,7 +56,7 @@ void main() {
         dateTime: dateTime,
         entryTime: dateTime,
         exitTime: dateTime.add(Duration(minutes: durationMinutes)),
-        duration: Duration(minutes: durationMinutes),
+        bottomTime: Duration(minutes: durationMinutes),
         maxDepth: maxDepth,
         importId: importId,
       );

@@ -30,7 +30,7 @@ Dive _makeDive({
     dateTime: dateTime ?? _currentDiveDate,
     diveNumber: diveNumber,
     maxDepth: maxDepth,
-    duration: duration,
+    bottomTime: duration,
     diveComputerModel: diveComputerModel,
     entryTime: entryTime,
     site: siteName != null ? DiveSite(id: 'site-$id', name: siteName) : null,

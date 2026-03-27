@@ -46,7 +46,7 @@ void main() {
       id: id,
       diveNumber: diveNumber,
       dateTime: dateTime ?? DateTime.now(),
-      duration: duration,
+      bottomTime: duration,
       maxDepth: maxDepth,
       avgDepth: avgDepth,
       site: site,
@@ -103,7 +103,7 @@ void main() {
         expect(fetchedDive!.diveNumber, equals(100));
         expect(fetchedDive.maxDepth, equals(25.5));
         expect(fetchedDive.avgDepth, equals(15.0));
-        expect(fetchedDive.duration?.inMinutes, equals(45));
+        expect(fetchedDive.bottomTime?.inMinutes, equals(45));
         expect(fetchedDive.notes, equals('Great visibility today'));
         expect(fetchedDive.waterTemp, equals(24.0));
         expect(fetchedDive.diveTypeId, equals('recreational'));

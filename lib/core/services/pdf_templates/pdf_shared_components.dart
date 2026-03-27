@@ -505,8 +505,8 @@ class PdfSharedComponents {
     }
 
     final totalDiveTime = dives
-        .where((d) => d.duration != null)
-        .fold<Duration>(Duration.zero, (sum, d) => sum + d.duration!);
+        .where((d) => d.bottomTime != null)
+        .fold<Duration>(Duration.zero, (sum, d) => sum + d.bottomTime!);
     final maxDepth = dives
         .where((d) => d.maxDepth != null)
         .map((d) => d.maxDepth!)

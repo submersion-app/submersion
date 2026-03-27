@@ -156,8 +156,8 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                           cellStyle,
                         ),
                         _buildCell(
-                          dive.duration != null
-                              ? '${dive.duration!.inMinutes}min'
+                          dive.bottomTime != null
+                              ? '${dive.bottomTime!.inMinutes}min'
                               : '-',
                           cellStyle,
                         ),

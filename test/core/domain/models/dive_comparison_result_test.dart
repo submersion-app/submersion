@@ -22,7 +22,7 @@ Dive _makeDive({
     entryTime: entryTime,
     maxDepth: maxDepth,
     avgDepth: avgDepth,
-    duration: duration,
+    bottomTime: duration,
     runtime: runtime,
     waterTemp: waterTemp,
     diveComputerModel: diveComputerModel,

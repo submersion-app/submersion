@@ -21,7 +21,7 @@ void main() {
           dateTime: DateTime(2024, 1, 15, 10, 0),
           entryTime: DateTime(2024, 1, 15, 10, 0),
           exitTime: DateTime(2024, 1, 15, 11, 0),
-          duration: const Duration(minutes: 60),
+          bottomTime: const Duration(minutes: 60),
         );
 
         final photoTime = DateTime(2024, 1, 15, 10, 30);
@@ -36,7 +36,7 @@ void main() {
           dateTime: DateTime(2024, 1, 15, 10, 0),
           entryTime: DateTime(2024, 1, 15, 10, 0),
           exitTime: DateTime(2024, 1, 15, 11, 0),
-          duration: const Duration(minutes: 60),
+          bottomTime: const Duration(minutes: 60),
         );
 
         final photoTime = DateTime(2024, 1, 15, 15, 0); // 4 hours later
@@ -51,7 +51,7 @@ void main() {
           dateTime: DateTime(2024, 1, 15, 10, 0),
           entryTime: DateTime(2024, 1, 15, 10, 0),
           exitTime: DateTime(2024, 1, 15, 11, 0),
-          duration: const Duration(minutes: 60),
+          bottomTime: const Duration(minutes: 60),
         );
 
         // 20 minutes before entry (within 30 min buffer)
@@ -69,7 +69,7 @@ void main() {
           dateTime: DateTime(2024, 1, 15, 10, 0),
           entryTime: DateTime(2024, 1, 15, 10, 0),
           exitTime: DateTime(2024, 1, 15, 11, 0),
-          duration: const Duration(minutes: 60),
+          bottomTime: const Duration(minutes: 60),
         );
 
         // 15 minutes after exit (within 30 min buffer)
@@ -87,7 +87,7 @@ void main() {
           dateTime: DateTime(2024, 1, 15, 10, 0),
           entryTime: DateTime(2024, 1, 15, 10, 0),
           exitTime: DateTime(2024, 1, 15, 11, 0),
-          duration: const Duration(minutes: 60),
+          bottomTime: const Duration(minutes: 60),
         );
 
         // 45 minutes before entry (outside 30 min buffer)
@@ -105,14 +105,14 @@ void main() {
           dateTime: DateTime(2024, 1, 15, 10, 0),
           entryTime: DateTime(2024, 1, 15, 10, 0),
           exitTime: DateTime(2024, 1, 15, 11, 0),
-          duration: const Duration(minutes: 60),
+          bottomTime: const Duration(minutes: 60),
         );
         final dive2 = Dive(
           id: 'dive-2',
           dateTime: DateTime(2024, 1, 15, 12, 0),
           entryTime: DateTime(2024, 1, 15, 12, 0),
           exitTime: DateTime(2024, 1, 15, 13, 0),
-          duration: const Duration(minutes: 60),
+          bottomTime: const Duration(minutes: 60),
         );
 
         // 11:45 - 45 min after dive1 exit, 15 min before dive2 entry
@@ -132,7 +132,7 @@ void main() {
           final dive = Dive(
             id: 'dive-1',
             dateTime: DateTime(2024, 1, 15, 10, 0),
-            duration: const Duration(minutes: 60),
+            bottomTime: const Duration(minutes: 60),
           );
 
           // Photo during the calculated dive time
@@ -156,14 +156,14 @@ void main() {
           dateTime: DateTime(2024, 1, 15, 10, 0),
           entryTime: DateTime(2024, 1, 15, 10, 0),
           exitTime: DateTime(2024, 1, 15, 11, 0),
-          duration: const Duration(minutes: 60),
+          bottomTime: const Duration(minutes: 60),
         );
         final dive2 = Dive(
           id: 'dive-2',
           dateTime: DateTime(2024, 1, 15, 10, 30),
           entryTime: DateTime(2024, 1, 15, 10, 30),
           exitTime: DateTime(2024, 1, 15, 11, 30),
-          duration: const Duration(minutes: 60),
+          bottomTime: const Duration(minutes: 60),
         );
 
         // 10:15 - during dive1, within buffer of dive2
@@ -183,7 +183,7 @@ void main() {
           dateTime: DateTime(2024, 1, 15, 10, 0),
           entryTime: DateTime(2024, 1, 15, 10, 0),
           exitTime: DateTime(2024, 1, 15, 11, 0),
-          duration: const Duration(minutes: 60),
+          bottomTime: const Duration(minutes: 60),
         );
 
         // 25 minutes before entry (within default 30 min buffer)
@@ -209,7 +209,7 @@ void main() {
             dateTime: DateTime.utc(2024, 1, 15, 10, 0),
             entryTime: DateTime.utc(2024, 1, 15, 10, 0),
             exitTime: DateTime.utc(2024, 1, 15, 11, 0),
-            duration: const Duration(minutes: 60),
+            bottomTime: const Duration(minutes: 60),
           );
 
           // Photo taken at 10:30 AM local (same wall-clock window as dive)
@@ -226,7 +226,7 @@ void main() {
           dateTime: DateTime.utc(2024, 1, 15, 10, 0),
           entryTime: DateTime.utc(2024, 1, 15, 10, 0),
           exitTime: DateTime.utc(2024, 1, 15, 11, 0),
-          duration: const Duration(minutes: 60),
+          bottomTime: const Duration(minutes: 60),
         );
 
         // 20 minutes before entry in local time
@@ -244,7 +244,7 @@ void main() {
           dateTime: DateTime.utc(2024, 1, 15, 10, 0),
           entryTime: DateTime.utc(2024, 1, 15, 10, 0),
           exitTime: DateTime.utc(2024, 1, 15, 11, 0),
-          duration: const Duration(minutes: 60),
+          bottomTime: const Duration(minutes: 60),
         );
 
         // 15 minutes after exit in local time
@@ -262,7 +262,7 @@ void main() {
           dateTime: DateTime.utc(2024, 1, 15, 10, 0),
           entryTime: DateTime.utc(2024, 1, 15, 10, 0),
           exitTime: DateTime.utc(2024, 1, 15, 11, 0),
-          duration: const Duration(minutes: 60),
+          bottomTime: const Duration(minutes: 60),
         );
 
         // 4 hours later in local time
@@ -276,7 +276,7 @@ void main() {
         final dive = Dive(
           id: 'dive-1',
           dateTime: DateTime.utc(2024, 1, 15, 10, 0),
-          duration: const Duration(minutes: 60),
+          bottomTime: const Duration(minutes: 60),
         );
 
         final photoTime = DateTime(2024, 1, 15, 10, 30);

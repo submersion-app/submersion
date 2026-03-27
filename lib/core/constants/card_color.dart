@@ -66,7 +66,7 @@ double? getCardColorValue(DiveSummary dive, CardColorAttribute attribute) {
   return switch (attribute) {
     CardColorAttribute.none => null,
     CardColorAttribute.depth => dive.maxDepth,
-    CardColorAttribute.duration => dive.duration?.inMinutes.toDouble(),
+    CardColorAttribute.duration => dive.bottomTime?.inMinutes.toDouble(),
     CardColorAttribute.temperature => dive.waterTemp,
   };
 }
@@ -76,7 +76,7 @@ double? getCardColorValueFromDive(Dive dive, CardColorAttribute attribute) {
   return switch (attribute) {
     CardColorAttribute.none => null,
     CardColorAttribute.depth => dive.maxDepth,
-    CardColorAttribute.duration => dive.duration?.inMinutes.toDouble(),
+    CardColorAttribute.duration => dive.bottomTime?.inMinutes.toDouble(),
     CardColorAttribute.temperature => dive.waterTemp,
   };
 }

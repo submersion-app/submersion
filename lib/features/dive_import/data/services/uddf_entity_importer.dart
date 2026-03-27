@@ -1073,7 +1073,7 @@ class UddfEntityImporter {
         dateTime: dateTime,
         entryTime: entryTime,
         exitTime: exitTime,
-        duration: diveData['duration'] as Duration?,
+        bottomTime: diveData['duration'] as Duration?,
         runtime: runtime,
         maxDepth: diveData['maxDepth'] as double?,
         avgDepth: diveData['avgDepth'] as double?,
@@ -1129,10 +1129,10 @@ class UddfEntityImporter {
       );
 
       // Auto-calculate bottom time from profile if not set
-      if (dive.duration == null && dive.profile.isNotEmpty) {
+      if (dive.bottomTime == null && dive.profile.isNotEmpty) {
         final calculatedDuration = dive.calculateBottomTimeFromProfile();
         if (calculatedDuration != null) {
-          dive = dive.copyWith(duration: calculatedDuration);
+          dive = dive.copyWith(bottomTime: calculatedDuration);
         }
       }
 
@@ -1201,7 +1201,7 @@ class UddfEntityImporter {
           sourceFileFormat: const Value('uddf'),
           maxDepth: Value(diveData['maxDepth'] as double?),
           avgDepth: Value(diveData['avgDepth'] as double?),
-          duration: Value(dive.duration?.inSeconds),
+          duration: Value(dive.bottomTime?.inSeconds),
           waterTemp: Value(diveData['waterTemp'] as double?),
           entryTime: Value(dive.entryTime),
           exitTime: Value(dive.exitTime),

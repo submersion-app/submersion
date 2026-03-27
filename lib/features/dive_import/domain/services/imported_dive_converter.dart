@@ -45,7 +45,7 @@ class ImportedDiveConverter {
     if (profile.isNotEmpty) {
       final bottomTime = dive.calculateBottomTimeFromProfile();
       if (bottomTime != null) {
-        return dive.copyWith(duration: bottomTime);
+        return dive.copyWith(bottomTime: bottomTime);
       }
     }
 

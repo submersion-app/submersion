@@ -307,15 +307,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           if (dive.exitTime != null) {
             _exitDate = dive.exitTime;
             _exitTime = TimeOfDay.fromDateTime(dive.exitTime!);
-          } else if (dive.duration != null) {
-            // Calculate exit time from entry + duration
-            final exitDateTime = entryDateTime.add(dive.duration!);
+          } else if (dive.bottomTime != null) {
+            // Calculate exit time from entry + bottomTime
+            final exitDateTime = entryDateTime.add(dive.bottomTime!);
             _exitDate = exitDateTime;
             _exitTime = TimeOfDay.fromDateTime(exitDateTime);
           }
-          // Bottom time (stored duration, or auto-calculated from profile)
-          if (dive.duration != null) {
-            _durationController.text = dive.duration!.inMinutes.toString();
+          // Bottom time (stored bottomTime, or auto-calculated from profile)
+          if (dive.bottomTime != null) {
+            _durationController.text = dive.bottomTime!.inMinutes.toString();
           } else if (dive.profile.isNotEmpty) {
             // Auto-calculate from profile if no stored duration
             final calculatedDuration = dive.calculateBottomTimeFromProfile();
@@ -3502,7 +3502,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         dateTime: entryDateTime, // Keep for backward compatibility
         entryTime: entryDateTime,
         exitTime: exitDateTime,
-        duration: duration,
+        bottomTime: duration,
         runtime: runtime,
         maxDepth: maxDepth,
         avgDepth: avgDepth,

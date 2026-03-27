@@ -714,11 +714,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               _buildStatItem(
                 context,
                 Icons.timer,
-                dive.duration != null
-                    ? '${dive.duration!.inMinutes} min'
+                dive.bottomTime != null
+                    ? '${dive.bottomTime!.inMinutes} min'
                     : '--',
                 context.l10n.diveLog_detail_stat_bottomTime,
-                sourceName: attribution?['duration'],
+                sourceName: attribution?['bottomTime'],
               ),
               _buildStatItem(
                 context,

@@ -242,7 +242,8 @@ class GasAnalysisService {
         tank: tank,
         gasSwitches: gasSwitches,
         diveStart: 0,
-        diveEnd: dive.duration?.inSeconds ?? profile.lastOrNull?.timestamp ?? 0,
+        diveEnd:
+            dive.bottomTime?.inSeconds ?? profile.lastOrNull?.timestamp ?? 0,
         tanks: dive.tanks,
       );
 

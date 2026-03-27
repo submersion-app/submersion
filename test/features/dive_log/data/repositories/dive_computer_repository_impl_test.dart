@@ -72,7 +72,7 @@ void main() {
             computerId: Value(computerId),
             entryTime: Value(entryTime),
             exitTime: Value(exitTime),
-            duration: Value(duration),
+            bottomTime: Value(duration),
             maxDepth: Value(maxDepth),
             avgDepth: Value(avgDepth),
             diveNumber: Value(diveNumber),

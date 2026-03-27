@@ -207,7 +207,7 @@ class ExcelExportService {
         dive.site?.locationString ?? '',
         convertDepth(dive.maxDepth, depthUnit),
         convertDepth(dive.avgDepth, depthUnit),
-        dive.duration?.inMinutes ?? '',
+        dive.bottomTime?.inMinutes ?? '',
         dive.runtime?.inMinutes ?? '',
         convertTemperature(dive.waterTemp, temperatureUnit),
         convertTemperature(dive.airTemp, temperatureUnit),
@@ -437,7 +437,7 @@ class ExcelExportService {
     if (dives.isNotEmpty) {
       final totalMinutes = dives.fold<int>(
         0,
-        (sum, d) => sum + (d.duration?.inMinutes ?? 0),
+        (sum, d) => sum + (d.bottomTime?.inMinutes ?? 0),
       );
       final hours = totalMinutes ~/ 60;
       final mins = totalMinutes % 60;
@@ -458,10 +458,12 @@ class ExcelExportService {
 
       final longestDive = dives.reduce(
         (a, b) =>
-            (a.duration?.inMinutes ?? 0) > (b.duration?.inMinutes ?? 0) ? a : b,
+            (a.bottomTime?.inMinutes ?? 0) > (b.bottomTime?.inMinutes ?? 0)
+            ? a
+            : b,
       );
-      if (longestDive.duration != null) {
-        addStat('Longest Dive', '${longestDive.duration!.inMinutes} min');
+      if (longestDive.bottomTime != null) {
+        addStat('Longest Dive', '${longestDive.bottomTime!.inMinutes} min');
       }
 
       final divesWithTemp = dives.where((d) => d.waterTemp != null).toList();
@@ -496,7 +498,7 @@ class ExcelExportService {
         final yearDives = divesByYear[year]!;
         final yearMinutes = yearDives.fold<int>(
           0,
-          (sum, d) => sum + (d.duration?.inMinutes ?? 0),
+          (sum, d) => sum + (d.bottomTime?.inMinutes ?? 0),
         );
         final yearHours = yearMinutes ~/ 60;
         final yearMins = yearMinutes % 60;

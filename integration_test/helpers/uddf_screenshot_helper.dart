@@ -659,7 +659,7 @@ class UddfScreenshotImporter {
         dateTime: dateTime,
         entryTime: entryTime,
         exitTime: exitTime,
-        duration: diveData['duration'] as Duration?,
+        bottomTime: diveData['duration'] as Duration?,
         runtime: runtime,
         maxDepth: diveData['maxDepth'] as double?,
         avgDepth: diveData['avgDepth'] as double?,
@@ -695,10 +695,10 @@ class UddfScreenshotImporter {
       );
 
       // Auto-calculate bottom time from profile if not set and profile exists
-      if (dive.duration == null && dive.profile.isNotEmpty) {
+      if (dive.bottomTime == null && dive.profile.isNotEmpty) {
         final calculatedDuration = dive.calculateBottomTimeFromProfile();
         if (calculatedDuration != null) {
-          dive = dive.copyWith(duration: calculatedDuration);
+          dive = dive.copyWith(bottomTime: calculatedDuration);
         }
       }
 

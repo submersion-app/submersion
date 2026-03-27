@@ -367,7 +367,7 @@ void main() {
             id: 'existing-1',
             dateTime: diveTime.add(const Duration(minutes: 1)),
             maxDepth: 25.5,
-            duration: const Duration(minutes: 44),
+            bottomTime: const Duration(minutes: 44),
           ),
         ],
       );
@@ -394,7 +394,7 @@ void main() {
             id: 'existing-1',
             dateTime: DateTime(2024, 6, 1, 14, 0),
             maxDepth: 10.0,
-            duration: const Duration(minutes: 20),
+            bottomTime: const Duration(minutes: 20),
           ),
         ],
       );
@@ -416,7 +416,7 @@ void main() {
             id: 'existing-1',
             dateTime: DateTime(2024, 1, 15, 10, 0),
             maxDepth: 25.0,
-            duration: const Duration(minutes: 45),
+            bottomTime: const Duration(minutes: 45),
           ),
         ],
       );
@@ -443,7 +443,7 @@ void main() {
             id: 'existing-1',
             dateTime: diveTime,
             maxDepth: 25.0,
-            duration: const Duration(minutes: 45),
+            bottomTime: const Duration(minutes: 45),
           ),
         ],
       );
@@ -511,7 +511,7 @@ void main() {
             id: 'dive-1',
             dateTime: diveTime,
             maxDepth: 25.0,
-            duration: const Duration(minutes: 45),
+            bottomTime: const Duration(minutes: 45),
           ),
         ],
       );

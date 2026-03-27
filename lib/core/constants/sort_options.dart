@@ -18,7 +18,7 @@ enum DiveSortField {
   date('Date', Icons.calendar_today),
   site('Site', Icons.place),
   depth('Max Depth', Icons.vertical_align_bottom),
-  duration('Duration', Icons.timer),
+  bottomTime('Bottom Time', Icons.timer),
   rating('Rating', Icons.star),
   diveNumber('Dive Number', Icons.tag);
 

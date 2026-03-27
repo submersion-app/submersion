@@ -385,7 +385,7 @@ class TripRepository {
           '''
       SELECT
         COUNT(*) as dive_count,
-        COALESCE(SUM(duration), 0) as total_bottom_time,
+        COALESCE(SUM(bottom_time), 0) as total_bottom_time,
         MAX(max_depth) as max_depth,
         AVG(max_depth) as avg_depth
       FROM dives
@@ -463,7 +463,7 @@ class TripRepository {
       SELECT
         t.*,
         COUNT(DISTINCT d.id) AS dive_count,
-        COALESCE(SUM(d.duration), 0) AS total_bottom_time,
+        COALESCE(SUM(d.bottom_time), 0) AS total_bottom_time,
         MAX(d.max_depth) AS max_depth,
         AVG(d.avg_depth) AS avg_depth
       FROM trips t
