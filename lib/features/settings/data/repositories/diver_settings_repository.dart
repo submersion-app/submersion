@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -131,6 +132,13 @@ class DiverSettingsRepository {
               ),
               reminderTime: Value(_formatReminderTime(s.reminderTime)),
               showDataSourceBadges: Value(s.showDataSourceBadges),
+              diveDetailSections: Value(
+                s.diveDetailSections == DiveDetailSectionConfig.defaultSections
+                    ? null
+                    : DiveDetailSectionConfig.sectionsToJson(
+                        s.diveDetailSections,
+                      ),
+              ),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -250,6 +258,14 @@ class DiverSettingsRepository {
           ),
           reminderTime: Value(_formatReminderTime(settings.reminderTime)),
           showDataSourceBadges: Value(settings.showDataSourceBadges),
+          diveDetailSections: Value(
+            settings.diveDetailSections ==
+                    DiveDetailSectionConfig.defaultSections
+                ? null
+                : DiveDetailSectionConfig.sectionsToJson(
+                    settings.diveDetailSections,
+                  ),
+          ),
           updatedAt: Value(now),
         ),
       );
@@ -392,6 +408,9 @@ class DiverSettingsRepository {
       serviceReminderDays: _parseReminderDays(row.serviceReminderDays),
       reminderTime: _parseReminderTime(row.reminderTime),
       showDataSourceBadges: row.showDataSourceBadges,
+      diveDetailSections: DiveDetailSectionConfig.sectionsFromJson(
+        row.diveDetailSections,
+      ),
     );
   }
 

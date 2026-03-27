@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -276,6 +277,13 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setShowDataSourceBadges(bool value) async =>
       state = state.copyWith(showDataSourceBadges: value);
+  @override
+  Future<void> setDiveDetailSections(
+    List<DiveDetailSectionConfig> sections,
+  ) async => state = state.copyWith(diveDetailSections: sections);
+  @override
+  Future<void> resetDiveDetailSections() async =>
+      state = state.copyWith(clearDiveDetailSections: true);
 }
 
 /// Mock CurrentDiverIdNotifier that doesn't access the database
