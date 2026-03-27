@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
@@ -333,6 +334,11 @@ class _NonDuplicateRow extends StatelessWidget {
                 ],
               ),
             ),
+            // Dive profile sparkline (only when profile data exists)
+            if (item.diveData != null && item.diveData!.profile.isNotEmpty) ...[
+              const SizedBox(width: 4),
+              DiveSparkline(profile: item.diveData!.profile),
+            ],
             const SizedBox(width: 8),
             // Import/Skip badge
             if (isSelected)

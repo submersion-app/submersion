@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The importing progress step of the import wizard.
 ///
@@ -20,7 +22,7 @@ class ImportProgressStep extends ConsumerWidget {
     final total = state.importTotal;
 
     final fraction = (total > 0) ? current / total : null;
-    final phaseText = phase != null ? 'Importing $phase...' : 'Importing...';
+    final phaseText = _resolvePhaseText(context, phase);
 
     return Center(
       child: Padding(
@@ -73,5 +75,24 @@ class ImportProgressStep extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  String _resolvePhaseText(BuildContext context, ImportPhase? phase) {
+    if (phase == null) return 'Importing...';
+    final l10n = context.l10n;
+    return switch (phase) {
+      ImportPhase.dives => l10n.settings_import_phase_dives,
+      ImportPhase.sites => l10n.settings_import_phase_sites,
+      ImportPhase.trips => l10n.settings_import_phase_trips,
+      ImportPhase.equipment => l10n.settings_import_phase_equipment,
+      ImportPhase.equipmentSets => l10n.settings_import_phase_equipmentSets,
+      ImportPhase.buddies => l10n.settings_import_phase_buddies,
+      ImportPhase.diveCenters => l10n.settings_import_phase_diveCenters,
+      ImportPhase.certifications => l10n.settings_import_phase_certifications,
+      ImportPhase.tags => l10n.settings_import_phase_tags,
+      ImportPhase.diveTypes => l10n.settings_import_phase_diveTypes,
+      ImportPhase.courses => l10n.settings_import_phase_courses,
+      ImportPhase.applyingTags => l10n.settings_import_phase_applyingTags,
+    };
   }
 }

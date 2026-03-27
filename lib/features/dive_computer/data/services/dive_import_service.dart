@@ -320,8 +320,14 @@ class DiveImportService {
             );
             updated++;
           } else {
-            // Low confidence match in 'all' mode - import as new
-            final diveId = await _importNewDive(dive, computer.id, diverId);
+            // Low confidence match in 'all' mode - import as new.
+            // Must pass forceNew so importProfile skips its own matching.
+            final diveId = await _importNewDive(
+              dive,
+              computer.id,
+              diverId,
+              forceNew: true,
+            );
             importedDiveIds.add(diveId);
             importedDives.add(dive);
             imported++;

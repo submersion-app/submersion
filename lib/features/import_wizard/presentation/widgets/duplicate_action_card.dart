@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/presentation/widgets/dive_comparison_card.dart';
+import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
@@ -204,6 +205,11 @@ class _CollapsedHeader extends StatelessWidget {
                 ],
               ),
             ),
+            // Dive profile sparkline (only when profile data exists)
+            if (item.diveData != null && item.diveData!.profile.isNotEmpty) ...[
+              const SizedBox(width: 4),
+              DiveSparkline(profile: item.diveData!.profile),
+            ],
             const SizedBox(width: 8),
             // Match % badge
             Container(

@@ -60,6 +60,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
     as _i7;
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart'
     as _i8;
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart'
+    as _i41;
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart'
     as _i35;
 import 'package:submersion/features/tags/domain/entities/tag.dart' as _i13;
@@ -2779,7 +2781,7 @@ class MockUddfEntityImporter extends _i1.Mock
     required _i17.ImportRepositories? repositories,
     required String? diverId,
     bool? retainSourceDiveNumbers = false,
-    _i17.ImportProgressCallback? onProgress,
+    _i41.ImportProgressCallback? onProgress,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#import, [], {

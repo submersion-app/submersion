@@ -10434,6 +10434,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_import_phase_trips => 'Importation des voyages...';
 
   @override
+  String get settings_import_phase_courses => 'Importing courses...';
+
+  @override
+  String get settings_import_phase_applyingTags => 'Applying tags...';
+
+  @override
   String settings_import_progressLabel(
     Object phase,
     Object current,
@@ -12330,6 +12336,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tags_hint_addMoreTags => 'Ajouter plus d\'étiquettes...';
 
   @override
+  String get importWizard_tagsLabel => 'Tags';
+
+  @override
   String get tags_hint_addTags => 'Ajouter des étiquettes...';
 
   @override
@@ -13783,13 +13792,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ce format n\'est pas encore pris en charge. Veuillez exporter en UDDF ou CSV.';
 
   @override
-  String get universalImport_hint_tagDescription =>
-      'Étiquetez toutes les plongées importées pour un filtrage facile';
-
-  @override
-  String get universalImport_hint_tagExample => 'ex. Import MacDive 2026-02-09';
-
-  @override
   String get universalImport_label_columnMapping => 'Mappage des colonnes';
 
   @override
@@ -13815,9 +13817,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get universalImport_label_importComplete => 'Import terminé';
-
-  @override
-  String get universalImport_label_importTag => 'Étiquette d\'import';
 
   @override
   String get universalImport_label_importing => 'Import';
@@ -13930,9 +13929,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get universalImport_title => 'Importer des données';
-
-  @override
-  String get universalImport_tooltip_clearTag => 'Effacer l\'étiquette';
 
   @override
   String get universalImport_tooltip_closeWizard =>

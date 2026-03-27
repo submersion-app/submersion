@@ -566,7 +566,7 @@ class _ChartOptionsDialog extends StatelessWidget {
         _buildToggleWithSource(
           context,
           label: context.l10n.diveLog_legend_label_ndl,
-          color: Colors.lightGreen.shade700,
+          color: Colors.yellow.shade700,
           isEnabled: legendState.showNdl,
           onTap: legendNotifier.toggleNdl,
           currentSource: legendState.ndlSource,

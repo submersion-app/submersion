@@ -117,123 +117,122 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
       liveRegion: downloadState.isDownloading,
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Progress indicator
-              ExcludeSemantics(
-                child: _buildProgressIndicator(downloadState, colorScheme),
-              ),
-              const SizedBox(height: 32),
-
-              // Status text
-              Text(
-                statusText,
-                style: theme.textTheme.titleMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-
-              // Progress percentage
-              if (showPercent)
-                Text(
-                  context.l10n.diveComputer_downloadStep_progressPercent(
-                    (downloadState.progress!.percentage * 100).toStringAsFixed(
-                      0,
-                    ),
-                  ),
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
-                  ),
-                ),
-
-              const SizedBox(height: 32),
-
-              // Downloaded dives count
-              if (downloadState.downloadedDives.isNotEmpty)
-                _buildDivesList(context, downloadState),
-
-              const SizedBox(height: 24),
-
-              // Cancel button
-              if (downloadState.isDownloading)
-                OutlinedButton.icon(
-                  onPressed: () {
-                    ref
-                        .read(downloadNotifierProvider.notifier)
-                        .cancelDownload();
-                  },
-                  icon: const Icon(Icons.cancel),
-                  label: Text(context.l10n.diveComputer_downloadStep_cancel),
-                ),
-
-              // Error state
-              if (downloadState.hasError)
-                Column(
+        child: Column(
+          children: [
+            // Scrollable content area
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Semantics(
-                      label: context.l10n
-                          .diveComputer_downloadStep_errorSemanticLabel(
-                            _localizedError(context, downloadState),
-                          ),
-                      liveRegion: true,
-                      child: Card(
-                        color: colorScheme.errorContainer,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              ExcludeSemantics(
-                                child: Icon(
-                                  Icons.error,
-                                  color: colorScheme.error,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  _localizedError(context, downloadState),
-                                  style: TextStyle(
-                                    color: colorScheme.onErrorContainer,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                    // Progress indicator
+                    ExcludeSemantics(
+                      child: _buildProgressIndicator(
+                        downloadState,
+                        colorScheme,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    FilledButton.icon(
-                      onPressed: () {
-                        _hasStarted = false;
-                        _startDownload();
-                      },
-                      icon: const Icon(Icons.refresh),
-                      label: Text(context.l10n.diveComputer_downloadStep_retry),
-                    ),
-                  ],
-                ),
+                    const SizedBox(height: 32),
 
-              // Cancelled state
-              if (downloadState.isCancelled)
-                Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    FilledButton.icon(
-                      onPressed: () {
-                        _hasStarted = false;
-                        _startDownload();
-                      },
-                      icon: const Icon(Icons.refresh),
-                      label: Text(context.l10n.diveComputer_downloadStep_retry),
+                    // Status text
+                    Text(
+                      statusText,
+                      style: theme.textTheme.titleMedium,
+                      textAlign: TextAlign.center,
                     ),
+                    const SizedBox(height: 8),
+
+                    // Progress percentage
+                    if (showPercent)
+                      Text(
+                        context.l10n.diveComputer_downloadStep_progressPercent(
+                          (downloadState.progress!.percentage * 100)
+                              .toStringAsFixed(0),
+                        ),
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+
+                    const SizedBox(height: 32),
+
+                    // Downloaded dives list
+                    if (downloadState.downloadedDives.isNotEmpty)
+                      _buildDivesList(context, downloadState),
                   ],
                 ),
+              ),
+            ),
+
+            // Action buttons pinned at bottom
+            if (downloadState.isDownloading) ...[
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () {
+                  ref.read(downloadNotifierProvider.notifier).cancelDownload();
+                },
+                icon: const Icon(Icons.cancel),
+                label: Text(context.l10n.diveComputer_downloadStep_cancel),
+              ),
             ],
-          ),
+
+            // Error state
+            if (downloadState.hasError) ...[
+              const SizedBox(height: 16),
+              Semantics(
+                label: context.l10n
+                    .diveComputer_downloadStep_errorSemanticLabel(
+                      _localizedError(context, downloadState),
+                    ),
+                liveRegion: true,
+                child: Card(
+                  color: colorScheme.errorContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        ExcludeSemantics(
+                          child: Icon(Icons.error, color: colorScheme.error),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _localizedError(context, downloadState),
+                            style: TextStyle(
+                              color: colorScheme.onErrorContainer,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: () {
+                  _hasStarted = false;
+                  _startDownload();
+                },
+                icon: const Icon(Icons.refresh),
+                label: Text(context.l10n.diveComputer_downloadStep_retry),
+              ),
+            ],
+
+            // Cancelled state
+            if (downloadState.isCancelled) ...[
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: () {
+                  _hasStarted = false;
+                  _startDownload();
+                },
+                icon: const Icon(Icons.refresh),
+                label: Text(context.l10n.diveComputer_downloadStep_retry),
+              ),
+            ],
+          ],
         ),
       ),
     );

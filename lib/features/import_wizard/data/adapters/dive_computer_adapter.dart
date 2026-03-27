@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
@@ -197,6 +198,18 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   String get displayName => _displayName;
 
   @override
+  String get defaultTagName {
+    final name = (_customDeviceName ?? _computer?.name ?? _displayName).trim();
+    final now = DateTime.now();
+    final date =
+        '${now.year}-'
+        '${now.month.toString().padLeft(2, '0')}-'
+        '${now.day.toString().padLeft(2, '0')}';
+    final base = name.toLowerCase().endsWith('import') ? name : '$name Import';
+    return '$base $date';
+  }
+
+  @override
   Set<DuplicateAction> get supportedDuplicateActions => const {
     DuplicateAction.skip,
     DuplicateAction.importAsNew,
@@ -303,7 +316,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     Map<ImportEntityType, Set<int>> selections,
     Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
     bool retainSourceDiveNumbers = false,
-    void Function(String phase, int current, int total)? onProgress,
+    ImportProgressCallback? onProgress,
   }) async {
     final comp = computer;
     if (comp == null) {
@@ -377,20 +390,20 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           consolidated++;
         }
       } else {
-        // Import as new dive.
-        final importResult = await _importService.importDives(
-          dives: [dive],
-          computer: comp,
-          mode: ImportMode.all,
-          defaultResolution: ConflictResolution.importAsNew,
+        // Import as new dive. Use importSingleDiveAsNew to bypass the
+        // service's internal duplicate detection — the wizard has already
+        // resolved duplicates and the user's choice must be respected.
+        final diveId = await _importService.importSingleDiveAsNew(
+          dive,
+          computerId: comp.id,
           diverId: _diverId,
         );
         imported++;
         importedDives.add(dive);
-        importedDiveIds.addAll(importResult.importedDiveIds);
+        importedDiveIds.add(diveId);
       }
 
-      onProgress?.call('Dives', i + 1, total);
+      onProgress?.call(ImportPhase.dives, i + 1, total);
     }
 
     // Update computer metadata. Use ALL downloaded dives for the fingerprint
