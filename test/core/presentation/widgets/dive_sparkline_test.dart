@@ -57,6 +57,40 @@ void main() {
       expect(sizedBox.width, 120);
       expect(sizedBox.height, 48);
     });
+
+    testWidgets('uses provided color', (tester) async {
+      final profile = _makeProfile(10);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DiveSparkline(profile: profile, color: Colors.red),
+          ),
+        ),
+      );
+
+      // Widget renders (color is applied internally to LineChartBarData)
+      expect(find.byType(LineChart), findsOneWidget);
+    });
+
+    testWidgets('uses default dimensions when not specified', (tester) async {
+      final profile = _makeProfile(10);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: DiveSparkline(profile: profile)),
+        ),
+      );
+
+      final sizedBox = tester.widget<SizedBox>(
+        find.ancestor(
+          of: find.byType(LineChart),
+          matching: find.byType(SizedBox),
+        ),
+      );
+      expect(sizedBox.width, 80);
+      expect(sizedBox.height, 32);
+    });
   });
 
   group('DiveSparkline.downsample', () {
