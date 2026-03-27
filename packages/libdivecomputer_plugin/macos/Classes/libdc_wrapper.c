@@ -15,8 +15,8 @@
 // Log Callback Storage
 // ============================================================
 
-static libdc_log_callback_fn g_log_callback = NULL;
-static void *g_log_userdata = NULL;
+libdc_log_callback_fn g_log_callback = NULL;
+void *g_log_userdata = NULL;
 
 void libdc_set_log_callback(libdc_log_callback_fn callback, void *userdata) {
     g_log_callback = callback;
