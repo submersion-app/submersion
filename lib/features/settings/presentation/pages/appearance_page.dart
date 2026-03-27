@@ -356,6 +356,17 @@ class AppearancePage extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/settings/default-metrics'),
           ),
+          const Divider(),
+          _buildSectionHeader(context, 'Dive Details'),
+          ListTile(
+            leading: const Icon(Icons.reorder),
+            title: const Text('Section Order & Visibility'),
+            subtitle: const Text(
+              'Choose which sections appear and their order',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/dive-detail-sections'),
+          ),
           const SizedBox(height: 8),
           _buildSectionHeader(
             context,
