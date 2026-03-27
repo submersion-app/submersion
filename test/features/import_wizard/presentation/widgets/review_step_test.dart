@@ -289,10 +289,10 @@ void main() {
 
       final widget = ProviderScope(
         overrides: [importWizardNotifierProvider.overrideWith((_) => notifier)],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: ReviewStep(onImport: _noop)),
+          home: Scaffold(body: ReviewStep(onImport: _noop)),
         ),
       );
 
