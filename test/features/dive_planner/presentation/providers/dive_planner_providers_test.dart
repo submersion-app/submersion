@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -75,5 +76,16 @@ void main() {
         expect(state.reservePressure, closeTo(34.47, 0.5));
       },
     );
+
+    test('newPlan uses reservePressure fallback when no callback provided', () {
+      final notifier = DivePlanNotifier(
+        PlanCalculatorService(),
+        reservePressure: 40,
+      );
+      addTearDown(notifier.dispose);
+
+      notifier.newPlan();
+      expect(notifier.state.reservePressure, 40);
+    });
   });
 }

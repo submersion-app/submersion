@@ -96,4 +96,43 @@ void main() {
       expect(addedTank.volume, closeTo(80 / 0.0353147, 1));
     });
   });
+
+  group('PlanTankList edit dialog displays converted values', () {
+    testWidgets('shows existing pressure in psi and volume in cuft', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith(
+              (ref) => _TestSettingsNotifier(
+                pressureUnit: PressureUnit.psi,
+                volumeUnit: VolumeUnit.cubicFeet,
+              ),
+            ),
+          ],
+          child: const SingleChildScrollView(child: PlanTankList()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap the default "Primary" tank chip to open edit dialog
+      await tester.tap(find.byType(InputChip));
+      await tester.pumpAndSettle();
+
+      // Default tank: startPressure=200 bar -> ~2901 psi
+      final pressureField = find.widgetWithText(TextField, 'Start (psi)');
+      final pressureController = (tester.widget<TextField>(
+        pressureField,
+      )).controller!;
+      expect(int.parse(pressureController.text), closeTo(2901, 1));
+
+      // Default tank: volume=11.1 L -> ~0.4 cuft
+      final volumeField = find.widgetWithText(TextField, 'Volume (cuft)');
+      final volumeController = (tester.widget<TextField>(
+        volumeField,
+      )).controller!;
+      expect(double.parse(volumeController.text), closeTo(0.4, 0.1));
+    });
+  });
 }
