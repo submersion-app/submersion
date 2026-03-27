@@ -1,8 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/app.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
@@ -22,6 +25,14 @@ Future<void> main() async {
 
   // Initialize SharedPreferences first (needed for storage config)
   final prefs = await SharedPreferences.getInstance();
+
+  // Initialize log file service for persistent logging
+  final appSupportDir = await getApplicationSupportDirectory();
+  final logFileService = LogFileService(
+    logDirectory: '${appSupportDir.path}/logs',
+  );
+  await logFileService.initialize();
+  LoggerService.setFileService(logFileService);
 
   // Create location service and get storage config
   final locationService = DatabaseLocationService(prefs);
