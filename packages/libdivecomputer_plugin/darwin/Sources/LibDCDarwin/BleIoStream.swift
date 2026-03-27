@@ -115,15 +115,18 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
     /// Connect to the peripheral and discover services/characteristics.
     /// Blocks until ready or timeout. Returns true on success.
     func connectAndDiscover() -> Bool {
-        NSLog(
-            "[BleIoStream] connectAndDiscover start for %@ (peripheralState=%ld centralState=%ld)",
-            peripheral.identifier.uuidString,
-            peripheral.state.rawValue,
-            centralManager.state.rawValue
+        NativeLogger.d(
+            "BleIoStream", category: "BLE",
+            "connectAndDiscover start for \(peripheral.identifier.uuidString)"
+                + " (peripheralState=\(peripheral.state.rawValue)"
+                + " centralState=\(centralManager.state.rawValue))"
         )
 
         guard centralManager.state == .poweredOn else {
-            NSLog("[BleIoStream] Central not powered on (state=%ld)", centralManager.state.rawValue)
+            NativeLogger.w(
+                "BleIoStream", category: "BLE",
+                "Central not powered on (state=\(centralManager.state.rawValue))"
+            )
             return false
         }
 
@@ -141,17 +144,21 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
 
         switch peripheral.state {
         case .connected:
-            NSLog("[BleIoStream] Peripheral already connected; skipping connect wait")
+            NativeLogger.d("BleIoStream", category: "BLE",
+                "Peripheral already connected; skipping connect wait")
         case .connecting:
-            NSLog("[BleIoStream] Peripheral already connecting; waiting for callback")
+            NativeLogger.d("BleIoStream", category: "BLE",
+                "Peripheral already connecting; waiting for callback")
             let result = connectSemaphore.wait(timeout: .now() + .seconds(15))
             if result == .timedOut {
-                NSLog("[BleIoStream] Timed out waiting for in-flight connect callback")
+                NativeLogger.w("BleIoStream", category: "BLE",
+                    "Timed out waiting for in-flight connect callback")
                 centralManager.cancelPeripheralConnection(peripheral)
                 return false
             }
             if let error = connectError {
-                NSLog("[BleIoStream] In-flight connect failed: %@", error.localizedDescription)
+                NativeLogger.e("BleIoStream", category: "BLE",
+                    "In-flight connect failed: \(error.localizedDescription)")
                 centralManager.cancelPeripheralConnection(peripheral)
                 return false
             }
@@ -159,36 +166,40 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             centralManager.connect(peripheral, options: nil)
             let result = connectSemaphore.wait(timeout: .now() + .seconds(15))
             if result == .timedOut {
-                NSLog("[BleIoStream] Timed out waiting for connect callback")
+                NativeLogger.w("BleIoStream", category: "BLE",
+                    "Timed out waiting for connect callback")
                 centralManager.cancelPeripheralConnection(peripheral)
                 return false
             }
             if let error = connectError {
-                NSLog("[BleIoStream] Connect failed: %@", error.localizedDescription)
+                NativeLogger.e("BleIoStream", category: "BLE",
+                    "Connect failed: \(error.localizedDescription)")
                 centralManager.cancelPeripheralConnection(peripheral)
                 return false
             }
         }
 
-        NSLog("[BleIoStream] Connected; discovering services")
+        NativeLogger.d("BleIoStream", category: "BLE", "Connected; discovering services")
         peripheral.discoverServices(nil)
         let discoverResult = discoverSemaphore.wait(timeout: .now() + .seconds(10))
         if discoverResult == .timedOut {
-            NSLog("[BleIoStream] Timed out waiting for service/characteristic discovery")
+            NativeLogger.w("BleIoStream", category: "BLE",
+                "Timed out waiting for service/characteristic discovery")
             centralManager.cancelPeripheralConnection(peripheral)
             return false
         }
         if !isReady {
-            NSLog("[BleIoStream] Discovery completed without usable write/notify characteristics")
+            NativeLogger.w("BleIoStream", category: "BLE",
+                "Discovery completed without usable write/notify characteristics")
             centralManager.cancelPeripheralConnection(peripheral)
             return false
         }
         Thread.sleep(forTimeInterval: Self.notifySettleDelaySeconds)
-        NSLog("[BleIoStream] Post-notify settle delay complete (%.0f ms)",
-              Self.notifySettleDelaySeconds * 1000)
-        NSLog("[BleIoStream] Discovery ready (write=%@ notify=%@)",
-              writeCharacteristic?.uuid.uuidString ?? "nil",
-              notifyCharacteristic?.uuid.uuidString ?? "nil")
+        NativeLogger.d("BleIoStream", category: "BLE",
+            "Post-notify settle delay complete (\(Int(Self.notifySettleDelaySeconds * 1000)) ms)")
+        NativeLogger.d("BleIoStream", category: "BLE",
+            "Discovery ready (write=\(writeCharacteristic?.uuid.uuidString ?? "nil")"
+                + " notify=\(notifyCharacteristic?.uuid.uuidString ?? "nil"))")
         return true
     }
 
@@ -204,7 +215,8 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             appliedTimeout = max(Int(timeout), 3000)
         }
         stream.timeoutMs = appliedTimeout
-        NSLog("[BleIoStream] set_timeout requested=%d applied=%ld", timeout, appliedTimeout)
+        NativeLogger.d("BleIoStream", category: "BLE",
+            "set_timeout requested=\(timeout) applied=\(appliedTimeout)")
         return Int32(LIBDC_STATUS_SUCCESS)
     }
 
@@ -314,8 +326,8 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         } else if supportsWriteWithResponse {
             writeType = .withResponse
         } else {
-            NSLog("[BleIoStream] write characteristic %@ has no write properties",
-                  characteristic.uuid.uuidString)
+            NativeLogger.e("BleIoStream", category: "BLE",
+                "write characteristic \(characteristic.uuid.uuidString) has no write properties")
             return Int32(LIBDC_STATUS_IO)
         }
 
@@ -328,16 +340,16 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                 timeoutMs == Int.max ? .distantFuture : .now() + .milliseconds(timeoutMs)
             let ready = writeReadySemaphore.wait(timeout: writeReadyDeadline)
             if ready == .timedOut {
-                NSLog("[BleIoStream] write blocked waiting for canSendWriteWithoutResponse")
+                NativeLogger.w("BleIoStream", category: "BLE",
+                    "write blocked waiting for canSendWriteWithoutResponse")
                 return Int32(LIBDC_STATUS_TIMEOUT)
             }
         }
-        NSLog(
-            "[BleIoStream] write %@ %@ bytes=%ld data=%@",
-            writeType == .withResponse ? "withResponse" : "withoutResponse",
-            characteristic.uuid.uuidString,
-            size,
-            Self.hexString(writeData, maxBytes: Self.maxLogBytes)
+        NativeLogger.d("BleIoStream", category: "BLE",
+            "write \(writeType == .withResponse ? "withResponse" : "withoutResponse")"
+                + " \(characteristic.uuid.uuidString)"
+                + " bytes=\(size)"
+                + " data=\(Self.hexString(writeData, maxBytes: Self.maxLogBytes))"
         )
         peripheral.writeValue(writeData, for: characteristic, type: writeType)
 
@@ -348,19 +360,23 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                 timeout: writeDeadline
             )
             if result == .timedOut {
-                NSLog("[BleIoStream] write withResponse timed out for %@", characteristic.uuid.uuidString)
+                NativeLogger.w("BleIoStream", category: "BLE",
+                    "write withResponse timed out for \(characteristic.uuid.uuidString)")
                 if supportsWriteWithoutResponse {
                     writeWithoutResponsePreferred = true
-                    NSLog("[BleIoStream] Switching preferred write mode to withoutResponse after timeout")
+                    NativeLogger.d("BleIoStream", category: "BLE",
+                        "Switching preferred write mode to withoutResponse after timeout")
                 }
                 return Int32(LIBDC_STATUS_TIMEOUT)
             }
             if let error = lastWriteError {
-                NSLog("[BleIoStream] write withResponse failed for %@: %@",
-                      characteristic.uuid.uuidString, error.localizedDescription)
+                NativeLogger.e("BleIoStream", category: "BLE",
+                    "write withResponse failed for \(characteristic.uuid.uuidString):"
+                        + " \(error.localizedDescription)")
                 if supportsWriteWithoutResponse {
                     writeWithoutResponsePreferred = true
-                    NSLog("[BleIoStream] Switching preferred write mode to withoutResponse after write error")
+                    NativeLogger.d("BleIoStream", category: "BLE",
+                        "Switching preferred write mode to withoutResponse after write error")
                 }
                 return Int32(LIBDC_STATUS_IO)
             }
@@ -427,9 +443,9 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         let properties = characteristic.properties
         guard properties.contains(.write) && properties.contains(.writeWithoutResponse) else { return }
         writeWithoutResponsePreferred.toggle()
-        NSLog(
-            "[BleIoStream] Read timed out before response; flipping preferred write mode to %@",
-            writeWithoutResponsePreferred ? "withoutResponse" : "withResponse"
+        NativeLogger.d("BleIoStream", category: "BLE",
+            "Read timed out before response; flipping preferred write mode to"
+                + " \(writeWithoutResponsePreferred ? "withoutResponse" : "withResponse")"
         )
     }
 
@@ -468,7 +484,8 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             if copyCount == maxCount {
                 data.assumingMemoryBound(to: CChar.self)[maxCount - 1] = 0
             }
-            NSLog("[BleIoStream] ioctl BLE_GET_NAME -> %@", name)
+            NativeLogger.d("BleIoStream", category: "BLE",
+                "ioctl BLE_GET_NAME -> \(name)")
             return Int32(LIBDC_STATUS_SUCCESS)
         }
 
@@ -477,7 +494,8 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                 return Int32(LIBDC_STATUS_INVALIDARGS)
             }
 
-            NSLog("[BleIoStream] ioctl BLE_GET_PINCODE -> requesting PIN from user")
+            NativeLogger.d("BleIoStream", category: "BLE",
+                "ioctl BLE_GET_PINCODE -> requesting PIN from user")
             pendingPinCode = nil
 
             // Dispatch callback to main thread BEFORE blocking.
@@ -489,12 +507,12 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             // Block on semaphore until submitPinCode() is called.
             let result = pinSemaphore.wait(timeout: .now() + Self.pinTimeoutSeconds)
             if result == .timedOut {
-                NSLog("[BleIoStream] PIN entry timed out")
+                NativeLogger.w("BleIoStream", category: "BLE", "PIN entry timed out")
                 return Int32(LIBDC_STATUS_TIMEOUT)
             }
 
             guard let pin = pendingPinCode, !pin.isEmpty else {
-                NSLog("[BleIoStream] PIN entry cancelled")
+                NativeLogger.w("BleIoStream", category: "BLE", "PIN entry cancelled")
                 return Int32(LIBDC_STATUS_CANCELLED)
             }
 
@@ -510,7 +528,8 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             if copyCount == maxCount {
                 data.assumingMemoryBound(to: CChar.self)[maxCount - 1] = 0
             }
-            NSLog("[BleIoStream] ioctl BLE_GET_PINCODE -> PIN provided (%d chars)", pin.count)
+            NativeLogger.d("BleIoStream", category: "BLE",
+                "ioctl BLE_GET_PINCODE -> PIN provided (\(pin.count) chars)")
             return Int32(LIBDC_STATUS_SUCCESS)
         }
 
@@ -523,14 +542,16 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             if direction == Self.ioctlDirRead {
                 // GET access code
                 guard let stored = loadAccessCode(), !stored.isEmpty else {
-                    NSLog("[BleIoStream] ioctl BLE_GET_ACCESSCODE -> not found")
+                    NativeLogger.d("BleIoStream", category: "BLE",
+                        "ioctl BLE_GET_ACCESSCODE -> not found")
                     return Int32(LIBDC_STATUS_UNSUPPORTED)
                 }
                 let copyCount = min(stored.count, Int(size))
                 _ = stored.withUnsafeBytes { bytes in
                     memcpy(data, bytes.baseAddress!, copyCount)
                 }
-                NSLog("[BleIoStream] ioctl BLE_GET_ACCESSCODE -> found (%d bytes)", stored.count)
+                NativeLogger.d("BleIoStream", category: "BLE",
+                    "ioctl BLE_GET_ACCESSCODE -> found (\(stored.count) bytes)")
                 return Int32(LIBDC_STATUS_SUCCESS)
             }
 
@@ -538,7 +559,8 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                 // SET access code
                 let accessData = Data(bytes: data, count: Int(size))
                 saveAccessCode(accessData)
-                NSLog("[BleIoStream] ioctl BLE_SET_ACCESSCODE -> stored (%d bytes)", size)
+                NativeLogger.d("BleIoStream", category: "BLE",
+                    "ioctl BLE_SET_ACCESSCODE -> stored (\(size) bytes)")
                 return Int32(LIBDC_STATUS_SUCCESS)
             }
         }
@@ -550,18 +572,20 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let error {
-            NSLog("[BleIoStream] didDiscoverServices failed: %@", error.localizedDescription)
+            NativeLogger.e("BleIoStream", category: "BLE",
+                "didDiscoverServices failed: \(error.localizedDescription)")
             signalDiscoveryReady()
             return
         }
         guard let services = peripheral.services else {
-            NSLog("[BleIoStream] didDiscoverServices returned nil services")
+            NativeLogger.w("BleIoStream", category: "BLE",
+                "didDiscoverServices returned nil services")
             signalDiscoveryReady()
             return
         }
 
         if services.isEmpty {
-            NSLog("[BleIoStream] No services discovered")
+            NativeLogger.w("BleIoStream", category: "BLE", "No services discovered")
             signalDiscoveryReady()
             return
         }
@@ -576,11 +600,12 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                      didDiscoverCharacteristicsFor service: CBService,
                      error: Error?) {
         if let error {
-            NSLog("[BleIoStream] didDiscoverCharacteristics failed for %@: %@",
-                  service.uuid.uuidString, error.localizedDescription)
+            NativeLogger.e("BleIoStream", category: "BLE",
+                "didDiscoverCharacteristics failed for \(service.uuid.uuidString):"
+                    + " \(error.localizedDescription)")
         } else if let characteristics = service.characteristics {
-            NSLog("[BleIoStream] Discovered %ld characteristics for %@",
-                  characteristics.count, service.uuid.uuidString)
+            NativeLogger.d("BleIoStream", category: "BLE",
+                "Discovered \(characteristics.count) characteristics for \(service.uuid.uuidString)")
             updateBestCandidate(service: service, characteristics: characteristics)
         }
 
@@ -596,8 +621,9 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                      didUpdateValueFor characteristic: CBCharacteristic,
                      error: Error?) {
         if let error {
-            NSLog("[BleIoStream] didUpdateValue error for %@: %@",
-                  characteristic.uuid.uuidString, error.localizedDescription)
+            NativeLogger.e("BleIoStream", category: "BLE",
+                "didUpdateValue error for \(characteristic.uuid.uuidString):"
+                    + " \(error.localizedDescription)")
             return
         }
         if let notify = notifyCharacteristic, characteristic.uuid != notify.uuid {
@@ -606,10 +632,10 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         guard let value = characteristic.value else { return }
         hasSeenNotify = true
         consecutiveReadTimeouts = 0
-        NSLog("[BleIoStream] notify %@ bytes=%ld data=%@",
-              characteristic.uuid.uuidString,
-              value.count,
-              Self.hexString(value, maxBytes: Self.maxLogBytes))
+        NativeLogger.d("BleIoStream", category: "BLE",
+            "notify \(characteristic.uuid.uuidString)"
+                + " bytes=\(value.count)"
+                + " data=\(Self.hexString(value, maxBytes: Self.maxLogBytes))")
         readLock.lock()
         readBuffer.append(value)
         readLock.unlock()
@@ -621,10 +647,12 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                      error: Error?) {
         lastWriteError = error
         if let error {
-            NSLog("[BleIoStream] didWriteValue error for %@: %@",
-                  characteristic.uuid.uuidString, error.localizedDescription)
+            NativeLogger.e("BleIoStream", category: "BLE",
+                "didWriteValue error for \(characteristic.uuid.uuidString):"
+                    + " \(error.localizedDescription)")
         } else {
-            NSLog("[BleIoStream] didWriteValue ok for %@", characteristic.uuid.uuidString)
+            NativeLogger.d("BleIoStream", category: "BLE",
+                "didWriteValue ok for \(characteristic.uuid.uuidString)")
         }
         writeSemaphore.signal()
     }
@@ -639,17 +667,20 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         waitingForNotifyEnable = false
 
         if let error {
-            NSLog("[BleIoStream] Failed enabling notify for %@: %@",
-                  characteristic.uuid.uuidString, error.localizedDescription)
+            NativeLogger.e("BleIoStream", category: "BLE",
+                "Failed enabling notify for \(characteristic.uuid.uuidString):"
+                    + " \(error.localizedDescription)")
             signalDiscoveryReady()
             return
         }
         if !characteristic.isNotifying {
-            NSLog("[BleIoStream] Notify not active for %@", characteristic.uuid.uuidString)
+            NativeLogger.w("BleIoStream", category: "BLE",
+                "Notify not active for \(characteristic.uuid.uuidString)")
             signalDiscoveryReady()
             return
         }
-        NSLog("[BleIoStream] Notify enabled for %@", characteristic.uuid.uuidString)
+        NativeLogger.d("BleIoStream", category: "BLE",
+            "Notify enabled for \(characteristic.uuid.uuidString)")
         isReady = true
         signalDiscoveryReady()
     }
@@ -710,7 +741,8 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
 
     private func finalizeCharacteristicSelection() {
         guard let candidate = bestCandidate else {
-            NSLog("[BleIoStream] No suitable write/notify characteristic pair found")
+            NativeLogger.w("BleIoStream", category: "BLE",
+                "No suitable write/notify characteristic pair found")
             signalDiscoveryReady()
             return
         }
@@ -718,14 +750,15 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         writeCharacteristic = candidate.write
         notifyCharacteristic = candidate.notify
         writeWithoutResponsePreferred = initialWriteWithoutResponsePreference(for: candidate.write)
-        NSLog("[BleIoStream] Selected write=%@ (%@) notify=%@ (%@) (score=%d)",
-              candidate.write.uuid.uuidString,
-              Self.propertySummary(candidate.write.properties),
-              candidate.notify.uuid.uuidString,
-              Self.propertySummary(candidate.notify.properties),
-              candidate.score)
-        NSLog("[BleIoStream] Initial write mode preference: %@",
-              writeWithoutResponsePreferred ? "withoutResponse" : "withResponse")
+        NativeLogger.d("BleIoStream", category: "BLE",
+            "Selected write=\(candidate.write.uuid.uuidString)"
+                + " (\(Self.propertySummary(candidate.write.properties)))"
+                + " notify=\(candidate.notify.uuid.uuidString)"
+                + " (\(Self.propertySummary(candidate.notify.properties)))"
+                + " (score=\(candidate.score))")
+        NativeLogger.d("BleIoStream", category: "BLE",
+            "Initial write mode preference:"
+                + " \(writeWithoutResponsePreferred ? "withoutResponse" : "withResponse")")
         if candidate.notify.isNotifying {
             isReady = true
             signalDiscoveryReady()
@@ -740,12 +773,14 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
 
 extension BleIoStream: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        NSLog("[BleIoStream] central state updated: %ld", central.state.rawValue)
+        NativeLogger.d("BleIoStream", category: "BLE",
+            "central state updated: \(central.state.rawValue)")
     }
 
     func centralManager(_ central: CBCentralManager,
                          didConnect peripheral: CBPeripheral) {
-        NSLog("[BleIoStream] didConnect %@", peripheral.identifier.uuidString)
+        NativeLogger.d("BleIoStream", category: "BLE",
+            "didConnect \(peripheral.identifier.uuidString)")
         connectError = nil
         connectSemaphore.signal()
     }
@@ -754,11 +789,12 @@ extension BleIoStream: CBCentralManagerDelegate {
                          didFailToConnect peripheral: CBPeripheral,
                          error: Error?) {
         if let error {
-            NSLog("[BleIoStream] didFailToConnect %@: %@",
-                  peripheral.identifier.uuidString, error.localizedDescription)
+            NativeLogger.e("BleIoStream", category: "BLE",
+                "didFailToConnect \(peripheral.identifier.uuidString):"
+                    + " \(error.localizedDescription)")
         } else {
-            NSLog("[BleIoStream] didFailToConnect %@ (no error)",
-                  peripheral.identifier.uuidString)
+            NativeLogger.w("BleIoStream", category: "BLE",
+                "didFailToConnect \(peripheral.identifier.uuidString) (no error)")
         }
         connectError = error
         connectSemaphore.signal()
