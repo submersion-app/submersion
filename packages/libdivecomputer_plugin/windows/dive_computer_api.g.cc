@@ -1496,6 +1496,53 @@ void DiveComputerHostApi::SetUp(
       channel.SetMessageHandler(nullptr);
     }
   }
+  {
+    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.parseRawDiveData" + prepended_suffix, &GetCodec());
+    if (api != nullptr) {
+      channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_vendor_arg = args.at(0);
+          if (encodable_vendor_arg.IsNull()) {
+            reply(WrapError("vendor_arg unexpectedly null."));
+            return;
+          }
+          const auto& vendor_arg = std::get<std::string>(encodable_vendor_arg);
+          const auto& encodable_product_arg = args.at(1);
+          if (encodable_product_arg.IsNull()) {
+            reply(WrapError("product_arg unexpectedly null."));
+            return;
+          }
+          const auto& product_arg = std::get<std::string>(encodable_product_arg);
+          const auto& encodable_model_arg = args.at(2);
+          if (encodable_model_arg.IsNull()) {
+            reply(WrapError("model_arg unexpectedly null."));
+            return;
+          }
+          const int64_t model_arg = encodable_model_arg.LongValue();
+          const auto& encodable_data_arg = args.at(3);
+          if (encodable_data_arg.IsNull()) {
+            reply(WrapError("data_arg unexpectedly null."));
+            return;
+          }
+          const auto& data_arg = std::get<std::vector<uint8_t>>(encodable_data_arg);
+          api->ParseRawDiveData(vendor_arg, product_arg, model_arg, data_arg, [reply](ErrorOr<ParsedDive>&& output) {
+            if (output.has_error()) {
+              reply(WrapError(output.error()));
+              return;
+            }
+            EncodableList wrapped;
+            wrapped.push_back(CustomEncodableValue(std::move(output).TakeValue()));
+            reply(EncodableValue(std::move(wrapped)));
+          });
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
 }
 
 EncodableValue DiveComputerHostApi::WrapError(std::string_view error_message) {

@@ -154,6 +154,16 @@ std::optional<FlutterError> DiveComputerHostApiImpl::SubmitPinCode(
     return std::nullopt;
 }
 
+void DiveComputerHostApiImpl::ParseRawDiveData(
+    const std::string& vendor,
+    const std::string& product,
+    int64_t model,
+    const std::vector<uint8_t>& data,
+    std::function<void(ErrorOr<ParsedDive> reply)> result) {
+    result(FlutterError("UNSUPPORTED",
+                        "Raw dive parsing not yet implemented on Windows"));
+}
+
 ErrorOr<std::string> DiveComputerHostApiImpl::GetLibdivecomputerVersion() {
     const char* version = libdc_get_version();
     return std::string(version);

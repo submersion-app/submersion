@@ -690,6 +690,19 @@ handle_get_libdivecomputer_version(gpointer user_data) {
       version);
 }
 
+static void handle_parse_raw_dive_data(
+    const gchar* vendor,
+    const gchar* product,
+    int64_t model,
+    const uint8_t* data,
+    size_t data_length,
+    LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle,
+    gpointer user_data) {
+  libdivecomputer_plugin_dive_computer_host_api_respond_error_parse_raw_dive_data(
+      response_handle, "UNSUPPORTED",
+      "Raw dive parsing not yet implemented on Linux", nullptr);
+}
+
 // --- Public registration ---
 
 void dive_computer_host_api_impl_register(FlBinaryMessenger* messenger) {
@@ -712,6 +725,7 @@ void dive_computer_host_api_impl_register(FlBinaryMessenger* messenger) {
       .cancel_download = handle_cancel_download,
       .submit_pin_code = handle_submit_pin_code,
       .get_libdivecomputer_version = handle_get_libdivecomputer_version,
+      .parse_raw_dive_data = handle_parse_raw_dive_data,
   };
 
   libdivecomputer_plugin_dive_computer_host_api_set_method_handlers(
