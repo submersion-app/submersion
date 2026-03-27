@@ -561,6 +561,29 @@ void main() {
       expect(adapter.acquisitionSteps, hasLength(1));
       expect(adapter.acquisitionSteps.first.label, equals('Select Files'));
     });
+
+    test('defaultTagName includes display name and YYYY-MM-DD date', () {
+      final tagName = adapter.defaultTagName;
+      expect(
+        tagName,
+        matches(RegExp(r'^FIT Import Import \d{4}-\d{2}-\d{2}$')),
+      );
+    });
+
+    test('defaultTagName uses custom display name when provided', () {
+      final named = FitAdapter(
+        fitParser: const FitParserService(),
+        diveMatcher: mockMatcher,
+        converter: mockConverter,
+        diveRepository: mockRepo,
+        diverId: diverId,
+        displayName: 'dive_log.fit',
+      );
+      expect(
+        named.defaultTagName,
+        matches(RegExp(r'^dive_log\.fit Import \d{4}-\d{2}-\d{2}$')),
+      );
+    });
   });
 
   // -------------------------------------------------------------------------

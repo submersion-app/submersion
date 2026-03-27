@@ -553,6 +553,29 @@ void main() {
       expect(named.displayName, equals('Apple Watch Dives'));
     });
 
+    test('defaultTagName includes display name and YYYY-MM-DD date', () {
+      final tagName = adapter.defaultTagName;
+      expect(
+        tagName,
+        matches(RegExp(r'^HealthKit Import Import \d{4}-\d{2}-\d{2}$')),
+      );
+    });
+
+    test('defaultTagName uses custom display name when provided', () {
+      final named = HealthKitAdapter(
+        healthService: mockHealthService,
+        diveMatcher: mockMatcher,
+        converter: mockConverter,
+        diveRepository: mockRepo,
+        diverId: diverId,
+        displayName: 'Apple Watch Dives',
+      );
+      expect(
+        named.defaultTagName,
+        matches(RegExp(r'^Apple Watch Dives Import \d{4}-\d{2}-\d{2}$')),
+      );
+    });
+
     test('supportedDuplicateActions contains skip and importAsNew', () {
       expect(
         adapter.supportedDuplicateActions,

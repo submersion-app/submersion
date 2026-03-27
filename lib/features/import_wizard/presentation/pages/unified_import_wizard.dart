@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
@@ -41,6 +42,7 @@ class UnifiedImportWizard extends StatelessWidget {
           (ref) => ImportWizardNotifier(
             adapter,
             tagRepository: ref.read(tagRepositoryProvider),
+            diverId: ref.read(currentDiverIdProvider),
           ),
         ),
       ],

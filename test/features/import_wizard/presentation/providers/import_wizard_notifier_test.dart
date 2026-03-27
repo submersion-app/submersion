@@ -71,7 +71,11 @@ void main() {
       when(
         mockAdapter.supportedDuplicateActions,
       ).thenReturn({DuplicateAction.skip, DuplicateAction.importAsNew});
-      notifier = ImportWizardNotifier(mockAdapter, tagRepository: mockTagRepo);
+      notifier = ImportWizardNotifier(
+        mockAdapter,
+        tagRepository: mockTagRepo,
+        diverId: 'diver-1',
+      );
     });
 
     tearDown(() {
@@ -612,7 +616,9 @@ void main() {
           ),
         ).thenAnswer((_) async => importResult);
 
-        when(mockTagRepo.getOrCreateTag('Vacation')).thenAnswer(
+        when(
+          mockTagRepo.getOrCreateTag('Vacation', diverId: 'diver-1'),
+        ).thenAnswer(
           (_) async => Tag(
             id: 'tag-new',
             name: 'Vacation',
@@ -624,7 +630,9 @@ void main() {
 
         await notifier.performImport();
 
-        verify(mockTagRepo.getOrCreateTag('Vacation')).called(1);
+        verify(
+          mockTagRepo.getOrCreateTag('Vacation', diverId: 'diver-1'),
+        ).called(1);
         verify(mockTagRepo.addTagToDive('dive-1', 'tag-new')).called(1);
       });
 

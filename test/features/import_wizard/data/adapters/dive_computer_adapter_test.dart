@@ -1112,4 +1112,57 @@ void main() {
       },
     );
   });
+
+  // ---------------------------------------------------------------------------
+  // defaultTagName
+  // ---------------------------------------------------------------------------
+
+  group('defaultTagName', () {
+    test('uses computer name from knownComputer when no custom name set', () {
+      // adapter is constructed with knownComputer = makeComputer(name: 'My Perdix')
+      // _computer is null initially, _customDeviceName is null
+      // defaultTagName: _customDeviceName ?? _computer?.name ?? _displayName
+      // _displayName = knownComputer.displayName = 'My Perdix'
+      final tagName = adapter.defaultTagName;
+
+      expect(tagName, matches(RegExp(r'^My Perdix Import \d{4}-\d{2}-\d{2}$')));
+    });
+
+    test('uses custom device name when set', () {
+      adapter.setCustomDeviceName('Reef Runner');
+      final tagName = adapter.defaultTagName;
+
+      expect(tagName, startsWith('Reef Runner Import '));
+      expect(
+        tagName,
+        matches(RegExp(r'^Reef Runner Import \d{4}-\d{2}-\d{2}$')),
+      );
+    });
+
+    test('falls back to display name when no computer or custom name', () {
+      final noComputer = DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        diverId: diverId,
+      );
+      final tagName = noComputer.defaultTagName;
+
+      expect(
+        tagName,
+        matches(RegExp(r'^Dive Computer Import \d{4}-\d{2}-\d{2}$')),
+      );
+    });
+
+    test('pads month and day with leading zeros', () {
+      final tagName = adapter.defaultTagName;
+      final datePart = tagName.split('Import ').last;
+      final parts = datePart.split('-');
+
+      expect(parts, hasLength(3));
+      expect(parts[0].length, 4); // year
+      expect(parts[1].length, 2); // zero-padded month
+      expect(parts[2].length, 2); // zero-padded day
+    });
+  });
 }

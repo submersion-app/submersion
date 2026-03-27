@@ -107,6 +107,10 @@ class _TestableImportNotifier extends UniversalImportNotifier {
   void setOptions(ImportOptions options) {
     state = state.copyWith(options: options);
   }
+
+  void setFileName(String name) {
+    state = state.copyWith(fileName: name);
+  }
 }
 
 /// Helper to run adapter operations inside a widget tree that provides a
@@ -348,6 +352,42 @@ void main() {
           final step = adapter.acquisitionSteps[2];
           expect(step.label, equals('Map Fields'));
           expect(step.autoAdvance, isTrue);
+        },
+      );
+    });
+
+    testWidgets('defaultTagName uses displayName when no fileName set', (
+      tester,
+    ) async {
+      await _runWithAdapter(
+        tester,
+        overrides: _buildBundleOverrides(),
+        callback: (adapter) async {
+          expect(
+            adapter.defaultTagName,
+            matches(RegExp(r'^Universal Import Import \d{4}-\d{2}-\d{2}$')),
+          );
+        },
+      );
+    });
+
+    testWidgets('defaultTagName uses fileName when set', (tester) async {
+      late _TestableImportNotifier testNotifier;
+      await _runWithAdapter(
+        tester,
+        overrides: [
+          universalImportNotifierProvider.overrideWith((ref) {
+            testNotifier = _TestableImportNotifier(ref);
+            testNotifier.setFileName('dive_log.csv');
+            return testNotifier;
+          }),
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+        callback: (adapter) async {
+          expect(
+            adapter.defaultTagName,
+            matches(RegExp(r'^dive_log\.csv Import \d{4}-\d{2}-\d{2}$')),
+          );
         },
       );
     });

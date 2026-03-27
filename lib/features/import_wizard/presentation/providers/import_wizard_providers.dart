@@ -111,12 +111,17 @@ class ImportWizardState {
 /// Orchestrates review selections, duplicate actions, import progress,
 /// and results. Source-specific logic is delegated to an [ImportSourceAdapter].
 class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
-  ImportWizardNotifier(this._adapter, {TagRepository? tagRepository})
-    : _tagRepository = tagRepository,
-      super(const ImportWizardState());
+  ImportWizardNotifier(
+    this._adapter, {
+    TagRepository? tagRepository,
+    String? diverId,
+  }) : _tagRepository = tagRepository,
+       _diverId = diverId,
+       super(const ImportWizardState());
 
   final ImportSourceAdapter _adapter;
   final TagRepository? _tagRepository;
+  final String? _diverId;
 
   /// The duplicate actions supported by the underlying adapter.
   Set<DuplicateAction> get supportedDuplicateActions =>
@@ -329,7 +334,10 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
         final tagIds = <String>[];
         for (final tagSelection in state.importTags) {
           if (tagSelection.isNew) {
-            final tag = await _tagRepository.getOrCreateTag(tagSelection.name);
+            final tag = await _tagRepository.getOrCreateTag(
+              tagSelection.name,
+              diverId: _diverId,
+            );
             tagIds.add(tag.id);
           } else {
             tagIds.add(tagSelection.existingTagId!);

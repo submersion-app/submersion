@@ -55,8 +55,7 @@ class ReviewStep extends ConsumerWidget {
           bundle.groups[ImportEntityType.dives]?.duplicateIndices ?? const {},
     );
 
-    final existingTags =
-        ref.watch(allTagsProvider).valueOrNull ?? const <Tag>[];
+    final existingTags = ref.watch(tagsProvider).valueOrNull ?? const <Tag>[];
 
     return _MultiTypeLayout(
       types: types,
