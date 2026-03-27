@@ -109,14 +109,31 @@ class SettingsPage extends ConsumerWidget {
 }
 
 /// Mobile content showing section list for navigation.
-class SettingsMobileContent extends StatelessWidget {
+class SettingsMobileContent extends ConsumerWidget {
   const SettingsMobileContent({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final debugEnabled = ref.watch(debugModeProvider);
     final sections = settingsSections
         .where((s) => s.id != 'dataSources' || Platform.isIOS)
         .toList();
+
+    // Insert Debug section just before About when debug mode is enabled
+    if (debugEnabled) {
+      final aboutIndex = sections.indexWhere((s) => s.id == 'about');
+      final insertIndex = aboutIndex >= 0 ? aboutIndex : sections.length;
+      sections.insert(
+        insertIndex,
+        const SettingsSection(
+          id: 'debug',
+          icon: Icons.bug_report_outlined,
+          title: 'Debug',
+          subtitle: 'Logs & diagnostics',
+          color: Colors.grey,
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settings_appBar_title)),
