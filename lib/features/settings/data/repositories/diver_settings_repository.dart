@@ -133,11 +133,7 @@ class DiverSettingsRepository {
               reminderTime: Value(_formatReminderTime(s.reminderTime)),
               showDataSourceBadges: Value(s.showDataSourceBadges),
               diveDetailSections: Value(
-                s.diveDetailSections == DiveDetailSectionConfig.defaultSections
-                    ? null
-                    : DiveDetailSectionConfig.sectionsToJson(
-                        s.diveDetailSections,
-                      ),
+                DiveDetailSectionConfig.sectionsToJson(s.diveDetailSections),
               ),
               createdAt: Value(now),
               updatedAt: Value(now),
@@ -259,12 +255,7 @@ class DiverSettingsRepository {
           reminderTime: Value(_formatReminderTime(settings.reminderTime)),
           showDataSourceBadges: Value(settings.showDataSourceBadges),
           diveDetailSections: Value(
-            settings.diveDetailSections ==
-                    DiveDetailSectionConfig.defaultSections
-                ? null
-                : DiveDetailSectionConfig.sectionsToJson(
-                    settings.diveDetailSections,
-                  ),
+            DiveDetailSectionConfig.sectionsToJson(settings.diveDetailSections),
           ),
           updatedAt: Value(now),
         ),
