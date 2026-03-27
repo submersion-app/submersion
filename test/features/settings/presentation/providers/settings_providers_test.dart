@@ -58,9 +58,9 @@ void main() {
     });
 
     test('copyWith can clear diveDetailSections to defaults', () {
-      final settings = AppSettings(
+      const settings = AppSettings(
         diveDetailSections: [
-          const DiveDetailSectionConfig(
+          DiveDetailSectionConfig(
             id: DiveDetailSectionId.tanks,
             visible: false,
           ),

@@ -165,7 +165,7 @@ void main() {
     });
 
     test('returns saved config unchanged when all sections present', () {
-      final saved = DiveDetailSectionConfig.defaultSections;
+      const saved = DiveDetailSectionConfig.defaultSections;
       final result = DiveDetailSectionConfig.ensureAllSections(saved);
       expect(result.length, 17);
       for (var i = 0; i < 17; i++) {
