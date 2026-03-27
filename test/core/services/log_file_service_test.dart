@@ -163,5 +163,61 @@ void main() {
       final content = await logFile.readAsString();
       expect(content, contains('number 19'));
     });
+
+    group('initialization guard', () {
+      test('writeLine throws StateError if not initialized', () async {
+        expect(
+          () => service.writeLine('some line'),
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              contains('initialize()'),
+            ),
+          ),
+        );
+      });
+
+      test('readEntries throws StateError if not initialized', () async {
+        expect(
+          () => service.readEntries(),
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              contains('initialize()'),
+            ),
+          ),
+        );
+      });
+
+      test('clearLog throws StateError if not initialized', () async {
+        expect(
+          () => service.clearLog(),
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              contains('initialize()'),
+            ),
+          ),
+        );
+      });
+    });
+
+    test('writeLine silently swallows IOException', () async {
+      await service.initialize();
+
+      // Make the log directory a file so writes will fail with an IOException
+      final logFile = File('${tempDir.path}/submersion.log');
+      await logFile.writeAsString('existing content\n');
+      // Delete log file and replace path with a directory so File.writeAsString
+      // throws an IOException (cannot write to a path that is a directory).
+      await logFile.delete();
+      await Directory('${tempDir.path}/submersion.log').create();
+
+      // Should not throw even though writing will fail
+      await expectLater(service.writeLine('this should not crash'), completes);
+    });
   });
 }

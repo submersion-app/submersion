@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:submersion/core/models/log_entry.dart';
@@ -7,6 +8,8 @@ import 'package:submersion/core/models/log_entry.dart';
 /// Writes structured log lines to `<logDirectory>/submersion.log`.
 /// When the file exceeds [maxFileSizeBytes], it is rotated by keeping
 /// the most recent ~50% of the content.
+///
+/// [initialize] must be called before any other method.
 class LogFileService {
   final String logDirectory;
   final int maxFileSizeBytes;
@@ -15,6 +18,7 @@ class LogFileService {
   static const _defaultMaxSize = 5 * 1024 * 1024; // 5MB
 
   late final String _logFilePath;
+  bool _isInitialized = false;
 
   LogFileService({
     required this.logDirectory,
@@ -30,17 +34,37 @@ class LogFileService {
     if (!dir.existsSync()) {
       await dir.create(recursive: true);
     }
+    _isInitialized = true;
   }
 
   /// Write a formatted log line to the file.
+  ///
+  /// Failures are silently swallowed to keep the application running.
   Future<void> writeLine(String line) async {
-    final file = File(_logFilePath);
-    await file.writeAsString('$line\n', mode: FileMode.append);
-    await _rotateIfNeeded();
+    if (!_isInitialized) {
+      throw StateError(
+        'LogFileService.initialize() must be called before writeLine()',
+      );
+    }
+    try {
+      final file = File(_logFilePath);
+      await file.writeAsString('$line\n', mode: FileMode.append);
+      await _rotateIfNeeded();
+    } on IOException catch (e) {
+      developer.log(
+        'LogFileService: failed to write log line: $e',
+        name: 'LogFileService',
+      );
+    }
   }
 
   /// Read and parse all valid log entries from the file.
   Future<List<LogEntry>> readEntries() async {
+    if (!_isInitialized) {
+      throw StateError(
+        'LogFileService.initialize() must be called before readEntries()',
+      );
+    }
     final file = File(_logFilePath);
     if (!file.existsSync()) return [];
 
@@ -57,6 +81,11 @@ class LogFileService {
 
   /// Delete the log file.
   Future<void> clearLog() async {
+    if (!_isInitialized) {
+      throw StateError(
+        'LogFileService.initialize() must be called before clearLog()',
+      );
+    }
     final file = File(_logFilePath);
     if (file.existsSync()) {
       await file.delete();
