@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
@@ -62,7 +63,7 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
                 case 'disable':
                   ref.read(debugModeProvider.notifier).disable();
                   if (context.mounted) {
-                    Navigator.of(context).pop();
+                    context.go('/settings');
                   }
                 case 'clear':
                   await ref.read(logFileServiceProvider).clearLog();
