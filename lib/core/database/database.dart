@@ -717,6 +717,8 @@ class DiverSettings extends Table {
   // Data source badge visibility (v55)
   BoolColumn get showDataSourceBadges =>
       boolean().withDefault(const Constant(true))();
+  // Dive detail section order and visibility (v56) — JSON array
+  TextColumn get diveDetailSections => text().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -1238,7 +1240,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 55;
+  static const int currentSchemaVersion = 56;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -2468,6 +2470,12 @@ class AppDatabase extends _$AppDatabase {
           // Add data source badge visibility setting to diver_settings
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN show_data_source_badges INTEGER NOT NULL DEFAULT 1',
+          );
+        }
+        if (from < 56) {
+          // Add dive detail section configuration column to diver_settings
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN dive_detail_sections TEXT',
           );
         }
       },
