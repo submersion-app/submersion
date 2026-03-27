@@ -325,7 +325,16 @@ class ShearwaterDiveMapper {
       merged['gradientFactorHigh'] = parsed.gfHigh;
     }
 
-    // Build profile samples
+    // Override dive mode from parsed data (more accurate than apparatus guess).
+    if (parsed.diveMode != null) {
+      merged['diveMode'] = switch (parsed.diveMode) {
+        'ccr' => DiveMode.ccr,
+        'scr' => DiveMode.scr,
+        _ => DiveMode.oc,
+      };
+    }
+
+    // Build profile samples with all available sensor data.
     merged['profile'] = parsed.samples.map((s) {
       final sampleMap = <String, dynamic>{
         'timestamp': s.timeSeconds,
@@ -336,6 +345,33 @@ class ShearwaterDiveMapper {
       }
       if (s.pressureBar != null) {
         sampleMap['pressure'] = s.pressureBar;
+      }
+      if (s.setpoint != null) {
+        sampleMap['setpoint'] = s.setpoint;
+      }
+      if (s.ppo2 != null) {
+        sampleMap['ppO2'] = s.ppo2;
+      }
+      if (s.heartRate != null) {
+        sampleMap['heartRate'] = s.heartRate;
+      }
+      if (s.cns != null) {
+        sampleMap['cns'] = s.cns;
+      }
+      if (s.rbt != null) {
+        sampleMap['rbt'] = s.rbt;
+      }
+      if (s.tts != null) {
+        sampleMap['tts'] = s.tts;
+      }
+      if (s.decoType != null) {
+        sampleMap['decoType'] = s.decoType;
+      }
+      if (s.decoDepth != null) {
+        sampleMap['ceiling'] = s.decoDepth;
+      }
+      if (s.decoTime != null) {
+        sampleMap['ndl'] = s.decoTime;
       }
       return sampleMap;
     }).toList();

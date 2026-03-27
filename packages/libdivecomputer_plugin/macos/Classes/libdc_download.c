@@ -76,7 +76,8 @@ static dc_descriptor_t *find_descriptor(const char *vendor, const char *product,
         const char *p = dc_descriptor_get_product(desc);
         unsigned int m = dc_descriptor_get_model(desc);
         if (v != NULL && p != NULL &&
-            strcmp(v, vendor) == 0 && strcmp(p, product) == 0 && m == model) {
+            strcmp(v, vendor) == 0 && strcmp(p, product) == 0 &&
+            (model == 0 || m == model)) {
             match = desc;
             break;
         }
