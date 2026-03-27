@@ -822,14 +822,12 @@ void main() {
       );
 
       // Trip progress: initial 0/2, then 1/2, then 2/2
-      final tripCalls =
-          progressCalls.where((c) => c.$1 == ImportPhase.trips);
+      final tripCalls = progressCalls.where((c) => c.$1 == ImportPhase.trips);
       expect(tripCalls, hasLength(3)); // 0/2, 1/2, 2/2
       expect(tripCalls.last, (ImportPhase.trips, 2, 2));
 
       // Dive progress
-      final diveCalls =
-          progressCalls.where((c) => c.$1 == ImportPhase.dives);
+      final diveCalls = progressCalls.where((c) => c.$1 == ImportPhase.dives);
       expect(diveCalls, isNotEmpty);
     });
   });
