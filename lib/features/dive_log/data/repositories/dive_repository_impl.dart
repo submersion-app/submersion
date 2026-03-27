@@ -2974,7 +2974,7 @@ class DiveRepository {
       final previousExitTime =
           previousDive.exitTime ??
           (previousDive.entryTime ?? previousDive.dateTime).add(
-            previousDive.calculatedDuration ?? Duration.zero,
+            previousDive.effectiveRuntime ?? Duration.zero,
           );
       final currentEntryTime = currentDive.entryTime ?? currentDive.dateTime;
 

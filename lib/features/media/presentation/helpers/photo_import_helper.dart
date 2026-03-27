@@ -28,7 +28,7 @@ class PhotoImportHelper {
   }) async {
     // Calculate time window with 30-minute buffer
     final diveStart = dive.effectiveEntryTime;
-    final diveDuration = dive.calculatedDuration ?? const Duration(hours: 1);
+    final diveDuration = dive.effectiveRuntime ?? const Duration(hours: 1);
     final diveEnd = dive.exitTime ?? diveStart.add(diveDuration);
 
     // Get already-linked asset IDs for this dive

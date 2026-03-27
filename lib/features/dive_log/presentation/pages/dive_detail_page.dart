@@ -1130,7 +1130,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       child: DiveProfileChart(
                         exportKey: _profileChartExportKey,
                         profile: dive.profile,
-                        diveDuration: dive.calculatedDuration,
+                        diveDuration: dive.effectiveRuntime,
                         maxDepth: dive.maxDepth,
                         ceilingCurve: analysis?.ceilingCurve,
                         ascentRates: analysis?.ascentRates,
@@ -4762,7 +4762,7 @@ class _FullscreenProfilePageState
                     height: isLandscape ? 280 : 350,
                     child: DiveProfileChart(
                       profile: dive.profile,
-                      diveDuration: dive.calculatedDuration,
+                      diveDuration: dive.effectiveRuntime,
                       maxDepth: dive.maxDepth,
                       ceilingCurve: widget.analysis?.ceilingCurve,
                       ascentRates: widget.analysis?.ascentRates,

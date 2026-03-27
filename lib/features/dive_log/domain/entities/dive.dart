@@ -222,11 +222,24 @@ class Dive extends Equatable {
         diveTypeId.substring(1).replaceAll('_', ' ');
   }
 
-  /// Calculated duration from entry/exit times
-  Duration? get calculatedDuration {
+  /// Best available runtime for this dive.
+  ///
+  /// Fallback chain:
+  /// 1. runtime (explicit, from dive computer/import)
+  /// 2. exitTime - entryTime (computed from timestamps)
+  /// 3. calculateRuntimeFromProfile() (from profile data)
+  /// 4. bottomTime (approximate, but better than null)
+  Duration? get effectiveRuntime {
+    if (runtime != null) return runtime;
+
     if (entryTime != null && exitTime != null) {
-      return exitTime!.difference(entryTime!);
+      final computed = exitTime!.difference(entryTime!);
+      if (!computed.isNegative && computed > Duration.zero) return computed;
     }
+
+    final fromProfile = calculateRuntimeFromProfile();
+    if (fromProfile != null) return fromProfile;
+
     return bottomTime;
   }
 
@@ -260,9 +273,11 @@ class Dive extends Equatable {
   /// Air consumption rate in L/min at surface (Surface Air Consumption)
   /// Calculates total gas consumed across all tanks with valid data.
   double? get sac {
-    if (tanks.isEmpty || bottomTime == null || avgDepth == null) return null;
+    if (tanks.isEmpty || effectiveRuntime == null || avgDepth == null) {
+      return null;
+    }
 
-    final minutes = bottomTime!.inSeconds / 60;
+    final minutes = effectiveRuntime!.inSeconds / 60;
     if (minutes <= 0) return null;
 
     final avgPressureAtm = (avgDepth! / 10) + 1; // Convert depth to ATM
@@ -298,9 +313,11 @@ class Dive extends Equatable {
   /// This is a simpler calculation that doesn't require tank volume.
   /// It calculates the average pressure drop per minute adjusted for depth.
   double? get sacPressure {
-    if (tanks.isEmpty || bottomTime == null || avgDepth == null) return null;
+    if (tanks.isEmpty || effectiveRuntime == null || avgDepth == null) {
+      return null;
+    }
 
-    final minutes = bottomTime!.inSeconds / 60;
+    final minutes = effectiveRuntime!.inSeconds / 60;
     if (minutes <= 0) return null;
 
     final avgPressureAtm = (avgDepth! / 10) + 1; // Convert depth to ATM
