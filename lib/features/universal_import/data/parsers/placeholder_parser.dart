@@ -19,7 +19,6 @@ class PlaceholderParser implements ImportParser {
     ImportFormat.divingLogXml,
     ImportFormat.suuntoSml,
     ImportFormat.suuntoDm5,
-    ImportFormat.shearwaterDb,
     ImportFormat.scubapro,
     ImportFormat.danDl7,
     ImportFormat.sqlite,

@@ -14,11 +14,14 @@ void main() {
       expect(parser.supportedFormats, contains(ImportFormat.divingLogXml));
       expect(parser.supportedFormats, contains(ImportFormat.suuntoSml));
       expect(parser.supportedFormats, contains(ImportFormat.suuntoDm5));
-      expect(parser.supportedFormats, contains(ImportFormat.shearwaterDb));
       expect(parser.supportedFormats, contains(ImportFormat.scubapro));
       expect(parser.supportedFormats, contains(ImportFormat.danDl7));
       expect(parser.supportedFormats, contains(ImportFormat.sqlite));
       expect(parser.supportedFormats, contains(ImportFormat.unknown));
+      expect(
+        parser.supportedFormats,
+        isNot(contains(ImportFormat.shearwaterDb)),
+      );
     });
   });
 
