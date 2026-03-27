@@ -29,6 +29,7 @@ import 'package:submersion/features/dive_import/presentation/providers/dive_impo
 import 'package:submersion/features/auto_update/domain/entities/update_channel.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 
 /// Main settings page with master-detail layout on desktop.
 ///
@@ -99,6 +100,8 @@ class SettingsPage extends ConsumerWidget {
         return const _DataSourcesSectionContent();
       case 'about':
         return const _AboutSectionContent();
+      case 'debug':
+        return const DebugLogViewerPage();
       default:
         return Center(child: Text('Unknown section: $sectionId'));
     }
@@ -169,6 +172,7 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
       'data' => context.l10n.settings_section_data_title,
       'about' => context.l10n.settings_section_about_title,
       'dataSources' => context.l10n.settings_section_dataSources_title,
+      'debug' => 'Debug',
       _ => context.l10n.settings_appBar_title,
     };
   }
@@ -193,6 +197,8 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
         return const _DataSourcesSectionContent();
       case 'about':
         return const _AboutSectionContent();
+      case 'debug':
+        return const DebugLogViewerPage();
       default:
         return Center(child: Text('Unknown section: $sectionId'));
     }
@@ -2258,11 +2264,19 @@ class _DataSourcesSectionContent extends ConsumerWidget {
 /// When [UpdateChannelConfig.isAutoUpdateEnabled] is true (non-store builds),
 /// an Updates card is shown with check-for-update, auto-update toggle,
 /// and last-checked timestamp.
-class _AboutSectionContent extends ConsumerWidget {
+class _AboutSectionContent extends ConsumerStatefulWidget {
   const _AboutSectionContent();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AboutSectionContent> createState() =>
+      _AboutSectionContentState();
+}
+
+class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
+  int _longPressCount = 0;
+
+  @override
+  Widget build(BuildContext context) {
     final packageInfoAsync = ref.watch(packageInfoProvider);
     final versionString = packageInfoAsync.when(
       data: (info) =>
@@ -2320,7 +2334,7 @@ class _AboutSectionContent extends ConsumerWidget {
             const SizedBox(height: 24),
             _buildSectionHeader(context, 'Updates'),
             const SizedBox(height: 8),
-            _buildUpdatesCard(context, ref),
+            _buildUpdatesCard(context),
           ],
           const SizedBox(height: 24),
           // App info card
@@ -2341,10 +2355,25 @@ class _AboutSectionContent extends ConsumerWidget {
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  versionString,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                GestureDetector(
+                  onLongPress: () {
+                    _longPressCount++;
+                    if (_longPressCount >= 5) {
+                      _longPressCount = 0;
+                      ref.read(debugModeProvider.notifier).enable();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Debug mode enabled'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  child: Text(
+                    versionString,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],
@@ -2355,7 +2384,7 @@ class _AboutSectionContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildUpdatesCard(BuildContext context, WidgetRef ref) {
+  Widget _buildUpdatesCard(BuildContext context) {
     final updateStatus = ref.watch(updateStatusProvider);
     final prefs = ref.watch(updatePreferencesProvider);
 
@@ -2845,5 +2874,15 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
         ),
       ],
     );
+  }
+}
+
+// Placeholder until Task 9 creates the real page
+class DebugLogViewerPage extends StatelessWidget {
+  const DebugLogViewerPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: Text('Debug Log Viewer'));
   }
 }

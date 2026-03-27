@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings section data model.
@@ -88,7 +90,7 @@ const settingsSections = [
 ];
 
 /// Content widget for the settings section list, used in master-detail layout.
-class SettingsListContent extends StatelessWidget {
+class SettingsListContent extends ConsumerWidget {
   final void Function(String?)? onItemSelected;
   final String? selectedId;
   final bool showAppBar;
@@ -101,11 +103,28 @@ class SettingsListContent extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final debugEnabled = ref.watch(debugModeProvider);
     final sections = settingsSections
         .where((s) => s.id != 'dataSources' || Platform.isIOS)
         .toList();
+
+    // Insert Debug section just before About when debug mode is enabled
+    if (debugEnabled) {
+      final aboutIndex = sections.indexWhere((s) => s.id == 'about');
+      final insertIndex = aboutIndex >= 0 ? aboutIndex : sections.length;
+      sections.insert(
+        insertIndex,
+        const SettingsSection(
+          id: 'debug',
+          icon: Icons.bug_report_outlined,
+          title: 'Debug',
+          subtitle: 'Logs & diagnostics',
+          color: Colors.grey,
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: showAppBar
@@ -227,6 +246,8 @@ class _SettingsSectionTile extends StatelessWidget {
         return context.l10n.settings_section_about_title;
       case 'dataSources':
         return context.l10n.settings_section_dataSources_title;
+      case 'debug':
+        return 'Debug';
       default:
         return section.title;
     }
@@ -252,6 +273,8 @@ class _SettingsSectionTile extends StatelessWidget {
         return context.l10n.settings_section_about_subtitle;
       case 'dataSources':
         return context.l10n.settings_section_dataSources_subtitle;
+      case 'debug':
+        return 'Logs & diagnostics';
       default:
         return section.subtitle;
     }
