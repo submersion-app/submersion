@@ -163,6 +163,28 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         }
         self.downloadSession = session
 
+        // Register a C-compatible log callback so libdivecomputer's internal
+        // diagnostic messages flow through NativeLogger to Flutter.
+        libdc_set_log_callback(
+            { (level: Int32, message: UnsafePointer<CChar>?, _: UnsafeMutableRawPointer?) in
+                guard let message = message else { return }
+                let msg = String(cString: message)
+                // Map dc_loglevel_t to NativeLogger severity.
+                // DC_LOGLEVEL_NONE=0, ERROR=1, WARNING=2, INFO=3, DEBUG=4, ALL=5
+                switch level {
+                case 1:
+                    NativeLogger.e("libdc", category: "LDC", msg)
+                case 2:
+                    NativeLogger.w("libdc", category: "LDC", msg)
+                case 3:
+                    NativeLogger.i("libdc", category: "LDC", msg)
+                default:
+                    NativeLogger.d("libdc", category: "LDC", msg)
+                }
+            },
+            nil
+        )
+
         // Get I/O callbacks based on transport type.
         var ioCallbacks: libdc_io_callbacks_t
         switch device.transport {

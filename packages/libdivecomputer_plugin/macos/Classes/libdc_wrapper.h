@@ -12,6 +12,19 @@
 // Returns a statically allocated string (do not free).
 const char *libdc_get_version(void);
 
+// ============================================================
+// Log Callback
+// ============================================================
+
+// Log callback for libdivecomputer diagnostic messages.
+// level maps to dc_loglevel_t: 0=NONE, 1=ERROR, 2=WARNING, 3=INFO, 4=DEBUG, 5=ALL
+typedef void (*libdc_log_callback_fn)(int level, const char *message, void *userdata);
+
+// Set the log callback that receives libdivecomputer's internal diagnostic messages.
+// Call this before creating a download session or starting operations.
+// Pass NULL to disable logging.
+void libdc_set_log_callback(libdc_log_callback_fn callback, void *userdata);
+
 // Transport type bitmask values matching dc_transport_t.
 #define LIBDC_TRANSPORT_SERIAL    (1 << 0)
 #define LIBDC_TRANSPORT_USB       (1 << 1)
