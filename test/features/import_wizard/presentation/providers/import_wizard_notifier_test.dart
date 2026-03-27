@@ -4,6 +4,7 @@ import 'package:mockito/mockito.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/tag_selection.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
@@ -556,13 +557,13 @@ void main() {
         ).thenAnswer((invocation) async {
           final onProgress =
               invocation.namedArguments[#onProgress]
-                  as void Function(String, int, int)?;
-          onProgress?.call('dives', 1, 3);
+                  as void Function(ImportPhase, int, int)?;
+          onProgress?.call(ImportPhase.dives, 1, 3);
           return importResult;
         });
 
         // Track intermediate states to verify progress was applied.
-        final phases = <String?>[];
+        final phases = <ImportPhase?>[];
         notifier.addListener((state) {
           if (state.importPhase != null) {
             phases.add(state.importPhase);
@@ -572,7 +573,7 @@ void main() {
         await notifier.performImport();
 
         // Verify progress state was actually updated.
-        expect(phases, contains('dives'));
+        expect(phases, contains(ImportPhase.dives));
         expect(notifier.state.importResult, isNotNull);
       });
 

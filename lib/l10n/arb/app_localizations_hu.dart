@@ -10365,6 +10365,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_import_phase_trips => 'Utak importalasa...';
 
   @override
+  String get settings_import_phase_courses => 'Importing courses...';
+
+  @override
+  String get settings_import_phase_applyingTags => 'Applying tags...';
+
+  @override
   String settings_import_progressLabel(
     Object phase,
     Object current,
@@ -12238,6 +12244,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tags_hint_addMoreTags => 'További címkék hozzáadása...';
+
+  @override
+  String get importWizard_tagsLabel => 'Tags';
 
   @override
   String get tags_hint_addTags => 'Címkék hozzáadása...';

@@ -11,6 +11,7 @@ import 'package:submersion/features/courses/data/repositories/course_repository.
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -809,7 +810,7 @@ void main() {
         ],
       );
 
-      final progressCalls = <(String, int, int)>[];
+      final progressCalls = <(ImportPhase, int, int)>[];
       await importer.import(
         data: data,
         selections: const UddfImportSelections(trips: {0, 1}, dives: {0}),
@@ -821,12 +822,14 @@ void main() {
       );
 
       // Trip progress: initial 0/2, then 1/2, then 2/2
-      final tripCalls = progressCalls.where((c) => c.$1 == 'Importing trips');
+      final tripCalls =
+          progressCalls.where((c) => c.$1 == ImportPhase.trips);
       expect(tripCalls, hasLength(3)); // 0/2, 1/2, 2/2
-      expect(tripCalls.last, ('Importing trips', 2, 2));
+      expect(tripCalls.last, (ImportPhase.trips, 2, 2));
 
       // Dive progress
-      final diveCalls = progressCalls.where((c) => c.$1 == 'Importing dives');
+      final diveCalls =
+          progressCalls.where((c) => c.$1 == ImportPhase.dives);
       expect(diveCalls, isNotEmpty);
     });
   });

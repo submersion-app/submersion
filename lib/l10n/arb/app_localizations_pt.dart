@@ -10399,6 +10399,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_import_phase_trips => 'Importando viagens...';
 
   @override
+  String get settings_import_phase_courses => 'Importing courses...';
+
+  @override
+  String get settings_import_phase_applyingTags => 'Applying tags...';
+
+  @override
   String settings_import_progressLabel(
     Object phase,
     Object current,
@@ -12285,6 +12291,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get tags_hint_addMoreTags => 'Adicionar mais tags...';
+
+  @override
+  String get importWizard_tagsLabel => 'Tags';
 
   @override
   String get tags_hint_addTags => 'Adicionar tags...';

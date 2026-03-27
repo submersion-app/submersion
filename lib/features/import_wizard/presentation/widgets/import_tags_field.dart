@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/import_wizard/domain/models/tag_selection.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Multi-tag chip field with autocomplete for the import review step.
 ///
@@ -73,7 +74,7 @@ class _ImportTagsFieldState extends State<ImportTagsField> {
           t!.name.toLowerCase() == selection.name.toLowerCase(),
       orElse: () => null,
     );
-    return match?.color ?? Colors.blue;
+    return match?.color ?? Theme.of(context).colorScheme.primary;
   }
 
   /// Filter existing tags that match the query and aren't already selected.
@@ -95,6 +96,7 @@ class _ImportTagsFieldState extends State<ImportTagsField> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = context.l10n;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -106,7 +108,7 @@ class _ImportTagsFieldState extends State<ImportTagsField> {
               Icon(Icons.label_outline, size: 18, color: colorScheme.primary),
               const SizedBox(width: 8),
               Text(
-                'Tags',
+                l10n.importWizard_tagsLabel,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -152,8 +154,8 @@ class _ImportTagsFieldState extends State<ImportTagsField> {
                       focusNode: focusNode,
                       decoration: InputDecoration(
                         hintText: widget.tags.isEmpty
-                            ? 'Add tag...'
-                            : 'Add another...',
+                            ? l10n.tags_hint_addTags
+                            : l10n.tags_hint_addMoreTags,
                         border: InputBorder.none,
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(vertical: 8),

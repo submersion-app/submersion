@@ -13,12 +13,9 @@ import 'package:submersion/features/tags/presentation/providers/tag_providers.da
 
 /// The review step of the import wizard.
 ///
-/// When the bundle contains a single entity type, renders an [EntityReviewList]
-/// directly without a tab bar. When multiple types are present, a [TabBar] is
-/// shown with one tab per type, each with a count badge.
-///
-/// A bottom bar is always shown with aggregate counts and an "Import Selected"
-/// button that calls [onImport].
+/// Always renders a [TabBar] with one tab per entity type, each with a count
+/// badge. A bottom bar shows aggregate counts and an "Import Selected" button
+/// that calls [onImport].
 class ReviewStep extends ConsumerWidget {
   /// Fired when the user taps "Import Selected".
   final VoidCallback onImport;

@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
@@ -198,13 +199,14 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
   @override
   String get defaultTagName {
-    final name = _customDeviceName ?? _computer?.name ?? _displayName;
+    final name = (_customDeviceName ?? _computer?.name ?? _displayName).trim();
     final now = DateTime.now();
     final date =
         '${now.year}-'
         '${now.month.toString().padLeft(2, '0')}-'
         '${now.day.toString().padLeft(2, '0')}';
-    return '$name Import $date';
+    final base = name.toLowerCase().endsWith('import') ? name : '$name Import';
+    return '$base $date';
   }
 
   @override
@@ -314,7 +316,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     Map<ImportEntityType, Set<int>> selections,
     Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
     bool retainSourceDiveNumbers = false,
-    void Function(String phase, int current, int total)? onProgress,
+    ImportProgressCallback? onProgress,
   }) async {
     final comp = computer;
     if (comp == null) {
@@ -401,7 +403,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         importedDiveIds.add(diveId);
       }
 
-      onProgress?.call('Dives', i + 1, total);
+      onProgress?.call(ImportPhase.dives, i + 1, total);
     }
 
     // Update computer metadata. Use ALL downloaded dives for the fingerprint

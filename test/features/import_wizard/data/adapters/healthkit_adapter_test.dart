@@ -18,6 +18,7 @@ import 'package:submersion/features/import_wizard/data/adapters/healthkit_adapte
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/healthkit_adapter_steps.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_app.dart';
@@ -510,7 +511,7 @@ void main() {
       ).thenReturn(domainDive2);
       when(mockRepo.createDive(any)).thenAnswer((_) async => domainDive1);
 
-      final progressCalls = <(String, int, int)>[];
+      final progressCalls = <(ImportPhase, int, int)>[];
       await adapter.performImport(
         bundle,
         {
@@ -523,8 +524,8 @@ void main() {
       );
 
       expect(progressCalls, hasLength(2));
-      expect(progressCalls[0].$1, equals('Dives'));
-      expect(progressCalls[1].$1, equals('Dives'));
+      expect(progressCalls[0].$1, equals(ImportPhase.dives));
+      expect(progressCalls[1].$1, equals(ImportPhase.dives));
     });
   });
 
@@ -555,10 +556,7 @@ void main() {
 
     test('defaultTagName includes display name and YYYY-MM-DD date', () {
       final tagName = adapter.defaultTagName;
-      expect(
-        tagName,
-        matches(RegExp(r'^HealthKit Import Import \d{4}-\d{2}-\d{2}$')),
-      );
+      expect(tagName, matches(RegExp(r'^HealthKit Import \d{4}-\d{2}-\d{2}$')));
     });
 
     test('defaultTagName uses custom display name when provided', () {
@@ -1564,7 +1562,7 @@ void main() {
       ).thenReturn(domainDive);
       when(mockRepo.createDive(any)).thenAnswer((_) async => domainDive);
 
-      final calls = <(String, int, int)>[];
+      final calls = <(ImportPhase, int, int)>[];
       await adapter.performImport(
         bundle,
         {
@@ -1577,9 +1575,9 @@ void main() {
       );
 
       expect(calls, hasLength(3));
-      expect(calls[0], equals(('Dives', 1, 3)));
-      expect(calls[1], equals(('Dives', 2, 3)));
-      expect(calls[2], equals(('Dives', 3, 3)));
+      expect(calls[0], equals((ImportPhase.dives, 1, 3)));
+      expect(calls[1], equals((ImportPhase.dives, 2, 3)));
+      expect(calls[2], equals((ImportPhase.dives, 3, 3)));
     });
   });
 

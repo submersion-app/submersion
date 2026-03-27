@@ -365,7 +365,7 @@ void main() {
         callback: (adapter) async {
           expect(
             adapter.defaultTagName,
-            matches(RegExp(r'^Universal Import Import \d{4}-\d{2}-\d{2}$')),
+            matches(RegExp(r'^Universal Import \d{4}-\d{2}-\d{2}$')),
           );
         },
       );

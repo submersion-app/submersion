@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 
 @GenerateNiceMocks([
   MockSpec<DiveImportService>(),
@@ -623,7 +624,7 @@ void main() {
         ),
       );
 
-      final progressCalls = <(String, int, int)>[];
+      final progressCalls = <(ImportPhase, int, int)>[];
       await adapter.performImport(
         bundle,
         {
@@ -636,8 +637,8 @@ void main() {
       );
 
       expect(progressCalls, hasLength(2));
-      expect(progressCalls[0], equals(('Dives', 1, 2)));
-      expect(progressCalls[1], equals(('Dives', 2, 2)));
+      expect(progressCalls[0], equals((ImportPhase.dives, 1, 2)));
+      expect(progressCalls[1], equals((ImportPhase.dives, 2, 2)));
     });
 
     test('updates computer metadata after import', () async {

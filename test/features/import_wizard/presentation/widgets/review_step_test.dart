@@ -5,11 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/entity_review_list.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/review_step.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Fake adapter
@@ -53,7 +55,7 @@ class _FakeAdapter implements ImportSourceAdapter {
     Map<ImportEntityType, Set<int>> selections,
     Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
     bool retainSourceDiveNumbers = false,
-    void Function(String phase, int current, int total)? onProgress,
+    ImportProgressCallback? onProgress,
   }) => throw UnimplementedError();
 }
 
@@ -103,6 +105,8 @@ Widget _buildReviewStep({
   return ProviderScope(
     overrides: [importWizardNotifierProvider.overrideWith((_) => notifier)],
     child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: ReviewStep(onImport: onImport ?? () {})),
     ),
   );
@@ -285,8 +289,10 @@ void main() {
 
       final widget = ProviderScope(
         overrides: [importWizardNotifierProvider.overrideWith((_) => notifier)],
-        child: const MaterialApp(
-          home: Scaffold(body: ReviewStep(onImport: _noop)),
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const Scaffold(body: ReviewStep(onImport: _noop)),
         ),
       );
 

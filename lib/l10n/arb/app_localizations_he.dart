@@ -10117,6 +10117,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_import_phase_trips => 'מייבא טיולים...';
 
   @override
+  String get settings_import_phase_courses => 'Importing courses...';
+
+  @override
+  String get settings_import_phase_applyingTags => 'Applying tags...';
+
+  @override
   String settings_import_progressLabel(
     Object phase,
     Object current,
@@ -11934,6 +11940,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tags_hint_addMoreTags => 'הוסף תגיות נוספות...';
+
+  @override
+  String get importWizard_tagsLabel => 'Tags';
 
   @override
   String get tags_hint_addTags => 'הוסף תגיות...';

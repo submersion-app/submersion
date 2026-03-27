@@ -17747,6 +17747,18 @@ abstract class AppLocalizations {
   /// **'Importing trips...'**
   String get settings_import_phase_trips;
 
+  /// No description provided for @settings_import_phase_courses.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing courses...'**
+  String get settings_import_phase_courses;
+
+  /// No description provided for @settings_import_phase_applyingTags.
+  ///
+  /// In en, this message translates to:
+  /// **'Applying tags...'**
+  String get settings_import_phase_applyingTags;
+
   /// No description provided for @settings_import_progressLabel.
   ///
   /// In en, this message translates to:
@@ -20866,6 +20878,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add more tags...'**
   String get tags_hint_addMoreTags;
+
+  /// No description provided for @importWizard_tagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get importWizard_tagsLabel;
 
   /// No description provided for @tags_hint_addTags.
   ///

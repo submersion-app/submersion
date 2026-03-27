@@ -42,7 +42,6 @@ class UnifiedImportWizard extends StatelessWidget {
           (ref) => ImportWizardNotifier(
             adapter,
             tagRepository: ref.read(tagRepositoryProvider),
-            diverId: ref.read(currentDiverIdProvider),
           ),
         ),
       ],
@@ -149,7 +148,10 @@ class _UnifiedImportWizardBodyState
 
   Future<void> _startImport() async {
     await _animateToPage(_importIndex);
-    await ref.read(importWizardNotifierProvider.notifier).performImport();
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    final notifier = ref.read(importWizardNotifierProvider.notifier);
+    notifier.setDiverId(diverId);
+    await notifier.performImport();
     _invalidateImportedProviders();
     await _animateToPage(_summaryIndex);
   }

@@ -483,7 +483,7 @@ class UddfImportNotifier extends StateNotifier<UddfImportState> {
         diverId: currentDiver.id,
         onProgress: (phase, current, total) {
           state = state.copyWith(
-            importPhase: phase,
+            importPhase: phase.name,
             importCurrent: current,
             importTotal: total,
           );

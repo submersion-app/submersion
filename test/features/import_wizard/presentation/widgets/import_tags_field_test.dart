@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/import_wizard/domain/models/tag_selection.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_tags_field.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   group('ImportTagsField', () {
@@ -14,6 +15,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ImportTagsField(
               tags: tags,
@@ -35,6 +38,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ImportTagsField(
               tags: tags,
@@ -58,6 +63,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ImportTagsField(
               tags: const [],
@@ -91,6 +98,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ImportTagsField(
               tags: const [],
@@ -114,6 +123,8 @@ void main() {
     testWidgets('shows label row with tag icon', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ImportTagsField(
               tags: const [],
@@ -134,6 +145,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ImportTagsField(
               tags: const [],
@@ -153,11 +166,11 @@ void main() {
       expect(addedTag, isNull);
     });
 
-    testWidgets('shows hint "Add tag..." when no tags are present', (
-      tester,
-    ) async {
+    testWidgets('shows add tags hint when no tags are present', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ImportTagsField(
               tags: const [],
@@ -169,14 +182,17 @@ void main() {
         ),
       );
 
-      expect(find.text('Add tag...'), findsOneWidget);
+      // Uses l10n tags_hint_addTags
+      expect(find.text('Add tags...'), findsOneWidget);
     });
 
-    testWidgets('shows hint "Add another..." when tags are present', (
+    testWidgets('shows add more tags hint when tags are present', (
       tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ImportTagsField(
               tags: const [TagSelection(name: 'Existing')],
@@ -188,7 +204,8 @@ void main() {
         ),
       );
 
-      expect(find.text('Add another...'), findsOneWidget);
+      // Uses l10n tags_hint_addMoreTags
+      expect(find.text('Add more tags...'), findsOneWidget);
     });
 
     testWidgets('chip uses existing tag color when tag matches by ID', (
@@ -206,6 +223,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ImportTagsField(
               tags: const [
@@ -227,6 +246,8 @@ void main() {
     testWidgets('chip falls back to blue for new tags', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ImportTagsField(
               tags: const [TagSelection(name: 'Brand New Tag')],
@@ -238,8 +259,12 @@ void main() {
         ),
       );
 
+      // Falls back to theme's primary color (not hardcoded blue)
       final chip = tester.widget<Chip>(find.byType(Chip));
-      expect(chip.side?.color, equals(Colors.blue));
+      final primaryColor = Theme.of(
+        tester.element(find.byType(ImportTagsField)),
+      ).colorScheme.primary;
+      expect(chip.side?.color, equals(primaryColor));
     });
 
     testWidgets('shows autocomplete suggestions matching query', (
@@ -262,6 +287,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ImportTagsField(
               tags: const [],
@@ -303,6 +330,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ImportTagsField(
               tags: const [
@@ -338,6 +367,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ImportTagsField(
               tags: const [],

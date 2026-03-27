@@ -5,10 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_progress_step.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Fake adapter
@@ -49,7 +51,7 @@ class _FakeAdapter implements ImportSourceAdapter {
     Map<ImportEntityType, Set<int>> selections,
     Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
     bool retainSourceDiveNumbers = false,
-    void Function(String phase, int current, int total)? onProgress,
+    ImportProgressCallback? onProgress,
   }) => throw UnimplementedError();
 }
 
@@ -60,7 +62,11 @@ class _FakeAdapter implements ImportSourceAdapter {
 Widget _buildWidget(ImportWizardNotifier notifier) {
   return ProviderScope(
     overrides: [importWizardNotifierProvider.overrideWith((_) => notifier)],
-    child: const MaterialApp(home: Scaffold(body: ImportProgressStep())),
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const Scaffold(body: ImportProgressStep()),
+    ),
   );
 }
 
@@ -99,7 +105,7 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       final notifier = _makeNotifier();
-      notifier.state = notifier.state.copyWith(importPhase: 'dives');
+      notifier.state = notifier.state.copyWith(importPhase: ImportPhase.dives);
 
       await tester.pumpWidget(_buildWidget(notifier));
       await tester.pump();
@@ -137,7 +143,7 @@ void main() {
 
       final notifier = _makeNotifier();
       notifier.state = notifier.state.copyWith(
-        importPhase: 'dives',
+        importPhase: ImportPhase.dives,
         importCurrent: 8,
         importTotal: 12,
       );

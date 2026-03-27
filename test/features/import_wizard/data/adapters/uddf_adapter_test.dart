@@ -769,10 +769,7 @@ void main() {
 
     test('defaultTagName includes display name and YYYY-MM-DD date', () {
       final tagName = adapter.defaultTagName;
-      expect(
-        tagName,
-        matches(RegExp(r'^UDDF Import Import \d{4}-\d{2}-\d{2}$')),
-      );
+      expect(tagName, matches(RegExp(r'^UDDF Import \d{4}-\d{2}-\d{2}$')));
     });
 
     test('defaultTagName uses custom display name when provided', () {

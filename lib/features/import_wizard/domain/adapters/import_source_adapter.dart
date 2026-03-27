@@ -1,5 +1,6 @@
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
 
@@ -26,7 +27,9 @@ abstract class ImportSourceAdapter {
         '${now.year}-'
         '${now.month.toString().padLeft(2, '0')}-'
         '${now.day.toString().padLeft(2, '0')}';
-    return '$displayName Import $date';
+    final name = displayName.trimRight();
+    final base = name.toLowerCase().endsWith('import') ? name : '$name Import';
+    return '$base $date';
   }
 
   /// Source-specific acquisition step definitions.
@@ -69,6 +72,6 @@ abstract class ImportSourceAdapter {
     Map<ImportEntityType, Set<int>> selections,
     Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
     bool retainSourceDiveNumbers,
-    void Function(String phase, int current, int total)? onProgress,
+    ImportProgressCallback? onProgress,
   });
 }

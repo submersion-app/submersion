@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
@@ -95,12 +96,14 @@ class FitAdapter implements ImportSourceAdapter {
 
   @override
   String get defaultTagName {
+    final name = _displayName.trim();
     final now = DateTime.now();
     final date =
         '${now.year}-'
         '${now.month.toString().padLeft(2, '0')}-'
         '${now.day.toString().padLeft(2, '0')}';
-    return '$_displayName Import $date';
+    final base = name.toLowerCase().endsWith('import') ? name : '$name Import';
+    return '$base $date';
   }
 
   @override
@@ -207,7 +210,7 @@ class FitAdapter implements ImportSourceAdapter {
     Map<ImportEntityType, Set<int>> selections,
     Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
     bool retainSourceDiveNumbers = false,
-    void Function(String phase, int current, int total)? onProgress,
+    ImportProgressCallback? onProgress,
   }) async {
     final baseSelections = Set<int>.from(
       selections[ImportEntityType.dives] ?? <int>{},
@@ -256,7 +259,7 @@ class FitAdapter implements ImportSourceAdapter {
 
       imported++;
       importedDiveIds.add(dive.id);
-      onProgress?.call('Dives', i + 1, total);
+      onProgress?.call(ImportPhase.dives, i + 1, total);
     }
 
     return UnifiedImportResult(
