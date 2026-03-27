@@ -216,9 +216,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             let hostApi = Unmanaged<DiveComputerHostApiImpl>.fromOpaque(userdata!).takeUnretainedValue()
             guard let dive = divePtr else { return }
             let parsedDive = hostApi.convertParsedDive(dive.pointee)
-            NSLog("[DownloadHost] Dive parsed: depth=%.1fm, duration=%ds, samples=%d",
-                  parsedDive.maxDepthMeters, parsedDive.durationSeconds,
-                  parsedDive.samples.count)
+            NativeLogger.d("DiveComputerHost", category: "LDC",
+                "Dive parsed: depth=\(parsedDive.maxDepthMeters)m, duration=\(parsedDive.durationSeconds)s, samples=\(parsedDive.samples.count)")
             DispatchQueue.main.async {
                 hostApi.flutterApi.onDiveDownloaded(dive: parsedDive) { _ in }
             }
@@ -284,12 +283,12 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         // Format device info as strings for Dart.
         let serialStr: String? = serial > 0 ? String(serial) : nil
         let firmwareStr: String? = firmware > 0 ? String(firmware) : nil
-        NSLog("[DownloadHost] Device info: serial=%u, firmware=%u", serial, firmware)
+        NativeLogger.i("DiveComputerHost", category: "LDC", "Device info: serial=\(serial), firmware=\(firmware)")
 
         // Report completion or error.
-        NSLog("[DownloadHost] libdc_download_run returned result=%d", result)
+        NativeLogger.d("DiveComputerHost", category: "LDC", "libdc_download_run returned result=\(result)")
         if result == 0 {
-            NSLog("[DownloadHost] Download succeeded, sending onDownloadComplete")
+            NativeLogger.i("DiveComputerHost", category: "LDC", "Download succeeded, sending onDownloadComplete")
             DispatchQueue.main.async { [weak self] in
                 self?.flutterApi.onDownloadComplete(
                     totalDives: 0,
@@ -298,7 +297,7 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                 ) { _ in }
             }
         } else if result == Int32(LIBDC_STATUS_CANCELLED) {
-            NSLog("[DownloadHost] Download cancelled, sending onDownloadComplete")
+            NativeLogger.i("DiveComputerHost", category: "LDC", "Download cancelled, sending onDownloadComplete")
             // Still send completion so the Dart side can import any dives
             // that were downloaded before cancellation.
             DispatchQueue.main.async { [weak self] in
@@ -310,7 +309,7 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             }
         } else {
             let errorMsg = String(cString: errorBuf)
-            NSLog("[DownloadHost] Download error (result=%d): %@", result, errorMsg)
+            NativeLogger.e("DiveComputerHost", category: "LDC", "Download error (result=\(result)): \(errorMsg)")
             reportError(code: "download_error", message: errorMsg)
         }
 
@@ -334,7 +333,7 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         }
 
         if let scanner = bleScanner {
-            NSLog("[BleHost] Stopping BLE scan before download connect")
+            NativeLogger.d("DiveComputerHost", category: "BLE", "Stopping BLE scan before download connect")
             scanner.stop()
             bleScanner = nil
         }
@@ -349,8 +348,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         var connectedStream: BleIoStream?
 
         for (index, plan) in resolvePlans.enumerated() {
-            NSLog("[BleHost] Resolve/connect attempt %ld (%@) for %@ (%@ %@)",
-                  index + 1, plan.label, device.address, device.vendor, device.product)
+            NativeLogger.d("DiveComputerHost", category: "BLE",
+                "Resolve/connect attempt \(index + 1) (\(plan.label)) for \(device.address) (\(device.vendor) \(device.product))")
             let queue = DispatchQueue(
                 label: "com.submersion.ble-download.\(index + 1)",
                 qos: .userInitiated
@@ -362,11 +361,11 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             )
             guard let peripheral = resolver.resolve(timeout: plan.timeout),
                   let centralMgr = resolver.centralManager else {
-                NSLog("[BleHost] Peripheral resolve failed on attempt %ld", index + 1)
+                NativeLogger.w("DiveComputerHost", category: "BLE", "Peripheral resolve failed on attempt \(index + 1)")
                 continue
             }
-            NSLog("[BleHost] Peripheral resolved: %@ (%@)",
-                  peripheral.identifier.uuidString, peripheral.name ?? "unknown")
+            NativeLogger.i("DiveComputerHost", category: "BLE",
+                "Peripheral resolved: \(peripheral.identifier.uuidString) (\(peripheral.name ?? "unknown"))")
 
             let stream = BleIoStream(peripheral: peripheral, centralManager: centralMgr)
             stream.setDeviceAddress(device.address)
@@ -379,8 +378,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                 break
             }
 
-            NSLog("[BleHost] connectAndDiscover failed on attempt %ld for %@",
-                  index + 1, peripheral.identifier.uuidString)
+            NativeLogger.w("DiveComputerHost", category: "BLE",
+                "connectAndDiscover failed on attempt \(index + 1) for \(peripheral.identifier.uuidString)")
             if peripheral.state != .disconnected {
                 centralMgr.cancelPeripheralConnection(peripheral)
             }
@@ -414,7 +413,7 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             self.downloadSession = nil
             return nil
         }
-        NSLog("[SerialHost] Opened serial port: %@", device.address)
+        NativeLogger.i("DiveComputerHost", category: "SER", "Opened serial port: \(device.address)")
         self.activeSerialStream = serialStream
         return serialStream.makeCallbacks()
     }
@@ -651,10 +650,10 @@ private final class BlePeripheralResolver: NSObject, CBCentralManagerDelegate {
 
         switch central.state {
         case .poweredOn:
-            NSLog("[BleResolver] Central powered on, resolving %@", targetIdentifier.uuidString)
+            NativeLogger.d("DiveComputerHost", category: "BLE", "Central powered on, resolving \(targetIdentifier.uuidString)")
             attemptResolveIfReady()
         case .poweredOff, .unauthorized, .unsupported:
-            NSLog("[BleResolver] Central unavailable (state=%ld)", central.state.rawValue)
+            NativeLogger.w("DiveComputerHost", category: "BLE", "Central unavailable (state=\(central.state.rawValue))")
             finish(peripheral: nil)
         default:
             break
@@ -678,14 +677,14 @@ private final class BlePeripheralResolver: NSObject, CBCentralManagerDelegate {
 
         if allowCachedPeripherals {
             if let cached = central.retrievePeripherals(withIdentifiers: [targetIdentifier]).first {
-                NSLog("[BleResolver] Found cached peripheral %@", targetIdentifier.uuidString)
+                NativeLogger.d("DiveComputerHost", category: "BLE", "Found cached peripheral \(targetIdentifier.uuidString)")
                 finish(peripheral: cached)
                 return
             }
         }
 
         if !isScanning {
-            NSLog("[BleResolver] Scanning for %@", targetIdentifier.uuidString)
+            NativeLogger.d("DiveComputerHost", category: "BLE", "Scanning for \(targetIdentifier.uuidString)")
             central.scanForPeripherals(
                 withServices: nil,
                 options: [CBCentralManagerScanOptionAllowDuplicatesKey: false]
