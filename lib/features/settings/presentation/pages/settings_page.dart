@@ -30,6 +30,7 @@ import 'package:submersion/features/auto_update/domain/entities/update_channel.d
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
+import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
 
 /// Main settings page with master-detail layout on desktop.
 ///
@@ -2891,15 +2892,5 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
         ),
       ],
     );
-  }
-}
-
-// Placeholder until Task 9 creates the real page
-class DebugLogViewerPage extends StatelessWidget {
-  const DebugLogViewerPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Debug Log Viewer'));
   }
 }
