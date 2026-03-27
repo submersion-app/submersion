@@ -246,4 +246,18 @@ void libdc_download_cancel(libdc_download_session_t *session);
 // Free the session.
 void libdc_download_session_free(libdc_download_session_t *session);
 
+// ============================================================
+// Standalone Raw Dive Parsing
+// ============================================================
+
+/// Parse raw dive computer binary data without a device connection.
+/// Uses dc_parser_new2() with a descriptor looked up by vendor/product/model.
+/// Returns 0 on success, negative on failure.
+/// The caller must free result->samples and result->events when done.
+int libdc_parse_raw_dive(
+    const char *vendor, const char *product, unsigned int model,
+    const unsigned char *data, unsigned int size,
+    libdc_parsed_dive_t *result,
+    char *error_buf, size_t error_buf_size);
+
 #endif
