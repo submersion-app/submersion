@@ -138,7 +138,7 @@ void main() {
     });
 
     test('initial state matches LogFilterState defaults', () {
-      final state = container.read(logFilterProvider);
+      final state = container.read(logFilterNotifierProvider);
       expect(
         state.activeCategories,
         equals({
@@ -155,26 +155,26 @@ void main() {
 
     test('toggleCategory deselects an active category', () {
       container
-          .read(logFilterProvider.notifier)
+          .read(logFilterNotifierProvider.notifier)
           .toggleCategory(LogCategory.app);
-      final state = container.read(logFilterProvider);
+      final state = container.read(logFilterNotifierProvider);
       expect(state.activeCategories, isNot(contains(LogCategory.app)));
     });
 
     test('toggleCategory selects an inactive category', () {
       // First remove app, then re-add it.
       container
-          .read(logFilterProvider.notifier)
+          .read(logFilterNotifierProvider.notifier)
           .toggleCategory(LogCategory.app);
       container
-          .read(logFilterProvider.notifier)
+          .read(logFilterNotifierProvider.notifier)
           .toggleCategory(LogCategory.app);
-      final state = container.read(logFilterProvider);
+      final state = container.read(logFilterNotifierProvider);
       expect(state.activeCategories, contains(LogCategory.app));
     });
 
     test('toggleCategory cannot deselect the last remaining category', () {
-      final notifier = container.read(logFilterProvider.notifier);
+      final notifier = container.read(logFilterNotifierProvider.notifier);
       // Remove all categories except one.
       notifier.toggleCategory(LogCategory.app);
       notifier.toggleCategory(LogCategory.bluetooth);
@@ -182,36 +182,46 @@ void main() {
       notifier.toggleCategory(LogCategory.libdc);
       // Only database remains — attempt to remove it.
       notifier.toggleCategory(LogCategory.database);
-      final state = container.read(logFilterProvider);
+      final state = container.read(logFilterNotifierProvider);
       expect(state.activeCategories, equals({LogCategory.database}));
     });
 
     test('setMinimumSeverity changes severity level', () {
       container
-          .read(logFilterProvider.notifier)
+          .read(logFilterNotifierProvider.notifier)
           .setMinimumSeverity(LogLevel.error);
-      expect(container.read(logFilterProvider).minimumSeverity, LogLevel.error);
+      expect(
+        container.read(logFilterNotifierProvider).minimumSeverity,
+        LogLevel.error,
+      );
     });
 
     test('setSearchQuery sets search query', () {
-      container.read(logFilterProvider.notifier).setSearchQuery('connected');
-      expect(container.read(logFilterProvider).searchQuery, 'connected');
+      container
+          .read(logFilterNotifierProvider.notifier)
+          .setSearchQuery('connected');
+      expect(
+        container.read(logFilterNotifierProvider).searchQuery,
+        'connected',
+      );
     });
 
     test('setSearchQuery accepts empty string', () {
-      container.read(logFilterProvider.notifier).setSearchQuery('something');
-      container.read(logFilterProvider.notifier).setSearchQuery('');
-      expect(container.read(logFilterProvider).searchQuery, '');
+      container
+          .read(logFilterNotifierProvider.notifier)
+          .setSearchQuery('something');
+      container.read(logFilterNotifierProvider.notifier).setSearchQuery('');
+      expect(container.read(logFilterNotifierProvider).searchQuery, '');
     });
 
     test('resetFilters restores default state after modifications', () {
-      final notifier = container.read(logFilterProvider.notifier);
+      final notifier = container.read(logFilterNotifierProvider.notifier);
       notifier.toggleCategory(LogCategory.app);
       notifier.setMinimumSeverity(LogLevel.warning);
       notifier.setSearchQuery('some query');
       notifier.resetFilters();
 
-      final state = container.read(logFilterProvider);
+      final state = container.read(logFilterNotifierProvider);
       expect(
         state.activeCategories,
         equals({
@@ -553,16 +563,16 @@ void main() {
 
       // Restrict to only app category.
       container
-          .read(logFilterProvider.notifier)
+          .read(logFilterNotifierProvider.notifier)
           .toggleCategory(LogCategory.bluetooth);
       container
-          .read(logFilterProvider.notifier)
+          .read(logFilterNotifierProvider.notifier)
           .toggleCategory(LogCategory.serial);
       container
-          .read(logFilterProvider.notifier)
+          .read(logFilterNotifierProvider.notifier)
           .toggleCategory(LogCategory.libdc);
       container
-          .read(logFilterProvider.notifier)
+          .read(logFilterNotifierProvider.notifier)
           .toggleCategory(LogCategory.database);
 
       final result = container.read(filteredLogEntriesProvider);
@@ -590,7 +600,7 @@ void main() {
       addTearDown(container.dispose);
 
       container
-          .read(logFilterProvider.notifier)
+          .read(logFilterNotifierProvider.notifier)
           .setMinimumSeverity(LogLevel.warning);
 
       final result = container.read(filteredLogEntriesProvider);
@@ -615,7 +625,9 @@ void main() {
       final container = await makeContainer(service);
       addTearDown(container.dispose);
 
-      container.read(logFilterProvider.notifier).setSearchQuery('connected');
+      container
+          .read(logFilterNotifierProvider.notifier)
+          .setSearchQuery('connected');
 
       final result = container.read(filteredLogEntriesProvider);
       final entries = result.value!;

@@ -63,7 +63,7 @@ class LogFilterState {
 }
 
 /// Provider for log filter state.
-final logFilterProvider =
+final logFilterNotifierProvider =
     StateNotifierProvider<LogFilterNotifier, LogFilterState>((ref) {
       return LogFilterNotifier();
     });
@@ -100,7 +100,7 @@ class LogFilterNotifier extends StateNotifier<LogFilterState> {
 /// Provider for the filtered list of log entries (reverse chronological).
 final filteredLogEntriesProvider = Provider<AsyncValue<List<LogEntry>>>((ref) {
   final entriesAsync = ref.watch(logEntriesProvider);
-  final filter = ref.watch(logFilterProvider);
+  final filter = ref.watch(logFilterNotifierProvider);
 
   return entriesAsync.whenData((entries) {
     final filtered = entries.where((entry) {

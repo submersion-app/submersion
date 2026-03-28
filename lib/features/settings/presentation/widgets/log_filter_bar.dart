@@ -9,7 +9,7 @@ class LogFilterBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filter = ref.watch(logFilterProvider);
+    final filter = ref.watch(logFilterNotifierProvider);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -29,7 +29,7 @@ class LogFilterBar extends ConsumerWidget {
                     selected: isActive,
                     onSelected: (_) {
                       ref
-                          .read(logFilterProvider.notifier)
+                          .read(logFilterNotifierProvider.notifier)
                           .toggleCategory(category);
                     },
                     visualDensity: VisualDensity.compact,
@@ -64,7 +64,7 @@ class LogFilterBar extends ConsumerWidget {
                 onChanged: (level) {
                   if (level != null) {
                     ref
-                        .read(logFilterProvider.notifier)
+                        .read(logFilterNotifierProvider.notifier)
                         .setMinimumSeverity(level);
                   }
                 },

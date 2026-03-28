@@ -253,7 +253,7 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(DebugLogViewerPage)),
       );
-      container.read(debugModeProvider.notifier).disable();
+      container.read(debugModeNotifierProvider.notifier).disable();
 
       // SharedPreferences value should have been updated to false.
       expect(prefs.getBool('debug_mode_enabled'), isFalse);

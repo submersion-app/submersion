@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +14,8 @@ import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
+import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -312,17 +316,27 @@ class _MockDiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>>
 
 void main() {
   late SharedPreferences prefs;
+  late LogFileService logFileService;
+  late Directory tempDir;
 
   setUp(() async {
     // Set up SharedPreferences mock
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
+    tempDir = Directory.systemTemp.createTempSync('settings_page_test_');
+    logFileService = LogFileService(logDirectory: tempDir.path);
+    await logFileService.initialize();
+  });
+
+  tearDown(() {
+    if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
   });
 
   /// Helper to create common provider overrides for SettingsPage tests
   List<Override> getOverrides() {
     return [
       sharedPreferencesProvider.overrideWithValue(prefs),
+      logFileServiceProvider.overrideWithValue(logFileService),
       // Mock the settingsProvider to avoid database access
       settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
       // Mock the currentDiverIdProvider to avoid database access

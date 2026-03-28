@@ -115,7 +115,7 @@ class SettingsMobileContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final debugEnabled = ref.watch(debugModeProvider);
+    final debugEnabled = ref.watch(debugModeNotifierProvider);
     final sections = settingsSections
         .where((s) => s.id != 'dataSources' || Platform.isIOS)
         .toList();
@@ -2291,7 +2291,7 @@ class _AboutSectionContent extends ConsumerStatefulWidget {
 }
 
 class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
-  int _longPressCount = 0;
+  int _tapCount = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -2374,11 +2374,11 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                 ),
                 const SizedBox(height: 4),
                 GestureDetector(
-                  onLongPress: () {
-                    _longPressCount++;
-                    if (_longPressCount >= 5) {
-                      _longPressCount = 0;
-                      ref.read(debugModeProvider.notifier).enable();
+                  onTap: () {
+                    _tapCount++;
+                    if (_tapCount >= 5) {
+                      _tapCount = 0;
+                      ref.read(debugModeNotifierProvider.notifier).enable();
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Debug mode enabled'),

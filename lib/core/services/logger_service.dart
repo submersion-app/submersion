@@ -21,8 +21,9 @@ class LoggerService {
   /// Stream of log entries emitted in real time.
   static Stream<LogEntry> get logStream => _logStreamController.stream;
 
-  /// Initialize the file logging backend. Call once at app startup.
-  static void setFileService(LogFileService fileService) {
+  /// Set or clear the file logging backend.
+  /// Pass `null` to disable file logging (e.g. when debug mode is off).
+  static void setFileService(LogFileService? fileService) {
     _fileService = fileService;
   }
 

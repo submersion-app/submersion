@@ -40,7 +40,9 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
                   border: InputBorder.none,
                 ),
                 onChanged: (query) {
-                  ref.read(logFilterProvider.notifier).setSearchQuery(query);
+                  ref
+                      .read(logFilterNotifierProvider.notifier)
+                      .setSearchQuery(query);
                 },
               )
             : const Text('Debug Logs'),
@@ -52,7 +54,9 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
                 _isSearching = !_isSearching;
                 if (!_isSearching) {
                   _searchController.clear();
-                  ref.read(logFilterProvider.notifier).setSearchQuery('');
+                  ref
+                      .read(logFilterNotifierProvider.notifier)
+                      .setSearchQuery('');
                 }
               });
             },
@@ -61,7 +65,7 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
             onSelected: (value) async {
               switch (value) {
                 case 'disable':
-                  ref.read(debugModeProvider.notifier).disable();
+                  await ref.read(debugModeNotifierProvider.notifier).disable();
                   if (context.mounted) {
                     context.go('/settings');
                   }

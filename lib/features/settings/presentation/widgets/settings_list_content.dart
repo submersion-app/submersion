@@ -105,7 +105,7 @@ class SettingsListContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final debugEnabled = ref.watch(debugModeProvider);
+    final debugEnabled = ref.watch(debugModeNotifierProvider);
     final sections = settingsSections
         .where((s) => s.id != 'dataSources' || Platform.isIOS)
         .toList();

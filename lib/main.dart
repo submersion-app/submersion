@@ -27,13 +27,18 @@ Future<void> main() async {
   // Initialize SharedPreferences first (needed for storage config)
   final prefs = await SharedPreferences.getInstance();
 
-  // Initialize log file service for persistent logging
+  // Initialize log file service (always created so it's ready when needed)
   final appSupportDir = await getApplicationSupportDirectory();
   final logFileService = LogFileService(
     logDirectory: '${appSupportDir.path}/logs',
   );
   await logFileService.initialize();
-  LoggerService.setFileService(logFileService);
+
+  // Only enable file logging when debug mode is active
+  final debugEnabled = prefs.getBool('debug_mode_enabled') ?? false;
+  if (debugEnabled) {
+    LoggerService.setFileService(logFileService);
+  }
 
   // Create location service and get storage config
   final locationService = DatabaseLocationService(prefs);

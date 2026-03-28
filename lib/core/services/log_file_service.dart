@@ -20,6 +20,9 @@ class LogFileService {
   late final String _logFilePath;
   bool _isInitialized = false;
 
+  /// Serializes writes so concurrent calls don't race with rotation.
+  Future<void> _writeQueue = Future.value();
+
   LogFileService({
     required this.logDirectory,
     this.maxFileSizeBytes = _defaultMaxSize,
@@ -39,13 +42,19 @@ class LogFileService {
 
   /// Write a formatted log line to the file.
   ///
+  /// Writes are serialized so concurrent calls don't race with rotation.
   /// Failures are silently swallowed to keep the application running.
-  Future<void> writeLine(String line) async {
+  Future<void> writeLine(String line) {
     if (!_isInitialized) {
       throw StateError(
         'LogFileService.initialize() must be called before writeLine()',
       );
     }
+    _writeQueue = _writeQueue.then((_) => _doWrite(line));
+    return _writeQueue;
+  }
+
+  Future<void> _doWrite(String line) async {
     try {
       final file = File(_logFilePath);
       await file.writeAsString('$line\n', mode: FileMode.append);
