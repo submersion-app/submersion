@@ -24,6 +24,25 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Mock with custom initial sections for testing custom order
+class _MockSettingsNotifierWithSections extends StateNotifier<AppSettings>
+    implements SettingsNotifier {
+  _MockSettingsNotifierWithSections(List<DiveDetailSectionConfig> sections)
+    : super(AppSettings(diveDetailSections: sections));
+
+  @override
+  Future<void> setDiveDetailSections(
+    List<DiveDetailSectionConfig> sections,
+  ) async => state = state.copyWith(diveDetailSections: sections);
+
+  @override
+  Future<void> resetDiveDetailSections() async =>
+      state = state.copyWith(clearDiveDetailSections: true);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Widget _buildTestWidget() {
   return ProviderScope(
     overrides: [
@@ -159,6 +178,134 @@ void main() {
       for (final s in switches) {
         expect(s.value, true);
       }
+    });
+
+    testWidgets('toggling switch back on restores full opacity', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget());
+      await tester.pumpAndSettle();
+
+      // Toggle off
+      await tester.tap(find.byType(Switch).first);
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widgetList<AnimatedOpacity>(find.byType(AnimatedOpacity))
+            .first
+            .opacity,
+        0.5,
+      );
+
+      // Toggle back on
+      await tester.tap(find.byType(Switch).first);
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widgetList<AnimatedOpacity>(find.byType(AnimatedOpacity))
+            .first
+            .opacity,
+        1.0,
+      );
+
+      // Switch should be on again
+      expect(tester.widgetList<Switch>(find.byType(Switch)).first.value, true);
+    });
+
+    testWidgets('multiple sections can be toggled off independently', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget());
+      await tester.pumpAndSettle();
+
+      // Toggle first and third switches off
+      final switches = find.byType(Switch);
+      await tester.tap(switches.at(0));
+      await tester.pumpAndSettle();
+      await tester.tap(switches.at(2));
+      await tester.pumpAndSettle();
+
+      final switchList = tester
+          .widgetList<Switch>(find.byType(Switch))
+          .toList();
+      expect(switchList[0].value, false);
+      expect(switchList[1].value, true);
+      expect(switchList[2].value, false);
+      expect(switchList[3].value, true);
+    });
+
+    testWidgets('overflow menu button is present', (tester) async {
+      await tester.pumpWidget(_buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PopupMenuButton<String>), findsOneWidget);
+    });
+
+    testWidgets('shows configurable sections subheading', (tester) async {
+      await tester.pumpWidget(_buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Configurable sections (drag to reorder)'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('sections render with custom initial order', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      // Create a custom order: tanks first, then decoO2
+      final customSections = [
+        const DiveDetailSectionConfig(
+          id: DiveDetailSectionId.tanks,
+          visible: true,
+        ),
+        const DiveDetailSectionConfig(
+          id: DiveDetailSectionId.decoO2,
+          visible: false,
+        ),
+        ...DiveDetailSectionId.values
+            .where(
+              (id) =>
+                  id != DiveDetailSectionId.tanks &&
+                  id != DiveDetailSectionId.decoO2,
+            )
+            .map((id) => DiveDetailSectionConfig(id: id, visible: true)),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith(
+              (ref) => _MockSettingsNotifierWithSections(customSections),
+            ),
+          ],
+          child: const MaterialApp(home: DiveDetailSectionsPage()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // First section should be Tanks, second should be Deco Status
+      final titles = tester.widgetList<Text>(
+        find.descendant(of: find.byType(ListTile), matching: find.byType(Text)),
+      );
+      // Find display names in order
+      final displayNames = titles
+          .map((t) => t.data)
+          .where(
+            (d) =>
+                d != null &&
+                DiveDetailSectionId.values.any((id) => id.displayName == d),
+          )
+          .toList();
+      expect(displayNames.first, 'Tanks');
     });
 
     testWidgets('shows app bar title', (tester) async {

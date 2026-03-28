@@ -191,6 +191,50 @@ void main() {
         throwsStateError,
       );
     });
+
+    test('fromJson with visible explicitly set to false', () {
+      final config = DiveDetailSectionConfig.fromJson({
+        'id': 'decoO2',
+        'visible': false,
+      });
+      expect(config.visible, false);
+    });
+
+    test('toJson then fromJson round-trip preserves single config', () {
+      const original = DiveDetailSectionConfig(
+        id: DiveDetailSectionId.sightings,
+        visible: false,
+      );
+      final json = original.toJson();
+      final restored = DiveDetailSectionConfig.fromJson(json);
+      expect(restored.id, original.id);
+      expect(restored.visible, original.visible);
+    });
+  });
+
+  group('tryFromJson', () {
+    test('returns config for valid JSON map', () {
+      final config = DiveDetailSectionConfig.tryFromJson({
+        'id': 'media',
+        'visible': true,
+      });
+      expect(config, isNotNull);
+      expect(config!.id, DiveDetailSectionId.media);
+      expect(config.visible, true);
+    });
+
+    test('returns null for missing id key', () {
+      final config = DiveDetailSectionConfig.tryFromJson({'visible': true});
+      expect(config, isNull);
+    });
+
+    test('returns null for non-string id', () {
+      final config = DiveDetailSectionConfig.tryFromJson({
+        'id': 42,
+        'visible': true,
+      });
+      expect(config, isNull);
+    });
   });
 
   group('DiveDetailSectionConfig copyWith edge cases', () {
@@ -277,6 +321,38 @@ void main() {
     });
   });
 
+  group('sectionsFromJson error recovery', () {
+    test('returns defaults when JSON is a map instead of a list', () {
+      final sections = DiveDetailSectionConfig.sectionsFromJson(
+        '{"foo":"bar"}',
+      );
+      expect(sections.length, 17);
+      expect(sections.every((s) => s.visible), true);
+    });
+
+    test('returns defaults when JSON list contains non-map items', () {
+      final sections = DiveDetailSectionConfig.sectionsFromJson('[1, 2, 3]');
+      expect(sections.length, 17);
+      expect(sections.every((s) => s.visible), true);
+    });
+
+    test('returns defaults when all entries have unknown IDs', () {
+      const jsonStr =
+          '[{"id":"foo","visible":true},{"id":"bar","visible":false}]';
+      final sections = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
+      // All unknown → parsed list empty → returns defaults
+      expect(sections.length, 17);
+      expect(sections.every((s) => s.visible), true);
+    });
+
+    test('returns defaults for JSON list with mixed valid/invalid types', () {
+      const jsonStr = '[{"id":"decoO2","visible":true}, "not a map", 42]';
+      final sections = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
+      // Cast error on "not a map" → catch → defaults
+      expect(sections.length, 17);
+    });
+  });
+
   group('sectionsFromJson with all sections present', () {
     test('returns exact list when all 17 sections are in JSON', () {
       final allSections = DiveDetailSectionConfig.defaultSections
@@ -299,6 +375,101 @@ void main() {
       for (final id in DiveDetailSectionId.values) {
         expect(id.description.isNotEmpty, true);
       }
+    });
+
+    test('displayName values are correct for each section', () {
+      expect(
+        DiveDetailSectionId.decoO2.displayName,
+        'Deco Status / Tissue Loading',
+      );
+      expect(
+        DiveDetailSectionId.sacSegments.displayName,
+        'SAC Rate by Segment',
+      );
+      expect(DiveDetailSectionId.details.displayName, 'Details');
+      expect(DiveDetailSectionId.environment.displayName, 'Environment');
+      expect(DiveDetailSectionId.altitude.displayName, 'Altitude');
+      expect(DiveDetailSectionId.tide.displayName, 'Tide');
+      expect(DiveDetailSectionId.weights.displayName, 'Weights');
+      expect(DiveDetailSectionId.tanks.displayName, 'Tanks');
+      expect(DiveDetailSectionId.buddies.displayName, 'Buddies');
+      expect(DiveDetailSectionId.signatures.displayName, 'Signatures');
+      expect(DiveDetailSectionId.equipment.displayName, 'Equipment');
+      expect(
+        DiveDetailSectionId.sightings.displayName,
+        'Marine Life Sightings',
+      );
+      expect(DiveDetailSectionId.media.displayName, 'Media');
+      expect(DiveDetailSectionId.tags.displayName, 'Tags');
+      expect(DiveDetailSectionId.notes.displayName, 'Notes');
+      expect(DiveDetailSectionId.customFields.displayName, 'Custom Fields');
+      expect(DiveDetailSectionId.dataSources.displayName, 'Data Sources');
+    });
+
+    test('description values are correct for each section', () {
+      expect(
+        DiveDetailSectionId.decoO2.description,
+        'NDL, ceiling, tissue heat map, O2 toxicity',
+      );
+      expect(
+        DiveDetailSectionId.sacSegments.description,
+        'Phase/time segmentation, cylinder breakdown',
+      );
+      expect(
+        DiveDetailSectionId.details.description,
+        'Type, location, trip, dive center, interval',
+      );
+      expect(
+        DiveDetailSectionId.environment.description,
+        'Air/water temp, visibility, current',
+      );
+      expect(
+        DiveDetailSectionId.altitude.description,
+        'Altitude value, category, deco requirement',
+      );
+      expect(
+        DiveDetailSectionId.tide.description,
+        'Tide cycle graph and timing',
+      );
+      expect(
+        DiveDetailSectionId.weights.description,
+        'Weight breakdown, total weight',
+      );
+      expect(
+        DiveDetailSectionId.tanks.description,
+        'Tank list, gas mixes, pressures, per-tank SAC',
+      );
+      expect(DiveDetailSectionId.buddies.description, 'Buddy list with roles');
+      expect(
+        DiveDetailSectionId.signatures.description,
+        'Buddy/instructor signature display and capture',
+      );
+      expect(
+        DiveDetailSectionId.equipment.description,
+        'Equipment used in dive',
+      );
+      expect(
+        DiveDetailSectionId.sightings.description,
+        'Species spotted, sighting details',
+      );
+      expect(DiveDetailSectionId.media.description, 'Photos/videos gallery');
+      expect(DiveDetailSectionId.tags.description, 'Dive tags');
+      expect(DiveDetailSectionId.notes.description, 'Dive notes/description');
+      expect(
+        DiveDetailSectionId.customFields.description,
+        'User-defined custom fields',
+      );
+      expect(
+        DiveDetailSectionId.dataSources.description,
+        'Connected dive computers, source management',
+      );
+    });
+
+    test('each section has a unique displayName', () {
+      final names = DiveDetailSectionId.values
+          .map((id) => id.displayName)
+          .toList();
+      expect(names.toSet().length, names.length);
     });
   });
 }
