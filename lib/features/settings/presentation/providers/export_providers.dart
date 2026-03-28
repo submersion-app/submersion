@@ -1086,7 +1086,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
           dateTime: dateTime,
           entryTime: entryTime,
           exitTime: exitTime,
-          duration: diveData['duration'] as Duration?,
+          bottomTime: diveData['duration'] as Duration?,
           runtime: runtime,
           maxDepth: diveData['maxDepth'] as double?,
           avgDepth: diveData['avgDepth'] as double?,

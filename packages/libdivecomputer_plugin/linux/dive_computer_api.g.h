@@ -960,6 +960,7 @@ typedef struct {
   LibdivecomputerPluginDiveComputerHostApiCancelDownloadResponse* (*cancel_download)(gpointer user_data);
   LibdivecomputerPluginDiveComputerHostApiSubmitPinCodeResponse* (*submit_pin_code)(const gchar* pin_code, gpointer user_data);
   LibdivecomputerPluginDiveComputerHostApiGetLibdivecomputerVersionResponse* (*get_libdivecomputer_version)(gpointer user_data);
+  void (*parse_raw_dive_data)(const gchar* vendor, const gchar* product, int64_t model, const uint8_t* data, size_t data_length, LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle, gpointer user_data);
 } LibdivecomputerPluginDiveComputerHostApiVTable;
 
 /**
@@ -1042,6 +1043,26 @@ void libdivecomputer_plugin_dive_computer_host_api_respond_start_download(Libdiv
  * Responds with an error to DiveComputerHostApi.startDownload. 
  */
 void libdivecomputer_plugin_dive_computer_host_api_respond_error_start_download(LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle, const gchar* code, const gchar* message, FlValue* details);
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_respond_parse_raw_dive_data:
+ * @response_handle: a #LibdivecomputerPluginDiveComputerHostApiResponseHandle.
+ * @return_value: location to write the value returned by this method.
+ *
+ * Responds to DiveComputerHostApi.parseRawDiveData. 
+ */
+void libdivecomputer_plugin_dive_computer_host_api_respond_parse_raw_dive_data(LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle, LibdivecomputerPluginParsedDive* return_value);
+
+/**
+ * libdivecomputer_plugin_dive_computer_host_api_respond_error_parse_raw_dive_data:
+ * @response_handle: a #LibdivecomputerPluginDiveComputerHostApiResponseHandle.
+ * @code: error code.
+ * @message: error message.
+ * @details: (allow-none): error details or %NULL.
+ *
+ * Responds with an error to DiveComputerHostApi.parseRawDiveData. 
+ */
+void libdivecomputer_plugin_dive_computer_host_api_respond_error_parse_raw_dive_data(LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle, const gchar* code, const gchar* message, FlValue* details);
 
 G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerFlutterApiOnDeviceDiscoveredResponse, libdivecomputer_plugin_dive_computer_flutter_api_on_device_discovered_response, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_FLUTTER_API_ON_DEVICE_DISCOVERED_RESPONSE, GObject)
 

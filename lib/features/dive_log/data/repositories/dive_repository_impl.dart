@@ -532,7 +532,7 @@ class DiveRepository {
               diveDateTime: Value(dive.dateTime.millisecondsSinceEpoch),
               entryTime: Value(dive.entryTime?.millisecondsSinceEpoch),
               exitTime: Value(dive.exitTime?.millisecondsSinceEpoch),
-              duration: Value(dive.duration?.inSeconds),
+              bottomTime: Value(dive.bottomTime?.inSeconds),
               runtime: Value(dive.runtime?.inSeconds),
               maxDepth: Value(dive.maxDepth),
               avgDepth: Value(dive.avgDepth),
@@ -745,7 +745,7 @@ class DiveRepository {
           diveDateTime: Value(dive.dateTime.millisecondsSinceEpoch),
           entryTime: Value(dive.entryTime?.millisecondsSinceEpoch),
           exitTime: Value(dive.exitTime?.millisecondsSinceEpoch),
-          duration: Value(dive.duration?.inSeconds),
+          bottomTime: Value(dive.bottomTime?.inSeconds),
           runtime: Value(dive.runtime?.inSeconds),
           maxDepth: Value(dive.maxDepth),
           avgDepth: Value(dive.avgDepth),
@@ -1099,7 +1099,7 @@ class DiveRepository {
         final sql =
             'SELECT '
             'd.id, d.dive_number, d.dive_date_time, d.entry_time, '
-            'd.max_depth, d.duration, d.runtime, d.water_temp, d.rating, '
+            'd.max_depth, d.bottom_time, d.runtime, d.water_temp, d.rating, '
             'd.is_favorite, d.dive_type, '
             'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
             's.name AS site_name, s.country AS site_country, '
@@ -1129,7 +1129,7 @@ class DiveRepository {
         return rows.map((row) {
           final id = row.read<String>('id');
           final entryTime = row.readNullable<int>('entry_time');
-          final duration = row.readNullable<int>('duration');
+          final bottomTime = row.readNullable<int>('bottom_time');
           final runtime = row.readNullable<int>('runtime');
 
           return DiveSummary(
@@ -1143,7 +1143,9 @@ class DiveRepository {
                 ? DateTime.fromMillisecondsSinceEpoch(entryTime, isUtc: true)
                 : null,
             maxDepth: row.readNullable<double>('max_depth'),
-            duration: duration != null ? Duration(seconds: duration) : null,
+            bottomTime: bottomTime != null
+                ? Duration(seconds: bottomTime)
+                : null,
             runtime: runtime != null ? Duration(seconds: runtime) : null,
             waterTemp: row.readNullable<double>('water_temp'),
             rating: row.readNullable<int>('rating'),
@@ -1226,8 +1228,8 @@ class DiveRepository {
         return 'COALESCE(s.name, \'\') $dir, $tiebreaker';
       case DiveSortField.depth:
         return 'COALESCE(d.max_depth, 0) $dir, $tiebreaker';
-      case DiveSortField.duration:
-        return 'COALESCE(d.duration, 0) $dir, $tiebreaker';
+      case DiveSortField.bottomTime:
+        return 'COALESCE(d.bottom_time, 0) $dir, $tiebreaker';
       case DiveSortField.rating:
         return 'COALESCE(d.rating, 0) $dir, $tiebreaker';
       case DiveSortField.diveNumber:
@@ -1342,13 +1344,13 @@ class DiveRepository {
       clauses.add('d.rating >= ?');
       args.add(Variable(filter.minRating!));
     }
-    if (filter.minDurationMinutes != null) {
-      clauses.add('d.duration >= ?');
-      args.add(Variable(filter.minDurationMinutes! * 60));
+    if (filter.minBottomTimeMinutes != null) {
+      clauses.add('d.bottom_time >= ?');
+      args.add(Variable(filter.minBottomTimeMinutes! * 60));
     }
-    if (filter.maxDurationMinutes != null) {
-      clauses.add('d.duration <= ?');
-      args.add(Variable(filter.maxDurationMinutes! * 60));
+    if (filter.maxBottomTimeMinutes != null) {
+      clauses.add('d.bottom_time <= ?');
+      args.add(Variable(filter.maxBottomTimeMinutes! * 60));
     }
     if (filter.customFieldKey != null && filter.customFieldKey!.isNotEmpty) {
       if (filter.customFieldValue != null &&
@@ -1583,7 +1585,7 @@ class DiveRepository {
       final stats = await _db.customSelect('''
       SELECT
         COUNT(*) as total_dives,
-        SUM(duration) as total_time,
+        SUM(bottom_time) as total_time,
         MAX(max_depth) as max_depth,
         AVG(max_depth) as avg_max_depth,
         AVG(water_temp) as avg_temp,
@@ -1731,8 +1733,8 @@ class DiveRepository {
       SELECT d.*, s.name as site_name
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
-      WHERE d.duration IS NOT NULL $diverFilter
-      ORDER BY d.duration DESC
+      WHERE d.bottom_time IS NOT NULL $diverFilter
+      ORDER BY d.bottom_time DESC
       LIMIT 1
     ''', variables: vars).getSingleOrNull();
 
@@ -1821,8 +1823,8 @@ class DiveRepository {
         isUtc: true,
       ),
       maxDepth: row.data['max_depth'] as double?,
-      duration: row.data['duration'] != null
-          ? Duration(seconds: row.data['duration'] as int)
+      bottomTime: row.data['bottom_time'] != null
+          ? Duration(seconds: row.data['bottom_time'] as int)
           : null,
       waterTemp: row.data['water_temp'] as double?,
     );
@@ -1922,7 +1924,9 @@ class DiveRepository {
       exitTime: row.exitTime != null
           ? DateTime.fromMillisecondsSinceEpoch(row.exitTime!, isUtc: true)
           : null,
-      duration: row.duration != null ? Duration(seconds: row.duration!) : null,
+      bottomTime: row.bottomTime != null
+          ? Duration(seconds: row.bottomTime!)
+          : null,
       runtime: row.runtime != null ? Duration(seconds: row.runtime!) : null,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
@@ -2262,7 +2266,9 @@ class DiveRepository {
       exitTime: row.exitTime != null
           ? DateTime.fromMillisecondsSinceEpoch(row.exitTime!, isUtc: true)
           : null,
-      duration: row.duration != null ? Duration(seconds: row.duration!) : null,
+      bottomTime: row.bottomTime != null
+          ? Duration(seconds: row.bottomTime!)
+          : null,
       runtime: row.runtime != null ? Duration(seconds: row.runtime!) : null,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
@@ -2968,7 +2974,7 @@ class DiveRepository {
       final previousExitTime =
           previousDive.exitTime ??
           (previousDive.entryTime ?? previousDive.dateTime).add(
-            previousDive.calculatedDuration ?? Duration.zero,
+            previousDive.effectiveRuntime ?? Duration.zero,
           );
       final currentEntryTime = currentDive.entryTime ?? currentDive.dateTime;
 
@@ -3345,7 +3351,7 @@ class DiveRepository {
           computerSerial: Value(diveRow.diveComputerSerial),
           maxDepth: Value(diveRow.maxDepth),
           avgDepth: Value(diveRow.avgDepth),
-          duration: Value(diveRow.duration),
+          duration: Value(diveRow.bottomTime),
           waterTemp: Value(diveRow.waterTemp),
           entryTime: Value(
             diveRow.entryTime != null
@@ -3470,7 +3476,7 @@ class DiveRepository {
               computerSerial: Value(secondaryRow.diveComputerSerial),
               maxDepth: Value(secondaryRow.maxDepth),
               avgDepth: Value(secondaryRow.avgDepth),
-              duration: Value(secondaryRow.duration),
+              duration: Value(secondaryRow.bottomTime),
               waterTemp: Value(secondaryRow.waterTemp),
               entryTime: Value(
                 secondaryRow.entryTime != null
@@ -3573,7 +3579,7 @@ class DiveRepository {
                 ),
                 entryTime: Value(reading.entryTime?.millisecondsSinceEpoch),
                 exitTime: Value(reading.exitTime?.millisecondsSinceEpoch),
-                duration: Value(reading.duration),
+                bottomTime: Value(reading.duration),
                 maxDepth: Value(reading.maxDepth),
                 avgDepth: Value(reading.avgDepth),
                 waterTemp: Value(reading.waterTemp),
@@ -3703,7 +3709,7 @@ class DiveRepository {
             diveComputerSerial: Value(newPrimary.computerSerial),
             maxDepth: Value(newPrimary.maxDepth),
             avgDepth: Value(newPrimary.avgDepth),
-            duration: Value(newPrimary.duration),
+            bottomTime: Value(newPrimary.duration),
             waterTemp: Value(newPrimary.waterTemp),
             entryTime: Value(newPrimary.entryTime?.millisecondsSinceEpoch),
             exitTime: Value(newPrimary.exitTime?.millisecondsSinceEpoch),
@@ -3897,7 +3903,7 @@ class DiveRecord {
   final String? siteName;
   final DateTime dateTime;
   final double? maxDepth;
-  final Duration? duration;
+  final Duration? bottomTime;
   final double? waterTemp;
 
   DiveRecord({
@@ -3906,7 +3912,7 @@ class DiveRecord {
     this.siteName,
     required this.dateTime,
     this.maxDepth,
-    this.duration,
+    this.bottomTime,
     this.waterTemp,
   });
 }

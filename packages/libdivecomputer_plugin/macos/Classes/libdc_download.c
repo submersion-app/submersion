@@ -4,6 +4,7 @@
 #include "libdc_wrapper.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <math.h>
 #include <time.h>
 
@@ -75,7 +76,8 @@ static dc_descriptor_t *find_descriptor(const char *vendor, const char *product,
         const char *p = dc_descriptor_get_product(desc);
         unsigned int m = dc_descriptor_get_model(desc);
         if (v != NULL && p != NULL &&
-            strcmp(v, vendor) == 0 && strcmp(p, product) == 0 && m == model) {
+            strcmp(v, vendor) == 0 && strcmp(p, product) == 0 &&
+            (model == 0 || m == model)) {
             match = desc;
             break;
         }
@@ -229,36 +231,10 @@ static void sample_callback(dc_sample_type_t type,
     }
 }
 
-static int parse_dive(download_state_t *state,
-                       const unsigned char *data, unsigned int size,
-                       const unsigned char *fingerprint, unsigned int fsize,
-                       libdc_parsed_dive_t *dive) {
-    memset(dive, 0, sizeof(*dive));
-    dive->min_temp = NAN;
-    dive->max_temp = NAN;
-    dive->deco_model_type = 0;  // DC_DECOMODEL_NONE
-    dive->deco_conservatism = 0;
-    dive->gf_low = 0;
-    dive->gf_high = 0;
-    dive->events = NULL;
-    dive->event_count = 0;
-    dive->event_capacity = 0;
-
-    // Store fingerprint.
-    if (fingerprint != NULL && fsize > 0) {
-        unsigned int copy_size = fsize < LIBDC_MAX_FINGERPRINT ?
-                                 fsize : LIBDC_MAX_FINGERPRINT;
-        memcpy(dive->fingerprint, fingerprint, copy_size);
-        dive->fingerprint_size = copy_size;
-    }
-
-    // Create parser.
-    dc_parser_t *parser = NULL;
-    dc_status_t status = dc_parser_new(&parser, state->device, data, size);
-    if (status != DC_STATUS_SUCCESS || parser == NULL) {
-        return -1;
-    }
-
+// Extract all fields (datetime, summary, deco model, gas mixes, tanks, samples)
+// from an already-created parser into the dive struct.
+// Returns 0 on success.
+static int extract_dive_fields(dc_parser_t *parser, libdc_parsed_dive_t *dive) {
     // Extract datetime.
     dc_datetime_t dt = {0};
     if (dc_parser_get_datetime(parser, &dt) == DC_STATUS_SUCCESS) {
@@ -297,7 +273,7 @@ static int parse_dive(download_state_t *state,
     // Extract decompression model.
     dc_decomodel_t decomodel = {0};
     if (dc_parser_get_field(parser, DC_FIELD_DECOMODEL, 0, &decomodel) == DC_STATUS_SUCCESS) {
-        dive->deco_model_type = decomodel.type;  // DC_DECOMODEL_NONE=0, BUHLMANN=1, VPM=2, RGBM=3, DCIEM=4
+        dive->deco_model_type = decomodel.type;
         dive->deco_conservatism = decomodel.conservatism;
         dive->gf_low = decomodel.params.gf.low;
         dive->gf_high = decomodel.params.gf.high;
@@ -306,9 +282,7 @@ static int parse_dive(download_state_t *state,
     // Extract gas mixes.
     unsigned int gasmix_count = 0;
     if (dc_parser_get_field(parser, DC_FIELD_GASMIX_COUNT, 0, &gasmix_count) == DC_STATUS_SUCCESS) {
-        if (gasmix_count > LIBDC_MAX_GASMIXES) {
-            gasmix_count = LIBDC_MAX_GASMIXES;
-        }
+        if (gasmix_count > LIBDC_MAX_GASMIXES) gasmix_count = LIBDC_MAX_GASMIXES;
         for (unsigned int i = 0; i < gasmix_count; i++) {
             dc_gasmix_t gm = {0};
             if (dc_parser_get_field(parser, DC_FIELD_GASMIX, i, &gm) == DC_STATUS_SUCCESS) {
@@ -322,9 +296,7 @@ static int parse_dive(download_state_t *state,
     // Extract tanks.
     unsigned int tank_count = 0;
     if (dc_parser_get_field(parser, DC_FIELD_TANK_COUNT, 0, &tank_count) == DC_STATUS_SUCCESS) {
-        if (tank_count > LIBDC_MAX_TANKS) {
-            tank_count = LIBDC_MAX_TANKS;
-        }
+        if (tank_count > LIBDC_MAX_TANKS) tank_count = LIBDC_MAX_TANKS;
         for (unsigned int i = 0; i < tank_count; i++) {
             dc_tank_t tk = {0};
             if (dc_parser_get_field(parser, DC_FIELD_TANK, i, &tk) == DC_STATUS_SUCCESS) {
@@ -344,8 +316,43 @@ static int parse_dive(download_state_t *state,
     dc_parser_samples_foreach(parser, sample_callback, &sample_state);
     push_sample(&sample_state);
 
-    dc_parser_destroy(parser);
     return 0;
+}
+
+static int parse_dive(download_state_t *state,
+                       const unsigned char *data, unsigned int size,
+                       const unsigned char *fingerprint, unsigned int fsize,
+                       libdc_parsed_dive_t *dive) {
+    memset(dive, 0, sizeof(*dive));
+    dive->min_temp = NAN;
+    dive->max_temp = NAN;
+    dive->deco_model_type = 0;  // DC_DECOMODEL_NONE
+    dive->deco_conservatism = 0;
+    dive->gf_low = 0;
+    dive->gf_high = 0;
+    dive->events = NULL;
+    dive->event_count = 0;
+    dive->event_capacity = 0;
+
+    // Store fingerprint.
+    if (fingerprint != NULL && fsize > 0) {
+        unsigned int copy_size = fsize < LIBDC_MAX_FINGERPRINT ?
+                                 fsize : LIBDC_MAX_FINGERPRINT;
+        memcpy(dive->fingerprint, fingerprint, copy_size);
+        dive->fingerprint_size = copy_size;
+    }
+
+    // Create parser.
+    dc_parser_t *parser = NULL;
+    dc_status_t status = dc_parser_new(&parser, state->device, data, size);
+    if (status != DC_STATUS_SUCCESS || parser == NULL) {
+        return -1;
+    }
+
+    int result = extract_dive_fields(parser, dive);
+
+    dc_parser_destroy(parser);
+    return result;
 }
 
 static int dive_callback(const unsigned char *data, unsigned int size,
@@ -613,4 +620,75 @@ int libdc_download_run(
     dc_descriptor_free(state.descriptor);
 
     return result;
+}
+
+// ============================================================
+// Standalone Raw Dive Parsing
+// ============================================================
+
+int libdc_parse_raw_dive(
+    const char *vendor, const char *product, unsigned int model,
+    const unsigned char *data, unsigned int size,
+    libdc_parsed_dive_t *result,
+    char *error_buf, size_t error_buf_size)
+{
+    if (vendor == NULL || product == NULL || data == NULL ||
+        size == 0 || result == NULL) {
+        if (error_buf && error_buf_size > 0) {
+            strncpy(error_buf, "Invalid arguments", error_buf_size - 1);
+            error_buf[error_buf_size - 1] = '\0';
+        }
+        return LIBDC_STATUS_INVALIDARGS;
+    }
+
+    memset(result, 0, sizeof(*result));
+    result->min_temp = NAN;
+    result->max_temp = NAN;
+    result->events = NULL;
+    result->event_count = 0;
+    result->event_capacity = 0;
+
+    dc_context_t *context = NULL;
+    dc_status_t status = dc_context_new(&context);
+    if (status != DC_STATUS_SUCCESS) {
+        if (error_buf && error_buf_size > 0) {
+            strncpy(error_buf, "Failed to create context", error_buf_size - 1);
+            error_buf[error_buf_size - 1] = '\0';
+        }
+        return (int)status;
+    }
+
+    dc_descriptor_t *descriptor = find_descriptor(vendor, product, model);
+    if (descriptor == NULL) {
+        dc_context_free(context);
+        if (error_buf && error_buf_size > 0)
+            snprintf(error_buf, error_buf_size,
+                     "No descriptor for %s %s (model %u)",
+                     vendor, product, model);
+        return LIBDC_STATUS_NODEVICE;
+    }
+
+    dc_parser_t *parser = NULL;
+    status = dc_parser_new2(&parser, context, descriptor, data, size);
+    if (status != DC_STATUS_SUCCESS || parser == NULL) {
+        dc_descriptor_free(descriptor);
+        dc_context_free(context);
+        if (error_buf && error_buf_size > 0)
+            snprintf(error_buf, error_buf_size,
+                     "Parser creation failed (status %d)", (int)status);
+        return (int)status;
+    }
+
+    int parse_result = extract_dive_fields(parser, result);
+
+    dc_parser_destroy(parser);
+    dc_descriptor_free(descriptor);
+    dc_context_free(context);
+
+    if (parse_result != 0 && error_buf && error_buf_size > 0) {
+        strncpy(error_buf, "Field extraction failed", error_buf_size - 1);
+        error_buf[error_buf_size - 1] = '\0';
+    }
+
+    return parse_result;
 }

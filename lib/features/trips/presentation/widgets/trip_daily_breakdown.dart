@@ -169,8 +169,8 @@ class TripDailyBreakdown extends ConsumerWidget {
   /// Sum of dive durations in minutes for a list of dives.
   int _totalBottomTimeMinutes(List<Dive> dives) {
     return dives
-        .where((dive) => dive.duration != null)
-        .fold(0, (sum, dive) => sum + dive.duration!.inMinutes);
+        .where((dive) => dive.bottomTime != null)
+        .fold(0, (sum, dive) => sum + dive.bottomTime!.inMinutes);
   }
 
   /// Count of unique dive sites in a list of dives.

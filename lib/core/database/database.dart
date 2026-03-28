@@ -112,7 +112,7 @@ class Dives extends Table {
       integer().nullable()(); // Unix timestamp - when diver entered water
   IntColumn get exitTime =>
       integer().nullable()(); // Unix timestamp - when diver exited water
-  IntColumn get duration => integer().nullable()(); // seconds (bottom time)
+  IntColumn get bottomTime => integer().nullable()(); // seconds (bottom time)
   IntColumn get runtime => integer().nullable()(); // seconds (total runtime)
   RealColumn get maxDepth => real().nullable()();
   RealColumn get avgDepth => real().nullable()();
@@ -1240,7 +1240,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 56;
+  static const int currentSchemaVersion = 57;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -2473,6 +2473,11 @@ class AppDatabase extends _$AppDatabase {
           );
         }
         if (from < 56) {
+          await m.database.customStatement(
+            'ALTER TABLE dives RENAME COLUMN duration TO bottom_time',
+          );
+        }
+        if (from < 57) {
           // Add dive detail section configuration column to diver_settings
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN dive_detail_sections TEXT',

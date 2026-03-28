@@ -1801,6 +1801,45 @@ LibdivecomputerPluginDiveComputerHostApiGetLibdivecomputerVersionResponse* libdi
   return self;
 }
 
+G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDiveComputerHostApiParseRawDiveDataResponse, libdivecomputer_plugin_dive_computer_host_api_parse_raw_dive_data_response, LIBDIVECOMPUTER_PLUGIN, DIVE_COMPUTER_HOST_API_PARSE_RAW_DIVE_DATA_RESPONSE, GObject)
+
+struct _LibdivecomputerPluginDiveComputerHostApiParseRawDiveDataResponse {
+  GObject parent_instance;
+
+  FlValue* value;
+};
+
+G_DEFINE_TYPE(LibdivecomputerPluginDiveComputerHostApiParseRawDiveDataResponse, libdivecomputer_plugin_dive_computer_host_api_parse_raw_dive_data_response, G_TYPE_OBJECT)
+
+static void libdivecomputer_plugin_dive_computer_host_api_parse_raw_dive_data_response_dispose(GObject* object) {
+  LibdivecomputerPluginDiveComputerHostApiParseRawDiveDataResponse* self = LIBDIVECOMPUTER_PLUGIN_DIVE_COMPUTER_HOST_API_PARSE_RAW_DIVE_DATA_RESPONSE(object);
+  g_clear_pointer(&self->value, fl_value_unref);
+  G_OBJECT_CLASS(libdivecomputer_plugin_dive_computer_host_api_parse_raw_dive_data_response_parent_class)->dispose(object);
+}
+
+static void libdivecomputer_plugin_dive_computer_host_api_parse_raw_dive_data_response_init(LibdivecomputerPluginDiveComputerHostApiParseRawDiveDataResponse* self) {
+}
+
+static void libdivecomputer_plugin_dive_computer_host_api_parse_raw_dive_data_response_class_init(LibdivecomputerPluginDiveComputerHostApiParseRawDiveDataResponseClass* klass) {
+  G_OBJECT_CLASS(klass)->dispose = libdivecomputer_plugin_dive_computer_host_api_parse_raw_dive_data_response_dispose;
+}
+
+static LibdivecomputerPluginDiveComputerHostApiParseRawDiveDataResponse* libdivecomputer_plugin_dive_computer_host_api_parse_raw_dive_data_response_new(LibdivecomputerPluginParsedDive* return_value) {
+  LibdivecomputerPluginDiveComputerHostApiParseRawDiveDataResponse* self = LIBDIVECOMPUTER_PLUGIN_DIVE_COMPUTER_HOST_API_PARSE_RAW_DIVE_DATA_RESPONSE(g_object_new(libdivecomputer_plugin_dive_computer_host_api_parse_raw_dive_data_response_get_type(), nullptr));
+  self->value = fl_value_new_list();
+  fl_value_append_take(self->value, fl_value_new_custom_object(136, G_OBJECT(return_value)));
+  return self;
+}
+
+static LibdivecomputerPluginDiveComputerHostApiParseRawDiveDataResponse* libdivecomputer_plugin_dive_computer_host_api_parse_raw_dive_data_response_new_error(const gchar* code, const gchar* message, FlValue* details) {
+  LibdivecomputerPluginDiveComputerHostApiParseRawDiveDataResponse* self = LIBDIVECOMPUTER_PLUGIN_DIVE_COMPUTER_HOST_API_PARSE_RAW_DIVE_DATA_RESPONSE(g_object_new(libdivecomputer_plugin_dive_computer_host_api_parse_raw_dive_data_response_get_type(), nullptr));
+  self->value = fl_value_new_list();
+  fl_value_append_take(self->value, fl_value_new_string(code));
+  fl_value_append_take(self->value, fl_value_new_string(message != nullptr ? message : ""));
+  fl_value_append_take(self->value, details != nullptr ? fl_value_ref(details) : fl_value_new_null());
+  return self;
+}
+
 struct _LibdivecomputerPluginDiveComputerHostApi {
   GObject parent_instance;
 
@@ -1952,6 +1991,26 @@ static void libdivecomputer_plugin_dive_computer_host_api_get_libdivecomputer_ve
   }
 }
 
+static void libdivecomputer_plugin_dive_computer_host_api_parse_raw_dive_data_cb(FlBasicMessageChannel* channel, FlValue* message_, FlBasicMessageChannelResponseHandle* response_handle, gpointer user_data) {
+  LibdivecomputerPluginDiveComputerHostApi* self = LIBDIVECOMPUTER_PLUGIN_DIVE_COMPUTER_HOST_API(user_data);
+
+  if (self->vtable == nullptr || self->vtable->parse_raw_dive_data == nullptr) {
+    return;
+  }
+
+  FlValue* value0 = fl_value_get_list_value(message_, 0);
+  const gchar* vendor = fl_value_get_string(value0);
+  FlValue* value1 = fl_value_get_list_value(message_, 1);
+  const gchar* product = fl_value_get_string(value1);
+  FlValue* value2 = fl_value_get_list_value(message_, 2);
+  int64_t model = fl_value_get_int(value2);
+  FlValue* value3 = fl_value_get_list_value(message_, 3);
+  const uint8_t* data = fl_value_get_uint8_list(value3);
+  size_t data_length = fl_value_get_length(value3);
+  g_autoptr(LibdivecomputerPluginDiveComputerHostApiResponseHandle) handle = libdivecomputer_plugin_dive_computer_host_api_response_handle_new(channel, response_handle);
+  self->vtable->parse_raw_dive_data(vendor, product, model, data, data_length, handle, self->user_data);
+}
+
 void libdivecomputer_plugin_dive_computer_host_api_set_method_handlers(FlBinaryMessenger* messenger, const gchar* suffix, const LibdivecomputerPluginDiveComputerHostApiVTable* vtable, gpointer user_data, GDestroyNotify user_data_free_func) {
   g_autofree gchar* dot_suffix = suffix != nullptr ? g_strdup_printf(".%s", suffix) : g_strdup("");
   g_autoptr(LibdivecomputerPluginDiveComputerHostApi) api_data = libdivecomputer_plugin_dive_computer_host_api_new(vtable, user_data, user_data_free_func);
@@ -1978,6 +2037,9 @@ void libdivecomputer_plugin_dive_computer_host_api_set_method_handlers(FlBinaryM
   g_autofree gchar* get_libdivecomputer_version_channel_name = g_strdup_printf("dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.getLibdivecomputerVersion%s", dot_suffix);
   g_autoptr(FlBasicMessageChannel) get_libdivecomputer_version_channel = fl_basic_message_channel_new(messenger, get_libdivecomputer_version_channel_name, FL_MESSAGE_CODEC(codec));
   fl_basic_message_channel_set_message_handler(get_libdivecomputer_version_channel, libdivecomputer_plugin_dive_computer_host_api_get_libdivecomputer_version_cb, g_object_ref(api_data), g_object_unref);
+  g_autofree gchar* parse_raw_dive_data_channel_name = g_strdup_printf("dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.parseRawDiveData%s", dot_suffix);
+  g_autoptr(FlBasicMessageChannel) parse_raw_dive_data_channel = fl_basic_message_channel_new(messenger, parse_raw_dive_data_channel_name, FL_MESSAGE_CODEC(codec));
+  fl_basic_message_channel_set_message_handler(parse_raw_dive_data_channel, libdivecomputer_plugin_dive_computer_host_api_parse_raw_dive_data_cb, g_object_ref(api_data), g_object_unref);
 }
 
 void libdivecomputer_plugin_dive_computer_host_api_clear_method_handlers(FlBinaryMessenger* messenger, const gchar* suffix) {
@@ -2005,6 +2067,9 @@ void libdivecomputer_plugin_dive_computer_host_api_clear_method_handlers(FlBinar
   g_autofree gchar* get_libdivecomputer_version_channel_name = g_strdup_printf("dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.getLibdivecomputerVersion%s", dot_suffix);
   g_autoptr(FlBasicMessageChannel) get_libdivecomputer_version_channel = fl_basic_message_channel_new(messenger, get_libdivecomputer_version_channel_name, FL_MESSAGE_CODEC(codec));
   fl_basic_message_channel_set_message_handler(get_libdivecomputer_version_channel, nullptr, nullptr, nullptr);
+  g_autofree gchar* parse_raw_dive_data_channel_name = g_strdup_printf("dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.parseRawDiveData%s", dot_suffix);
+  g_autoptr(FlBasicMessageChannel) parse_raw_dive_data_channel = fl_basic_message_channel_new(messenger, parse_raw_dive_data_channel_name, FL_MESSAGE_CODEC(codec));
+  fl_basic_message_channel_set_message_handler(parse_raw_dive_data_channel, nullptr, nullptr, nullptr);
 }
 
 void libdivecomputer_plugin_dive_computer_host_api_respond_get_device_descriptors(LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle, FlValue* return_value) {
@@ -2052,6 +2117,22 @@ void libdivecomputer_plugin_dive_computer_host_api_respond_error_start_download(
   g_autoptr(GError) error = nullptr;
   if (!fl_basic_message_channel_respond(response_handle->channel, response_handle->response_handle, response->value, &error)) {
     g_warning("Failed to send response to %s.%s: %s", "DiveComputerHostApi", "startDownload", error->message);
+  }
+}
+
+void libdivecomputer_plugin_dive_computer_host_api_respond_parse_raw_dive_data(LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle, LibdivecomputerPluginParsedDive* return_value) {
+  g_autoptr(LibdivecomputerPluginDiveComputerHostApiParseRawDiveDataResponse) response = libdivecomputer_plugin_dive_computer_host_api_parse_raw_dive_data_response_new(return_value);
+  g_autoptr(GError) error = nullptr;
+  if (!fl_basic_message_channel_respond(response_handle->channel, response_handle->response_handle, response->value, &error)) {
+    g_warning("Failed to send response to %s.%s: %s", "DiveComputerHostApi", "parseRawDiveData", error->message);
+  }
+}
+
+void libdivecomputer_plugin_dive_computer_host_api_respond_error_parse_raw_dive_data(LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle, const gchar* code, const gchar* message, FlValue* details) {
+  g_autoptr(LibdivecomputerPluginDiveComputerHostApiParseRawDiveDataResponse) response = libdivecomputer_plugin_dive_computer_host_api_parse_raw_dive_data_response_new_error(code, message, details);
+  g_autoptr(GError) error = nullptr;
+  if (!fl_basic_message_channel_respond(response_handle->channel, response_handle->response_handle, response->value, &error)) {
+    g_warning("Failed to send response to %s.%s: %s", "DiveComputerHostApi", "parseRawDiveData", error->message);
   }
 }
 

@@ -562,6 +562,7 @@ protocol DiveComputerHostApi {
   func cancelDownload() throws
   func submitPinCode(pinCode: String) throws
   func getLibdivecomputerVersion() throws -> String
+  func parseRawDiveData(vendor: String, product: String, model: Int64, data: FlutterStandardTypedData, completion: @escaping (Result<ParsedDive, Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -673,6 +674,26 @@ class DiveComputerHostApiSetup {
       }
     } else {
       getLibdivecomputerVersionChannel.setMessageHandler(nil)
+    }
+    let parseRawDiveDataChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.parseRawDiveData\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      parseRawDiveDataChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let vendorArg = args[0] as! String
+        let productArg = args[1] as! String
+        let modelArg = args[2] as! Int64
+        let dataArg = args[3] as! FlutterStandardTypedData
+        api.parseRawDiveData(vendor: vendorArg, product: productArg, model: modelArg, data: dataArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      parseRawDiveDataChannel.setMessageHandler(nil)
     }
   }
 }

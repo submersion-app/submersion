@@ -24,7 +24,7 @@ Dive _makeDive({
     isFavorite: isFavorite,
     diveComputerSerial: diveComputerSerial,
     rating: rating,
-    duration: duration,
+    bottomTime: duration,
     tripId: tripId,
     tanks: const [],
     profile: const [],
@@ -61,8 +61,8 @@ void main() {
         expect(filter.minO2Percent, isNull);
         expect(filter.maxO2Percent, isNull);
         expect(filter.minRating, isNull);
-        expect(filter.minDurationMinutes, isNull);
-        expect(filter.maxDurationMinutes, isNull);
+        expect(filter.minBottomTimeMinutes, isNull);
+        expect(filter.maxBottomTimeMinutes, isNull);
         expect(filter.computerSerial, isNull);
         expect(filter.customFieldKey, isNull);
         expect(filter.customFieldValue, isNull);
@@ -94,14 +94,14 @@ void main() {
         expect(filter.hasActiveFilters, isTrue);
       });
 
-      test('returns true when minDurationMinutes is set', () {
-        const filter = DiveFilterState(minDurationMinutes: 30);
+      test('returns true when minBottomTimeMinutes is set', () {
+        const filter = DiveFilterState(minBottomTimeMinutes: 30);
 
         expect(filter.hasActiveFilters, isTrue);
       });
 
-      test('returns true when maxDurationMinutes is set', () {
-        const filter = DiveFilterState(maxDurationMinutes: 60);
+      test('returns true when maxBottomTimeMinutes is set', () {
+        const filter = DiveFilterState(maxBottomTimeMinutes: 60);
 
         expect(filter.hasActiveFilters, isTrue);
       });
@@ -190,19 +190,19 @@ void main() {
         const original = DiveFilterState(
           minRating: 3,
           computerSerial: 'SN999',
-          minDurationMinutes: 30,
+          minBottomTimeMinutes: 30,
         );
 
         final updated = original.copyWith(
           clearMinRating: true,
-          maxDurationMinutes: 60,
+          maxBottomTimeMinutes: 60,
           clearComputerSerial: true,
         );
 
         expect(updated.minRating, isNull);
         expect(updated.computerSerial, isNull);
-        expect(updated.minDurationMinutes, 30);
-        expect(updated.maxDurationMinutes, 60);
+        expect(updated.minBottomTimeMinutes, 30);
+        expect(updated.maxBottomTimeMinutes, 60);
       });
     });
 
@@ -244,8 +244,8 @@ void main() {
         expect(result.first.id, 'd1');
       });
 
-      test('filters by minDurationMinutes', () {
-        const filter = DiveFilterState(minDurationMinutes: 30);
+      test('filters by minBottomTimeMinutes', () {
+        const filter = DiveFilterState(minBottomTimeMinutes: 30);
         final dives = [
           _makeDive(id: 'd1', duration: const Duration(minutes: 45)),
           _makeDive(id: 'd2', duration: const Duration(minutes: 20)),
@@ -258,8 +258,8 @@ void main() {
         expect(result.first.id, 'd1');
       });
 
-      test('filters by maxDurationMinutes', () {
-        const filter = DiveFilterState(maxDurationMinutes: 30);
+      test('filters by maxBottomTimeMinutes', () {
+        const filter = DiveFilterState(maxBottomTimeMinutes: 30);
         final dives = [
           _makeDive(id: 'd1', duration: const Duration(minutes: 20)),
           _makeDive(id: 'd2', duration: const Duration(minutes: 45)),
@@ -272,10 +272,10 @@ void main() {
         expect(result.first.id, 'd1');
       });
 
-      test('filters by both minDurationMinutes and maxDurationMinutes', () {
+      test('filters by both minBottomTimeMinutes and maxBottomTimeMinutes', () {
         const filter = DiveFilterState(
-          minDurationMinutes: 20,
-          maxDurationMinutes: 40,
+          minBottomTimeMinutes: 20,
+          maxBottomTimeMinutes: 40,
         );
         final dives = [
           _makeDive(id: 'd1', duration: const Duration(minutes: 30)),

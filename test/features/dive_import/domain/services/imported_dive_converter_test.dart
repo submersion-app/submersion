@@ -34,7 +34,7 @@ void main() {
         // Runtime is total time (entry to exit), duration (bottom time)
         // is null when no profile is available to calculate from
         expect(dive.runtime, equals(const Duration(minutes: 45)));
-        expect(dive.duration, isNull);
+        expect(dive.bottomTime, isNull);
         expect(dive.maxDepth, equals(25.3));
         expect(dive.avgDepth, equals(14.2));
         expect(dive.waterTemp, equals(18.5));
@@ -66,9 +66,9 @@ void main() {
         // Runtime = 30 min (endTime - startTime)
         expect(dive.runtime, equals(const Duration(minutes: 30)));
         // Bottom time should be calculated from profile (< runtime)
-        expect(dive.duration, isNotNull);
-        expect(dive.duration!.inSeconds, lessThan(1800));
-        expect(dive.duration!.inSeconds, greaterThan(0));
+        expect(dive.bottomTime, isNotNull);
+        expect(dive.bottomTime!.inSeconds, lessThan(1800));
+        expect(dive.bottomTime!.inSeconds, greaterThan(0));
       });
 
       test('generates unique UUIDs for each conversion', () {

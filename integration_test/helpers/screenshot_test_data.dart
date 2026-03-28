@@ -425,7 +425,7 @@ class ScreenshotTestDataSeeder {
               exitTime: Value(
                 diveTimestamp + durationMs,
               ), // exit = entry + duration
-              duration: Value(durationSeconds * 60), // duration in seconds
+              bottomTime: Value(durationSeconds * 60), // duration in seconds
               maxDepth: Value(maxDepth),
               avgDepth: Value(avgDepth),
               waterTemp: Value(waterTemp),

@@ -105,8 +105,8 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
   }) {
     // Calculate summary stats
     final totalBottomTime = dives
-        .where((d) => d.duration != null)
-        .fold<Duration>(Duration.zero, (sum, d) => sum + d.duration!);
+        .where((d) => d.bottomTime != null)
+        .fold<Duration>(Duration.zero, (sum, d) => sum + d.bottomTime!);
     final maxDepth = dives
         .where((d) => d.maxDepth != null)
         .map((d) => d.maxDepth!)
@@ -319,7 +319,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                                 ),
                                 _buildNauiField(
                                   'Time',
-                                  '${dive.duration?.inMinutes ?? '-'}min',
+                                  '${dive.bottomTime?.inMinutes ?? '-'}min',
                                 ),
                               ],
                             ),

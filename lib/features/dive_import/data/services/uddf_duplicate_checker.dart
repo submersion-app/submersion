@@ -687,7 +687,7 @@ class UddfDuplicateChecker {
     if (dive.exitTime != null && dive.entryTime != null) {
       return dive.exitTime!.difference(dive.entryTime!).inSeconds;
     }
-    if (dive.duration != null) return dive.duration!.inSeconds;
+    if (dive.bottomTime != null) return dive.bottomTime!.inSeconds;
     return 0;
   }
 

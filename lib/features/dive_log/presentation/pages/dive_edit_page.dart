@@ -307,20 +307,20 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           if (dive.exitTime != null) {
             _exitDate = dive.exitTime;
             _exitTime = TimeOfDay.fromDateTime(dive.exitTime!);
-          } else if (dive.duration != null) {
-            // Calculate exit time from entry + duration
-            final exitDateTime = entryDateTime.add(dive.duration!);
+          } else if (dive.bottomTime != null) {
+            // Calculate exit time from entry + bottomTime
+            final exitDateTime = entryDateTime.add(dive.bottomTime!);
             _exitDate = exitDateTime;
             _exitTime = TimeOfDay.fromDateTime(exitDateTime);
           }
-          // Bottom time (stored duration, or auto-calculated from profile)
-          if (dive.duration != null) {
-            _durationController.text = dive.duration!.inMinutes.toString();
+          // Bottom time (stored bottomTime, or auto-calculated from profile)
+          if (dive.bottomTime != null) {
+            _durationController.text = dive.bottomTime!.inMinutes.toString();
           } else if (dive.profile.isNotEmpty) {
             // Auto-calculate from profile if no stored duration
-            final calculatedDuration = dive.calculateBottomTimeFromProfile();
-            if (calculatedDuration != null) {
-              _durationController.text = calculatedDuration.inMinutes
+            final calculatedBottomTime = dive.calculateBottomTimeFromProfile();
+            if (calculatedBottomTime != null) {
+              _durationController.text = calculatedBottomTime.inMinutes
                   .toString();
             }
           }
@@ -800,8 +800,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
 
-    // Calculate duration from entry/exit times
-    Duration? calculatedDuration;
+    // Calculate runtime from entry/exit times
+    Duration? calculatedRuntime;
     if (_exitDate != null && _exitTime != null) {
       final entryDateTime = DateTime(
         _entryDate.year,
@@ -817,8 +817,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         _exitTime!.hour,
         _exitTime!.minute,
       );
-      calculatedDuration = exitDateTime.difference(entryDateTime);
-      if (calculatedDuration.isNegative) calculatedDuration = null;
+      calculatedRuntime = exitDateTime.difference(entryDateTime);
+      if (calculatedRuntime.isNegative) calculatedRuntime = null;
     }
 
     return Card(
@@ -883,7 +883,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 ),
               ],
             ),
-            if (calculatedDuration != null) ...[
+            if (calculatedRuntime != null) ...[
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -905,7 +905,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     const SizedBox(width: 8),
                     Text(
                       context.l10n.diveLog_edit_durationMinutes(
-                        calculatedDuration.inMinutes,
+                        calculatedRuntime.inMinutes,
                       ),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
@@ -1816,9 +1816,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       return;
     }
 
-    final calculatedDuration = _existingDive!.calculateBottomTimeFromProfile();
+    final calculatedBottomTime = _existingDive!
+        .calculateBottomTimeFromProfile();
 
-    if (calculatedDuration == null) {
+    if (calculatedBottomTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.l10n.diveLog_edit_snackbar_unableToCalculate),
@@ -1828,14 +1829,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
 
     setState(() {
-      _durationController.text = calculatedDuration.inMinutes.toString();
+      _durationController.text = calculatedBottomTime.inMinutes.toString();
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           context.l10n.diveLog_edit_snackbar_bottomTimeCalculated(
-            calculatedDuration.inMinutes,
+            calculatedBottomTime.inMinutes,
           ),
         ),
       ),
@@ -3502,7 +3503,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         dateTime: entryDateTime, // Keep for backward compatibility
         entryTime: entryDateTime,
         exitTime: exitDateTime,
-        duration: duration,
+        bottomTime: duration,
         runtime: runtime,
         maxDepth: maxDepth,
         avgDepth: avgDepth,

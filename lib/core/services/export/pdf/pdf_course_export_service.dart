@@ -38,7 +38,7 @@ class PdfCourseExportService {
     // Calculate summary statistics
     final totalBottomTime = trainingDives.fold<Duration>(
       Duration.zero,
-      (sum, dive) => sum + (dive.duration ?? Duration.zero),
+      (sum, dive) => sum + (dive.bottomTime ?? Duration.zero),
     );
     final maxDepth = trainingDives.fold<double?>(
       null,
@@ -298,9 +298,9 @@ class PdfCourseExportService {
                   'Max Depth',
                   '${dive.maxDepth!.toStringAsFixed(1)} m',
                 ),
-              if (dive.duration != null) ...[
+              if (dive.bottomTime != null) ...[
                 pw.SizedBox(width: 20),
-                _buildInfoChip('Duration', '${dive.duration!.inMinutes} min'),
+                _buildInfoChip('Duration', '${dive.bottomTime!.inMinutes} min'),
               ],
               if (dive.waterTemp != null) ...[
                 pw.SizedBox(width: 20),

@@ -75,8 +75,8 @@ class StatisticsRepository {
           strftime('%m', d.dive_date_time / 1000, 'unixepoch') AS month,
           AVG(
             CASE
-              WHEN d.duration > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure AND t.volume > 0 THEN
-                ((t.start_pressure - t.end_pressure) * t.volume) / (d.duration / 60.0) / ((d.avg_depth / 10.0) + 1)
+              WHEN COALESCE(d.runtime, d.bottom_time) > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure AND t.volume > 0 THEN
+                ((t.start_pressure - t.end_pressure) * t.volume) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1)
               ELSE NULL
             END
           ) AS avg_sac
@@ -121,8 +121,8 @@ class StatisticsRepository {
           strftime('%m', d.dive_date_time / 1000, 'unixepoch') AS month,
           AVG(
             CASE
-              WHEN d.duration > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure THEN
-                (t.start_pressure - t.end_pressure) / (d.duration / 60.0) / ((d.avg_depth / 10.0) + 1)
+              WHEN COALESCE(d.runtime, d.bottom_time) > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure THEN
+                (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1)
               ELSE NULL
             END
           ) AS avg_sac
@@ -207,11 +207,11 @@ class StatisticsRepository {
           d.dive_number,
           ds.name AS site_name,
           d.dive_date_time,
-          ((t.start_pressure - t.end_pressure) * t.volume) / (d.duration / 60.0) / ((d.avg_depth / 10.0) + 1) AS sac
+          ((t.start_pressure - t.end_pressure) * t.volume) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1) AS sac
         FROM dives d
         JOIN dive_tanks t ON t.dive_id = d.id
         LEFT JOIN dive_sites ds ON ds.id = d.site_id
-        WHERE d.duration > 0 AND d.avg_depth > 0
+        WHERE COALESCE(d.runtime, d.bottom_time) > 0 AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
           AND t.volume > 0
           $diverFilter
@@ -256,11 +256,11 @@ class StatisticsRepository {
           d.dive_number,
           ds.name AS site_name,
           d.dive_date_time,
-          (t.start_pressure - t.end_pressure) / (d.duration / 60.0) / ((d.avg_depth / 10.0) + 1) AS sac
+          (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1) AS sac
         FROM dives d
         JOIN dive_tanks t ON t.dive_id = d.id
         LEFT JOIN dive_sites ds ON ds.id = d.site_id
-        WHERE d.duration > 0 AND d.avg_depth > 0
+        WHERE COALESCE(d.runtime, d.bottom_time) > 0 AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
           $diverFilter
         ORDER BY sac ASC
@@ -302,8 +302,8 @@ class StatisticsRepository {
           t.tank_role,
           AVG(
             CASE
-              WHEN d.duration > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure THEN
-                (t.start_pressure - t.end_pressure) / (d.duration / 60.0) / ((d.avg_depth / 10.0) + 1)
+              WHEN COALESCE(d.runtime, d.bottom_time) > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure THEN
+                (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1)
               ELSE NULL
             END
           ) AS avg_sac
@@ -311,7 +311,7 @@ class StatisticsRepository {
         INNER JOIN dive_tanks t ON t.dive_id = d.id
         WHERE t.start_pressure IS NOT NULL
           AND t.end_pressure IS NOT NULL
-          AND d.duration > 0
+          AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
           $diverFilter
         GROUP BY t.tank_role
@@ -434,9 +434,9 @@ class StatisticsRepository {
         SELECT
           strftime('%Y', dive_date_time / 1000, 'unixepoch') AS year,
           strftime('%m', dive_date_time / 1000, 'unixepoch') AS month,
-          AVG(duration / 60.0) AS avg_duration
+          AVG(bottom_time / 60.0) AS avg_duration
         FROM dives
-        WHERE dive_date_time >= ? AND duration IS NOT NULL $diverFilter
+        WHERE dive_date_time >= ? AND bottom_time IS NOT NULL $diverFilter
         GROUP BY year, month
         ORDER BY year, month
         ''', variables: params.map((p) => Variable(p)).toList()).get();

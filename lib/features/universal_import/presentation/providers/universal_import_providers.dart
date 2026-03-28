@@ -35,8 +35,10 @@ import 'package:submersion/features/universal_import/data/parsers/fit_import_par
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/placeholder_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/shearwater_cloud_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/uddf_import_parser.dart';
 import 'package:submersion/features/universal_import/data/services/format_detector.dart';
+import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 
 // ============================================================================
@@ -257,7 +259,20 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       final fileName = pickedFile.name;
 
       const detector = FormatDetector();
-      final detection = detector.detect(bytes);
+      var detection = detector.detect(bytes);
+
+      if (detection.format == ImportFormat.sqlite) {
+        final isShearwater = await ShearwaterDbReader.isShearwaterCloudDb(
+          bytes,
+        );
+        if (isShearwater) {
+          detection = const DetectionResult(
+            format: ImportFormat.shearwaterDb,
+            sourceApp: SourceApp.shearwater,
+            confidence: 0.95,
+          );
+        }
+      }
 
       state = state.copyWith(
         isLoading: false,
@@ -400,6 +415,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       ImportFormat.uddf => UddfImportParser(),
       ImportFormat.subsurfaceXml => SubsurfaceXmlParser(),
       ImportFormat.fit => const FitImportParser(),
+      ImportFormat.shearwaterDb => ShearwaterCloudParser(),
       _ => const PlaceholderParser(),
     };
   }

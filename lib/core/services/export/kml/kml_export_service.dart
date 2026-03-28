@@ -271,8 +271,8 @@ class KmlExportService {
         final depth = dive.maxDepth != null
             ? '${convertDepth(dive.maxDepth, depthUnit)}${depthUnit.symbol}'
             : '?';
-        final duration = dive.duration != null
-            ? '${dive.duration!.inMinutes}min'
+        final duration = dive.bottomTime != null
+            ? '${dive.bottomTime!.inMinutes}min'
             : '?';
         buffer.writeln('<li><b>$dateStr</b> - $depth, $duration</li>');
       }

@@ -143,7 +143,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
               pw.SizedBox(width: 16),
               PdfSharedComponents.buildInfoChip(
                 'Duration',
-                '${dive.duration?.inMinutes ?? '-'} min',
+                '${dive.bottomTime?.inMinutes ?? '-'} min',
               ),
               pw.SizedBox(width: 16),
               PdfSharedComponents.buildInfoChip(

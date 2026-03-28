@@ -81,7 +81,7 @@ class RecentDivesCard extends ConsumerWidget {
                   siteName: dive.site?.name,
                   siteLocation: dive.site?.locationString,
                   maxDepth: dive.maxDepth,
-                  duration: dive.runtime ?? dive.duration,
+                  duration: dive.runtime ?? dive.bottomTime,
                   waterTemp: dive.waterTemp,
                   rating: dive.rating,
                   isFavorite: dive.isFavorite,

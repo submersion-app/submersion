@@ -789,16 +789,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 Icons.timelapse,
                 _formatRuntime(dive),
                 context.l10n.diveLog_detail_stat_runtime,
-                sourceName: attribution?['duration'],
+                sourceName: attribution?['bottomTime'],
               ),
               _buildStatItem(
                 context,
                 Icons.timer,
-                dive.duration != null
-                    ? '${dive.duration!.inMinutes} min'
+                dive.bottomTime != null
+                    ? '${dive.bottomTime!.inMinutes} min'
                     : '--',
                 context.l10n.diveLog_detail_stat_bottomTime,
-                sourceName: attribution?['duration'],
+                sourceName: attribution?['bottomTime'],
               ),
               _buildStatItem(
                 context,
@@ -1210,7 +1210,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       child: DiveProfileChart(
                         exportKey: _profileChartExportKey,
                         profile: dive.profile,
-                        diveDuration: dive.calculatedDuration,
+                        diveDuration: dive.effectiveRuntime,
                         maxDepth: dive.maxDepth,
                         ceilingCurve: analysis?.ceilingCurve,
                         ascentRates: analysis?.ascentRates,
@@ -4842,7 +4842,7 @@ class _FullscreenProfilePageState
                     height: isLandscape ? 280 : 350,
                     child: DiveProfileChart(
                       profile: dive.profile,
-                      diveDuration: dive.calculatedDuration,
+                      diveDuration: dive.effectiveRuntime,
                       maxDepth: dive.maxDepth,
                       ceilingCurve: widget.analysis?.ceilingCurve,
                       ascentRates: widget.analysis?.ascentRates,
