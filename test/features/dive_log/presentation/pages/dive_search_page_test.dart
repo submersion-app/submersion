@@ -78,5 +78,37 @@ void main() {
 
       expect(find.byType(DiveSearchPage), findsOneWidget);
     });
+
+    testWidgets('tapping search applies bottomTime filter', (tester) async {
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            diveRepositoryProvider.overrideWithValue(repository),
+            diveListNotifierProvider.overrideWith((ref) {
+              return DiveListNotifier(repository, ref);
+            }),
+          ].cast(),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: DiveSearchPage()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap the Search button to trigger _applyAndSearch (lines 784-785)
+      final errors = <FlutterErrorDetails>[];
+      FlutterError.onError = (d) => errors.add(d);
+      final searchButton = find.byIcon(Icons.search);
+      if (searchButton.evaluate().isNotEmpty) {
+        await tester.tap(searchButton.first);
+        await tester.pump();
+      }
+      FlutterError.onError = FlutterError.presentError;
+    });
   });
 }

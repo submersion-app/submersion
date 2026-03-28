@@ -137,6 +137,21 @@ void main() {
           importedAt: DateTime(2026, 3, 28),
           createdAt: DateTime(2026, 3, 28),
         ),
+        // Second source so attribution map is non-empty
+        DiveDataSource(
+          id: 'src-2',
+          diveId: dive.id,
+          isPrimary: false,
+          computerModel: 'Suunto D5',
+          computerSerial: 'SN456',
+          maxDepth: 24.8,
+          duration: 44 * 60,
+          waterTemp: 21.5,
+          entryTime: DateTime(2026, 3, 28, 10, 6),
+          exitTime: DateTime(2026, 3, 28, 10, 49),
+          importedAt: DateTime(2026, 3, 28),
+          createdAt: DateTime(2026, 3, 28),
+        ),
       ];
 
       // Enable data source badges to trigger attribution rendering
