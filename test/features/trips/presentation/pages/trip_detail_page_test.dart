@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
@@ -550,6 +551,69 @@ void main() {
       await tester.pumpAndSettle();
       // Sailing icon appears in header and in Trip Details section for liveaboard
       expect(find.byIcon(Icons.sailing), findsWidgets);
+    });
+
+    testWidgets('should display dive bottomTime in dives section', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      final divesWithBottomTime = [
+        Dive(
+          id: 'dive-trip-1',
+          diveNumber: 1,
+          dateTime: DateTime(2024, 1, 16, 9, 0),
+          bottomTime: const Duration(minutes: 45),
+          maxDepth: 25.0,
+          tanks: const [],
+          profile: const [],
+          equipment: const [],
+          notes: '',
+          photoIds: const [],
+          sightings: const [],
+          weights: const [],
+          tags: const [],
+        ),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripWithStatsProvider(testTrip.id).overrideWith((ref) {
+              return Future.value(testTripWithStats);
+            }),
+            diveIdsForTripProvider(testTrip.id).overrideWith((ref) {
+              return Future.value(['dive-trip-1']);
+            }),
+            divesForTripProvider(testTrip.id).overrideWith((ref) {
+              return Future.value(divesWithBottomTime);
+            }),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+            settingsProvider.overrideWith((ref) {
+              return _MockSettingsNotifier();
+            }),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: testTrip.id),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Scroll down to make the dives section visible
+      await tester.scrollUntilVisible(
+        find.text('45min'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      // Should show bottomTime formatted as minutes
+      expect(find.text('45min'), findsOneWidget);
     });
   });
 }
