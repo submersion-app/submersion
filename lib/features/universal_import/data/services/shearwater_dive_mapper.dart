@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -71,8 +72,11 @@ class ShearwaterDiveMapper {
   ///
   /// If [rawDive.decompressedLogData] is available, tries to call
   /// [DiveComputerHostApi().parseRawDiveData()] to get rich profile data.
-  /// On failure (including [MissingPluginException] in test environments),
-  /// adds a warning and returns the metadata-only map.
+  ///
+  /// Platform-level errors ([MissingPluginException], [PlatformException]
+  /// with code `UNSUPPORTED`) are rethrown so the caller can detect that
+  /// FFI is unavailable and skip it for remaining dives. Data-level errors
+  /// (corrupt dive data) are caught and added to [warnings].
   static Future<Map<String, dynamic>> mapDive(
     ShearwaterRawDive rawDive, {
     List<ImportWarning>? warnings,
@@ -111,6 +115,18 @@ class ShearwaterDiveMapper {
         data: logData,
       );
       return mergeWithParsedDive(baseMap, parsed);
+    } on MissingPluginException {
+      rethrow;
+    } on PlatformException catch (e) {
+      if (e.code == 'UNSUPPORTED' || e.code == 'channel-error') rethrow;
+      warnings?.add(
+        ImportWarning(
+          severity: ImportWarningSeverity.warning,
+          message: 'Profile parsing failed for dive ${rawDive.diveId}: $e',
+          entityType: ImportEntityType.dives,
+        ),
+      );
+      return baseMap;
     } catch (e) {
       warnings?.add(
         ImportWarning(

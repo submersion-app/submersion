@@ -11,6 +11,8 @@ import 'package:submersion/features/universal_import/data/parsers/shearwater_clo
 import '../services/shearwater_test_helpers.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('ShearwaterCloudParser', () {
     test('supportedFormats includes shearwaterDb', () {
       final parser = ShearwaterCloudParser();
@@ -185,11 +187,13 @@ void main() {
 
       final dives = payload.entitiesOf(ImportEntityType.dives);
       expect(dives, hasLength(3));
-      // Only one warning (for the first dive), not three
+      // MissingPluginException is caught by the parser on the first dive,
+      // FFI is disabled, and remaining dives use metadata-only.
+      // No per-dive "Profile parsing failed" warnings should appear.
       final ffiWarnings = payload.warnings.where(
         (w) => w.message.contains('Profile parsing failed'),
       );
-      expect(ffiWarnings, hasLength(1));
+      expect(ffiWarnings, isEmpty);
     });
 
     group('real fixture', () {

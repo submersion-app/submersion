@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/constants/enums.dart';
@@ -32,9 +33,12 @@ void main() {
         expect(warnings, isEmpty);
       });
 
-      test('adds warning when FFI throws', () async {
-        // Provide decompressed data so it attempts FFI parsing,
-        // which will throw MissingPluginException in test environment
+      test('rethrows platform exception from FFI', () async {
+        TestWidgetsFlutterBinding.ensureInitialized();
+        // Provide decompressed data so it attempts FFI parsing.
+        // In the test environment, the Pigeon channel throws a
+        // PlatformException (channel-error). Platform-level errors are
+        // rethrown so the parser can detect FFI is unavailable.
         final rawDive = ShearwaterRawDive(
           diveId: 'ffi-test',
           diveDate: '2025-06-15 10:30:00',
@@ -44,18 +48,10 @@ void main() {
           decompressedLogData: Uint8List.fromList(List.filled(100, 0)),
         );
 
-        final warnings = <ImportWarning>[];
-        final result = await ShearwaterDiveMapper.mapDive(
-          rawDive,
-          warnings: warnings,
+        expect(
+          () => ShearwaterDiveMapper.mapDive(rawDive),
+          throwsA(isA<PlatformException>()),
         );
-
-        // Should still produce a valid map from metadata fallback
-        expect(result['importSource'], 'shearwater_cloud');
-        expect(result['maxDepth'], 20.0);
-        // Should have a warning about FFI failure
-        expect(warnings, hasLength(1));
-        expect(warnings[0].severity, ImportWarningSeverity.warning);
       });
 
       test('returns metadata only when model is unknown', () async {

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
@@ -41,7 +41,20 @@ class ShearwaterCloudParser implements ImportParser {
     }
 
     // 2. Read raw dives.
-    final rawDives = await ShearwaterDbReader.readDives(fileBytes);
+    final List<ShearwaterRawDive> rawDives;
+    try {
+      rawDives = await ShearwaterDbReader.readDives(fileBytes);
+    } catch (e) {
+      return ImportPayload(
+        entities: const {},
+        warnings: [
+          ImportWarning(
+            severity: ImportWarningSeverity.error,
+            message: 'Failed to read dives from database: $e',
+          ),
+        ],
+      );
+    }
     if (rawDives.isEmpty) {
       return const ImportPayload(
         entities: {},
@@ -55,22 +68,35 @@ class ShearwaterCloudParser implements ImportParser {
     }
 
     // 3. Map dives to ImportPayload entities.
-    //    After the first FFI failure, fall back to metadata-only for remaining
-    //    dives to avoid flooding the warning list (one warning is enough).
+    //    After the first platform-level FFI failure, fall back to
+    //    metadata-only for remaining dives.
     final warnings = <ImportWarning>[];
     final diveEntities = <Map<String, dynamic>>[];
     var ffiAvailable = true;
 
     for (final rawDive in rawDives) {
       if (ffiAvailable) {
-        final beforeCount = warnings.length;
-        final diveMap = await ShearwaterDiveMapper.mapDive(
-          rawDive,
-          warnings: warnings,
-        );
-        diveEntities.add(diveMap);
-        if (warnings.length > beforeCount) {
+        try {
+          final diveMap = await ShearwaterDiveMapper.mapDive(
+            rawDive,
+            warnings: warnings,
+          );
+          diveEntities.add(diveMap);
+        } on MissingPluginException {
           ffiAvailable = false;
+          diveEntities.add(ShearwaterDiveMapper.mapDiveMetadata(rawDive));
+        } on PlatformException {
+          ffiAvailable = false;
+          warnings.add(
+            const ImportWarning(
+              severity: ImportWarningSeverity.info,
+              message:
+                  'Profile parsing is not available on this platform. '
+                  'Dives will be imported with metadata only.',
+              entityType: ImportEntityType.dives,
+            ),
+          );
+          diveEntities.add(ShearwaterDiveMapper.mapDiveMetadata(rawDive));
         }
       } else {
         diveEntities.add(ShearwaterDiveMapper.mapDiveMetadata(rawDive));
