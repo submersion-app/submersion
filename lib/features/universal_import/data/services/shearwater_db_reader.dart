@@ -281,11 +281,7 @@ ORDER BY dd.DiveDate
       final deflateData = gzipBytes.sublist(deflateStart);
       final decoded = ZLibDecoder(raw: true).convert(deflateData);
       return Uint8List.fromList(decoded);
-    } catch (e) {
-      debugPrint(
-        '[ShearwaterDbReader] decompress failed: $e '
-        '(raw=${raw.length} bytes)',
-      );
+    } catch (_) {
       return null;
     }
   }

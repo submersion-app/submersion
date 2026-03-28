@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -33,8 +32,12 @@ class ShearwaterDiveMapper {
       'importSource': 'shearwater_cloud',
       'importId': rawDive.diveId,
       'dateTime': _parseDateTime(rawDive.diveDate),
-      'maxDepth': rawDive.depth,
-      'avgDepth': rawDive.averageDepth,
+      'maxDepth': isImperial && rawDive.depth != null
+          ? ShearwaterValueMapper.feetToMeters(rawDive.depth!)
+          : rawDive.depth,
+      'avgDepth': isImperial && rawDive.averageDepth != null
+          ? ShearwaterValueMapper.feetToMeters(rawDive.averageDepth!)
+          : rawDive.averageDepth,
       'runtime': rawDive.diveLengthTime != null
           ? Duration(seconds: rawDive.diveLengthTime!)
           : null,
@@ -102,28 +105,13 @@ class ShearwaterDiveMapper {
     }
 
     try {
-      debugPrint(
-        '[ShearwaterDiveMapper] Attempting FFI parse: '
-        '${vendorProduct.$1} ${vendorProduct.$2}, '
-        '${logData.length} bytes',
-      );
       final parsed = await _parseWithFfi(
         vendor: vendorProduct.$1,
         product: vendorProduct.$2,
         data: logData,
       );
-      debugPrint(
-        '[ShearwaterDiveMapper] FFI success: '
-        '${parsed.samples.length} samples, '
-        'depth=${parsed.maxDepthMeters}m',
-      );
       return mergeWithParsedDive(baseMap, parsed);
-    } catch (e, stack) {
-      debugPrint(
-        '[ShearwaterDiveMapper] FFI parse failed for '
-        'dive ${rawDive.diveId}: $e',
-      );
-      debugPrint('[ShearwaterDiveMapper] Stack: $stack');
+    } catch (e) {
       warnings?.add(
         ImportWarning(
           severity: ImportWarningSeverity.warning,
@@ -209,7 +197,21 @@ class ShearwaterDiveMapper {
 
   static DateTime? _parseDateTime(String? dateStr) {
     if (dateStr == null) return null;
-    return DateTime.tryParse(dateStr);
+    final parsed = DateTime.tryParse(dateStr);
+    if (parsed == null) return null;
+    if (parsed.isUtc) return parsed;
+    // Normalize naive/local datetimes to UTC wall-time to match the
+    // convention used by other import paths (ValueTransforms.parseDate).
+    return DateTime.utc(
+      parsed.year,
+      parsed.month,
+      parsed.day,
+      parsed.hour,
+      parsed.minute,
+      parsed.second,
+      parsed.millisecond,
+      parsed.microsecond,
+    );
   }
 
   static int? _parseInt(String? value) {

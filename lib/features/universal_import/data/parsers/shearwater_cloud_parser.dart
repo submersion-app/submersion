@@ -42,14 +42,6 @@ class ShearwaterCloudParser implements ImportParser {
 
     // 2. Read raw dives.
     final rawDives = await ShearwaterDbReader.readDives(fileBytes);
-    debugPrint('[ShearwaterCloudParser] Read ${rawDives.length} dives');
-    for (final d in rawDives.take(3)) {
-      debugPrint(
-        '[ShearwaterCloudParser] Dive ${d.diveId}: '
-        'fileName=${d.fileName}, '
-        'logData=${d.decompressedLogData?.length ?? 0} bytes',
-      );
-    }
     if (rawDives.isEmpty) {
       return const ImportPayload(
         entities: {},
@@ -63,15 +55,26 @@ class ShearwaterCloudParser implements ImportParser {
     }
 
     // 3. Map dives to ImportPayload entities.
+    //    After the first FFI failure, fall back to metadata-only for remaining
+    //    dives to avoid flooding the warning list (one warning is enough).
     final warnings = <ImportWarning>[];
     final diveEntities = <Map<String, dynamic>>[];
+    var ffiAvailable = true;
 
     for (final rawDive in rawDives) {
-      final diveMap = await ShearwaterDiveMapper.mapDive(
-        rawDive,
-        warnings: warnings,
-      );
-      diveEntities.add(diveMap);
+      if (ffiAvailable) {
+        final beforeCount = warnings.length;
+        final diveMap = await ShearwaterDiveMapper.mapDive(
+          rawDive,
+          warnings: warnings,
+        );
+        diveEntities.add(diveMap);
+        if (warnings.length > beforeCount) {
+          ffiAvailable = false;
+        }
+      } else {
+        diveEntities.add(ShearwaterDiveMapper.mapDiveMetadata(rawDive));
+      }
     }
 
     // 4. Extract unique sites.
