@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 /// Raw dive data read directly from a Shearwater Cloud SQLite database.
@@ -243,7 +244,15 @@ ORDER BY dd.DiveDate
     return int.tryParse(value.toString());
   }
 
-  /// Decompresses data_bytes_1: skip first 4 bytes, gzip decompress the rest.
+  /// Decompresses data_bytes_1: skip 4-byte length prefix, then decompress.
+  ///
+  /// Shearwater Cloud stores binary dive data as:
+  ///   [4-byte LE decompressed size] [gzip stream]
+  ///
+  /// Some Shearwater Cloud databases produce gzip streams with zeroed-out
+  /// CRC32/ISIZE trailers, which Dart's strict [GZipCodec] rejects. We
+  /// try [GZipCodec] first, then fall back to raw deflate decompression
+  /// (skipping the 10-byte gzip header) which ignores the trailer.
   static Uint8List? _decompressDataBytes1(dynamic value) {
     if (value == null) return null;
     final Uint8List raw;
@@ -254,14 +263,70 @@ ORDER BY dd.DiveDate
     } else {
       return null;
     }
-    if (raw.length <= 4) return null;
+    if (raw.length <= 14) return null; // 4 prefix + 10 gzip header minimum
+
+    final gzipBytes = raw.sublist(4);
+
+    // Fast path: standard GZipCodec (works when CRC/trailer are valid).
     try {
-      final gzipBytes = raw.sublist(4);
-      final decompressed = GZipCodec().decode(gzipBytes);
-      return Uint8List.fromList(decompressed);
+      return Uint8List.fromList(GZipCodec().decode(gzipBytes));
     } catch (_) {
+      // Fall through to raw deflate.
+    }
+
+    // Fallback: skip gzip header and decompress as raw deflate.
+    // This handles streams with zeroed-out CRC32/ISIZE trailers.
+    try {
+      final deflateStart = _gzipHeaderLength(gzipBytes);
+      if (deflateStart == null) return null;
+      final deflateData = gzipBytes.sublist(deflateStart);
+      final decoded = ZLibDecoder(raw: true).convert(deflateData);
+      return Uint8List.fromList(decoded);
+    } catch (e) {
+      debugPrint(
+        '[ShearwaterDbReader] decompress failed: $e '
+        '(raw=${raw.length} bytes)',
+      );
       return null;
     }
+  }
+
+  /// Returns the byte offset where the deflate data starts in a gzip stream.
+  /// Returns null if the stream doesn't look like valid gzip.
+  static int? _gzipHeaderLength(Uint8List gz) {
+    if (gz.length < 10) return null;
+    if (gz[0] != 0x1F || gz[1] != 0x8B) return null; // not gzip magic
+    if (gz[2] != 0x08) return null; // not deflate method
+
+    final flags = gz[3];
+    var offset = 10; // minimum gzip header
+
+    // FEXTRA
+    if (flags & 0x04 != 0) {
+      if (gz.length < offset + 2) return null;
+      final xlen = gz[offset] | (gz[offset + 1] << 8);
+      offset += 2 + xlen;
+    }
+    // FNAME
+    if (flags & 0x08 != 0) {
+      while (offset < gz.length && gz[offset] != 0) {
+        offset++;
+      }
+      offset++; // skip null terminator
+    }
+    // FCOMMENT
+    if (flags & 0x10 != 0) {
+      while (offset < gz.length && gz[offset] != 0) {
+        offset++;
+      }
+      offset++;
+    }
+    // FHCRC
+    if (flags & 0x02 != 0) {
+      offset += 2;
+    }
+
+    return offset < gz.length ? offset : null;
   }
 
   /// Decodes data_bytes_2 and data_bytes_3: UTF-8 decode the BLOB, then JSON

@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
@@ -43,6 +44,14 @@ class ShearwaterCloudParser implements ImportParser {
 
     // 2. Read raw dives.
     final rawDives = await ShearwaterDbReader.readDives(fileBytes);
+    debugPrint('[ShearwaterCloudParser] Read ${rawDives.length} dives');
+    for (final d in rawDives.take(3)) {
+      debugPrint(
+        '[ShearwaterCloudParser] Dive ${d.diveId}: '
+        'fileName=${d.fileName}, '
+        'logData=${d.decompressedLogData?.length ?? 0} bytes',
+      );
+    }
     if (rawDives.isEmpty) {
       return const ImportPayload(
         entities: {},
