@@ -52,7 +52,7 @@ void main() {
             diveComputerSerial: Value(diveComputerSerial),
             maxDepth: Value(maxDepth),
             avgDepth: Value(avgDepth),
-            duration: Value(duration),
+            bottomTime: Value(duration),
             waterTemp: Value(waterTemp),
             entryTime: Value(entryTime),
             exitTime: Value(exitTime),

@@ -157,8 +157,8 @@ final personalRecordsProvider = FutureProvider<PersonalRecords>((ref) async {
   Dive? longestDive;
   int maxDuration = 0;
   for (final dive in allDives) {
-    if (dive.duration != null && dive.duration!.inMinutes > maxDuration) {
-      maxDuration = dive.duration!.inMinutes;
+    if (dive.bottomTime != null && dive.bottomTime!.inMinutes > maxDuration) {
+      maxDuration = dive.bottomTime!.inMinutes;
       longestDive = dive;
     }
   }

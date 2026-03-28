@@ -70,10 +70,10 @@ List<domain.Dive> _applySorting(
           comparison = (a.site?.name ?? '').compareTo(b.site?.name ?? '');
         case DiveSortField.depth:
           comparison = (a.maxDepth ?? 0).compareTo(b.maxDepth ?? 0);
-        case DiveSortField.duration:
-          final aDuration = a.duration?.inMinutes ?? 0;
-          final bDuration = b.duration?.inMinutes ?? 0;
-          comparison = aDuration.compareTo(bDuration);
+        case DiveSortField.bottomTime:
+          final aBottomTime = a.bottomTime?.inMinutes ?? 0;
+          final bBottomTime = b.bottomTime?.inMinutes ?? 0;
+          comparison = aBottomTime.compareTo(bBottomTime);
         case DiveSortField.rating:
           comparison = (a.rating ?? 0).compareTo(b.rating ?? 0);
         case DiveSortField.diveNumber:

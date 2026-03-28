@@ -348,7 +348,7 @@ class UddfExportBuilders {
                 );
               }
             } else {
-              final durationSecs = dive.duration?.inSeconds ?? 0;
+              final durationSecs = dive.bottomTime?.inSeconds ?? 0;
               if (dive.maxDepth != null && durationSecs > 0) {
                 final descentTime = (durationSecs * 0.2).toInt();
                 builder.element(
@@ -548,10 +548,10 @@ class UddfExportBuilders {
             if (dive.avgDepth != null) {
               builder.element('averagedepth', nest: dive.avgDepth.toString());
             }
-            if (dive.duration != null) {
+            if (dive.bottomTime != null) {
               builder.element(
                 'diveduration',
-                nest: dive.duration!.inSeconds.toString(),
+                nest: dive.bottomTime!.inSeconds.toString(),
               );
             }
             if (dive.runtime != null) {

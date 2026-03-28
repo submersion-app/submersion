@@ -116,8 +116,8 @@ class PdfExportService {
                     pw.Text(
                       'Max Depth: ${dive.maxDepth!.toStringAsFixed(1)} m',
                     ),
-                  if (dive.duration != null)
-                    pw.Text('Duration: ${dive.duration!.inMinutes} min'),
+                  if (dive.bottomTime != null)
+                    pw.Text('Duration: ${dive.bottomTime!.inMinutes} min'),
                 ],
               ),
               if (dive.waterTemp != null)
@@ -270,8 +270,8 @@ class PdfExportService {
     // Summary page
     if (dives.isNotEmpty) {
       final totalDiveTime = dives
-          .where((d) => d.duration != null)
-          .fold<Duration>(Duration.zero, (sum, d) => sum + d.duration!);
+          .where((d) => d.bottomTime != null)
+          .fold<Duration>(Duration.zero, (sum, d) => sum + d.bottomTime!);
       final maxDepth = dives
           .where((d) => d.maxDepth != null)
           .map((d) => d.maxDepth!)
@@ -414,7 +414,7 @@ class PdfExportService {
               pw.SizedBox(width: 16),
               _buildPdfInfoChip(
                 'Duration',
-                '${dive.duration?.inMinutes ?? '-'} min',
+                '${dive.bottomTime?.inMinutes ?? '-'} min',
               ),
               pw.SizedBox(width: 16),
               _buildPdfInfoChip(

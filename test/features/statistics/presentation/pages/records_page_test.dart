@@ -383,14 +383,14 @@ void main() {
           diveNumber: 1,
           dateTime: DateTime(2024, 6, 15),
           maxDepth: 35.0,
-          duration: const Duration(minutes: 45),
+          bottomTime: const Duration(minutes: 45),
         ),
         longestDive: DiveRecord(
           diveId: '2',
           diveNumber: 2,
           dateTime: DateTime(2024, 7, 20),
           maxDepth: 20.0,
-          duration: const Duration(minutes: 90),
+          bottomTime: const Duration(minutes: 90),
         ),
       );
 

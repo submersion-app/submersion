@@ -304,8 +304,8 @@ class _DiveCandidateTile extends StatelessWidget {
     final entryTime = dive.entryTime ?? dive.dateTime;
     final timeStr = DateFormat(timePattern).format(entryTime);
 
-    final durationStr = dive.duration != null
-        ? _formatDuration(dive.duration!)
+    final durationStr = dive.bottomTime != null
+        ? _formatDuration(dive.bottomTime!)
         : null;
 
     final computerStr = dive.diveComputerModel;

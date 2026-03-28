@@ -306,7 +306,7 @@ class DiveImportNotifier extends StateNotifier<DiveImportState> {
             existingMaxDepth: existing.maxDepth ?? 0,
             existingDurationSeconds:
                 existing.runtime?.inSeconds ??
-                existing.duration?.inSeconds ??
+                existing.bottomTime?.inSeconds ??
                 0,
           );
           if (score > bestScore) bestScore = score;

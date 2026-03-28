@@ -317,7 +317,7 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
               siteName: dive.site?.name,
               siteLocation: dive.site?.locationString,
               maxDepth: dive.maxDepth,
-              duration: dive.duration,
+              duration: dive.bottomTime,
               waterTemp: dive.waterTemp,
               rating: dive.rating,
               isFavorite: dive.isFavorite,
@@ -823,8 +823,8 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     _minO2Percent = filter.minO2Percent;
     _maxO2Percent = filter.maxO2Percent;
     _minRating = filter.minRating;
-    _minDurationMinutes = filter.minDurationMinutes;
-    _maxDurationMinutes = filter.maxDurationMinutes;
+    _minDurationMinutes = filter.minBottomTimeMinutes;
+    _maxDurationMinutes = filter.maxBottomTimeMinutes;
     _computerSerial = filter.computerSerial;
     _minDurationController.text = _minDurationMinutes?.toString() ?? '';
     _maxDurationController.text = _maxDurationMinutes?.toString() ?? '';
@@ -1397,8 +1397,8 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
       minO2Percent: _minO2Percent,
       maxO2Percent: _maxO2Percent,
       minRating: _minRating,
-      minDurationMinutes: _minDurationMinutes,
-      maxDurationMinutes: _maxDurationMinutes,
+      minBottomTimeMinutes: _minDurationMinutes,
+      maxBottomTimeMinutes: _maxDurationMinutes,
       computerSerial: _computerSerial,
     );
     Navigator.of(context).pop();

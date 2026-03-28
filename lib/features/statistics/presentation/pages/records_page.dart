@@ -117,7 +117,7 @@ class RecordsPage extends ConsumerWidget {
             color: Colors.green,
             record: records.longestDive!,
             value: context.l10n.statistics_records_longestDiveValue(
-              records.longestDive!.duration?.inMinutes ?? 0,
+              records.longestDive!.bottomTime?.inMinutes ?? 0,
             ),
           ),
         if (records.coldestDive != null)

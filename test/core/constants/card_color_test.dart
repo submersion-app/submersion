@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -70,7 +71,7 @@ void main() {
       id: 'test-1',
       dateTime: DateTime(2024, 6, 15),
       maxDepth: 30.0,
-      duration: const Duration(minutes: 45),
+      bottomTime: const Duration(minutes: 45),
       waterTemp: 22.5,
       sortTimestamp: DateTime(2024, 6, 15).millisecondsSinceEpoch,
     );
@@ -103,6 +104,39 @@ void main() {
         getCardColorValue(spareDive, CardColorAttribute.temperature),
         isNull,
       );
+    });
+  });
+
+  group('getCardColorValueFromDive', () {
+    final dive = Dive(
+      id: 'test-dive',
+      dateTime: DateTime(2024, 6, 15),
+      maxDepth: 30.0,
+      bottomTime: const Duration(minutes: 45),
+      waterTemp: 22.5,
+      tanks: const [],
+      profile: const [],
+      equipment: const [],
+      notes: '',
+      photoIds: const [],
+      sightings: const [],
+      weights: const [],
+      tags: const [],
+    );
+
+    test('returns duration in minutes for Dive.bottomTime', () {
+      expect(
+        getCardColorValueFromDive(dive, CardColorAttribute.duration),
+        45.0,
+      );
+    });
+
+    test('returns maxDepth for depth attribute', () {
+      expect(getCardColorValueFromDive(dive, CardColorAttribute.depth), 30.0);
+    });
+
+    test('returns null for none attribute', () {
+      expect(getCardColorValueFromDive(dive, CardColorAttribute.none), isNull);
     });
   });
 

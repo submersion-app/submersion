@@ -95,7 +95,7 @@ void main() {
 
       expect(result['maxDepth'], equals('Suunto D5'));
       expect(result['avgDepth'], equals('Suunto D5'));
-      expect(result['duration'], equals('Suunto D5'));
+      expect(result['bottomTime'], equals('Suunto D5'));
       expect(result['waterTemp'], equals('Suunto D5'));
       expect(result['surfaceInterval'], equals('Suunto D5'));
       expect(result['cns'], equals('Suunto D5'));
@@ -237,7 +237,7 @@ void main() {
 
         expect(result['maxDepth'], equals('Shearwater Petrel'));
         expect(result['avgDepth'], equals('Shearwater Petrel'));
-        expect(result['duration'], equals('Shearwater Petrel'));
+        expect(result['bottomTime'], equals('Shearwater Petrel'));
       },
     );
 
@@ -293,7 +293,7 @@ void main() {
       ]);
 
       expect(result['maxDepth'], equals('Suunto D5'));
-      expect(result['duration'], equals('Suunto D5'));
+      expect(result['bottomTime'], equals('Suunto D5'));
     });
 
     test('omits field keys for fields with null values on active source', () {

@@ -389,8 +389,8 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
                     ),
                     _buildMetricRow(
                       'Duration',
-                      dive.duration != null
-                          ? '${dive.duration!.inMinutes} min'
+                      dive.bottomTime != null
+                          ? '${dive.bottomTime!.inMinutes} min'
                           : '-',
                     ),
                   ],

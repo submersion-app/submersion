@@ -367,7 +367,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     return Dive(
       id: state.id,
       dateTime: DateTime.now(),
-      duration: Duration(seconds: totalTime),
+      runtime: Duration(seconds: totalTime),
       maxDepth: maxDepth,
       avgDepth: avgDepth,
       tanks: state.tanks,

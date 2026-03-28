@@ -564,7 +564,7 @@ class DiveComputerRepository {
       final result = await _db
           .customSelect(
             '''
-        SELECT id, dive_date_time, entry_time, duration, max_depth,
+        SELECT id, dive_date_time, entry_time, bottom_time, max_depth,
           COALESCE(entry_time, dive_date_time) as effective_time,
           ABS(COALESCE(entry_time, dive_date_time) - ?) as time_diff
         FROM dives
@@ -589,7 +589,7 @@ class DiveComputerRepository {
       for (final row in result) {
         final diveId = row.data['id'] as String;
         final timeDiff = row.data['time_diff'] as int;
-        final diveDuration = row.data['duration'] as int?;
+        final diveDuration = row.data['bottom_time'] as int?;
         final diveMaxDepth = row.data['max_depth'] as double?;
 
         // Calculate component scores
@@ -654,12 +654,12 @@ class DiveComputerRepository {
           MIN(d.dive_date_time) as first_dive,
           MAX(d.dive_date_time) as last_dive,
           MAX(d.max_depth) as deepest,
-          MAX(d.duration) as longest_duration,
+          MAX(d.bottom_time) as longest_duration,
           AVG(d.max_depth) as avg_depth,
-          AVG(d.duration) as avg_duration,
+          AVG(d.bottom_time) as avg_duration,
           MIN(d.min_temperature) as coldest,
           MAX(d.max_temperature) as warmest,
-          SUM(d.duration) as total_time
+          SUM(d.bottom_time) as total_time
         FROM dives d
         INNER JOIN dive_profiles dp ON d.id = dp.dive_id
         WHERE dp.computer_id = ?
@@ -796,7 +796,7 @@ class DiveComputerRepository {
                 diveDateTime: Value(entryTimeMs),
                 entryTime: Value(entryTimeMs),
                 exitTime: Value(exitTimeMs),
-                duration: Value(bottomTimeSeconds),
+                bottomTime: Value(bottomTimeSeconds),
                 runtime: Value(durationSeconds),
                 maxDepth: Value(maxDepth),
                 avgDepth: Value(effectiveAvgDepth),

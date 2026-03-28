@@ -384,7 +384,7 @@ class PerformanceDataGenerator {
             diveDateTime: Value(diveDateMs),
             entryTime: Value(diveDateMs),
             exitTime: Value(diveDateMs + durationSeconds * 1000),
-            duration: Value(durationSeconds),
+            bottomTime: Value(durationSeconds),
             maxDepth: Value(maxDepth),
             avgDepth: Value(avgDepth),
             waterTemp: Value(waterTemp),

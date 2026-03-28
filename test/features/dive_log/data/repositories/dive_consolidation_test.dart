@@ -51,7 +51,7 @@ void main() {
             diveComputerSerial: Value(diveComputerSerial),
             maxDepth: Value(maxDepth),
             avgDepth: Value(avgDepth),
-            duration: Value(duration),
+            bottomTime: Value(duration),
             waterTemp: Value(waterTemp),
             entryTime: Value(entryTime),
             exitTime: Value(exitTime),
@@ -632,7 +632,7 @@ void main() {
         )..where((t) => t.id.equals(diveId))).getSingle();
         expect(diveRow.diveComputerModel, equals('Computer B'));
         expect(diveRow.maxDepth, equals(28.0));
-        expect(diveRow.duration, equals(2800));
+        expect(diveRow.bottomTime, equals(2800));
         expect(diveRow.waterTemp, equals(19.0));
       },
     );

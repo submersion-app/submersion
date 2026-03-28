@@ -24,8 +24,8 @@ class DiveFilterState {
   final double? minO2Percent;
   final double? maxO2Percent;
   final int? minRating;
-  final int? minDurationMinutes;
-  final int? maxDurationMinutes;
+  final int? minBottomTimeMinutes;
+  final int? maxBottomTimeMinutes;
   final String? computerSerial;
   final String? customFieldKey;
   final String? customFieldValue;
@@ -48,8 +48,8 @@ class DiveFilterState {
     this.minO2Percent,
     this.maxO2Percent,
     this.minRating,
-    this.minDurationMinutes,
-    this.maxDurationMinutes,
+    this.minBottomTimeMinutes,
+    this.maxBottomTimeMinutes,
     this.computerSerial,
     this.customFieldKey,
     this.customFieldValue,
@@ -73,8 +73,8 @@ class DiveFilterState {
       minO2Percent != null ||
       maxO2Percent != null ||
       minRating != null ||
-      minDurationMinutes != null ||
-      maxDurationMinutes != null ||
+      minBottomTimeMinutes != null ||
+      maxBottomTimeMinutes != null ||
       computerSerial != null ||
       (customFieldKey != null && customFieldKey!.isNotEmpty);
 
@@ -96,8 +96,8 @@ class DiveFilterState {
     double? minO2Percent,
     double? maxO2Percent,
     int? minRating,
-    int? minDurationMinutes,
-    int? maxDurationMinutes,
+    int? minBottomTimeMinutes,
+    int? maxBottomTimeMinutes,
     String? computerSerial,
     String? customFieldKey,
     String? customFieldValue,
@@ -118,8 +118,8 @@ class DiveFilterState {
     bool clearMinO2Percent = false,
     bool clearMaxO2Percent = false,
     bool clearMinRating = false,
-    bool clearMinDurationMinutes = false,
-    bool clearMaxDurationMinutes = false,
+    bool clearMinBottomTimeMinutes = false,
+    bool clearMaxBottomTimeMinutes = false,
     bool clearComputerSerial = false,
     bool clearCustomFieldKey = false,
     bool clearCustomFieldValue = false,
@@ -154,12 +154,12 @@ class DiveFilterState {
           ? null
           : (maxO2Percent ?? this.maxO2Percent),
       minRating: clearMinRating ? null : (minRating ?? this.minRating),
-      minDurationMinutes: clearMinDurationMinutes
+      minBottomTimeMinutes: clearMinBottomTimeMinutes
           ? null
-          : (minDurationMinutes ?? this.minDurationMinutes),
-      maxDurationMinutes: clearMaxDurationMinutes
+          : (minBottomTimeMinutes ?? this.minBottomTimeMinutes),
+      maxBottomTimeMinutes: clearMaxBottomTimeMinutes
           ? null
-          : (maxDurationMinutes ?? this.maxDurationMinutes),
+          : (maxBottomTimeMinutes ?? this.maxBottomTimeMinutes),
       computerSerial: clearComputerSerial
           ? null
           : (computerSerial ?? this.computerSerial),
@@ -240,15 +240,15 @@ class DiveFilterState {
       if (minRating != null) {
         if (dive.rating == null || dive.rating! < minRating!) return false;
       }
-      if (minDurationMinutes != null || maxDurationMinutes != null) {
-        final durationMinutes = dive.duration?.inMinutes;
+      if (minBottomTimeMinutes != null || maxBottomTimeMinutes != null) {
+        final durationMinutes = dive.bottomTime?.inMinutes;
         if (durationMinutes == null) return false;
-        if (minDurationMinutes != null &&
-            durationMinutes < minDurationMinutes!) {
+        if (minBottomTimeMinutes != null &&
+            durationMinutes < minBottomTimeMinutes!) {
           return false;
         }
-        if (maxDurationMinutes != null &&
-            durationMinutes > maxDurationMinutes!) {
+        if (maxBottomTimeMinutes != null &&
+            durationMinutes > maxBottomTimeMinutes!) {
           return false;
         }
       }

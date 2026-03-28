@@ -90,8 +90,8 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     _diveCenterId = filter.diveCenterId;
     _minDepth = filter.minDepth;
     _maxDepth = filter.maxDepth;
-    _minDurationMinutes = filter.minDurationMinutes;
-    _maxDurationMinutes = filter.maxDurationMinutes;
+    _minDurationMinutes = filter.minBottomTimeMinutes;
+    _maxDurationMinutes = filter.maxBottomTimeMinutes;
     _diveTypeId = filter.diveTypeId;
     _minO2Percent = filter.minO2Percent;
     _maxO2Percent = filter.maxO2Percent;
@@ -781,8 +781,8 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
       diveCenterId: _diveCenterId,
       minDepth: _minDepth,
       maxDepth: _maxDepth,
-      minDurationMinutes: _minDurationMinutes,
-      maxDurationMinutes: _maxDurationMinutes,
+      minBottomTimeMinutes: _minDurationMinutes,
+      maxBottomTimeMinutes: _maxDurationMinutes,
       diveTypeId: _diveTypeId,
       minO2Percent: _minO2Percent,
       maxO2Percent: _maxO2Percent,

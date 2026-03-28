@@ -159,7 +159,7 @@ class CsvExportService {
         dive.site?.locationString ?? '',
         dive.maxDepth?.toStringAsFixed(1) ?? '',
         dive.avgDepth?.toStringAsFixed(1) ?? '',
-        dive.duration?.inMinutes ?? '',
+        dive.bottomTime?.inMinutes ?? '',
         dive.runtime?.inMinutes ?? '',
         dive.waterTemp?.toStringAsFixed(0) ?? '',
         dive.airTemp?.toStringAsFixed(0) ?? '',

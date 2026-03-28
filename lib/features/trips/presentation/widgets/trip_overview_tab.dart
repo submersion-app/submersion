@@ -443,8 +443,8 @@ class TripOverviewTab extends ConsumerWidget {
                     final depthStr = dive.maxDepth != null
                         ? ', ${units.formatDepth(dive.maxDepth)}'
                         : '';
-                    final durationStr = dive.duration != null
-                        ? ', ${dive.duration!.inMinutes} min'
+                    final durationStr = dive.bottomTime != null
+                        ? ', ${dive.bottomTime!.inMinutes} min'
                         : '';
                     return Semantics(
                       button: true,
@@ -517,9 +517,9 @@ class TripOverviewTab extends ConsumerWidget {
                                             fontWeight: FontWeight.w500,
                                           ),
                                     ),
-                                  if (dive.duration != null)
+                                  if (dive.bottomTime != null)
                                     Text(
-                                      '${dive.duration!.inMinutes}min',
+                                      '${dive.bottomTime!.inMinutes}min',
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
                                             color: theme
