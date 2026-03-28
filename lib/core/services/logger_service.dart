@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:submersion/core/models/log_entry.dart';
@@ -11,6 +12,14 @@ class LoggerService {
 
   /// The shared LogFileService instance. Set during app initialization.
   static LogFileService? _fileService;
+
+  /// Broadcast stream that emits every [LogEntry] as it is created.
+  /// Used by the debug log viewer to update in real time.
+  static final StreamController<LogEntry> _logStreamController =
+      StreamController<LogEntry>.broadcast();
+
+  /// Stream of log entries emitted in real time.
+  static Stream<LogEntry> get logStream => _logStreamController.stream;
 
   /// Initialize the file logging backend. Call once at app startup.
   static void setFileService(LogFileService fileService) {
@@ -112,6 +121,9 @@ class LoggerService {
       message: error != null ? '$message | error: $error' : message,
     );
     _fileService?.writeLine(entry.toLogLine());
+
+    // Notify live listeners (debug log viewer).
+    _logStreamController.add(entry);
   }
 
   /// Create a logger for a specific class

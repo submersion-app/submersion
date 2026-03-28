@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 /// Provider for the LogFileService singleton.
 /// Must be overridden in ProviderScope with the initialized instance.
@@ -14,9 +15,20 @@ final logFileServiceProvider = Provider<LogFileService>((ref) {
 });
 
 /// Provider that loads all log entries from the file.
+/// Automatically re-reads when [LoggerService.logStream] emits, so the
+/// debug log viewer updates in real time without a manual refresh.
 final logEntriesProvider = FutureProvider<List<LogEntry>>((ref) async {
   final service = ref.watch(logFileServiceProvider);
-  return service.readEntries();
+  final entries = await service.readEntries();
+
+  // After the initial read, listen for new log entries and trigger a
+  // re-read.  Riverpod coalesces rapid invalidations into a single rebuild.
+  final sub = LoggerService.logStream.listen((_) {
+    ref.invalidateSelf();
+  });
+  ref.onDispose(sub.cancel);
+
+  return entries;
 });
 
 /// Filter state for the log viewer.

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 
 // ---------------------------------------------------------------------------
@@ -444,6 +445,42 @@ void main() {
       expect(entries.length, 2);
       expect(entries[0].message, 'first message');
       expect(entries[1].message, 'second message');
+    });
+
+    test('appends entries emitted on LoggerService.logStream', () async {
+      final tempDir = Directory.systemTemp.createTempSync(
+        'log_entries_live_test_',
+      );
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final service = LogFileService(logDirectory: tempDir.path);
+      await service.initialize();
+
+      // Wire LoggerService to the same file service so _log() writes to disk.
+      LoggerService.setFileService(service);
+      addTearDown(() => LoggerService.setFileService(service));
+
+      // Write one entry before the provider starts.
+      await service.writeLine(_entry(message: 'pre-existing').toLogLine());
+
+      final container = ProviderContainer(
+        overrides: [logFileServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(container.dispose);
+
+      // Initial read should contain the pre-existing entry.
+      final initial = await container.read(logEntriesProvider.future);
+      expect(initial.length, 1);
+      expect(initial.first.message, 'pre-existing');
+
+      // Log a new entry through LoggerService (fires the stream).
+      const logger = LoggerService('test');
+      logger.info('live entry', category: LogCategory.bluetooth);
+
+      // Allow the stream event to propagate through the provider.
+      await Future<void>.delayed(Duration.zero);
+      final updated = await container.read(logEntriesProvider.future);
+      expect(updated.length, 2);
+      expect(updated.last.message, 'live entry');
     });
   });
 
