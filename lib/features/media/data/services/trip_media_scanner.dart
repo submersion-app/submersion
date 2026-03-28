@@ -256,8 +256,8 @@ class TripMediaScanner {
     final entryTime = dive.entryTime ?? dive.dateTime;
     final exitTime =
         dive.exitTime ??
-        (dive.bottomTime != null
-            ? dive.dateTime.add(dive.bottomTime!)
+        (dive.effectiveRuntime != null
+            ? dive.dateTime.add(dive.effectiveRuntime!)
             : dive.dateTime.add(const Duration(minutes: 60)));
     return (entryTime, exitTime);
   }

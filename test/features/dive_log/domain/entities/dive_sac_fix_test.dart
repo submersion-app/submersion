@@ -364,11 +364,13 @@ void main() {
     });
 
     test('issue #87: sacPressure uses runtime correctly', () {
-      // 95 bar consumed in 70 minutes, should be ~1.3 bar/min
+      // Issue #87: 95 bar consumed in 70 min at avg depth ~15m
+      // Reporter expected ~1.3 bar/min (at shallower depth), app showed 1.8
+      // With our depth (15m, ambient 2.5 atm): 95 / 70 / 2.5 = 0.543 bar/min
       final dive = _sacDive(
         bottomTime: const Duration(minutes: 50),
         runtime: const Duration(minutes: 70),
-        avgDepth: 15.0, // ambientPressure = 2.5
+        avgDepth: 15.0, // ambientPressure = 2.5 atm
         tanks: const [
           DiveTank(
             id: 't1',
@@ -378,9 +380,8 @@ void main() {
           ),
         ],
       );
-      // 95 / 70 / 2.5 = 0.543 bar/min
-      // The issue reporter expected ~1.3 which includes different depth
-      // Our test uses consistent depth for verification
+      // Verifies runtime (70 min) is used, not bottomTime (50 min)
+      // With bottomTime: 95 / 50 / 2.5 = 0.76 (the old buggy value)
       expect(dive.sacPressure!, closeTo(0.543, 0.05));
     });
   });

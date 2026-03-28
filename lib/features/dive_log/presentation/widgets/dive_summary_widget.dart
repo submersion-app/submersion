@@ -268,8 +268,9 @@ class DiveSummaryWidget extends ConsumerWidget {
       );
     }
 
-    if (records.longestDive != null && records.longestDive!.duration != null) {
-      final minutes = records.longestDive!.duration!.inMinutes;
+    if (records.longestDive != null &&
+        records.longestDive!.bottomTime != null) {
+      final minutes = records.longestDive!.bottomTime!.inMinutes;
       recordItems.add(
         _buildRecordItem(
           context,

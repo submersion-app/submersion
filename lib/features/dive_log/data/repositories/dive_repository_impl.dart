@@ -1823,7 +1823,7 @@ class DiveRepository {
         isUtc: true,
       ),
       maxDepth: row.data['max_depth'] as double?,
-      duration: row.data['bottom_time'] != null
+      bottomTime: row.data['bottom_time'] != null
           ? Duration(seconds: row.data['bottom_time'] as int)
           : null,
       waterTemp: row.data['water_temp'] as double?,
@@ -3903,7 +3903,7 @@ class DiveRecord {
   final String? siteName;
   final DateTime dateTime;
   final double? maxDepth;
-  final Duration? duration;
+  final Duration? bottomTime;
   final double? waterTemp;
 
   DiveRecord({
@@ -3912,7 +3912,7 @@ class DiveRecord {
     this.siteName,
     required this.dateTime,
     this.maxDepth,
-    this.duration,
+    this.bottomTime,
     this.waterTemp,
   });
 }

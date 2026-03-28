@@ -582,7 +582,7 @@ void main() {
         expect(records.deepestDive, isNotNull);
         expect(records.deepestDive!.maxDepth, equals(35.0));
         expect(records.longestDive, isNotNull);
-        expect(records.longestDive!.duration?.inMinutes, equals(60));
+        expect(records.longestDive!.bottomTime?.inMinutes, equals(60));
         expect(records.coldestDive, isNotNull);
         expect(records.coldestDive!.waterTemp, equals(18.0));
         expect(records.warmestDive, isNotNull);

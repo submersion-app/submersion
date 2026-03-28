@@ -709,7 +709,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 Icons.timelapse,
                 _formatRuntime(dive),
                 context.l10n.diveLog_detail_stat_runtime,
-                sourceName: attribution?['duration'],
+                sourceName: attribution?['bottomTime'],
               ),
               _buildStatItem(
                 context,
