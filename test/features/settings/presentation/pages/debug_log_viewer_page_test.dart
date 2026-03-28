@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/models/log_entry.dart';
@@ -257,6 +258,139 @@ void main() {
 
       // SharedPreferences value should have been updated to false.
       expect(prefs.getBool('debug_mode_enabled'), isFalse);
+    });
+
+    testWidgets('shows error message when loading fails', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            logFileServiceProvider.overrideWithValue(service),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            filteredLogEntriesProvider.overrideWithValue(
+              AsyncValue.error('Test error', StackTrace.current),
+            ),
+          ],
+          child: const MaterialApp(home: DebugLogViewerPage()),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Error loading logs: Test error'), findsOneWidget);
+    });
+
+    testWidgets('search text input updates the filter query', (tester) async {
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      // Open search
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Enter text in the search field
+      await tester.enterText(find.byType(TextField), 'test query');
+      await tester.pump();
+
+      expect(find.text('test query'), findsOneWidget);
+
+      // Verify the filter was updated via the provider
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DebugLogViewerPage)),
+      );
+      expect(
+        container.read(logFilterNotifierProvider).searchQuery,
+        'test query',
+      );
+    });
+
+    testWidgets('copy button copies filtered entries and shows snackbar', (
+      tester,
+    ) async {
+      // Set up clipboard mock
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (
+            MethodCall call,
+          ) async {
+            if (call.method == 'Clipboard.setData') return null;
+            if (call.method == 'Clipboard.getData') {
+              return <String, dynamic>{'text': ''};
+            }
+            return null;
+          });
+
+      final entries = [
+        LogEntry(
+          timestamp: DateTime(2026, 3, 27, 10, 0, 0),
+          category: LogCategory.app,
+          level: LogLevel.info,
+          message: 'Test entry for copy',
+        ),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            logFileServiceProvider.overrideWithValue(service),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            logEntriesProvider.overrideWith((ref) async => entries),
+          ],
+          child: const MaterialApp(home: DebugLogViewerPage()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap the Copy button
+      await tester.tap(find.text('Copy'));
+      await tester.pumpAndSettle();
+
+      // Verify snackbar
+      expect(find.text('Filtered logs copied to clipboard'), findsOneWidget);
+
+      // Clean up
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null);
+    });
+
+    testWidgets('share button taps without error when no log file exists', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      // Tap share - should not crash (file doesn't exist, early return)
+      await tester.tap(find.text('Share'));
+      await tester.pumpAndSettle();
+
+      // Page should still be visible
+      expect(find.text('Debug Logs'), findsOneWidget);
+    });
+
+    testWidgets('save button taps without error when no log file exists', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      // Tap save - should not crash (file doesn't exist, returns null)
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      // Page should still be visible, no snackbar since path is null
+      expect(find.text('Debug Logs'), findsOneWidget);
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('copy button does nothing when entries are empty', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      // Tap copy with no entries - should not crash or show snackbar
+      await tester.tap(find.text('Copy'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SnackBar), findsNothing);
     });
   });
 }
