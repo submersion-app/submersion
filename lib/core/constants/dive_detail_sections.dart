@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
 /// Identifies each configurable section on the Dive Details page.
 ///
 /// Declaration order defines the default display order. The two fixed sections
@@ -23,7 +25,7 @@ enum DiveDetailSectionId {
   customFields,
   dataSources;
 
-  /// Human-readable name shown in the settings UI.
+  /// Human-readable name shown in the settings UI (English fallback).
   String get displayName {
     return switch (this) {
       decoO2 => 'Deco Status / Tissue Loading',
@@ -46,7 +48,8 @@ enum DiveDetailSectionId {
     };
   }
 
-  /// Short description shown below the name in the settings UI.
+  /// Short description shown below the name in the settings UI
+  /// (English fallback).
   String get description {
     return switch (this) {
       decoO2 => 'NDL, ceiling, tissue heat map, O2 toxicity',
@@ -66,6 +69,52 @@ enum DiveDetailSectionId {
       notes => 'Dive notes/description',
       customFields => 'User-defined custom fields',
       dataSources => 'Connected dive computers, source management',
+    };
+  }
+
+  /// Localized display name resolved via [AppLocalizations].
+  String localizedDisplayName(AppLocalizations l10n) {
+    return switch (this) {
+      decoO2 => l10n.diveDetailSection_decoO2_name,
+      sacSegments => l10n.diveDetailSection_sacSegments_name,
+      details => l10n.diveDetailSection_details_name,
+      environment => l10n.diveDetailSection_environment_name,
+      altitude => l10n.diveDetailSection_altitude_name,
+      tide => l10n.diveDetailSection_tide_name,
+      weights => l10n.diveDetailSection_weights_name,
+      tanks => l10n.diveDetailSection_tanks_name,
+      buddies => l10n.diveDetailSection_buddies_name,
+      signatures => l10n.diveDetailSection_signatures_name,
+      equipment => l10n.diveDetailSection_equipment_name,
+      sightings => l10n.diveDetailSection_sightings_name,
+      media => l10n.diveDetailSection_media_name,
+      tags => l10n.diveDetailSection_tags_name,
+      notes => l10n.diveDetailSection_notes_name,
+      customFields => l10n.diveDetailSection_customFields_name,
+      dataSources => l10n.diveDetailSection_dataSources_name,
+    };
+  }
+
+  /// Localized description resolved via [AppLocalizations].
+  String localizedDescription(AppLocalizations l10n) {
+    return switch (this) {
+      decoO2 => l10n.diveDetailSection_decoO2_description,
+      sacSegments => l10n.diveDetailSection_sacSegments_description,
+      details => l10n.diveDetailSection_details_description,
+      environment => l10n.diveDetailSection_environment_description,
+      altitude => l10n.diveDetailSection_altitude_description,
+      tide => l10n.diveDetailSection_tide_description,
+      weights => l10n.diveDetailSection_weights_description,
+      tanks => l10n.diveDetailSection_tanks_description,
+      buddies => l10n.diveDetailSection_buddies_description,
+      signatures => l10n.diveDetailSection_signatures_description,
+      equipment => l10n.diveDetailSection_equipment_description,
+      sightings => l10n.diveDetailSection_sightings_description,
+      media => l10n.diveDetailSection_media_description,
+      tags => l10n.diveDetailSection_tags_description,
+      notes => l10n.diveDetailSection_notes_description,
+      customFields => l10n.diveDetailSection_customFields_description,
+      dataSources => l10n.diveDetailSection_dataSources_description,
     };
   }
 }
@@ -132,7 +181,7 @@ class DiveDetailSectionConfig {
     try {
       final decoded = jsonDecode(json) as List;
       final sections = decoded
-          .map((e) => tryFromJson(e as Map<String, dynamic>))
+          .map((e) => e is Map<String, dynamic> ? tryFromJson(e) : null)
           .whereType<DiveDetailSectionConfig>()
           .toList();
       if (sections.isEmpty) return List.of(defaultSections);

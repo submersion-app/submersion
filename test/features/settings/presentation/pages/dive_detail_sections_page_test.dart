@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/pages/dive_detail_sections_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Mock SettingsNotifier that doesn't access the database
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
@@ -48,7 +49,11 @@ Widget _buildTestWidget() {
     overrides: [
       settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
     ],
-    child: const MaterialApp(home: DiveDetailSectionsPage()),
+    child: const MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: DiveDetailSectionsPage(),
+    ),
   );
 }
 
@@ -287,7 +292,11 @@ void main() {
               (ref) => _MockSettingsNotifierWithSections(customSections),
             ),
           ],
-          child: const MaterialApp(home: DiveDetailSectionsPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiveDetailSectionsPage(),
+          ),
         ),
       );
       await tester.pumpAndSettle();

@@ -1471,14 +1471,23 @@ class _AppearanceSectionContentState
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader(context, 'Dive Details'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_diveDetails,
+          ),
           const SizedBox(height: 8),
           Card(
             child: ListTile(
               leading: const Icon(Icons.reorder),
-              title: const Text('Section Order & Visibility'),
-              subtitle: const Text(
-                'Choose which sections appear and their order',
+              title: Text(
+                context
+                    .l10n
+                    .settings_appearance_diveDetails_sectionOrderVisibility,
+              ),
+              subtitle: Text(
+                context
+                    .l10n
+                    .settings_appearance_diveDetails_sectionOrderVisibility_subtitle,
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push('/settings/dive-detail-sections'),

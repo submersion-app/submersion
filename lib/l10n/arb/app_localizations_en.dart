@@ -9433,6 +9433,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Show markers for gas switches';
 
   @override
+  String get settings_appearance_header_diveDetails => 'Dive Details';
+
+  @override
   String get settings_appearance_header_diveLog => 'Dive Log';
 
   @override
@@ -9440,6 +9443,143 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_appearance_header_diveSites => 'Dive Sites';
+
+  @override
+  String get settings_appearance_diveDetails_sectionOrderVisibility =>
+      'Section Order & Visibility';
+
+  @override
+  String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle =>
+      'Choose which sections appear and their order';
+
+  @override
+  String get settings_diveDetailSections_title => 'Section Order & Visibility';
+
+  @override
+  String get settings_diveDetailSections_resetToDefault => 'Reset to Default';
+
+  @override
+  String get settings_diveDetailSections_fixedSections =>
+      'Fixed sections: Header, Dive Profile Chart';
+
+  @override
+  String get settings_diveDetailSections_configurableSections =>
+      'Configurable sections (drag to reorder)';
+
+  @override
+  String get diveDetailSection_decoO2_name => 'Deco Status / Tissue Loading';
+
+  @override
+  String get diveDetailSection_decoO2_description =>
+      'NDL, ceiling, tissue heat map, O2 toxicity';
+
+  @override
+  String get diveDetailSection_sacSegments_name => 'SAC Rate by Segment';
+
+  @override
+  String get diveDetailSection_sacSegments_description =>
+      'Phase/time segmentation, cylinder breakdown';
+
+  @override
+  String get diveDetailSection_details_name => 'Details';
+
+  @override
+  String get diveDetailSection_details_description =>
+      'Type, location, trip, dive center, interval';
+
+  @override
+  String get diveDetailSection_environment_name => 'Environment';
+
+  @override
+  String get diveDetailSection_environment_description =>
+      'Air/water temp, visibility, current';
+
+  @override
+  String get diveDetailSection_altitude_name => 'Altitude';
+
+  @override
+  String get diveDetailSection_altitude_description =>
+      'Altitude value, category, deco requirement';
+
+  @override
+  String get diveDetailSection_tide_name => 'Tide';
+
+  @override
+  String get diveDetailSection_tide_description =>
+      'Tide cycle graph and timing';
+
+  @override
+  String get diveDetailSection_weights_name => 'Weights';
+
+  @override
+  String get diveDetailSection_weights_description =>
+      'Weight breakdown, total weight';
+
+  @override
+  String get diveDetailSection_tanks_name => 'Tanks';
+
+  @override
+  String get diveDetailSection_tanks_description =>
+      'Tank list, gas mixes, pressures, per-tank SAC';
+
+  @override
+  String get diveDetailSection_buddies_name => 'Buddies';
+
+  @override
+  String get diveDetailSection_buddies_description => 'Buddy list with roles';
+
+  @override
+  String get diveDetailSection_signatures_name => 'Signatures';
+
+  @override
+  String get diveDetailSection_signatures_description =>
+      'Buddy/instructor signature display and capture';
+
+  @override
+  String get diveDetailSection_equipment_name => 'Equipment';
+
+  @override
+  String get diveDetailSection_equipment_description =>
+      'Equipment used in dive';
+
+  @override
+  String get diveDetailSection_sightings_name => 'Marine Life Sightings';
+
+  @override
+  String get diveDetailSection_sightings_description =>
+      'Species spotted, sighting details';
+
+  @override
+  String get diveDetailSection_media_name => 'Media';
+
+  @override
+  String get diveDetailSection_media_description => 'Photos/videos gallery';
+
+  @override
+  String get diveDetailSection_tags_name => 'Tags';
+
+  @override
+  String get diveDetailSection_tags_description => 'Dive tags';
+
+  @override
+  String get diveDetailSection_notes_name => 'Notes';
+
+  @override
+  String get diveDetailSection_notes_description => 'Dive notes/description';
+
+  @override
+  String get diveDetailSection_customFields_name => 'Custom Fields';
+
+  @override
+  String get diveDetailSection_customFields_description =>
+      'User-defined custom fields';
+
+  @override
+  String get diveDetailSection_dataSources_name => 'Data Sources';
+
+  @override
+  String get diveDetailSection_dataSources_description =>
+      'Connected dive computers, source management';
 
   @override
   String get settings_appearance_header_language => 'Language';

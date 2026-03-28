@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class DiveDetailSectionsPage extends ConsumerWidget {
   const DiveDetailSectionsPage({super.key});
@@ -16,7 +17,7 @@ class DiveDetailSectionsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Section Order & Visibility'),
+        title: Text(context.l10n.settings_diveDetailSections_title),
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -25,9 +26,11 @@ class DiveDetailSectionsPage extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'reset',
-                child: Text('Reset to Default'),
+                child: Text(
+                  context.l10n.settings_diveDetailSections_resetToDefault,
+                ),
               ),
             ],
           ),
@@ -39,7 +42,7 @@ class DiveDetailSectionsPage extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
             child: Text(
-              'Fixed sections: Header, Dive Profile Chart',
+              context.l10n.settings_diveDetailSections_fixedSections,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -48,7 +51,7 @@ class DiveDetailSectionsPage extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: Text(
-              'Configurable sections (drag to reorder)',
+              context.l10n.settings_diveDetailSections_configurableSections,
               style: theme.textTheme.titleSmall?.copyWith(
                 color: theme.colorScheme.primary,
                 fontWeight: FontWeight.bold,
@@ -130,9 +133,12 @@ class _SectionTile extends StatelessWidget {
           index: index,
           child: const Icon(Icons.drag_handle),
         ),
-        title: Text(section.id.displayName, style: theme.textTheme.bodyLarge),
+        title: Text(
+          section.id.localizedDisplayName(context.l10n),
+          style: theme.textTheme.bodyLarge,
+        ),
         subtitle: Text(
-          section.id.description,
+          section.id.localizedDescription(context.l10n),
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),

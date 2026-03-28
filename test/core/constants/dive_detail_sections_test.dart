@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   group('DiveDetailSectionId', () {
@@ -345,12 +347,18 @@ void main() {
       expect(sections.every((s) => s.visible), true);
     });
 
-    test('returns defaults for JSON list with mixed valid/invalid types', () {
-      const jsonStr = '[{"id":"decoO2","visible":true}, "not a map", 42]';
-      final sections = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
-      // Cast error on "not a map" → catch → defaults
-      expect(sections.length, 17);
-    });
+    test(
+      'preserves valid entries in JSON list with mixed valid/invalid types',
+      () {
+        const jsonStr = '[{"id":"decoO2","visible":true}, "not a map", 42]';
+        final sections = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
+        // Non-Map items are skipped; valid decoO2 is preserved; missing sections
+        // are appended by ensureAllSections.
+        expect(sections.length, 17);
+        expect(sections.first.id, DiveDetailSectionId.decoO2);
+        expect(sections.first.visible, true);
+      },
+    );
   });
 
   group('sectionsFromJson with all sections present', () {
@@ -468,6 +476,160 @@ void main() {
     test('each section has a unique displayName', () {
       final names = DiveDetailSectionId.values
           .map((id) => id.displayName)
+          .toList();
+      expect(names.toSet().length, names.length);
+    });
+  });
+
+  group('DiveDetailSectionId localized metadata', () {
+    late AppLocalizations l10n;
+
+    setUpAll(() {
+      l10n = lookupAppLocalizations(const Locale('en'));
+    });
+
+    test('localizedDisplayName returns non-empty string for all values', () {
+      for (final id in DiveDetailSectionId.values) {
+        expect(id.localizedDisplayName(l10n).isNotEmpty, true);
+      }
+    });
+
+    test('localizedDescription returns non-empty string for all values', () {
+      for (final id in DiveDetailSectionId.values) {
+        expect(id.localizedDescription(l10n).isNotEmpty, true);
+      }
+    });
+
+    test('localizedDisplayName matches displayName for English locale', () {
+      for (final id in DiveDetailSectionId.values) {
+        expect(id.localizedDisplayName(l10n), id.displayName);
+      }
+    });
+
+    test('localizedDescription matches description for English locale', () {
+      for (final id in DiveDetailSectionId.values) {
+        expect(id.localizedDescription(l10n), id.description);
+      }
+    });
+
+    test('localizedDisplayName values are correct for each section', () {
+      expect(
+        DiveDetailSectionId.decoO2.localizedDisplayName(l10n),
+        'Deco Status / Tissue Loading',
+      );
+      expect(
+        DiveDetailSectionId.sacSegments.localizedDisplayName(l10n),
+        'SAC Rate by Segment',
+      );
+      expect(DiveDetailSectionId.details.localizedDisplayName(l10n), 'Details');
+      expect(
+        DiveDetailSectionId.environment.localizedDisplayName(l10n),
+        'Environment',
+      );
+      expect(
+        DiveDetailSectionId.altitude.localizedDisplayName(l10n),
+        'Altitude',
+      );
+      expect(DiveDetailSectionId.tide.localizedDisplayName(l10n), 'Tide');
+      expect(DiveDetailSectionId.weights.localizedDisplayName(l10n), 'Weights');
+      expect(DiveDetailSectionId.tanks.localizedDisplayName(l10n), 'Tanks');
+      expect(DiveDetailSectionId.buddies.localizedDisplayName(l10n), 'Buddies');
+      expect(
+        DiveDetailSectionId.signatures.localizedDisplayName(l10n),
+        'Signatures',
+      );
+      expect(
+        DiveDetailSectionId.equipment.localizedDisplayName(l10n),
+        'Equipment',
+      );
+      expect(
+        DiveDetailSectionId.sightings.localizedDisplayName(l10n),
+        'Marine Life Sightings',
+      );
+      expect(DiveDetailSectionId.media.localizedDisplayName(l10n), 'Media');
+      expect(DiveDetailSectionId.tags.localizedDisplayName(l10n), 'Tags');
+      expect(DiveDetailSectionId.notes.localizedDisplayName(l10n), 'Notes');
+      expect(
+        DiveDetailSectionId.customFields.localizedDisplayName(l10n),
+        'Custom Fields',
+      );
+      expect(
+        DiveDetailSectionId.dataSources.localizedDisplayName(l10n),
+        'Data Sources',
+      );
+    });
+
+    test('localizedDescription values are correct for each section', () {
+      expect(
+        DiveDetailSectionId.decoO2.localizedDescription(l10n),
+        'NDL, ceiling, tissue heat map, O2 toxicity',
+      );
+      expect(
+        DiveDetailSectionId.sacSegments.localizedDescription(l10n),
+        'Phase/time segmentation, cylinder breakdown',
+      );
+      expect(
+        DiveDetailSectionId.details.localizedDescription(l10n),
+        'Type, location, trip, dive center, interval',
+      );
+      expect(
+        DiveDetailSectionId.environment.localizedDescription(l10n),
+        'Air/water temp, visibility, current',
+      );
+      expect(
+        DiveDetailSectionId.altitude.localizedDescription(l10n),
+        'Altitude value, category, deco requirement',
+      );
+      expect(
+        DiveDetailSectionId.tide.localizedDescription(l10n),
+        'Tide cycle graph and timing',
+      );
+      expect(
+        DiveDetailSectionId.weights.localizedDescription(l10n),
+        'Weight breakdown, total weight',
+      );
+      expect(
+        DiveDetailSectionId.tanks.localizedDescription(l10n),
+        'Tank list, gas mixes, pressures, per-tank SAC',
+      );
+      expect(
+        DiveDetailSectionId.buddies.localizedDescription(l10n),
+        'Buddy list with roles',
+      );
+      expect(
+        DiveDetailSectionId.signatures.localizedDescription(l10n),
+        'Buddy/instructor signature display and capture',
+      );
+      expect(
+        DiveDetailSectionId.equipment.localizedDescription(l10n),
+        'Equipment used in dive',
+      );
+      expect(
+        DiveDetailSectionId.sightings.localizedDescription(l10n),
+        'Species spotted, sighting details',
+      );
+      expect(
+        DiveDetailSectionId.media.localizedDescription(l10n),
+        'Photos/videos gallery',
+      );
+      expect(DiveDetailSectionId.tags.localizedDescription(l10n), 'Dive tags');
+      expect(
+        DiveDetailSectionId.notes.localizedDescription(l10n),
+        'Dive notes/description',
+      );
+      expect(
+        DiveDetailSectionId.customFields.localizedDescription(l10n),
+        'User-defined custom fields',
+      );
+      expect(
+        DiveDetailSectionId.dataSources.localizedDescription(l10n),
+        'Connected dive computers, source management',
+      );
+    });
+
+    test('each section has a unique localizedDisplayName', () {
+      final names = DiveDetailSectionId.values
+          .map((id) => id.localizedDisplayName(l10n))
           .toList();
       expect(names.toSet().length, names.length);
     });
