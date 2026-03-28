@@ -16436,6 +16436,12 @@ abstract class AppLocalizations {
   /// **'Show markers for gas switches'**
   String get settings_appearance_gasSwitchMarkers_subtitle;
 
+  /// No description provided for @settings_appearance_header_diveDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Details'**
+  String get settings_appearance_header_diveDetails;
+
   /// No description provided for @settings_appearance_header_diveLog.
   ///
   /// In en, this message translates to:
@@ -16453,6 +16459,246 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive Sites'**
   String get settings_appearance_header_diveSites;
+
+  /// No description provided for @settings_appearance_diveDetails_sectionOrderVisibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Section Order & Visibility'**
+  String get settings_appearance_diveDetails_sectionOrderVisibility;
+
+  /// No description provided for @settings_appearance_diveDetails_sectionOrderVisibility_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which sections appear and their order'**
+  String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle;
+
+  /// No description provided for @settings_diveDetailSections_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Section Order & Visibility'**
+  String get settings_diveDetailSections_title;
+
+  /// No description provided for @settings_diveDetailSections_resetToDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to Default'**
+  String get settings_diveDetailSections_resetToDefault;
+
+  /// No description provided for @settings_diveDetailSections_fixedSections.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed sections: Header, Dive Profile Chart'**
+  String get settings_diveDetailSections_fixedSections;
+
+  /// No description provided for @settings_diveDetailSections_configurableSections.
+  ///
+  /// In en, this message translates to:
+  /// **'Configurable sections (drag to reorder)'**
+  String get settings_diveDetailSections_configurableSections;
+
+  /// No description provided for @diveDetailSection_decoO2_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco Status / Tissue Loading'**
+  String get diveDetailSection_decoO2_name;
+
+  /// No description provided for @diveDetailSection_decoO2_description.
+  ///
+  /// In en, this message translates to:
+  /// **'NDL, ceiling, tissue heat map, O2 toxicity'**
+  String get diveDetailSection_decoO2_description;
+
+  /// No description provided for @diveDetailSection_sacSegments_name.
+  ///
+  /// In en, this message translates to:
+  /// **'SAC Rate by Segment'**
+  String get diveDetailSection_sacSegments_name;
+
+  /// No description provided for @diveDetailSection_sacSegments_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Phase/time segmentation, cylinder breakdown'**
+  String get diveDetailSection_sacSegments_description;
+
+  /// No description provided for @diveDetailSection_details_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get diveDetailSection_details_name;
+
+  /// No description provided for @diveDetailSection_details_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Type, location, trip, dive center, interval'**
+  String get diveDetailSection_details_description;
+
+  /// No description provided for @diveDetailSection_environment_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Environment'**
+  String get diveDetailSection_environment_name;
+
+  /// No description provided for @diveDetailSection_environment_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Air/water temp, visibility, current'**
+  String get diveDetailSection_environment_description;
+
+  /// No description provided for @diveDetailSection_altitude_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get diveDetailSection_altitude_name;
+
+  /// No description provided for @diveDetailSection_altitude_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude value, category, deco requirement'**
+  String get diveDetailSection_altitude_description;
+
+  /// No description provided for @diveDetailSection_tide_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Tide'**
+  String get diveDetailSection_tide_name;
+
+  /// No description provided for @diveDetailSection_tide_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Tide cycle graph and timing'**
+  String get diveDetailSection_tide_description;
+
+  /// No description provided for @diveDetailSection_weights_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Weights'**
+  String get diveDetailSection_weights_name;
+
+  /// No description provided for @diveDetailSection_weights_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight breakdown, total weight'**
+  String get diveDetailSection_weights_description;
+
+  /// No description provided for @diveDetailSection_tanks_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get diveDetailSection_tanks_name;
+
+  /// No description provided for @diveDetailSection_tanks_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank list, gas mixes, pressures, per-tank SAC'**
+  String get diveDetailSection_tanks_description;
+
+  /// No description provided for @diveDetailSection_buddies_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies'**
+  String get diveDetailSection_buddies_name;
+
+  /// No description provided for @diveDetailSection_buddies_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy list with roles'**
+  String get diveDetailSection_buddies_description;
+
+  /// No description provided for @diveDetailSection_signatures_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Signatures'**
+  String get diveDetailSection_signatures_name;
+
+  /// No description provided for @diveDetailSection_signatures_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy/instructor signature display and capture'**
+  String get diveDetailSection_signatures_description;
+
+  /// No description provided for @diveDetailSection_equipment_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get diveDetailSection_equipment_name;
+
+  /// No description provided for @diveDetailSection_equipment_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment used in dive'**
+  String get diveDetailSection_equipment_description;
+
+  /// No description provided for @diveDetailSection_sightings_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Marine Life Sightings'**
+  String get diveDetailSection_sightings_name;
+
+  /// No description provided for @diveDetailSection_sightings_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Species spotted, sighting details'**
+  String get diveDetailSection_sightings_description;
+
+  /// No description provided for @diveDetailSection_media_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get diveDetailSection_media_name;
+
+  /// No description provided for @diveDetailSection_media_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos/videos gallery'**
+  String get diveDetailSection_media_description;
+
+  /// No description provided for @diveDetailSection_tags_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get diveDetailSection_tags_name;
+
+  /// No description provided for @diveDetailSection_tags_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive tags'**
+  String get diveDetailSection_tags_description;
+
+  /// No description provided for @diveDetailSection_notes_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get diveDetailSection_notes_name;
+
+  /// No description provided for @diveDetailSection_notes_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive notes/description'**
+  String get diveDetailSection_notes_description;
+
+  /// No description provided for @diveDetailSection_customFields_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Fields'**
+  String get diveDetailSection_customFields_name;
+
+  /// No description provided for @diveDetailSection_customFields_description.
+  ///
+  /// In en, this message translates to:
+  /// **'User-defined custom fields'**
+  String get diveDetailSection_customFields_description;
+
+  /// No description provided for @diveDetailSection_dataSources_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Sources'**
+  String get diveDetailSection_dataSources_name;
+
+  /// No description provided for @diveDetailSection_dataSources_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected dive computers, source management'**
+  String get diveDetailSection_dataSources_description;
 
   /// No description provided for @settings_appearance_header_language.
   ///

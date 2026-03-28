@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -260,6 +261,13 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultShowOtu(bool value) async =>
       state = state.copyWith(defaultShowOtu: value);
+  @override
+  Future<void> setDiveDetailSections(
+    List<DiveDetailSectionConfig> sections,
+  ) async => state = state.copyWith(diveDetailSections: sections);
+  @override
+  Future<void> resetDiveDetailSections() async =>
+      state = state.copyWith(clearDiveDetailSections: true);
   @override
   Future<void> setShowDataSourceBadges(bool value) async =>
       state = state.copyWith(showDataSourceBadges: value);

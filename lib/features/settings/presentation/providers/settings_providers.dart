@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_preset.dart';
@@ -246,6 +247,9 @@ class AppSettings {
   /// Show field-level data source attribution badges on dive details
   final bool showDataSourceBadges;
 
+  /// Ordered list of dive detail section visibility preferences
+  final List<DiveDetailSectionConfig> diveDetailSections;
+
   const AppSettings({
     this.depthUnit = DepthUnit.meters,
     this.temperatureUnit = TemperatureUnit.celsius,
@@ -324,6 +328,7 @@ class AppSettings {
     this.serviceReminderDays = const [7, 14, 30],
     this.reminderTime = const TimeOfDay(hour: 9, minute: 0),
     this.showDataSourceBadges = true,
+    this.diveDetailSections = DiveDetailSectionConfig.defaultSections,
   });
 
   /// Compute the current unit preset based on actual unit values
@@ -435,6 +440,8 @@ class AppSettings {
     List<int>? serviceReminderDays,
     TimeOfDay? reminderTime,
     bool? showDataSourceBadges,
+    List<DiveDetailSectionConfig>? diveDetailSections,
+    bool clearDiveDetailSections = false,
   }) {
     return AppSettings(
       depthUnit: depthUnit ?? this.depthUnit,
@@ -526,6 +533,9 @@ class AppSettings {
       serviceReminderDays: serviceReminderDays ?? this.serviceReminderDays,
       reminderTime: reminderTime ?? this.reminderTime,
       showDataSourceBadges: showDataSourceBadges ?? this.showDataSourceBadges,
+      diveDetailSections: clearDiveDetailSections
+          ? DiveDetailSectionConfig.defaultSections
+          : (diveDetailSections ?? this.diveDetailSections),
     );
   }
 }
@@ -1036,6 +1046,18 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setShowDataSourceBadges(bool value) async {
     state = state.copyWith(showDataSourceBadges: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDiveDetailSections(
+    List<DiveDetailSectionConfig> sections,
+  ) async {
+    state = state.copyWith(diveDetailSections: sections);
+    await _saveSettings();
+  }
+
+  Future<void> resetDiveDetailSections() async {
+    state = state.copyWith(clearDiveDetailSections: true);
     await _saveSettings();
   }
 

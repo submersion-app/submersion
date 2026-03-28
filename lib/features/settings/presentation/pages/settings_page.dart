@@ -1473,6 +1473,29 @@ class _AppearanceSectionContentState
           const SizedBox(height: 24),
           _buildSectionHeader(
             context,
+            context.l10n.settings_appearance_header_diveDetails,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.reorder),
+              title: Text(
+                context
+                    .l10n
+                    .settings_appearance_diveDetails_sectionOrderVisibility,
+              ),
+              subtitle: Text(
+                context
+                    .l10n
+                    .settings_appearance_diveDetails_sectionOrderVisibility_subtitle,
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/settings/dive-detail-sections'),
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            context,
             context.l10n.settings_appearance_header_diveSites,
           ),
           const SizedBox(height: 8),
