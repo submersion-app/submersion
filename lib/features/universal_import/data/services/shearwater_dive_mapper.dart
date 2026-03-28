@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/constants/enums.dart';
@@ -101,19 +102,32 @@ class ShearwaterDiveMapper {
     }
 
     try {
+      debugPrint(
+        '[ShearwaterDiveMapper] Attempting FFI parse: '
+        '${vendorProduct.$1} ${vendorProduct.$2}, '
+        '${logData.length} bytes',
+      );
       final parsed = await _parseWithFfi(
         vendor: vendorProduct.$1,
         product: vendorProduct.$2,
         data: logData,
       );
-      return _mergeWithParsedDive(baseMap, parsed);
-    } catch (_) {
+      debugPrint(
+        '[ShearwaterDiveMapper] FFI success: '
+        '${parsed.samples.length} samples, '
+        'depth=${parsed.maxDepthMeters}m',
+      );
+      return mergeWithParsedDive(baseMap, parsed);
+    } catch (e, stack) {
+      debugPrint(
+        '[ShearwaterDiveMapper] FFI parse failed for '
+        'dive ${rawDive.diveId}: $e',
+      );
+      debugPrint('[ShearwaterDiveMapper] Stack: $stack');
       warnings?.add(
         ImportWarning(
           severity: ImportWarningSeverity.warning,
-          message:
-              'Profile parsing failed for dive ${rawDive.diveId}; '
-              'using metadata only',
+          message: 'Profile parsing failed for dive ${rawDive.diveId}: $e',
           entityType: ImportEntityType.dives,
         ),
       );
@@ -303,7 +317,8 @@ class ShearwaterDiveMapper {
   }
 
   /// Merges parsed profile and deco data into the base metadata map.
-  static Map<String, dynamic> _mergeWithParsedDive(
+  @visibleForTesting
+  static Map<String, dynamic> mergeWithParsedDive(
     Map<String, dynamic> baseMap,
     pigeon.ParsedDive parsed,
   ) {

@@ -34,6 +34,12 @@ void main() {
         expect(ShearwaterValueMapper.mapWaterType(null), isNull);
         expect(ShearwaterValueMapper.mapWaterType(''), isNull);
       });
+      test('maps Brackish to WaterType.brackish', () {
+        expect(
+          ShearwaterValueMapper.mapWaterType('Brackish'),
+          WaterType.brackish,
+        );
+      });
       test('maps weather to cloudCover', () {
         expect(ShearwaterValueMapper.mapCloudCover('Sunny'), CloudCover.clear);
         expect(
@@ -87,6 +93,24 @@ void main() {
       test('returns null when no extra fields present', () {
         final notes = ShearwaterValueMapper.buildExtraNotes();
         expect(notes, isNull);
+      });
+      test('includes gasNotes in extra notes', () {
+        final notes = ShearwaterValueMapper.buildExtraNotes(gasNotes: 'EAN32');
+        expect(notes, contains('Gas Notes: EAN32'));
+      });
+      test('includes issueNotes in extra notes', () {
+        final notes = ShearwaterValueMapper.buildExtraNotes(
+          issueNotes: 'Mask fog',
+        );
+        expect(notes, contains('Issue Notes: Mask fog'));
+      });
+      test('includes both gasNotes and issueNotes together', () {
+        final notes = ShearwaterValueMapper.buildExtraNotes(
+          gasNotes: 'EAN32',
+          issueNotes: 'Mask fog',
+        );
+        expect(notes, contains('Gas Notes: EAN32'));
+        expect(notes, contains('Issue Notes: Mask fog'));
       });
     });
   });
