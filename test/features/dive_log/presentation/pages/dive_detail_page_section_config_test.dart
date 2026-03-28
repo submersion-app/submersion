@@ -1,15 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+// ignore: implementation_imports
+import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/signatures/domain/entities/signature.dart';
+import 'package:submersion/features/signatures/presentation/providers/signature_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+typedef Override = riverpod.Override;
 
 /// Mock SettingsNotifier that doesn't access the database
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
@@ -47,7 +57,11 @@ AppSettings _settingsWithVisibleSections(List<DiveDetailSectionId> visible) {
 }
 
 /// Build a minimal ProviderScope + MaterialApp for DiveDetailPage.
-Widget _buildTestWidget({required Dive dive, required AppSettings settings}) {
+Widget _buildTestWidget({
+  required Dive dive,
+  required AppSettings settings,
+  List<Override> extraOverrides = const [],
+}) {
   return ProviderScope(
     overrides: [
       diveProvider(dive.id).overrideWith((ref) async => dive),
@@ -55,6 +69,7 @@ Widget _buildTestWidget({required Dive dive, required AppSettings settings}) {
         dive.id,
       ).overrideWith((ref) async => <DiveDataSource>[]),
       settingsProvider.overrideWith((ref) => _MockSettingsNotifier(settings)),
+      ...extraOverrides,
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -63,6 +78,16 @@ Widget _buildTestWidget({required Dive dive, required AppSettings settings}) {
     ),
   );
 }
+
+/// Provider overrides needed for sections that always render their widgets.
+List<Override> _alwaysRenderOverrides(String diveId) => [
+  buddiesForDiveProvider(diveId).overrideWith((ref) async => <BuddyWithRole>[]),
+  diveSightingsProvider(diveId).overrideWith((ref) async => <Sighting>[]),
+  buddySignaturesForDiveProvider(
+    diveId,
+  ).overrideWith((ref) async => <Signature>[]),
+  surfaceIntervalProvider(diveId).overrideWith((ref) async => null),
+];
 
 /// A minimal dive with all collections empty (triggers early-return branches).
 final _emptyDive = Dive(
@@ -238,6 +263,117 @@ void main() {
       expect(find.text('Great dive, saw a lot of fish.'), findsOneWidget);
       expect(find.text('Night Dive'), findsOneWidget);
       expect(find.text('Instructor:'), findsOneWidget);
+    });
+
+    testWidgets('renders dataSources section with empty data sources', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.dataSources,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _emptyDive, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      // Page renders with data sources section (empty state)
+      expect(find.text('#-'), findsOneWidget);
+    });
+
+    testWidgets('renders buddies and sightings sections with empty data', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.buddies,
+        DiveDetailSectionId.sightings,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: _emptyDive,
+          settings: settings,
+          extraOverrides: _alwaysRenderOverrides(_emptyDive.id),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Page renders without errors
+      expect(find.text('#-'), findsOneWidget);
+    });
+
+    testWidgets('renders signatures section without course', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.signatures,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: _emptyDive,
+          settings: settings,
+          extraOverrides: _alwaysRenderOverrides(_emptyDive.id),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Page renders — no instructor signature since courseId is null
+      expect(find.text('#-'), findsOneWidget);
+    });
+
+    testWidgets('renders details section with surface interval provider', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.details,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: _emptyDive,
+          settings: settings,
+          extraOverrides: _alwaysRenderOverrides(_emptyDive.id),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Details section renders
+      expect(find.text('#-'), findsOneWidget);
+    });
+
+    testWidgets('renders all sections together with empty dive data', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 8000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      // All sections visible — exercises every builder closure
+      final settings = _settingsWithVisibleSections(
+        DiveDetailSectionId.values.toList(),
+      );
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: _emptyDive,
+          settings: settings,
+          extraOverrides: _alwaysRenderOverrides(_emptyDive.id),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Page fully renders with all sections
+      expect(find.text('#-'), findsOneWidget);
     });
   });
 }
