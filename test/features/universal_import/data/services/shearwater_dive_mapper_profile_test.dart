@@ -293,7 +293,7 @@ void main() {
         expect(s1['rbt'], 60);
         expect(s1['tts'], 120);
         expect(s1['decoType'], 0);
-        expect(s1['ceiling'], 3.0);
+        expect(s1.containsKey('ceiling'), isFalse);
         expect(s1['ndl'], 99);
 
         // Second sample has only depth -- no optional fields
@@ -311,6 +311,43 @@ void main() {
         expect(s2.containsKey('decoType'), isFalse);
         expect(s2.containsKey('ceiling'), isFalse);
         expect(s2.containsKey('ndl'), isFalse);
+      });
+
+      test('maps deco stop samples with ceiling and no ndl', () {
+        final baseMap = <String, dynamic>{'profile': <Map<String, dynamic>>[]};
+        final parsed = pigeon.ParsedDive(
+          fingerprint: '',
+          dateTimeYear: 2025,
+          dateTimeMonth: 1,
+          dateTimeDay: 1,
+          dateTimeHour: 0,
+          dateTimeMinute: 0,
+          dateTimeSecond: 0,
+          maxDepthMeters: 30,
+          avgDepthMeters: 20,
+          durationSeconds: 1800,
+          samples: [
+            pigeon.ProfileSample(
+              timeSeconds: 10,
+              depthMeters: 25.0,
+              decoType: 2,
+              decoTime: 180,
+              decoDepth: 6.0,
+            ),
+          ],
+          tanks: [],
+          gasMixes: [],
+          events: [],
+        );
+        final result = ShearwaterDiveMapper.mergeWithParsedDive(
+          baseMap,
+          parsed,
+        );
+        final profile = result['profile'] as List;
+        final s1 = profile[0] as Map<String, dynamic>;
+        expect(s1['decoType'], 2);
+        expect(s1['ceiling'], 6.0);
+        expect(s1.containsKey('ndl'), isFalse);
       });
 
       test('extracts water temp from samples when not in metadata', () {

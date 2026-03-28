@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -400,10 +402,10 @@ class ShearwaterDiveMapper {
       if (s.decoType != null) {
         sampleMap['decoType'] = s.decoType;
       }
-      if (s.decoDepth != null) {
+      if (s.decoDepth != null && s.decoType != null && s.decoType != 0) {
         sampleMap['ceiling'] = s.decoDepth;
       }
-      if (s.decoTime != null) {
+      if (s.decoType == 0 && s.decoTime != null) {
         sampleMap['ndl'] = s.decoTime;
       }
       return sampleMap;
