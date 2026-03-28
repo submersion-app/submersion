@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -10,6 +11,10 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _TestSettingsNotifier({PressureUnit pressureUnit = PressureUnit.bar})
     : super(AppSettings(pressureUnit: pressureUnit));
+
+  void updatePressureUnitForTest(PressureUnit unit) {
+    state = AppSettings(pressureUnit: unit);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -42,6 +47,45 @@ void main() {
 
       final state = container.read(divePlanNotifierProvider);
       expect(state.reservePressure, DivePlanState.kDefaultReservePressureBar);
+    });
+
+    test(
+      'newPlan resets reserve to 500 psi (~34 bar) when pressure unit is psi',
+      () {
+        final settingsNotifier = _TestSettingsNotifier();
+        final container = ProviderContainer(
+          overrides: [settingsProvider.overrideWith((ref) => settingsNotifier)],
+        );
+        addTearDown(container.dispose);
+
+        // Force notifier creation while unit is bar
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        expect(
+          container.read(divePlanNotifierProvider).reservePressure,
+          DivePlanState.kDefaultReservePressureBar,
+        );
+
+        // User switches to PSI in settings
+        settingsNotifier.updatePressureUnitForTest(PressureUnit.psi);
+
+        // Reset the plan
+        notifier.newPlan();
+
+        final state = container.read(divePlanNotifierProvider);
+        // Should reset to 500 psi (~34.47 bar), NOT 50 bar (725 psi)
+        expect(state.reservePressure, closeTo(34.47, 0.5));
+      },
+    );
+
+    test('newPlan uses reservePressure fallback when no callback provided', () {
+      final notifier = DivePlanNotifier(
+        PlanCalculatorService(),
+        reservePressure: 40,
+      );
+      addTearDown(notifier.dispose);
+
+      notifier.newPlan();
+      expect(notifier.state.reservePressure, 40);
     });
   });
 }

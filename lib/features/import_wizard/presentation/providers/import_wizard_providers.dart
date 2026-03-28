@@ -1,8 +1,12 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
+import 'package:submersion/features/import_wizard/domain/models/tag_selection.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
+import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 
 // ============================================================================
 // State
@@ -16,6 +20,7 @@ class ImportWizardState {
     this.selections = const {},
     this.duplicateActions = const {},
     this.retainSourceDiveNumbers = false,
+    this.importTags = const [],
     this.importPhase,
     this.importCurrent = 0,
     this.importTotal = 0,
@@ -40,8 +45,11 @@ class ImportWizardState {
   /// source file instead of being auto-assigned sequential numbers.
   final bool retainSourceDiveNumbers;
 
-  /// Human-readable label for the current import phase (e.g. "dives").
-  final String? importPhase;
+  /// Tags to apply to all imported dives.
+  final List<TagSelection> importTags;
+
+  /// The current import phase (e.g. dives, sites, applyingTags).
+  final ImportPhase? importPhase;
 
   /// Number of items processed in the current import phase.
   final int importCurrent;
@@ -65,7 +73,8 @@ class ImportWizardState {
     Map<ImportEntityType, Set<int>>? selections,
     Map<ImportEntityType, Map<int, DuplicateAction>>? duplicateActions,
     bool? retainSourceDiveNumbers,
-    String? importPhase,
+    List<TagSelection>? importTags,
+    ImportPhase? importPhase,
     bool clearImportPhase = false,
     int? importCurrent,
     int? importTotal,
@@ -82,6 +91,7 @@ class ImportWizardState {
       duplicateActions: duplicateActions ?? this.duplicateActions,
       retainSourceDiveNumbers:
           retainSourceDiveNumbers ?? this.retainSourceDiveNumbers,
+      importTags: importTags ?? this.importTags,
       importPhase: clearImportPhase ? null : (importPhase ?? this.importPhase),
       importCurrent: importCurrent ?? this.importCurrent,
       importTotal: importTotal ?? this.importTotal,
@@ -103,9 +113,24 @@ class ImportWizardState {
 /// Orchestrates review selections, duplicate actions, import progress,
 /// and results. Source-specific logic is delegated to an [ImportSourceAdapter].
 class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
-  ImportWizardNotifier(this._adapter) : super(const ImportWizardState());
+  ImportWizardNotifier(
+    this._adapter, {
+    TagRepository? tagRepository,
+    String? diverId,
+  }) : _tagRepository = tagRepository,
+       _diverId = diverId,
+       super(const ImportWizardState());
+
+  static final _log = LoggerService.forClass(ImportWizardNotifier);
 
   final ImportSourceAdapter _adapter;
+  final TagRepository? _tagRepository;
+  String? _diverId;
+
+  /// Set the validated diver ID for tag association during import.
+  void setDiverId(String? diverId) {
+    _diverId = diverId;
+  }
 
   /// The duplicate actions supported by the underlying adapter.
   Set<DuplicateAction> get supportedDuplicateActions =>
@@ -215,6 +240,48 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   }
 
   // -------------------------------------------------------------------------
+  // Import tags
+  // -------------------------------------------------------------------------
+
+  /// Pre-populate [importTags] with the adapter's default tag.
+  ///
+  /// Safe to call multiple times — skips if a tag with the same name already
+  /// exists.
+  void initializeDefaultTag() {
+    final defaultName = _adapter.defaultTagName;
+    final alreadyExists = state.importTags.any(
+      (t) => t.name.toLowerCase() == defaultName.toLowerCase(),
+    );
+    if (alreadyExists) return;
+
+    state = state.copyWith(
+      importTags: [
+        ...state.importTags,
+        TagSelection(name: defaultName),
+      ],
+    );
+  }
+
+  /// Add a tag to the import list.
+  ///
+  /// Silently ignores duplicates (case-insensitive name match).
+  void addImportTag(TagSelection tag) {
+    final alreadyExists = state.importTags.any(
+      (t) => t.name.toLowerCase() == tag.name.toLowerCase(),
+    );
+    if (alreadyExists) return;
+
+    state = state.copyWith(importTags: [...state.importTags, tag]);
+  }
+
+  /// Remove a tag from the import list by index.
+  void removeImportTag(int index) {
+    if (index < 0 || index >= state.importTags.length) return;
+    final updated = List<TagSelection>.from(state.importTags)..removeAt(index);
+    state = state.copyWith(importTags: updated);
+  }
+
+  // -------------------------------------------------------------------------
   // Duplicate action management
   // -------------------------------------------------------------------------
 
@@ -262,13 +329,61 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
         },
       );
 
+      // Apply import tags to all imported dives.
+      // Tag application is non-fatal: dives are already imported, so we
+      // keep the result and advance to summary even if tagging fails.
+      String? tagWarning;
+      if (state.importTags.isNotEmpty &&
+          result.importedDiveIds.isNotEmpty &&
+          _tagRepository != null) {
+        try {
+          await _applyImportTags(result.importedDiveIds);
+        } catch (e) {
+          _log.warning('Tag application failed after import', e);
+          tagWarning = 'Dives imported successfully but tagging failed: $e';
+        }
+      }
+
       state = state.copyWith(
         isImporting: false,
         importResult: result,
         currentStep: state.currentStep + 1,
+        error: tagWarning,
       );
     } catch (e) {
       state = state.copyWith(isImporting: false, error: 'Import failed: $e');
+    }
+  }
+
+  /// Resolve tag selections and apply them to the given dive IDs.
+  Future<void> _applyImportTags(List<String> importedDiveIds) async {
+    state = state.copyWith(
+      importPhase: ImportPhase.applyingTags,
+      importCurrent: 0,
+      importTotal: importedDiveIds.length,
+    );
+
+    // Resolve tag selections to tag IDs.
+    final tagIds = <String>[];
+    for (final tagSelection in state.importTags) {
+      if (tagSelection.isNew) {
+        final tag = await _tagRepository!.getOrCreateTag(
+          tagSelection.name,
+          diverId: _diverId,
+        );
+        tagIds.add(tag.id);
+      } else {
+        tagIds.add(tagSelection.existingTagId!);
+      }
+    }
+
+    // Apply each tag to each imported dive.
+    for (var i = 0; i < importedDiveIds.length; i++) {
+      final diveId = importedDiveIds[i];
+      for (final tagId in tagIds) {
+        await _tagRepository!.addTagToDive(diveId, tagId);
+      }
+      state = state.copyWith(importCurrent: i + 1);
     }
   }
 

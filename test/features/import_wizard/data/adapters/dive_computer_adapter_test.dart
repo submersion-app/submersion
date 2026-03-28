@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 
 @GenerateNiceMocks([
   MockSpec<DiveImportService>(),
@@ -368,39 +369,27 @@ void main() {
   // -------------------------------------------------------------------------
 
   group('performImport()', () {
-    test('imports non-duplicate dives via DiveImportService', () async {
+    test('imports non-duplicate dives via importSingleDiveAsNew', () async {
       final dive = makeDownloadedDive();
       adapter.setDownloadedDives([dive]);
       final bundle = await adapter.buildBundle();
 
       when(
-        mockImportService.importDives(
-          dives: [dive],
-          computer: computer,
-          mode: ImportMode.all,
-          defaultResolution: ConflictResolution.importAsNew,
+        mockImportService.importSingleDiveAsNew(
+          dive,
+          computerId: computer.id,
           diverId: diverId,
         ),
-      ).thenAnswer(
-        (_) async => ImportResult.success(
-          imported: 1,
-          skipped: 0,
-          updated: 0,
-          importedDiveIds: ['new-dive-1'],
-          importedDives: [dive],
-        ),
-      );
+      ).thenAnswer((_) async => 'new-dive-1');
 
       final result = await adapter.performImport(bundle, {
         ImportEntityType.dives: {0},
       }, {});
 
       verify(
-        mockImportService.importDives(
-          dives: [dive],
-          computer: computer,
-          mode: ImportMode.all,
-          defaultResolution: ConflictResolution.importAsNew,
+        mockImportService.importSingleDiveAsNew(
+          dive,
+          computerId: computer.id,
           diverId: diverId,
         ),
       ).called(1);
@@ -423,11 +412,9 @@ void main() {
       );
 
       verifyNever(
-        mockImportService.importDives(
-          dives: anyNamed('dives'),
-          computer: anyNamed('computer'),
-          mode: anyNamed('mode'),
-          defaultResolution: anyNamed('defaultResolution'),
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
           diverId: anyNamed('diverId'),
         ),
       );
@@ -441,22 +428,12 @@ void main() {
       final bundle = await adapter.buildBundle();
 
       when(
-        mockImportService.importDives(
-          dives: [dive],
-          computer: computer,
-          mode: ImportMode.all,
-          defaultResolution: ConflictResolution.importAsNew,
+        mockImportService.importSingleDiveAsNew(
+          dive,
+          computerId: computer.id,
           diverId: diverId,
         ),
-      ).thenAnswer(
-        (_) async => ImportResult.success(
-          imported: 1,
-          skipped: 0,
-          updated: 0,
-          importedDiveIds: ['new-dive-1'],
-          importedDives: [dive],
-        ),
-      );
+      ).thenAnswer((_) async => 'new-dive-1');
 
       // Index 0 is NOT in plain selections but has importAsNew action
       final result = await adapter.performImport(
@@ -468,11 +445,9 @@ void main() {
       );
 
       verify(
-        mockImportService.importDives(
-          dives: [dive],
-          computer: computer,
-          mode: ImportMode.all,
-          defaultResolution: ConflictResolution.importAsNew,
+        mockImportService.importSingleDiveAsNew(
+          dive,
+          computerId: computer.id,
           diverId: diverId,
         ),
       ).called(1);
@@ -649,7 +624,7 @@ void main() {
         ),
       );
 
-      final progressCalls = <(String, int, int)>[];
+      final progressCalls = <(ImportPhase, int, int)>[];
       await adapter.performImport(
         bundle,
         {
@@ -662,8 +637,8 @@ void main() {
       );
 
       expect(progressCalls, hasLength(2));
-      expect(progressCalls[0], equals(('Dives', 1, 2)));
-      expect(progressCalls[1], equals(('Dives', 2, 2)));
+      expect(progressCalls[0], equals((ImportPhase.dives, 1, 2)));
+      expect(progressCalls[1], equals((ImportPhase.dives, 2, 2)));
     });
 
     test('updates computer metadata after import', () async {
@@ -1137,5 +1112,58 @@ void main() {
         verifyNever(mockComputerRepo.updateLastFingerprint(any, any));
       },
     );
+  });
+
+  // ---------------------------------------------------------------------------
+  // defaultTagName
+  // ---------------------------------------------------------------------------
+
+  group('defaultTagName', () {
+    test('uses computer name from knownComputer when no custom name set', () {
+      // adapter is constructed with knownComputer = makeComputer(name: 'My Perdix')
+      // _computer is null initially, _customDeviceName is null
+      // defaultTagName: _customDeviceName ?? _computer?.name ?? _displayName
+      // _displayName = knownComputer.displayName = 'My Perdix'
+      final tagName = adapter.defaultTagName;
+
+      expect(tagName, matches(RegExp(r'^My Perdix Import \d{4}-\d{2}-\d{2}$')));
+    });
+
+    test('uses custom device name when set', () {
+      adapter.setCustomDeviceName('Reef Runner');
+      final tagName = adapter.defaultTagName;
+
+      expect(tagName, startsWith('Reef Runner Import '));
+      expect(
+        tagName,
+        matches(RegExp(r'^Reef Runner Import \d{4}-\d{2}-\d{2}$')),
+      );
+    });
+
+    test('falls back to display name when no computer or custom name', () {
+      final noComputer = DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        diverId: diverId,
+      );
+      final tagName = noComputer.defaultTagName;
+
+      expect(
+        tagName,
+        matches(RegExp(r'^Dive Computer Import \d{4}-\d{2}-\d{2}$')),
+      );
+    });
+
+    test('pads month and day with leading zeros', () {
+      final tagName = adapter.defaultTagName;
+      final datePart = tagName.split('Import ').last;
+      final parts = datePart.split('-');
+
+      expect(parts, hasLength(3));
+      expect(parts[0].length, 4); // year
+      expect(parts[1].length, 2); // zero-padded month
+      expect(parts[2].length, 2); // zero-padded day
+    });
   });
 }

@@ -194,10 +194,16 @@ class _TankEditDialogState extends State<_TankEditDialog> {
     super.initState();
     _nameController = TextEditingController(text: widget.tank?.name ?? '');
     _volumeController = TextEditingController(
-      text: widget.tank?.volume?.toStringAsFixed(1) ?? '11.1',
+      text: widget.tank?.volume != null
+          ? widget.units.convertVolume(widget.tank!.volume!).toStringAsFixed(1)
+          : widget.units.convertVolume(11.1).toStringAsFixed(1),
     );
     _pressureController = TextEditingController(
-      text: widget.tank?.startPressure?.toString() ?? '200',
+      text: widget.tank?.startPressure != null
+          ? widget.units
+                .convertPressure(widget.tank!.startPressure!.toDouble())
+                .toStringAsFixed(0)
+          : widget.units.convertPressure(200).toStringAsFixed(0),
     );
     _o2Controller = TextEditingController(
       text: widget.tank?.gasMix.o2.toString() ?? '21',
@@ -330,11 +336,18 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   }
 
   void _save() {
+    final parsedVolume = double.tryParse(_volumeController.text);
+    final parsedPressure = double.tryParse(_pressureController.text);
+
     final tank = DiveTank(
       id: widget.tank?.id ?? _uuid.v4(),
       name: _nameController.text.isNotEmpty ? _nameController.text : null,
-      volume: double.tryParse(_volumeController.text),
-      startPressure: int.tryParse(_pressureController.text),
+      volume: parsedVolume != null
+          ? widget.units.volumeToLiters(parsedVolume)
+          : null,
+      startPressure: parsedPressure != null
+          ? widget.units.pressureToBar(parsedPressure).round()
+          : null,
       gasMix: GasMix(
         o2: double.tryParse(_o2Controller.text) ?? 21,
         he: double.tryParse(_heController.text) ?? 0,

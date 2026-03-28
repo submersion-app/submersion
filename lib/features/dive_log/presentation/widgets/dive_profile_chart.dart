@@ -1393,7 +1393,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       addRow(
                         context.l10n.diveLog_tooltip_ndl,
                         ndlValue,
-                        Colors.lightGreen.shade700,
+                        Colors.yellow.shade700,
                       );
                     }
 
@@ -2297,7 +2297,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// NDL values are in seconds; shows time remaining before deco obligation
   LineChartBarData _buildNdlLine(double chartMaxDepth) {
     final ndlData = widget.ndlCurve!;
-    final ndlColor = Colors.lightGreen.shade700;
+    final ndlColor = Colors.yellow.shade700;
 
     // Map NDL to chart: max NDL (~60 min) at top, 0 at bottom
     const maxNdlSeconds = 3600.0; // 60 minutes as max display

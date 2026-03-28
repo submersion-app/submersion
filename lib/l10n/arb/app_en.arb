@@ -5452,6 +5452,8 @@
   "settings_import_phase_sites": "Importing dive sites...",
   "settings_import_phase_tags": "Importing tags...",
   "settings_import_phase_trips": "Importing trips...",
+  "settings_import_phase_courses": "Importing courses...",
+  "settings_import_phase_applyingTags": "Applying tags...",
   "settings_import_progressLabel": "{phase}, {current} of {total}",
   "settings_import_progressPercent": "Import progress: {percent} percent",
   "settings_language_appBar_title": "Language",
@@ -6869,6 +6871,7 @@
   "tags_dialog_deleteTitle": "Delete Tag?",
   "tags_empty": "No tags yet. Create tags when editing dives.",
   "tags_hint_addMoreTags": "Add more tags...",
+  "importWizard_tagsLabel": "Tags",
   "tags_hint_addTags": "Add tags...",
   "tags_manage_title": "Tags",
   "tags_manage_searchHint": "Search tags...",
@@ -7687,8 +7690,6 @@
   "universalImport_action_selectFile": "Select File",
   "universalImport_description_supportedFormats": "Select a dive log file to import. Supported formats include CSV, UDDF, Subsurface XML, and Garmin FIT.",
   "universalImport_error_unsupportedFormat": "This format is not yet supported. Please export as UDDF or CSV.",
-  "universalImport_hint_tagDescription": "Tag all imported dives for easy filtering",
-  "universalImport_hint_tagExample": "e.g., MacDive Import 2026-02-09",
   "universalImport_label_columnMapping": "Column Mapping",
   "universalImport_label_columnsMapped": "{mapped} of {total} columns mapped",
   "universalImport_label_detecting": "Detecting...",
@@ -7696,7 +7697,6 @@
   "universalImport_label_duplicate": "Duplicate",
   "universalImport_label_duplicatesFound": "{count} duplicates found and auto-deselected.",
   "universalImport_label_importComplete": "Import Complete",
-  "universalImport_label_importTag": "Import Tag",
   "universalImport_label_importing": "Importing",
   "universalImport_label_importingEllipsis": "Importing...",
   "universalImport_label_importingProgress": "Importing {current} of {total}",
@@ -7724,7 +7724,6 @@
   "universalImport_step_review": "Review",
   "universalImport_step_select": "Select",
   "universalImport_title": "Import Data",
-  "universalImport_tooltip_clearTag": "Clear tag",
   "universalImport_tooltip_closeWizard": "Close import wizard",
   "@universalImport_action_consolidate": {
     "description": "Button label to consolidate an imported dive as a secondary computer reading on the matched existing dive"
@@ -7752,12 +7751,6 @@
   },
   "@universalImport_error_unsupportedFormat": {
     "description": "Error message shown when the detected file format is not supported"
-  },
-  "@universalImport_hint_tagDescription": {
-    "description": "Description text below the import tag label"
-  },
-  "@universalImport_hint_tagExample": {
-    "description": "Hint text placeholder for the batch tag text field"
   },
   "@universalImport_label_columnMapping": {
     "description": "Title for the CSV column mapping step"
@@ -7801,9 +7794,6 @@
   },
   "@universalImport_label_importComplete": {
     "description": "Headline text shown on the import summary step"
-  },
-  "@universalImport_label_importTag": {
-    "description": "Label for the batch tag field in the import review step"
   },
   "@universalImport_label_importing": {
     "description": "Simple importing label when total count is unknown"
@@ -7983,9 +7973,6 @@
   },
   "@universalImport_title": {
     "description": "Title for the universal import wizard page and file selection heading"
-  },
-  "@universalImport_tooltip_clearTag": {
-    "description": "Tooltip for the clear button in the batch tag text field"
   },
   "@universalImport_tooltip_closeWizard": {
     "description": "Tooltip for the close button on the import wizard app bar"

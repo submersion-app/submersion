@@ -10314,6 +10314,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_import_phase_trips => 'Reizen importeren...';
 
   @override
+  String get settings_import_phase_courses => 'Importing courses...';
+
+  @override
+  String get settings_import_phase_applyingTags => 'Applying tags...';
+
+  @override
   String settings_import_progressLabel(
     Object phase,
     Object current,
@@ -12173,6 +12179,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get tags_hint_addMoreTags => 'Meer tags toevoegen...';
 
   @override
+  String get importWizard_tagsLabel => 'Tags';
+
+  @override
   String get tags_hint_addTags => 'Tags toevoegen...';
 
   @override
@@ -13612,14 +13621,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dit formaat wordt nog niet ondersteund. Exporteer als UDDF of CSV.';
 
   @override
-  String get universalImport_hint_tagDescription =>
-      'Tag alle geïmporteerde duiken voor eenvoudig filteren';
-
-  @override
-  String get universalImport_hint_tagExample =>
-      'bijv. MacDive Import 2026-02-09';
-
-  @override
   String get universalImport_label_columnMapping => 'Kolomtoewijzing';
 
   @override
@@ -13645,9 +13646,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_label_importComplete => 'Import voltooid';
-
-  @override
-  String get universalImport_label_importTag => 'Import tag';
 
   @override
   String get universalImport_label_importing => 'Importeren';
@@ -13762,9 +13760,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_title => 'Gegevens importeren';
-
-  @override
-  String get universalImport_tooltip_clearTag => 'Tag wissen';
 
   @override
   String get universalImport_tooltip_closeWizard => 'Importwizard sluiten';

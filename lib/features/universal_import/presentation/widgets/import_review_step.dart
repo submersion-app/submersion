@@ -5,7 +5,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
-import 'package:submersion/features/universal_import/presentation/widgets/batch_tag_field.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/import_dive_card.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/import_entity_card.dart';
 
@@ -13,7 +12,7 @@ import 'package:submersion/features/universal_import/presentation/widgets/import
 ///
 /// Dynamically creates tabs based on which entity types the parser produced.
 /// Each tab shows a list of items with selection checkboxes and duplicate
-/// badges. Includes batch tag field and import button.
+/// badges. Includes import button.
 class ImportReviewStep extends ConsumerWidget {
   const ImportReviewStep({super.key});
 
@@ -73,17 +72,6 @@ class ImportReviewStep extends ConsumerWidget {
                 ),
               ),
             ),
-
-          // Batch tag field
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: BatchTagField(
-              initialValue: state.options?.batchTag,
-              onChanged: (tag) => ref
-                  .read(universalImportNotifierProvider.notifier)
-                  .updateBatchTag(tag),
-            ),
-          ),
 
           // Entity type tabs
           TabBar(

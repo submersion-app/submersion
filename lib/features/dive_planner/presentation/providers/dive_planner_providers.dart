@@ -39,12 +39,14 @@ final planCalculatorServiceProvider = Provider<PlanCalculatorService>((ref) {
 /// StateNotifier for managing dive plan editing state.
 class DivePlanNotifier extends StateNotifier<DivePlanState> {
   final PlanCalculatorService _calculator;
-  final double _defaultReservePressure;
+  final double Function() _getDefaultReservePressure;
 
   DivePlanNotifier(
     this._calculator, {
     double reservePressure = DivePlanState.kDefaultReservePressureBar,
-  }) : _defaultReservePressure = reservePressure,
+    double Function()? getDefaultReservePressure,
+  }) : _getDefaultReservePressure =
+           getDefaultReservePressure ?? (() => reservePressure),
        super(_createInitialState(reservePressure: reservePressure));
 
   static DivePlanState _createInitialState({
@@ -81,7 +83,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 
   /// Reset to a new empty plan.
   void newPlan() {
-    state = _createInitialState(reservePressure: _defaultReservePressure);
+    state = _createInitialState(reservePressure: _getDefaultReservePressure());
   }
 
   /// Load an existing plan for editing.
@@ -383,12 +385,20 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 final divePlanNotifierProvider =
     StateNotifierProvider<DivePlanNotifier, DivePlanState>((ref) {
       final calculator = ref.watch(planCalculatorServiceProvider);
-      final pressureUnit = ref.read(pressureUnitProvider);
       // Default reserve: 50 bar for metric, 500 psi (~34.47 bar) for imperial
-      final reservePressure = pressureUnit == PressureUnit.psi
-          ? PressureUnit.psi.convert(500, PressureUnit.bar)
-          : DivePlanState.kDefaultReservePressureBar;
-      return DivePlanNotifier(calculator, reservePressure: reservePressure);
+      final read = ref.read;
+      double defaultReserve() {
+        final unit = read(pressureUnitProvider);
+        return unit == PressureUnit.psi
+            ? PressureUnit.psi.convert(500, PressureUnit.bar)
+            : DivePlanState.kDefaultReservePressureBar;
+      }
+
+      return DivePlanNotifier(
+        calculator,
+        reservePressure: defaultReserve(),
+        getDefaultReservePressure: defaultReserve,
+      );
     });
 
 // ============================================================================

@@ -5,16 +5,16 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 
 /// Color scheme for different gas types on dive profile charts.
 ///
-/// Colors are chosen to be easily distinguishable and match common
-/// diving conventions:
-/// - Air: Blue (standard, most common)
+/// Colors are chosen to be easily distinguishable from the blue depth
+/// line ([AppColors.chartDepth]) and match common diving conventions:
+/// - Air: Orange (contrasts with depth line, standard pressure color)
 /// - Nitrox: Green (enriched air = "greener" for your body)
 /// - Trimix: Purple (technical diving = more exotic)
 class GasColors {
   GasColors._(); // Prevent instantiation
 
-  /// Color for Air (21% O2, no He) - uses theme primary or default blue
-  static const Color air = Color(0xFF2196F3); // Blue
+  /// Color for Air (21% O2, no He) - orange to contrast with blue depth line
+  static const Color air = Color(0xFFEF6C00); // Dark orange (orange.shade800)
 
   /// Color for Nitrox (>21% O2, no He)
   static const Color nitrox = Color(0xFF4CAF50); // Green
