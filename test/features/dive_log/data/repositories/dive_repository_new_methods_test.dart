@@ -59,7 +59,7 @@ void main() {
             diveComputerSerial: Value(diveComputerSerial),
             maxDepth: Value(maxDepth),
             avgDepth: Value(avgDepth),
-            duration: Value(duration),
+            bottomTime: Value(duration),
             waterTemp: Value(waterTemp),
             entryTime: Value(entryTime),
             exitTime: Value(exitTime),
@@ -1115,7 +1115,7 @@ void main() {
       expect(diveRow.diveComputerSerial, equals('SN-NEW'));
       expect(diveRow.maxDepth, equals(45.0));
       expect(diveRow.avgDepth, equals(25.0));
-      expect(diveRow.duration, equals(3600));
+      expect(diveRow.bottomTime, equals(3600));
       expect(diveRow.waterTemp, equals(18.0));
     });
 

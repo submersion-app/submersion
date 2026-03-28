@@ -144,8 +144,8 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
     if (dive.maxDepth != null) {
       parts.add(units.formatDepth(dive.maxDepth!));
     }
-    if (dive.duration != null) {
-      parts.add('${dive.duration!.inMinutes} min');
+    if (dive.bottomTime != null) {
+      parts.add('${dive.bottomTime!.inMinutes} min');
     }
     if (dive.waterTemp != null) {
       parts.add(units.formatTemperature(dive.waterTemp));

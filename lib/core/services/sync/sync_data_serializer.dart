@@ -1471,7 +1471,7 @@ class SyncDataSerializer {
     'diveDateTime': r.diveDateTime,
     'entryTime': r.entryTime,
     'exitTime': r.exitTime,
-    'duration': r.duration,
+    'duration': r.bottomTime,
     'runtime': r.runtime,
     'maxDepth': r.maxDepth,
     'avgDepth': r.avgDepth,

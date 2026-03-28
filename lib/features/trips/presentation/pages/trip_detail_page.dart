@@ -287,9 +287,9 @@ class _TripDetailContent extends ConsumerWidget {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                        if (dive.duration != null)
+                        if (dive.bottomTime != null)
                           Text(
-                            '${dive.duration!.inMinutes}min',
+                            '${dive.bottomTime!.inMinutes}min',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),

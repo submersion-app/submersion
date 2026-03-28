@@ -9,6 +9,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -26,6 +27,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -223,10 +225,201 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
+  /// Maps each configurable section ID to a builder returning its widgets.
+  ///
+  /// Each builder preserves the exact data-driven visibility conditions from
+  /// the original hardcoded layout. Spacing SizedBoxes are included before
+  /// each section's content (or handled internally by the section widget).
+  Map<DiveDetailSectionId, List<Widget> Function()> _sectionBuilders({
+    required BuildContext context,
+    required WidgetRef ref,
+    required Dive dive,
+    required UnitFormatter units,
+    required AsyncValue<List<DiveDataSource>> computerReadingsAsync,
+    required AppSettings settings,
+  }) {
+    return {
+      DiveDetailSectionId.decoO2: () {
+        if (dive.profile.isEmpty) return [];
+        return [
+          const SizedBox(height: 24),
+          ValueListenableBuilder<int?>(
+            valueListenable: _selectedPointNotifier,
+            builder: (context, selectedPointIndex, _) {
+              return _buildDecoO2Panel(context, ref, dive, selectedPointIndex);
+            },
+          ),
+        ];
+      },
+      DiveDetailSectionId.sacSegments: () {
+        if (dive.profile.isEmpty) return [];
+        return [
+          const SizedBox(height: 24),
+          ValueListenableBuilder<int?>(
+            valueListenable: _selectedPointNotifier,
+            builder: (context, selectedPointIndex, _) {
+              return _buildSacSegmentsSection(
+                context,
+                ref,
+                dive,
+                selectedPointIndex,
+              );
+            },
+          ),
+        ];
+      },
+      DiveDetailSectionId.details: () {
+        return [
+          ValueListenableBuilder<String?>(
+            valueListenable: _viewedSourceIdNotifier,
+            builder: (context, viewedSourceId, _) {
+              final dataSources = computerReadingsAsync.valueOrNull ?? [];
+              final attribution = FieldAttributionService.computeAttribution(
+                dataSources,
+                viewedSourceId: viewedSourceId,
+              );
+              final showBadges =
+                  settings.showDataSourceBadges && attribution.isNotEmpty;
+              return _buildDetailsSection(
+                context,
+                ref,
+                dive,
+                units,
+                attribution: showBadges ? attribution : null,
+              );
+            },
+          ),
+        ];
+      },
+      DiveDetailSectionId.environment: () {
+        if (!_hasEnvironmentData(dive)) return [];
+        return [
+          const SizedBox(height: 24),
+          _buildEnvironmentSection(context, dive, units),
+        ];
+      },
+      DiveDetailSectionId.altitude: () {
+        if (dive.altitude == null || dive.altitude! <= 0) return [];
+        return [
+          const SizedBox(height: 24),
+          _buildAltitudeSection(context, ref, dive),
+        ];
+      },
+      DiveDetailSectionId.tide: () {
+        // _buildTideSection includes its own internal spacing
+        return [_buildTideSection(context, ref, dive)];
+      },
+      DiveDetailSectionId.weights: () {
+        if (!_hasWeights(dive)) return [];
+        return [
+          const SizedBox(height: 24),
+          _buildWeightSection(context, dive, units),
+        ];
+      },
+      DiveDetailSectionId.tanks: () {
+        if (dive.tanks.isEmpty) return [];
+        return [
+          const SizedBox(height: 24),
+          _buildTanksSection(context, ref, dive, units),
+        ];
+      },
+      DiveDetailSectionId.buddies: () {
+        return [const SizedBox(height: 24), _buildBuddiesSection(context, ref)];
+      },
+      DiveDetailSectionId.signatures: () {
+        return [
+          const SizedBox(height: 24),
+          BuddySignaturesSection(diveId: diveId),
+          if (dive.courseId != null) ...[
+            const SizedBox(height: 24),
+            _buildSignatureSection(context, ref, dive),
+          ],
+        ];
+      },
+      DiveDetailSectionId.equipment: () {
+        if (dive.equipment.isEmpty) return [];
+        return [
+          const SizedBox(height: 24),
+          _buildEquipmentSection(context, ref, dive),
+        ];
+      },
+      DiveDetailSectionId.sightings: () {
+        // _buildSightingsSection includes its own internal spacing
+        return [_buildSightingsSection(context, ref)];
+      },
+      DiveDetailSectionId.media: () {
+        return [
+          const SizedBox(height: 24),
+          _buildMediaSection(context, ref, dive),
+        ];
+      },
+      DiveDetailSectionId.tags: () {
+        if (dive.tags.isEmpty) return [];
+        return [const SizedBox(height: 24), _buildTagsSection(context, dive)];
+      },
+      DiveDetailSectionId.notes: () {
+        return [const SizedBox(height: 24), _buildNotesSection(context, dive)];
+      },
+      DiveDetailSectionId.customFields: () {
+        if (dive.customFields.isEmpty) return [];
+        return [
+          const SizedBox(height: 24),
+          _buildCustomFieldsSection(context, dive),
+        ];
+      },
+      DiveDetailSectionId.dataSources: () {
+        return [
+          const SizedBox(height: 24),
+          ValueListenableBuilder<String?>(
+            valueListenable: _viewedSourceIdNotifier,
+            builder: (context, viewedSourceId, _) {
+              final dataSources = computerReadingsAsync.valueOrNull ?? [];
+              return DataSourcesSection(
+                dataSources: dataSources,
+                diveCreatedAt: dive.dateTime,
+                diveId: dive.id,
+                units: units,
+                viewedSourceId: viewedSourceId,
+                onTapSource: (sourceId) {
+                  if (_viewedSourceIdNotifier.value == sourceId) {
+                    _viewedSourceIdNotifier.value = null;
+                  } else {
+                    _viewedSourceIdNotifier.value = sourceId;
+                  }
+                },
+                onSetPrimary: (readingId) => _onSetPrimaryDataSource(
+                  context,
+                  ref,
+                  diveId: dive.id,
+                  readingId: readingId,
+                ),
+                onUnlink: (readingId) => _onUnlinkDataSource(
+                  context,
+                  ref,
+                  diveId: dive.id,
+                  readingId: readingId,
+                ),
+              );
+            },
+          ),
+        ];
+      },
+    };
+  }
+
   Widget _buildContent(BuildContext context, WidgetRef ref, Dive dive) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final computerReadingsAsync = ref.watch(diveDataSourcesProvider(dive.id));
+
+    final builders = _sectionBuilders(
+      context: context,
+      ref: ref,
+      dive: dive,
+      units: units,
+      computerReadingsAsync: computerReadingsAsync,
+      settings: settings,
+    );
 
     final body = SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -235,6 +428,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Fixed: Header
             ValueListenableBuilder<String?>(
               valueListenable: _viewedSourceIdNotifier,
               builder: (context, viewedSourceId, _) {
@@ -255,127 +449,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               },
             ),
             const SizedBox(height: 24),
+            // Fixed: Dive Profile Chart
             if (dive.profile.isNotEmpty) ...[
               _buildProfileSection(context, ref, dive),
-              const SizedBox(height: 24),
-              ValueListenableBuilder<int?>(
-                valueListenable: _selectedPointNotifier,
-                builder: (context, selectedPointIndex, _) {
-                  return _buildDecoO2Panel(
-                    context,
-                    ref,
-                    dive,
-                    selectedPointIndex,
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-              ValueListenableBuilder<int?>(
-                valueListenable: _selectedPointNotifier,
-                builder: (context, selectedPointIndex, _) {
-                  return _buildSacSegmentsSection(
-                    context,
-                    ref,
-                    dive,
-                    selectedPointIndex,
-                  );
-                },
-              ),
             ],
-            ValueListenableBuilder<String?>(
-              valueListenable: _viewedSourceIdNotifier,
-              builder: (context, viewedSourceId, _) {
-                final dataSources = computerReadingsAsync.valueOrNull ?? [];
-                final attribution = FieldAttributionService.computeAttribution(
-                  dataSources,
-                  viewedSourceId: viewedSourceId,
-                );
-                final showBadges =
-                    settings.showDataSourceBadges && attribution.isNotEmpty;
-                return _buildDetailsSection(
-                  context,
-                  ref,
-                  dive,
-                  units,
-                  attribution: showBadges ? attribution : null,
-                );
-              },
-            ),
-            if (_hasEnvironmentData(dive)) ...[
-              const SizedBox(height: 24),
-              _buildEnvironmentSection(context, dive, units),
-            ],
-            if (dive.altitude != null && dive.altitude! > 0) ...[
-              const SizedBox(height: 24),
-              _buildAltitudeSection(context, ref, dive),
-            ],
-            if (_hasWeights(dive)) ...[
-              const SizedBox(height: 24),
-              _buildWeightSection(context, dive, units),
-            ],
-            const SizedBox(height: 24),
-            _buildBuddiesSection(context, ref),
-            const SizedBox(height: 24),
-            BuddySignaturesSection(diveId: diveId),
-            const SizedBox(height: 24),
-            if (dive.tanks.isNotEmpty) ...[
-              _buildTanksSection(context, ref, dive, units),
-            ],
-            if (dive.equipment.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              _buildEquipmentSection(context, ref, dive),
-            ],
-            _buildSightingsSection(context, ref),
-            const SizedBox(height: 24),
-            _buildMediaSection(context, ref, dive),
-            if (dive.tags.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              _buildTagsSection(context, dive),
-            ],
-            const SizedBox(height: 24),
-            _buildNotesSection(context, dive),
-            if (dive.customFields.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              _buildCustomFieldsSection(context, dive),
-            ],
-            if (dive.courseId != null) ...[
-              const SizedBox(height: 24),
-              _buildSignatureSection(context, ref, dive),
-            ],
-            _buildTideSection(context, ref, dive),
-            const SizedBox(height: 24),
-            ValueListenableBuilder<String?>(
-              valueListenable: _viewedSourceIdNotifier,
-              builder: (context, viewedSourceId, _) {
-                final dataSources = computerReadingsAsync.valueOrNull ?? [];
-                return DataSourcesSection(
-                  dataSources: dataSources,
-                  diveCreatedAt: dive.dateTime,
-                  diveId: dive.id,
-                  units: units,
-                  viewedSourceId: viewedSourceId,
-                  onTapSource: (sourceId) {
-                    if (_viewedSourceIdNotifier.value == sourceId) {
-                      _viewedSourceIdNotifier.value = null;
-                    } else {
-                      _viewedSourceIdNotifier.value = sourceId;
-                    }
-                  },
-                  onSetPrimary: (readingId) => _onSetPrimaryDataSource(
-                    context,
-                    ref,
-                    diveId: dive.id,
-                    readingId: readingId,
-                  ),
-                  onUnlink: (readingId) => _onUnlinkDataSource(
-                    context,
-                    ref,
-                    diveId: dive.id,
-                    readingId: readingId,
-                  ),
-                );
-              },
-            ),
+            // Configurable sections in user-defined order
+            for (final section in settings.diveDetailSections)
+              if (section.visible) ...builders[section.id]?.call() ?? [],
             const SizedBox(height: 32),
           ],
         ),
@@ -709,16 +789,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 Icons.timelapse,
                 _formatRuntime(dive),
                 context.l10n.diveLog_detail_stat_runtime,
-                sourceName: attribution?['duration'],
+                sourceName: attribution?['bottomTime'],
               ),
               _buildStatItem(
                 context,
                 Icons.timer,
-                dive.duration != null
-                    ? '${dive.duration!.inMinutes} min'
+                dive.bottomTime != null
+                    ? '${dive.bottomTime!.inMinutes} min'
                     : '--',
                 context.l10n.diveLog_detail_stat_bottomTime,
-                sourceName: attribution?['duration'],
+                sourceName: attribution?['bottomTime'],
               ),
               _buildStatItem(
                 context,
@@ -1130,7 +1210,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       child: DiveProfileChart(
                         exportKey: _profileChartExportKey,
                         profile: dive.profile,
-                        diveDuration: dive.calculatedDuration,
+                        diveDuration: dive.effectiveRuntime,
                         maxDepth: dive.maxDepth,
                         ceilingCurve: analysis?.ceilingCurve,
                         ascentRates: analysis?.ascentRates,
@@ -4762,7 +4842,7 @@ class _FullscreenProfilePageState
                     height: isLandscape ? 280 : 350,
                     child: DiveProfileChart(
                       profile: dive.profile,
-                      diveDuration: dive.calculatedDuration,
+                      diveDuration: dive.effectiveRuntime,
                       maxDepth: dive.maxDepth,
                       ceilingCurve: widget.analysis?.ceilingCurve,
                       ascentRates: widget.analysis?.ascentRates,

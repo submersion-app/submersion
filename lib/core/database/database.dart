@@ -112,7 +112,7 @@ class Dives extends Table {
       integer().nullable()(); // Unix timestamp - when diver entered water
   IntColumn get exitTime =>
       integer().nullable()(); // Unix timestamp - when diver exited water
-  IntColumn get duration => integer().nullable()(); // seconds (bottom time)
+  IntColumn get bottomTime => integer().nullable()(); // seconds (bottom time)
   IntColumn get runtime => integer().nullable()(); // seconds (total runtime)
   RealColumn get maxDepth => real().nullable()();
   RealColumn get avgDepth => real().nullable()();
@@ -717,6 +717,8 @@ class DiverSettings extends Table {
   // Data source badge visibility (v55)
   BoolColumn get showDataSourceBadges =>
       boolean().withDefault(const Constant(true))();
+  // Dive detail section order and visibility (v56) — JSON array
+  TextColumn get diveDetailSections => text().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -1238,7 +1240,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 55;
+  static const int currentSchemaVersion = 57;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -2468,6 +2470,17 @@ class AppDatabase extends _$AppDatabase {
           // Add data source badge visibility setting to diver_settings
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN show_data_source_badges INTEGER NOT NULL DEFAULT 1',
+          );
+        }
+        if (from < 56) {
+          await m.database.customStatement(
+            'ALTER TABLE dives RENAME COLUMN duration TO bottom_time',
+          );
+        }
+        if (from < 57) {
+          // Add dive detail section configuration column to diver_settings
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN dive_detail_sections TEXT',
           );
         }
       },

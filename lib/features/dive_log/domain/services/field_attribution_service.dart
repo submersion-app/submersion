@@ -34,7 +34,7 @@ class FieldAttributionService {
     // Standard fields — attributed to active (primary or viewed) source
     if (activeSource.maxDepth != null) attribution['maxDepth'] = name;
     if (activeSource.avgDepth != null) attribution['avgDepth'] = name;
-    if (activeSource.duration != null) attribution['duration'] = name;
+    if (activeSource.duration != null) attribution['bottomTime'] = name;
     if (activeSource.waterTemp != null) attribution['waterTemp'] = name;
     if (activeSource.cns != null) attribution['cns'] = name;
     if (activeSource.otu != null) attribution['otu'] = name;

@@ -18,7 +18,7 @@ class Dive extends Equatable {
   final DateTime dateTime; // Legacy field, kept for compatibility
   final DateTime? entryTime; // When diver entered water
   final DateTime? exitTime; // When diver exited water
-  final Duration? duration; // Bottom time
+  final Duration? bottomTime; // Bottom time
   final Duration? runtime; // Total runtime (includes descent/ascent)
   final double? maxDepth; // meters
   final double? avgDepth; // meters
@@ -129,7 +129,7 @@ class Dive extends Equatable {
     required this.dateTime,
     this.entryTime,
     this.exitTime,
-    this.duration,
+    this.bottomTime,
     this.runtime,
     this.maxDepth,
     this.avgDepth,
@@ -222,12 +222,25 @@ class Dive extends Equatable {
         diveTypeId.substring(1).replaceAll('_', ' ');
   }
 
-  /// Calculated duration from entry/exit times
-  Duration? get calculatedDuration {
+  /// Best available runtime for this dive.
+  ///
+  /// Fallback chain:
+  /// 1. runtime (explicit, from dive computer/import)
+  /// 2. exitTime - entryTime (computed from timestamps)
+  /// 3. calculateRuntimeFromProfile() (from profile data)
+  /// 4. bottomTime (approximate, but better than null)
+  Duration? get effectiveRuntime {
+    if (runtime != null) return runtime;
+
     if (entryTime != null && exitTime != null) {
-      return exitTime!.difference(entryTime!);
+      final computed = exitTime!.difference(entryTime!);
+      if (!computed.isNegative && computed > Duration.zero) return computed;
     }
-    return duration;
+
+    final fromProfile = calculateRuntimeFromProfile();
+    if (fromProfile != null) return fromProfile;
+
+    return bottomTime;
   }
 
   /// Total weight from all weight entries
@@ -260,9 +273,11 @@ class Dive extends Equatable {
   /// Air consumption rate in L/min at surface (Surface Air Consumption)
   /// Calculates total gas consumed across all tanks with valid data.
   double? get sac {
-    if (tanks.isEmpty || duration == null || avgDepth == null) return null;
+    if (tanks.isEmpty || effectiveRuntime == null || avgDepth == null) {
+      return null;
+    }
 
-    final minutes = duration!.inSeconds / 60;
+    final minutes = effectiveRuntime!.inSeconds / 60;
     if (minutes <= 0) return null;
 
     final avgPressureAtm = (avgDepth! / 10) + 1; // Convert depth to ATM
@@ -298,9 +313,11 @@ class Dive extends Equatable {
   /// This is a simpler calculation that doesn't require tank volume.
   /// It calculates the average pressure drop per minute adjusted for depth.
   double? get sacPressure {
-    if (tanks.isEmpty || duration == null || avgDepth == null) return null;
+    if (tanks.isEmpty || effectiveRuntime == null || avgDepth == null) {
+      return null;
+    }
 
-    final minutes = duration!.inSeconds / 60;
+    final minutes = effectiveRuntime!.inSeconds / 60;
     if (minutes <= 0) return null;
 
     final avgPressureAtm = (avgDepth! / 10) + 1; // Convert depth to ATM
@@ -443,7 +460,7 @@ class Dive extends Equatable {
     DateTime? dateTime,
     DateTime? entryTime,
     DateTime? exitTime,
-    Duration? duration,
+    Duration? bottomTime,
     Duration? runtime,
     double? maxDepth,
     double? avgDepth,
@@ -528,7 +545,7 @@ class Dive extends Equatable {
       dateTime: dateTime ?? this.dateTime,
       entryTime: entryTime ?? this.entryTime,
       exitTime: exitTime ?? this.exitTime,
-      duration: duration ?? this.duration,
+      bottomTime: bottomTime ?? this.bottomTime,
       runtime: runtime ?? this.runtime,
       maxDepth: maxDepth ?? this.maxDepth,
       avgDepth: avgDepth ?? this.avgDepth,
@@ -616,7 +633,7 @@ class Dive extends Equatable {
     dateTime,
     entryTime,
     exitTime,
-    duration,
+    bottomTime,
     runtime,
     maxDepth,
     avgDepth,

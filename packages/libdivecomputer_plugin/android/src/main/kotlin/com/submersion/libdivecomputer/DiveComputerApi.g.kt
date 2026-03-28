@@ -495,6 +495,7 @@ interface DiveComputerHostApi {
   fun cancelDownload()
   fun submitPinCode(pinCode: String)
   fun getLibdivecomputerVersion(): String
+  fun parseRawDiveData(vendor: String, product: String, model: Long, data: ByteArray, callback: (Result<ParsedDive>) -> Unit)
 
   companion object {
     /** The codec used by DiveComputerHostApi. */
@@ -622,6 +623,29 @@ interface DiveComputerHostApi {
               wrapError(exception)
             }
             reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.parseRawDiveData$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val vendorArg = args[0] as String
+            val productArg = args[1] as String
+            val modelArg = args[2] as Long
+            val dataArg = args[3] as ByteArray
+            api.parseRawDiveData(vendorArg, productArg, modelArg, dataArg) { result: Result<ParsedDive> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(wrapResult(data))
+              }
+            }
           }
         } else {
           channel.setMessageHandler(null)

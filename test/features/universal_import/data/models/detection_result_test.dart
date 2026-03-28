@@ -77,7 +77,7 @@ void main() {
 
       test('returns false for unsupported formats', () {
         const result = DetectionResult(
-          format: ImportFormat.shearwaterDb,
+          format: ImportFormat.divingLogXml,
           confidence: 0.9,
         );
 

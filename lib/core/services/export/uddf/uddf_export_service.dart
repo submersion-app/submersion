@@ -297,7 +297,7 @@ class UddfExportService {
                             } else {
                               // Generate basic profile from dive data
                               final durationSecs =
-                                  dive.duration?.inSeconds ?? 0;
+                                  dive.bottomTime?.inSeconds ?? 0;
                               if (dive.maxDepth != null && durationSecs > 0) {
                                 // Descent to max depth (assume 1/5 of dive)
                                 final descentTime = (durationSecs * 0.2)
@@ -373,10 +373,10 @@ class UddfExportService {
                                 nest: dive.avgDepth.toString(),
                               );
                             }
-                            if (dive.duration != null) {
+                            if (dive.bottomTime != null) {
                               builder.element(
                                 'diveduration',
-                                nest: dive.duration!.inSeconds.toString(),
+                                nest: dive.bottomTime!.inSeconds.toString(),
                               );
                             }
                             if (dive.waterTemp != null) {

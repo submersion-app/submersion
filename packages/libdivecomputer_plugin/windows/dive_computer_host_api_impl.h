@@ -46,6 +46,13 @@ class DiveComputerHostApiImpl : public DiveComputerHostApi,
 
   std::optional<FlutterError> SubmitPinCode(const std::string& pin_code) override;
 
+  void ParseRawDiveData(
+      const std::string& vendor,
+      const std::string& product,
+      int64_t model,
+      const std::vector<uint8_t>& data,
+      std::function<void(ErrorOr<ParsedDive> reply)> result) override;
+
   ErrorOr<std::string> GetLibdivecomputerVersion() override;
 
  private:
