@@ -13,7 +13,7 @@ void main() {
   group('ShearwaterDiveMapper', () {
     group('mapDiveMetadata', () {
       test('maps core metadata fields', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test123',
           diveDate: '2025-12-27 14:01:08',
           depth: 26.80,
@@ -70,7 +70,7 @@ void main() {
       });
 
       test('maps conditions to structured enums', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           environment: 'Ocean/Sea',
           visibility: '30',
@@ -88,7 +88,7 @@ void main() {
       });
 
       test('converts imperial units', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           airTemperature: '72',
           weight: '14',
@@ -104,7 +104,7 @@ void main() {
       });
 
       test('does not convert metric units', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           airTemperature: '22',
           weight: '6',
@@ -118,7 +118,7 @@ void main() {
       });
 
       test('includes notes with extra notes appended', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           notes: 'Great dive',
           dress: 'Wet Suit',
@@ -133,7 +133,7 @@ void main() {
       });
 
       test('handles notes when only user notes present', () {
-        final rawDive = ShearwaterRawDive(diveId: 'test', notes: 'Great dive');
+        const rawDive = ShearwaterRawDive(diveId: 'test', notes: 'Great dive');
 
         final result = ShearwaterDiveMapper.mapDiveMetadata(rawDive);
 
@@ -141,7 +141,7 @@ void main() {
       });
 
       test('handles notes when only extra notes present', () {
-        final rawDive = ShearwaterRawDive(diveId: 'test', dress: 'Dry Suit');
+        const rawDive = ShearwaterRawDive(diveId: 'test', dress: 'Dry Suit');
 
         final result = ShearwaterDiveMapper.mapDiveMetadata(rawDive);
         final notes = result['notes'] as String;
@@ -150,7 +150,7 @@ void main() {
       });
 
       test('maps site reference for matching', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           site: 'Maclearie Park',
         );
@@ -164,7 +164,7 @@ void main() {
       });
 
       test('extracts surface pressure from tank data', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           tankProfileData: {
             'TankData': [
@@ -186,7 +186,7 @@ void main() {
       });
 
       test('handles dive with no metadata gracefully', () {
-        final rawDive = ShearwaterRawDive(diveId: 'empty');
+        const rawDive = ShearwaterRawDive(diveId: 'empty');
 
         final result = ShearwaterDiveMapper.mapDiveMetadata(rawDive);
 
@@ -198,7 +198,7 @@ void main() {
       });
 
       test('maps dive computer info from filename', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           fileName: 'Perdix 2[AABB1234]#5 2025-01-15 09-30-00.swlogzp',
         );
@@ -210,7 +210,7 @@ void main() {
       });
 
       test('defaults to oc diveMode when no apparatus set', () {
-        final rawDive = ShearwaterRawDive(diveId: 'test');
+        const rawDive = ShearwaterRawDive(diveId: 'test');
 
         final result = ShearwaterDiveMapper.mapDiveMetadata(rawDive);
 
@@ -218,7 +218,7 @@ void main() {
       });
 
       test('maps CCR apparatus to ccr diveMode', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           apparatus: 'Closed Circuit',
         );
@@ -229,7 +229,7 @@ void main() {
       });
 
       test('maps SCR apparatus to scr diveMode', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           apparatus: 'Semi-Closed',
         );
@@ -242,7 +242,7 @@ void main() {
 
     group('mapTanks', () {
       test('maps active tanks with gas mix and pressures', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test123',
           footerJson: {'UnitSystem': 1},
           tankProfileData: {
@@ -280,7 +280,7 @@ void main() {
       });
 
       test('maps multiple active tanks', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           footerJson: {'UnitSystem': 1},
           tankProfileData: {
@@ -317,7 +317,7 @@ void main() {
       });
 
       test('maps trimix tank', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           footerJson: {'UnitSystem': 1},
           tankProfileData: {
@@ -341,7 +341,7 @@ void main() {
       });
 
       test('returns empty list when no tank data', () {
-        final rawDive = ShearwaterRawDive(diveId: 'test');
+        const rawDive = ShearwaterRawDive(diveId: 'test');
 
         final tanks = ShearwaterDiveMapper.mapTanks(rawDive);
 
@@ -349,7 +349,7 @@ void main() {
       });
 
       test('returns empty list when TankData is missing', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           tankProfileData: {'GasProfiles': []},
         );
@@ -360,7 +360,7 @@ void main() {
       });
 
       test('handles tanks with missing pressure values', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           footerJson: {'UnitSystem': 1},
           tankProfileData: {
@@ -386,7 +386,7 @@ void main() {
 
     group('mapSites', () {
       test('maps site from location and site fields', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test123',
           location: 'Shark River, NJ, USA',
           site: 'Maclearie Park',
@@ -401,9 +401,21 @@ void main() {
 
       test('deduplicates sites by name', () {
         final dives = [
-          ShearwaterRawDive(diveId: '1', site: 'Same Site', location: 'NJ'),
-          ShearwaterRawDive(diveId: '2', site: 'Same Site', location: 'NJ'),
-          ShearwaterRawDive(diveId: '3', site: 'Other Site', location: 'FL'),
+          const ShearwaterRawDive(
+            diveId: '1',
+            site: 'Same Site',
+            location: 'NJ',
+          ),
+          const ShearwaterRawDive(
+            diveId: '2',
+            site: 'Same Site',
+            location: 'NJ',
+          ),
+          const ShearwaterRawDive(
+            diveId: '3',
+            site: 'Other Site',
+            location: 'FL',
+          ),
         ];
 
         final sites = ShearwaterDiveMapper.mapSites(dives);
@@ -415,9 +427,9 @@ void main() {
 
       test('skips dives with no site name', () {
         final dives = [
-          ShearwaterRawDive(diveId: '1', site: 'Named Site'),
-          ShearwaterRawDive(diveId: '2'),
-          ShearwaterRawDive(diveId: '3', site: null),
+          const ShearwaterRawDive(diveId: '1', site: 'Named Site'),
+          const ShearwaterRawDive(diveId: '2'),
+          const ShearwaterRawDive(diveId: '3', site: null),
         ];
 
         final sites = ShearwaterDiveMapper.mapSites(dives);
@@ -428,8 +440,8 @@ void main() {
 
       test('returns empty list when no dives have sites', () {
         final dives = [
-          ShearwaterRawDive(diveId: '1'),
-          ShearwaterRawDive(diveId: '2'),
+          const ShearwaterRawDive(diveId: '1'),
+          const ShearwaterRawDive(diveId: '2'),
         ];
 
         final sites = ShearwaterDiveMapper.mapSites(dives);
@@ -438,7 +450,7 @@ void main() {
       });
 
       test('includes location as notes', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           site: 'My Site',
           location: 'Some Location',
@@ -450,7 +462,7 @@ void main() {
       });
 
       test('parses GNSS entry location to lat/lon', () {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           site: 'GPS Site',
           gnssEntryLocation: '40.1234,-74.5678',
@@ -465,7 +477,7 @@ void main() {
 
     group('mapDive', () {
       test('falls back to metadata when no decompressed data', () async {
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'ffi-test',
           diveDate: '2025-06-15 10:30:00',
           depth: 20.0,
@@ -872,7 +884,7 @@ void main() {
       test('string-to-double fallback via mapTanks', () {
         // _toDouble is private but exercised through mapTanks when
         // GasProfile values are strings instead of nums.
-        final rawDive = ShearwaterRawDive(
+        const rawDive = ShearwaterRawDive(
           diveId: 'test',
           tankProfileData: {
             'TankData': [
