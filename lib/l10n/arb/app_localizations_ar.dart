@@ -10191,6 +10191,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_import_phase_trips => 'جارٍ استيراد الرحلات...';
 
   @override
+  String get settings_import_phase_courses => 'Importing courses...';
+
+  @override
+  String get settings_import_phase_applyingTags => 'Applying tags...';
+
+  @override
   String settings_import_progressLabel(
     Object phase,
     Object current,
@@ -12027,6 +12033,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags_hint_addMoreTags => 'إضافة المزيد من الوسوم...';
 
   @override
+  String get importWizard_tagsLabel => 'Tags';
+
+  @override
   String get tags_hint_addTags => 'إضافة وسوم...';
 
   @override
@@ -13454,14 +13463,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'هذه الصيغة غير مدعومة بعد. يرجى التصدير كـ UDDF أو CSV.';
 
   @override
-  String get universalImport_hint_tagDescription =>
-      'ضع وسماً على جميع الغطسات المستوردة للتصفية السهلة';
-
-  @override
-  String get universalImport_hint_tagExample =>
-      'مثال: استيراد MacDive 2026-02-09';
-
-  @override
   String get universalImport_label_columnMapping => 'تعيين الأعمدة';
 
   @override
@@ -13487,9 +13488,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get universalImport_label_importComplete => 'اكتمل الاستيراد';
-
-  @override
-  String get universalImport_label_importTag => 'وسم الاستيراد';
 
   @override
   String get universalImport_label_importing => 'جارٍ الاستيراد';
@@ -13602,9 +13600,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get universalImport_title => 'استيراد البيانات';
-
-  @override
-  String get universalImport_tooltip_clearTag => 'مسح الوسم';
 
   @override
   String get universalImport_tooltip_closeWizard => 'إغلاق معالج الاستيراد';

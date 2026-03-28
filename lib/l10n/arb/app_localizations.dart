@@ -17747,6 +17747,18 @@ abstract class AppLocalizations {
   /// **'Importing trips...'**
   String get settings_import_phase_trips;
 
+  /// No description provided for @settings_import_phase_courses.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing courses...'**
+  String get settings_import_phase_courses;
+
+  /// No description provided for @settings_import_phase_applyingTags.
+  ///
+  /// In en, this message translates to:
+  /// **'Applying tags...'**
+  String get settings_import_phase_applyingTags;
+
   /// No description provided for @settings_import_progressLabel.
   ///
   /// In en, this message translates to:
@@ -20867,6 +20879,12 @@ abstract class AppLocalizations {
   /// **'Add more tags...'**
   String get tags_hint_addMoreTags;
 
+  /// No description provided for @importWizard_tagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get importWizard_tagsLabel;
+
   /// No description provided for @tags_hint_addTags.
   ///
   /// In en, this message translates to:
@@ -23337,18 +23355,6 @@ abstract class AppLocalizations {
   /// **'This format is not yet supported. Please export as UDDF or CSV.'**
   String get universalImport_error_unsupportedFormat;
 
-  /// Description text below the import tag label
-  ///
-  /// In en, this message translates to:
-  /// **'Tag all imported dives for easy filtering'**
-  String get universalImport_hint_tagDescription;
-
-  /// Hint text placeholder for the batch tag text field
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., MacDive Import 2026-02-09'**
-  String get universalImport_hint_tagExample;
-
   /// Title for the CSV column mapping step
   ///
   /// In en, this message translates to:
@@ -23390,12 +23396,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import Complete'**
   String get universalImport_label_importComplete;
-
-  /// Label for the batch tag field in the import review step
-  ///
-  /// In en, this message translates to:
-  /// **'Import Tag'**
-  String get universalImport_label_importTag;
 
   /// Simple importing label when total count is unknown
   ///
@@ -23562,12 +23562,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import Data'**
   String get universalImport_title;
-
-  /// Tooltip for the clear button in the batch tag text field
-  ///
-  /// In en, this message translates to:
-  /// **'Clear tag'**
-  String get universalImport_tooltip_clearTag;
 
   /// Tooltip for the close button on the import wizard app bar
   ///

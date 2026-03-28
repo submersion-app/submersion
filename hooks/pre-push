@@ -5,6 +5,11 @@
 
 set -e
 
+# Git sets GIT_DIR/GIT_WORK_TREE for hooks, which breaks Flutter's
+# git-based version detection (it mistakes the project repo for the SDK).
+unset GIT_DIR
+unset GIT_WORK_TREE
+
 echo "🔍 Running pre-push checks..."
 echo ""
 

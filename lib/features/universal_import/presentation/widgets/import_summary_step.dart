@@ -40,18 +40,6 @@ class ImportSummaryStep extends ConsumerWidget {
               icon: _iconFor(entry.key),
               color: theme.colorScheme.primary,
             ),
-          if (state.options?.batchTag != null &&
-              state.options!.batchTag!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              context.l10n.universalImport_label_taggedAs(
-                state.options!.batchTag!,
-              ),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
           const SizedBox(height: 32),
           FilledButton(
             onPressed: () {

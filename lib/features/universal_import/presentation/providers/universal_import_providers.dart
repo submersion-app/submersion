@@ -303,11 +303,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     final sourceApp =
         effectiveOverride ?? detection.sourceApp ?? SourceApp.generic;
 
-    final options = ImportOptions(
-      sourceApp: sourceApp,
-      format: format,
-      batchTag: ImportOptions.defaultTag(sourceApp),
-    );
+    final options = ImportOptions(sourceApp: sourceApp, format: format);
 
     state = state.copyWith(
       options: options,
@@ -498,18 +494,6 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     );
   }
 
-  /// Update the batch tag.
-  void updateBatchTag(String? tag) {
-    if (state.options == null) return;
-    state = state.copyWith(
-      options: ImportOptions(
-        sourceApp: state.options!.sourceApp,
-        format: state.options!.format,
-        batchTag: tag,
-      ),
-    );
-  }
-
   // -- Step 4: Import --
 
   /// Perform the import with current selections.
@@ -546,19 +530,11 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       }
 
       // Convert to UDDF format for reuse of UddfEntityImporter
-      var uddfData = _toUddfResult(payload);
-      var uddfSelections = _toUddfSelections({
+      final uddfData = _toUddfResult(payload);
+      final uddfSelections = _toUddfSelections({
         ...state.selections,
         ImportEntityType.dives: normalDiveSelection,
       });
-
-      // Inject batch tag into the data so it flows through the import pipeline
-      final batchTag = state.options?.batchTag;
-      if (batchTag != null && batchTag.isNotEmpty) {
-        final injected = _injectBatchTag(uddfData, uddfSelections, batchTag);
-        uddfData = injected.$1;
-        uddfSelections = injected.$2;
-      }
 
       final repos = ImportRepositories(
         tripRepository: _ref.read(tripRepositoryProvider),
@@ -594,7 +570,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         diverId: currentDiver.id,
         onProgress: (phase, current, total) {
           state = state.copyWith(
-            importPhase: phase,
+            importPhase: phase.name,
             importCurrent: current,
             importTotal: total,
           );
@@ -644,71 +620,6 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     } catch (e) {
       state = state.copyWith(isImporting: false, error: 'Import failed: $e');
     }
-  }
-
-  /// Inject a batch tag into the UDDF data so it flows through the
-  /// existing tag import and dive-tag linking pipeline.
-  ///
-  /// Returns a new (UddfImportResult, UddfImportSelections) pair with:
-  /// - The batch tag appended to the tags list
-  /// - The tag index added to the tags selection
-  /// - Each selected dive's `tagRefs` updated to include the batch tag ID
-  (UddfImportResult, UddfImportSelections) _injectBatchTag(
-    UddfImportResult data,
-    UddfImportSelections selections,
-    String tagName,
-  ) {
-    final batchTagId = 'batch_tag_${DateTime.now().millisecondsSinceEpoch}';
-
-    // Append the batch tag to the tags list
-    final updatedTags = [
-      ...data.tags,
-      <String, dynamic>{'name': tagName, 'uddfId': batchTagId},
-    ];
-    final batchTagIndex = updatedTags.length - 1;
-
-    // Add batchTagId to each selected dive's tagRefs
-    final updatedDives = <Map<String, dynamic>>[];
-    for (var i = 0; i < data.dives.length; i++) {
-      if (selections.dives.contains(i)) {
-        final dive = Map<String, dynamic>.from(data.dives[i]);
-        final existingRefs = dive['tagRefs'] as List? ?? [];
-        dive['tagRefs'] = [...existingRefs, batchTagId];
-        updatedDives.add(dive);
-      } else {
-        updatedDives.add(data.dives[i]);
-      }
-    }
-
-    final updatedData = UddfImportResult(
-      dives: updatedDives,
-      sites: data.sites,
-      trips: data.trips,
-      equipment: data.equipment,
-      buddies: data.buddies,
-      diveCenters: data.diveCenters,
-      certifications: data.certifications,
-      tags: updatedTags,
-      customDiveTypes: data.customDiveTypes,
-      equipmentSets: data.equipmentSets,
-      courses: data.courses,
-    );
-
-    final updatedSelections = UddfImportSelections(
-      trips: selections.trips,
-      equipment: selections.equipment,
-      buddies: selections.buddies,
-      diveCenters: selections.diveCenters,
-      certifications: selections.certifications,
-      tags: {...selections.tags, batchTagIndex},
-      diveTypes: selections.diveTypes,
-      sites: selections.sites,
-      equipmentSets: selections.equipmentSets,
-      dives: selections.dives,
-      courses: selections.courses,
-    );
-
-    return (updatedData, updatedSelections);
   }
 
   // -- Adapter Helpers --

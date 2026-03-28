@@ -19,6 +19,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 // Import wizard bundle types: hide ImportEntityType to avoid name clash with
 // universal_import's same-named enum. Access it via the ImportSourceAdapter
@@ -96,6 +97,19 @@ class UniversalAdapter implements ImportSourceAdapter {
 
   @override
   String get displayName => _displayName;
+
+  @override
+  String get defaultTagName {
+    final state = _ref.read(universalImportNotifierProvider);
+    final name = state.fileName ?? _displayName;
+    final now = DateTime.now();
+    final date =
+        '${now.year}-'
+        '${now.month.toString().padLeft(2, '0')}-'
+        '${now.day.toString().padLeft(2, '0')}';
+    final base = name.toLowerCase().endsWith('import') ? name : '$name Import';
+    return '$base $date';
+  }
 
   @override
   Set<DuplicateAction> get supportedDuplicateActions => const {
@@ -336,7 +350,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     Map<wizard.ImportEntityType, Set<int>> selections,
     Map<wizard.ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
     bool retainSourceDiveNumbers = false,
-    void Function(String phase, int current, int total)? onProgress,
+    ImportProgressCallback? onProgress,
   }) async {
     final notifierState = _ref.read(universalImportNotifierProvider);
     final payload = notifierState.payload;
@@ -367,8 +381,8 @@ class UniversalAdapter implements ImportSourceAdapter {
     Set<int> resolve(wizard.ImportEntityType type) =>
         _resolveSelections(type, selections, duplicateActions);
 
-    var uddfData = _payloadToUddfResult(payload);
-    var uddfSelections = UddfImportSelections(
+    final uddfData = _payloadToUddfResult(payload);
+    final uddfSelections = UddfImportSelections(
       dives: resolve(wizard.ImportEntityType.dives),
       sites: resolve(wizard.ImportEntityType.sites),
       buddies: resolve(wizard.ImportEntityType.buddies),
@@ -381,14 +395,6 @@ class UniversalAdapter implements ImportSourceAdapter {
       equipmentSets: resolve(wizard.ImportEntityType.equipmentSets),
       courses: resolve(wizard.ImportEntityType.courses),
     );
-
-    // Inject batch tag if present so it flows through the import pipeline.
-    final batchTag = notifierState.options?.batchTag;
-    if (batchTag != null && batchTag.isNotEmpty) {
-      final injected = _injectBatchTag(uddfData, uddfSelections, batchTag);
-      uddfData = injected.$1;
-      uddfSelections = injected.$2;
-    }
 
     final repos = ImportRepositories(
       tripRepository: _ref.read(tripRepositoryProvider),
@@ -725,68 +731,5 @@ class UniversalAdapter implements ImportSourceAdapter {
       equipmentSets: payload.entitiesOf(ui.ImportEntityType.equipmentSets),
       courses: payload.entitiesOf(ui.ImportEntityType.courses),
     );
-  }
-
-  /// Inject a batch tag into the UDDF data so it flows through the existing
-  /// tag import and dive-tag linking pipeline.
-  ///
-  /// Returns a new (UddfImportResult, UddfImportSelections) pair with:
-  /// - The batch tag appended to the tags list
-  /// - The tag index added to the tags selection
-  /// - Each selected dive's `tagRefs` updated to include the batch tag ID
-  static (UddfImportResult, UddfImportSelections) _injectBatchTag(
-    UddfImportResult data,
-    UddfImportSelections selections,
-    String tagName,
-  ) {
-    final batchTagId = 'batch_tag_${DateTime.now().millisecondsSinceEpoch}';
-
-    final updatedTags = [
-      ...data.tags,
-      <String, dynamic>{'name': tagName, 'uddfId': batchTagId},
-    ];
-    final batchTagIndex = updatedTags.length - 1;
-
-    final updatedDives = <Map<String, dynamic>>[];
-    for (var i = 0; i < data.dives.length; i++) {
-      if (selections.dives.contains(i)) {
-        final dive = Map<String, dynamic>.from(data.dives[i]);
-        final existingRefs = dive['tagRefs'] as List? ?? [];
-        dive['tagRefs'] = [...existingRefs, batchTagId];
-        updatedDives.add(dive);
-      } else {
-        updatedDives.add(data.dives[i]);
-      }
-    }
-
-    final updatedData = UddfImportResult(
-      dives: updatedDives,
-      sites: data.sites,
-      trips: data.trips,
-      equipment: data.equipment,
-      buddies: data.buddies,
-      diveCenters: data.diveCenters,
-      certifications: data.certifications,
-      tags: updatedTags,
-      customDiveTypes: data.customDiveTypes,
-      equipmentSets: data.equipmentSets,
-      courses: data.courses,
-    );
-
-    final updatedSelections = UddfImportSelections(
-      trips: selections.trips,
-      equipment: selections.equipment,
-      buddies: selections.buddies,
-      diveCenters: selections.diveCenters,
-      certifications: selections.certifications,
-      tags: {...selections.tags, batchTagIndex},
-      diveTypes: selections.diveTypes,
-      sites: selections.sites,
-      equipmentSets: selections.equipmentSets,
-      dives: selections.dives,
-      courses: selections.courses,
-    );
-
-    return (updatedData, updatedSelections);
   }
 }
