@@ -446,6 +446,17 @@ class MockDiveComputerService extends _i1.Mock
           as _i4.Stream<_i7.DownloadEvent>);
 
   @override
+  _i4.Stream<({String category, String level, String message})> get logEvents =>
+      (super.noSuchMethod(
+            Invocation.getter(#logEvents),
+            returnValue:
+                _i4.Stream<
+                  ({String category, String level, String message})
+                >.empty(),
+          )
+          as _i4.Stream<({String category, String level, String message})>);
+
+  @override
   _i4.Future<List<_i8.DeviceDescriptor>> getDeviceDescriptors() =>
       (super.noSuchMethod(
             Invocation.method(#getDeviceDescriptors, []),
@@ -566,6 +577,13 @@ class MockDiveComputerService extends _i1.Mock
     Invocation.method(#onPinCodeRequired, [deviceAddress]),
     returnValueForMissingStub: null,
   );
+
+  @override
+  void onLogEvent(String? category, String? level, String? message) =>
+      super.noSuchMethod(
+        Invocation.method(#onLogEvent, [category, level, message]),
+        returnValueForMissingStub: null,
+      );
 
   @override
   void dispose() => super.noSuchMethod(
