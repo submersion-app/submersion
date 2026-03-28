@@ -766,5 +766,34 @@ void main() {
       expect(adapter.acquisitionSteps, hasLength(1));
       expect(adapter.acquisitionSteps.first.label, equals('Select File'));
     });
+
+    test('defaultTagName includes display name and YYYY-MM-DD date', () {
+      final tagName = adapter.defaultTagName;
+      expect(tagName, matches(RegExp(r'^UDDF Import \d{4}-\d{2}-\d{2}$')));
+    });
+
+    test('defaultTagName uses custom display name when provided', () {
+      final named = UddfAdapter(
+        parser: mockParser,
+        duplicateChecker: mockDuplicateChecker,
+        entityImporter: mockEntityImporter,
+        repositories: mockRepositories,
+        diveRepository: mockDiveRepo,
+        existingTrips: const [],
+        existingSites: const [],
+        existingEquipment: const [],
+        existingBuddies: const [],
+        existingDiveCenters: const [],
+        existingCertifications: const [],
+        existingTags: const [],
+        existingDiveTypes: const [],
+        diverId: _diverId,
+        displayName: 'my_dives.uddf',
+      );
+      expect(
+        named.defaultTagName,
+        matches(RegExp(r'^my_dives\.uddf Import \d{4}-\d{2}-\d{2}$')),
+      );
+    });
   });
 }

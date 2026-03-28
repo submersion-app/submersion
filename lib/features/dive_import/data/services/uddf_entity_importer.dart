@@ -25,6 +25,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -172,10 +173,6 @@ class UddfEntityImportResult {
     return parts.isEmpty ? 'No data imported' : 'Imported ${parts.join(', ')}';
   }
 }
-
-/// Progress callback for import phases.
-typedef ImportProgressCallback =
-    void Function(String phase, int current, int total);
 
 /// Stateless service that creates entities from parsed UDDF data.
 ///
@@ -365,7 +362,7 @@ class UddfEntityImporter {
     ImportProgressCallback? onProgress,
   ) async {
     if (selected.isEmpty) return 0;
-    onProgress?.call('Importing trips', 0, selected.length);
+    onProgress?.call(ImportPhase.trips, 0, selected.length);
     var count = 0;
 
     for (var i = 0; i < items.length; i++) {
@@ -398,7 +395,7 @@ class UddfEntityImporter {
       await repository.createTrip(trip);
       if (uddfId != null) idMapping[uddfId] = newId;
       count++;
-      onProgress?.call('Importing trips', count, selected.length);
+      onProgress?.call(ImportPhase.trips, count, selected.length);
     }
 
     return count;
@@ -416,7 +413,7 @@ class UddfEntityImporter {
     ImportProgressCallback? onProgress,
   ) async {
     if (selected.isEmpty) return 0;
-    onProgress?.call('Importing equipment', 0, selected.length);
+    onProgress?.call(ImportPhase.equipment, 0, selected.length);
     var count = 0;
 
     for (var i = 0; i < items.length; i++) {
@@ -453,7 +450,7 @@ class UddfEntityImporter {
       await repository.createEquipment(item);
       if (uddfId != null) idMapping[uddfId] = newId;
       count++;
-      onProgress?.call('Importing equipment', count, selected.length);
+      onProgress?.call(ImportPhase.equipment, count, selected.length);
     }
 
     return count;
@@ -471,7 +468,7 @@ class UddfEntityImporter {
     ImportProgressCallback? onProgress,
   ) async {
     if (selected.isEmpty) return 0;
-    onProgress?.call('Importing buddies', 0, selected.length);
+    onProgress?.call(ImportPhase.buddies, 0, selected.length);
     var count = 0;
 
     for (var i = 0; i < items.length; i++) {
@@ -501,7 +498,7 @@ class UddfEntityImporter {
       await repository.createBuddy(buddy);
       if (uddfId != null) idMapping[uddfId] = newId;
       count++;
-      onProgress?.call('Importing buddies', count, selected.length);
+      onProgress?.call(ImportPhase.buddies, count, selected.length);
     }
 
     return count;
@@ -519,7 +516,7 @@ class UddfEntityImporter {
     ImportProgressCallback? onProgress,
   ) async {
     if (selected.isEmpty) return 0;
-    onProgress?.call('Importing dive centers', 0, selected.length);
+    onProgress?.call(ImportPhase.diveCenters, 0, selected.length);
     var count = 0;
 
     for (var i = 0; i < items.length; i++) {
@@ -557,7 +554,7 @@ class UddfEntityImporter {
       await repository.createDiveCenter(center);
       if (uddfId != null) idMapping[uddfId] = newId;
       count++;
-      onProgress?.call('Importing dive centers', count, selected.length);
+      onProgress?.call(ImportPhase.diveCenters, count, selected.length);
     }
 
     return count;
@@ -574,7 +571,7 @@ class UddfEntityImporter {
     ImportProgressCallback? onProgress,
   ) async {
     if (selected.isEmpty) return 0;
-    onProgress?.call('Importing certifications', 0, selected.length);
+    onProgress?.call(ImportPhase.certifications, 0, selected.length);
     var count = 0;
 
     for (var i = 0; i < items.length; i++) {
@@ -605,7 +602,7 @@ class UddfEntityImporter {
 
       await repository.createCertification(certification);
       count++;
-      onProgress?.call('Importing certifications', count, selected.length);
+      onProgress?.call(ImportPhase.certifications, count, selected.length);
     }
 
     return count;
@@ -623,7 +620,7 @@ class UddfEntityImporter {
     ImportProgressCallback? onProgress,
   ) async {
     if (selected.isEmpty) return 0;
-    onProgress?.call('Importing tags', 0, selected.length);
+    onProgress?.call(ImportPhase.tags, 0, selected.length);
     var count = 0;
 
     for (var i = 0; i < items.length; i++) {
@@ -647,7 +644,7 @@ class UddfEntityImporter {
       await repository.createTag(tag);
       if (uddfId != null) idMapping[uddfId] = newId;
       count++;
-      onProgress?.call('Importing tags', count, selected.length);
+      onProgress?.call(ImportPhase.tags, count, selected.length);
     }
 
     return count;
@@ -664,7 +661,7 @@ class UddfEntityImporter {
     ImportProgressCallback? onProgress,
   ) async {
     if (selected.isEmpty) return 0;
-    onProgress?.call('Importing dive types', 0, selected.length);
+    onProgress?.call(ImportPhase.diveTypes, 0, selected.length);
     var count = 0;
 
     for (var i = 0; i < items.length; i++) {
@@ -693,7 +690,7 @@ class UddfEntityImporter {
       } catch (_) {
         // Ignore duplicates — dive type may already exist with same slug
       }
-      onProgress?.call('Importing dive types', count, selected.length);
+      onProgress?.call(ImportPhase.diveTypes, count, selected.length);
     }
 
     return count;
@@ -730,7 +727,7 @@ class UddfEntityImporter {
     }
 
     if (selected.isEmpty) return 0;
-    onProgress?.call('Importing sites', 0, selected.length);
+    onProgress?.call(ImportPhase.sites, 0, selected.length);
     var count = 0;
 
     for (var i = 0; i < items.length; i++) {
@@ -789,7 +786,7 @@ class UddfEntityImporter {
       final createdSite = await repository.createSite(newSite);
       if (uddfId != null) idMapping[uddfId] = createdSite;
       count++;
-      onProgress?.call('Importing sites', count, selected.length);
+      onProgress?.call(ImportPhase.sites, count, selected.length);
     }
 
     return count;
@@ -807,7 +804,7 @@ class UddfEntityImporter {
     ImportProgressCallback? onProgress,
   ) async {
     if (selected.isEmpty) return 0;
-    onProgress?.call('Importing equipment sets', 0, selected.length);
+    onProgress?.call(ImportPhase.equipmentSets, 0, selected.length);
     var count = 0;
 
     for (var i = 0; i < items.length; i++) {
@@ -841,7 +838,7 @@ class UddfEntityImporter {
 
       await repository.createSet(equipmentSet);
       count++;
-      onProgress?.call('Importing equipment sets', count, selected.length);
+      onProgress?.call(ImportPhase.equipmentSets, count, selected.length);
     }
 
     return count;
@@ -860,7 +857,7 @@ class UddfEntityImporter {
     ImportProgressCallback? onProgress,
   ) async {
     if (selected.isEmpty) return 0;
-    onProgress?.call('Importing courses', 0, selected.length);
+    onProgress?.call(ImportPhase.courses, 0, selected.length);
     var count = 0;
 
     for (var i = 0; i < items.length; i++) {
@@ -900,7 +897,7 @@ class UddfEntityImporter {
       await repository.createCourse(course);
       if (uddfId != null) idMapping[uddfId] = newId;
       count++;
-      onProgress?.call('Importing courses', count, selected.length);
+      onProgress?.call(ImportPhase.courses, count, selected.length);
     }
 
     return count;
@@ -926,7 +923,7 @@ class UddfEntityImporter {
     ImportProgressCallback? onProgress,
   }) async {
     if (selected.isEmpty) return const _DiveImportResult(0, 0);
-    onProgress?.call('Importing dives', 0, selected.length);
+    onProgress?.call(ImportPhase.dives, 0, selected.length);
     var count = 0;
     final importedDiveIds = <String>[];
     final inlineBuddyIds = <String>{};
@@ -1211,7 +1208,7 @@ class UddfEntityImporter {
       );
 
       count++;
-      onProgress?.call('Importing dives', count, selected.length);
+      onProgress?.call(ImportPhase.dives, count, selected.length);
     }
 
     return _DiveImportResult(count, inlineBuddyIds.length, importedDiveIds);

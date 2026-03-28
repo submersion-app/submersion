@@ -60,6 +60,7 @@ void main() {
         decoConservatism: anyNamed('decoConservatism'),
         events: anyNamed('events'),
         diveNumber: anyNamed('diveNumber'),
+        forceNew: anyNamed('forceNew'),
       ),
     ).thenAnswer((_) async => 'dive-id');
   });
@@ -311,6 +312,115 @@ void main() {
         ).called(1);
       },
     );
+
+    test(
+      'low-confidence duplicate in all mode passes forceNew to importProfile',
+      () async {
+        final dive = DownloadedDive(
+          fingerprint: 'fp-lowconf',
+          startTime: DateTime(2026, 3, 10, 9, 0),
+          durationSeconds: 2400,
+          maxDepth: 15.0,
+          profile: const [],
+          tanks: const [],
+          events: const [],
+        );
+
+        // Return a low-confidence match (score 0.6 → possible, not likely)
+        when(
+          mockComputerRepo.findMatchingDiveWithScore(
+            profileStartTime: anyNamed('profileStartTime'),
+            toleranceMinutes: anyNamed('toleranceMinutes'),
+            durationSeconds: anyNamed('durationSeconds'),
+            maxDepth: anyNamed('maxDepth'),
+            fingerprint: anyNamed('fingerprint'),
+          ),
+        ).thenAnswer(
+          (_) async => const DiveMatchResult(
+            diveId: 'existing-1',
+            score: 0.6,
+            timeDifferenceMs: 60000,
+          ),
+        );
+
+        when(
+          mockDiveRepo.getDiveNumberForDate(any, diverId: anyNamed('diverId')),
+        ).thenAnswer((_) async => 1);
+
+        await service.importDives(
+          dives: [dive],
+          computer: computer,
+          mode: ImportMode.all,
+          defaultResolution: ConflictResolution.importAsNew,
+          diverId: 'diver-1',
+        );
+
+        // Verify importProfile was called with forceNew: true
+        verify(
+          mockComputerRepo.importProfile(
+            computerId: anyNamed('computerId'),
+            profileStartTime: anyNamed('profileStartTime'),
+            points: anyNamed('points'),
+            durationSeconds: anyNamed('durationSeconds'),
+            maxDepth: anyNamed('maxDepth'),
+            avgDepth: anyNamed('avgDepth'),
+            isPrimary: anyNamed('isPrimary'),
+            diverId: anyNamed('diverId'),
+            tanks: anyNamed('tanks'),
+            decoAlgorithm: anyNamed('decoAlgorithm'),
+            gfLow: anyNamed('gfLow'),
+            gfHigh: anyNamed('gfHigh'),
+            decoConservatism: anyNamed('decoConservatism'),
+            events: anyNamed('events'),
+            diveNumber: anyNamed('diveNumber'),
+            forceNew: true,
+          ),
+        ).called(1);
+      },
+    );
+
+    test('importSingleDiveAsNew passes forceNew to importProfile', () async {
+      final dive = DownloadedDive(
+        fingerprint: 'fp-single',
+        startTime: DateTime(2026, 3, 10, 10, 0),
+        durationSeconds: 1800,
+        maxDepth: 12.0,
+        profile: const [],
+        tanks: const [],
+        events: const [],
+      );
+
+      when(
+        mockDiveRepo.getDiveNumberForDate(any, diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => 5);
+
+      await service.importSingleDiveAsNew(
+        dive,
+        computerId: computer.id,
+        diverId: 'diver-1',
+      );
+
+      verify(
+        mockComputerRepo.importProfile(
+          computerId: anyNamed('computerId'),
+          profileStartTime: anyNamed('profileStartTime'),
+          points: anyNamed('points'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          avgDepth: anyNamed('avgDepth'),
+          isPrimary: anyNamed('isPrimary'),
+          diverId: anyNamed('diverId'),
+          tanks: anyNamed('tanks'),
+          decoAlgorithm: anyNamed('decoAlgorithm'),
+          gfLow: anyNamed('gfLow'),
+          gfHigh: anyNamed('gfHigh'),
+          decoConservatism: anyNamed('decoConservatism'),
+          events: anyNamed('events'),
+          diveNumber: anyNamed('diveNumber'),
+          forceNew: true,
+        ),
+      ).called(1);
+    });
 
     test('resolveConflict with importAsNew assigns dive number', () async {
       final dive = DownloadedDive(

@@ -7,7 +7,6 @@ import 'package:mockito/mockito.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -107,6 +106,10 @@ class _TestableImportNotifier extends UniversalImportNotifier {
 
   void setOptions(ImportOptions options) {
     state = state.copyWith(options: options);
+  }
+
+  void setFileName(String name) {
+    state = state.copyWith(fileName: name);
   }
 }
 
@@ -349,6 +352,42 @@ void main() {
           final step = adapter.acquisitionSteps[2];
           expect(step.label, equals('Map Fields'));
           expect(step.autoAdvance, isTrue);
+        },
+      );
+    });
+
+    testWidgets('defaultTagName uses displayName when no fileName set', (
+      tester,
+    ) async {
+      await _runWithAdapter(
+        tester,
+        overrides: _buildBundleOverrides(),
+        callback: (adapter) async {
+          expect(
+            adapter.defaultTagName,
+            matches(RegExp(r'^Universal Import \d{4}-\d{2}-\d{2}$')),
+          );
+        },
+      );
+    });
+
+    testWidgets('defaultTagName uses fileName when set', (tester) async {
+      late _TestableImportNotifier testNotifier;
+      await _runWithAdapter(
+        tester,
+        overrides: [
+          universalImportNotifierProvider.overrideWith((ref) {
+            testNotifier = _TestableImportNotifier(ref);
+            testNotifier.setFileName('dive_log.csv');
+            return testNotifier;
+          }),
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+        callback: (adapter) async {
+          expect(
+            adapter.defaultTagName,
+            matches(RegExp(r'^dive_log\.csv Import \d{4}-\d{2}-\d{2}$')),
+          );
         },
       );
     });
@@ -1804,160 +1843,6 @@ void main() {
   });
 
   // -------------------------------------------------------------------------
-  // performImport -- _injectBatchTag
-  // -------------------------------------------------------------------------
-
-  group('performImport() - batch tag injection', () {
-    testWidgets('batch tag is injected when present in options', (
-      tester,
-    ) async {
-      final payload = ImportPayload(
-        entities: {
-          ui.ImportEntityType.dives: [
-            {
-              'dateTime': DateTime(2026, 3, 15, 10, 0),
-              'maxDepth': 20.0,
-              'runtime': const Duration(minutes: 30),
-            },
-          ],
-          ui.ImportEntityType.tags: [
-            {'name': 'Existing Tag', 'uddfId': 'existing-tag-1'},
-          ],
-        },
-      );
-
-      const options = ImportOptions(
-        sourceApp: ui.SourceApp.subsurface,
-        format: ui.ImportFormat.subsurfaceXml,
-        batchTag: 'Subsurface Import 2026-03-15',
-      );
-
-      final mockDiveRepo = MockDiveRepository();
-      when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
-
-      final mockTankPresetRepo = MockTankPresetRepository();
-      when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
-
-      await _runWithAdapter(
-        tester,
-        overrides: _fullOverrides(
-          payload: payload,
-          options: options,
-          diver: _testDiver(),
-          mockDiveRepo: mockDiveRepo,
-          mockTankPresetRepo: mockTankPresetRepo,
-        ),
-        callback: (adapter) async {
-          final bundle = await adapter.buildBundle();
-
-          // This should not throw and should properly inject the batch tag.
-          final result = await adapter.performImport(bundle, {
-            wizard.ImportEntityType.dives: {0},
-            wizard.ImportEntityType.tags: {0},
-          }, {});
-
-          // The import should complete without error.
-          expect(result.errorMessage, isNull);
-        },
-      );
-    });
-
-    testWidgets('no batch tag injection when batchTag is null', (tester) async {
-      final payload = ImportPayload(
-        entities: {
-          ui.ImportEntityType.dives: [
-            {
-              'dateTime': DateTime(2026, 3, 15, 10, 0),
-              'maxDepth': 20.0,
-              'runtime': const Duration(minutes: 30),
-            },
-          ],
-        },
-      );
-
-      const options = ImportOptions(
-        sourceApp: ui.SourceApp.subsurface,
-        format: ui.ImportFormat.subsurfaceXml,
-        batchTag: null,
-      );
-
-      final mockDiveRepo = MockDiveRepository();
-      when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
-
-      final mockTankPresetRepo = MockTankPresetRepository();
-      when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
-
-      await _runWithAdapter(
-        tester,
-        overrides: _fullOverrides(
-          payload: payload,
-          options: options,
-          diver: _testDiver(),
-          mockDiveRepo: mockDiveRepo,
-          mockTankPresetRepo: mockTankPresetRepo,
-        ),
-        callback: (adapter) async {
-          final bundle = await adapter.buildBundle();
-
-          final result = await adapter.performImport(bundle, {
-            wizard.ImportEntityType.dives: {0},
-          }, {});
-
-          expect(result.errorMessage, isNull);
-        },
-      );
-    });
-
-    testWidgets('no batch tag injection when batchTag is empty string', (
-      tester,
-    ) async {
-      final payload = ImportPayload(
-        entities: {
-          ui.ImportEntityType.dives: [
-            {
-              'dateTime': DateTime(2026, 3, 15, 10, 0),
-              'maxDepth': 20.0,
-              'runtime': const Duration(minutes: 30),
-            },
-          ],
-        },
-      );
-
-      const options = ImportOptions(
-        sourceApp: ui.SourceApp.subsurface,
-        format: ui.ImportFormat.subsurfaceXml,
-        batchTag: '',
-      );
-
-      final mockDiveRepo = MockDiveRepository();
-      when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
-
-      final mockTankPresetRepo = MockTankPresetRepository();
-      when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
-
-      await _runWithAdapter(
-        tester,
-        overrides: _fullOverrides(
-          payload: payload,
-          options: options,
-          diver: _testDiver(),
-          mockDiveRepo: mockDiveRepo,
-          mockTankPresetRepo: mockTankPresetRepo,
-        ),
-        callback: (adapter) async {
-          final bundle = await adapter.buildBundle();
-
-          final result = await adapter.performImport(bundle, {
-            wizard.ImportEntityType.dives: {0},
-          }, {});
-
-          expect(result.errorMessage, isNull);
-        },
-      );
-    });
-  });
-
-  // -------------------------------------------------------------------------
   // _payloadToUddfResult -- verified through performImport
   // -------------------------------------------------------------------------
 
@@ -2003,80 +1888,6 @@ void main() {
           expect(result.errorMessage, isNull);
         },
       );
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // _injectBatchTag -- static method tested directly
-  // -------------------------------------------------------------------------
-
-  group('_injectBatchTag static logic', () {
-    test('batch tag appends to tags list and updates selections', () {
-      // Manually replicate the static method behavior for verification.
-      const data = UddfImportResult(
-        dives: [
-          {'dateTime': 'test', 'tagRefs': []},
-        ],
-        tags: [
-          {'name': 'Original', 'uddfId': 'orig-1'},
-        ],
-      );
-      const selections = UddfImportSelections(dives: {0}, tags: {0});
-
-      const newTagName = 'Test Batch';
-      final batchTagId = 'batch_tag_${DateTime.now().millisecondsSinceEpoch}';
-
-      final updatedTags = [
-        ...data.tags,
-        <String, dynamic>{'name': newTagName, 'uddfId': batchTagId},
-      ];
-      expect(updatedTags, hasLength(2));
-      expect(updatedTags.last['name'], equals(newTagName));
-
-      // Tag selection should include the new batch tag index.
-      final batchTagIndex = updatedTags.length - 1;
-      final updatedTagSelection = {...selections.tags, batchTagIndex};
-      expect(updatedTagSelection, contains(1));
-
-      // Selected dive should have batchTagId in tagRefs.
-      final dive = Map<String, dynamic>.from(data.dives[0]);
-      final existingRefs = dive['tagRefs'] as List;
-      dive['tagRefs'] = [...existingRefs, batchTagId];
-      expect(dive['tagRefs'], contains(batchTagId));
-    });
-
-    test('batch tag does not modify unselected dives', () {
-      const data = UddfImportResult(
-        dives: [
-          {'dateTime': 'dive0', 'tagRefs': []},
-          {
-            'dateTime': 'dive1',
-            'tagRefs': ['existing-ref'],
-          },
-        ],
-        tags: [],
-      );
-      // Only dive at index 0 is selected.
-      const selections = UddfImportSelections(dives: {0}, tags: {});
-
-      final batchTagId = 'batch_tag_${DateTime.now().millisecondsSinceEpoch}';
-
-      final updatedDives = <Map<String, dynamic>>[];
-      for (var i = 0; i < data.dives.length; i++) {
-        if (selections.dives.contains(i)) {
-          final dive = Map<String, dynamic>.from(data.dives[i]);
-          final existingRefs = dive['tagRefs'] as List? ?? [];
-          dive['tagRefs'] = [...existingRefs, batchTagId];
-          updatedDives.add(dive);
-        } else {
-          updatedDives.add(data.dives[i]);
-        }
-      }
-
-      // Dive 0 should have the batch tag.
-      expect((updatedDives[0]['tagRefs'] as List).contains(batchTagId), isTrue);
-      // Dive 1 should be unchanged.
-      expect(updatedDives[1]['tagRefs'], equals(['existing-ref']));
     });
   });
 

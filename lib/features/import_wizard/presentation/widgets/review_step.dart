@@ -6,15 +6,16 @@ import 'package:submersion/features/import_wizard/domain/models/duplicate_action
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/entity_review_list.dart';
+import 'package:submersion/core/providers/async_value_extensions.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/import_tags_field.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 
 /// The review step of the import wizard.
 ///
-/// When the bundle contains a single entity type, renders an [EntityReviewList]
-/// directly without a tab bar. When multiple types are present, a [TabBar] is
-/// shown with one tab per type, each with a count badge.
-///
-/// A bottom bar is always shown with aggregate counts and an "Import Selected"
-/// button that calls [onImport].
+/// Always renders a [TabBar] with one tab per entity type, each with a count
+/// badge. A bottom bar shows aggregate counts and an "Import Selected" button
+/// that calls [onImport].
 class ReviewStep extends ConsumerWidget {
   /// Fired when the user taps "Import Selected".
   final VoidCallback onImport;
@@ -51,19 +52,7 @@ class ReviewStep extends ConsumerWidget {
           bundle.groups[ImportEntityType.dives]?.duplicateIndices ?? const {},
     );
 
-    if (types.length == 1) {
-      return _SingleTypeLayout(
-        type: types.first,
-        bundle: bundle,
-        state: state,
-        notifier: notifier,
-        availableActions: availableActions,
-        counts: counts,
-        projectedDiveNumbers: projectedDiveNumbers,
-        onImport: onImport,
-        onBack: onBack,
-      );
-    }
+    final existingTags = ref.watch(tagsProvider).valueOrNull ?? const <Tag>[];
 
     return _MultiTypeLayout(
       types: types,
@@ -73,6 +62,7 @@ class ReviewStep extends ConsumerWidget {
       availableActions: availableActions,
       counts: counts,
       projectedDiveNumbers: projectedDiveNumbers,
+      existingTags: existingTags,
       onImport: onImport,
       onBack: onBack,
     );
@@ -129,70 +119,6 @@ class ReviewStep extends ConsumerWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Single-type layout (no tab bar)
-// ---------------------------------------------------------------------------
-
-class _SingleTypeLayout extends StatelessWidget {
-  final ImportEntityType type;
-  final ImportBundle bundle;
-  final ImportWizardState state;
-  final ImportWizardNotifier notifier;
-  final Set<DuplicateAction> availableActions;
-  final _AggregateCounts counts;
-  final Map<int, int>? projectedDiveNumbers;
-  final VoidCallback onImport;
-  final VoidCallback? onBack;
-
-  const _SingleTypeLayout({
-    required this.type,
-    required this.bundle,
-    required this.state,
-    required this.notifier,
-    required this.availableActions,
-    required this.counts,
-    this.projectedDiveNumbers,
-    required this.onImport,
-    this.onBack,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final group = bundle.groups[type]!;
-    final selectedIndices = state.selections[type] ?? const <int>{};
-    final duplicateActions = state.duplicateActions[type] ?? const {};
-    final hasDives = bundle.groups.containsKey(ImportEntityType.dives);
-
-    return Column(
-      children: [
-        if (hasDives)
-          _RetainDiveNumbersToggle(state: state, notifier: notifier),
-        Expanded(
-          child: SingleChildScrollView(
-            child: EntityReviewList(
-              group: group,
-              selectedIndices: selectedIndices,
-              duplicateActions: duplicateActions,
-              availableActions: availableActions,
-              onToggleSelection: (i) => notifier.toggleSelection(type, i),
-              onDuplicateActionChanged: (i, a) =>
-                  notifier.setDuplicateAction(type, i, a),
-              onSelectAll: () => notifier.selectAll(type),
-              onDeselectAll: () => notifier.deselectAll(type),
-              existingDiveIdForIndex: (i) =>
-                  group.matchResults?[i]?.diveId ?? '',
-              projectedDiveNumbers: type == ImportEntityType.dives
-                  ? projectedDiveNumbers
-                  : null,
-            ),
-          ),
-        ),
-        _BottomBar(counts: counts, onImport: onImport, onBack: onBack),
-      ],
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Multi-type layout (tab bar)
 // ---------------------------------------------------------------------------
 
@@ -204,6 +130,7 @@ class _MultiTypeLayout extends StatelessWidget {
   final Set<DuplicateAction> availableActions;
   final _AggregateCounts counts;
   final Map<int, int>? projectedDiveNumbers;
+  final List<Tag> existingTags;
   final VoidCallback onImport;
   final VoidCallback? onBack;
 
@@ -215,6 +142,7 @@ class _MultiTypeLayout extends StatelessWidget {
     required this.availableActions,
     required this.counts,
     this.projectedDiveNumbers,
+    required this.existingTags,
     required this.onImport,
     this.onBack,
   });
@@ -235,6 +163,27 @@ class _MultiTypeLayout extends StatelessWidget {
                 Tab(text: _tabLabel(type, bundle.groups[type]!.items.length)),
             ],
           ),
+          if (hasDives)
+            Builder(
+              builder: (context) {
+                final tabController = DefaultTabController.of(context);
+                final divesIndex = types.indexOf(ImportEntityType.dives);
+                return ListenableBuilder(
+                  listenable: tabController,
+                  builder: (context, _) {
+                    if (tabController.index != divesIndex) {
+                      return const SizedBox.shrink();
+                    }
+                    return ImportTagsField(
+                      tags: state.importTags,
+                      existingTags: existingTags,
+                      onAdd: (tag) => notifier.addImportTag(tag),
+                      onRemove: (index) => notifier.removeImportTag(index),
+                    );
+                  },
+                );
+              },
+            ),
           Expanded(
             child: TabBarView(
               children: [

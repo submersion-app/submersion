@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
@@ -38,7 +39,10 @@ class UnifiedImportWizard extends StatelessWidget {
     return ProviderScope(
       overrides: [
         importWizardNotifierProvider.overrideWith(
-          (_) => ImportWizardNotifier(adapter),
+          (ref) => ImportWizardNotifier(
+            adapter,
+            tagRepository: ref.read(tagRepositoryProvider),
+          ),
         ),
       ],
       child: _UnifiedImportWizardBody(adapter: adapter),
@@ -134,6 +138,7 @@ class _UnifiedImportWizardBodyState
         ref
             .read(importWizardNotifierProvider.notifier)
             .setBundle(checkedBundle);
+        ref.read(importWizardNotifierProvider.notifier).initializeDefaultTag();
       }
       await _animateToPage(_currentPage + 1);
     } else if (_currentPage == _reviewIndex) {
@@ -143,7 +148,10 @@ class _UnifiedImportWizardBodyState
 
   Future<void> _startImport() async {
     await _animateToPage(_importIndex);
-    await ref.read(importWizardNotifierProvider.notifier).performImport();
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    final notifier = ref.read(importWizardNotifierProvider.notifier);
+    notifier.setDiverId(diverId);
+    await notifier.performImport();
     _invalidateImportedProviders();
     await _animateToPage(_summaryIndex);
   }
