@@ -175,6 +175,119 @@ void main() {
     });
   });
 
+  group('DiveDetailSectionConfig fromJson edge cases', () {
+    test('fromJson defaults visible to true when missing', () {
+      final config = DiveDetailSectionConfig.fromJson({'id': 'tanks'});
+      expect(config.id, DiveDetailSectionId.tanks);
+      expect(config.visible, true);
+    });
+
+    test('fromJson throws for unknown id', () {
+      expect(
+        () => DiveDetailSectionConfig.fromJson({
+          'id': 'nonexistent',
+          'visible': true,
+        }),
+        throwsStateError,
+      );
+    });
+  });
+
+  group('DiveDetailSectionConfig copyWith edge cases', () {
+    test('copyWith without arguments preserves all values', () {
+      const config = DiveDetailSectionConfig(
+        id: DiveDetailSectionId.environment,
+        visible: false,
+      );
+      final copy = config.copyWith();
+      expect(copy.id, DiveDetailSectionId.environment);
+      expect(copy.visible, false);
+    });
+  });
+
+  group('round-trip serialization', () {
+    test(
+      'sectionsToJson then sectionsFromJson preserves order and visibility',
+      () {
+        const original = [
+          DiveDetailSectionConfig(
+            id: DiveDetailSectionId.tanks,
+            visible: false,
+          ),
+          DiveDetailSectionConfig(id: DiveDetailSectionId.notes, visible: true),
+          DiveDetailSectionConfig(
+            id: DiveDetailSectionId.decoO2,
+            visible: true,
+          ),
+        ];
+        final json = DiveDetailSectionConfig.sectionsToJson(original);
+        final restored = DiveDetailSectionConfig.sectionsFromJson(json);
+        // 3 saved + 14 missing = 17
+        expect(restored.length, 17);
+        // First 3 preserve original order and visibility
+        expect(restored[0].id, DiveDetailSectionId.tanks);
+        expect(restored[0].visible, false);
+        expect(restored[1].id, DiveDetailSectionId.notes);
+        expect(restored[1].visible, true);
+        expect(restored[2].id, DiveDetailSectionId.decoO2);
+        expect(restored[2].visible, true);
+      },
+    );
+
+    test('full 17-section round-trip preserves exact order', () {
+      final custom = List.of(DiveDetailSectionConfig.defaultSections);
+      // Reverse order and toggle some off
+      final reversed = custom.reversed.toList();
+      reversed[0] = reversed[0].copyWith(visible: false);
+      reversed[5] = reversed[5].copyWith(visible: false);
+      final json = DiveDetailSectionConfig.sectionsToJson(reversed);
+      final restored = DiveDetailSectionConfig.sectionsFromJson(json);
+      expect(restored.length, 17);
+      for (var i = 0; i < 17; i++) {
+        expect(restored[i].id, reversed[i].id);
+        expect(restored[i].visible, reversed[i].visible);
+      }
+    });
+  });
+
+  group('ensureAllSections edge cases', () {
+    test('handles empty input list', () {
+      final result = DiveDetailSectionConfig.ensureAllSections([]);
+      expect(result.length, 17);
+      expect(result.every((s) => s.visible), true);
+    });
+
+    test('preserves custom visibility for existing sections', () {
+      const saved = [
+        DiveDetailSectionConfig(id: DiveDetailSectionId.tanks, visible: false),
+        DiveDetailSectionConfig(
+          id: DiveDetailSectionId.buddies,
+          visible: false,
+        ),
+      ];
+      final result = DiveDetailSectionConfig.ensureAllSections(saved);
+      final tanksConfig = result.firstWhere(
+        (s) => s.id == DiveDetailSectionId.tanks,
+      );
+      final buddiesConfig = result.firstWhere(
+        (s) => s.id == DiveDetailSectionId.buddies,
+      );
+      expect(tanksConfig.visible, false);
+      expect(buddiesConfig.visible, false);
+    });
+  });
+
+  group('sectionsFromJson with all sections present', () {
+    test('returns exact list when all 17 sections are in JSON', () {
+      final allSections = DiveDetailSectionConfig.defaultSections
+          .map((s) => s.toJson())
+          .toList();
+      final json = jsonEncode(allSections);
+      final sections = DiveDetailSectionConfig.sectionsFromJson(json);
+      expect(sections.length, 17);
+    });
+  });
+
   group('DiveDetailSectionId metadata', () {
     test('displayName returns non-empty string for all values', () {
       for (final id in DiveDetailSectionId.values) {

@@ -70,5 +70,57 @@ void main() {
       expect(updated.diveDetailSections.length, 17);
       expect(updated.diveDetailSections.every((s) => s.visible), true);
     });
+
+    test('copyWith preserves diveDetailSections when not specified', () {
+      final custom = [
+        const DiveDetailSectionConfig(
+          id: DiveDetailSectionId.tanks,
+          visible: false,
+        ),
+        const DiveDetailSectionConfig(
+          id: DiveDetailSectionId.notes,
+          visible: true,
+        ),
+      ];
+      final settings = AppSettings(diveDetailSections: custom);
+      final updated = settings.copyWith(themePresetId: 'dark');
+      expect(updated.diveDetailSections.length, 2);
+      expect(updated.diveDetailSections[0].id, DiveDetailSectionId.tanks);
+      expect(updated.diveDetailSections[0].visible, false);
+    });
+
+    test('default sections match DiveDetailSectionConfig.defaultSections', () {
+      const settings = AppSettings();
+      expect(
+        settings.diveDetailSections.length,
+        DiveDetailSectionConfig.defaultSections.length,
+      );
+      for (var i = 0; i < settings.diveDetailSections.length; i++) {
+        expect(
+          settings.diveDetailSections[i].id,
+          DiveDetailSectionConfig.defaultSections[i].id,
+        );
+      }
+    });
+
+    test(
+      'clearDiveDetailSections takes precedence over diveDetailSections',
+      () {
+        final custom = [
+          const DiveDetailSectionConfig(
+            id: DiveDetailSectionId.tanks,
+            visible: false,
+          ),
+        ];
+        final settings = AppSettings(diveDetailSections: custom);
+        final updated = settings.copyWith(
+          diveDetailSections: custom,
+          clearDiveDetailSections: true,
+        );
+        // Clear flag wins — should be defaults, not the custom list
+        expect(updated.diveDetailSections.length, 17);
+        expect(updated.diveDetailSections.every((s) => s.visible), true);
+      },
+    );
   });
 }
