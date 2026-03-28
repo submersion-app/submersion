@@ -334,4 +334,42 @@ void main() {
       expect(records.longestDive, isNull);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // getSurfaceInterval - effectiveRuntime fallback (line 2977)
+  // ---------------------------------------------------------------------------
+
+  group('getSurfaceInterval', () {
+    test('uses effectiveRuntime when previous dive has no exitTime', () async {
+      // First dive: has entryTime + bottomTime but NO exitTime
+      // effectiveRuntime will use bottomTime as fallback
+      final dt1 = DateTime(2026, 3, 28, 10, 0).millisecondsSinceEpoch;
+      final entry1 = DateTime(2026, 3, 28, 10, 5).millisecondsSinceEpoch;
+      await insertDive(
+        id: 'dive-prev',
+        diveNumber: 1,
+        bottomTimeSeconds: 45 * 60,
+        diveDateTimeMs: dt1,
+      );
+      // Manually set entryTime without exitTime
+      await db.customStatement(
+        "UPDATE dives SET entry_time = ? WHERE id = 'dive-prev'",
+        [entry1],
+      );
+
+      // Second dive: 2 hours after first dive's estimated exit
+      final dt2 = DateTime(2026, 3, 28, 12, 0).millisecondsSinceEpoch;
+      await insertDive(
+        id: 'dive-curr',
+        diveNumber: 2,
+        bottomTimeSeconds: 30 * 60,
+        diveDateTimeMs: dt2,
+      );
+
+      final interval = await repository.getSurfaceInterval('dive-curr');
+
+      expect(interval, isNotNull);
+      expect(interval!.inMinutes, greaterThan(0));
+    });
+  });
 }

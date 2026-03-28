@@ -121,10 +121,25 @@ void main() {
         maxDepth: 20.0,
         tanks: const [],
         profile: [
+          // Realistic dive profile with clear descent/bottom/ascent
           const DiveProfilePoint(timestamp: 0, depth: 0),
-          const DiveProfilePoint(timestamp: 120, depth: 15),
+          const DiveProfilePoint(timestamp: 30, depth: 5),
+          const DiveProfilePoint(timestamp: 60, depth: 10),
+          const DiveProfilePoint(timestamp: 90, depth: 15),
+          const DiveProfilePoint(timestamp: 120, depth: 18),
+          // Long bottom phase at ~18-20m
+          const DiveProfilePoint(timestamp: 300, depth: 19),
+          const DiveProfilePoint(timestamp: 600, depth: 20),
+          const DiveProfilePoint(timestamp: 900, depth: 19),
+          const DiveProfilePoint(timestamp: 1200, depth: 20),
+          const DiveProfilePoint(timestamp: 1500, depth: 19),
+          const DiveProfilePoint(timestamp: 1800, depth: 18),
+          const DiveProfilePoint(timestamp: 2100, depth: 19),
           const DiveProfilePoint(timestamp: 2400, depth: 18),
-          const DiveProfilePoint(timestamp: 2520, depth: 5),
+          // Ascent
+          const DiveProfilePoint(timestamp: 2520, depth: 10),
+          const DiveProfilePoint(timestamp: 2580, depth: 5),
+          const DiveProfilePoint(timestamp: 2640, depth: 5),
           const DiveProfilePoint(timestamp: 2700, depth: 0),
         ],
         equipment: const [],

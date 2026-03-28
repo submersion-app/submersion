@@ -202,6 +202,28 @@ void main() {
       expect(results.first.sacRate, isNull);
     });
 
+    test('uses profile timestamp when effectiveRuntime is null', () {
+      // Dive with NO runtime, NO timestamps, NO bottomTime,
+      // single-point profile so calculateRuntimeFromProfile returns null.
+      // effectiveRuntime will be null, diveEnd falls to profile.lastOrNull.
+      final dive = makeDive(
+        avgDepth: 20.0,
+        tanks: [makeTank(startPressure: 200, endPressure: 50, volume: 11.1)],
+        profile: [const DiveProfilePoint(timestamp: 0, depth: 10)],
+      );
+
+      // Pass longer profile to calculateCylinderSac directly
+      final externalProfile = makeProfile(40 * 60);
+      final results = service.calculateCylinderSac(
+        dive: dive,
+        profile: externalProfile,
+      );
+
+      // diveEnd = null ?? lastProfile.timestamp ?? 0
+      expect(results, hasLength(1));
+      expect(results.first.usageDuration?.inSeconds, greaterThan(0));
+    });
+
     test('handles multi-tank dive without gas switches', () {
       final dive = makeDive(
         runtime: const Duration(minutes: 42),
