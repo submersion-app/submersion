@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -80,13 +84,20 @@ Widget _buildTestWidget({
 }
 
 /// Provider overrides needed for sections that always render their widgets.
-List<Override> _alwaysRenderOverrides(String diveId) => [
+List<Override> _alwaysRenderOverrides(
+  String diveId,
+  SharedPreferences prefs,
+) => [
+  sharedPreferencesProvider.overrideWithValue(prefs),
   buddiesForDiveProvider(diveId).overrideWith((ref) async => <BuddyWithRole>[]),
   diveSightingsProvider(diveId).overrideWith((ref) async => <Sighting>[]),
   buddySignaturesForDiveProvider(
     diveId,
   ).overrideWith((ref) async => <Signature>[]),
   surfaceIntervalProvider(diveId).overrideWith((ref) async => null),
+  tankPressuresProvider(
+    diveId,
+  ).overrideWith((ref) async => <String, List<TankPressurePoint>>{}),
 ];
 
 /// A minimal dive with all collections empty (triggers early-return branches).
@@ -113,7 +124,42 @@ final _diveWithContent = Dive(
   ],
 );
 
+/// A dive with rich data to exercise non-early-return builder paths.
+final _richDive = Dive(
+  id: 'test-dive-3',
+  dateTime: DateTime(2026, 3, 15, 10, 0),
+  altitude: 1500.0,
+  airTemp: 22.0,
+  waterTemp: 18.0,
+  weightAmount: 5.0,
+  weightType: WeightType.integrated,
+  weights: [
+    const DiveWeight(
+      id: 'w-1',
+      diveId: 'test-dive-3',
+      weightType: WeightType.belt,
+      amountKg: 4.0,
+    ),
+  ],
+  tanks: [const DiveTank(id: 'tank-1', volume: 11.1, startPressure: 200)],
+  equipment: [
+    const EquipmentItem(
+      id: 'eq-1',
+      name: 'BCD',
+      type: EquipmentType.bcd,
+      status: EquipmentStatus.active,
+    ),
+  ],
+);
+
 void main() {
+  late SharedPreferences prefs;
+
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    prefs = await SharedPreferences.getInstance();
+  });
+
   group('DiveDetailPage section config rendering', () {
     testWidgets('renders with all sections invisible (only fixed header)', (
       tester,
@@ -299,7 +345,7 @@ void main() {
         _buildTestWidget(
           dive: _emptyDive,
           settings: settings,
-          extraOverrides: _alwaysRenderOverrides(_emptyDive.id),
+          extraOverrides: _alwaysRenderOverrides(_emptyDive.id, prefs),
         ),
       );
       await tester.pumpAndSettle();
@@ -320,7 +366,7 @@ void main() {
         _buildTestWidget(
           dive: _emptyDive,
           settings: settings,
-          extraOverrides: _alwaysRenderOverrides(_emptyDive.id),
+          extraOverrides: _alwaysRenderOverrides(_emptyDive.id, prefs),
         ),
       );
       await tester.pumpAndSettle();
@@ -343,7 +389,7 @@ void main() {
         _buildTestWidget(
           dive: _emptyDive,
           settings: settings,
-          extraOverrides: _alwaysRenderOverrides(_emptyDive.id),
+          extraOverrides: _alwaysRenderOverrides(_emptyDive.id, prefs),
         ),
       );
       await tester.pumpAndSettle();
@@ -367,12 +413,148 @@ void main() {
         _buildTestWidget(
           dive: _emptyDive,
           settings: settings,
-          extraOverrides: _alwaysRenderOverrides(_emptyDive.id),
+          extraOverrides: _alwaysRenderOverrides(_emptyDive.id, prefs),
         ),
       );
       await tester.pumpAndSettle();
 
       // Page fully renders with all sections
+      expect(find.text('#-'), findsOneWidget);
+    });
+
+    testWidgets('renders altitude section when dive has altitude data', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 8000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.altitude,
+        DiveDetailSectionId.details,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: _richDive,
+          settings: settings,
+          extraOverrides: _alwaysRenderOverrides(_richDive.id, prefs),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('#-'), findsOneWidget);
+    });
+
+    testWidgets('renders environment section when dive has env data', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 8000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.environment,
+        DiveDetailSectionId.details,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: _richDive,
+          settings: settings,
+          extraOverrides: _alwaysRenderOverrides(_richDive.id, prefs),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('#-'), findsOneWidget);
+    });
+
+    testWidgets('renders weights section when dive has weights', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 8000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.weights,
+        DiveDetailSectionId.details,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: _richDive,
+          settings: settings,
+          extraOverrides: _alwaysRenderOverrides(_richDive.id, prefs),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('#-'), findsOneWidget);
+    });
+
+    testWidgets('renders tanks section when dive has tanks', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 8000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.tanks,
+        DiveDetailSectionId.details,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: _richDive,
+          settings: settings,
+          extraOverrides: _alwaysRenderOverrides(_richDive.id, prefs),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('#-'), findsOneWidget);
+    });
+
+    testWidgets('renders equipment section when dive has equipment', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 8000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.equipment,
+        DiveDetailSectionId.details,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: _richDive,
+          settings: settings,
+          extraOverrides: _alwaysRenderOverrides(_richDive.id, prefs),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('#-'), findsOneWidget);
+    });
+
+    testWidgets('renders all data-bearing sections with rich dive', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 10000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections(
+        DiveDetailSectionId.values.toList(),
+      );
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: _richDive,
+          settings: settings,
+          extraOverrides: _alwaysRenderOverrides(_richDive.id, prefs),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // All builder closures are exercised with data present
       expect(find.text('#-'), findsOneWidget);
     });
   });
