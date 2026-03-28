@@ -395,6 +395,21 @@ class DiveComputerHostApiImpl(
         )
     }
 
+    // MARK: - Parse Raw Dive Data
+
+    override fun parseRawDiveData(
+        vendor: String,
+        product: String,
+        model: Long,
+        data: ByteArray,
+        callback: (Result<ParsedDive>) -> Unit
+    ) {
+        callback(Result.failure(
+            FlutterError("UNSUPPORTED",
+                "Raw dive parsing not yet implemented on Android",
+                null)))
+    }
+
     // MARK: - Version
 
     override fun getLibdivecomputerVersion(): String {

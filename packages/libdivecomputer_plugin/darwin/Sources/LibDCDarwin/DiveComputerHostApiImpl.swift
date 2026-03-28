@@ -568,6 +568,57 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         }
     }
 
+    // MARK: - Parse Raw Dive Data
+
+    func parseRawDiveData(
+        vendor: String,
+        product: String,
+        model: Int64,
+        data: FlutterStandardTypedData,
+        completion: @escaping (Result<ParsedDive, Error>) -> Void
+    ) {
+        DispatchQueue.global(qos: .userInitiated).async { [self] in
+            var dive = libdc_parsed_dive_t()
+            var errorBuf = [CChar](repeating: 0, count: 256)
+
+            let result = data.data.withUnsafeBytes { rawPtr -> Int32 in
+                guard let baseAddress = rawPtr.baseAddress else { return -1 }
+                return libdc_parse_raw_dive(
+                    vendor,
+                    product,
+                    UInt32(model),
+                    baseAddress.assumingMemoryBound(to: UInt8.self),
+                    UInt32(data.data.count),
+                    &dive,
+                    &errorBuf,
+                    errorBuf.count
+                )
+            }
+
+            if result != 0 {
+                let errorMsg = String(cString: errorBuf)
+                free(dive.samples)
+                free(dive.events)
+                DispatchQueue.main.async {
+                    completion(.failure(PigeonError(
+                        code: "PARSE_ERROR",
+                        message: "Failed to parse raw dive data: \(errorMsg)",
+                        details: nil
+                    )))
+                }
+                return
+            }
+
+            let parsedDive = self.convertParsedDive(dive)
+            free(dive.samples)
+            free(dive.events)
+
+            DispatchQueue.main.async {
+                completion(.success(parsedDive))
+            }
+        }
+    }
+
     // MARK: - Version
 
     func getLibdivecomputerVersion() throws -> String {

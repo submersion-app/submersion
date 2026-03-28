@@ -202,6 +202,14 @@ abstract class DiveComputerHostApi {
   void submitPinCode(String pinCode);
 
   String getLibdivecomputerVersion();
+
+  @async
+  ParsedDive parseRawDiveData(
+    String vendor,
+    String product,
+    int model,
+    Uint8List data,
+  );
 }
 
 // === Flutter API (Native -> Dart) ===

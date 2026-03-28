@@ -43,18 +43,21 @@ void main() {
       expect(ImportFormat.unknown.displayName, 'Unknown');
     });
 
-    test('isSupported returns true for csv, uddf, subsurfaceXml, fit', () {
-      expect(ImportFormat.csv.isSupported, isTrue);
-      expect(ImportFormat.uddf.isSupported, isTrue);
-      expect(ImportFormat.subsurfaceXml.isSupported, isTrue);
-      expect(ImportFormat.fit.isSupported, isTrue);
-    });
+    test(
+      'isSupported returns true for csv, uddf, subsurfaceXml, fit, shearwaterDb',
+      () {
+        expect(ImportFormat.csv.isSupported, isTrue);
+        expect(ImportFormat.uddf.isSupported, isTrue);
+        expect(ImportFormat.subsurfaceXml.isSupported, isTrue);
+        expect(ImportFormat.fit.isSupported, isTrue);
+        expect(ImportFormat.shearwaterDb.isSupported, isTrue);
+      },
+    );
 
     test('isSupported returns false for unsupported formats', () {
       expect(ImportFormat.divingLogXml.isSupported, isFalse);
       expect(ImportFormat.suuntoSml.isSupported, isFalse);
       expect(ImportFormat.suuntoDm5.isSupported, isFalse);
-      expect(ImportFormat.shearwaterDb.isSupported, isFalse);
       expect(ImportFormat.scubapro.isSupported, isFalse);
       expect(ImportFormat.danDl7.isSupported, isFalse);
       expect(ImportFormat.sqlite.isSupported, isFalse);
@@ -83,7 +86,6 @@ void main() {
     });
 
     test('exportInstructions is non-null for known apps', () {
-      expect(SourceApp.shearwater.exportInstructions, isNotNull);
       expect(SourceApp.suunto.exportInstructions, isNotNull);
       expect(SourceApp.scubapro.exportInstructions, isNotNull);
       expect(SourceApp.ssiMyDiveGuide.exportInstructions, isNotNull);
@@ -91,6 +93,8 @@ void main() {
     });
 
     test('exportInstructions is null for apps without instructions', () {
+      // shearwater now uses native .db import, so no export instructions needed
+      expect(SourceApp.shearwater.exportInstructions, isNull);
       expect(SourceApp.submersion.exportInstructions, isNull);
       expect(SourceApp.subsurface.exportInstructions, isNull);
       expect(SourceApp.macdive.exportInstructions, isNull);

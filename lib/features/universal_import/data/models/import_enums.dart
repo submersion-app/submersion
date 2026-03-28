@@ -30,7 +30,7 @@ enum ImportFormat {
 
   /// Whether this format has a parser implemented in v1.5.
   bool get isSupported => switch (this) {
-    csv || uddf || subsurfaceXml || fit => true,
+    csv || uddf || subsurfaceXml || fit || shearwaterDb => true,
     _ => false,
   };
 }
@@ -67,9 +67,7 @@ enum SourceApp {
 
   /// Instructions for exporting from this app in a supported format.
   String? get exportInstructions => switch (this) {
-    shearwater =>
-      'In Shearwater Cloud Desktop, go to File > Export > UDDF to create a '
-          'file that Submersion can import.',
+    shearwater => null, // Native .db import supported
     suunto =>
       'In Suunto DM5, select your dives and go to File > Export > UDDF.',
     scubapro =>

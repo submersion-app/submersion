@@ -630,6 +630,12 @@ class DiveComputerHostApi {
   virtual std::optional<FlutterError> CancelDownload() = 0;
   virtual std::optional<FlutterError> SubmitPinCode(const std::string& pin_code) = 0;
   virtual ErrorOr<std::string> GetLibdivecomputerVersion() = 0;
+  virtual void ParseRawDiveData(
+    const std::string& vendor,
+    const std::string& product,
+    int64_t model,
+    const std::vector<uint8_t>& data,
+    std::function<void(ErrorOr<ParsedDive> reply)> result) = 0;
 
   // The codec used by DiveComputerHostApi.
   static const flutter::StandardMessageCodec& GetCodec();
