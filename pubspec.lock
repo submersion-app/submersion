@@ -90,12 +90,11 @@ packages:
     source: hosted
     version: "1.0.0"
   auto_updater_windows:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: auto_updater_windows
-      sha256: "2bba20a71eee072f49b7267fedd5c4f1406c4b1b1e5b83932c634dbab75b80c9"
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/auto_updater_windows"
+      relative: true
+    source: path
     version: "1.0.0"
   barcode:
     dependency: transitive
