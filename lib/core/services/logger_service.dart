@@ -141,7 +141,7 @@ class LoggerService {
   static LoggerService forClass(Type type) => LoggerService(type.toString());
 
   /// Wait for all currently pending file writes to complete.
-  /// 
+  ///
   /// This method is primarily intended for tests that need deterministic
   /// synchronization with log file writes.
   @visibleForTesting
