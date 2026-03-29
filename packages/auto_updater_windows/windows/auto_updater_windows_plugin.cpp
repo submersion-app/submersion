@@ -84,7 +84,6 @@ void AutoUpdaterWindowsPlugin::HandleMethodCall(
     std::string feedURL =
         std::get<std::string>(args.at(flutter::EncodableValue("feedURL")));
     auto_updater.SetFeedURL(feedURL);
-    auto_updater.RegisterEventSink(std::move(event_sink_));
     result->Success(flutter::EncodableValue(true));
 
   } else if (method_name.compare("checkForUpdates") == 0) {
@@ -116,6 +115,7 @@ AutoUpdaterWindowsPlugin::OnListenInternal(
     const flutter::EncodableValue* arguments,
     std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events) {
   event_sink_ = std::move(events);
+  auto_updater.RegisterEventSink(std::move(event_sink_));
   return nullptr;
 }
 

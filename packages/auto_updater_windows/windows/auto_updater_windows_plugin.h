@@ -16,7 +16,7 @@ namespace auto_updater_windows {
 
 class AutoUpdaterWindowsPlugin
     : public flutter::Plugin,
-      flutter::StreamHandler<flutter::EncodableValue> {
+      public flutter::StreamHandler<flutter::EncodableValue> {
  private:
   flutter::PluginRegistrarWindows* registrar_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;

@@ -12,6 +12,7 @@
 #include <mutex>
 #include <queue>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 namespace {
@@ -82,7 +83,10 @@ AutoUpdater::AutoUpdater() {
   lazySingleton = this;
 }
 
-AutoUpdater::~AutoUpdater() {}
+AutoUpdater::~AutoUpdater() {
+  win_sparkle_cleanup();
+  lazySingleton = nullptr;
+}
 
 void AutoUpdater::SetWindowHandle(HWND hwnd) {
   hwnd_ = hwnd;
@@ -90,13 +94,12 @@ void AutoUpdater::SetWindowHandle(HWND hwnd) {
 
 void AutoUpdater::SetFeedURL(std::string feedURL) {
   win_sparkle_set_appcast_url(feedURL.c_str());
-  win_sparkle_init();
-
   win_sparkle_set_error_callback(__onErrorCallback);
   win_sparkle_set_shutdown_request_callback(__onShutdownRequestCallback);
   win_sparkle_set_did_find_update_callback(__onDidFindUpdateCallback);
   win_sparkle_set_did_not_find_update_callback(__onDidNotFindUpdateCallback);
   win_sparkle_set_update_cancelled_callback(__onUpdateCancelledCallback);
+  win_sparkle_init();
 }
 
 void AutoUpdater::CheckForUpdates() {
@@ -129,8 +132,9 @@ void AutoUpdater::OnWinSparkleEvent(std::string eventName) {
   }
 
   // Signal the platform thread. PostMessage is safe to call from any thread.
-  if (hwnd_ != nullptr) {
-    PostMessage(hwnd_, WM_APP_SPARKLE_EVENT, 0, 0);
+  HWND hwnd = hwnd_.load();
+  if (hwnd != nullptr) {
+    PostMessage(hwnd, WM_APP_SPARKLE_EVENT, 0, 0);
   }
 }
 
