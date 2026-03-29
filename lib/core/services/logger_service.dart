@@ -12,6 +12,7 @@ class LoggerService {
 
   /// The shared LogFileService instance. Set during app initialization.
   static LogFileService? _fileService;
+  static Future<void> _pendingWrite = Future<void>.value();
 
   /// Broadcast stream that emits every [LogEntry] as it is created.
   /// Used by the debug log viewer to update in real time.
@@ -25,6 +26,7 @@ class LoggerService {
   /// Pass `null` to disable file logging (e.g. when debug mode is off).
   static void setFileService(LogFileService? fileService) {
     _fileService = fileService;
+    _pendingWrite = Future<void>.value();
   }
 
   const LoggerService(this._name);
@@ -121,7 +123,7 @@ class LoggerService {
       level: level,
       message: error != null ? '$message | error: $error' : message,
     );
-    _fileService?.writeLine(entry.toLogLine());
+    _pendingWrite = _fileService?.writeLine(entry.toLogLine()) ?? Future.value();
 
     // Notify live listeners (debug log viewer).
     _logStreamController.add(entry);
@@ -129,6 +131,9 @@ class LoggerService {
 
   /// Create a logger for a specific class
   static LoggerService forClass(Type type) => LoggerService(type.toString());
+
+  /// Wait for the most recently scheduled file write to complete.
+  static Future<void> flushPendingWrites() => _pendingWrite;
 }
 
 /// Custom exception for repository errors
