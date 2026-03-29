@@ -1,0 +1,99 @@
+name: Android Release-Style Build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-manual-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION_FILE: '.github/flutter-version.txt'
+
+jobs:
+  build-android:
+    name: Build Android APK/AAB
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - uses: subosito/flutter-action@v2
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Cache Flutter SDK
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
+          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.pub-cache
+            ${{ github.workspace }}/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Cache Gradle
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build Android APK
+        run: flutter build apk --release --dart-define=UPDATE_CHANNEL=github
+
+      - name: Build Android App Bundle
+        run: flutter build appbundle --release --dart-define=HEALTH_CONNECT_ENABLED=false
+
+      - name: Rename artifacts
+        run: |
+          mv build/app/outputs/flutter-apk/app-release.apk \
+            "Submersion-${GITHUB_SHA::7}-Android.apk"
+          mv build/app/outputs/bundle/release/app-release.aab \
+            "Submersion-${GITHUB_SHA::7}-Android.aab"
+
+      - name: Upload Android APK artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-apk-${{ github.sha }}
+          path: Submersion-*.apk
+          retention-days: 7
+
+      - name: Upload Android AAB artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-aab-${{ github.sha }}
+          path: Submersion-*.aab
+          retention-days: 7
