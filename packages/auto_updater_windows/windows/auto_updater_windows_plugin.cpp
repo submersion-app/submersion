@@ -3,7 +3,6 @@
 // This must be included before many other Windows headers.
 #include <windows.h>
 
-// #include <flutter/event_channel.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
@@ -49,9 +48,30 @@ void AutoUpdaterWindowsPlugin::RegisterWithRegistrar(
 AutoUpdaterWindowsPlugin::AutoUpdaterWindowsPlugin(
     flutter::PluginRegistrarWindows* registrar) {
   registrar_ = registrar;
+
+  // Obtain the Flutter window HWND and pass it to AutoUpdater so that
+  // WinSparkle callbacks (which fire on background threads) can use
+  // PostMessage to signal the platform thread.
+  HWND hwnd = registrar_->GetView()->GetNativeWindow();
+  auto_updater.SetWindowHandle(hwnd);
+
+  // Register a window procedure delegate to handle WM_APP_SPARKLE_EVENT.
+  // This runs on the platform thread, making event_sink_->Success() safe.
+  window_proc_delegate_id_ =
+      registrar_->RegisterTopLevelWindowProcDelegate(
+          [this](HWND hwnd, UINT message, WPARAM wparam,
+                 LPARAM lparam) -> std::optional<LRESULT> {
+            if (message == WM_APP_SPARKLE_EVENT) {
+              auto_updater.DrainEvents();
+              return 0;
+            }
+            return std::nullopt;
+          });
 }
 
-AutoUpdaterWindowsPlugin::~AutoUpdaterWindowsPlugin() {}
+AutoUpdaterWindowsPlugin::~AutoUpdaterWindowsPlugin() {
+  registrar_->UnregisterTopLevelWindowProcDelegate(window_proc_delegate_id_);
+}
 
 void AutoUpdaterWindowsPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,

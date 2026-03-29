@@ -1,6 +1,8 @@
 #ifndef FLUTTER_PLUGIN_AUTO_UPDATER_WINDOWS_PLUGIN_H_
 #define FLUTTER_PLUGIN_AUTO_UPDATER_WINDOWS_PLUGIN_H_
 
+#include <windows.h>
+
 #include <flutter/event_channel.h>
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/method_channel.h>
@@ -19,6 +21,9 @@ class AutoUpdaterWindowsPlugin
   flutter::PluginRegistrarWindows* registrar_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
   AutoUpdater auto_updater = AutoUpdater();
+
+  // Window procedure delegate ID for cleanup on destruction.
+  int window_proc_delegate_id_ = 0;
 
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows* registrar);
