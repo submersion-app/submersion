@@ -34,7 +34,11 @@ class EquipmentRepository {
       final rows = await query.get();
       return rows.map(_mapRowToEquipment).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get active equipment', e, stackTrace);
+      _log.error(
+        'Failed to get active equipment',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -53,7 +57,11 @@ class EquipmentRepository {
       final rows = await query.get();
       return rows.map(_mapRowToEquipment).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get retired equipment', e, stackTrace);
+      _log.error(
+        'Failed to get retired equipment',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -74,7 +82,11 @@ class EquipmentRepository {
       final rows = await query.get();
       return rows.map(_mapRowToEquipment).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get all equipment', e, stackTrace);
+      _log.error(
+        'Failed to get all equipment',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -101,8 +113,8 @@ class EquipmentRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get equipment by status: ${status.name}',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -116,7 +128,11 @@ class EquipmentRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToEquipment(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get equipment by id: $id', e, stackTrace);
+      _log.error(
+        'Failed to get equipment by id: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -131,7 +147,11 @@ class EquipmentRepository {
       final rows = await query.get();
       return rows.map(_mapRowToEquipment).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get equipment by ids', e, stackTrace);
+      _log.error(
+        'Failed to get equipment by ids',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -190,8 +210,8 @@ class EquipmentRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to create equipment: ${equipment.name}',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -240,7 +260,11 @@ class EquipmentRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Updated equipment: ${equipment.id}');
     } catch (e, stackTrace) {
-      _log.error('Failed to update equipment: ${equipment.id}', e, stackTrace);
+      _log.error(
+        'Failed to update equipment: ${equipment.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -254,7 +278,11 @@ class EquipmentRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted equipment: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete equipment: $id', e, stackTrace);
+      _log.error(
+        'Failed to delete equipment: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -270,7 +298,11 @@ class EquipmentRepository {
         ),
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to mark equipment as serviced: $id', e, stackTrace);
+      _log.error(
+        'Failed to mark equipment as serviced: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -283,7 +315,11 @@ class EquipmentRepository {
         EquipmentCompanion(isActive: const Value(false), updatedAt: Value(now)),
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to retire equipment: $id', e, stackTrace);
+      _log.error(
+        'Failed to retire equipment: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -296,7 +332,11 @@ class EquipmentRepository {
         EquipmentCompanion(isActive: const Value(true), updatedAt: Value(now)),
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to reactivate equipment: $id', e, stackTrace);
+      _log.error(
+        'Failed to reactivate equipment: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -326,7 +366,11 @@ class EquipmentRepository {
       final rows = await query.get();
       return rows.map(_mapRowToEquipment).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get equipment with service dates', e, stackTrace);
+      _log.error(
+        'Failed to get equipment with service dates',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -401,7 +445,11 @@ class EquipmentRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to search equipment: $query', e, stackTrace);
+      _log.error(
+        'Failed to search equipment: $query',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -424,8 +472,8 @@ class EquipmentRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get dive count for equipment: $equipmentId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -450,8 +498,8 @@ class EquipmentRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get trip count for equipment: $equipmentId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -477,8 +525,8 @@ class EquipmentRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get trip IDs for equipment: $equipmentId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }

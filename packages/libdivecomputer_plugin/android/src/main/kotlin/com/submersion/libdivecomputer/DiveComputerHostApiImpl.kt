@@ -20,6 +20,8 @@ private const val LIBDC_STATUS_CANCELLED = -10
 private const val UINT32_SENTINEL: Long = 4294967295L  // UINT32_MAX = unavailable
 private const val GATT_INSUFFICIENT_AUTHENTICATION = 5
 
+private const val TAG = "DiveComputerHost"
+
 // Bluetooth permissions are requested at the Dart layer before BLE methods are called.
 @SuppressLint("MissingPermission")
 class DiveComputerHostApiImpl(
@@ -27,7 +29,9 @@ class DiveComputerHostApiImpl(
     private val messenger: BinaryMessenger
 ) : DiveComputerHostApi {
 
-    private val flutterApi = DiveComputerFlutterApi(messenger)
+    private val flutterApi = DiveComputerFlutterApi(messenger).also {
+        NativeLogger.setFlutterApi(it)
+    }
     private val executor = Executors.newSingleThreadExecutor()
     private val mainHandler = Handler(Looper.getMainLooper())
     private var bleScanner: BleScanner? = null
@@ -223,7 +227,7 @@ class DiveComputerHostApiImpl(
 
         // Run the download.
         val errorBuf = ByteArray(256)
-        android.util.Log.d("DiveComputerHost", "nativeDownloadRun: vendor=${device.vendor} product=${device.product} model=${device.model} name=${device.name}")
+        NativeLogger.d(TAG, "LDC", "nativeDownloadRun: vendor=${device.vendor} product=${device.product} model=${device.model} name=${device.name}")
         val result = try {
             LibdcWrapper.nativeDownloadRun(
                 sessionPtr,
@@ -234,10 +238,10 @@ class DiveComputerHostApiImpl(
                 downloadCallback, errorBuf
             )
         } catch (e: Throwable) {
-            android.util.Log.e("DiveComputerHost", "nativeDownloadRun threw", e)
+            NativeLogger.e(TAG, "LDC", "nativeDownloadRun threw: ${e.message}")
             -999
         }
-        android.util.Log.d("DiveComputerHost", "nativeDownloadRun returned: $result")
+        NativeLogger.d(TAG, "LDC", "nativeDownloadRun returned: $result")
 
         // Report completion or error.
         if (result == 0) {
@@ -249,8 +253,7 @@ class DiveComputerHostApiImpl(
             if (!isRetry &&
                 bleStream.lastDisconnectStatus == GATT_INSUFFICIENT_AUTHENTICATION
             ) {
-                android.util.Log.w("DiveComputerHost",
-                    "Auth failure (GATT status 5), removing stale bond and retrying")
+                NativeLogger.w(TAG, "BLE", "Auth failure (GATT status 5), removing stale bond and retrying")
                 bleStream.close()
                 bleStream.removeBond()
                 activeBleStream = null
@@ -261,7 +264,7 @@ class DiveComputerHostApiImpl(
             }
 
             val errorMsg = String(errorBuf).trim('\u0000')
-            android.util.Log.e("DiveComputerHost", "download error: $errorMsg")
+            NativeLogger.e(TAG, "LDC", "download error: $errorMsg")
             reportError("download_error", errorMsg)
         }
 

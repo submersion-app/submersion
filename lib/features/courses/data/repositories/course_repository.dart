@@ -32,7 +32,7 @@ class CourseRepository {
       final rows = await query.get();
       return rows.map(_mapRowToCourse).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get all courses', e, stackTrace);
+      _log.error('Failed to get all courses', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -45,7 +45,11 @@ class CourseRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToCourse(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get course by id: $id', e, stackTrace);
+      _log.error(
+        'Failed to get course by id: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -69,7 +73,11 @@ class CourseRepository {
       final rows = await query.get();
       return rows.map(_mapRowToCourse).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get in-progress courses', e, stackTrace);
+      _log.error(
+        'Failed to get in-progress courses',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -88,7 +96,11 @@ class CourseRepository {
       final rows = await query.get();
       return rows.map(_mapRowToCourse).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get completed courses', e, stackTrace);
+      _log.error(
+        'Failed to get completed courses',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -112,8 +124,8 @@ class CourseRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get courses by agency: ${agency.name}',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -136,7 +148,11 @@ class CourseRepository {
       if (results.isEmpty) return null;
       return _mapQueryRowToCourse(results.first);
     } catch (e, stackTrace) {
-      _log.error('Failed to get course for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to get course for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -169,8 +185,8 @@ class CourseRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get course for certification: $certificationId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -193,8 +209,8 @@ class CourseRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get dive count for course: $courseId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -265,7 +281,11 @@ class CourseRepository {
       _log.info('Created course with id: $id');
       return course.copyWith(id: id, createdAt: now, updatedAt: now);
     } catch (e, stackTrace) {
-      _log.error('Failed to create course: ${course.name}', e, stackTrace);
+      _log.error(
+        'Failed to create course: ${course.name}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -302,7 +322,11 @@ class CourseRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Updated course: ${course.id}');
     } catch (e, stackTrace) {
-      _log.error('Failed to update course: ${course.id}', e, stackTrace);
+      _log.error(
+        'Failed to update course: ${course.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -335,7 +359,11 @@ class CourseRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted course: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete course: $id', e, stackTrace);
+      _log.error(
+        'Failed to delete course: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -364,7 +392,11 @@ class CourseRepository {
       );
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
-      _log.error('Failed to link dive to course', e, stackTrace);
+      _log.error(
+        'Failed to link dive to course',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -389,7 +421,11 @@ class CourseRepository {
       );
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
-      _log.error('Failed to unlink dive from course', e, stackTrace);
+      _log.error(
+        'Failed to unlink dive from course',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -439,7 +475,11 @@ class CourseRepository {
       );
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
-      _log.error('Failed to link course to certification', e, stackTrace);
+      _log.error(
+        'Failed to link course to certification',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }

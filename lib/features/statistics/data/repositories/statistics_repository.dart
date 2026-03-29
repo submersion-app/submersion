@@ -98,7 +98,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get SAC volume trend', e, stackTrace);
+      _log.error(
+        'Failed to get SAC volume trend',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -144,7 +148,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get SAC pressure trend', e, stackTrace);
+      _log.error(
+        'Failed to get SAC pressure trend',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -187,7 +195,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get gas mix distribution', e, stackTrace);
+      _log.error(
+        'Failed to get gas mix distribution',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -236,7 +248,11 @@ class StatisticsRepository {
 
       return (best: mapRow(results.first), worst: mapRow(results.last));
     } catch (e, stackTrace) {
-      _log.error('Failed to get SAC volume records', e, stackTrace);
+      _log.error(
+        'Failed to get SAC volume records',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return (best: null, worst: null);
     }
   }
@@ -284,7 +300,11 @@ class StatisticsRepository {
 
       return (best: mapRow(results.first), worst: mapRow(results.last));
     } catch (e, stackTrace) {
-      _log.error('Failed to get SAC pressure records', e, stackTrace);
+      _log.error(
+        'Failed to get SAC pressure records',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return (best: null, worst: null);
     }
   }
@@ -328,7 +348,11 @@ class StatisticsRepository {
 
       return sacByRole;
     } catch (e, stackTrace) {
-      _log.error('Failed to get SAC by tank role', e, stackTrace);
+      _log.error(
+        'Failed to get SAC by tank role',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return {};
     }
   }
@@ -371,7 +395,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get dive type distribution', e, stackTrace);
+      _log.error(
+        'Failed to get dive type distribution',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -414,7 +442,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get depth progression trend', e, stackTrace);
+      _log.error(
+        'Failed to get depth progression trend',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -451,7 +483,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get bottom time trend', e, stackTrace);
+      _log.error(
+        'Failed to get bottom time trend',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -481,7 +517,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get dives per year', e, stackTrace);
+      _log.error(
+        'Failed to get dives per year',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -515,7 +555,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get cumulative dive count', e, stackTrace);
+      _log.error(
+        'Failed to get cumulative dive count',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -557,7 +601,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get visibility distribution', e, stackTrace);
+      _log.error(
+        'Failed to get visibility distribution',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -595,7 +643,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get water type distribution', e, stackTrace);
+      _log.error(
+        'Failed to get water type distribution',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -633,7 +685,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get entry method distribution', e, stackTrace);
+      _log.error(
+        'Failed to get entry method distribution',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -666,7 +722,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get temperature by month', e, stackTrace);
+      _log.error(
+        'Failed to get temperature by month',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -706,7 +766,7 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get top buddies', e, stackTrace);
+      _log.error('Failed to get top buddies', error: e, stackTrace: stackTrace);
       return [];
     }
   }
@@ -732,7 +792,11 @@ class StatisticsRepository {
         buddy: results.first.read<int?>('buddy') ?? 0,
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to get solo vs buddy count', e, stackTrace);
+      _log.error(
+        'Failed to get solo vs buddy count',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return (solo: 0, buddy: 0);
     }
   }
@@ -769,7 +833,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get top dive centers', e, stackTrace);
+      _log.error(
+        'Failed to get top dive centers',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -808,7 +876,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get countries visited', e, stackTrace);
+      _log.error(
+        'Failed to get countries visited',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -845,7 +917,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get regions explored', e, stackTrace);
+      _log.error(
+        'Failed to get regions explored',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -882,7 +958,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get dives per trip', e, stackTrace);
+      _log.error(
+        'Failed to get dives per trip',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -906,7 +986,11 @@ class StatisticsRepository {
 
       return results.first.read<int>('count');
     } catch (e, stackTrace) {
-      _log.error('Failed to get unique species count', e, stackTrace);
+      _log.error(
+        'Failed to get unique species count',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return 0;
     }
   }
@@ -944,7 +1028,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get most common sightings', e, stackTrace);
+      _log.error(
+        'Failed to get most common sightings',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -980,7 +1068,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get best sites for marine life', e, stackTrace);
+      _log.error(
+        'Failed to get best sites for marine life',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -1059,7 +1151,11 @@ class StatisticsRepository {
             : null,
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to get species statistics', e, stackTrace);
+      _log.error(
+        'Failed to get species statistics',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return SpeciesStatistics.empty;
     }
   }
@@ -1093,7 +1189,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get dives by day of week', e, stackTrace);
+      _log.error(
+        'Failed to get dives by day of week',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -1142,7 +1242,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get dives by time of day', e, stackTrace);
+      _log.error(
+        'Failed to get dives by time of day',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -1169,7 +1273,11 @@ class StatisticsRepository {
         return (month: row.read<int>('month'), count: row.read<int>('count'));
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get dives by season', e, stackTrace);
+      _log.error(
+        'Failed to get dives by season',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -1201,7 +1309,11 @@ class StatisticsRepository {
         maxMinutes: results.first.read<double?>('max_si'),
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to get surface interval stats', e, stackTrace);
+      _log.error(
+        'Failed to get surface interval stats',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return (avgMinutes: null, minMinutes: null, maxMinutes: null);
     }
   }
@@ -1246,7 +1358,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get most used gear', e, stackTrace);
+      _log.error(
+        'Failed to get most used gear',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -1284,7 +1400,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get weight trend', e, stackTrace);
+      _log.error(
+        'Failed to get weight trend',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -1316,7 +1436,11 @@ class StatisticsRepository {
         avgDescent: results.first.read<double?>('avg_descent'),
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to get ascent/descent rates', e, stackTrace);
+      _log.error(
+        'Failed to get ascent/descent rates',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return (avgAscent: null, avgDescent: null);
     }
   }
@@ -1363,7 +1487,11 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get time at depth ranges', e, stackTrace);
+      _log.error(
+        'Failed to get time at depth ranges',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -1391,7 +1519,11 @@ class StatisticsRepository {
         totalCount: results.first.read<int?>('total_count') ?? 0,
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to get deco obligation stats', e, stackTrace);
+      _log.error(
+        'Failed to get deco obligation stats',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return (decoCount: 0, totalCount: 0);
     }
   }

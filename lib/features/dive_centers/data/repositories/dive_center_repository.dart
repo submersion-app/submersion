@@ -28,7 +28,11 @@ class DiveCenterRepository {
       final rows = await query.get();
       return rows.map(_mapRowToDiveCenter).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get all dive centers', e, stackTrace);
+      _log.error(
+        'Failed to get all dive centers',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -41,7 +45,11 @@ class DiveCenterRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToDiveCenter(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get dive center by id: $id', e, stackTrace);
+      _log.error(
+        'Failed to get dive center by id: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -147,7 +155,11 @@ class DiveCenterRepository {
       _log.info('Created dive center with id: $id');
       return center.copyWith(id: id);
     } catch (e, stackTrace) {
-      _log.error('Failed to create dive center: ${center.name}', e, stackTrace);
+      _log.error(
+        'Failed to create dive center: ${center.name}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -187,7 +199,11 @@ class DiveCenterRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Updated dive center: ${center.id}');
     } catch (e, stackTrace) {
-      _log.error('Failed to update dive center: ${center.id}', e, stackTrace);
+      _log.error(
+        'Failed to update dive center: ${center.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -204,7 +220,11 @@ class DiveCenterRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted dive center: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete dive center: $id', e, stackTrace);
+      _log.error(
+        'Failed to delete dive center: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }

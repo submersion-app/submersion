@@ -29,6 +29,8 @@ import 'package:submersion/features/dive_import/presentation/providers/dive_impo
 import 'package:submersion/features/auto_update/domain/entities/update_channel.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
+import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
 
 /// Main settings page with master-detail layout on desktop.
 ///
@@ -99,6 +101,8 @@ class SettingsPage extends ConsumerWidget {
         return const _DataSourcesSectionContent();
       case 'about':
         return const _AboutSectionContent();
+      case 'debug':
+        return const DebugLogViewerPage();
       default:
         return Center(child: Text('Unknown section: $sectionId'));
     }
@@ -106,14 +110,31 @@ class SettingsPage extends ConsumerWidget {
 }
 
 /// Mobile content showing section list for navigation.
-class SettingsMobileContent extends StatelessWidget {
+class SettingsMobileContent extends ConsumerWidget {
   const SettingsMobileContent({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final debugEnabled = ref.watch(debugModeNotifierProvider);
     final sections = settingsSections
         .where((s) => s.id != 'dataSources' || Platform.isIOS)
         .toList();
+
+    // Insert Debug section just before About when debug mode is enabled
+    if (debugEnabled) {
+      final aboutIndex = sections.indexWhere((s) => s.id == 'about');
+      final insertIndex = aboutIndex >= 0 ? aboutIndex : sections.length;
+      sections.insert(
+        insertIndex,
+        const SettingsSection(
+          id: 'debug',
+          icon: Icons.bug_report_outlined,
+          title: 'Debug',
+          subtitle: 'Logs & diagnostics',
+          color: Colors.grey,
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settings_appBar_title)),
@@ -169,6 +190,7 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
       'data' => context.l10n.settings_section_data_title,
       'about' => context.l10n.settings_section_about_title,
       'dataSources' => context.l10n.settings_section_dataSources_title,
+      'debug' => 'Debug',
       _ => context.l10n.settings_appBar_title,
     };
   }
@@ -193,6 +215,8 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
         return const _DataSourcesSectionContent();
       case 'about':
         return const _AboutSectionContent();
+      case 'debug':
+        return const DebugLogViewerPage();
       default:
         return Center(child: Text('Unknown section: $sectionId'));
     }
@@ -2281,11 +2305,19 @@ class _DataSourcesSectionContent extends ConsumerWidget {
 /// When [UpdateChannelConfig.isAutoUpdateEnabled] is true (non-store builds),
 /// an Updates card is shown with check-for-update, auto-update toggle,
 /// and last-checked timestamp.
-class _AboutSectionContent extends ConsumerWidget {
+class _AboutSectionContent extends ConsumerStatefulWidget {
   const _AboutSectionContent();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AboutSectionContent> createState() =>
+      _AboutSectionContentState();
+}
+
+class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
+  int _tapCount = 0;
+
+  @override
+  Widget build(BuildContext context) {
     final packageInfoAsync = ref.watch(packageInfoProvider);
     final versionString = packageInfoAsync.when(
       data: (info) =>
@@ -2343,7 +2375,7 @@ class _AboutSectionContent extends ConsumerWidget {
             const SizedBox(height: 24),
             _buildSectionHeader(context, 'Updates'),
             const SizedBox(height: 8),
-            _buildUpdatesCard(context, ref),
+            _buildUpdatesCard(context),
           ],
           const SizedBox(height: 24),
           // App info card
@@ -2364,10 +2396,25 @@ class _AboutSectionContent extends ConsumerWidget {
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  versionString,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                GestureDetector(
+                  onTap: () {
+                    _tapCount++;
+                    if (_tapCount >= 5) {
+                      _tapCount = 0;
+                      ref.read(debugModeNotifierProvider.notifier).enable();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Debug mode enabled'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  child: Text(
+                    versionString,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],
@@ -2378,7 +2425,7 @@ class _AboutSectionContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildUpdatesCard(BuildContext context, WidgetRef ref) {
+  Widget _buildUpdatesCard(BuildContext context) {
     final updateStatus = ref.watch(updateStatusProvider);
     final prefs = ref.watch(updatePreferencesProvider);
 

@@ -31,7 +31,7 @@ class SiteRepository {
         return rows.map(_mapRowToSite).toList();
       });
     } catch (e, stackTrace) {
-      _log.error('Failed to get all sites', e, stackTrace);
+      _log.error('Failed to get all sites', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -44,7 +44,11 @@ class SiteRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToSite(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get site by id: $id', e, stackTrace);
+      _log.error(
+        'Failed to get site by id: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -93,7 +97,11 @@ class SiteRepository {
       _log.info('Created site with id: $id');
       return site.copyWith(id: id);
     } catch (e, stackTrace) {
-      _log.error('Failed to create site: ${site.name}', e, stackTrace);
+      _log.error(
+        'Failed to create site: ${site.name}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -135,7 +143,11 @@ class SiteRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Updated site: ${site.id}');
     } catch (e, stackTrace) {
-      _log.error('Failed to update site: ${site.id}', e, stackTrace);
+      _log.error(
+        'Failed to update site: ${site.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -149,7 +161,11 @@ class SiteRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted site: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete site: $id', e, stackTrace);
+      _log.error(
+        'Failed to delete site: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -162,7 +178,11 @@ class SiteRepository {
       final rows = await query.get();
       return rows.map(_mapRowToSite).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get sites by ids', e, stackTrace);
+      _log.error(
+        'Failed to get sites by ids',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -182,7 +202,11 @@ class SiteRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk deleted ${ids.length} sites');
     } catch (e, stackTrace) {
-      _log.error('Failed to bulk delete sites', e, stackTrace);
+      _log.error(
+        'Failed to bulk delete sites',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -326,7 +350,11 @@ class SiteRepository {
         survivorTimestamps: siteTimestamps[survivorId],
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to merge sites: $siteIds', e, stackTrace);
+      _log.error(
+        'Failed to merge sites: $siteIds',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -458,7 +486,7 @@ class SiteRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Undo merge complete');
     } catch (e, stackTrace) {
-      _log.error('Failed to undo merge', e, stackTrace);
+      _log.error('Failed to undo merge', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -487,7 +515,11 @@ class SiteRepository {
         return rows.map(_mapRowToSite).toList();
       });
     } catch (e, stackTrace) {
-      _log.error('Failed to search sites: $query', e, stackTrace);
+      _log.error(
+        'Failed to search sites: $query',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -507,7 +539,11 @@ class SiteRepository {
           row.data['site_id'] as String: row.data['dive_count'] as int,
       };
     } catch (e, stackTrace) {
-      _log.error('Failed to get dive counts by site', e, stackTrace);
+      _log.error(
+        'Failed to get dive counts by site',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -532,7 +568,11 @@ class SiteRepository {
           ..sort((a, b) => b.diveCount.compareTo(a.diveCount));
       });
     } catch (e, stackTrace) {
-      _log.error('Failed to get sites with dive counts', e, stackTrace);
+      _log.error(
+        'Failed to get sites with dive counts',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }

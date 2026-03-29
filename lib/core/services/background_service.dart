@@ -39,7 +39,11 @@ void callbackDispatcher() {
       log.info('Background task completed: $task');
       return true;
     } catch (e, stackTrace) {
-      log.error('Background task failed: $task', e, stackTrace);
+      log.error(
+        'Background task failed: $task',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return false;
     }
   });
@@ -97,7 +101,7 @@ Future<void> _performScheduledBackup(LoggerService log) async {
     log.info('Automatic backup completed: ${record.filename}');
     await NotificationService.instance.showBackupNotification(success: true);
   } catch (e, stack) {
-    log.error('Automatic backup failed', e, stack);
+    log.error('Automatic backup failed', error: e, stackTrace: stack);
     await NotificationService.instance.showBackupNotification(
       success: false,
       error: e.toString(),

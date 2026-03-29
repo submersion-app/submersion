@@ -262,7 +262,7 @@ class SyncDataSerializer {
     try {
       return await loader();
     } catch (e, stackTrace) {
-      _log.error('Export failed for $label', e, stackTrace);
+      _log.error('Export failed for $label', error: e, stackTrace: stackTrace);
       throw Exception('Export failed for $label: $e');
     }
   }
@@ -411,7 +411,11 @@ class SyncDataSerializer {
         deletions: deletionMap,
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to export sync data', e, stackTrace);
+      _log.error(
+        'Failed to export sync data',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }

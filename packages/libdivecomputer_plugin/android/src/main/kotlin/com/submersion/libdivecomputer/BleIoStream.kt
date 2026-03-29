@@ -12,7 +12,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
-import android.util.Log
 import java.util.UUID
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.Semaphore
@@ -84,13 +83,13 @@ class BleIoStream(
             } else {
                 connected = false
                 lastDisconnectStatus = status
-                Log.d(TAG, "onConnectionStateChange: disconnected status=$status")
+                NativeLogger.d(TAG, "BLE", "onConnectionStateChange: disconnected status=$status")
                 connectSemaphore.release()
             }
         }
 
         override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
-            Log.d(TAG, "onMtuChanged: mtu=$mtu status=$status")
+            NativeLogger.d(TAG, "BLE", "onMtuChanged: mtu=$mtu status=$status")
             // MTU negotiation complete; now discover services.
             gatt.discoverServices()
         }
@@ -111,7 +110,7 @@ class BleIoStream(
             var bestNotify: BluetoothGattCharacteristic? = null
 
             for (service in gatt.services) {
-                Log.d(TAG, "Service: ${service.uuid}")
+                NativeLogger.d(TAG, "BLE", "Service: ${service.uuid}")
                 var serviceWrite: BluetoothGattCharacteristic? = null
                 var serviceWriteScore = -1
                 var serviceNotify: BluetoothGattCharacteristic? = null
@@ -119,7 +118,7 @@ class BleIoStream(
 
                 for (char in service.characteristics) {
                     val props = char.properties
-                    Log.d(TAG, "  Char: ${char.uuid} props=0x${props.toString(16)} descriptors=${char.descriptors.size}")
+                    NativeLogger.d(TAG, "BLE", "  Char: ${char.uuid} props=0x${props.toString(16)} descriptors=${char.descriptors.size}")
 
                     // Score write candidates.
                     if (props and BluetoothGattCharacteristic.PROPERTY_WRITE != 0 ||
@@ -163,12 +162,12 @@ class BleIoStream(
 
             var startedDescriptorWrite = false
             if (bestWrite != null && bestNotify != null) {
-                Log.d(TAG, "Data service selected (score=$bestServiceScore)")
-                Log.d(TAG, "  write=${bestWrite.uuid} notify=${bestNotify.uuid}")
+                NativeLogger.d(TAG, "BLE", "Data service selected (score=$bestServiceScore)")
+                NativeLogger.d(TAG, "BLE", "  write=${bestWrite.uuid} notify=${bestNotify.uuid}")
                 writeCharacteristic = bestWrite
                 gatt.setCharacteristicNotification(bestNotify, true)
                 val descriptor = bestNotify.getDescriptor(CCCD_UUID)
-                Log.d(TAG, "  CCCD descriptor: ${descriptor?.uuid ?: "NULL"}")
+                NativeLogger.d(TAG, "BLE", "  CCCD descriptor: ${descriptor?.uuid ?: "NULL"}")
                 if (descriptor != null) {
                     // Use ENABLE_INDICATION_VALUE for INDICATE-only chars,
                     // ENABLE_NOTIFICATION_VALUE otherwise.
@@ -181,7 +180,7 @@ class BleIoStream(
                         BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
                     }
                     startedDescriptorWrite = gatt.writeDescriptor(descriptor)
-                    Log.d(TAG, "  writeDescriptor returned: $startedDescriptorWrite")
+                    NativeLogger.d(TAG, "BLE", "  writeDescriptor returned: $startedDescriptorWrite")
                 }
             }
 
@@ -199,7 +198,7 @@ class BleIoStream(
             descriptor: BluetoothGattDescriptor,
             status: Int
         ) {
-            Log.d(TAG, "onDescriptorWrite: ${descriptor.uuid} status=$status")
+            NativeLogger.d(TAG, "BLE", "onDescriptorWrite: ${descriptor.uuid} status=$status")
             // CCCD write completed; notification subscription is active
             // on the remote device and GATT is free for I/O.
             connectSemaphore.release()
@@ -212,7 +211,7 @@ class BleIoStream(
             characteristic: BluetoothGattCharacteristic,
             value: ByteArray
         ) {
-            Log.d(TAG, "onCharacteristicChanged(API33+): ${value.size} bytes")
+            NativeLogger.d(TAG, "BLE", "onCharacteristicChanged(API33+): ${value.size} bytes")
             readQueue.offer(value)
         }
 
@@ -223,7 +222,7 @@ class BleIoStream(
             characteristic: BluetoothGattCharacteristic
         ) {
             val value = characteristic.value ?: return
-            Log.d(TAG, "onCharacteristicChanged(legacy): ${value.size} bytes")
+            NativeLogger.d(TAG, "BLE", "onCharacteristicChanged(legacy): ${value.size} bytes")
             readQueue.offer(value)
         }
 
@@ -248,11 +247,11 @@ class BleIoStream(
     fun connectAndDiscover(): Boolean {
         gatt = device.connectGatt(context, false, gattCallback)
         if (!connectSemaphore.tryAcquire(15, TimeUnit.SECONDS)) {
-            Log.e(TAG, "connectAndDiscover: semaphore timeout")
+            NativeLogger.e(TAG, "BLE", "connectAndDiscover: semaphore timeout")
             return false
         }
         val ok = connected && writeCharacteristic != null
-        Log.d(TAG, "connectAndDiscover: connected=$connected writeChar=${writeCharacteristic?.uuid} result=$ok")
+        NativeLogger.d(TAG, "BLE", "connectAndDiscover: connected=$connected writeChar=${writeCharacteristic?.uuid} result=$ok")
         return ok
     }
 
@@ -264,11 +263,11 @@ class BleIoStream(
     // because many BLE peripherals ignore pairing requests without one.
     fun ensureBonded(): Boolean {
         if (device.bondState == BluetoothDevice.BOND_BONDED) {
-            Log.d(TAG, "ensureBonded: already bonded")
+            NativeLogger.d(TAG, "BLE", "ensureBonded: already bonded")
             return true
         }
 
-        Log.d(TAG, "ensureBonded: initiating bonding for ${device.address}")
+        NativeLogger.d(TAG, "BLE", "ensureBonded: initiating bonding for ${device.address}")
         val bondSemaphore = Semaphore(0)
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context, intent: Intent) {
@@ -288,7 +287,7 @@ class BleIoStream(
                     BluetoothDevice.EXTRA_BOND_STATE,
                     BluetoothDevice.BOND_NONE
                 )
-                Log.d(TAG, "ensureBonded: bond state changed to $state")
+                NativeLogger.d(TAG, "BLE", "ensureBonded: bond state changed to $state")
                 if (state == BluetoothDevice.BOND_BONDED ||
                     state == BluetoothDevice.BOND_NONE
                 ) {
@@ -306,19 +305,19 @@ class BleIoStream(
 
         try {
             if (!device.createBond()) {
-                Log.e(TAG, "ensureBonded: createBond() returned false")
+                NativeLogger.e(TAG, "BLE", "ensureBonded: createBond() returned false")
                 return false
             }
             // 30s timeout: user needs time to interact with pairing dialog.
             if (!bondSemaphore.tryAcquire(30, TimeUnit.SECONDS)) {
-                Log.e(TAG, "ensureBonded: timeout waiting for bonding")
+                NativeLogger.e(TAG, "BLE", "ensureBonded: timeout waiting for bonding")
                 return false
             }
             val bonded = device.bondState == BluetoothDevice.BOND_BONDED
-            Log.d(TAG, "ensureBonded: result=$bonded")
+            NativeLogger.d(TAG, "BLE", "ensureBonded: result=$bonded")
             return bonded
         } catch (e: Exception) {
-            Log.e(TAG, "ensureBonded: failed", e)
+            NativeLogger.e(TAG, "BLE", "ensureBonded: failed: ${e.message}")
             return false
         } finally {
             context.unregisterReceiver(receiver)
@@ -330,11 +329,11 @@ class BleIoStream(
     // Uses reflection because BluetoothDevice.removeBond() is hidden API.
     fun removeBond(): Boolean {
         if (device.bondState != BluetoothDevice.BOND_BONDED) {
-            Log.d(TAG, "removeBond: not bonded, nothing to remove")
+            NativeLogger.d(TAG, "BLE", "removeBond: not bonded, nothing to remove")
             return true
         }
 
-        Log.d(TAG, "removeBond: removing bond for ${device.address}")
+        NativeLogger.d(TAG, "BLE", "removeBond: removing bond for ${device.address}")
         val bondSemaphore = Semaphore(0)
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context, intent: Intent) {
@@ -354,7 +353,7 @@ class BleIoStream(
                     BluetoothDevice.EXTRA_BOND_STATE,
                     BluetoothDevice.BOND_NONE
                 )
-                Log.d(TAG, "removeBond: bond state changed to $state")
+                NativeLogger.d(TAG, "BLE", "removeBond: bond state changed to $state")
                 if (state == BluetoothDevice.BOND_NONE) {
                     bondSemaphore.release()
                 }
@@ -372,18 +371,18 @@ class BleIoStream(
             val method = device.javaClass.getMethod("removeBond")
             val result = method.invoke(device) as Boolean
             if (!result) {
-                Log.e(TAG, "removeBond: removeBond() returned false")
+                NativeLogger.e(TAG, "BLE", "removeBond: removeBond() returned false")
                 return false
             }
             if (!bondSemaphore.tryAcquire(5, TimeUnit.SECONDS)) {
-                Log.e(TAG, "removeBond: timeout waiting for bond removal")
+                NativeLogger.e(TAG, "BLE", "removeBond: timeout waiting for bond removal")
                 return false
             }
             val removed = device.bondState == BluetoothDevice.BOND_NONE
-            Log.d(TAG, "removeBond: result=$removed")
+            NativeLogger.d(TAG, "BLE", "removeBond: result=$removed")
             return removed
         } catch (e: Exception) {
-            Log.e(TAG, "removeBond: failed", e)
+            NativeLogger.e(TAG, "BLE", "removeBond: failed: ${e.message}")
             return false
         } finally {
             context.unregisterReceiver(receiver)
@@ -393,7 +392,7 @@ class BleIoStream(
     // BleIoHandler implementation - called from native code via JNI.
 
     override fun read(size: Int, timeoutMs: Int): ByteArray? {
-        Log.d(TAG, "read: size=$size timeout=$timeoutMs")
+        NativeLogger.d(TAG, "BLE", "read: size=$size timeout=$timeoutMs")
 
         // Return leftover data from a previous notification first.
         if (readBuffer.isNotEmpty()) {
@@ -420,15 +419,15 @@ class BleIoStream(
 
     override fun write(data: ByteArray, timeoutMs: Int): Int {
         val char = writeCharacteristic ?: run {
-            Log.e(TAG, "write: writeCharacteristic is null")
+            NativeLogger.e(TAG, "BLE", "write: writeCharacteristic is null")
             return -1
         }
         val g = gatt ?: run {
-            Log.e(TAG, "write: gatt is null")
+            NativeLogger.e(TAG, "BLE", "write: gatt is null")
             return -1
         }
 
-        Log.d(TAG, "write: ${data.size} bytes, timeout=$timeoutMs")
+        NativeLogger.d(TAG, "BLE", "write: ${data.size} bytes, timeout=$timeoutMs")
         char.value = data
         // Use WRITE_NO_RESPONSE when supported. Many BLE dive computers
         // (including Shearwater) only process WRITE_NO_RESPONSE at the
@@ -443,7 +442,7 @@ class BleIoStream(
         }
 
         if (!g.writeCharacteristic(char)) {
-            Log.e(TAG, "write: writeCharacteristic() returned false")
+            NativeLogger.e(TAG, "BLE", "write: writeCharacteristic() returned false")
             return -1
         }
 
@@ -474,7 +473,7 @@ class BleIoStream(
 
     override fun onPinCodeRequired(address: String): String {
         val deviceAddress = device.address
-        Log.d(TAG, "PIN code requested for $deviceAddress")
+        NativeLogger.d(TAG, "BLE", "PIN code requested for $deviceAddress")
         pendingPinCode = null
 
         // Dispatch callback to main thread BEFORE blocking.
@@ -488,7 +487,7 @@ class BleIoStream(
         // Block until submitPinCode() is called (60s timeout).
         val acquired = pinSemaphore.tryAcquire(60, TimeUnit.SECONDS)
         if (!acquired) {
-            Log.w(TAG, "PIN entry timed out")
+            NativeLogger.w(TAG, "BLE", "PIN entry timed out")
             return ""
         }
 

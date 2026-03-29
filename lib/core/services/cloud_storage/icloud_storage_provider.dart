@@ -127,7 +127,7 @@ class ICloudStorageProvider
 
       return null;
     } catch (e) {
-      _log.error('Failed to get iCloud container', e, null);
+      _log.error('Failed to get iCloud container', error: e);
       return null;
     }
   }
@@ -169,7 +169,7 @@ class ICloudStorageProvider
       _log.info('uploadFile: SUCCESS - $filePath');
       return UploadResult(fileId: filePath, uploadTime: DateTime.now());
     } catch (e, stackTrace) {
-      _log.error('uploadFile: FAILED - $e', e, stackTrace);
+      _log.error('uploadFile: FAILED - $e', error: e, stackTrace: stackTrace);
       throw CloudStorageException('Upload failed: $e', e, stackTrace);
     }
   }
@@ -193,7 +193,11 @@ class ICloudStorageProvider
 
       return data;
     } catch (e, stackTrace) {
-      _log.error('Failed to download file from iCloud: $fileId', e, stackTrace);
+      _log.error(
+        'Failed to download file from iCloud: $fileId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       throw CloudStorageException('Download failed: $e', e, stackTrace);
     }
   }
@@ -268,7 +272,11 @@ class ICloudStorageProvider
 
       return files;
     } catch (e, stackTrace) {
-      _log.error('Failed to list files in iCloud', e, stackTrace);
+      _log.error(
+        'Failed to list files in iCloud',
+        error: e,
+        stackTrace: stackTrace,
+      );
       throw CloudStorageException('List files failed: $e', e, stackTrace);
     }
   }
@@ -283,7 +291,11 @@ class ICloudStorageProvider
         _log.info('Deleted file from iCloud: $fileId');
       }
     } catch (e, stackTrace) {
-      _log.error('Failed to delete file from iCloud: $fileId', e, stackTrace);
+      _log.error(
+        'Failed to delete file from iCloud: $fileId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       throw CloudStorageException('Delete failed: $e', e, stackTrace);
     }
   }
@@ -321,8 +333,8 @@ class ICloudStorageProvider
     } catch (e, stackTrace) {
       _log.error(
         'Failed to create folder in iCloud: $folderName',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       throw CloudStorageException('Create folder failed: $e', e, stackTrace);
     }

@@ -104,7 +104,11 @@ class BackupService {
         location = BackupLocation.both;
         _log.info('Backup uploaded to cloud: $cloudFileId');
       } catch (e, stack) {
-        _log.error('Cloud upload failed, backup is local-only', e, stack);
+        _log.error(
+          'Cloud upload failed, backup is local-only',
+          error: e,
+          stackTrace: stack,
+        );
         // Local backup still succeeded — continue with local-only
       }
     }
@@ -364,7 +368,7 @@ class BackupService {
         await _cloudProvider.deleteFile(record.cloudFileId!);
         _log.info('Deleted cloud file: ${record.cloudFileId}');
       } catch (e, stack) {
-        _log.error('Failed to delete cloud file', e, stack);
+        _log.error('Failed to delete cloud file', error: e, stackTrace: stack);
         // Continue with removing the record even if cloud delete fails
       }
     }
@@ -410,7 +414,7 @@ class BackupService {
       files.sort((a, b) => b.modifiedTime.compareTo(a.modifiedTime));
       return files;
     } catch (e, stack) {
-      _log.error('Failed to list cloud backups', e, stack);
+      _log.error('Failed to list cloud backups', error: e, stackTrace: stack);
       return [];
     }
   }
@@ -466,7 +470,7 @@ class BackupService {
         siteCount: siteResult.read<int>('c'),
       );
     } catch (e) {
-      _log.error('Failed to get counts, using 0', e);
+      _log.error('Failed to get counts, using 0', error: e);
       return (diveCount: 0, siteCount: 0);
     }
   }
@@ -504,7 +508,11 @@ class BackupService {
     try {
       return await _cloudProvider.createFolder(_cloudBackupFolder);
     } catch (e, stack) {
-      _log.error('Failed to get/create cloud backup folder', e, stack);
+      _log.error(
+        'Failed to get/create cloud backup folder',
+        error: e,
+        stackTrace: stack,
+      );
       return null;
     }
   }

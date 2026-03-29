@@ -174,7 +174,11 @@ class LocationService {
         locality: locality,
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to get current location', e, stackTrace);
+      _log.error(
+        'Failed to get current location',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return null;
     }
   }
@@ -214,7 +218,7 @@ class LocationService {
       // Fallback to OpenStreetMap Nominatim API (works on all platforms)
       return await _reverseGeocodeWeb(latitude, longitude);
     } catch (e, stackTrace) {
-      _log.error('Reverse geocoding failed', e, stackTrace);
+      _log.error('Reverse geocoding failed', error: e, stackTrace: stackTrace);
       return (country: null, region: null, locality: null);
     }
   }
@@ -320,7 +324,7 @@ class LocationService {
       _log.warning('Forward geocoding returned no results for: $address');
       return null;
     } catch (e, stackTrace) {
-      _log.error('Forward geocoding failed', e, stackTrace);
+      _log.error('Forward geocoding failed', error: e, stackTrace: stackTrace);
       return null;
     }
   }

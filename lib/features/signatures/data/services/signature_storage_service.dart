@@ -74,7 +74,11 @@ class SignatureStorageService {
         signedAt: now,
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to save signature for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to save signature for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -96,7 +100,11 @@ class SignatureStorageService {
 
       return _mapRowToSignature(row);
     } catch (e, stackTrace) {
-      _log.error('Failed to get signature for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to get signature for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -123,8 +131,8 @@ class SignatureStorageService {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get signatures for course: $courseId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -148,7 +156,11 @@ class SignatureStorageService {
 
       _log.info('Deleted signature: $signatureId');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete signature: $signatureId', e, stackTrace);
+      _log.error(
+        'Failed to delete signature: $signatureId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -166,7 +178,11 @@ class SignatureStorageService {
       final row = await query.getSingleOrNull();
       return row != null;
     } catch (e, stackTrace) {
-      _log.error('Failed to check signature for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to check signature for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -225,8 +241,8 @@ class SignatureStorageService {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to save buddy signature for dive: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -246,8 +262,8 @@ class SignatureStorageService {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get buddy signatures for dive: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -270,8 +286,8 @@ class SignatureStorageService {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all signatures for dive: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -294,8 +310,8 @@ class SignatureStorageService {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to check if buddy signed dive: $diveId, $buddyId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }

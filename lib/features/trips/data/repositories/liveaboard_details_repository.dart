@@ -30,8 +30,8 @@ class LiveaboardDetailsRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get liveaboard details for trip: $tripId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -118,7 +118,11 @@ class LiveaboardDetailsRepository {
         return details.copyWith(id: id, createdAt: now, updatedAt: now);
       }
     } catch (e, stackTrace) {
-      _log.error('Failed to create/update liveaboard details', e, stackTrace);
+      _log.error(
+        'Failed to create/update liveaboard details',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -147,8 +151,8 @@ class LiveaboardDetailsRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to delete liveaboard details for trip: $tripId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }

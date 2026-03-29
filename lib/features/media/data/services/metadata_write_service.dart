@@ -175,10 +175,10 @@ class MetadataWriteService {
         );
       }
     } on PlatformException catch (e) {
-      _log.error('Platform exception writing metadata', e);
+      _log.error('Platform exception writing metadata', error: e);
       throw MetadataWriteException(_parseErrorMessage(e), cause: e);
     } catch (e) {
-      _log.error('Unexpected error writing metadata', e);
+      _log.error('Unexpected error writing metadata', error: e);
       throw MetadataWriteException(
         'An unexpected error occurred: ${e.toString()}',
         cause: e,

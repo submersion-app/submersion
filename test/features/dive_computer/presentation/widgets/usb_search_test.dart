@@ -90,6 +90,11 @@ class _FakeDiveComputerService implements pigeon.DiveComputerService {
   @override
   void onPinCodeRequired(String deviceAddress) {}
   @override
+  void onLogEvent(String category, String level, String message) {}
+  @override
+  Stream<({String category, String level, String message})> get logEvents =>
+      const Stream.empty();
+  @override
   void dispose() {}
 }
 

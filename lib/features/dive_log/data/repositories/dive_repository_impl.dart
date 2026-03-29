@@ -189,7 +189,7 @@ class DiveRepository {
             .toList();
       });
     } catch (e, stackTrace) {
-      _log.error('Failed to get all dives', e, stackTrace);
+      _log.error('Failed to get all dives', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -206,7 +206,11 @@ class DiveRepository {
         return _mapRowToDive(row);
       });
     } catch (e, stackTrace) {
-      _log.error('Failed to get dive by id: $id', e, stackTrace);
+      _log.error(
+        'Failed to get dive by id: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -242,7 +246,11 @@ class DiveRepository {
             .toList();
       });
     } catch (e, stackTrace) {
-      _log.error('Failed to get profile for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to get profile for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -326,8 +334,8 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to save edited profile for dive: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -388,8 +396,8 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get profiles by source for dive: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       return {};
     }
@@ -451,8 +459,8 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to restore original profile for dive: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -510,7 +518,11 @@ class DiveRepository {
         return result;
       });
     } catch (e, stackTrace) {
-      _log.error('Failed to get batch profiles', e, stackTrace);
+      _log.error(
+        'Failed to get batch profiles',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return {};
     }
   }
@@ -727,7 +739,7 @@ class DiveRepository {
       _log.info('Created dive with id: $id');
       return dive.copyWith(id: id);
     } catch (e, stackTrace) {
-      _log.error('Failed to create dive', e, stackTrace);
+      _log.error('Failed to create dive', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -975,7 +987,11 @@ class DiveRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Updated dive: ${dive.id}');
     } catch (e, stackTrace) {
-      _log.error('Failed to update dive: ${dive.id}', e, stackTrace);
+      _log.error(
+        'Failed to update dive: ${dive.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -989,7 +1005,11 @@ class DiveRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted dive: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete dive: $id', e, stackTrace);
+      _log.error(
+        'Failed to delete dive: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -1009,7 +1029,11 @@ class DiveRepository {
       _log.info('Bulk deleted ${ids.length} dives');
       return ids;
     } catch (e, stackTrace) {
-      _log.error('Failed to bulk delete dives', e, stackTrace);
+      _log.error(
+        'Failed to bulk delete dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -1029,7 +1053,11 @@ class DiveRepository {
       final rows = await query.get();
       return Future.wait(rows.map(_mapRowToDive));
     } catch (e, stackTrace) {
-      _log.error('Failed to get dives by ids', e, stackTrace);
+      _log.error(
+        'Failed to get dives by ids',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -1162,7 +1190,11 @@ class DiveRepository {
         }).toList();
       });
     } catch (e, stackTrace) {
-      _log.error('Failed to get dive summaries', e, stackTrace);
+      _log.error(
+        'Failed to get dive summaries',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -1200,7 +1232,7 @@ class DiveRepository {
         return result.read<int>('count');
       });
     } catch (e, stackTrace) {
-      _log.error('Failed to get dive count', e, stackTrace);
+      _log.error('Failed to get dive count', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -1389,7 +1421,11 @@ class DiveRepository {
       final rows = await query.get();
       return Future.wait(rows.map(_mapRowToDive));
     } catch (e, stackTrace) {
-      _log.error('Failed to get dives for site: $siteId', e, stackTrace);
+      _log.error(
+        'Failed to get dives for site: $siteId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -1407,7 +1443,11 @@ class DiveRepository {
       final rows = await query.get();
       return Future.wait(rows.map(_mapRowToDive));
     } catch (e, stackTrace) {
-      _log.error('Failed to get dives for course: $courseId', e, stackTrace);
+      _log.error(
+        'Failed to get dives for course: $courseId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -1442,7 +1482,11 @@ class DiveRepository {
       final rows = await query.get();
       return Future.wait(rows.map(_mapRowToDive));
     } catch (e, stackTrace) {
-      _log.error('Failed to get dives in range: $start - $end', e, stackTrace);
+      _log.error(
+        'Failed to get dives in range: $start - $end',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -1473,7 +1517,11 @@ class DiveRepository {
       final maxNum = result.data['max_num'] as int?;
       return (maxNum ?? 0) + 1;
     } catch (e, stackTrace) {
-      _log.error('Failed to get next dive number', e, stackTrace);
+      _log.error(
+        'Failed to get next dive number',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -1563,7 +1611,11 @@ class DiveRepository {
 
       return Future.wait(rows.map(_mapRowToDive));
     } catch (e, stackTrace) {
-      _log.error('Failed to search dives: $query', e, stackTrace);
+      _log.error(
+        'Failed to search dives: $query',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -1703,7 +1755,7 @@ class DiveRepository {
         topSites: topSites,
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to get statistics', e, stackTrace);
+      _log.error('Failed to get statistics', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -1808,7 +1860,11 @@ class DiveRepository {
             : null,
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to get dive records', e, stackTrace);
+      _log.error(
+        'Failed to get dive records',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -2513,7 +2569,11 @@ class DiveRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Toggled favorite for dive: $diveId');
     } catch (e, stackTrace) {
-      _log.error('Failed to toggle favorite for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to toggle favorite for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -2534,7 +2594,11 @@ class DiveRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Set favorite=$isFavorite for dive: $diveId');
     } catch (e, stackTrace) {
-      _log.error('Failed to set favorite for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to set favorite for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -2556,7 +2620,11 @@ class DiveRepository {
       final rows = await query.get();
       return Future.wait(rows.map(_mapRowToDive));
     } catch (e, stackTrace) {
-      _log.error('Failed to get favorite dives', e, stackTrace);
+      _log.error(
+        'Failed to get favorite dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -2581,7 +2649,11 @@ class DiveRepository {
       final rows = await query.get();
       return Future.wait(rows.map(_mapRowToDive));
     } catch (e, stackTrace) {
-      _log.error('Failed to get planned dives', e, stackTrace);
+      _log.error(
+        'Failed to get planned dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -2593,7 +2665,11 @@ class DiveRepository {
       final plannedDive = plan.copyWith(isPlanned: true);
       return createDive(plannedDive);
     } catch (e, stackTrace) {
-      _log.error('Failed to create planned dive', e, stackTrace);
+      _log.error(
+        'Failed to create planned dive',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -2645,7 +2721,11 @@ class DiveRepository {
       _log.info('Converted planned dive to actual: $planId');
       return planId;
     } catch (e, stackTrace) {
-      _log.error('Failed to convert planned dive: $planId', e, stackTrace);
+      _log.error(
+        'Failed to convert planned dive: $planId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -2669,7 +2749,11 @@ class DiveRepository {
       await deleteDive(planId);
       _log.info('Deleted planned dive: $planId');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete planned dive: $planId', e, stackTrace);
+      _log.error(
+        'Failed to delete planned dive: $planId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -2695,7 +2779,11 @@ class DiveRepository {
           )
           .toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to load weights for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to load weights for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -2709,8 +2797,8 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to load custom fields for dive: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       return [];
     }
@@ -2756,7 +2844,11 @@ class DiveRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get gas switches for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to get gas switches for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -2802,7 +2894,11 @@ class DiveRepository {
       _log.info('Created gas switch for dive: ${gasSwitch.diveId}');
       return gasSwitch.copyWith(id: id);
     } catch (e, stackTrace) {
-      _log.error('Failed to create gas switch', e, stackTrace);
+      _log.error(
+        'Failed to create gas switch',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -2832,7 +2928,11 @@ class DiveRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted gas switch: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete gas switch: $id', e, stackTrace);
+      _log.error(
+        'Failed to delete gas switch: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -2866,8 +2966,8 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to delete gas switches for dive: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -2914,7 +3014,11 @@ class DiveRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Inserted ${switches.length} gas switches');
     } catch (e, stackTrace) {
-      _log.error('Failed to bulk insert gas switches', e, stackTrace);
+      _log.error(
+        'Failed to bulk insert gas switches',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -2955,7 +3059,11 @@ class DiveRepository {
 
       return _mapRowToDive(rows.first);
     } catch (e, stackTrace) {
-      _log.error('Failed to get previous dive for: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to get previous dive for: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return null;
     }
   }
@@ -2983,8 +3091,8 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to calculate surface interval for: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       return null;
     }
@@ -3055,7 +3163,11 @@ class DiveRepository {
         hasUnnumbered: dives.any((d) => d.currentNumber == null),
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to get dive numbering info', e, stackTrace);
+      _log.error(
+        'Failed to get dive numbering info',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -3091,7 +3203,7 @@ class DiveRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Renumbered ${rows.length} dives');
     } catch (e, stackTrace) {
-      _log.error('Failed to renumber dives', e, stackTrace);
+      _log.error('Failed to renumber dives', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -3121,7 +3233,11 @@ class DiveRepository {
         'Dive numbers assigned chronologically starting from $startFrom',
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to assign missing dive numbers', e, stackTrace);
+      _log.error(
+        'Failed to assign missing dive numbers',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -3149,7 +3265,11 @@ class DiveRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk updated trip for ${diveIds.length} dives');
     } catch (e, stackTrace) {
-      _log.error('Failed to bulk update trip', e, stackTrace);
+      _log.error(
+        'Failed to bulk update trip',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -3193,7 +3313,7 @@ class DiveRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk added ${tagIds.length} tags to ${diveIds.length} dives');
     } catch (e, stackTrace) {
-      _log.error('Failed to bulk add tags', e, stackTrace);
+      _log.error('Failed to bulk add tags', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -3231,7 +3351,11 @@ class DiveRepository {
         'Bulk removed ${tagIds.length} tags from ${diveIds.length} dives',
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to bulk remove tags', e, stackTrace);
+      _log.error(
+        'Failed to bulk remove tags',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -3267,8 +3391,8 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get computer readings for dive: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -3287,8 +3411,8 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to check multiple computers for dive: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -3300,7 +3424,11 @@ class DiveRepository {
       await _db.into(_db.diveDataSources).insert(reading);
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
-      _log.error('Failed to save computer reading', e, stackTrace);
+      _log.error(
+        'Failed to save computer reading',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -3313,7 +3441,11 @@ class DiveRepository {
       )..where((t) => t.id.equals(id))).go();
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
-      _log.error('Failed to delete computer reading: $id', e, stackTrace);
+      _log.error(
+        'Failed to delete computer reading: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -3383,8 +3515,8 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to backfill primary computer reading for dive: $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -3434,8 +3566,8 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to consolidate computer for dive: $targetDiveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -3525,8 +3657,8 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to merge dive $secondaryDiveId into $primaryDiveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -3667,8 +3799,8 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to unlink computer $computerReadingId from dive $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -3742,8 +3874,8 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to set primary computer $computerReadingId for dive $diveId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }

@@ -227,8 +227,8 @@ class ExifWriteService {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to write EXIF metadata to: $platformAssetId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
 
       // Provide helpful error message based on common failure modes
@@ -282,7 +282,7 @@ class ExifWriteService {
 
       return attributes;
     } catch (e) {
-      _log.error('Failed to read EXIF data: $platformAssetId', e);
+      _log.error('Failed to read EXIF data: $platformAssetId', error: e);
       return null;
     }
   }

@@ -470,6 +470,24 @@ static dc_status_t bridge_set_rts(void *userdata, unsigned int value) {
 // Download Session
 // ============================================================
 
+// Adapter that bridges dc_logfunc_t to libdc_log_callback_fn.
+// g_log_callback/g_log_userdata are defined in libdc_wrapper.c and accessed
+// via the public API function libdc_set_log_callback.
+// We declare the globals extern here so this translation unit can read them
+// without exposing them in the public header.
+extern libdc_log_callback_fn g_log_callback;
+extern void *g_log_userdata;
+
+static void libdc_logfunc_wrapper(dc_context_t *context, dc_loglevel_t loglevel,
+                                   const char *file, unsigned int line,
+                                   const char *function, const char *message,
+                                   void *userdata) {
+    (void)context; (void)file; (void)line; (void)function; (void)userdata;
+    if (g_log_callback != NULL && message != NULL) {
+        g_log_callback((int)loglevel, message, g_log_userdata);
+    }
+}
+
 libdc_download_session_t *libdc_download_session_new(void) {
     libdc_download_session_t *session = calloc(1, sizeof(*session));
     if (session == NULL) {
@@ -480,6 +498,13 @@ libdc_download_session_t *libdc_download_session_new(void) {
     if (status != DC_STATUS_SUCCESS) {
         free(session);
         return NULL;
+    }
+
+    // Route libdivecomputer's internal diagnostic messages through the
+    // registered log callback if one has been set.
+    if (g_log_callback != NULL) {
+        dc_context_set_loglevel(session->context, DC_LOGLEVEL_ALL);
+        dc_context_set_logfunc(session->context, libdc_logfunc_wrapper, NULL);
     }
 
     return session;

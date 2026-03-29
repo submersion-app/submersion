@@ -227,4 +227,5 @@ abstract class DiveComputerFlutterApi {
   );
   void onError(DiveComputerError error);
   void onPinCodeRequired(String deviceAddress);
+  void onLogEvent(String category, String level, String message);
 }

@@ -22,8 +22,8 @@ class ScheduledNotificationRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get scheduled notifications for equipment: $equipmentId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -45,7 +45,11 @@ class ScheduledNotificationRepository {
       final result = await query.getSingleOrNull();
       return result != null;
     } catch (e, stackTrace) {
-      _log.error('Failed to check if notification is scheduled', e, stackTrace);
+      _log.error(
+        'Failed to check if notification is scheduled',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return false;
     }
   }
@@ -79,7 +83,11 @@ class ScheduledNotificationRepository {
         '$reminderDaysBefore days before',
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to record scheduled notification', e, stackTrace);
+      _log.error(
+        'Failed to record scheduled notification',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -94,8 +102,8 @@ class ScheduledNotificationRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to delete scheduled notifications for equipment',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -107,7 +115,11 @@ class ScheduledNotificationRepository {
       await _db.delete(_db.scheduledNotifications).go();
       _log.info('Deleted all scheduled notification records');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete all scheduled notifications', e, stackTrace);
+      _log.error(
+        'Failed to delete all scheduled notifications',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -117,7 +129,11 @@ class ScheduledNotificationRepository {
     try {
       return _db.select(_db.scheduledNotifications).get();
     } catch (e, stackTrace) {
-      _log.error('Failed to get all scheduled notifications', e, stackTrace);
+      _log.error(
+        'Failed to get all scheduled notifications',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -131,7 +147,11 @@ class ScheduledNotificationRepository {
       )..where((t) => t.scheduledDate.isSmallerThanValue(now))).go();
       _log.info('Deleted expired scheduled notification records');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete expired notifications', e, stackTrace);
+      _log.error(
+        'Failed to delete expired notifications',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
