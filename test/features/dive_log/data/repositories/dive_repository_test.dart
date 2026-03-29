@@ -605,7 +605,7 @@ void main() {
       final duration = PerfTimer.lastResult('getDiveSummaries');
       expect(duration, isNotNull);
       expect(duration!.inMilliseconds, lessThan(100));
-    });
+    }, tags: ['performance']);
 
     test('getDiveById loads in under 50ms', () async {
       final dives = await repository.getAllDives(diverId: summary.diverId);
@@ -614,7 +614,7 @@ void main() {
       final duration = PerfTimer.lastResult('getDiveById');
       expect(duration, isNotNull);
       expect(duration!.inMilliseconds, lessThan(50));
-    });
+    }, tags: ['performance']);
 
     test('getDiveProfile loads in under 50ms', () async {
       final dives = await repository.getAllDives(diverId: summary.diverId);
@@ -623,7 +623,7 @@ void main() {
       final duration = PerfTimer.lastResult('getDiveProfile');
       expect(duration, isNotNull);
       expect(duration!.inMilliseconds, lessThan(50));
-    });
+    }, tags: ['performance']);
   });
 
   group('profile editing persistence', () {

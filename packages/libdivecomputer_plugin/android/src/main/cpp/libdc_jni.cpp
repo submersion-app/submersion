@@ -12,6 +12,97 @@ extern "C" {
 
 #define TAG "libdc_jni"
 
+static bool clear_jni_exception(JNIEnv *env, const char *context) {
+    if (!env->ExceptionCheck()) return false;
+
+    __android_log_print(ANDROID_LOG_ERROR, TAG,
+        "JNI exception while %s", context);
+    env->ExceptionDescribe();
+    env->ExceptionClear();
+    return true;
+}
+
+static bool set_descriptor_info(JNIEnv *env, jobject infoObj,
+                                const libdc_descriptor_info_t &info) {
+    if (infoObj == nullptr) {
+        __android_log_print(ANDROID_LOG_ERROR, TAG,
+            "DescriptorInfo target was null");
+        return false;
+    }
+
+    jclass cls = env->GetObjectClass(infoObj);
+    if (cls == nullptr || clear_jni_exception(env, "resolving DescriptorInfo class")) {
+        return false;
+    }
+
+    jfieldID vendorField = env->GetFieldID(cls, "vendor", "Ljava/lang/String;");
+    if (vendorField == nullptr ||
+        clear_jni_exception(env, "resolving DescriptorInfo.vendor")) {
+        return false;
+    }
+
+    jfieldID productField = env->GetFieldID(cls, "product", "Ljava/lang/String;");
+    if (productField == nullptr ||
+        clear_jni_exception(env, "resolving DescriptorInfo.product")) {
+        return false;
+    }
+
+    jfieldID modelField = env->GetFieldID(cls, "model", "I");
+    if (modelField == nullptr ||
+        clear_jni_exception(env, "resolving DescriptorInfo.model")) {
+        return false;
+    }
+
+    jfieldID transportsField = env->GetFieldID(cls, "transports", "I");
+    if (transportsField == nullptr ||
+        clear_jni_exception(env, "resolving DescriptorInfo.transports")) {
+        return false;
+    }
+
+    jstring vendor = env->NewStringUTF(info.vendor ? info.vendor : "");
+    if (vendor == nullptr || clear_jni_exception(env, "creating vendor string")) {
+        return false;
+    }
+
+    jstring product = env->NewStringUTF(info.product ? info.product : "");
+    if (product == nullptr || clear_jni_exception(env, "creating product string")) {
+        env->DeleteLocalRef(vendor);
+        return false;
+    }
+
+    env->SetObjectField(infoObj, vendorField, vendor);
+    if (clear_jni_exception(env, "writing DescriptorInfo.vendor")) {
+        env->DeleteLocalRef(vendor);
+        env->DeleteLocalRef(product);
+        return false;
+    }
+
+    env->SetObjectField(infoObj, productField, product);
+    if (clear_jni_exception(env, "writing DescriptorInfo.product")) {
+        env->DeleteLocalRef(vendor);
+        env->DeleteLocalRef(product);
+        return false;
+    }
+
+    env->SetIntField(infoObj, modelField, static_cast<jint>(info.model));
+    if (clear_jni_exception(env, "writing DescriptorInfo.model")) {
+        env->DeleteLocalRef(vendor);
+        env->DeleteLocalRef(product);
+        return false;
+    }
+
+    env->SetIntField(infoObj, transportsField, static_cast<jint>(info.transports));
+    if (clear_jni_exception(env, "writing DescriptorInfo.transports")) {
+        env->DeleteLocalRef(vendor);
+        env->DeleteLocalRef(product);
+        return false;
+    }
+
+    env->DeleteLocalRef(vendor);
+    env->DeleteLocalRef(product);
+    return true;
+}
+
 // ============================================================
 // Version
 // ============================================================
@@ -40,21 +131,7 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDescriptorIteratorNext(
     libdc_descriptor_info_t info;
     int result = libdc_descriptor_iterator_next(iter, &info);
     if (result != 0) return result;
-
-    // Set fields on the Java DescriptorInfo object.
-    jclass cls = env->GetObjectClass(infoObj);
-    env->SetObjectField(infoObj,
-        env->GetFieldID(cls, "vendor", "Ljava/lang/String;"),
-        env->NewStringUTF(info.vendor ? info.vendor : ""));
-    env->SetObjectField(infoObj,
-        env->GetFieldID(cls, "product", "Ljava/lang/String;"),
-        env->NewStringUTF(info.product ? info.product : ""));
-    env->SetIntField(infoObj,
-        env->GetFieldID(cls, "model", "I"),
-        static_cast<jint>(info.model));
-    env->SetIntField(infoObj,
-        env->GetFieldID(cls, "transports", "I"),
-        static_cast<jint>(info.transports));
+    if (!set_descriptor_info(env, infoObj, info)) return -1;
 
     return 0;
 }
@@ -80,19 +157,7 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDescriptorMatch(
 
     if (!matched) return JNI_FALSE;
 
-    jclass cls = env->GetObjectClass(infoObj);
-    env->SetObjectField(infoObj,
-        env->GetFieldID(cls, "vendor", "Ljava/lang/String;"),
-        env->NewStringUTF(info.vendor ? info.vendor : ""));
-    env->SetObjectField(infoObj,
-        env->GetFieldID(cls, "product", "Ljava/lang/String;"),
-        env->NewStringUTF(info.product ? info.product : ""));
-    env->SetIntField(infoObj,
-        env->GetFieldID(cls, "model", "I"),
-        static_cast<jint>(info.model));
-    env->SetIntField(infoObj,
-        env->GetFieldID(cls, "transports", "I"),
-        static_cast<jint>(info.transports));
+    if (!set_descriptor_info(env, infoObj, info)) return JNI_FALSE;
 
     return JNI_TRUE;
 }
