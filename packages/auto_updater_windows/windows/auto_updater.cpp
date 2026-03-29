@@ -7,6 +7,7 @@
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -25,10 +26,6 @@ void __onShutdownRequestCallback();
 void __onDidFindUpdateCallback();
 void __onDidNotFindUpdateCallback();
 void __onUpdateCancelledCallback();
-void __onUpdateSkippedCallback();
-void __onUpdatePostponedCallback();
-void __onUpdateDismissedCallback();
-void __onUserRunInstallerCallback();
 
 class AutoUpdater {
  public:
@@ -46,8 +43,11 @@ class AutoUpdater {
   void RegisterEventSink(
       std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> ptr);
 
-  // Called from WinSparkle background threads. Enqueues the event and signals
-  // the platform thread via PostMessage.
+  void UnregisterEventSink();
+
+  // Enqueues an event and signals the platform thread via PostMessage.
+  // Safe to call from any thread (WinSparkle background threads or the
+  // platform thread itself).
   void OnWinSparkleEvent(std::string eventName);
 
   // Called from the platform thread (window proc delegate) to drain the queue
@@ -65,7 +65,7 @@ class AutoUpdater {
   // the platform thread drains them in DrainEvents().
   std::mutex event_mutex_;
   std::queue<std::string> event_queue_;
-  HWND hwnd_ = nullptr;
+  std::atomic<HWND> hwnd_{nullptr};
 };
 
 AutoUpdater* AutoUpdater::lazySingleton = nullptr;
@@ -116,6 +116,10 @@ void AutoUpdater::SetScheduledCheckInterval(int interval) {
 void AutoUpdater::RegisterEventSink(
     std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> ptr) {
   event_sink_ = std::move(ptr);
+}
+
+void AutoUpdater::UnregisterEventSink() {
+  event_sink_ = nullptr;
 }
 
 void AutoUpdater::OnWinSparkleEvent(std::string eventName) {
@@ -185,33 +189,5 @@ void __onUpdateCancelledCallback() {
   if (autoUpdater == nullptr)
     return;
   autoUpdater->OnWinSparkleEvent("updateCancelled");
-}
-
-void __onUpdateSkippedCallback() {
-  AutoUpdater* autoUpdater = AutoUpdater::GetInstance();
-  if (autoUpdater == nullptr)
-    return;
-  autoUpdater->OnWinSparkleEvent("updateSkipped");
-}
-
-void __onUpdatePostponedCallback() {
-  AutoUpdater* autoUpdater = AutoUpdater::GetInstance();
-  if (autoUpdater == nullptr)
-    return;
-  autoUpdater->OnWinSparkleEvent("updatePostponed");
-}
-
-void __onUpdateDismissedCallback() {
-  AutoUpdater* autoUpdater = AutoUpdater::GetInstance();
-  if (autoUpdater == nullptr)
-    return;
-  autoUpdater->OnWinSparkleEvent("updateDismissed");
-}
-
-void __onUserRunInstallerCallback() {
-  AutoUpdater* autoUpdater = AutoUpdater::GetInstance();
-  if (autoUpdater == nullptr)
-    return;
-  autoUpdater->OnWinSparkleEvent("userRunInstaller");
 }
 }  // namespace

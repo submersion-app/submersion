@@ -123,6 +123,7 @@ std::unique_ptr<flutter::StreamHandlerError<flutter::EncodableValue>>
 AutoUpdaterWindowsPlugin::OnCancelInternal(
     const flutter::EncodableValue* arguments) {
   event_sink_ = nullptr;
+  auto_updater.UnregisterEventSink();
   return nullptr;
 }
 }  // namespace auto_updater_windows
