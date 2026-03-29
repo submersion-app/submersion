@@ -25,7 +25,7 @@ const _appcastUrl =
 const _arch = String.fromEnvironment('ARCH', defaultValue: 'x64');
 
 /// Resolves the GitHub release asset suffix for a given platform and
-/// architecture. Pure function extracted from [_platformSuffix] for
+/// architecture. Pure function extracted from [platformSuffix] for
 /// testability (tests run on macOS and cannot exercise Platform.isLinux).
 @visibleForTesting
 String resolveAssetSuffix({required String platform, required String arch}) {
@@ -44,18 +44,9 @@ String resolveAssetSuffix({required String platform, required String arch}) {
 }
 
 /// Platform-specific asset suffix for GitHub Releases downloads.
-String get _platformSuffix {
-  final platform = Platform.isMacOS
-      ? 'macos'
-      : Platform.isWindows
-      ? 'windows'
-      : Platform.isLinux
-      ? 'linux'
-      : Platform.isAndroid
-      ? 'android'
-      : '';
-  return resolveAssetSuffix(platform: platform, arch: _arch);
-}
+@visibleForTesting
+String get platformSuffix =>
+    resolveAssetSuffix(platform: Platform.operatingSystem, arch: _arch);
 
 /// Whether the current platform uses the Sparkle/WinSparkle engine.
 bool get _useSparkleEngine => Platform.isMacOS || Platform.isWindows;
@@ -81,7 +72,7 @@ final updateServiceProvider = FutureProvider<UpdateService?>((ref) async {
     owner: _githubOwner,
     repo: _githubRepo,
     currentVersion: currentVersion,
-    platformSuffix: _platformSuffix,
+    platformSuffix: platformSuffix,
   );
 });
 

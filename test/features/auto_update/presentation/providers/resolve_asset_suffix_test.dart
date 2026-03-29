@@ -1,7 +1,24 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 
 void main() {
+  group('platformSuffix', () {
+    test('returns a non-empty suffix for the current platform', () {
+      // Exercises the platformSuffix getter on whichever OS runs the tests.
+      // On macOS CI this covers the Platform.operatingSystem + resolveAssetSuffix
+      // call path.
+      final suffix = platformSuffix;
+      expect(suffix, isNotEmpty);
+      // Verify it matches what resolveAssetSuffix would return for this OS.
+      expect(
+        suffix,
+        resolveAssetSuffix(platform: Platform.operatingSystem, arch: 'x64'),
+      );
+    });
+  });
+
   group('resolveAssetSuffix', () {
     test('returns macOS DMG suffix', () {
       expect(resolveAssetSuffix(platform: 'macos', arch: 'x64'), 'macOS.dmg');
