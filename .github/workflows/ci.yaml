@@ -465,13 +465,13 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build Linux
-        run: flutter build linux --release "${{ env.DART_DEFINES }}" -v
+        run: flutter build linux --release "${{ env.DART_DEFINES }}" --dart-define=ARCH=x64 -v
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v7
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         with:
-          name: linux-build
+          name: linux-x64-build
           path: build/linux/x64/release/bundle
           retention-days: 7
 
@@ -526,12 +526,138 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build Windows
-        run: flutter build windows --release "${{ env.DART_DEFINES }}" -v
+        run: flutter build windows --release "${{ env.DART_DEFINES }}" --dart-define=ARCH=x64 -v
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v7
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         with:
-          name: windows-build
+          name: windows-x64-build
           path: build\windows\x64\runner\Release
+          retention-days: 7
+
+  build-linux-arm64:
+    name: Build Linux ARM64
+    needs: test
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Cache Flutter SDK
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
+          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.pub-cache
+            ${{ github.workspace }}/.dart_tool
+          key: pub-${{ runner.os }}-arm64-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-arm64-
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            ninja-build \
+            pkg-config \
+            libgtk-3-dev \
+            liblzma-dev \
+            libstdc++-12-dev \
+            libsecret-1-dev
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run code generation
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build Linux ARM64
+        run: flutter build linux --release "${{ env.DART_DEFINES }}" --dart-define=ARCH=arm64 -v
+
+      - name: Upload Linux ARM64 artifact
+        uses: actions/upload-artifact@v7
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        with:
+          name: linux-arm64-build
+          path: build/linux/arm64/release/bundle
+          retention-days: 7
+
+  build-windows-arm64:
+    name: Build Windows ARM64
+    needs: test
+    runs-on: windows-11-arm
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Cache Flutter SDK
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
+          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~\.pub-cache
+            ${{ github.workspace }}\.dart_tool
+          key: pub-${{ runner.os }}-arm64-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-arm64-
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: |
+            C:\Users\runneradmin\.nuget\packages
+          key: nuget-${{ runner.os }}-arm64-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-arm64-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run code generation
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build Windows ARM64
+        run: flutter build windows --release "${{ env.DART_DEFINES }}" --dart-define=ARCH=arm64 -v
+
+      - name: Upload Windows ARM64 artifact
+        uses: actions/upload-artifact@v7
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        with:
+          name: windows-arm64-build
+          path: build\windows\arm64\runner\Release
           retention-days: 7
