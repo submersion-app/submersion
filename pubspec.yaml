@@ -124,6 +124,11 @@ dependency_overrides:
   # - logger: fit_tool uses basic logging; logger 2.x is backward-compatible
   csv: ^6.0.0
   logger: ^2.0.0
+  # Vendored with threading fix for #83 — WinSparkle callbacks were calling
+  # event_sink_->Success() from background threads, violating Flutter's
+  # platform channel threading requirement.
+  auto_updater_windows:
+    path: packages/auto_updater_windows
 
 flutter:
   generate: true
