@@ -123,7 +123,8 @@ class LoggerService {
       level: level,
       message: error != null ? '$message | error: $error' : message,
     );
-    _pendingWrite = _fileService?.writeLine(entry.toLogLine()) ?? Future.value();
+    _pendingWrite =
+        _fileService?.writeLine(entry.toLogLine()) ?? Future.value();
 
     // Notify live listeners (debug log viewer).
     _logStreamController.add(entry);
