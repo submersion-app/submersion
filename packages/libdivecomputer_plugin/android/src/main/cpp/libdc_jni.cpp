@@ -31,41 +31,66 @@ static bool set_descriptor_info(JNIEnv *env, jobject infoObj,
     }
 
     jclass cls = env->GetObjectClass(infoObj);
-    if (cls == nullptr || clear_jni_exception(env, "resolving DescriptorInfo class")) {
+    if (cls == nullptr) {
+        clear_jni_exception(env, "resolving DescriptorInfo class");
+        return false;
+    }
+    if (clear_jni_exception(env, "resolving DescriptorInfo class")) {
         return false;
     }
 
     jfieldID vendorField = env->GetFieldID(cls, "vendor", "Ljava/lang/String;");
-    if (vendorField == nullptr ||
-        clear_jni_exception(env, "resolving DescriptorInfo.vendor")) {
+    if (vendorField == nullptr) {
+        clear_jni_exception(env, "resolving DescriptorInfo.vendor");
+        return false;
+    }
+    if (clear_jni_exception(env, "resolving DescriptorInfo.vendor")) {
         return false;
     }
 
     jfieldID productField = env->GetFieldID(cls, "product", "Ljava/lang/String;");
-    if (productField == nullptr ||
-        clear_jni_exception(env, "resolving DescriptorInfo.product")) {
+    if (productField == nullptr) {
+        clear_jni_exception(env, "resolving DescriptorInfo.product");
+        return false;
+    }
+    if (clear_jni_exception(env, "resolving DescriptorInfo.product")) {
         return false;
     }
 
     jfieldID modelField = env->GetFieldID(cls, "model", "I");
-    if (modelField == nullptr ||
-        clear_jni_exception(env, "resolving DescriptorInfo.model")) {
+    if (modelField == nullptr) {
+        clear_jni_exception(env, "resolving DescriptorInfo.model");
+        return false;
+    }
+    if (clear_jni_exception(env, "resolving DescriptorInfo.model")) {
         return false;
     }
 
     jfieldID transportsField = env->GetFieldID(cls, "transports", "I");
-    if (transportsField == nullptr ||
-        clear_jni_exception(env, "resolving DescriptorInfo.transports")) {
+    if (transportsField == nullptr) {
+        clear_jni_exception(env, "resolving DescriptorInfo.transports");
+        return false;
+    }
+    if (clear_jni_exception(env, "resolving DescriptorInfo.transports")) {
         return false;
     }
 
     jstring vendor = env->NewStringUTF(info.vendor ? info.vendor : "");
-    if (vendor == nullptr || clear_jni_exception(env, "creating vendor string")) {
+    if (vendor == nullptr) {
+        clear_jni_exception(env, "creating vendor string");
+        return false;
+    }
+    if (clear_jni_exception(env, "creating vendor string")) {
         return false;
     }
 
     jstring product = env->NewStringUTF(info.product ? info.product : "");
-    if (product == nullptr || clear_jni_exception(env, "creating product string")) {
+    if (product == nullptr) {
+        clear_jni_exception(env, "creating product string");
+        env->DeleteLocalRef(vendor);
+        return false;
+    }
+    if (clear_jni_exception(env, "creating product string")) {
         env->DeleteLocalRef(vendor);
         return false;
     }
