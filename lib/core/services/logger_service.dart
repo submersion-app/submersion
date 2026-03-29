@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
+import 'package:flutter/foundation.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 
@@ -134,6 +135,7 @@ class LoggerService {
   static LoggerService forClass(Type type) => LoggerService(type.toString());
 
   /// Wait for the most recently scheduled file write to complete.
+  @visibleForTesting
   static Future<void> flushPendingWrites() => _pendingWrite;
 }
 

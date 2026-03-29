@@ -19,7 +19,8 @@ void main() {
       LoggerService.setFileService(fileService);
     });
 
-    tearDown(() {
+    tearDown(() async {
+      await flushLogs();
       LoggerService.setFileService(null);
       tempDir.deleteSync(recursive: true);
     });
