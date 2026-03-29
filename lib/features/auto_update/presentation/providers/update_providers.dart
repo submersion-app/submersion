@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -23,15 +24,37 @@ const _appcastUrl =
 /// Defaults to x64 when not specified.
 const _arch = String.fromEnvironment('ARCH', defaultValue: 'x64');
 
+/// Resolves the GitHub release asset suffix for a given platform and
+/// architecture. Pure function extracted from [_platformSuffix] for
+/// testability (tests run on macOS and cannot exercise Platform.isLinux).
+@visibleForTesting
+String resolveAssetSuffix({required String platform, required String arch}) {
+  switch (platform) {
+    case 'macos':
+      return 'macOS.dmg';
+    case 'windows':
+      return 'Windows.zip';
+    case 'linux':
+      return arch == 'arm64' ? 'Linux-ARM64.tar.gz' : 'Linux-x64.tar.gz';
+    case 'android':
+      return 'Android.apk';
+    default:
+      return '';
+  }
+}
+
 /// Platform-specific asset suffix for GitHub Releases downloads.
 String get _platformSuffix {
-  if (Platform.isMacOS) return 'macOS.dmg';
-  if (Platform.isWindows) return 'Windows.zip';
-  if (Platform.isLinux) {
-    return _arch == 'arm64' ? 'Linux-ARM64.tar.gz' : 'Linux-x64.tar.gz';
-  }
-  if (Platform.isAndroid) return 'Android.apk';
-  return '';
+  final platform = Platform.isMacOS
+      ? 'macos'
+      : Platform.isWindows
+      ? 'windows'
+      : Platform.isLinux
+      ? 'linux'
+      : Platform.isAndroid
+      ? 'android'
+      : '';
+  return resolveAssetSuffix(platform: platform, arch: _arch);
 }
 
 /// Whether the current platform uses the Sparkle/WinSparkle engine.
