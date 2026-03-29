@@ -642,9 +642,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         await scheduler.scheduleAll(settings: state, diverId: diverId);
       } catch (e) {
         // Log but don't rethrow - notification scheduling shouldn't block settings
-        LoggerService.forClass(
-          SettingsNotifier,
-        ).error('Failed to schedule notifications', e, StackTrace.current);
+        LoggerService.forClass(SettingsNotifier).error(
+          'Failed to schedule notifications',
+          error: e,
+          stackTrace: StackTrace.current,
+        );
       }
     });
   }

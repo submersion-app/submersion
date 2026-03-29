@@ -133,7 +133,7 @@ class SyncInitializer {
         localLastSync: localLastSync,
       );
     } catch (e, stackTrace) {
-      _log.error('Sync check failed', e, stackTrace);
+      _log.error('Sync check failed', error: e, stackTrace: stackTrace);
       return SyncCheckResult(
         status: SyncCheckStatus.error,
         message: 'Sync check failed: $e',

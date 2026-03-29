@@ -339,7 +339,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
         try {
           await _applyImportTags(result.importedDiveIds);
         } catch (e) {
-          _log.warning('Tag application failed after import', e);
+          _log.warning('Tag application failed after import: $e');
           tagWarning = 'Dives imported successfully but tagging failed: $e';
         }
       }

@@ -333,7 +333,11 @@ class BuddyMergeRepository {
         ),
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to merge buddies: $buddyIds', e, stackTrace);
+      _log.error(
+        'Failed to merge buddies: $buddyIds',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -421,7 +425,11 @@ class BuddyMergeRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Undo buddy merge complete');
     } catch (e, stackTrace) {
-      _log.error('Failed to undo buddy merge', e, stackTrace);
+      _log.error(
+        'Failed to undo buddy merge',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -438,7 +446,11 @@ class BuddyMergeRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk deleted ${ids.length} buddies');
     } catch (e, stackTrace) {
-      _log.error('Failed to bulk delete buddies', e, stackTrace);
+      _log.error(
+        'Failed to bulk delete buddies',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }

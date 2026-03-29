@@ -363,7 +363,11 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
         data: (d) async => d,
         loading: () async => null,
         error: (e, st) async {
-          _log.error('Error loading dive for analysis: $diveId', e, st);
+          _log.error(
+            'Error loading dive for analysis: $diveId',
+            error: e,
+            stackTrace: st,
+          );
           return null;
         },
       );
@@ -534,7 +538,11 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
       final merged = mergeEvents(withCns.events, dbEvents);
       return withCns.copyWith(events: merged);
     } catch (e, stackTrace) {
-      _log.error('Failed to analyze profile for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to analyze profile for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return null;
     }
   },
@@ -586,7 +594,11 @@ Future<double> _computeResidualCns(Ref ref, String diveId) async {
       surfaceInterval.inMinutes,
     );
   } catch (e, stackTrace) {
-    _log.error('Failed to calculate residual CNS for: $diveId', e, stackTrace);
+    _log.error(
+      'Failed to calculate residual CNS for: $diveId',
+      error: e,
+      stackTrace: stackTrace,
+    );
     return 0.0;
   }
 }
@@ -643,8 +655,8 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
   } catch (e, stackTrace) {
     _log.error(
       'Failed to calculate residual tissue state for: $diveId',
-      e,
-      stackTrace,
+      error: e,
+      stackTrace: stackTrace,
     );
     return null;
   }
@@ -693,7 +705,11 @@ Future<double> _computeResidualOtu(Ref ref, String diveId) async {
 
     return totalOtu;
   } catch (e, stackTrace) {
-    _log.error('Failed to calculate residual OTU for: $diveId', e, stackTrace);
+    _log.error(
+      'Failed to calculate residual OTU for: $diveId',
+      error: e,
+      stackTrace: stackTrace,
+    );
     return 0.0;
   }
 }
@@ -771,7 +787,11 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
 
     return totalOtu;
   } catch (e, stackTrace) {
-    _log.error('Failed to calculate weekly OTU for: $diveId', e, stackTrace);
+    _log.error(
+      'Failed to calculate weekly OTU for: $diveId',
+      error: e,
+      stackTrace: stackTrace,
+    );
     return 0.0;
   }
 });
@@ -863,7 +883,11 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
     );
     return overlaid;
   } catch (e, stackTrace) {
-    _log.error('Failed to analyze profile for dive: ${dive.id}', e, stackTrace);
+    _log.error(
+      'Failed to analyze profile for dive: ${dive.id}',
+      error: e,
+      stackTrace: stackTrace,
+    );
     return null;
   }
 });

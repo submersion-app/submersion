@@ -706,6 +706,7 @@ protocol DiveComputerFlutterApiProtocol {
   func onDownloadComplete(totalDives totalDivesArg: Int64, serialNumber serialNumberArg: String?, firmwareVersion firmwareVersionArg: String?, completion: @escaping (Result<Void, PigeonError>) -> Void)
   func onError(error errorArg: DiveComputerError, completion: @escaping (Result<Void, PigeonError>) -> Void)
   func onPinCodeRequired(deviceAddress deviceAddressArg: String, completion: @escaping (Result<Void, PigeonError>) -> Void)
+  func onLogEvent(category categoryArg: String, level levelArg: String, message messageArg: String, completion: @escaping (Result<Void, PigeonError>) -> Void)
 }
 class DiveComputerFlutterApi: DiveComputerFlutterApiProtocol {
   private let binaryMessenger: FlutterBinaryMessenger
@@ -829,6 +830,24 @@ class DiveComputerFlutterApi: DiveComputerFlutterApiProtocol {
     let channelName: String = "dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onPinCodeRequired\(messageChannelSuffix)"
     let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
     channel.sendMessage([deviceAddressArg] as [Any?]) { response in
+      guard let listResponse = response as? [Any?] else {
+        completion(.failure(createConnectionError(withChannelName: channelName)))
+        return
+      }
+      if listResponse.count > 1 {
+        let code: String = listResponse[0] as! String
+        let message: String? = nilOrValue(listResponse[1])
+        let details: String? = nilOrValue(listResponse[2])
+        completion(.failure(PigeonError(code: code, message: message, details: details)))
+      } else {
+        completion(.success(Void()))
+      }
+    }
+  }
+  func onLogEvent(category categoryArg: String, level levelArg: String, message messageArg: String, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onLogEvent\(messageChannelSuffix)"
+    let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
+    channel.sendMessage([categoryArg, levelArg, messageArg] as [Any?]) { response in
       guard let listResponse = response as? [Any?] else {
         completion(.failure(createConnectionError(withChannelName: channelName)))
         return

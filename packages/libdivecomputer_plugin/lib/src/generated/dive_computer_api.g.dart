@@ -780,6 +780,8 @@ abstract class DiveComputerFlutterApi {
 
   void onPinCodeRequired(String deviceAddress);
 
+  void onLogEvent(String category, String level, String message);
+
   static void setUp(
     DiveComputerFlutterApi? api, {
     BinaryMessenger? binaryMessenger,
@@ -1011,6 +1013,50 @@ abstract class DiveComputerFlutterApi {
           );
           try {
             api.onPinCodeRequired(arg_deviceAddress!);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          } catch (e) {
+            return wrapResponse(
+              error: PlatformException(code: 'error', message: e.toString()),
+            );
+          }
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?>
+      pigeonVar_channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onLogEvent$messageChannelSuffix',
+        pigeonChannelCodec,
+        binaryMessenger: binaryMessenger,
+      );
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          assert(
+            message != null,
+            'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onLogEvent was null.',
+          );
+          final List<Object?> args = (message as List<Object?>?)!;
+          final String? arg_category = (args[0] as String?);
+          assert(
+            arg_category != null,
+            'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onLogEvent was null, expected non-null String.',
+          );
+          final String? arg_level = (args[1] as String?);
+          assert(
+            arg_level != null,
+            'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onLogEvent was null, expected non-null String.',
+          );
+          final String? arg_message = (args[2] as String?);
+          assert(
+            arg_message != null,
+            'Argument for dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onLogEvent was null, expected non-null String.',
+          );
+          try {
+            api.onLogEvent(arg_category!, arg_level!, arg_message!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);

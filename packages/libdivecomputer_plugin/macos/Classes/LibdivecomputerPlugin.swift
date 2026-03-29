@@ -5,5 +5,6 @@ public class LibdivecomputerPlugin: NSObject, FlutterPlugin {
         let messenger = registrar.messenger
         let api = DiveComputerHostApiImpl(messenger: messenger)
         DiveComputerHostApiSetup.setUp(binaryMessenger: messenger, api: api)
+        NativeLogger.flutterApi = DiveComputerFlutterApi(binaryMessenger: messenger)
     }
 }

@@ -35,8 +35,8 @@ class SyncRepository {
       } catch (e, stackTrace) {
         _log.warning(
           'Sync metadata read failed, attempting repair',
-          e,
-          stackTrace,
+          error: e,
+          stackTrace: stackTrace,
         );
         await _repairSyncMetadataRow();
         existing = await query.getSingleOrNull();
@@ -63,7 +63,11 @@ class SyncRepository {
 
       return (await query.getSingle());
     } catch (e, stackTrace) {
-      _log.error('Failed to get or create sync metadata', e, stackTrace);
+      _log.error(
+        'Failed to get or create sync metadata',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -148,7 +152,11 @@ class SyncRepository {
 
       _log.info('Updated last sync time to: $syncTime');
     } catch (e, stackTrace) {
-      _log.error('Failed to update last sync time', e, stackTrace);
+      _log.error(
+        'Failed to update last sync time',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -169,7 +177,11 @@ class SyncRepository {
 
       _log.info('Set cloud provider to: ${provider?.name}');
     } catch (e, stackTrace) {
-      _log.error('Failed to set cloud provider', e, stackTrace);
+      _log.error(
+        'Failed to set cloud provider',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -201,7 +213,11 @@ class SyncRepository {
 
       _log.info('Set remote file ID');
     } catch (e, stackTrace) {
-      _log.error('Failed to set remote file ID', e, stackTrace);
+      _log.error(
+        'Failed to set remote file ID',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -242,8 +258,8 @@ class SyncRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to mark record pending: $entityType/$recordId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -276,8 +292,8 @@ class SyncRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to mark record synced: $entityType/$recordId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -313,8 +329,8 @@ class SyncRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to mark record conflict: $entityType/$recordId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -327,7 +343,11 @@ class SyncRepository {
         ..where((t) => t.syncStatus.equals('pending'));
       return query.get();
     } catch (e, stackTrace) {
-      _log.error('Failed to get pending records', e, stackTrace);
+      _log.error(
+        'Failed to get pending records',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -339,7 +359,11 @@ class SyncRepository {
         ..where((t) => t.syncStatus.equals('conflict'));
       return query.get();
     } catch (e, stackTrace) {
-      _log.error('Failed to get conflict records', e, stackTrace);
+      _log.error(
+        'Failed to get conflict records',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -350,7 +374,11 @@ class SyncRepository {
       final records = await getPendingRecords();
       return records.length;
     } catch (e, stackTrace) {
-      _log.error('Failed to get pending count', e, stackTrace);
+      _log.error(
+        'Failed to get pending count',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return 0;
     }
   }
@@ -363,7 +391,11 @@ class SyncRepository {
       )..where((t) => t.syncStatus.equals('pending'))).go();
       _log.info('Cleared pending sync records');
     } catch (e, stackTrace) {
-      _log.error('Failed to clear pending sync records', e, stackTrace);
+      _log.error(
+        'Failed to clear pending sync records',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -374,7 +406,11 @@ class SyncRepository {
       final records = await getConflictRecords();
       return records.length;
     } catch (e, stackTrace) {
-      _log.error('Failed to get conflict count', e, stackTrace);
+      _log.error(
+        'Failed to get conflict count',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return 0;
     }
   }
@@ -391,8 +427,8 @@ class SyncRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to clear conflict: $entityType/$recordId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -404,7 +440,11 @@ class SyncRepository {
       await _db.delete(_db.syncRecords).go();
       _log.info('Cleared all sync records');
     } catch (e, stackTrace) {
-      _log.error('Failed to clear all sync records', e, stackTrace);
+      _log.error(
+        'Failed to clear all sync records',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -438,8 +478,8 @@ class SyncRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to log deletion: $entityType/$recordId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -454,7 +494,11 @@ class SyncRepository {
         );
       return query.get();
     } catch (e, stackTrace) {
-      _log.error('Failed to get deletions since: $since', e, stackTrace);
+      _log.error(
+        'Failed to get deletions since: $since',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -464,7 +508,11 @@ class SyncRepository {
     try {
       return _db.select(_db.deletionLog).get();
     } catch (e, stackTrace) {
-      _log.error('Failed to get all deletions', e, stackTrace);
+      _log.error(
+        'Failed to get all deletions',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -504,7 +552,11 @@ class SyncRepository {
 
       _log.info('Cleared deletions older than $olderThanDays days');
     } catch (e, stackTrace) {
-      _log.error('Failed to clear old deletions', e, stackTrace);
+      _log.error(
+        'Failed to clear old deletions',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -515,7 +567,11 @@ class SyncRepository {
       await _db.delete(_db.deletionLog).go();
       _log.info('Cleared all deletions');
     } catch (e, stackTrace) {
-      _log.error('Failed to clear all deletions', e, stackTrace);
+      _log.error(
+        'Failed to clear all deletions',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -557,7 +613,11 @@ class SyncRepository {
 
       _log.info('Reset sync state');
     } catch (e, stackTrace) {
-      _log.error('Failed to reset sync state', e, stackTrace);
+      _log.error(
+        'Failed to reset sync state',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }

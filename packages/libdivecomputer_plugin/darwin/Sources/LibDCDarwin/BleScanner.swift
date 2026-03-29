@@ -82,7 +82,7 @@ class BleScanner: NSObject, CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         switch central.state {
         case .poweredOn:
-            NSLog("[BleScanner] Starting BLE scan")
+            NativeLogger.d("BleScanner", category: "BLE", "Starting BLE scan")
             central.scanForPeripherals(
                 withServices: nil,
                 options: [CBCentralManagerScanOptionAllowDuplicatesKey: false]
@@ -90,7 +90,8 @@ class BleScanner: NSObject, CBCentralManagerDelegate {
             isScanning = true
         case .poweredOff, .unauthorized, .unsupported:
             isScanning = false
-            NSLog("[BleScanner] Scan unavailable (state=%ld)", central.state.rawValue)
+            NativeLogger.w("BleScanner", category: "BLE",
+                "Scan unavailable (state=\(central.state.rawValue))")
             onComplete?()
         default:
             break
@@ -116,8 +117,8 @@ class BleScanner: NSObject, CBCentralManagerDelegate {
         if let modelCode = Self.parsePelagicModelCode(from: name) {
             matched = libdc_descriptor_lookup_model(UInt32(LIBDC_TRANSPORT_BLE), modelCode, &info)
             if matched != 0 {
-                NSLog("[BleScanner] Model-code matched %@ as 0x%04x",
-                      name, modelCode)
+                NativeLogger.d("BleScanner", category: "BLE",
+                    "Model-code matched \(name) as 0x\(String(format: "%04x", modelCode))")
             }
         }
 
@@ -128,16 +129,15 @@ class BleScanner: NSObject, CBCentralManagerDelegate {
         }
 
         guard matched != 0 else {
-            NSLog("[BleScanner] Unmatched peripheral %@ (%@)",
-                  peripheral.identifier.uuidString, name)
+            NativeLogger.d("BleScanner", category: "BLE",
+                "Unmatched peripheral \(peripheral.identifier.uuidString) (\(name))")
             return
         }
         seenIdentifiers.insert(peripheral.identifier)
-        NSLog("[BleScanner] Matched peripheral %@ (%@) -> %@ %@ (%u)",
-              peripheral.identifier.uuidString, name,
-              String(cString: info.vendor),
-              String(cString: info.product),
-              info.model)
+        NativeLogger.d("BleScanner", category: "BLE",
+            "Matched peripheral \(peripheral.identifier.uuidString) (\(name))"
+                + " -> \(String(cString: info.vendor)) \(String(cString: info.product))"
+                + " (\(info.model))")
 
         let device = DiscoveredDevice(
             vendor: String(cString: info.vendor),

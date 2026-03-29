@@ -31,7 +31,7 @@ class TagRepository {
       final rows = await query.get();
       return rows.map(_mapRowToTag).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get all tags', e, stackTrace);
+      _log.error('Failed to get all tags', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -43,7 +43,11 @@ class TagRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToTag(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get tag by id: $id', e, stackTrace);
+      _log.error(
+        'Failed to get tag by id: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -61,7 +65,11 @@ class TagRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToTag(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get tag by name: $name', e, stackTrace);
+      _log.error(
+        'Failed to get tag by name: $name',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -96,7 +104,7 @@ class TagRepository {
       _log.info('Created tag with id: $id');
       return tag.copyWith(id: id);
     } catch (e, stackTrace) {
-      _log.error('Failed to create tag', e, stackTrace);
+      _log.error('Failed to create tag', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -127,7 +135,11 @@ class TagRepository {
         ),
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to get or create tag: $name', e, stackTrace);
+      _log.error(
+        'Failed to get or create tag: $name',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -153,7 +165,11 @@ class TagRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Updated tag: ${tag.id}');
     } catch (e, stackTrace) {
-      _log.error('Failed to update tag: ${tag.id}', e, stackTrace);
+      _log.error(
+        'Failed to update tag: ${tag.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -167,7 +183,7 @@ class TagRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted tag: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete tag: $id', e, stackTrace);
+      _log.error('Failed to delete tag: $id', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -207,7 +223,11 @@ class TagRepository {
           )
           .toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get tags for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to get tags for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -248,7 +268,11 @@ class TagRepository {
       }
       return tagsByDive;
     } catch (e, stackTrace) {
-      _log.error('Failed to get tags for dives', e, stackTrace);
+      _log.error(
+        'Failed to get tags for dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -306,7 +330,11 @@ class TagRepository {
 
       _log.info('Set ${tags.length} tags for dive: $diveId');
     } catch (e, stackTrace) {
-      _log.error('Failed to set tags for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to set tags for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -346,7 +374,7 @@ class TagRepository {
 
       _log.info('Added tag $tagId to dive: $diveId');
     } catch (e, stackTrace) {
-      _log.error('Failed to add tag to dive', e, stackTrace);
+      _log.error('Failed to add tag to dive', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -380,7 +408,11 @@ class TagRepository {
 
       _log.info('Removed tag $tagId from dive: $diveId');
     } catch (e, stackTrace) {
-      _log.error('Failed to remove tag from dive', e, stackTrace);
+      _log.error(
+        'Failed to remove tag from dive',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -426,7 +458,11 @@ class TagRepository {
           )
           .toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get tag statistics', e, stackTrace);
+      _log.error(
+        'Failed to get tag statistics',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -442,7 +478,11 @@ class TagRepository {
           .getSingle();
       return result.data['count'] as int;
     } catch (e, stackTrace) {
-      _log.error('Failed to get tag usage count: $tagId', e, stackTrace);
+      _log.error(
+        'Failed to get tag usage count: $tagId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -460,7 +500,11 @@ class TagRepository {
           .getSingle();
       return result.data['count'] as int;
     } catch (e, stackTrace) {
-      _log.error('Failed to get merged dive count', e, stackTrace);
+      _log.error(
+        'Failed to get merged dive count',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -481,7 +525,11 @@ class TagRepository {
       final rows = await searchQuery.get();
       return rows.map(_mapRowToTag).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to search tags: $query', e, stackTrace);
+      _log.error(
+        'Failed to search tags: $query',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -608,7 +656,7 @@ class TagRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Merged ${sourceTagIds.length} tags into $survivingTagId');
     } catch (e, stackTrace) {
-      _log.error('Failed to merge tags', e, stackTrace);
+      _log.error('Failed to merge tags', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }

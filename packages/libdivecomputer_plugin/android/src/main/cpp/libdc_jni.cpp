@@ -492,6 +492,32 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
         }
     }
 
+    // Register libdivecomputer log callback so internal diagnostic messages
+    // appear in logcat. Android's NativeLogger already wraps Log.d(), so
+    // logcat output is captured by the platform-level logging infrastructure.
+    libdc_set_log_callback(
+        [](int level, const char *message, void *) {
+            // Map dc_loglevel_t: ERROR=1, WARNING=2, INFO=3, DEBUG=4+
+            android_LogPriority priority;
+            switch (level) {
+            case 1:
+                priority = ANDROID_LOG_ERROR;
+                break;
+            case 2:
+                priority = ANDROID_LOG_WARN;
+                break;
+            case 3:
+                priority = ANDROID_LOG_INFO;
+                break;
+            default:
+                priority = ANDROID_LOG_DEBUG;
+                break;
+            }
+            __android_log_print(priority, "libdc", "%s", message);
+        },
+        nullptr
+    );
+
     // Run the download.
     char error_buf[256] = {0};
     int result = libdc_download_run(

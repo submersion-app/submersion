@@ -1,8 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/app.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
@@ -13,6 +16,7 @@ import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/services/background_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
@@ -22,6 +26,19 @@ Future<void> main() async {
 
   // Initialize SharedPreferences first (needed for storage config)
   final prefs = await SharedPreferences.getInstance();
+
+  // Initialize log file service (always created so it's ready when needed)
+  final appSupportDir = await getApplicationSupportDirectory();
+  final logFileService = LogFileService(
+    logDirectory: '${appSupportDir.path}/logs',
+  );
+  await logFileService.initialize();
+
+  // Only enable file logging when debug mode is active
+  final debugEnabled = prefs.getBool('debug_mode_enabled') ?? false;
+  if (debugEnabled) {
+    LoggerService.setFileService(logFileService);
+  }
 
   // Create location service and get storage config
   final locationService = DatabaseLocationService(prefs);
@@ -105,7 +122,7 @@ Future<void> main() async {
     final speciesRepository = SpeciesRepository();
     await speciesRepository.seedBuiltInSpecies();
 
-    runApp(SubmersionRestart(prefs: prefs));
+    runApp(SubmersionRestart(prefs: prefs, logFileService: logFileService));
   } on DatabaseVersionMismatchException catch (e) {
     debugPrint('FATAL: $e');
     runApp(
@@ -200,8 +217,13 @@ void restartApp() {
 
 class SubmersionRestart extends StatelessWidget {
   final SharedPreferences prefs;
+  final LogFileService logFileService;
 
-  const SubmersionRestart({super.key, required this.prefs});
+  const SubmersionRestart({
+    super.key,
+    required this.prefs,
+    required this.logFileService,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -210,7 +232,10 @@ class SubmersionRestart extends StatelessWidget {
       builder: (context, key, _) {
         return ProviderScope(
           key: key,
-          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            logFileServiceProvider.overrideWithValue(logFileService),
+          ],
           child: const SubmersionApp(),
         );
       },

@@ -48,6 +48,10 @@ class DiveComputerService implements DiveComputerFlutterApi {
       StreamController<DiscoveredDevice>.broadcast();
   final _discoveryCompleteController = StreamController<void>.broadcast();
   final _downloadEventsController = StreamController<DownloadEvent>.broadcast();
+  final _logEventsController =
+      StreamController<
+        ({String category, String level, String message})
+      >.broadcast();
 
   DiveComputerService({DiveComputerHostApi? hostApi})
     : _hostApi = hostApi ?? DiveComputerHostApi();
@@ -61,6 +65,10 @@ class DiveComputerService implements DiveComputerFlutterApi {
 
   /// Stream of download events (progress, dives, complete, error).
   Stream<DownloadEvent> get downloadEvents => _downloadEventsController.stream;
+
+  /// Stream of log events from native code.
+  Stream<({String category, String level, String message})> get logEvents =>
+      _logEventsController.stream;
 
   /// Get all known device descriptors from libdivecomputer.
   Future<List<DeviceDescriptor>> getDeviceDescriptors() {
@@ -144,10 +152,20 @@ class DiveComputerService implements DiveComputerFlutterApi {
     _downloadEventsController.add(PinCodeRequestEvent(deviceAddress));
   }
 
+  @override
+  void onLogEvent(String category, String level, String message) {
+    _logEventsController.add((
+      category: category,
+      level: level,
+      message: message,
+    ));
+  }
+
   /// Dispose of all stream controllers.
   void dispose() {
     _discoveredDevicesController.close();
     _discoveryCompleteController.close();
     _downloadEventsController.close();
+    _logEventsController.close();
   }
 }

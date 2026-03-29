@@ -26,7 +26,7 @@ class DiverRepository {
       final rows = await query.get();
       return rows.map(_mapRowToDiver).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get all divers', e, stackTrace);
+      _log.error('Failed to get all divers', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -50,7 +50,11 @@ class DiverRepository {
 
       return row != null ? _mapRowToDiver(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get default diver', e, stackTrace);
+      _log.error(
+        'Failed to get default diver',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -62,7 +66,11 @@ class DiverRepository {
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToDiver(row) : null;
     } catch (e, stackTrace) {
-      _log.error('Failed to get diver by id: $id', e, stackTrace);
+      _log.error(
+        'Failed to get diver by id: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -123,7 +131,11 @@ class DiverRepository {
       _log.info('Created diver with id: $id');
       return diver.copyWith(id: id, createdAt: now, updatedAt: now);
     } catch (e, stackTrace) {
-      _log.error('Failed to create diver: ${diver.name}', e, stackTrace);
+      _log.error(
+        'Failed to create diver: ${diver.name}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -171,7 +183,11 @@ class DiverRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Updated diver: ${diver.id}');
     } catch (e, stackTrace) {
-      _log.error('Failed to update diver: ${diver.id}', e, stackTrace);
+      _log.error(
+        'Failed to update diver: ${diver.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -247,7 +263,11 @@ class DiverRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted diver: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete diver: $id', e, stackTrace);
+      _log.error(
+        'Failed to delete diver: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -277,7 +297,11 @@ class DiverRepository {
       SyncEventBus.notifyLocalChange();
       _log.info('Set default diver: $id');
     } catch (e, stackTrace) {
-      _log.error('Failed to set default diver: $id', e, stackTrace);
+      _log.error(
+        'Failed to set default diver: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -293,7 +317,11 @@ class DiverRepository {
           .getSingle();
       return result.data['count'] as int? ?? 0;
     } catch (e, stackTrace) {
-      _log.error('Failed to get dive count for diver: $diverId', e, stackTrace);
+      _log.error(
+        'Failed to get dive count for diver: $diverId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -311,8 +339,8 @@ class DiverRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get total bottom time for diver: $diverId',
-        e,
-        stackTrace,
+        error: e,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -327,7 +355,11 @@ class DiverRepository {
       final row = await query.getSingleOrNull();
       return row?.value;
     } catch (e, stackTrace) {
-      _log.error('Failed to read active_diver_id from settings', e, stackTrace);
+      _log.error(
+        'Failed to read active_diver_id from settings',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return null;
     }
   }
@@ -353,7 +385,11 @@ class DiverRepository {
             );
       }
     } catch (e, stackTrace) {
-      _log.error('Failed to write active_diver_id to settings', e, stackTrace);
+      _log.error(
+        'Failed to write active_diver_id to settings',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
