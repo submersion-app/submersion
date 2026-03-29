@@ -1,7 +1,7 @@
-; Submersion Windows Installer
+; Submersion Windows ARM64 Installer
 ; Built by Inno Setup - https://jrsoftware.org/isinfo.php
 ;
-; Compiled in CI via: iscc /DAPP_VERSION="1.2.5" /DAPP_VERSION_CODE="49" submersion.iss
+; Compiled in CI via: iscc /DAPP_VERSION="1.2.5" /DAPP_VERSION_CODE="49" submersion-arm64.iss
 ; APP_VERSION and APP_VERSION_CODE are passed from the release workflow.
 
 #ifndef APP_VERSION
@@ -35,10 +35,10 @@ LicenseFile=..\..\LICENSE
 SetupIconFile=..\runner\resources\app_icon.ico
 UninstallDisplayIcon={app}\submersion.exe
 OutputDir=..\..\build\windows\installer
-OutputBaseFilename=Submersion-v{#APP_VERSION}-Windows-x64-Setup
+OutputBaseFilename=Submersion-v{#APP_VERSION}-Windows-ARM64-Setup
 Compression=lzma2
 SolidCompression=yes
-ArchitecturesAllowed=x64compatible
+ArchitecturesAllowed=arm64
 PrivilegesRequired=admin
 WizardStyle=modern
 VersionInfoVersion={#APP_VERSION_NUMERIC}.{#APP_VERSION_CODE}
@@ -50,7 +50,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "..\..\build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\build\windows\arm64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\Submersion"; Filename: "{app}\submersion.exe"
