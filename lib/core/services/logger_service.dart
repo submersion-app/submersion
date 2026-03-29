@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 
@@ -124,8 +124,14 @@ class LoggerService {
       level: level,
       message: error != null ? '$message | error: $error' : message,
     );
-    _pendingWrite =
-        _fileService?.writeLine(entry.toLogLine()) ?? Future.value();
+    final logLine = entry.toLogLine();
+    _pendingWrite = _pendingWrite.then((_) {
+      final service = _fileService;
+      if (service != null) {
+        return service.writeLine(logLine);
+      }
+      return Future<void>.value();
+    });
 
     // Notify live listeners (debug log viewer).
     _logStreamController.add(entry);
@@ -134,9 +140,21 @@ class LoggerService {
   /// Create a logger for a specific class
   static LoggerService forClass(Type type) => LoggerService(type.toString());
 
-  /// Wait for the most recently scheduled file write to complete.
+  /// Wait for all currently pending file writes to complete.
+  /// 
+  /// This method is primarily intended for tests that need deterministic
+  /// synchronization with log file writes.
   @visibleForTesting
-  static Future<void> flushPendingWrites() => _pendingWrite;
+  static Future<void> flushPendingWrites() async {
+    while (true) {
+      final current = _pendingWrite;
+      await current;
+      // If no new write was scheduled while we were waiting, we're done.
+      if (identical(current, _pendingWrite)) {
+        break;
+      }
+    }
+  }
 }
 
 /// Custom exception for repository errors
