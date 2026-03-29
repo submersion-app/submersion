@@ -42,7 +42,7 @@ if [ "$LIST_MODE" = true ]; then
   gh release list --limit 20
   echo ""
   echo "=== Local Tags ==="
-  git tag -l 'v*' --sort=-version:refname | head -20
+  git tag -l 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-beta)?\.[0-9]+$' | sort -rV | head -20
   exit 0
 fi
 
@@ -56,7 +56,7 @@ if [ -z "$TAG" ]; then
   gh release list --limit 10 2>/dev/null || true
   echo ""
   echo "Local tags:"
-  git tag -l 'v*' --sort=-version:refname | head -10 || true
+  git tag -l 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-beta)?\.[0-9]+$' | sort -rV | head -10 || true
   echo ""
   echo "Remote tags:"
   git ls-remote --tags origin 'refs/tags/v*' 2>/dev/null | sed 's|.*refs/tags/||' | sort -rV | head -10 || true
