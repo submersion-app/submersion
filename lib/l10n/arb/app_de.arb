@@ -3024,7 +3024,7 @@
   "settings_about_openSourceLicenses": "Open-Source-Lizenzen",
   "settings_about_reportIssue": "Problem melden",
   "settings_about_reportIssue_snackbar": "Besuchen Sie github.com/submersion/submersion",
-  "settings_about_version": "Version {version} ({buildNumber})",
+  "settings_about_version": "Version {version}",
   "settings_appBar_title": "Einstellungen",
   "settings_appearance_appLanguage": "App-Sprache",
   "settings_appearance_cardColorAttribute": "Karten faerben nach",

@@ -2320,8 +2320,12 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
   Widget build(BuildContext context) {
     final packageInfoAsync = ref.watch(packageInfoProvider);
     final versionString = packageInfoAsync.when(
-      data: (info) =>
-          context.l10n.settings_about_version(info.version, info.buildNumber),
+      data: (info) {
+        final version = info.version.endsWith('.${info.buildNumber}')
+            ? info.version
+            : '${info.version}.${info.buildNumber}';
+        return context.l10n.settings_about_version(version);
+      },
       loading: () => '',
       error: (_, _) => '',
     );

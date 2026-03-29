@@ -2990,7 +2990,7 @@
   "settings_about_openSourceLicenses": "Licences open source",
   "settings_about_reportIssue": "Signaler un probleme",
   "settings_about_reportIssue_snackbar": "Rendez-vous sur github.com/submersion/submersion",
-  "settings_about_version": "Version {version} ({buildNumber})",
+  "settings_about_version": "Version {version}",
   "settings_appBar_title": "Reglages",
   "settings_appearance_appLanguage": "Langue de l'application",
   "settings_appearance_cardColorAttribute": "Colorer les cartes par",

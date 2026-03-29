@@ -3024,7 +3024,7 @@
   "settings_about_openSourceLicenses": "Open source-licenties",
   "settings_about_reportIssue": "Probleem melden",
   "settings_about_reportIssue_snackbar": "Ga naar github.com/submersion/submersion",
-  "settings_about_version": "Versie {version} ({buildNumber})",
+  "settings_about_version": "Versie {version}",
   "settings_appBar_title": "Instellingen",
   "settings_appearance_appLanguage": "App-taal",
   "settings_appearance_cardColorAttribute": "Kaarten kleuren op",

@@ -891,11 +891,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Download all artifacts
         uses: actions/download-artifact@v8
         with:
           merge-multiple: true
+
+      - name: Generate release notes HTML
+        run: |
+          ./scripts/release/generate_changelog.sh --notes-only | \
+            ./scripts/generate_release_notes_html.sh > release-notes.html
 
       - name: Generate appcast.xml
         env:
@@ -908,7 +915,8 @@ jobs:
           DATE=$(date -R)
           MACOS_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/Submersion-${TAG_NAME}-macOS.dmg"
           WINDOWS_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/Submersion-${TAG_NAME}-Windows-Setup.exe"
-          ./scripts/generate_appcast.sh "$VERSION" "$BUILD_NUMBER" "$DATE" "$MACOS_URL" "$WINDOWS_URL" > appcast.xml
+          RELEASE_NOTES_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/release-notes.html"
+          ./scripts/generate_appcast.sh "$VERSION" "$BUILD_NUMBER" "$DATE" "$MACOS_URL" "$WINDOWS_URL" "$RELEASE_NOTES_URL" > appcast.xml
 
       - name: Generate checksums
         run: sha256sum Submersion-* > checksums-sha256.txt
@@ -917,7 +925,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: appcast
-          path: appcast.xml
+          path: |
+            appcast.xml
+            release-notes.html
           retention-days: 5
 
       - name: Upload checksums artifact
@@ -972,6 +982,7 @@ jobs:
           files: |
             Submersion-*
             appcast.xml
+            release-notes.html
             checksums-sha256.txt
           prerelease: ${{ steps.prerelease.outputs.prerelease }}
           body_path: release-notes.md

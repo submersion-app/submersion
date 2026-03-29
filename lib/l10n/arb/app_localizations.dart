@@ -16313,8 +16313,8 @@ abstract class AppLocalizations {
   /// No description provided for @settings_about_version.
   ///
   /// In en, this message translates to:
-  /// **'Version {version} ({buildNumber})'**
-  String settings_about_version(String version, String buildNumber);
+  /// **'Version {version}'**
+  String settings_about_version(String version);
 
   /// No description provided for @settings_appBar_title.
   ///

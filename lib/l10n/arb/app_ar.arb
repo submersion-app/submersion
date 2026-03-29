@@ -3024,7 +3024,7 @@
   "settings_about_openSourceLicenses": "تراخيص المصادر المفتوحة",
   "settings_about_reportIssue": "الإبلاغ عن مشكلة",
   "settings_about_reportIssue_snackbar": "قم بزيارة github.com/submersion/submersion",
-  "settings_about_version": "الإصدار {version} ({buildNumber})",
+  "settings_about_version": "الإصدار {version}",
   "settings_appBar_title": "الإعدادات",
   "settings_appearance_appLanguage": "لغة التطبيق",
   "settings_appearance_cardColorAttribute": "تلوين البطاقات حسب",

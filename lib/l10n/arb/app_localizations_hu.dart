@@ -9485,8 +9485,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Latogasson el: github.com/submersion/submersion';
 
   @override
-  String settings_about_version(String version, String buildNumber) {
-    return 'Verzio $version ($buildNumber)';
+  String settings_about_version(String version) {
+    return 'Verzio $version';
   }
 
   @override
@@ -9556,7 +9556,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Gazvaltas jelolok megjelenites';
 
   @override
-  String get settings_appearance_header_diveDetails => 'Dive Details';
+  String get settings_appearance_header_diveDetails => 'Merülés részletek';
 
   @override
   String get settings_appearance_header_diveLog => 'Merülesi naplo';
@@ -9569,140 +9569,144 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility =>
-      'Section Order & Visibility';
+      'Szekció sorrend és láthatóság';
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle =>
-      'Choose which sections appear and their order';
+      'Válassza ki, mely szekciók jelenjenek meg és milyen sorrendben';
 
   @override
-  String get settings_diveDetailSections_title => 'Section Order & Visibility';
+  String get settings_diveDetailSections_title =>
+      'Szekció sorrend és láthatóság';
 
   @override
-  String get settings_diveDetailSections_resetToDefault => 'Reset to Default';
+  String get settings_diveDetailSections_resetToDefault =>
+      'Visszaállítás alapértelmezettre';
 
   @override
   String get settings_diveDetailSections_fixedSections =>
-      'Fixed sections: Header, Dive Profile Chart';
+      'Rögzített szekciók: Fejléc, Merülési profil grafikon';
 
   @override
   String get settings_diveDetailSections_configurableSections =>
-      'Configurable sections (drag to reorder)';
+      'Konfigurálható szekciók (húzással rendezhető)';
 
   @override
-  String get diveDetailSection_decoO2_name => 'Deco Status / Tissue Loading';
+  String get diveDetailSection_decoO2_name => 'Deko állapot / Szövetterhelés';
 
   @override
   String get diveDetailSection_decoO2_description =>
-      'NDL, ceiling, tissue heat map, O2 toxicity';
+      'NDL, plafon, szövet hőtérkép, O2 toxicitás';
 
   @override
-  String get diveDetailSection_sacSegments_name => 'SAC Rate by Segment';
+  String get diveDetailSection_sacSegments_name => 'SAC arány szegmensenként';
 
   @override
   String get diveDetailSection_sacSegments_description =>
-      'Phase/time segmentation, cylinder breakdown';
+      'Fázis/idő szegmentálás, palack lebontás';
 
   @override
-  String get diveDetailSection_details_name => 'Details';
+  String get diveDetailSection_details_name => 'Részletek';
 
   @override
   String get diveDetailSection_details_description =>
-      'Type, location, trip, dive center, interval';
+      'Típus, helyszín, út, búvárközpont, intervallum';
 
   @override
-  String get diveDetailSection_environment_name => 'Environment';
+  String get diveDetailSection_environment_name => 'Környezet';
 
   @override
   String get diveDetailSection_environment_description =>
-      'Air/water temp, visibility, current';
+      'Levegő/víz hőmérséklet, látótávolság, áramlat';
 
   @override
-  String get diveDetailSection_altitude_name => 'Altitude';
+  String get diveDetailSection_altitude_name => 'Magasság';
 
   @override
   String get diveDetailSection_altitude_description =>
-      'Altitude value, category, deco requirement';
+      'Magassági érték, kategória, deko követelmény';
 
   @override
-  String get diveDetailSection_tide_name => 'Tide';
+  String get diveDetailSection_tide_name => 'Árapály';
 
   @override
   String get diveDetailSection_tide_description =>
-      'Tide cycle graph and timing';
+      'Árapály-ciklus grafikon és időzítés';
 
   @override
-  String get diveDetailSection_weights_name => 'Weights';
+  String get diveDetailSection_weights_name => 'Súlyok';
 
   @override
   String get diveDetailSection_weights_description =>
-      'Weight breakdown, total weight';
+      'Súly lebontás, teljes súly';
 
   @override
-  String get diveDetailSection_tanks_name => 'Tanks';
+  String get diveDetailSection_tanks_name => 'Palackok';
 
   @override
   String get diveDetailSection_tanks_description =>
-      'Tank list, gas mixes, pressures, per-tank SAC';
+      'Palack lista, gázkeverékek, nyomások, palackonkénti SAC';
 
   @override
-  String get diveDetailSection_buddies_name => 'Buddies';
+  String get diveDetailSection_buddies_name => 'Merülőpartnerek';
 
   @override
-  String get diveDetailSection_buddies_description => 'Buddy list with roles';
+  String get diveDetailSection_buddies_description =>
+      'Merülőpartner lista szerepekkel';
 
   @override
-  String get diveDetailSection_signatures_name => 'Signatures';
+  String get diveDetailSection_signatures_name => 'Aláírások';
 
   @override
   String get diveDetailSection_signatures_description =>
-      'Buddy/instructor signature display and capture';
+      'Partner/oktató aláírás megjelenítése és rögzítése';
 
   @override
-  String get diveDetailSection_equipment_name => 'Equipment';
+  String get diveDetailSection_equipment_name => 'Felszerelés';
 
   @override
   String get diveDetailSection_equipment_description =>
-      'Equipment used in dive';
+      'A merülésen használt felszerelés';
 
   @override
-  String get diveDetailSection_sightings_name => 'Marine Life Sightings';
+  String get diveDetailSection_sightings_name =>
+      'Tengeri élőlény megfigyelések';
 
   @override
   String get diveDetailSection_sightings_description =>
-      'Species spotted, sighting details';
+      'Megfigyelt fajok, megfigyelési adatok';
 
   @override
-  String get diveDetailSection_media_name => 'Media';
+  String get diveDetailSection_media_name => 'Média';
 
   @override
-  String get diveDetailSection_media_description => 'Photos/videos gallery';
+  String get diveDetailSection_media_description => 'Fotók/videók galériája';
 
   @override
-  String get diveDetailSection_tags_name => 'Tags';
+  String get diveDetailSection_tags_name => 'Címkék';
 
   @override
-  String get diveDetailSection_tags_description => 'Dive tags';
+  String get diveDetailSection_tags_description => 'Merülési címkék';
 
   @override
-  String get diveDetailSection_notes_name => 'Notes';
+  String get diveDetailSection_notes_name => 'Jegyzetek';
 
   @override
-  String get diveDetailSection_notes_description => 'Dive notes/description';
+  String get diveDetailSection_notes_description => 'Merülési jegyzetek/leírás';
 
   @override
-  String get diveDetailSection_customFields_name => 'Custom Fields';
+  String get diveDetailSection_customFields_name => 'Egyéni mezők';
 
   @override
   String get diveDetailSection_customFields_description =>
-      'User-defined custom fields';
+      'Felhasználó által definiált egyéni mezők';
 
   @override
-  String get diveDetailSection_dataSources_name => 'Data Sources';
+  String get diveDetailSection_dataSources_name => 'Adatforrások';
 
   @override
   String get diveDetailSection_dataSources_description =>
-      'Connected dive computers, source management';
+      'Csatlakoztatott merülőszámítógépek, forráskezelés';
 
   @override
   String get settings_appearance_header_language => 'Nyelv';

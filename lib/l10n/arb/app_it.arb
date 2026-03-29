@@ -2990,7 +2990,7 @@
   "settings_about_openSourceLicenses": "Licenze open source",
   "settings_about_reportIssue": "Segnala un problema",
   "settings_about_reportIssue_snackbar": "Visita github.com/submersion/submersion",
-  "settings_about_version": "Versione {version} ({buildNumber})",
+  "settings_about_version": "Versione {version}",
   "settings_appBar_title": "Impostazioni",
   "settings_appearance_appLanguage": "Lingua dell'app",
   "settings_appearance_cardColorAttribute": "Colora schede per",

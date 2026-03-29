@@ -9362,8 +9362,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Visit github.com/submersion/submersion';
 
   @override
-  String settings_about_version(String version, String buildNumber) {
-    return 'Version $version ($buildNumber)';
+  String settings_about_version(String version) {
+    return 'Version $version';
   }
 
   @override

@@ -9264,8 +9264,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'בקר ב-github.com/submersion/submersion';
 
   @override
-  String settings_about_version(String version, String buildNumber) {
-    return 'גרסה $version ($buildNumber)';
+  String settings_about_version(String version) {
+    return 'גרסה $version';
   }
 
   @override
@@ -9334,7 +9334,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצג סמנים להחלפות גז';
 
   @override
-  String get settings_appearance_header_diveDetails => 'Dive Details';
+  String get settings_appearance_header_diveDetails => 'פרטי צלילה';
 
   @override
   String get settings_appearance_header_diveLog => 'יומן צלילות';
@@ -9347,140 +9347,139 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility =>
-      'Section Order & Visibility';
+      'סדר וחשיפת סעיפים';
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle =>
-      'Choose which sections appear and their order';
+      'בחר אילו סעיפים יוצגו ובאיזה סדר';
 
   @override
-  String get settings_diveDetailSections_title => 'Section Order & Visibility';
+  String get settings_diveDetailSections_title => 'סדר וחשיפת סעיפים';
 
   @override
-  String get settings_diveDetailSections_resetToDefault => 'Reset to Default';
+  String get settings_diveDetailSections_resetToDefault => 'איפוס לברירת מחדל';
 
   @override
   String get settings_diveDetailSections_fixedSections =>
-      'Fixed sections: Header, Dive Profile Chart';
+      'סעיפים קבועים: כותרת, תרשים פרופיל צלילה';
 
   @override
   String get settings_diveDetailSections_configurableSections =>
-      'Configurable sections (drag to reorder)';
+      'סעיפים הניתנים להגדרה (גרור לסידור מחדש)';
 
   @override
-  String get diveDetailSection_decoO2_name => 'Deco Status / Tissue Loading';
+  String get diveDetailSection_decoO2_name => 'סטטוס דקו / עומס רקמות';
 
   @override
   String get diveDetailSection_decoO2_description =>
-      'NDL, ceiling, tissue heat map, O2 toxicity';
+      'NDL, תקרה, מפת חום של רקמות, רעילות O2';
 
   @override
-  String get diveDetailSection_sacSegments_name => 'SAC Rate by Segment';
+  String get diveDetailSection_sacSegments_name => 'קצב SAC לפי קטע';
 
   @override
   String get diveDetailSection_sacSegments_description =>
-      'Phase/time segmentation, cylinder breakdown';
+      'פילוח לפי שלב/זמן, פירוט בלונים';
 
   @override
-  String get diveDetailSection_details_name => 'Details';
+  String get diveDetailSection_details_name => 'פרטים';
 
   @override
   String get diveDetailSection_details_description =>
-      'Type, location, trip, dive center, interval';
+      'סוג, מיקום, טיול, מרכז צלילה, מרווח';
 
   @override
-  String get diveDetailSection_environment_name => 'Environment';
+  String get diveDetailSection_environment_name => 'סביבה';
 
   @override
   String get diveDetailSection_environment_description =>
-      'Air/water temp, visibility, current';
+      'טמפרטורת אוויר/מים, ראות, זרם';
 
   @override
-  String get diveDetailSection_altitude_name => 'Altitude';
+  String get diveDetailSection_altitude_name => 'גובה';
 
   @override
   String get diveDetailSection_altitude_description =>
-      'Altitude value, category, deco requirement';
+      'ערך גובה, קטגוריה, דרישת דקומפרסיה';
 
   @override
-  String get diveDetailSection_tide_name => 'Tide';
+  String get diveDetailSection_tide_name => 'גאות ושפל';
 
   @override
-  String get diveDetailSection_tide_description =>
-      'Tide cycle graph and timing';
+  String get diveDetailSection_tide_description => 'גרף מחזור גאות ושפל וזמן';
 
   @override
-  String get diveDetailSection_weights_name => 'Weights';
+  String get diveDetailSection_weights_name => 'משקולות';
 
   @override
   String get diveDetailSection_weights_description =>
-      'Weight breakdown, total weight';
+      'פירוט משקולות, משקל כולל';
 
   @override
-  String get diveDetailSection_tanks_name => 'Tanks';
+  String get diveDetailSection_tanks_name => 'בלונים';
 
   @override
   String get diveDetailSection_tanks_description =>
-      'Tank list, gas mixes, pressures, per-tank SAC';
+      'רשימת בלונים, תערובות גז, לחצים, SAC לבלון';
 
   @override
-  String get diveDetailSection_buddies_name => 'Buddies';
+  String get diveDetailSection_buddies_name => 'חברי צלילה';
 
   @override
-  String get diveDetailSection_buddies_description => 'Buddy list with roles';
+  String get diveDetailSection_buddies_description =>
+      'רשימת חברי צלילה עם תפקידים';
 
   @override
-  String get diveDetailSection_signatures_name => 'Signatures';
+  String get diveDetailSection_signatures_name => 'חתימות';
 
   @override
   String get diveDetailSection_signatures_description =>
-      'Buddy/instructor signature display and capture';
+      'הצגה ולכידה של חתימות חבר/מדריך';
 
   @override
-  String get diveDetailSection_equipment_name => 'Equipment';
+  String get diveDetailSection_equipment_name => 'ציוד';
 
   @override
-  String get diveDetailSection_equipment_description =>
-      'Equipment used in dive';
+  String get diveDetailSection_equipment_description => 'ציוד שהשתמש בצלילה';
 
   @override
-  String get diveDetailSection_sightings_name => 'Marine Life Sightings';
+  String get diveDetailSection_sightings_name => 'תצפיות חיי ים';
 
   @override
   String get diveDetailSection_sightings_description =>
-      'Species spotted, sighting details';
+      'מינים שנצפו, פרטי תצפית';
 
   @override
-  String get diveDetailSection_media_name => 'Media';
+  String get diveDetailSection_media_name => 'מדיה';
 
   @override
-  String get diveDetailSection_media_description => 'Photos/videos gallery';
+  String get diveDetailSection_media_description => 'גלריית תמונות/סרטונים';
 
   @override
-  String get diveDetailSection_tags_name => 'Tags';
+  String get diveDetailSection_tags_name => 'תגיות';
 
   @override
-  String get diveDetailSection_tags_description => 'Dive tags';
+  String get diveDetailSection_tags_description => 'תגיות צלילה';
 
   @override
-  String get diveDetailSection_notes_name => 'Notes';
+  String get diveDetailSection_notes_name => 'הערות';
 
   @override
-  String get diveDetailSection_notes_description => 'Dive notes/description';
+  String get diveDetailSection_notes_description => 'הערות/תיאור צלילה';
 
   @override
-  String get diveDetailSection_customFields_name => 'Custom Fields';
+  String get diveDetailSection_customFields_name => 'שדות מותאמים אישית';
 
   @override
   String get diveDetailSection_customFields_description =>
-      'User-defined custom fields';
+      'שדות מותאמים אישית שהוגדרו על ידי המשתמש';
 
   @override
-  String get diveDetailSection_dataSources_name => 'Data Sources';
+  String get diveDetailSection_dataSources_name => 'מקורות נתונים';
 
   @override
   String get diveDetailSection_dataSources_description =>
-      'Connected dive computers, source management';
+      'מחשבי צלילה מחוברים, ניהול מקורות';
 
   @override
   String get settings_appearance_header_language => 'שפה';

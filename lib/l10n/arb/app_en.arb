@@ -5193,13 +5193,10 @@
   "settings_about_openSourceLicenses": "Open Source Licenses",
   "settings_about_reportIssue": "Report an Issue",
   "settings_about_reportIssue_snackbar": "Visit github.com/submersion/submersion",
-  "settings_about_version": "Version {version} ({buildNumber})",
+  "settings_about_version": "Version {version}",
   "@settings_about_version": {
     "placeholders": {
       "version": {
-        "type": "String"
-      },
-      "buildNumber": {
         "type": "String"
       }
     }

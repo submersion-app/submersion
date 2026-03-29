@@ -9549,8 +9549,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Rendez-vous sur github.com/submersion/submersion';
 
   @override
-  String settings_about_version(String version, String buildNumber) {
-    return 'Version $version ($buildNumber)';
+  String settings_about_version(String version) {
+    return 'Version $version';
   }
 
   @override
@@ -9621,7 +9621,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher les marqueurs de changement de gaz';
 
   @override
-  String get settings_appearance_header_diveDetails => 'Dive Details';
+  String get settings_appearance_header_diveDetails => 'Details de la plongee';
 
   @override
   String get settings_appearance_header_diveLog => 'Carnet de plongee';
@@ -9634,140 +9634,145 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility =>
-      'Section Order & Visibility';
+      'Ordre et visibilite des sections';
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle =>
-      'Choose which sections appear and their order';
+      'Choisir quelles sections s\'affichent et leur ordre';
 
   @override
-  String get settings_diveDetailSections_title => 'Section Order & Visibility';
+  String get settings_diveDetailSections_title =>
+      'Ordre et visibilite des sections';
 
   @override
-  String get settings_diveDetailSections_resetToDefault => 'Reset to Default';
+  String get settings_diveDetailSections_resetToDefault =>
+      'Reinitialiser par defaut';
 
   @override
   String get settings_diveDetailSections_fixedSections =>
-      'Fixed sections: Header, Dive Profile Chart';
+      'Sections fixes : En-tete, Graphique du profil de plongee';
 
   @override
   String get settings_diveDetailSections_configurableSections =>
-      'Configurable sections (drag to reorder)';
+      'Sections configurables (glisser pour reordonner)';
 
   @override
-  String get diveDetailSection_decoO2_name => 'Deco Status / Tissue Loading';
+  String get diveDetailSection_decoO2_name =>
+      'Statut deco / Saturation des tissues';
 
   @override
   String get diveDetailSection_decoO2_description =>
-      'NDL, ceiling, tissue heat map, O2 toxicity';
+      'NDL, plafond, carte thermique des tissues, toxicite O2';
 
   @override
-  String get diveDetailSection_sacSegments_name => 'SAC Rate by Segment';
+  String get diveDetailSection_sacSegments_name => 'SAC par segment';
 
   @override
   String get diveDetailSection_sacSegments_description =>
-      'Phase/time segmentation, cylinder breakdown';
+      'Segmentation par phase/temps, repartition par bouteille';
 
   @override
   String get diveDetailSection_details_name => 'Details';
 
   @override
   String get diveDetailSection_details_description =>
-      'Type, location, trip, dive center, interval';
+      'Type, lieu, voyage, centre de plongee, intervalle';
 
   @override
-  String get diveDetailSection_environment_name => 'Environment';
+  String get diveDetailSection_environment_name => 'Environnement';
 
   @override
   String get diveDetailSection_environment_description =>
-      'Air/water temp, visibility, current';
+      'Temperature air/eau, visibilite, courant';
 
   @override
   String get diveDetailSection_altitude_name => 'Altitude';
 
   @override
   String get diveDetailSection_altitude_description =>
-      'Altitude value, category, deco requirement';
+      'Valeur d\'altitude, categorie, exigence deco';
 
   @override
-  String get diveDetailSection_tide_name => 'Tide';
+  String get diveDetailSection_tide_name => 'Maree';
 
   @override
   String get diveDetailSection_tide_description =>
-      'Tide cycle graph and timing';
+      'Graphique du cycle de maree et horaires';
 
   @override
-  String get diveDetailSection_weights_name => 'Weights';
+  String get diveDetailSection_weights_name => 'Lestage';
 
   @override
   String get diveDetailSection_weights_description =>
-      'Weight breakdown, total weight';
+      'Repartition des lests, poids total';
 
   @override
-  String get diveDetailSection_tanks_name => 'Tanks';
+  String get diveDetailSection_tanks_name => 'Bouteilles';
 
   @override
   String get diveDetailSection_tanks_description =>
-      'Tank list, gas mixes, pressures, per-tank SAC';
+      'Liste des bouteilles, melanges gazeux, pressions, SAC par bouteille';
 
   @override
-  String get diveDetailSection_buddies_name => 'Buddies';
+  String get diveDetailSection_buddies_name => 'Binomes';
 
   @override
-  String get diveDetailSection_buddies_description => 'Buddy list with roles';
+  String get diveDetailSection_buddies_description =>
+      'Liste des binomes avec leurs roles';
 
   @override
   String get diveDetailSection_signatures_name => 'Signatures';
 
   @override
   String get diveDetailSection_signatures_description =>
-      'Buddy/instructor signature display and capture';
+      'Affichage et capture de signatures binome/instructeur';
 
   @override
-  String get diveDetailSection_equipment_name => 'Equipment';
+  String get diveDetailSection_equipment_name => 'Equipement';
 
   @override
   String get diveDetailSection_equipment_description =>
-      'Equipment used in dive';
+      'Equipement utilise lors de la plongee';
 
   @override
-  String get diveDetailSection_sightings_name => 'Marine Life Sightings';
+  String get diveDetailSection_sightings_name => 'Observations de vie marine';
 
   @override
   String get diveDetailSection_sightings_description =>
-      'Species spotted, sighting details';
+      'Especes observees, details des observations';
 
   @override
-  String get diveDetailSection_media_name => 'Media';
+  String get diveDetailSection_media_name => 'Medias';
 
   @override
-  String get diveDetailSection_media_description => 'Photos/videos gallery';
+  String get diveDetailSection_media_description => 'Galerie photos/videos';
 
   @override
   String get diveDetailSection_tags_name => 'Tags';
 
   @override
-  String get diveDetailSection_tags_description => 'Dive tags';
+  String get diveDetailSection_tags_description => 'Tags de la plongee';
 
   @override
   String get diveDetailSection_notes_name => 'Notes';
 
   @override
-  String get diveDetailSection_notes_description => 'Dive notes/description';
+  String get diveDetailSection_notes_description =>
+      'Notes/description de la plongee';
 
   @override
-  String get diveDetailSection_customFields_name => 'Custom Fields';
+  String get diveDetailSection_customFields_name => 'Champs personnalises';
 
   @override
   String get diveDetailSection_customFields_description =>
-      'User-defined custom fields';
+      'Champs personnalises definis par l\'utilisateur';
 
   @override
-  String get diveDetailSection_dataSources_name => 'Data Sources';
+  String get diveDetailSection_dataSources_name => 'Sources de donnees';
 
   @override
   String get diveDetailSection_dataSources_description =>
-      'Connected dive computers, source management';
+      'Ordinateurs de plongee connectes, gestion des sources';
 
   @override
   String get settings_appearance_header_language => 'Langue';

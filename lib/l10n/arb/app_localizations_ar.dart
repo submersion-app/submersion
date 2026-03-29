@@ -9330,8 +9330,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'قم بزيارة github.com/submersion/submersion';
 
   @override
-  String settings_about_version(String version, String buildNumber) {
-    return 'الإصدار $version ($buildNumber)';
+  String settings_about_version(String version) {
+    return 'الإصدار $version';
   }
 
   @override
@@ -9400,7 +9400,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'عرض علامات لتبديل الغازات';
 
   @override
-  String get settings_appearance_header_diveDetails => 'Dive Details';
+  String get settings_appearance_header_diveDetails => 'تفاصيل الغوصة';
 
   @override
   String get settings_appearance_header_diveLog => 'سجل الغوص';
@@ -9413,140 +9413,143 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility =>
-      'Section Order & Visibility';
+      'ترتيب الأقسام وظهورها';
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle =>
-      'Choose which sections appear and their order';
+      'اختر الأقسام التي تظهر وترتيبها';
 
   @override
-  String get settings_diveDetailSections_title => 'Section Order & Visibility';
+  String get settings_diveDetailSections_title => 'ترتيب الأقسام وظهورها';
 
   @override
-  String get settings_diveDetailSections_resetToDefault => 'Reset to Default';
+  String get settings_diveDetailSections_resetToDefault =>
+      'إعادة تعيين إلى الافتراضي';
 
   @override
   String get settings_diveDetailSections_fixedSections =>
-      'Fixed sections: Header, Dive Profile Chart';
+      'الأقسام الثابتة: الرأس، مخطط ملف الغوصة';
 
   @override
   String get settings_diveDetailSections_configurableSections =>
-      'Configurable sections (drag to reorder)';
+      'الأقسام القابلة للتخصيص (اسحب لإعادة الترتيب)';
 
   @override
-  String get diveDetailSection_decoO2_name => 'Deco Status / Tissue Loading';
+  String get diveDetailSection_decoO2_name =>
+      'حالة تخفيف الضغط / تحميل الأنسجة';
 
   @override
   String get diveDetailSection_decoO2_description =>
-      'NDL, ceiling, tissue heat map, O2 toxicity';
+      'NDL، السقف، خريطة حرارة الأنسجة، سمية O2';
 
   @override
-  String get diveDetailSection_sacSegments_name => 'SAC Rate by Segment';
+  String get diveDetailSection_sacSegments_name => 'معدل SAC حسب المقطع';
 
   @override
   String get diveDetailSection_sacSegments_description =>
-      'Phase/time segmentation, cylinder breakdown';
+      'تقسيم المراحل/الوقت، تفصيل الأسطوانات';
 
   @override
-  String get diveDetailSection_details_name => 'Details';
+  String get diveDetailSection_details_name => 'التفاصيل';
 
   @override
   String get diveDetailSection_details_description =>
-      'Type, location, trip, dive center, interval';
+      'النوع، الموقع، الرحلة، مركز الغوص، الفترة الفاصلة';
 
   @override
-  String get diveDetailSection_environment_name => 'Environment';
+  String get diveDetailSection_environment_name => 'البيئة';
 
   @override
   String get diveDetailSection_environment_description =>
-      'Air/water temp, visibility, current';
+      'درجة حرارة الهواء/الماء، الرؤية، التيار';
 
   @override
-  String get diveDetailSection_altitude_name => 'Altitude';
+  String get diveDetailSection_altitude_name => 'الارتفاع';
 
   @override
   String get diveDetailSection_altitude_description =>
-      'Altitude value, category, deco requirement';
+      'قيمة الارتفاع، الفئة، متطلبات تخفيف الضغط';
 
   @override
-  String get diveDetailSection_tide_name => 'Tide';
+  String get diveDetailSection_tide_name => 'المد والجزر';
 
   @override
   String get diveDetailSection_tide_description =>
-      'Tide cycle graph and timing';
+      'رسم بياني لدورة المد والجزر والتوقيت';
 
   @override
-  String get diveDetailSection_weights_name => 'Weights';
+  String get diveDetailSection_weights_name => 'الأوزان';
 
   @override
   String get diveDetailSection_weights_description =>
-      'Weight breakdown, total weight';
+      'تفصيل الأوزان، إجمالي الوزن';
 
   @override
-  String get diveDetailSection_tanks_name => 'Tanks';
+  String get diveDetailSection_tanks_name => 'الأسطوانات';
 
   @override
   String get diveDetailSection_tanks_description =>
-      'Tank list, gas mixes, pressures, per-tank SAC';
+      'قائمة الأسطوانات، خلطات الغاز، الضغوط، SAC لكل أسطوانة';
 
   @override
-  String get diveDetailSection_buddies_name => 'Buddies';
+  String get diveDetailSection_buddies_name => 'الرفقاء';
 
   @override
-  String get diveDetailSection_buddies_description => 'Buddy list with roles';
+  String get diveDetailSection_buddies_description =>
+      'قائمة الرفقاء مع الأدوار';
 
   @override
-  String get diveDetailSection_signatures_name => 'Signatures';
+  String get diveDetailSection_signatures_name => 'التوقيعات';
 
   @override
   String get diveDetailSection_signatures_description =>
-      'Buddy/instructor signature display and capture';
+      'عرض توقيعات الرفيق/المدرب والتقاطها';
 
   @override
-  String get diveDetailSection_equipment_name => 'Equipment';
+  String get diveDetailSection_equipment_name => 'المعدات';
 
   @override
   String get diveDetailSection_equipment_description =>
-      'Equipment used in dive';
+      'المعدات المستخدمة في الغوصة';
 
   @override
-  String get diveDetailSection_sightings_name => 'Marine Life Sightings';
+  String get diveDetailSection_sightings_name => 'مشاهدات الحياة البحرية';
 
   @override
   String get diveDetailSection_sightings_description =>
-      'Species spotted, sighting details';
+      'الأنواع المرصودة، تفاصيل المشاهدات';
 
   @override
-  String get diveDetailSection_media_name => 'Media';
+  String get diveDetailSection_media_name => 'الوسائط';
 
   @override
-  String get diveDetailSection_media_description => 'Photos/videos gallery';
+  String get diveDetailSection_media_description => 'معرض الصور/مقاطع الفيديو';
 
   @override
-  String get diveDetailSection_tags_name => 'Tags';
+  String get diveDetailSection_tags_name => 'الوسوم';
 
   @override
-  String get diveDetailSection_tags_description => 'Dive tags';
+  String get diveDetailSection_tags_description => 'وسوم الغوصة';
 
   @override
-  String get diveDetailSection_notes_name => 'Notes';
+  String get diveDetailSection_notes_name => 'الملاحظات';
 
   @override
-  String get diveDetailSection_notes_description => 'Dive notes/description';
+  String get diveDetailSection_notes_description => 'ملاحظات/وصف الغوصة';
 
   @override
-  String get diveDetailSection_customFields_name => 'Custom Fields';
+  String get diveDetailSection_customFields_name => 'الحقول المخصصة';
 
   @override
   String get diveDetailSection_customFields_description =>
-      'User-defined custom fields';
+      'حقول مخصصة يحددها المستخدم';
 
   @override
-  String get diveDetailSection_dataSources_name => 'Data Sources';
+  String get diveDetailSection_dataSources_name => 'مصادر البيانات';
 
   @override
   String get diveDetailSection_dataSources_description =>
-      'Connected dive computers, source management';
+      'أجهزة الغوص المتصلة، إدارة المصادر';
 
   @override
   String get settings_appearance_header_language => 'اللغة';
