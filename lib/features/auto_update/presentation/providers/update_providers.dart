@@ -19,11 +19,17 @@ const _githubRepo = 'submersion';
 const _appcastUrl =
     'https://github.com/$_githubOwner/$_githubRepo/releases/latest/download/appcast.xml';
 
+/// CPU architecture, set at build time via --dart-define=ARCH=arm64 (or x64).
+/// Defaults to x64 when not specified.
+const _arch = String.fromEnvironment('ARCH', defaultValue: 'x64');
+
 /// Platform-specific asset suffix for GitHub Releases downloads.
 String get _platformSuffix {
   if (Platform.isMacOS) return 'macOS.dmg';
   if (Platform.isWindows) return 'Windows.zip';
-  if (Platform.isLinux) return 'Linux.tar.gz';
+  if (Platform.isLinux) {
+    return _arch == 'arm64' ? 'Linux-ARM64.tar.gz' : 'Linux-x64.tar.gz';
+  }
   if (Platform.isAndroid) return 'Android.apk';
   return '';
 }
