@@ -17,7 +17,7 @@
 
 set -euo pipefail
 
-VERSION="${1:?Usage: generate_appcast.sh <version> <build_number> <date> <macos_url> <windows_x64_url> <windows_arm64_url>}"
+VERSION="${1:?Usage: generate_appcast.sh <version> <build_number> <date> <macos_dmg_url> <windows_x64_url> <windows_arm64_url>}"
 BUILD_NUMBER="${2:?Missing build_number argument}"
 DATE="${3}"
 MACOS_URL="${4}"
