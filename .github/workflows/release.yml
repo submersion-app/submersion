@@ -350,7 +350,7 @@ jobs:
           dart run build_runner build --delete-conflicting-outputs
 
       - name: Build Windows release
-        run: flutter build windows --release --dart-define=UPDATE_CHANNEL=github
+        run: flutter build windows --release --dart-define=UPDATE_CHANNEL=github --dart-define=ARCH=x64
 
       - name: Build Windows installer
         env:
@@ -359,13 +359,81 @@ jobs:
           $version = "$env:TAG_NAME" -replace '^v', ''
           $buildNumber = (Select-String -Path pubspec.yaml -Pattern '^\s*version:.*\+(\d+)' | ForEach-Object { $_.Matches.Groups[1].Value })
           iscc /DAPP_VERSION="$version" /DAPP_VERSION_CODE="$buildNumber" windows\installer\submersion.iss
-          Move-Item "build\windows\installer\Submersion-*-Windows-Setup.exe" .
+          Move-Item "build\windows\installer\Submersion-*-Windows-x64-Setup.exe" .
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v7
         with:
-          name: windows-setup
-          path: Submersion-*-Setup.exe
+          name: windows-x64-setup
+          path: Submersion-*-Windows-x64-Setup.exe
+          retention-days: 5
+
+  # ============================================================================
+  # Windows ARM64 Build
+  # ============================================================================
+  build-windows-arm64:
+    name: Build Windows ARM64
+    runs-on: windows-11-arm
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: stable
+
+      - name: Cache Flutter SDK
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
+          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~\.pub-cache
+            ${{ github.workspace }}\.dart_tool
+          key: pub-${{ runner.os }}-arm64-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-arm64-
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build Windows ARM64 release
+        run: flutter build windows --release --dart-define=UPDATE_CHANNEL=github --dart-define=ARCH=arm64
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build Windows ARM64 installer
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          $version = "$env:TAG_NAME" -replace '^v', ''
+          $buildNumber = (Select-String -Path pubspec.yaml -Pattern '^\s*version:.*\+(\d+)' | ForEach-Object { $_.Matches.Groups[1].Value })
+          iscc /DAPP_VERSION="$version" /DAPP_VERSION_CODE="$buildNumber" windows\installer\submersion-arm64.iss
+          Move-Item "build\windows\installer\Submersion-*-Windows-ARM64-Setup.exe" .
+
+      - name: Upload Windows ARM64 artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-arm64-setup
+          path: Submersion-*-Windows-ARM64-Setup.exe
           retention-days: 5
 
   # ============================================================================
@@ -423,20 +491,97 @@ jobs:
           dart run build_runner build --delete-conflicting-outputs
 
       - name: Build Linux release
-        run: flutter build linux --release --dart-define=UPDATE_CHANNEL=github
+        run: flutter build linux --release --dart-define=UPDATE_CHANNEL=github --dart-define=ARCH=x64
 
       - name: Create tarball
         env:
           TAG_NAME: ${{ github.ref_name }}
         run: |
           cd build/linux/x64/release/bundle
-          tar czf "$GITHUB_WORKSPACE/Submersion-${TAG_NAME}-Linux.tar.gz" .
+          tar czf "$GITHUB_WORKSPACE/Submersion-${TAG_NAME}-Linux-x64.tar.gz" .
+
+      - name: Create legacy tarball (backwards compatibility)
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          cp "Submersion-${TAG_NAME}-Linux-x64.tar.gz" "Submersion-${TAG_NAME}-Linux.tar.gz"
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v7
         with:
-          name: linux-tar
-          path: Submersion-*.tar.gz
+          name: linux-x64-tar
+          path: Submersion-*-Linux*.tar.gz
+          retention-days: 5
+
+  # ============================================================================
+  # Linux ARM64 Build
+  # ============================================================================
+  build-linux-arm64:
+    name: Build Linux ARM64
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libstdc++-12-dev \
+            libsqlite3-dev libsecret-1-dev
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: stable
+
+      - name: Cache Flutter SDK
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
+          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.pub-cache
+            ${{ github.workspace }}/.dart_tool
+          key: pub-${{ runner.os }}-arm64-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-arm64-
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build Linux ARM64 release
+        run: flutter build linux --release --dart-define=UPDATE_CHANNEL=github --dart-define=ARCH=arm64
+
+      - name: Create tarball
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          cd build/linux/arm64/release/bundle
+          tar czf "$GITHUB_WORKSPACE/Submersion-${TAG_NAME}-Linux-ARM64.tar.gz" .
+
+      - name: Upload Linux ARM64 artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-arm64-tar
+          path: Submersion-*-Linux-ARM64.tar.gz
           retention-days: 5
 
   # ============================================================================
@@ -690,7 +835,7 @@ jobs:
   upload-macos:
     name: Upload macOS to App Store
     runs-on: macos-15
-    needs: [build-macos, build-windows, build-linux, build-android, build-ios]
+    needs: [build-macos, build-windows, build-windows-arm64, build-linux, build-linux-arm64, build-android, build-ios]
     timeout-minutes: 20
 
     steps:
@@ -758,7 +903,7 @@ jobs:
   upload-ios:
     name: Upload iOS to App Store
     runs-on: macos-15
-    needs: [build-macos, build-windows, build-linux, build-android, build-ios]
+    needs: [build-macos, build-windows, build-windows-arm64, build-linux, build-linux-arm64, build-android, build-ios]
     timeout-minutes: 20
 
     steps:
@@ -832,7 +977,7 @@ jobs:
   upload-android:
     name: Upload Android to Google Play
     runs-on: ubuntu-latest
-    needs: [build-macos, build-windows, build-linux, build-android, build-ios]
+    needs: [build-macos, build-windows, build-windows-arm64, build-linux, build-linux-arm64, build-android, build-ios]
     timeout-minutes: 15
 
     steps:
@@ -886,7 +1031,7 @@ jobs:
   generate-appcast:
     name: Generate Appcast & Checksums
     runs-on: ubuntu-latest
-    needs: [build-macos, build-windows, build-linux, build-android, build-ios]
+    needs: [build-macos, build-windows, build-windows-arm64, build-linux, build-linux-arm64, build-android, build-ios]
 
     steps:
       - name: Checkout repository
@@ -907,8 +1052,9 @@ jobs:
           BUILD_NUMBER=$(grep '^version:' pubspec.yaml | sed 's/.*+//')
           DATE=$(date -R)
           MACOS_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/Submersion-${TAG_NAME}-macOS.dmg"
-          WINDOWS_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/Submersion-${TAG_NAME}-Windows-Setup.exe"
-          ./scripts/generate_appcast.sh "$VERSION" "$BUILD_NUMBER" "$DATE" "$MACOS_URL" "$WINDOWS_URL" > appcast.xml
+          WINDOWS_X64_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/Submersion-${TAG_NAME}-Windows-x64-Setup.exe"
+          WINDOWS_ARM64_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/Submersion-${TAG_NAME}-Windows-ARM64-Setup.exe"
+          ./scripts/generate_appcast.sh "$VERSION" "$BUILD_NUMBER" "$DATE" "$MACOS_URL" "$WINDOWS_X64_URL" "$WINDOWS_ARM64_URL" > appcast.xml
 
       - name: Generate checksums
         run: sha256sum Submersion-* > checksums-sha256.txt
@@ -933,7 +1079,7 @@ jobs:
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [build-macos, build-windows, build-linux, build-android, build-ios, generate-appcast]
+    needs: [build-macos, build-windows, build-windows-arm64, build-linux, build-linux-arm64, build-android, build-ios, generate-appcast]
     permissions:
       contents: write
 
@@ -1001,8 +1147,11 @@ jobs:
           MISSING=()
           for expected in \
             "Submersion-${TAG_NAME}-macOS.dmg" \
-            "Submersion-${TAG_NAME}-Windows-Setup.exe" \
+            "Submersion-${TAG_NAME}-Windows-x64-Setup.exe" \
+            "Submersion-${TAG_NAME}-Windows-ARM64-Setup.exe" \
+            "Submersion-${TAG_NAME}-Linux-x64.tar.gz" \
             "Submersion-${TAG_NAME}-Linux.tar.gz" \
+            "Submersion-${TAG_NAME}-Linux-ARM64.tar.gz" \
             "Submersion-${TAG_NAME}-Android.apk" \
             "Submersion-${TAG_NAME}-Android.aab" \
             "appcast.xml" \
