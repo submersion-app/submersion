@@ -37,8 +37,8 @@ class LanguageSettingsPage extends ConsumerWidget {
     ),
     _LocaleOption(
       code: 'zh',
-      nativeName: '\u4E2D\u6587',
-      englishName: 'Chinese',
+      nativeName: '简体中文',
+      englishName: 'Chinese (Simplified)',
     ),
   ];
 
