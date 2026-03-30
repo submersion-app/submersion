@@ -801,7 +801,9 @@ class ProfileAnalysisService {
     }
 
     // Detect safety stops (3-6m depth for 2+ minutes)
-    final maxDepthIndex = depths.indexOf(maxDepth);
+    // Use lastIndexOf so that mid-dive excursions through shallow depths are
+    // treated as bottom-phase activity and not counted as safety stops.
+    final maxDepthIndex = depths.lastIndexOf(maxDepth);
     _detectSafetyStops(diveId, depths, timestamps, maxDepthIndex, events, now);
 
     // Add ascent rate violation events
@@ -887,7 +889,8 @@ class ProfileAnalysisService {
     int? stopStartIndex;
     int? stopStartTimestamp;
 
-    for (int i = 0; i < depths.length; i++) {
+    // Layer 2: Only scan ascent phase (after max depth point)
+    for (int i = maxDepthIndex + 1; i < depths.length; i++) {
       final depth = depths[i];
       final timestamp = timestamps[i];
 

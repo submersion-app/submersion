@@ -258,5 +258,121 @@ void main() {
         expect(safetyStopEvents(result), isEmpty);
       });
     });
+
+    group('ascent-phase restriction', () {
+      test('stop during descent is not detected', () {
+        // Dive that descends through 3-6m slowly (>2min), then goes to 20m
+        final depths = <double>[];
+        final timestamps = <int>[];
+        var t = 0;
+
+        // Slow descent through safety stop zone: 3 minutes at 4-5m
+        for (var s = 0; s <= 180; s++) {
+          timestamps.add(t);
+          depths.add(3.0 + 2.0 * s / 180.0); // 3m -> 5m over 3 min
+          t++;
+        }
+
+        // Continue descent to 20m over 1 minute
+        for (var s = 1; s <= 60; s++) {
+          timestamps.add(t);
+          depths.add(5.0 + 15.0 * s / 60.0);
+          t++;
+        }
+
+        // Bottom at 20m for 10 minutes
+        for (var s = 0; s < 600; s++) {
+          timestamps.add(t);
+          depths.add(20.0);
+          t++;
+        }
+
+        // Fast ascent to surface (no safety stop), 2 minutes
+        for (var s = 0; s <= 120; s++) {
+          timestamps.add(t);
+          depths.add(20.0 * (1 - s / 120.0));
+          t++;
+        }
+
+        final result = service.analyze(
+          diveId: 'descent-stop',
+          depths: depths,
+          timestamps: timestamps,
+        );
+        expect(safetyStopEvents(result), isEmpty);
+      });
+
+      test('stop during bottom phase is not detected', () {
+        final depths = <double>[];
+        final timestamps = <int>[];
+        var t = 0;
+
+        // Quick descent to 20m
+        for (var s = 0; s <= 60; s++) {
+          timestamps.add(t);
+          depths.add(20.0 * s / 60.0);
+          t++;
+        }
+
+        // Bottom at 20m for 5 minutes
+        for (var s = 0; s < 300; s++) {
+          timestamps.add(t);
+          depths.add(20.0);
+          t++;
+        }
+
+        // Rise to 5m for 3 minutes (simulating bottom excursion, before max depth)
+        for (var s = 0; s <= 30; s++) {
+          timestamps.add(t);
+          depths.add(20.0 - 15.0 * s / 30.0);
+          t++;
+        }
+        for (var s = 0; s < 180; s++) {
+          timestamps.add(t);
+          depths.add(5.0);
+          t++;
+        }
+
+        // Go back to 20m (this makes 20m the max depth point later)
+        for (var s = 0; s <= 30; s++) {
+          timestamps.add(t);
+          depths.add(5.0 + 15.0 * s / 30.0);
+          t++;
+        }
+        // Stay at 20m for 5 more minutes (max depth point is here)
+        for (var s = 0; s < 300; s++) {
+          timestamps.add(t);
+          depths.add(20.0);
+          t++;
+        }
+
+        // Ascent to surface without stop, 2 minutes
+        for (var s = 0; s <= 120; s++) {
+          timestamps.add(t);
+          depths.add(20.0 * (1 - s / 120.0));
+          t++;
+        }
+
+        final result = service.analyze(
+          diveId: 'bottom-stop',
+          depths: depths,
+          timestamps: timestamps,
+        );
+        expect(safetyStopEvents(result), isEmpty);
+      });
+
+      test('stop during ascent is detected', () {
+        final profile = buildDiveProfile(maxDepth: 20.0, stopDepth: 5.0);
+        final result = service.analyze(
+          diveId: 'ascent-stop',
+          depths: profile.depths,
+          timestamps: profile.timestamps,
+        );
+        final stops = safetyStopEvents(result);
+        expect(stops.length, equals(2)); // start + end
+        expect(stops[0].eventType, ProfileEventType.safetyStopStart);
+        expect(stops[1].eventType, ProfileEventType.safetyStopEnd);
+      });
+    });
   });
 }
