@@ -3064,7 +3064,7 @@
   "media_photoViewer_seekVideoLabel": "调整视频位置",
   "media_photoViewer_shareTooltip": "分享照片",
   "media_photoViewer_toggleOverlayLabel": "切换照片叠加层",
-  "media_photoViewer_videoFileNotFound": "视频文件未已找到",
+  "media_photoViewer_videoFileNotFound": "视频文件未找到",
   "media_photoViewer_videoNotLinked": "视频未关联到图库",
   "media_photoViewer_writeDiveDataTooltip": "写入潜水数据到照片",
   "media_quickSiteDialog_cancelButton": "取消",
