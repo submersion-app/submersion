@@ -512,7 +512,6 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         consolidatedCount = await performConsolidations(
           indices: consolidateIndices,
           diveItems: diveItems,
-          diveResolutions: state.diveResolutions,
           duplicateResult: state.duplicateResult,
           diveRepository: diveRepo,
         );

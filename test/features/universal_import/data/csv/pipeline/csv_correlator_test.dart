@@ -231,9 +231,9 @@ void main() {
       // For the test dive with dateTime 2024-06-15 09:00, the key is
       // "1|2024-06-15|09:00" which should match profile rows using
       // "1|2024-06-15|09:00".
-      final profileSamples = dives[0]['profileSamples'] as List?;
-      expect(profileSamples, isNotNull);
-      expect(profileSamples, hasLength(2));
+      final profile = dives[0]['profile'] as List?;
+      expect(profile, isNotNull);
+      expect(profile, hasLength(2));
     });
 
     test('builds metadata with sourceApp and row counts', () {

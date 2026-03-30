@@ -206,7 +206,7 @@ void main() {
       // After the correlation fix, profile samples should actually be
       // attached to dives. At least some dives must have profile data.
       final divesWithProfiles = dives
-          .where((d) => d['profileSamples'] != null)
+          .where((d) => d['profile'] != null)
           .toList();
       expect(
         divesWithProfiles,
@@ -215,13 +215,13 @@ void main() {
             'At least some dives should have profile samples after correlation',
       );
 
-      // Each matched dive's profileSamples should be a non-empty list of
-      // sample maps containing timeSeconds and depth.
+      // Each matched dive's profile should be a non-empty list of
+      // sample maps containing timestamp and depth.
       for (final dive in divesWithProfiles) {
-        final samples = dive['profileSamples'] as List;
+        final samples = dive['profile'] as List;
         expect(samples, isNotEmpty);
         final first = samples.first as Map<String, dynamic>;
-        expect(first.containsKey('timeSeconds'), isTrue);
+        expect(first.containsKey('timestamp'), isTrue);
         expect(first.containsKey('depth'), isTrue);
       }
     });

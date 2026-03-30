@@ -28,6 +28,7 @@ const _diveFields = <String>[
   'diveComputerModel',
   'diveComputerSerial',
   'diveComputerFirmware',
+  'weight',
   'weightUsed',
   'windSpeed',
   'windDirection',

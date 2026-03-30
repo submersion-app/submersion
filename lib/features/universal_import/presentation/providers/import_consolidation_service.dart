@@ -4,7 +4,6 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion, DiveProfilesCompanion;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 
 /// Attaches consolidate-flagged imported dives as secondary computer
@@ -14,7 +13,6 @@ import 'package:submersion/features/universal_import/data/services/import_duplic
 Future<int> performConsolidations({
   required Set<int> indices,
   required List<Map<String, dynamic>> diveItems,
-  required Map<int, DiveDuplicateResolution> diveResolutions,
   required ImportDuplicateResult? duplicateResult,
   required DiveRepository diveRepository,
 }) async {

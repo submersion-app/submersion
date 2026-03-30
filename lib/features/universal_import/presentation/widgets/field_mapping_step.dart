@@ -34,11 +34,16 @@ class _FieldMappingStepState extends ConsumerState<FieldMappingStep> {
     'waterTemp',
     'airTemp',
     'siteName',
+    'gps',
     'buddy',
     'diveMaster',
+    'suit',
     'rating',
     'notes',
     'visibility',
+    'weight',
+    'sac',
+    'tags',
     'startPressure',
     'endPressure',
     'tankVolume',
@@ -236,6 +241,14 @@ class _ColumnMappingRow extends StatelessWidget {
                   DropdownMenuItem(
                     value: field,
                     child: Text(_displayFieldName(field)),
+                  ),
+                // Include the current target if it's not in the standard list
+                // (e.g. from a user-saved preset with custom field names).
+                if (currentTarget != null &&
+                    !targetFields.contains(currentTarget))
+                  DropdownMenuItem(
+                    value: currentTarget,
+                    child: Text(_displayFieldName(currentTarget!)),
                   ),
               ],
               onChanged: onChanged,

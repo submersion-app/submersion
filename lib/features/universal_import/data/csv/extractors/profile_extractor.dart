@@ -29,7 +29,7 @@ class ProfileExtractor {
       final key = _diveKey(row);
       result.putIfAbsent(key, () => []);
       result[key]!.add({
-        'timeSeconds': timeSeconds,
+        'timestamp': timeSeconds,
         'depth': row['sampleDepth'],
         'temperature': row['sampleTemperature'],
         'pressure': row['samplePressure'],

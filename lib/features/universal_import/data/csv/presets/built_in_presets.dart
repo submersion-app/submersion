@@ -93,9 +93,9 @@ const _subsurface = CsvPreset(
         ColumnMapping(sourceColumn: 'mode', targetField: 'diveType'),
         ColumnMapping(sourceColumn: 'airtemp [C]', targetField: 'airTemp'),
         ColumnMapping(sourceColumn: 'watertemp [C]', targetField: 'waterTemp'),
-        ColumnMapping(sourceColumn: 'location', targetField: 'site'),
+        ColumnMapping(sourceColumn: 'location', targetField: 'siteName'),
         ColumnMapping(sourceColumn: 'gps', targetField: 'gps'),
-        ColumnMapping(sourceColumn: 'divemaster', targetField: 'divemaster'),
+        ColumnMapping(sourceColumn: 'divemaster', targetField: 'diveMaster'),
         ColumnMapping(sourceColumn: 'buddy', targetField: 'buddy'),
         ColumnMapping(sourceColumn: 'suit', targetField: 'suit'),
         ColumnMapping(sourceColumn: 'rating', targetField: 'rating'),
@@ -270,7 +270,7 @@ const _macdive = CsvPreset(
         ColumnMapping(sourceColumn: 'Dive No', targetField: 'diveNumber'),
         ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
         ColumnMapping(sourceColumn: 'Time', targetField: 'time'),
-        ColumnMapping(sourceColumn: 'Location', targetField: 'site'),
+        ColumnMapping(sourceColumn: 'Location', targetField: 'siteName'),
         ColumnMapping(sourceColumn: 'Max. Depth', targetField: 'maxDepth'),
         ColumnMapping(sourceColumn: 'Avg. Depth', targetField: 'avgDepth'),
         ColumnMapping(
@@ -297,7 +297,7 @@ const _macdive = CsvPreset(
         ),
         ColumnMapping(sourceColumn: 'Notes', targetField: 'notes'),
         ColumnMapping(sourceColumn: 'Buddy', targetField: 'buddy'),
-        ColumnMapping(sourceColumn: 'Dive Master', targetField: 'divemaster'),
+        ColumnMapping(sourceColumn: 'Dive Master', targetField: 'diveMaster'),
       ],
     ),
   },
@@ -336,7 +336,7 @@ const _divingLog = CsvPreset(
       columns: [
         ColumnMapping(sourceColumn: 'DiveDate', targetField: 'date'),
         ColumnMapping(sourceColumn: 'DiveTime', targetField: 'time'),
-        ColumnMapping(sourceColumn: 'DiveSite', targetField: 'site'),
+        ColumnMapping(sourceColumn: 'DiveSite', targetField: 'siteName'),
         ColumnMapping(sourceColumn: 'MaxDepth', targetField: 'maxDepth'),
         ColumnMapping(
           sourceColumn: 'Duration',
@@ -397,7 +397,7 @@ const _diveMate = CsvPreset(
       columns: [
         ColumnMapping(sourceColumn: 'Dive No.', targetField: 'diveNumber'),
         ColumnMapping(sourceColumn: 'Date/Time', targetField: 'dateTime'),
-        ColumnMapping(sourceColumn: 'Location', targetField: 'site'),
+        ColumnMapping(sourceColumn: 'Location', targetField: 'siteName'),
         ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
         ColumnMapping(
           sourceColumn: 'Duration',
@@ -562,7 +562,7 @@ const _submersionNative = CsvPreset(
         ColumnMapping(sourceColumn: 'diveNumber', targetField: 'diveNumber'),
         ColumnMapping(sourceColumn: 'date', targetField: 'date'),
         ColumnMapping(sourceColumn: 'time', targetField: 'time'),
-        ColumnMapping(sourceColumn: 'site', targetField: 'site'),
+        ColumnMapping(sourceColumn: 'site', targetField: 'siteName'),
         ColumnMapping(sourceColumn: 'maxDepth', targetField: 'maxDepth'),
         ColumnMapping(sourceColumn: 'avgDepth', targetField: 'avgDepth'),
         ColumnMapping(
@@ -585,7 +585,7 @@ const _submersionNative = CsvPreset(
         ColumnMapping(sourceColumn: 'rating', targetField: 'rating'),
         ColumnMapping(sourceColumn: 'notes', targetField: 'notes'),
         ColumnMapping(sourceColumn: 'buddy', targetField: 'buddy'),
-        ColumnMapping(sourceColumn: 'divemaster', targetField: 'divemaster'),
+        ColumnMapping(sourceColumn: 'divemaster', targetField: 'diveMaster'),
         ColumnMapping(sourceColumn: 'suit', targetField: 'suit'),
         ColumnMapping(sourceColumn: 'weight', targetField: 'weight'),
         ColumnMapping(sourceColumn: 'tags', targetField: 'tags'),

@@ -140,17 +140,29 @@ class CsvCorrelator {
   // Private helpers
   // ---------------------------------------------------------------------------
 
-  /// Normalize rows to ensure 'site' alias maps to 'siteName' for extractors.
+  /// Normalize field name aliases to canonical names for extractors.
+  ///
+  /// Handles legacy and user-saved presets that may use non-canonical names.
   List<Map<String, dynamic>> _normalizeRows(List<Map<String, dynamic>> rows) {
+    const aliases = {
+      'site': 'siteName',
+      'divemaster': 'diveMaster',
+      'weight': 'weightUsed',
+    };
+
     return rows.map((row) {
-      if (row.containsKey('siteName') || !row.containsKey('site')) return row;
-      final normalized = Map<String, dynamic>.from(row);
-      normalized['siteName'] = normalized.remove('site');
-      return normalized;
+      Map<String, dynamic>? normalized;
+      for (final entry in aliases.entries) {
+        if (row.containsKey(entry.key) && !row.containsKey(entry.value)) {
+          normalized ??= Map<String, dynamic>.from(row);
+          normalized[entry.value] = normalized.remove(entry.key);
+        }
+      }
+      return normalized ?? row;
     }).toList();
   }
 
-  /// Match profile samples to dives by dive key and attach as 'profileSamples'.
+  /// Match profile samples to dives by dive key and attach as 'profile'.
   List<Map<String, dynamic>> _attachProfiles(
     List<Map<String, dynamic>> dives,
     List<Map<String, dynamic>> profileRows,
@@ -163,7 +175,7 @@ class CsvCorrelator {
       final key = _diveKey(dive);
       final samples = profiles[key];
       if (samples == null || samples.isEmpty) return dive;
-      return Map<String, dynamic>.from(dive)..['profileSamples'] = samples;
+      return Map<String, dynamic>.from(dive)..['profile'] = samples;
     }).toList();
   }
 

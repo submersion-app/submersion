@@ -78,7 +78,7 @@ void main() {
       final grouped = extractor.extractProfiles(rows);
       final sample = grouped['1|2023-01-01|09:00']!.first;
 
-      expect(sample['timeSeconds'], 90);
+      expect(sample['timestamp'], 90);
     });
 
     test('parses zero seconds: "0:00" -> 0', () {
@@ -95,7 +95,7 @@ void main() {
       final grouped = extractor.extractProfiles(rows);
       final sample = grouped['1|2023-01-01|09:00']!.first;
 
-      expect(sample['timeSeconds'], 0);
+      expect(sample['timestamp'], 0);
     });
 
     test('parses larger minutes value: "25:45" -> 1545 seconds', () {
@@ -112,7 +112,7 @@ void main() {
       final grouped = extractor.extractProfiles(rows);
       final sample = grouped['1|2023-01-01|09:00']!.first;
 
-      expect(sample['timeSeconds'], 1545);
+      expect(sample['timestamp'], 1545);
     });
 
     test('skips rows without sampleTime', () {
