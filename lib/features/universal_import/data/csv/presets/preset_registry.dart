@@ -11,7 +11,7 @@ class PresetRegistry {
       _userPresets = [];
 
   final List<CsvPreset> _builtInPresets;
-  final List<CsvPreset> _userPresets;
+  List<CsvPreset> _userPresets;
 
   /// All presets: built-in first, then user-saved.
   List<CsvPreset> get allPresets => [..._builtInPresets, ..._userPresets];
@@ -95,13 +95,12 @@ class PresetRegistry {
   /// Adds a user-saved preset. Replaces any existing user preset with the
   /// same ID.
   void addUserPreset(CsvPreset preset) {
-    _userPresets.removeWhere((p) => p.id == preset.id);
-    _userPresets.add(preset);
+    _userPresets = [..._userPresets.where((p) => p.id != preset.id), preset];
   }
 
   /// Removes a user-saved preset by [id]. Has no effect if the ID refers
   /// to a built-in preset or does not exist.
   void removeUserPreset(String id) {
-    _userPresets.removeWhere((p) => p.id == id);
+    _userPresets = _userPresets.where((p) => p.id != id).toList();
   }
 }

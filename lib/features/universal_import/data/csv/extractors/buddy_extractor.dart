@@ -12,14 +12,15 @@ import 'package:submersion/features/universal_import/data/csv/extractors/entity_
 class BuddyExtractor implements EntityExtractor<Map<String, dynamic>> {
   final Uuid _uuid;
 
-  /// Internal map from buddy name to generated UUID.
-  final Map<String, String> _buddyNameToId = {};
+  /// Map from buddy name to generated UUID, rebuilt on each extraction.
+  Map<String, String> _buddyNameToId = const {};
 
   BuddyExtractor({Uuid uuid = const Uuid()}) : _uuid = uuid;
 
   @override
   List<Map<String, dynamic>> extractFromRows(List<Map<String, dynamic>> rows) {
     final buddies = <Map<String, dynamic>>[];
+    final nameToId = <String, String>{};
 
     for (final row in rows) {
       final raw = row['buddy'];
@@ -27,13 +28,14 @@ class BuddyExtractor implements EntityExtractor<Map<String, dynamic>> {
       final names = _splitNames(raw.toString());
 
       for (final name in names) {
-        if (_buddyNameToId.containsKey(name)) continue;
+        if (nameToId.containsKey(name)) continue;
         final id = _uuid.v4();
-        _buddyNameToId[name] = id;
+        nameToId[name] = id;
         buddies.add({'id': id, 'name': name});
       }
     }
 
+    _buddyNameToId = {..._buddyNameToId, ...nameToId};
     return buddies;
   }
 

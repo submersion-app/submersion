@@ -42,13 +42,20 @@ class CsvPresetRepository {
 
       await _db
           .into(_db.csvPresets)
-          .insertOnConflictUpdate(
+          .insert(
             CsvPresetsCompanion(
               id: Value(preset.id),
               name: Value(preset.name),
               presetJson: Value(preset.toJson()),
               createdAt: Value(now),
               updatedAt: Value(now),
+            ),
+            onConflict: DoUpdate(
+              (old) => CsvPresetsCompanion(
+                name: Value(preset.name),
+                presetJson: Value(preset.toJson()),
+                updatedAt: Value(now),
+              ),
             ),
           );
 

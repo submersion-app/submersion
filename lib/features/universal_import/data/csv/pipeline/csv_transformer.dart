@@ -138,12 +138,14 @@ class CsvTransformer {
     final resolvedDateRows = _timeResolver.resolveInformalTimes(dateRows);
 
     // Merge resolved rows back into their original positions.
-    final resolvedRows = List<Map<String, dynamic>>.from(mappedRows);
     var resolvedIdx = 0;
-    for (final i in rowsWithDateField) {
-      resolvedRows[i] = resolvedDateRows[resolvedIdx];
-      resolvedIdx++;
-    }
+    final resolvedRows = mappedRows.indexed.map((entry) {
+      final (i, row) = entry;
+      if (rowsWithDateField.contains(i)) {
+        return resolvedDateRows[resolvedIdx++];
+      }
+      return row;
+    }).toList();
 
     // Step 6: Second pass - combine date+time into dateTime for each row.
     final validRows = <Map<String, dynamic>>[];
@@ -321,15 +323,29 @@ class CsvTransformer {
   }
 
   /// Returns true if the target field is expected to hold a double value.
+  ///
+  /// Strips a trailing `_N` suffix (e.g. `startpressure_1`) before matching
+  /// so that numbered tank fields are correctly identified.
   bool _isDoubleField(String lowerField) {
-    return lowerField == 'maxdepth' ||
-        lowerField == 'avgdepth' ||
-        lowerField == 'watertemp' ||
-        lowerField == 'airtemp' ||
-        lowerField == 'startpressure' ||
-        lowerField == 'endpressure' ||
-        lowerField == 'weight' ||
-        lowerField == 'sac' ||
-        lowerField == 'tankvolume';
+    final base = _stripNumberSuffix(lowerField);
+    return base == 'maxdepth' ||
+        base == 'avgdepth' ||
+        base == 'watertemp' ||
+        base == 'airtemp' ||
+        base == 'startpressure' ||
+        base == 'endpressure' ||
+        base == 'weight' ||
+        base == 'sac' ||
+        base == 'tankvolume' ||
+        base == 'sampledepth' ||
+        base == 'sampletemperature' ||
+        base == 'samplepressure';
+  }
+
+  static final _numberSuffix = RegExp(r'_\d+$');
+
+  /// Strip a trailing `_N` suffix from a field name.
+  String _stripNumberSuffix(String field) {
+    return field.replaceFirst(_numberSuffix, '');
   }
 }

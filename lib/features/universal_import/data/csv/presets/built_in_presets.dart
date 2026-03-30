@@ -216,7 +216,7 @@ const _subsurface = CsvPreset(
         ),
         ColumnMapping(
           sourceColumn: 'sample temperature (C)',
-          targetField: 'sampleTemp',
+          targetField: 'sampleTemperature',
         ),
         ColumnMapping(
           sourceColumn: 'sample pressure (bar)',

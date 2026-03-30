@@ -9,14 +9,15 @@ import 'package:submersion/features/universal_import/data/csv/extractors/entity_
 class SiteExtractor implements EntityExtractor<Map<String, dynamic>> {
   final Uuid _uuid;
 
-  /// Internal map from lowercase site name to generated UUID.
-  final Map<String, String> _siteNameToId = {};
+  /// Map from lowercase site name to generated UUID, rebuilt on each extraction.
+  Map<String, String> _siteNameToId = const {};
 
   SiteExtractor({Uuid uuid = const Uuid()}) : _uuid = uuid;
 
   @override
   List<Map<String, dynamic>> extractFromRows(List<Map<String, dynamic>> rows) {
     final sites = <Map<String, dynamic>>[];
+    final nameToId = <String, String>{};
 
     for (final row in rows) {
       final rawName = row['siteName'];
@@ -25,10 +26,10 @@ class SiteExtractor implements EntityExtractor<Map<String, dynamic>> {
       if (name.isEmpty) continue;
 
       final key = name.toLowerCase();
-      if (_siteNameToId.containsKey(key)) continue;
+      if (nameToId.containsKey(key)) continue;
 
       final id = _uuid.v4();
-      _siteNameToId[key] = id;
+      nameToId[key] = id;
 
       final gps = _parseGps(row['gps']?.toString());
 
@@ -40,6 +41,7 @@ class SiteExtractor implements EntityExtractor<Map<String, dynamic>> {
       });
     }
 
+    _siteNameToId = {..._siteNameToId, ...nameToId};
     return sites;
   }
 

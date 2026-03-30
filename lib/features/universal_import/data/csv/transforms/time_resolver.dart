@@ -339,9 +339,10 @@ class TimeResolver {
         return DateTime.utc(year, month, day, hour, minute, second);
 
       case TimeInterpretation.specificOffset:
-        // Shift: wallClock - offset = UTC.
-        final wallClock = DateTime.utc(year, month, day, hour, minute, second);
-        return wallClock.subtract(specificOffset ?? Duration.zero);
+        // Preserve wall-clock components as UTC (same convention as the other
+        // cases). The offset is informational but the app stores wall-clock
+        // time directly, so subtracting would produce wrong display values.
+        return DateTime.utc(year, month, day, hour, minute, second);
     }
   }
 

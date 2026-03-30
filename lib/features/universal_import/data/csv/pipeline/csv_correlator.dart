@@ -56,18 +56,27 @@ class CsvCorrelator {
       }
     }
 
-    // Step 4: Extract deduplicated sites.
-    final siteExtractor = SiteExtractor();
-    final sites = siteExtractor.extractFromRows(rows);
+    // Step 4: Extract deduplicated sites (if requested).
+    SiteExtractor? siteExtractor;
+    List<Map<String, dynamic>> sites = <Map<String, dynamic>>[];
+    if (entityTypes.contains(ImportEntityType.sites)) {
+      siteExtractor = SiteExtractor();
+      sites = siteExtractor.extractFromRows(rows);
+    }
 
-    // Step 5: Link dives to their sites.
-    final linkedDives = dives.map((dive) {
-      final siteName = dive['siteName'] as String?;
-      if (siteName == null) return dive;
-      final siteId = siteExtractor.siteIdForName(siteName);
-      if (siteId == null) return dive;
-      return Map<String, dynamic>.from(dive)..['siteId'] = siteId;
-    }).toList();
+    // Step 5: Link dives to their sites (only when sites are enabled).
+    final List<Map<String, dynamic>> linkedDives;
+    if (siteExtractor != null) {
+      linkedDives = dives.map((dive) {
+        final siteName = dive['siteName'] as String?;
+        if (siteName == null) return dive;
+        final siteId = siteExtractor!.siteIdForName(siteName);
+        if (siteId == null) return dive;
+        return Map<String, dynamic>.from(dive)..['siteId'] = siteId;
+      }).toList();
+    } else {
+      linkedDives = dives;
+    }
 
     // Step 6a: Extract buddies if requested.
     final buddies = <Map<String, dynamic>>[];

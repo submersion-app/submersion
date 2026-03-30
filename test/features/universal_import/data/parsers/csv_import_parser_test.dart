@@ -434,8 +434,8 @@ void main() {
       expect(dives, isNotEmpty);
       final dateTime = dives.first['dateTime'] as DateTime;
       expect(dateTime.isUtc, isTrue);
-      // 14:30 at +04:00 = 10:30 UTC
-      expect(dateTime.hour, 10);
+      // Wall-clock time is preserved as UTC (app convention).
+      expect(dateTime.hour, 14);
       expect(dateTime.minute, 30);
     });
 

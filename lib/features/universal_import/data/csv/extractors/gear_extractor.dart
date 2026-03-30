@@ -9,14 +9,15 @@ import 'package:submersion/features/universal_import/data/csv/extractors/entity_
 class GearExtractor implements EntityExtractor<Map<String, dynamic>> {
   final Uuid _uuid;
 
-  /// Internal map from gear name to generated UUID.
-  final Map<String, String> _gearNameToId = {};
+  /// Map from gear name to generated UUID, rebuilt on each extraction.
+  Map<String, String> _gearNameToId = const {};
 
   GearExtractor({Uuid uuid = const Uuid()}) : _uuid = uuid;
 
   @override
   List<Map<String, dynamic>> extractFromRows(List<Map<String, dynamic>> rows) {
     final gear = <Map<String, dynamic>>[];
+    final nameToId = <String, String>{};
 
     for (final row in rows) {
       final rawSuit = row['suit'];
@@ -24,13 +25,14 @@ class GearExtractor implements EntityExtractor<Map<String, dynamic>> {
       final name = rawSuit.toString().trim();
       if (name.isEmpty) continue;
 
-      if (_gearNameToId.containsKey(name)) continue;
+      if (nameToId.containsKey(name)) continue;
 
       final id = _uuid.v4();
-      _gearNameToId[name] = id;
+      nameToId[name] = id;
       gear.add({'id': id, 'name': name, 'type': 'exposure_suit'});
     }
 
+    _gearNameToId = {..._gearNameToId, ...nameToId};
     return gear;
   }
 
