@@ -46,8 +46,21 @@ class ProfileExtractor {
 
   String _diveKey(Map<String, dynamic> row) {
     final number = row['diveNumber']?.toString() ?? '';
-    final date = row['date']?.toString() ?? '';
-    final time = row['time']?.toString() ?? '';
+    final dateTime = row['dateTime'];
+    String date = '';
+    String time = '';
+    if (dateTime is DateTime) {
+      date =
+          '${dateTime.year}-'
+          '${dateTime.month.toString().padLeft(2, '0')}-'
+          '${dateTime.day.toString().padLeft(2, '0')}';
+      time =
+          '${dateTime.hour.toString().padLeft(2, '0')}:'
+          '${dateTime.minute.toString().padLeft(2, '0')}';
+    } else {
+      date = row['date']?.toString() ?? '';
+      time = row['time']?.toString() ?? '';
+    }
     return '$number|$date|$time';
   }
 

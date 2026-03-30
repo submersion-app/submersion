@@ -182,45 +182,48 @@ void main() {
       expect(dt.minute, equals(44));
     });
 
-    test(
-      'full pipeline with profile CSV runs without error and produces dives',
-      () {
-        final diveListBytes = diveListFile.readAsBytesSync();
-        final profileBytes = profileFile.readAsBytesSync();
+    test('full pipeline with profile CSV correlates profiles to dives', () {
+      final diveListBytes = diveListFile.readAsBytesSync();
+      final profileBytes = profileFile.readAsBytesSync();
 
-        final parsedList = pipeline.parse(diveListBytes);
-        final parsedProfile = pipeline.parse(profileBytes);
+      final parsedList = pipeline.parse(diveListBytes);
+      final parsedProfile = pipeline.parse(profileBytes);
 
-        final detected = pipeline.detect(parsedList);
-        expect(detected.matchedPreset, isNotNull);
+      final detected = pipeline.detect(parsedList);
+      expect(detected.matchedPreset, isNotNull);
 
-        final config = _configFromPreset(detected.matchedPreset!);
+      final config = _configFromPreset(detected.matchedPreset!);
 
-        // Pipeline must not throw when both files are supplied.
-        final payload = pipeline.execute(
-          primaryCsv: parsedList,
-          profileCsv: parsedProfile,
-          config: config,
-        );
+      final payload = pipeline.execute(
+        primaryCsv: parsedList,
+        profileCsv: parsedProfile,
+        config: config,
+      );
 
-        // Dive list dives are still produced regardless of profile correlation.
-        final dives = payload.entitiesOf(ImportEntityType.dives);
-        expect(dives.length, greaterThanOrEqualTo(20));
+      final dives = payload.entitiesOf(ImportEntityType.dives);
+      expect(dives.length, greaterThanOrEqualTo(20));
 
-        // Profile samples are stored under the 'profileSamples' key when the
-        // dive key (diveNumber|date|time) matches between the two files.
-        // The real Subsurface profile CSV uses full HH:MM:SS timestamps, which
-        // can produce a key mismatch against the HH:MM keys built from the
-        // transformed dive list DateTime. Verify the key exists on any matched
-        // dives rather than asserting a count, because this is sensitive to
-        // the exact time formatting the transformer produces.
-        for (final dive in dives) {
-          final samples = dive['profileSamples'];
-          if (samples != null) {
-            expect(samples, isA<List>());
-          }
-        }
-      },
-    );
+      // After the correlation fix, profile samples should actually be
+      // attached to dives. At least some dives must have profile data.
+      final divesWithProfiles = dives
+          .where((d) => d['profileSamples'] != null)
+          .toList();
+      expect(
+        divesWithProfiles,
+        isNotEmpty,
+        reason:
+            'At least some dives should have profile samples after correlation',
+      );
+
+      // Each matched dive's profileSamples should be a non-empty list of
+      // sample maps containing timeSeconds and depth.
+      for (final dive in divesWithProfiles) {
+        final samples = dive['profileSamples'] as List;
+        expect(samples, isNotEmpty);
+        final first = samples.first as Map<String, dynamic>;
+        expect(first.containsKey('timeSeconds'), isTrue);
+        expect(first.containsKey('depth'), isTrue);
+      }
+    });
   });
 }
