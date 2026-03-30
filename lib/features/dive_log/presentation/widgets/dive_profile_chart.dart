@@ -2304,19 +2304,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     final spots = <FlSpot>[];
     for (int i = 0; i < widget.profile.length && i < ndlData.length; i++) {
-      final ndl = ndlData[i];
-      // Skip negative values (in deco) and very large values
-      if (ndl >= 0 && ndl < maxNdlSeconds) {
-        final normalized = ndl / maxNdlSeconds;
-        final yValue = chartMaxDepth * (1 - normalized);
-        spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
-      }
+      // Clamp NDL to display range to avoid gaps that cause Bezier artifacts.
+      // Negative values (in deco) clamp to 0; values > 60 min clamp to 60 min.
+      final ndl = ndlData[i].clamp(0, maxNdlSeconds.toInt()).toDouble();
+      final normalized = ndl / maxNdlSeconds;
+      final yValue = chartMaxDepth * (1 - normalized);
+      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
     }
 
     return LineChartBarData(
       spots: spots,
       isCurved: true,
       curveSmoothness: 0.2,
+      preventCurveOverShooting: true,
       color: ndlColor,
       barWidth: 2,
       isStrokeCapRound: true,
