@@ -131,8 +131,13 @@ class LoggerService {
     if (service != null) {
       _pendingWrite = _pendingWrite
           .then((_) => service.writeLine(logLine))
-          .catchError((Object e) {
-            developer.log('Log write failed: $e', name: _name);
+          .catchError((Object e, StackTrace st) {
+            developer.log(
+              'Log write failed',
+              name: _name,
+              error: e,
+              stackTrace: st,
+            );
           });
     }
 
