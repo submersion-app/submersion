@@ -3623,7 +3623,7 @@
   "signatures_drawSignatureHint": "请在上方绘制您的签名",
   "signatures_drawSignatureHintDetailed": "使用手指或触控笔在上方绘制签名",
   "signatures_drawSignatureSemantics": "绘制签名",
-  "signatures_error_drawSignature": "请绘制 a 签名",
+  "signatures_error_drawSignature": "请绘制签名",
   "signatures_error_enterSignerName": "请输入签名者姓名",
   "signatures_field_instructorName": "教练名称",
   "signatures_field_instructorNameHint": "输入教练姓名",
