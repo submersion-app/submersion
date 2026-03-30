@@ -518,7 +518,7 @@ void main() {
         for (var s = 0; s < 30 * 60; s++) {
           timestamps.add(t);
           // Oscillate between 3.5m and 5.5m with occasional dips
-          final base = 4.5;
+          const base = 4.5;
           final oscillation =
               1.0 * (s % 120 < 60 ? (s % 60) / 60.0 : 1.0 - (s % 60) / 60.0);
           depths.add(base + oscillation - 0.5);
