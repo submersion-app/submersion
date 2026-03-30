@@ -2351,7 +2351,7 @@
   "enum_equipmentType_gloves": "手套",
   "enum_equipmentType_hood": "潜水头套",
   "enum_equipmentType_knife": "潜水刀",
-  "enum_equipmentType_light": "轻微",
+  "enum_equipmentType_light": "潜水灯",
   "enum_equipmentType_mask": "面镜",
   "enum_equipmentType_other": "其他",
   "enum_equipmentType_reel": "卷线器",
