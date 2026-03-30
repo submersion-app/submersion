@@ -801,7 +801,8 @@ class ProfileAnalysisService {
     }
 
     // Detect safety stops (3-6m depth for 2+ minutes)
-    _detectSafetyStops(diveId, depths, timestamps, events, now);
+    final maxDepthIndex = depths.indexOf(maxDepth);
+    _detectSafetyStops(diveId, depths, timestamps, maxDepthIndex, events, now);
 
     // Add ascent rate violation events
     for (final violation in ascentRateViolations) {
@@ -863,16 +864,25 @@ class ProfileAnalysisService {
   }
 
   /// Detect safety stops in the profile.
+  ///
+  /// Only detects stops on dives deeper than [_minDiveDepthForSafetyStop]
+  /// and only during the ascent phase (after [maxDepthIndex]).
   void _detectSafetyStops(
     String diveId,
     List<double> depths,
     List<int> timestamps,
+    int maxDepthIndex,
     List<ProfileEvent> events,
     DateTime now,
   ) {
+    const minDiveDepth = 10.0;
     const minStopDepth = 3.0;
     const maxStopDepth = 6.0;
     const minStopDuration = 120; // 2 minutes
+
+    // Layer 1: Skip shallow dives
+    final maxDepth = depths.reduce((a, b) => a > b ? a : b);
+    if (maxDepth < minDiveDepth) return;
 
     int? stopStartIndex;
     int? stopStartTimestamp;
@@ -890,7 +900,6 @@ class ProfileAnalysisService {
         if (stopStartIndex != null && stopStartTimestamp != null) {
           final duration = timestamps[i - 1] - stopStartTimestamp;
           if (duration >= minStopDuration) {
-            // This was a safety stop
             events.add(
               ProfileEvent.safetyStop(
                 id: _uuid.v4(),

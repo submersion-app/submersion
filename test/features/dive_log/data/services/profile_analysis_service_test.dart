@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 
 void main() {
   group('ProfileAnalysisService cumulative support', () {
@@ -154,6 +156,107 @@ void main() {
           ),
         ),
       );
+    });
+  });
+
+  group('Safety stop detection', () {
+    late ProfileAnalysisService service;
+
+    setUp(() {
+      service = ProfileAnalysisService(gfLow: 1.0, gfHigh: 1.0);
+    });
+
+    /// Build a dive profile: descend to [maxDepth] over 2 min, hold for
+    /// [bottomMinutes], ascend and pause at [stopDepth] for
+    /// [stopMinutes], then surface over 1 min. 1-second sample interval.
+    ({List<double> depths, List<int> timestamps}) buildDiveProfile({
+      required double maxDepth,
+      int bottomMinutes = 10,
+      double stopDepth = 5.0,
+      int stopMinutes = 3,
+    }) {
+      final depths = <double>[];
+      final timestamps = <int>[];
+      var t = 0;
+
+      // Descent: 2 minutes to maxDepth
+      for (var s = 0; s <= 120; s++) {
+        timestamps.add(t);
+        depths.add(maxDepth * s / 120.0);
+        t++;
+      }
+
+      // Bottom time
+      for (var s = 0; s < bottomMinutes * 60; s++) {
+        timestamps.add(t);
+        depths.add(maxDepth);
+        t++;
+      }
+
+      // Ascent to stop depth: 1 minute
+      for (var s = 0; s <= 60; s++) {
+        timestamps.add(t);
+        depths.add(maxDepth - (maxDepth - stopDepth) * s / 60.0);
+        t++;
+      }
+
+      // Hold at stop depth
+      for (var s = 0; s < stopMinutes * 60; s++) {
+        timestamps.add(t);
+        depths.add(stopDepth);
+        t++;
+      }
+
+      // Surface: 1 minute
+      for (var s = 0; s <= 60; s++) {
+        timestamps.add(t);
+        depths.add(stopDepth * (1 - s / 60.0));
+        t++;
+      }
+
+      return (depths: depths, timestamps: timestamps);
+    }
+
+    List<ProfileEvent> safetyStopEvents(ProfileAnalysis result) {
+      return result.events
+          .where(
+            (e) =>
+                e.eventType == ProfileEventType.safetyStopStart ||
+                e.eventType == ProfileEventType.safetyStopEnd,
+          )
+          .toList();
+    }
+
+    group('max depth gate', () {
+      test('shallow dive at 5m produces no safety stop events', () {
+        final profile = buildDiveProfile(maxDepth: 5.0, stopDepth: 4.0);
+        final result = service.analyze(
+          diveId: 'shallow',
+          depths: profile.depths,
+          timestamps: profile.timestamps,
+        );
+        expect(safetyStopEvents(result), isEmpty);
+      });
+
+      test('dive at exactly 10m with stop produces safety stop events', () {
+        final profile = buildDiveProfile(maxDepth: 10.0);
+        final result = service.analyze(
+          diveId: 'threshold',
+          depths: profile.depths,
+          timestamps: profile.timestamps,
+        );
+        expect(safetyStopEvents(result), isNotEmpty);
+      });
+
+      test('dive at 9.9m produces no safety stop events', () {
+        final profile = buildDiveProfile(maxDepth: 9.9);
+        final result = service.analyze(
+          diveId: 'below-threshold',
+          depths: profile.depths,
+          timestamps: profile.timestamps,
+        );
+        expect(safetyStopEvents(result), isEmpty);
+      });
     });
   });
 }
