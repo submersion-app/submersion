@@ -91,9 +91,15 @@ class _UnifiedImportWizardBodyState
     // Deferred to post-frame because Riverpod forbids provider modifications
     // during initState/build. The _resetComplete flag prevents auto-advance
     // from firing during the first frame while stale state is still present.
+    //
+    // The setState is deferred to a second post-frame callback so that
+    // Riverpod's scheduled provider rebuilds (triggered by resetState)
+    // complete before the widget tree re-accesses those providers.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.adapter.resetState();
-      if (mounted) setState(() => _resetComplete = true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _resetComplete = true);
+      });
     });
   }
 
