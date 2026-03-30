@@ -15,6 +15,7 @@ import 'app_localizations_hu.dart';
 import 'app_localizations_it.dart';
 import 'app_localizations_nl.dart';
 import 'app_localizations_pt.dart';
+import 'app_localizations_zh.dart';
 
 // ignore_for_file: type=lint
 
@@ -112,6 +113,7 @@ abstract class AppLocalizations {
     Locale('it'),
     Locale('nl'),
     Locale('pt'),
+    Locale('zh'),
   ];
 
   /// Title of the keyboard shortcuts help dialog
@@ -26584,6 +26586,7 @@ class _AppLocalizationsDelegate
     'it',
     'nl',
     'pt',
+    'zh',
   ].contains(locale.languageCode);
 
   @override
@@ -26613,6 +26616,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsNl();
     case 'pt':
       return AppLocalizationsPt();
+    case 'zh':
+      return AppLocalizationsZh();
   }
 
   throw FlutterError(
