@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
-import '../../models/import_enums.dart';
-import '../presets/csv_preset.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
 
 /// Output of the Detect stage. Identifies which app produced the CSV.
 class DetectionResult extends Equatable {
@@ -46,5 +46,10 @@ class PresetMatch extends Equatable {
   });
 
   @override
-  List<Object?> get props => [preset, score];
+  List<Object?> get props => [
+    preset,
+    score,
+    matchedHeaders,
+    totalSignatureHeaders,
+  ];
 }

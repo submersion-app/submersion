@@ -1,8 +1,8 @@
 // Minimal stub - will be fully implemented in Task 6
 import 'package:equatable/equatable.dart';
 
-import '../../models/field_mapping.dart';
-import '../../models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 
 enum PresetSource { builtIn, userSaved }
 

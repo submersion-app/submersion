@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 
-import '../../models/import_enums.dart';
-import '../../models/import_payload.dart';
-import '../../models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 
 /// Output of the Correlate stage. Entity collections linked by generated IDs.
 class CorrelatedPayload extends Equatable {

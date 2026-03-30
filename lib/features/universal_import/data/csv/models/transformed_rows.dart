@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 
 /// Output of the Transform stage. Typed field maps with standardized names.
 class TransformedRows extends Equatable {
