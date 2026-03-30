@@ -8,7 +8,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   group('AppLocalizations delegate', () {
-    test('loads all 10 supported locales without error', () async {
+    test('loads all 11 supported locales without error', () async {
       for (final locale in AppLocalizations.supportedLocales) {
         final l10n = await AppLocalizations.delegate.load(locale);
         expect(l10n, isNotNull);
@@ -16,8 +16,8 @@ void main() {
       }
     });
 
-    test('supports exactly 10 locales', () {
-      expect(AppLocalizations.supportedLocales.length, 10);
+    test('supports exactly 11 locales', () {
+      expect(AppLocalizations.supportedLocales.length, 11);
       final codes = AppLocalizations.supportedLocales
           .map((l) => l.languageCode)
           .toSet();
@@ -34,6 +34,7 @@ void main() {
           'ar',
           'he',
           'hu',
+          'zh',
         ]),
       );
     });
@@ -67,7 +68,7 @@ void main() {
       en = await AppLocalizations.delegate.load(const Locale('en'));
     });
 
-    for (final code in ['es', 'fr', 'de', 'it', 'nl', 'pt', 'ar', 'he', 'hu']) {
+    for (final code in ['es', 'fr', 'de', 'it', 'nl', 'pt', 'ar', 'he', 'hu', 'zh']) {
       test('$code has translated common_action_save', () async {
         final l10n = await AppLocalizations.delegate.load(Locale(code));
         // At least one of the common actions should differ from English
