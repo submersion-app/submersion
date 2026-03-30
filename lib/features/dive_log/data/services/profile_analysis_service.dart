@@ -886,8 +886,7 @@ class ProfileAnalysisService {
     const maxConsolidationGap = 30; // seconds
 
     // Layer 1: Skip shallow dives
-    final maxDepth = depths.reduce((a, b) => a > b ? a : b);
-    if (maxDepth < minDiveDepth) return;
+    if (depths[maxDepthIndex] < minDiveDepth) return;
 
     // Collect raw stop segments: (startIndex, startTimestamp, endIndex, endTimestamp)
     final rawStops =
