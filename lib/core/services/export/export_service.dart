@@ -1,6 +1,5 @@
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/csv/csv_export_service.dart';
-import 'package:submersion/core/services/export/csv/csv_import_service.dart';
 import 'package:submersion/core/services/export/excel/excel_export_service.dart';
 import 'package:submersion/core/services/export/kml/kml_export_service.dart';
 import 'package:submersion/core/services/export/models/export_service_record.dart';
@@ -44,7 +43,6 @@ class ExportService {
   ExportService._internal();
 
   final _csv = CsvExportService();
-  final _csvImport = CsvImportService();
   final _pdf = PdfExportService();
   final _pdfCourse = PdfCourseExportService();
   final _excel = ExcelExportService();
@@ -85,11 +83,6 @@ class ExportService {
 
   Future<String?> saveEquipmentCsvToFile(List<EquipmentItem> equipment) =>
       _csv.saveEquipmentCsvToFile(equipment);
-
-  // ==================== CSV Import ====================
-
-  Future<List<Map<String, dynamic>>> importDivesFromCsv(String csvContent) =>
-      _csvImport.importDivesFromCsv(csvContent);
 
   // ==================== PDF Export ====================
 

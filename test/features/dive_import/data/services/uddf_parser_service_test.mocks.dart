@@ -184,18 +184,6 @@ class MockExportService extends _i1.Mock implements _i3.ExportService {
           as _i4.Future<String?>);
 
   @override
-  _i4.Future<List<Map<String, dynamic>>> importDivesFromCsv(
-    String? csvContent,
-  ) =>
-      (super.noSuchMethod(
-            Invocation.method(#importDivesFromCsv, [csvContent]),
-            returnValue: _i4.Future<List<Map<String, dynamic>>>.value(
-              <Map<String, dynamic>>[],
-            ),
-          )
-          as _i4.Future<List<Map<String, dynamic>>>);
-
-  @override
   _i4.Future<String> exportTripToPdf(
     _i9.Trip? trip,
     List<_i5.Dive>? dives, {

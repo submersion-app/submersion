@@ -1,7 +1,34 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
-import 'package:submersion/features/universal_import/data/services/value_transforms.dart';
+
+/// Available value transforms for import field mapping.
+///
+/// Each transform converts a value from one unit/format to Submersion's
+/// internal representation (metric units, Dart DateTime, etc.).
+enum ValueTransform {
+  feetToMeters,
+  fahrenheitToCelsius,
+  psiToBar,
+  cubicFeetToLiters,
+  minutesToSeconds,
+  hmsToSeconds,
+  visibilityScale,
+  diveTypeMap,
+  ratingScale;
+
+  String get displayName => switch (this) {
+    feetToMeters => 'ft -> m',
+    fahrenheitToCelsius => 'F -> C',
+    psiToBar => 'psi -> bar',
+    cubicFeetToLiters => 'cuft -> L',
+    minutesToSeconds => 'min -> sec',
+    hmsToSeconds => 'H:M:S -> sec',
+    visibilityScale => 'Visibility',
+    diveTypeMap => 'Dive Type',
+    ratingScale => 'Rating',
+  };
+}
 
 /// Maps CSV columns to Submersion fields with optional value transforms.
 ///

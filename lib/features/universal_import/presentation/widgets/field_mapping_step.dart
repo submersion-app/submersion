@@ -3,8 +3,9 @@ import 'package:flutter/scheduler.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/universal_import/data/csv/presets/built_in_presets.dart';
+import 'package:submersion/features/universal_import/data/csv/presets/preset_registry.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
-import 'package:submersion/features/universal_import/data/services/field_mapping_engine.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
 /// Step 2: CSV field mapping editor (only shown for CSV imports).
@@ -51,15 +52,21 @@ class _FieldMappingStepState extends ConsumerState<FieldMappingStep> {
     final theme = Theme.of(context);
 
     if (!_initialized && state.options != null) {
-      // Auto-generate mapping from detected headers
-      final detection = state.detectionResult;
-      const engine = FieldMappingEngine();
-      _mapping =
-          state.fieldMapping ??
-          engine.autoMap(
-            detection?.csvHeaders ?? [],
-            sourceApp: state.options!.sourceApp,
-          );
+      // Use the preset-based mapping if one was detected, otherwise fall
+      // back to header-based detection via PresetRegistry.
+      if (state.fieldMapping != null) {
+        _mapping = state.fieldMapping!;
+      } else if (state.detectedCsvPreset?.primaryMapping != null) {
+        _mapping = state.detectedCsvPreset!.primaryMapping!;
+      } else {
+        final headers = state.detectionResult?.csvHeaders ?? [];
+        final registry = PresetRegistry(builtInPresets: builtInCsvPresets);
+        final matches = registry.detectPreset(headers);
+        _mapping = matches.isNotEmpty
+            ? matches.first.preset.primaryMapping ??
+                  FieldMapping(name: 'Auto-detected', columns: const [])
+            : FieldMapping(name: 'Auto-detected', columns: const []);
+      }
       _initialized = true;
 
       // Persist the initial mapping to the notifier so the wizard's
