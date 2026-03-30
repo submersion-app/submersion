@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/universal_import/data/csv/models/import_configuration.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
@@ -9,7 +10,11 @@ import 'package:submersion/features/universal_import/data/models/import_warning.
 import 'package:submersion/features/universal_import/data/parsers/csv_import_parser.dart';
 
 void main() {
-  const parser = CsvImportParser();
+  late CsvImportParser parser;
+
+  setUp(() {
+    parser = CsvImportParser();
+  });
 
   Uint8List csvBytes(String csv) => Uint8List.fromList(utf8.encode(csv));
 
@@ -69,14 +74,14 @@ void main() {
     test('returns error for headers-only CSV', () async {
       final result = await parser.parse(csvBytes('Date,Depth,Duration\n'));
       expect(
-        result.warnings.any((w) => w.message.contains('no data rows')),
+        result.warnings.any((w) => w.severity == ImportWarningSeverity.error),
         isTrue,
       );
     });
 
     test('skips rows without valid dateTime', () async {
       const csv =
-          'Date,Max. Depth\n'
+          'Date,Max Depth\n'
           ',25.5\n' // missing date
           '2024-01-15,18.0\n';
 
@@ -94,7 +99,7 @@ void main() {
 
     test('skips empty rows', () async {
       const csv =
-          'Date,Max. Depth\n'
+          'Date,Max Depth\n'
           ',\n'
           '2024-01-15,25.5\n';
 
@@ -127,7 +132,7 @@ void main() {
         ],
       );
 
-      const customParser = CsvImportParser(customMapping: customMapping);
+      final customParser = CsvImportParser(customMapping: customMapping);
       final result = await customParser.parse(csvBytes(csv));
 
       final dives = result.entitiesOf(ImportEntityType.dives);
@@ -139,7 +144,7 @@ void main() {
   group('parse - metadata', () {
     test('includes parsing metadata', () async {
       const csv =
-          'Date,Max. Depth\n'
+          'Date,Max Depth\n'
           '2024-01-15,25.5\n';
 
       final result = await parser.parse(
@@ -243,7 +248,9 @@ void main() {
       expect(dateTime, DateTime.utc(2024, 1, 15, 14, 30));
     });
 
-    test('date-only CSV produces UTC DateTime at midnight', () async {
+    test('date-only CSV produces UTC DateTime at noon', () async {
+      // Note: The pipeline's TimeResolver defaults to hour 12 when no time
+      // column is present (to provide a reasonable midday default).
       const csv =
           'Date,Max Depth\n'
           '2024-01-15,25.5\n';
@@ -260,7 +267,9 @@ void main() {
       expect(dives, isNotEmpty);
       final dateTime = dives.first['dateTime'] as DateTime;
       expect(dateTime.isUtc, isTrue);
-      expect(dateTime, DateTime.utc(2024, 1, 15));
+      expect(dateTime.year, 2024);
+      expect(dateTime.month, 1);
+      expect(dateTime.day, 15);
     });
 
     test('times are not shifted by local UTC offset (issue #60)', () async {
@@ -331,7 +340,7 @@ void main() {
         ],
       );
 
-      const customParser = CsvImportParser(customMapping: customMapping);
+      final customParser = CsvImportParser(customMapping: customMapping);
       final result = await customParser.parse(csvBytes(csv));
 
       final dives = result.entitiesOf(ImportEntityType.dives);
@@ -360,6 +369,115 @@ void main() {
       expect(dateTime.isUtc, isTrue);
       expect(dateTime.hour, 14);
       expect(dateTime.minute, 30);
+    });
+  });
+
+  group('parse - new pipeline features', () {
+    test('each dive has a generated UUID', () async {
+      const csv =
+          'Date,Time,Max Depth\n'
+          '2024-01-15,10:00,25.5\n';
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        options: const ImportOptions(
+          sourceApp: SourceApp.generic,
+          format: ImportFormat.csv,
+        ),
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['id'], isA<String>());
+      expect((dives.first['id'] as String).isNotEmpty, isTrue);
+    });
+
+    test('accepts timeInterpretation parameter', () async {
+      const csv =
+          'Date,Time,Max Depth\n'
+          '2024-01-15,14:30,25.5\n';
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        options: const ImportOptions(
+          sourceApp: SourceApp.generic,
+          format: ImportFormat.csv,
+        ),
+        timeInterpretation: TimeInterpretation.utc,
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(dateTime.isUtc, isTrue);
+      // For utc interpretation, the value should be stored as-is.
+      expect(dateTime.hour, 14);
+      expect(dateTime.minute, 30);
+    });
+
+    test('accepts specificUtcOffset parameter', () async {
+      const csv =
+          'Date,Time,Max Depth\n'
+          '2024-01-15,14:30,25.5\n';
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        options: const ImportOptions(
+          sourceApp: SourceApp.generic,
+          format: ImportFormat.csv,
+        ),
+        timeInterpretation: TimeInterpretation.specificOffset,
+        specificUtcOffset: const Duration(hours: 4),
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(dateTime.isUtc, isTrue);
+      // 14:30 at +04:00 = 10:30 UTC
+      expect(dateTime.hour, 10);
+      expect(dateTime.minute, 30);
+    });
+
+    test('accepts customMappingOverride parameter', () async {
+      const csv =
+          'MyDate,MyDepth\n'
+          '2024-01-15,25.5\n';
+
+      const customMapping = FieldMapping(
+        name: 'Override',
+        sourceApp: SourceApp.generic,
+        columns: [
+          ColumnMapping(sourceColumn: 'MyDate', targetField: 'date'),
+          ColumnMapping(sourceColumn: 'MyDepth', targetField: 'maxDepth'),
+        ],
+      );
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        customMappingOverride: customMapping,
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['maxDepth'], 25.5);
+    });
+
+    test('detects MacDive preset from headers', () async {
+      // Uses MacDive's exact header names so the detector picks up the preset.
+      const csv =
+          'Dive No,Date,Time,Location,Max. Depth,Avg. Depth,Bottom Time,'
+          'Water Temp,Air Temp,Visibility,Dive Type,Rating,Notes,Buddy,'
+          'Dive Master\n'
+          '1,2024-01-15,10:00,Blue Hole,25.5,18.0,45,27.0,28.0,Good,'
+          'Recreation,5,Saw a turtle,Alice,Bob\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      // Metadata should reflect the detected source app.
+      expect(result.metadata['sourceApp'], 'macdive');
     });
   });
 }

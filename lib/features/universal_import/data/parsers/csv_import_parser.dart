@@ -1,38 +1,38 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:csv/csv.dart';
-
+import 'package:submersion/features/universal_import/data/csv/models/detection_result.dart';
+import 'package:submersion/features/universal_import/data/csv/models/import_configuration.dart';
+import 'package:submersion/features/universal_import/data/csv/models/parsed_csv.dart';
+import 'package:submersion/features/universal_import/data/csv/pipeline/csv_parser.dart';
+import 'package:submersion/features/universal_import/data/csv/pipeline/csv_pipeline.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
-import 'package:submersion/features/universal_import/data/services/field_mapping_engine.dart';
-import 'package:submersion/features/universal_import/data/services/value_transforms.dart';
 
 /// Parser for CSV dive log files from any source application.
 ///
-/// Uses [FieldMappingEngine] to match CSV columns to Submersion fields,
-/// applying preset mappings for known apps (MacDive, Diving Log, etc.)
-/// or generic keyword-based matching for unrecognized CSVs.
+/// Thin adapter that delegates to [CsvPipeline] for all parsing logic while
+/// maintaining the [ImportParser] interface expected by the universal import
+/// wizard.
 ///
-/// Produces an [ImportPayload] containing dives and optionally sites
-/// (extracted from unique site name values).
+/// Flow:
+/// 1. Parse raw CSV bytes via the pipeline's Parse stage.
+/// 2. Detect the source app via the pipeline's Detect stage.
+/// 3. Build an [ImportConfiguration] from the detected preset, a custom
+///    mapping, or auto-mapped keyword matching.
+/// 4. Execute the pipeline (Transform + Correlate) to produce the final
+///    [ImportPayload].
 class CsvImportParser implements ImportParser {
-  final FieldMappingEngine _mappingEngine;
-  final ValueTransformService _transforms;
+  final CsvPipeline _pipeline;
 
   /// Optional user-customized field mapping. If null, auto-detection is used.
   final FieldMapping? customMapping;
 
-  const CsvImportParser({
-    this.customMapping,
-    FieldMappingEngine mappingEngine = const FieldMappingEngine(),
-    ValueTransformService transforms = const ValueTransformService(),
-  }) : _mappingEngine = mappingEngine,
-       _transforms = transforms;
+  CsvImportParser({this.customMapping, CsvPipeline? pipeline})
+    : _pipeline = pipeline ?? CsvPipeline();
 
   @override
   List<ImportFormat> get supportedFormats => [ImportFormat.csv];
@@ -41,254 +41,222 @@ class CsvImportParser implements ImportParser {
   Future<ImportPayload> parse(
     Uint8List fileBytes, {
     ImportOptions? options,
+    FieldMapping? customMappingOverride,
+    Uint8List? profileFileBytes,
+    TimeInterpretation timeInterpretation = TimeInterpretation.localWallClock,
+    Duration? specificUtcOffset,
   }) async {
-    final rawContent = utf8.decode(fileBytes, allowMalformed: true);
-    // Normalize line endings: \r\n → \n, then \r → \n.
-    // The csv package defaults to \r\n; normalizing ensures both Unix
-    // and Windows line endings are handled consistently.
-    final content = rawContent.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
-
-    List<List<dynamic>> rows;
+    // Stage 1: Parse.
+    final ParsedCsv parsedCsv;
     try {
-      rows = const CsvToListConverter(eol: '\n').convert(content);
-    } catch (e) {
+      parsedCsv = _pipeline.parse(fileBytes);
+    } on CsvParseException catch (e) {
       return ImportPayload(
         entities: const {},
         warnings: [
           ImportWarning(
             severity: ImportWarningSeverity.error,
-            message: 'Could not parse CSV: $e',
+            message: e.message,
           ),
         ],
       );
     }
 
-    if (rows.isEmpty) {
-      return const ImportPayload(
-        entities: {},
-        warnings: [
-          ImportWarning(
-            severity: ImportWarningSeverity.error,
-            message: 'CSV file is empty',
-          ),
-        ],
-      );
-    }
+    // Stage 2: Detect.
+    final detection = _pipeline.detect(parsedCsv);
 
-    final headers = rows.first.map((e) => e.toString().trim()).toList();
-    final dataRows = rows.skip(1).toList();
+    // Resolve which mapping to use: explicit override > constructor
+    // customMapping > detected preset > auto-mapped from headers.
+    final resolvedMapping = customMappingOverride ?? customMapping;
 
-    if (dataRows.isEmpty) {
-      return const ImportPayload(
-        entities: {},
-        warnings: [
-          ImportWarning(
-            severity: ImportWarningSeverity.error,
-            message: 'CSV file has headers but no data rows',
-          ),
-        ],
-      );
-    }
+    // Stage 3: Build ImportConfiguration.
+    final config = _buildConfiguration(
+      parsedCsv: parsedCsv,
+      detection: detection,
+      resolvedMapping: resolvedMapping,
+      options: options,
+      timeInterpretation: timeInterpretation,
+      specificUtcOffset: specificUtcOffset,
+    );
 
-    final mapping =
-        customMapping ??
-        _mappingEngine.autoMap(headers, sourceApp: options?.sourceApp);
-
-    final columnIndices = _buildColumnIndex(mapping, headers);
-    final dives = <Map<String, dynamic>>[];
-    final siteNames = <String>{};
-    final warnings = <ImportWarning>[];
-
-    for (var rowIdx = 0; rowIdx < dataRows.length; rowIdx++) {
-      final row = dataRows[rowIdx];
-      if (_isEmptyRow(row)) continue;
-
-      final diveData = _parseRow(row, columnIndices, warnings, dives.length);
-      _combineDateAndTime(diveData);
-
-      final siteName = diveData['siteName'] as String?;
-      if (siteName != null && siteName.isNotEmpty) {
-        siteNames.add(siteName);
+    // Parse optional profile CSV if provided.
+    ParsedCsv? profileCsv;
+    if (profileFileBytes != null) {
+      try {
+        profileCsv = _pipeline.parse(profileFileBytes);
+      } on CsvParseException {
+        // Profile parse failure is non-fatal; proceed without profile data.
       }
-
-      if (!_hasValidDateTime(diveData)) {
-        warnings.add(
-          ImportWarning(
-            severity: ImportWarningSeverity.error,
-            message: 'Row ${rowIdx + 2}: Missing or invalid date',
-            entityType: ImportEntityType.dives,
-            itemIndex: dives.length,
-            field: 'dateTime',
-          ),
-        );
-        continue;
-      }
-
-      dives.add(diveData);
     }
 
-    final entities = <ImportEntityType, List<Map<String, dynamic>>>{};
-    if (dives.isNotEmpty) {
-      entities[ImportEntityType.dives] = dives;
-    }
-    if (siteNames.isNotEmpty) {
-      entities[ImportEntityType.sites] = siteNames
-          .map((name) => <String, dynamic>{'name': name})
-          .toList();
-    }
-
-    if (dives.isEmpty) {
-      warnings.add(
-        const ImportWarning(
-          severity: ImportWarningSeverity.error,
-          message: 'No valid dives could be parsed from the CSV file',
-        ),
-      );
-    }
-
-    return ImportPayload(
-      entities: entities,
-      warnings: warnings,
-      metadata: {
-        'sourceApp': options?.sourceApp.displayName ?? 'CSV',
-        'totalRows': dataRows.length,
-        'parsedDives': dives.length,
-        'mappingName': mapping.name,
-      },
+    // Stages 4-5: Transform + Correlate.
+    return _pipeline.execute(
+      primaryCsv: parsedCsv,
+      profileCsv: profileCsv,
+      config: config,
     );
   }
 
-  // ======================== Row Parsing ========================
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
 
-  Map<int, ColumnMapping> _buildColumnIndex(
-    FieldMapping mapping,
-    List<String> headers,
-  ) {
-    final headerLower = headers.map((h) => h.toLowerCase().trim()).toList();
-    final indices = <int, ColumnMapping>{};
-    for (final col in mapping.columns) {
-      final idx = headerLower.indexOf(col.sourceColumn.toLowerCase().trim());
-      if (idx >= 0) {
-        indices[idx] = col;
-      }
-    }
-    return indices;
-  }
-
-  Map<String, dynamic> _parseRow(
-    List<dynamic> row,
-    Map<int, ColumnMapping> columnIndices,
-    List<ImportWarning> warnings,
-    int diveIndex,
-  ) {
-    final diveData = <String, dynamic>{};
-
-    for (final entry in columnIndices.entries) {
-      final idx = entry.key;
-      final col = entry.value;
-      if (idx >= row.length) continue;
-
-      final rawValue = row[idx]?.toString().trim() ?? '';
-      if (rawValue.isEmpty) {
-        if (col.defaultValue != null) {
-          diveData[col.targetField] = col.defaultValue;
-        }
-        continue;
-      }
-
-      if (col.transform != null) {
-        final transformed = _transforms.applyTransform(
-          col.transform!,
-          rawValue,
-        );
-        if (transformed != null) {
-          diveData[col.targetField] = transformed;
-        } else {
-          warnings.add(
-            ImportWarning(
-              severity: ImportWarningSeverity.warning,
-              message:
-                  'Could not convert "${col.sourceColumn}" value "$rawValue"',
-              entityType: ImportEntityType.dives,
-              itemIndex: diveIndex,
-              field: col.targetField,
-            ),
-          );
-        }
-      } else {
-        diveData[col.targetField] = _inferTypedValue(col.targetField, rawValue);
-      }
+  /// Build an [ImportConfiguration] from the resolved mapping source.
+  ///
+  /// Priority order:
+  /// 1. Explicit custom mapping (user-provided).
+  /// 2. Detected preset from pipeline Detect stage.
+  /// 3. Auto-mapped from CSV headers using keyword matching.
+  ImportConfiguration _buildConfiguration({
+    required ParsedCsv parsedCsv,
+    required DetectionResult detection,
+    required FieldMapping? resolvedMapping,
+    required ImportOptions? options,
+    required TimeInterpretation timeInterpretation,
+    required Duration? specificUtcOffset,
+  }) {
+    // Case 1: User provided a custom mapping.
+    if (resolvedMapping != null) {
+      return ImportConfiguration(
+        mappings: {'primary': resolvedMapping},
+        timeInterpretation: timeInterpretation,
+        specificUtcOffset: specificUtcOffset,
+        sourceApp: options?.sourceApp,
+      );
     }
 
-    return diveData;
+    // Case 2: Pipeline detected a known preset.
+    if (detection.isDetected && detection.matchedPreset != null) {
+      final preset = detection.matchedPreset!;
+      return ImportConfiguration(
+        mappings: preset.mappings,
+        entityTypesToImport: preset.supportedEntities,
+        sourceApp: preset.sourceApp ?? options?.sourceApp,
+        preset: preset,
+        timeInterpretation: timeInterpretation,
+        specificUtcOffset: specificUtcOffset,
+      );
+    }
+
+    // Case 3: No preset detected. Auto-map from headers using keywords.
+    final autoMapping = _autoMapFromHeaders(parsedCsv.headers);
+    return ImportConfiguration(
+      mappings: {'primary': autoMapping},
+      timeInterpretation: timeInterpretation,
+      specificUtcOffset: specificUtcOffset,
+      sourceApp: options?.sourceApp,
+    );
   }
 
-  // ======================== Date/Time Combining ========================
-
-  void _combineDateAndTime(Map<String, dynamic> diveData) {
-    if (diveData.containsKey('date') && diveData['date'] is DateTime) {
-      DateTime dateTime = diveData['date'] as DateTime;
-      if (diveData.containsKey('time') && diveData['time'] is DateTime) {
-        final time = diveData['time'] as DateTime;
-        dateTime = DateTime.utc(
-          dateTime.year,
-          dateTime.month,
-          dateTime.day,
-          time.hour,
-          time.minute,
-          time.second,
-        );
-      }
-      diveData['dateTime'] = dateTime;
-      diveData.remove('date');
-      diveData.remove('time');
-    } else if (diveData.containsKey('dateTime') &&
-        diveData['dateTime'] is! DateTime) {
-      final parsed = _transforms.parseDate(diveData['dateTime'].toString());
-      if (parsed != null) {
-        diveData['dateTime'] = parsed;
+  /// Build a [FieldMapping] from CSV headers using keyword matching.
+  ///
+  /// Scans each header for known patterns and maps it to the corresponding
+  /// Submersion target field.
+  FieldMapping _autoMapFromHeaders(List<String> headers) {
+    final columns = <ColumnMapping>[];
+    for (final header in headers) {
+      final lower = header.toLowerCase().trim();
+      final target = _guessTargetField(lower);
+      if (target != null) {
+        columns.add(ColumnMapping(sourceColumn: header, targetField: target));
       }
     }
+    return FieldMapping(
+      name: 'Auto-detected',
+      sourceApp: SourceApp.generic,
+      columns: columns,
+    );
   }
 
-  // ======================== Type Inference ========================
-
-  dynamic _inferTypedValue(String targetField, String rawValue) {
-    return switch (targetField) {
-      'diveNumber' => int.tryParse(rawValue),
-      'date' || 'dateTime' => _transforms.parseDate(rawValue),
-      'time' => _transforms.parseTime(rawValue),
-      'maxDepth' ||
-      'avgDepth' ||
-      'waterTemp' ||
-      'airTemp' ||
-      'bottomTemp' ||
-      'tankVolume' ||
-      'o2Percent' ||
-      'weightUsed' ||
-      'windSpeed' ||
-      'humidity' => double.tryParse(
-        rawValue.replaceAll(RegExp(r'[^\d.-]'), ''),
-      ),
-      'duration' || 'runtime' => _parseDuration(rawValue),
-      'startPressure' ||
-      'endPressure' => int.tryParse(rawValue.replaceAll(RegExp(r'[^\d]'), '')),
-      'rating' => int.tryParse(rawValue),
-      _ => rawValue,
-    };
+  /// Match a lowercase header to a target field using keyword patterns.
+  String? _guessTargetField(String header) {
+    // Dive number.
+    if (header.contains('dive') &&
+        (header.contains('number') || header.contains('no'))) {
+      return 'diveNumber';
+    }
+    // Combined dateTime.
+    if (header.contains('date') && header.contains('time')) return 'dateTime';
+    // Date (not containing 'time').
+    if (_isDateOnly(header)) return 'date';
+    // Time (not containing 'date', not duration/bottom/surface/run).
+    if (_isTimeOnly(header)) return 'time';
+    // Depth fields.
+    if (header.contains('max') && header.contains('depth')) return 'maxDepth';
+    if (header.contains('avg') && header.contains('depth')) return 'avgDepth';
+    // Duration.
+    if (_isDuration(header)) return 'duration';
+    // Temperature.
+    if (header.contains('water') && header.contains('temp')) return 'waterTemp';
+    if (header.contains('air') && header.contains('temp')) return 'airTemp';
+    // Site/location.
+    if (header.contains('site') || header.contains('location')) {
+      return 'siteName';
+    }
+    // People.
+    if (header.contains('buddy')) return 'buddy';
+    if (header.contains('dive') && header.contains('master')) {
+      return 'diveMaster';
+    }
+    if (header == 'divemaster') return 'diveMaster';
+    // Rating.
+    if (header.contains('rating')) return 'rating';
+    // Notes.
+    if (header.contains('note')) return 'notes';
+    // Visibility.
+    if (header.contains('visibility')) return 'visibility';
+    // Pressure.
+    if (header.contains('start') && header.contains('pressure')) {
+      return 'startPressure';
+    }
+    if (header.contains('end') && header.contains('pressure')) {
+      return 'endPressure';
+    }
+    // Tank.
+    if (header.contains('tank') && header.contains('volume')) {
+      return 'tankVolume';
+    }
+    // Gas.
+    if (header.contains('o2') || header.contains('oxygen')) return 'o2Percent';
+    // Computer info.
+    if (header.contains('computer')) return 'computer';
+    if (header.contains('serial')) return 'serialNumber';
+    if (header.contains('firmware')) return 'firmware';
+    // Gear.
+    if (header.contains('suit')) return 'suit';
+    if (header.contains('weight')) return 'weight';
+    // Tags.
+    if (header.contains('tag')) return 'tags';
+    // GPS.
+    if (header.contains('gps')) return 'gps';
+    // Weather.
+    if (header.contains('wind') && header.contains('speed')) return 'windSpeed';
+    if (header.contains('wind') && header.contains('dir')) {
+      return 'windDirection';
+    }
+    if (header.contains('cloud')) return 'cloudCover';
+    if (header.contains('precip')) return 'precipitation';
+    if (header.contains('humid')) return 'humidity';
+    if (header.contains('weather') && header.contains('desc')) {
+      return 'weatherDescription';
+    }
+    return null;
   }
 
-  Duration? _parseDuration(String value) {
-    final minutes = int.tryParse(value.replaceAll(RegExp(r'[^\d]'), ''));
-    if (minutes != null) return Duration(minutes: minutes);
-    return _transforms.hmsToSeconds(value);
-  }
+  bool _isDateOnly(String h) =>
+      h == 'date' || (h.contains('date') && !h.contains('time'));
 
-  // ======================== Helpers ========================
+  bool _isTimeOnly(String h) =>
+      h == 'time' ||
+      (h.contains('time') &&
+          !h.contains('date') &&
+          !h.contains('bottom') &&
+          !h.contains('duration') &&
+          !h.contains('surface') &&
+          !h.contains('run'));
 
-  bool _isEmptyRow(List<dynamic> row) =>
-      row.isEmpty || row.every((c) => c == null || c.toString().isEmpty);
-
-  bool _hasValidDateTime(Map<String, dynamic> data) =>
-      data.containsKey('dateTime') && data['dateTime'] is DateTime;
+  bool _isDuration(String h) =>
+      (h.contains('bottom') && h.contains('time')) ||
+      h.contains('duration') ||
+      h.contains('runtime');
 }
