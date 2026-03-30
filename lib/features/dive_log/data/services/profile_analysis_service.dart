@@ -867,8 +867,10 @@ class ProfileAnalysisService {
 
   /// Detect safety stops in the profile.
   ///
-  /// Only detects stops on dives deeper than [_minDiveDepthForSafetyStop]
-  /// and only during the ascent phase (after [maxDepthIndex]).
+  /// Three-layer detection:
+  /// 1. Max depth gate: skip dives shallower than 10m
+  /// 2. Ascent-phase restriction: only scan after max depth point
+  /// 3. Consolidation: merge stops separated by gaps <= 30s
   void _detectSafetyStops(
     String diveId,
     List<double> depths,
@@ -881,10 +883,17 @@ class ProfileAnalysisService {
     const minStopDepth = 3.0;
     const maxStopDepth = 6.0;
     const minStopDuration = 120; // 2 minutes
+    const maxConsolidationGap = 30; // seconds
 
     // Layer 1: Skip shallow dives
     final maxDepth = depths.reduce((a, b) => a > b ? a : b);
     if (maxDepth < minDiveDepth) return;
+
+    // Collect raw stop segments: (startIndex, startTimestamp, endIndex, endTimestamp)
+    final rawStops =
+        <
+          ({int startIndex, int startTimestamp, int endIndex, int endTimestamp})
+        >[];
 
     int? stopStartIndex;
     int? stopStartTimestamp;
@@ -903,31 +912,80 @@ class ProfileAnalysisService {
         if (stopStartIndex != null && stopStartTimestamp != null) {
           final duration = timestamps[i - 1] - stopStartTimestamp;
           if (duration >= minStopDuration) {
-            events.add(
-              ProfileEvent.safetyStop(
-                id: _uuid.v4(),
-                diveId: diveId,
-                timestamp: stopStartTimestamp,
-                depth: depths[stopStartIndex],
-                createdAt: now,
-                isStart: true,
-              ),
-            );
-            events.add(
-              ProfileEvent.safetyStop(
-                id: _uuid.v4(),
-                diveId: diveId,
-                timestamp: timestamps[i - 1],
-                depth: depths[i - 1],
-                createdAt: now,
-                isStart: false,
-              ),
-            );
+            rawStops.add((
+              startIndex: stopStartIndex,
+              startTimestamp: stopStartTimestamp,
+              endIndex: i - 1,
+              endTimestamp: timestamps[i - 1],
+            ));
           }
           stopStartIndex = null;
           stopStartTimestamp = null;
         }
       }
+    }
+
+    // Handle stop that extends to end of profile
+    if (stopStartIndex != null && stopStartTimestamp != null) {
+      final duration = timestamps.last - stopStartTimestamp;
+      if (duration >= minStopDuration) {
+        rawStops.add((
+          startIndex: stopStartIndex,
+          startTimestamp: stopStartTimestamp,
+          endIndex: depths.length - 1,
+          endTimestamp: timestamps.last,
+        ));
+      }
+    }
+
+    if (rawStops.isEmpty) return;
+
+    // Layer 3: Consolidate stops separated by short gaps
+    final merged =
+        <
+          ({int startIndex, int startTimestamp, int endIndex, int endTimestamp})
+        >[rawStops.first];
+
+    for (int i = 1; i < rawStops.length; i++) {
+      final prev = merged.last;
+      final curr = rawStops[i];
+      final gap = curr.startTimestamp - prev.endTimestamp;
+
+      if (gap <= maxConsolidationGap) {
+        // Merge: replace last with extended range
+        merged[merged.length - 1] = (
+          startIndex: prev.startIndex,
+          startTimestamp: prev.startTimestamp,
+          endIndex: curr.endIndex,
+          endTimestamp: curr.endTimestamp,
+        );
+      } else {
+        merged.add(curr);
+      }
+    }
+
+    // Emit events from merged stops
+    for (final stop in merged) {
+      events.add(
+        ProfileEvent.safetyStop(
+          id: _uuid.v4(),
+          diveId: diveId,
+          timestamp: stop.startTimestamp,
+          depth: depths[stop.startIndex],
+          createdAt: now,
+          isStart: true,
+        ),
+      );
+      events.add(
+        ProfileEvent.safetyStop(
+          id: _uuid.v4(),
+          diveId: diveId,
+          timestamp: stop.endTimestamp,
+          depth: depths[stop.endIndex],
+          createdAt: now,
+          isStart: false,
+        ),
+      );
     }
   }
 

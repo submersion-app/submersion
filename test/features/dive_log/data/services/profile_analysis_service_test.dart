@@ -374,5 +374,129 @@ void main() {
         expect(stops[1].eventType, ProfileEventType.safetyStopEnd);
       });
     });
+
+    group('consolidation', () {
+      /// Build a dive that descends to 20m, then ascends through the safety
+      /// stop zone with [gaps] — brief excursions outside the 3-6m band.
+      /// Each gap is (gapDurationSeconds, depthDuringGap).
+      /// Between gaps, the diver holds at 5m for [segmentMinutes] each.
+      ({List<double> depths, List<int> timestamps}) buildDiveWithGaps({
+        required List<({int durationSeconds, double depth})> gaps,
+        int segmentMinutes = 3,
+      }) {
+        final depths = <double>[];
+        final timestamps = <int>[];
+        var t = 0;
+
+        // Descent to 20m: 2 minutes
+        for (var s = 0; s <= 120; s++) {
+          timestamps.add(t);
+          depths.add(20.0 * s / 120.0);
+          t++;
+        }
+
+        // Bottom at 20m: 10 minutes
+        for (var s = 0; s < 600; s++) {
+          timestamps.add(t);
+          depths.add(20.0);
+          t++;
+        }
+
+        // Ascent to 5m: 1 minute
+        for (var s = 0; s <= 60; s++) {
+          timestamps.add(t);
+          depths.add(20.0 - 15.0 * s / 60.0);
+          t++;
+        }
+
+        // First safety stop segment
+        for (var s = 0; s < segmentMinutes * 60; s++) {
+          timestamps.add(t);
+          depths.add(5.0);
+          t++;
+        }
+
+        // Gaps with stop segments between them
+        for (final gap in gaps) {
+          // Brief excursion outside the band
+          for (var s = 0; s < gap.durationSeconds; s++) {
+            timestamps.add(t);
+            depths.add(gap.depth);
+            t++;
+          }
+
+          // Return to safety stop depth
+          for (var s = 0; s < segmentMinutes * 60; s++) {
+            timestamps.add(t);
+            depths.add(5.0);
+            t++;
+          }
+        }
+
+        // Surface: 1 minute
+        for (var s = 0; s <= 60; s++) {
+          timestamps.add(t);
+          depths.add(5.0 * (1 - s / 60.0));
+          t++;
+        }
+
+        return (depths: depths, timestamps: timestamps);
+      }
+
+      test('two stops separated by 10s gap are merged into one', () {
+        final profile = buildDiveWithGaps(
+          gaps: [(durationSeconds: 10, depth: 7.0)],
+        );
+        final result = service.analyze(
+          diveId: 'merge-short-gap',
+          depths: profile.depths,
+          timestamps: profile.timestamps,
+        );
+        final stops = safetyStopEvents(result);
+        expect(stops.length, equals(2)); // one start + one end
+        expect(stops[0].eventType, ProfileEventType.safetyStopStart);
+        expect(stops[1].eventType, ProfileEventType.safetyStopEnd);
+      });
+
+      test('two stops separated by 31s gap remain separate', () {
+        final profile = buildDiveWithGaps(
+          gaps: [(durationSeconds: 31, depth: 7.0)],
+        );
+        final result = service.analyze(
+          diveId: 'keep-long-gap',
+          depths: profile.depths,
+          timestamps: profile.timestamps,
+        );
+        final stops = safetyStopEvents(result);
+        expect(stops.length, equals(4)); // two starts + two ends
+      });
+
+      test('three consecutive stops with short gaps merge into one', () {
+        final profile = buildDiveWithGaps(
+          gaps: [
+            (durationSeconds: 10, depth: 7.0),
+            (durationSeconds: 15, depth: 2.0),
+          ],
+        );
+        final result = service.analyze(
+          diveId: 'merge-three',
+          depths: profile.depths,
+          timestamps: profile.timestamps,
+        );
+        final stops = safetyStopEvents(result);
+        expect(stops.length, equals(2)); // all merged into one
+      });
+
+      test('single stop with no neighbors is unchanged', () {
+        final profile = buildDiveProfile(maxDepth: 20.0, stopDepth: 5.0);
+        final result = service.analyze(
+          diveId: 'single-stop',
+          depths: profile.depths,
+          timestamps: profile.timestamps,
+        );
+        final stops = safetyStopEvents(result);
+        expect(stops.length, equals(2)); // one start + one end
+      });
+    });
   });
 }
