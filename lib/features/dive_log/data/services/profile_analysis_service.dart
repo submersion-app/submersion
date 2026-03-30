@@ -804,7 +804,16 @@ class ProfileAnalysisService {
     // Use lastIndexOf so that mid-dive excursions through shallow depths are
     // treated as bottom-phase activity and not counted as safety stops.
     final maxDepthIndex = depths.lastIndexOf(maxDepth);
-    _detectSafetyStops(diveId, depths, timestamps, maxDepthIndex, events, now);
+    if (maxDepthIndex >= 0) {
+      _detectSafetyStops(
+        diveId,
+        depths,
+        timestamps,
+        maxDepthIndex,
+        events,
+        now,
+      );
+    }
 
     // Add ascent rate violation events
     for (final violation in ascentRateViolations) {

@@ -514,10 +514,10 @@ void main() {
           t++;
         }
 
-        // Hover at 4-6m for 30 minutes with oscillation
+        // Hover at 4-5m for 30 minutes with oscillation
         for (var s = 0; s < 30 * 60; s++) {
           timestamps.add(t);
-          // Oscillate between 3.5m and 5.5m with occasional dips
+          // Oscillate between 4.0m and 5.0m
           const base = 4.5;
           final oscillation =
               1.0 * (s % 120 < 60 ? (s % 60) / 60.0 : 1.0 - (s % 60) / 60.0);
