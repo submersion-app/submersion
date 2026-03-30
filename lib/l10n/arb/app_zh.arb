@@ -2709,7 +2709,7 @@
   "equipment_setDetail_errorTitle": "错误",
   "equipment_setDetail_loadingTitle": "加载中...",
   "equipment_setDetail_notFoundMessage": "此装备套装已不存在。",
-  "equipment_setDetail_notFoundTitle": "设置未已找到",
+  "equipment_setDetail_notFoundTitle": "未找到套装",
   "equipment_setDetail_snackbar_deleted": "装备套装已删除",
   "equipment_setEdit_addEquipmentFirst": "请先添加装备再创建套装。",
   "equipment_setEdit_appBar_editTitle": "编辑套装",
