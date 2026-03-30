@@ -1176,6 +1176,18 @@ class ScheduledNotifications extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// User-saved CSV import presets (local-only, not synced)
+class CsvPresets extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get presetJson => text()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // Database Class
 // ============================================================================
@@ -1233,6 +1245,8 @@ class ScheduledNotifications extends Table {
     // Liveaboard tracking (v2.0)
     LiveaboardDetailRecords,
     TripItineraryDays,
+    // CSV import presets (local-only)
+    CsvPresets,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -1240,7 +1254,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 57;
+  static const int currentSchemaVersion = 58;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -2482,6 +2496,18 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN dive_detail_sections TEXT',
           );
+        }
+        if (from < 58) {
+          // Add csv_presets table for user-saved CSV import presets
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS csv_presets (
+              id TEXT NOT NULL PRIMARY KEY,
+              name TEXT NOT NULL,
+              preset_json TEXT NOT NULL,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
         }
       },
       beforeOpen: (details) async {
