@@ -16,7 +16,7 @@ void main() {
     test('maps columns to target fields', () {
       // Without date/time, rows should be skipped (no dateTime).
       // Add date column to make rows valid.
-      final csvWithDate = ParsedCsv(
+      const csvWithDate = ParsedCsv(
         headers: ['Dive No', 'Max Depth', 'Site Name', 'Notes', 'Date'],
         rows: [
           ['1', '25.5', 'Blue Hole', 'Great dive', '2024-06-15'],
@@ -24,25 +24,16 @@ void main() {
         ],
       );
 
-      final configWithDate = ImportConfiguration(
+      const configWithDate = ImportConfiguration(
         mappings: {
           'primary': FieldMapping(
             name: 'Test',
             columns: [
-              const ColumnMapping(
-                sourceColumn: 'Dive No',
-                targetField: 'diveNumber',
-              ),
-              const ColumnMapping(
-                sourceColumn: 'Max Depth',
-                targetField: 'maxDepth',
-              ),
-              const ColumnMapping(
-                sourceColumn: 'Site Name',
-                targetField: 'siteName',
-              ),
-              const ColumnMapping(sourceColumn: 'Notes', targetField: 'notes'),
-              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Dive No', targetField: 'diveNumber'),
+              ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
+              ColumnMapping(sourceColumn: 'Site Name', targetField: 'siteName'),
+              ColumnMapping(sourceColumn: 'Notes', targetField: 'notes'),
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
             ],
           ),
         },
@@ -61,24 +52,21 @@ void main() {
     });
 
     test('combines date and time into UTC dateTime', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['Date', 'Time', 'Max Depth'],
         rows: [
           ['2024-06-15', '14:30', '25.5'],
         ],
       );
 
-      final config = ImportConfiguration(
+      const config = ImportConfiguration(
         mappings: {
           'primary': FieldMapping(
             name: 'Test',
             columns: [
-              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
-              const ColumnMapping(sourceColumn: 'Time', targetField: 'time'),
-              const ColumnMapping(
-                sourceColumn: 'Max Depth',
-                targetField: 'maxDepth',
-              ),
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Time', targetField: 'time'),
+              ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
             ],
           ),
         },
@@ -97,20 +85,20 @@ void main() {
     });
 
     test('applies hmsToSeconds transform for duration', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['Date', 'Duration'],
         rows: [
           ['2024-06-15', '1:05:30'],
         ],
       );
 
-      final config = ImportConfiguration(
+      const config = ImportConfiguration(
         mappings: {
           'primary': FieldMapping(
             name: 'Test',
             columns: [
-              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
-              const ColumnMapping(
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(
                 sourceColumn: 'Duration',
                 targetField: 'duration',
                 transform: ValueTransform.hmsToSeconds,
@@ -129,20 +117,20 @@ void main() {
     });
 
     test('applies minutesToSeconds transform for duration', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['Date', 'Duration'],
         rows: [
           ['2024-06-15', '45'],
         ],
       );
 
-      final config = ImportConfiguration(
+      const config = ImportConfiguration(
         mappings: {
           'primary': FieldMapping(
             name: 'Test',
             columns: [
-              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
-              const ColumnMapping(
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(
                 sourceColumn: 'Duration',
                 targetField: 'duration',
                 transform: ValueTransform.minutesToSeconds,
@@ -160,7 +148,7 @@ void main() {
     });
 
     test('skips rows with no valid dateTime and warns', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['Max Depth', 'Notes'],
         rows: [
           ['25.5', 'No date here'],
@@ -168,16 +156,13 @@ void main() {
         ],
       );
 
-      final config = ImportConfiguration(
+      const config = ImportConfiguration(
         mappings: {
           'primary': FieldMapping(
             name: 'Test',
             columns: [
-              const ColumnMapping(
-                sourceColumn: 'Max Depth',
-                targetField: 'maxDepth',
-              ),
-              const ColumnMapping(sourceColumn: 'Notes', targetField: 'notes'),
+              ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
+              ColumnMapping(sourceColumn: 'Notes', targetField: 'notes'),
             ],
           ),
         },
@@ -198,7 +183,7 @@ void main() {
     });
 
     test('resolves informal times (am -> 9:00, pm -> 14:00)', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['Date', 'Time', 'Max Depth'],
         rows: [
           ['2024-06-15', 'am', '25.5'],
@@ -206,17 +191,14 @@ void main() {
         ],
       );
 
-      final config = ImportConfiguration(
+      const config = ImportConfiguration(
         mappings: {
           'primary': FieldMapping(
             name: 'Test',
             columns: [
-              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
-              const ColumnMapping(sourceColumn: 'Time', targetField: 'time'),
-              const ColumnMapping(
-                sourceColumn: 'Max Depth',
-                targetField: 'maxDepth',
-              ),
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Time', targetField: 'time'),
+              ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
             ],
           ),
         },
@@ -234,20 +216,20 @@ void main() {
     });
 
     test('applies feetToMeters transform', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['Date', 'Max Depth'],
         rows: [
           ['2024-06-15', '100'],
         ],
       );
 
-      final config = ImportConfiguration(
+      const config = ImportConfiguration(
         mappings: {
           'primary': FieldMapping(
             name: 'Test',
             columns: [
-              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
-              const ColumnMapping(
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(
                 sourceColumn: 'Max Depth',
                 targetField: 'maxDepth',
                 transform: ValueTransform.feetToMeters,
@@ -265,24 +247,21 @@ void main() {
     });
 
     test('uses defaultValue when source column is empty', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['Date', 'Max Depth', 'Dive Type'],
         rows: [
           ['2024-06-15', '25.5', ''],
         ],
       );
 
-      final config = ImportConfiguration(
+      const config = ImportConfiguration(
         mappings: {
           'primary': FieldMapping(
             name: 'Test',
             columns: [
-              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
-              const ColumnMapping(
-                sourceColumn: 'Max Depth',
-                targetField: 'maxDepth',
-              ),
-              const ColumnMapping(
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
+              ColumnMapping(
                 sourceColumn: 'Dive Type',
                 targetField: 'diveType',
                 transform: ValueTransform.diveTypeMap,
@@ -300,26 +279,20 @@ void main() {
     });
 
     test('handles combined dateTime column', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['Date/Time', 'Max Depth'],
         rows: [
           ['2024-06-15 14:30:00', '25.5'],
         ],
       );
 
-      final config = ImportConfiguration(
+      const config = ImportConfiguration(
         mappings: {
           'primary': FieldMapping(
             name: 'Test',
             columns: [
-              const ColumnMapping(
-                sourceColumn: 'Date/Time',
-                targetField: 'dateTime',
-              ),
-              const ColumnMapping(
-                sourceColumn: 'Max Depth',
-                targetField: 'maxDepth',
-              ),
+              ColumnMapping(sourceColumn: 'Date/Time', targetField: 'dateTime'),
+              ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
             ],
           ),
         },
@@ -337,23 +310,20 @@ void main() {
     });
 
     test('sets importVersion to 2 on each row', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['Date', 'Max Depth'],
         rows: [
           ['2024-06-15', '25.5'],
         ],
       );
 
-      final config = ImportConfiguration(
+      const config = ImportConfiguration(
         mappings: {
           'primary': FieldMapping(
             name: 'Test',
             columns: [
-              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
-              const ColumnMapping(
-                sourceColumn: 'Max Depth',
-                targetField: 'maxDepth',
-              ),
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
             ],
           ),
         },
@@ -366,23 +336,20 @@ void main() {
     });
 
     test('sets fileRole on result', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['Date', 'Max Depth'],
         rows: [
           ['2024-06-15', '25.5'],
         ],
       );
 
-      final config = ImportConfiguration(
+      const config = ImportConfiguration(
         mappings: {
           'dive_profile': FieldMapping(
             name: 'Test',
             columns: [
-              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
-              const ColumnMapping(
-                sourceColumn: 'Max Depth',
-                targetField: 'maxDepth',
-              ),
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
             ],
           ),
         },
@@ -398,23 +365,20 @@ void main() {
     });
 
     test('handles case-insensitive column matching', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['DATE', 'max depth'],
         rows: [
           ['2024-06-15', '25.5'],
         ],
       );
 
-      final config = ImportConfiguration(
+      const config = ImportConfiguration(
         mappings: {
           'primary': FieldMapping(
             name: 'Test',
             columns: [
-              const ColumnMapping(sourceColumn: 'date', targetField: 'date'),
-              const ColumnMapping(
-                sourceColumn: 'Max Depth',
-                targetField: 'maxDepth',
-              ),
+              ColumnMapping(sourceColumn: 'date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
             ],
           ),
         },
@@ -427,20 +391,20 @@ void main() {
     });
 
     test('applies visibilityScale transform', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['Date', 'Visibility'],
         rows: [
           ['2024-06-15', 'excellent'],
         ],
       );
 
-      final config = ImportConfiguration(
+      const config = ImportConfiguration(
         mappings: {
           'primary': FieldMapping(
             name: 'Test',
             columns: [
-              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
-              const ColumnMapping(
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(
                 sourceColumn: 'Visibility',
                 targetField: 'visibility',
                 transform: ValueTransform.visibilityScale,
@@ -457,20 +421,20 @@ void main() {
     });
 
     test('applies ratingScale transform', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['Date', 'Rating'],
         rows: [
           ['2024-06-15', '8'],
         ],
       );
 
-      final config = ImportConfiguration(
+      const config = ImportConfiguration(
         mappings: {
           'primary': FieldMapping(
             name: 'Test',
             columns: [
-              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
-              const ColumnMapping(
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(
                 sourceColumn: 'Rating',
                 targetField: 'rating',
                 transform: ValueTransform.ratingScale,
@@ -488,20 +452,18 @@ void main() {
     });
 
     test('returns empty TransformedRows for missing fileRole mapping', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['Date', 'Max Depth'],
         rows: [
           ['2024-06-15', '25.5'],
         ],
       );
 
-      final config = ImportConfiguration(
+      const config = ImportConfiguration(
         mappings: {
           'primary': FieldMapping(
             name: 'Test',
-            columns: [
-              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
-            ],
+            columns: [ColumnMapping(sourceColumn: 'Date', targetField: 'date')],
           ),
         },
       );

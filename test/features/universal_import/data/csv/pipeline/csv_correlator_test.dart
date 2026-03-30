@@ -17,7 +17,7 @@ void main() {
     SourceApp? sourceApp,
   }) {
     return ImportConfiguration(
-      mappings: {'primary': FieldMapping(name: 'Test', columns: const [])},
+      mappings: {'primary': const FieldMapping(name: 'Test', columns: [])},
       entityTypesToImport: entityTypes,
       sourceApp: sourceApp,
     );
@@ -198,7 +198,7 @@ void main() {
 
       // Profile rows use ProfileExtractor key: diveNumber|date|time
       // They need 'sampleTime', 'date', 'time', and 'diveNumber'.
-      final profileRows = TransformedRows(
+      const profileRows = TransformedRows(
         rows: [
           {
             'diveNumber': 1,

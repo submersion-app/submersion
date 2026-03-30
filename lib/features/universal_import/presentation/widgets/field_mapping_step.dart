@@ -64,8 +64,8 @@ class _FieldMappingStepState extends ConsumerState<FieldMappingStep> {
         final matches = registry.detectPreset(headers);
         _mapping = matches.isNotEmpty
             ? matches.first.preset.primaryMapping ??
-                  FieldMapping(name: 'Auto-detected', columns: const [])
-            : FieldMapping(name: 'Auto-detected', columns: const []);
+                  const FieldMapping(name: 'Auto-detected', columns: [])
+            : const FieldMapping(name: 'Auto-detected', columns: []);
       }
       _initialized = true;
 

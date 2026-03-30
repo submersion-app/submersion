@@ -94,14 +94,14 @@ void main() {
 
     group('CsvPreset serialization roundtrip for user presets', () {
       test('toJson produces valid JSON string', () {
-        final preset = CsvPreset(
+        const preset = CsvPreset(
           id: 'user-test-1',
           name: 'My Custom Preset',
           source: PresetSource.userSaved,
           sourceApp: SourceApp.macdive,
-          signatureHeaders: const ['Dive No', 'Date', 'Max. Depth'],
+          signatureHeaders: ['Dive No', 'Date', 'Max. Depth'],
           matchThreshold: 0.6,
-          mappings: const {
+          mappings: {
             'primary': FieldMapping(
               name: 'Primary',
               columns: [
@@ -117,7 +117,7 @@ void main() {
               ],
             ),
           },
-          supportedEntities: const {ImportEntityType.dives},
+          supportedEntities: {ImportEntityType.dives},
         );
 
         final json = preset.toJson();
@@ -131,14 +131,14 @@ void main() {
       });
 
       test('fromJson reconstructs a matching preset', () {
-        final original = CsvPreset(
+        const original = CsvPreset(
           id: 'user-roundtrip',
           name: 'Roundtrip Test',
           source: PresetSource.userSaved,
           sourceApp: SourceApp.generic,
-          signatureHeaders: const ['Date', 'Max Depth', 'Duration'],
+          signatureHeaders: ['Date', 'Max Depth', 'Duration'],
           matchThreshold: 0.65,
-          mappings: const {
+          mappings: {
             'primary': FieldMapping(
               name: 'Primary',
               columns: [
@@ -157,10 +157,7 @@ void main() {
             ),
           },
           expectedUnits: UnitSystem.imperial,
-          supportedEntities: const {
-            ImportEntityType.dives,
-            ImportEntityType.sites,
-          },
+          supportedEntities: {ImportEntityType.dives, ImportEntityType.sites},
         );
 
         final json = original.toJson();
@@ -189,14 +186,12 @@ void main() {
       });
 
       test('fromJson sets source to userSaved regardless of JSON content', () {
-        final preset = CsvPreset(
+        const preset = CsvPreset(
           id: 'test',
           name: 'Test',
           source: PresetSource.builtIn,
-          signatureHeaders: const ['Date'],
-          mappings: const {
-            'primary': FieldMapping(name: 'Primary', columns: []),
-          },
+          signatureHeaders: ['Date'],
+          mappings: {'primary': FieldMapping(name: 'Primary', columns: [])},
         );
 
         final json = preset.toJson();
@@ -205,13 +200,11 @@ void main() {
       });
 
       test('toJson roundtrips null optional fields gracefully', () {
-        final preset = CsvPreset(
+        const preset = CsvPreset(
           id: 'minimal',
           name: 'Minimal',
-          signatureHeaders: const ['Date'],
-          mappings: const {
-            'primary': FieldMapping(name: 'Primary', columns: []),
-          },
+          signatureHeaders: ['Date'],
+          mappings: {'primary': FieldMapping(name: 'Primary', columns: [])},
         );
 
         final json = preset.toJson();

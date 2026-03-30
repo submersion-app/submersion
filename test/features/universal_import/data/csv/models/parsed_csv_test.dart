@@ -4,7 +4,7 @@ import 'package:submersion/features/universal_import/data/csv/models/parsed_csv.
 void main() {
   group('ParsedCsv', () {
     test('sampleRows returns all rows when fewer than count', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['a', 'b'],
         rows: [
           ['1', '2'],
@@ -23,7 +23,7 @@ void main() {
     });
 
     test('sampleValues extracts non-empty values for column', () {
-      final csv = ParsedCsv(
+      const csv = ParsedCsv(
         headers: ['name', 'depth'],
         rows: [
           ['Dive 1', '25.5'],
@@ -37,7 +37,7 @@ void main() {
     test('isEmpty and isNotEmpty reflect row count', () {
       expect(const ParsedCsv(headers: ['a'], rows: []).isEmpty, isTrue);
       expect(
-        ParsedCsv(
+        const ParsedCsv(
           headers: ['a'],
           rows: [
             ['1'],

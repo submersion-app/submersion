@@ -42,11 +42,11 @@ class CsvCorrelator {
     final entityTypes = config.entityTypesToImport;
 
     // Step 2: Extract dives with generated IDs.
-    final diveExtractor = DiveExtractor();
+    const diveExtractor = DiveExtractor();
     final dives = rows.map(diveExtractor.extract).toList();
 
     // Step 3: Extract tanks keyed by dive ID.
-    final tankExtractor = TankExtractor();
+    const tankExtractor = TankExtractor();
     final tanksByDiveId = <String, List<Map<String, dynamic>>>{};
     for (var i = 0; i < rows.length; i++) {
       final diveId = dives[i]['id'] as String;
