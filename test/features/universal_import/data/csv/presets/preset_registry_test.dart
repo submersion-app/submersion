@@ -4,7 +4,6 @@ import 'package:submersion/features/universal_import/data/csv/presets/built_in_p
 import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/preset_registry.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
-import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 
 void main() {
   late PresetRegistry registry;
@@ -450,7 +449,6 @@ void main() {
 
   group('PresetMatch', () {
     test('PresetMatch equality is value-based', () {
-      final preset = registry.getPreset('macdive')!;
       const match1 = PresetMatch(
         preset: CsvPreset(
           id: 'macdive',

@@ -14,37 +14,6 @@ void main() {
 
   group('CsvTransformer', () {
     test('maps columns to target fields', () {
-      final csv = ParsedCsv(
-        headers: ['Dive No', 'Max Depth', 'Site Name', 'Notes'],
-        rows: [
-          ['1', '25.5', 'Blue Hole', 'Great dive'],
-          ['2', '30.0', 'Reef Wall', 'Saw a turtle'],
-        ],
-      );
-
-      final config = ImportConfiguration(
-        mappings: {
-          'primary': FieldMapping(
-            name: 'Test',
-            columns: [
-              const ColumnMapping(
-                sourceColumn: 'Dive No',
-                targetField: 'diveNumber',
-              ),
-              const ColumnMapping(
-                sourceColumn: 'Max Depth',
-                targetField: 'maxDepth',
-              ),
-              const ColumnMapping(
-                sourceColumn: 'Site Name',
-                targetField: 'siteName',
-              ),
-              const ColumnMapping(sourceColumn: 'Notes', targetField: 'notes'),
-            ],
-          ),
-        },
-      );
-
       // Without date/time, rows should be skipped (no dateTime).
       // Add date column to make rows valid.
       final csvWithDate = ParsedCsv(
