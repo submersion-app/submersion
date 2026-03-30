@@ -2078,7 +2078,7 @@
   "diveSites_list_selection_selectAllTooltip": "全选",
   "diveSites_list_sort_title": "排序潜水点",
   "diveSites_list_tile_diveCount": "{count, plural, =1{1 次潜水} other{{count} 次潜水}}",
-  "diveSites_list_tile_semantics": "潜水潜水点: {name}",
+  "diveSites_list_tile_semantics": "潜水点: {name}",
   "diveSites_list_tooltip_filterSites": "筛选潜水点",
   "diveSites_list_tooltip_mapView": "地图视图",
   "diveSites_list_tooltip_searchSites": "搜索潜水点",
