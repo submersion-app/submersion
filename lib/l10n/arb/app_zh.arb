@@ -4335,7 +4335,7 @@
   "trips_gallery_linkedPhotos": "已关联 {count} 照片",
   "trips_gallery_linkingPhotos": "正在关联照片...",
   "trips_gallery_tooltip_scan": "扫描设备图库",
-  "trips_gallery_tripNotFound": "旅行未已找到",
+  "trips_gallery_tripNotFound": "找不到该旅行",
   "trips_itinerary_dayLabel": "第 {dayNumber} 天",
   "trips_itinerary_dayType_label": "日程类型",
   "trips_itinerary_diveCount": "{count, plural, =1{1 次潜水} other{{count} 次潜水}}",
