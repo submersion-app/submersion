@@ -125,13 +125,16 @@ class LoggerService {
       message: error != null ? '$message | error: $error' : message,
     );
     final logLine = entry.toLogLine();
-    _pendingWrite = _pendingWrite.then((_) {
-      final service = _fileService;
-      if (service != null) {
-        return service.writeLine(logLine);
-      }
-      return Future<void>.value();
-    });
+    // Capture the current file service so that later changes to
+    // _fileService do not affect already-emitted log entries.
+    final service = _fileService;
+    if (service != null) {
+      _pendingWrite = _pendingWrite
+          .then((_) => service.writeLine(logLine))
+          .catchError((Object e) {
+            developer.log('Log write failed: $e', name: _name);
+          });
+    }
 
     // Notify live listeners (debug log viewer).
     _logStreamController.add(entry);
