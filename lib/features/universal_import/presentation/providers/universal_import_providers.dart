@@ -30,6 +30,9 @@ import 'package:submersion/features/universal_import/data/models/field_mapping.d
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/csv/models/parsed_csv.dart';
+import 'package:submersion/features/universal_import/data/csv/pipeline/csv_pipeline.dart';
+import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
 import 'package:submersion/features/universal_import/data/parsers/csv_import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/fit_import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
@@ -49,6 +52,7 @@ import 'package:submersion/features/universal_import/data/services/import_duplic
 enum ImportWizardStep {
   fileSelection,
   sourceConfirmation,
+  additionalFiles,
   fieldMapping,
   review,
   importing,
@@ -68,8 +72,12 @@ class UniversalImportState {
     this.error,
     this.fileBytes,
     this.fileName,
+    this.additionalFileBytes,
+    this.additionalFileName,
     this.detectionResult,
     this.pendingSourceOverride,
+    this.detectedCsvPreset,
+    this.parsedCsv,
     this.options,
     this.fieldMapping,
     this.payload,
@@ -91,6 +99,10 @@ class UniversalImportState {
   final Uint8List? fileBytes;
   final String? fileName;
 
+  /// Profile CSV bytes for multi-file presets (e.g. Subsurface).
+  final Uint8List? additionalFileBytes;
+  final String? additionalFileName;
+
   /// Format detection result (set after file selection).
   final DetectionResult? detectionResult;
 
@@ -99,6 +111,12 @@ class UniversalImportState {
   /// Stored here so the wizard's [onBeforeAdvance] callback can pass it to
   /// [confirmSource] when the user taps "Next".
   final SourceApp? pendingSourceOverride;
+
+  /// Detected CSV preset from the pipeline Detect stage.
+  final CsvPreset? detectedCsvPreset;
+
+  /// Parsed primary CSV for sample values in mapping UI.
+  final ParsedCsv? parsedCsv;
 
   /// Confirmed import options (set after source confirmation).
   final ImportOptions? options;
@@ -137,6 +155,10 @@ class UniversalImportState {
     bool clearError = false,
     Uint8List? fileBytes,
     String? fileName,
+    Uint8List? additionalFileBytes,
+    bool clearAdditionalFileBytes = false,
+    String? additionalFileName,
+    bool clearAdditionalFileName = false,
     DetectionResult? detectionResult,
     ImportOptions? options,
     FieldMapping? fieldMapping,
@@ -151,6 +173,10 @@ class UniversalImportState {
     int? importTotal,
     SourceApp? pendingSourceOverride,
     bool clearPendingSourceOverride = false,
+    CsvPreset? detectedCsvPreset,
+    bool clearDetectedCsvPreset = false,
+    ParsedCsv? parsedCsv,
+    bool clearParsedCsv = false,
   }) {
     return UniversalImportState(
       currentStep: currentStep ?? this.currentStep,
@@ -159,10 +185,20 @@ class UniversalImportState {
       error: clearError ? null : (error ?? this.error),
       fileBytes: fileBytes ?? this.fileBytes,
       fileName: fileName ?? this.fileName,
+      additionalFileBytes: clearAdditionalFileBytes
+          ? null
+          : (additionalFileBytes ?? this.additionalFileBytes),
+      additionalFileName: clearAdditionalFileName
+          ? null
+          : (additionalFileName ?? this.additionalFileName),
       detectionResult: detectionResult ?? this.detectionResult,
       pendingSourceOverride: clearPendingSourceOverride
           ? null
           : (pendingSourceOverride ?? this.pendingSourceOverride),
+      detectedCsvPreset: clearDetectedCsvPreset
+          ? null
+          : (detectedCsvPreset ?? this.detectedCsvPreset),
+      parsedCsv: clearParsedCsv ? null : (parsedCsv ?? this.parsedCsv),
       options: options ?? this.options,
       fieldMapping: clearFieldMapping
           ? null
@@ -320,6 +356,30 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
     final options = ImportOptions(sourceApp: sourceApp, format: format);
 
+    // For CSV files, run pipeline detection to check for multi-file presets.
+    if (format == ImportFormat.csv && state.fileBytes != null) {
+      final pipeline = CsvPipeline();
+      try {
+        final parsedCsv = pipeline.parse(state.fileBytes!);
+        final csvDetection = pipeline.detect(parsedCsv);
+
+        final nextStep = csvDetection.hasAdditionalFileRoles
+            ? ImportWizardStep.additionalFiles
+            : ImportWizardStep.fieldMapping;
+
+        state = state.copyWith(
+          options: options,
+          clearPendingSourceOverride: true,
+          detectedCsvPreset: csvDetection.matchedPreset,
+          parsedCsv: parsedCsv,
+          currentStep: nextStep,
+        );
+        return;
+      } catch (_) {
+        // If pipeline detection fails, fall through to normal CSV flow.
+      }
+    }
+
     state = state.copyWith(
       options: options,
       clearPendingSourceOverride: true,
@@ -334,7 +394,55 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     }
   }
 
-  // -- Step 2: Field Mapping (CSV only) --
+  // -- Step 2a: Additional Files (multi-file CSV presets only) --
+
+  /// Pick a secondary file (e.g. dive profile CSV for Subsurface).
+  Future<void> pickAdditionalFile() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        allowMultiple: false,
+      );
+
+      if (result == null || result.files.isEmpty) {
+        state = state.copyWith(isLoading: false);
+        return;
+      }
+
+      final pickedFile = result.files.first;
+      final filePath = pickedFile.path;
+      if (filePath == null) {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'Could not access file',
+        );
+        return;
+      }
+
+      final bytes = await File(filePath).readAsBytes();
+
+      state = state.copyWith(
+        isLoading: false,
+        additionalFileBytes: bytes,
+        additionalFileName: pickedFile.name,
+        currentStep: ImportWizardStep.fieldMapping,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to pick additional file: $e',
+      );
+    }
+  }
+
+  /// Skip the optional additional file and proceed to field mapping.
+  void skipAdditionalFile() {
+    state = state.copyWith(currentStep: ImportWizardStep.fieldMapping);
+  }
+
+  // -- Step 2b: Field Mapping (CSV only) --
 
   /// Update the field mapping for CSV imports.
   void updateFieldMapping(FieldMapping mapping) {
@@ -363,7 +471,17 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
     try {
       final parser = _parserFor(opts.format);
-      final payload = await parser.parse(bytes, options: opts);
+      final ImportPayload payload;
+      if (parser is CsvImportParser) {
+        payload = await parser.parse(
+          bytes,
+          options: opts,
+          customMappingOverride: state.fieldMapping,
+          profileFileBytes: state.additionalFileBytes,
+        );
+      } else {
+        payload = await parser.parse(bytes, options: opts);
+      }
 
       if (payload.isEmpty) {
         final errorMsg = payload.warnings.isNotEmpty
