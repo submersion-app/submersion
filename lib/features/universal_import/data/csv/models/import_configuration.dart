@@ -51,5 +51,7 @@ class ImportConfiguration extends Equatable {
     timeInterpretation,
     specificUtcOffset,
     entityTypesToImport,
+    preset,
+    sourceApp,
   ];
 }

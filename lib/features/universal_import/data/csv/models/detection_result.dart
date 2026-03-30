@@ -27,6 +27,7 @@ class DetectionResult extends Equatable {
     sourceApp,
     confidence,
     rankedMatches,
+    hasAdditionalFileRoles,
   ];
 }
 
