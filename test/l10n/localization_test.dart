@@ -68,7 +68,18 @@ void main() {
       en = await AppLocalizations.delegate.load(const Locale('en'));
     });
 
-    for (final code in ['es', 'fr', 'de', 'it', 'nl', 'pt', 'ar', 'he', 'hu', 'zh']) {
+    for (final code in [
+      'es',
+      'fr',
+      'de',
+      'it',
+      'nl',
+      'pt',
+      'ar',
+      'he',
+      'hu',
+      'zh',
+    ]) {
       test('$code has translated common_action_save', () async {
         final l10n = await AppLocalizations.delegate.load(Locale(code));
         // At least one of the common actions should differ from English
