@@ -498,5 +498,53 @@ void main() {
         expect(stops.length, equals(2)); // one start + one end
       });
     });
+
+    group('integration', () {
+      test('shallow dive hovering at safety stop depths produces no stops', () {
+        // Simulate the reported issue: a Perdix AI dive that stays
+        // entirely at 3-6m depth with brief oscillations above and below.
+        final depths = <double>[];
+        final timestamps = <int>[];
+        var t = 0;
+
+        // Descent to 5m: 30 seconds
+        for (var s = 0; s <= 30; s++) {
+          timestamps.add(t);
+          depths.add(5.0 * s / 30.0);
+          t++;
+        }
+
+        // Hover at 4-6m for 30 minutes with oscillation
+        for (var s = 0; s < 30 * 60; s++) {
+          timestamps.add(t);
+          // Oscillate between 3.5m and 5.5m with occasional dips
+          final base = 4.5;
+          final oscillation =
+              1.0 * (s % 120 < 60 ? (s % 60) / 60.0 : 1.0 - (s % 60) / 60.0);
+          depths.add(base + oscillation - 0.5);
+          t++;
+        }
+
+        // Surface: 30 seconds
+        for (var s = 0; s <= 30; s++) {
+          timestamps.add(t);
+          depths.add(5.0 * (1 - s / 30.0));
+          t++;
+        }
+
+        final result = service.analyze(
+          diveId: 'shallow-oscillating',
+          depths: depths,
+          timestamps: timestamps,
+        );
+        expect(
+          safetyStopEvents(result),
+          isEmpty,
+          reason:
+              'Shallow dive at safety stop depths should not trigger '
+              'safety stop detection (max depth gate: < 10m)',
+        );
+      });
+    });
   });
 }
