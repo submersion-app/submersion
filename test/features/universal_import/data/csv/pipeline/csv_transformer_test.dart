@@ -1,0 +1,552 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/universal_import/data/csv/models/import_configuration.dart';
+import 'package:submersion/features/universal_import/data/csv/models/parsed_csv.dart';
+import 'package:submersion/features/universal_import/data/csv/pipeline/csv_transformer.dart';
+import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
+import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/services/value_transforms.dart';
+
+void main() {
+  late CsvTransformer transformer;
+
+  setUp(() {
+    transformer = CsvTransformer();
+  });
+
+  group('CsvTransformer', () {
+    test('maps columns to target fields', () {
+      final csv = ParsedCsv(
+        headers: ['Dive No', 'Max Depth', 'Site Name', 'Notes'],
+        rows: [
+          ['1', '25.5', 'Blue Hole', 'Great dive'],
+          ['2', '30.0', 'Reef Wall', 'Saw a turtle'],
+        ],
+      );
+
+      final config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(
+                sourceColumn: 'Dive No',
+                targetField: 'diveNumber',
+              ),
+              const ColumnMapping(
+                sourceColumn: 'Max Depth',
+                targetField: 'maxDepth',
+              ),
+              const ColumnMapping(
+                sourceColumn: 'Site Name',
+                targetField: 'siteName',
+              ),
+              const ColumnMapping(sourceColumn: 'Notes', targetField: 'notes'),
+            ],
+          ),
+        },
+      );
+
+      // Without date/time, rows should be skipped (no dateTime).
+      // Add date column to make rows valid.
+      final csvWithDate = ParsedCsv(
+        headers: ['Dive No', 'Max Depth', 'Site Name', 'Notes', 'Date'],
+        rows: [
+          ['1', '25.5', 'Blue Hole', 'Great dive', '2024-06-15'],
+          ['2', '30.0', 'Reef Wall', 'Saw a turtle', '2024-06-16'],
+        ],
+      );
+
+      final configWithDate = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(
+                sourceColumn: 'Dive No',
+                targetField: 'diveNumber',
+              ),
+              const ColumnMapping(
+                sourceColumn: 'Max Depth',
+                targetField: 'maxDepth',
+              ),
+              const ColumnMapping(
+                sourceColumn: 'Site Name',
+                targetField: 'siteName',
+              ),
+              const ColumnMapping(sourceColumn: 'Notes', targetField: 'notes'),
+              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csvWithDate, configWithDate);
+
+      expect(result.rows, hasLength(2));
+      expect(result.rows[0]['diveNumber'], 1);
+      expect(result.rows[0]['maxDepth'], 25.5);
+      expect(result.rows[0]['siteName'], 'Blue Hole');
+      expect(result.rows[0]['notes'], 'Great dive');
+      expect(result.rows[1]['diveNumber'], 2);
+      expect(result.rows[1]['maxDepth'], 30.0);
+      expect(result.rows[1]['siteName'], 'Reef Wall');
+    });
+
+    test('combines date and time into UTC dateTime', () {
+      final csv = ParsedCsv(
+        headers: ['Date', 'Time', 'Max Depth'],
+        rows: [
+          ['2024-06-15', '14:30', '25.5'],
+        ],
+      );
+
+      final config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              const ColumnMapping(sourceColumn: 'Time', targetField: 'time'),
+              const ColumnMapping(
+                sourceColumn: 'Max Depth',
+                targetField: 'maxDepth',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      final dateTime = result.rows[0]['dateTime'] as DateTime;
+      expect(dateTime.isUtc, isTrue);
+      expect(dateTime.year, 2024);
+      expect(dateTime.month, 6);
+      expect(dateTime.day, 15);
+      expect(dateTime.hour, 14);
+      expect(dateTime.minute, 30);
+    });
+
+    test('applies hmsToSeconds transform for duration', () {
+      final csv = ParsedCsv(
+        headers: ['Date', 'Duration'],
+        rows: [
+          ['2024-06-15', '1:05:30'],
+        ],
+      );
+
+      final config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              const ColumnMapping(
+                sourceColumn: 'Duration',
+                targetField: 'duration',
+                transform: ValueTransform.hmsToSeconds,
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      final duration = result.rows[0]['duration'] as Duration;
+      // 1 hour + 5 minutes + 30 seconds = 3930 seconds
+      expect(duration.inSeconds, 3930);
+    });
+
+    test('applies minutesToSeconds transform for duration', () {
+      final csv = ParsedCsv(
+        headers: ['Date', 'Duration'],
+        rows: [
+          ['2024-06-15', '45'],
+        ],
+      );
+
+      final config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              const ColumnMapping(
+                sourceColumn: 'Duration',
+                targetField: 'duration',
+                transform: ValueTransform.minutesToSeconds,
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      final duration = result.rows[0]['duration'] as Duration;
+      expect(duration.inSeconds, 2700);
+    });
+
+    test('skips rows with no valid dateTime and warns', () {
+      final csv = ParsedCsv(
+        headers: ['Max Depth', 'Notes'],
+        rows: [
+          ['25.5', 'No date here'],
+          ['30.0', 'Also no date'],
+        ],
+      );
+
+      final config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(
+                sourceColumn: 'Max Depth',
+                targetField: 'maxDepth',
+              ),
+              const ColumnMapping(sourceColumn: 'Notes', targetField: 'notes'),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, isEmpty);
+      expect(result.warnings, isNotEmpty);
+      expect(
+        result.warnings.any(
+          (w) =>
+              w.severity == ImportWarningSeverity.warning &&
+              w.message.contains('dateTime'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('resolves informal times (am -> 9:00, pm -> 14:00)', () {
+      final csv = ParsedCsv(
+        headers: ['Date', 'Time', 'Max Depth'],
+        rows: [
+          ['2024-06-15', 'am', '25.5'],
+          ['2024-06-15', 'pm', '30.0'],
+        ],
+      );
+
+      final config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              const ColumnMapping(sourceColumn: 'Time', targetField: 'time'),
+              const ColumnMapping(
+                sourceColumn: 'Max Depth',
+                targetField: 'maxDepth',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(2));
+
+      final dt1 = result.rows[0]['dateTime'] as DateTime;
+      expect(dt1.hour, 9); // 'am' defaults to 9:00
+
+      final dt2 = result.rows[1]['dateTime'] as DateTime;
+      expect(dt2.hour, 14); // 'pm' defaults to 14:00
+    });
+
+    test('applies feetToMeters transform', () {
+      final csv = ParsedCsv(
+        headers: ['Date', 'Max Depth'],
+        rows: [
+          ['2024-06-15', '100'],
+        ],
+      );
+
+      final config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              const ColumnMapping(
+                sourceColumn: 'Max Depth',
+                targetField: 'maxDepth',
+                transform: ValueTransform.feetToMeters,
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      // 100 feet = 30.5 meters (rounded to 1 decimal)
+      expect(result.rows[0]['maxDepth'], closeTo(30.5, 0.1));
+    });
+
+    test('uses defaultValue when source column is empty', () {
+      final csv = ParsedCsv(
+        headers: ['Date', 'Max Depth', 'Dive Type'],
+        rows: [
+          ['2024-06-15', '25.5', ''],
+        ],
+      );
+
+      final config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              const ColumnMapping(
+                sourceColumn: 'Max Depth',
+                targetField: 'maxDepth',
+              ),
+              const ColumnMapping(
+                sourceColumn: 'Dive Type',
+                targetField: 'diveType',
+                transform: ValueTransform.diveTypeMap,
+                defaultValue: 'recreational',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      expect(result.rows[0]['diveType'], 'recreational');
+    });
+
+    test('handles combined dateTime column', () {
+      final csv = ParsedCsv(
+        headers: ['Date/Time', 'Max Depth'],
+        rows: [
+          ['2024-06-15 14:30:00', '25.5'],
+        ],
+      );
+
+      final config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(
+                sourceColumn: 'Date/Time',
+                targetField: 'dateTime',
+              ),
+              const ColumnMapping(
+                sourceColumn: 'Max Depth',
+                targetField: 'maxDepth',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      final dateTime = result.rows[0]['dateTime'] as DateTime;
+      expect(dateTime.year, 2024);
+      expect(dateTime.month, 6);
+      expect(dateTime.day, 15);
+      expect(dateTime.hour, 14);
+      expect(dateTime.minute, 30);
+    });
+
+    test('sets importVersion to 2 on each row', () {
+      final csv = ParsedCsv(
+        headers: ['Date', 'Max Depth'],
+        rows: [
+          ['2024-06-15', '25.5'],
+        ],
+      );
+
+      final config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              const ColumnMapping(
+                sourceColumn: 'Max Depth',
+                targetField: 'maxDepth',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      expect(result.rows[0]['importVersion'], 2);
+    });
+
+    test('sets fileRole on result', () {
+      final csv = ParsedCsv(
+        headers: ['Date', 'Max Depth'],
+        rows: [
+          ['2024-06-15', '25.5'],
+        ],
+      );
+
+      final config = ImportConfiguration(
+        mappings: {
+          'dive_profile': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              const ColumnMapping(
+                sourceColumn: 'Max Depth',
+                targetField: 'maxDepth',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(
+        csv,
+        config,
+        fileRole: 'dive_profile',
+      );
+
+      expect(result.fileRole, 'dive_profile');
+    });
+
+    test('handles case-insensitive column matching', () {
+      final csv = ParsedCsv(
+        headers: ['DATE', 'max depth'],
+        rows: [
+          ['2024-06-15', '25.5'],
+        ],
+      );
+
+      final config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(sourceColumn: 'date', targetField: 'date'),
+              const ColumnMapping(
+                sourceColumn: 'Max Depth',
+                targetField: 'maxDepth',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      expect(result.rows[0]['maxDepth'], 25.5);
+    });
+
+    test('applies visibilityScale transform', () {
+      final csv = ParsedCsv(
+        headers: ['Date', 'Visibility'],
+        rows: [
+          ['2024-06-15', 'excellent'],
+        ],
+      );
+
+      final config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              const ColumnMapping(
+                sourceColumn: 'Visibility',
+                targetField: 'visibility',
+                transform: ValueTransform.visibilityScale,
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      expect(result.rows[0]['visibility'], 'excellent');
+    });
+
+    test('applies ratingScale transform', () {
+      final csv = ParsedCsv(
+        headers: ['Date', 'Rating'],
+        rows: [
+          ['2024-06-15', '8'],
+        ],
+      );
+
+      final config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              const ColumnMapping(
+                sourceColumn: 'Rating',
+                targetField: 'rating',
+                transform: ValueTransform.ratingScale,
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      // 8 on a 1-10 scale => 8/2 = 4
+      expect(result.rows[0]['rating'], 4);
+    });
+
+    test('returns empty TransformedRows for missing fileRole mapping', () {
+      final csv = ParsedCsv(
+        headers: ['Date', 'Max Depth'],
+        rows: [
+          ['2024-06-15', '25.5'],
+        ],
+      );
+
+      final config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              const ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(
+        csv,
+        config,
+        fileRole: 'nonexistent',
+      );
+
+      expect(result.rows, isEmpty);
+      expect(result.warnings, hasLength(1));
+      expect(result.warnings.first.message, contains('No field mapping'));
+    });
+  });
+}
