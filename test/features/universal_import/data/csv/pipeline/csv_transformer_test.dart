@@ -478,5 +478,164 @@ void main() {
       expect(result.warnings, hasLength(1));
       expect(result.warnings.first.message, contains('No field mapping'));
     });
+
+    test(
+      'strips number suffix for double field recognition (startPressure_1)',
+      () {
+        const csv = ParsedCsv(
+          headers: ['Date', 'Start Pressure 1'],
+          rows: [
+            ['2024-06-15', '200'],
+          ],
+        );
+
+        const config = ImportConfiguration(
+          mappings: {
+            'primary': FieldMapping(
+              name: 'Test',
+              columns: [
+                ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+                ColumnMapping(
+                  sourceColumn: 'Start Pressure 1',
+                  targetField: 'startPressure_1',
+                ),
+              ],
+            ),
+          },
+        );
+
+        final result = transformer.transform(csv, config);
+
+        expect(result.rows, hasLength(1));
+        // startPressure_1 should be recognized as a double field after stripping
+        // the _1 suffix, and parsed as a double.
+        expect(result.rows[0]['startPressure_1'], isA<double>());
+        expect(result.rows[0]['startPressure_1'], 200.0);
+      },
+    );
+
+    test('infers rating field via _inferType', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Rating'],
+        rows: [
+          ['2024-06-15', '7'],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Rating', targetField: 'rating'),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      // 7 on a 1-10 scale -> 7/2 = 3.5 -> 4
+      expect(result.rows[0]['rating'], isA<int>());
+      expect(result.rows[0]['rating'], 4);
+    });
+
+    test('infers visibility field via _inferType', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Visibility'],
+        rows: [
+          ['2024-06-15', 'murky'],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(
+                sourceColumn: 'Visibility',
+                targetField: 'visibility',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      expect(result.rows[0]['visibility'], 'poor');
+    });
+
+    test('infers diveType field via _inferType', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Dive Type'],
+        rows: [
+          ['2024-06-15', 'wreck'],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Dive Type', targetField: 'diveType'),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      expect(result.rows[0]['diveType'], 'wreck');
+    });
+
+    test('emits warning when explicit transform fails on malformed value', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Duration'],
+        rows: [
+          ['2024-06-15', 'not-a-duration'],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(
+                sourceColumn: 'Duration',
+                targetField: 'duration',
+                transform: ValueTransform.hmsToSeconds,
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      // The transform failed, so 'duration' should not be in the row.
+      expect(result.rows[0].containsKey('duration'), isFalse);
+      // A warning should have been emitted about the failed transform.
+      expect(
+        result.warnings.any(
+          (w) =>
+              w.severity == ImportWarningSeverity.info &&
+              w.message.contains('hmsToSeconds') &&
+              w.message.contains('not-a-duration'),
+        ),
+        isTrue,
+      );
+    });
   });
 }

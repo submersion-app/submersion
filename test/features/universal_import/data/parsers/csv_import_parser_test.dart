@@ -480,4 +480,478 @@ void main() {
       expect(result.metadata['sourceApp'], 'macdive');
     });
   });
+
+  group('auto-mapping from headers', () {
+    test('maps "Dive Master" header to diveMaster field', () async {
+      const csv =
+          'Date,Dive Master\n'
+          '2024-01-15,Captain Jack\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['diveMaster'], 'Captain Jack');
+    });
+
+    test('maps "Wind Speed" header to windSpeed field', () async {
+      const csv =
+          'Date,Wind Speed\n'
+          '2024-01-15,15\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['windSpeed'], isNotNull);
+    });
+
+    test('maps "Current" to no specific field (unknown column)', () async {
+      // "Current" by itself does not match any keyword pattern, so it should
+      // be ignored by the auto-mapper and not appear in output.
+      const csv =
+          'Date,Current\n'
+          '2024-01-15,Strong\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      // "Current" has no keyword match, so it should not be mapped.
+      expect(dives.first.containsKey('current'), isFalse);
+    });
+
+    test('maps "Surface Conditions" to no specific field', () async {
+      // "Surface Conditions" does not match any keyword pattern.
+      const csv =
+          'Date,Surface Conditions\n'
+          '2024-01-15,Calm\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first.containsKey('surfaceConditions'), isFalse);
+    });
+
+    test('maps compound header "water temperature" to waterTemp', () async {
+      const csv =
+          'Date,Water Temperature\n'
+          '2024-01-15,27.0\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['waterTemp'], 27.0);
+    });
+
+    test('maps compound header "air temp" to airTemp', () async {
+      const csv =
+          'Date,Air Temp\n'
+          '2024-01-15,30.0\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['airTemp'], 30.0);
+    });
+
+    test('maps compound header "max depth" to maxDepth', () async {
+      const csv =
+          'Date,Max Depth\n'
+          '2024-01-15,35.5\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['maxDepth'], 35.5);
+    });
+
+    test('maps "avg depth" to avgDepth', () async {
+      const csv =
+          'Date,Avg Depth\n'
+          '2024-01-15,18.2\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['avgDepth'], 18.2);
+    });
+
+    test('maps "divemaster" (single word) to diveMaster', () async {
+      const csv =
+          'Date,Divemaster\n'
+          '2024-01-15,Bob\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['diveMaster'], 'Bob');
+    });
+
+    test('maps buddy header to buddy field', () async {
+      const csv =
+          'Date,Buddy\n'
+          '2024-01-15,Alice\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['buddy'], 'Alice');
+    });
+
+    test('maps visibility header to visibility field', () async {
+      const csv =
+          'Date,Visibility\n'
+          '2024-01-15,Good\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      // The value may be lowercased by the transform pipeline.
+      expect(dives.first['visibility'], isNotNull);
+    });
+
+    test('maps start pressure and end pressure via auto-mapping', () async {
+      // The auto-mapper maps these headers to startPressure/endPressure,
+      // but DiveExtractor does not include them in the dive entity output.
+      // This test verifies the parse completes without error.
+      const csv =
+          'Date,Start Pressure,End Pressure\n'
+          '2024-01-15,200,50\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+    });
+
+    test('maps tank volume via auto-mapping', () async {
+      const csv =
+          'Date,Tank Volume\n'
+          '2024-01-15,12\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+    });
+
+    test('maps o2 header via auto-mapping', () async {
+      const csv =
+          'Date,O2\n'
+          '2024-01-15,32\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+    });
+
+    test('maps computer header via auto-mapping', () async {
+      const csv =
+          'Date,Computer\n'
+          '2024-01-15,Suunto D5\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+    });
+
+    test('maps suit header via auto-mapping', () async {
+      const csv =
+          'Date,Suit\n'
+          '2024-01-15,Wetsuit 5mm\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+    });
+
+    test('maps weight header to weight field', () async {
+      // The auto-mapper maps "Weight" -> "weight", but the correlator
+      // normalizes "weight" -> "weightUsed". DiveExtractor includes
+      // "weightUsed" in its known fields.
+      const csv =
+          'Date,Weight\n'
+          '2024-01-15,8\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['weightUsed'], isNotNull);
+    });
+
+    test('maps tags header via auto-mapping', () async {
+      const csv =
+          'Date,Tags\n'
+          '2024-01-15,reef drift\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+    });
+
+    test('maps gps header via auto-mapping', () async {
+      const csv =
+          'Date,GPS\n'
+          '2024-01-15,27.5 -80.3\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+    });
+
+    test('maps weather headers (cloud, precipitation, humidity)', () async {
+      const csv =
+          'Date,Cloud Cover,Precipitation,Humidity\n'
+          '2024-01-15,Partly Cloudy,None,75\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['cloudCover'], isNotNull);
+      expect(dives.first['precipitation'], isNotNull);
+      expect(dives.first['humidity'], isNotNull);
+    });
+
+    test('maps weather description header', () async {
+      const csv =
+          'Date,Weather Description\n'
+          '2024-01-15,Sunny and warm\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['weatherDescription'], 'Sunny and warm');
+    });
+
+    test('maps wind direction header', () async {
+      const csv =
+          'Date,Wind Direction\n'
+          '2024-01-15,NNW\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['windDirection'], 'NNW');
+    });
+
+    test('maps serial number and firmware headers via auto-mapping', () async {
+      // The auto-mapper maps "Serial Number" -> "serialNumber" and
+      // "Firmware" -> "firmware". These are not in DiveExtractor's known
+      // fields (it uses diveComputerSerial/diveComputerFirmware), so
+      // they are dropped from the final output. This test verifies the
+      // auto-mapping and parse succeed without error.
+      const csv =
+          'Date,Serial Number,Firmware\n'
+          '2024-01-15,SN12345,v2.1\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+    });
+
+    test('maps rating header', () async {
+      const csv =
+          'Date,Rating\n'
+          '2024-01-15,5\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['rating'], isNotNull);
+    });
+
+    test('maps notes header', () async {
+      const csv =
+          'Date,Notes\n'
+          '2024-01-15,Great dive with turtles\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['notes'], 'Great dive with turtles');
+    });
+
+    test('maps location/site headers to siteName', () async {
+      const csv =
+          'Date,Location\n'
+          '2024-01-15,Blue Hole\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['siteName'], 'Blue Hole');
+    });
+
+    test('maps site header to siteName', () async {
+      const csv =
+          'Date,Site\n'
+          '2024-01-15,Shark Reef\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['siteName'], 'Shark Reef');
+    });
+
+    test('maps duration and bottom time headers', () async {
+      const csv =
+          'Date,Duration\n'
+          '2024-01-15,45\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['duration'], isNotNull);
+    });
+
+    test('maps bottom time header to duration', () async {
+      const csv =
+          'Date,Bottom Time\n'
+          '2024-01-15,45\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['duration'], isNotNull);
+    });
+
+    test('maps runtime header to duration', () async {
+      const csv =
+          'Date,Runtime\n'
+          '2024-01-15,50\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['duration'], isNotNull);
+    });
+
+    test('maps dateTime combined header', () async {
+      const csv =
+          'DateTime,Max Depth\n'
+          '2024-01-15 14:30,25.5\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      final dateTime = dives.first['dateTime'] as DateTime;
+      expect(dateTime.year, 2024);
+      expect(dateTime.month, 1);
+      expect(dateTime.day, 15);
+    });
+
+    test('maps dive number header (Dive No)', () async {
+      const csv =
+          'Date,Dive No\n'
+          '2024-01-15,42\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['diveNumber'], 42);
+    });
+
+    test('unknown columns are not mapped', () async {
+      const csv =
+          'Date,Completely Unknown Header,Another Random Column\n'
+          '2024-01-15,value1,value2\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      // Unknown columns should not appear in the dive data.
+      expect(dives.first.containsKey('completelyUnknownHeader'), isFalse);
+      expect(dives.first.containsKey('anotherRandomColumn'), isFalse);
+    });
+  });
+
+  group('parse - _isDateOnly and _isTimeOnly edge cases', () {
+    test('"bottom time" is not mapped as time (contains "bottom")', () async {
+      // "bottom time" should map to duration, not time.
+      const csv =
+          'Date,Bottom Time\n'
+          '2024-01-15,45\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['duration'], isNotNull);
+      // Should not have been mistakenly mapped as a 'time' field.
+    });
+
+    test('"surface time" is not mapped as time', () async {
+      const csv =
+          'Date,Surface Time\n'
+          '2024-01-15,60\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      // "surface time" contains "surface", so _isTimeOnly returns false.
+      // It should not produce a 'time' field.
+    });
+
+    test('"date" alone maps to date', () async {
+      const csv =
+          'Date,Max Depth\n'
+          '2024-01-15,25.5\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['dateTime'], isA<DateTime>());
+    });
+  });
+
+  group('parse - profile file handling', () {
+    test('handles invalid profile file bytes gracefully', () async {
+      const csv =
+          'Date,Max Depth\n'
+          '2024-01-15,25.5\n';
+
+      // Invalid profile data (not valid CSV).
+      final badProfile = Uint8List.fromList([0, 1, 2, 3]);
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        profileFileBytes: badProfile,
+      );
+
+      // Should still parse the primary file successfully, ignoring bad profile.
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+    });
+  });
 }

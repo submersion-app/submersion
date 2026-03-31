@@ -624,4 +624,130 @@ void main() {
       expect(t.toString(), '00:00:00');
     });
   });
+
+  // ---------------------------------------------------------------------------
+  group('_bucketFor behavior via resolveInformalTimes', () {
+    test('"morning" maps to am bucket (starts at hour 9)', () {
+      final rows = <Map<String, dynamic>>[
+        {'date': '2023-07-15', 'time': 'morning'},
+      ];
+
+      final result = resolver.resolveInformalTimes(rows);
+
+      final dt = result[0]['dateTime'] as DateTime;
+      expect(dt.hour, 9); // am bucket default start
+    });
+
+    test('"evening" maps to night bucket (starts at hour 19)', () {
+      final rows = <Map<String, dynamic>>[
+        {'date': '2023-07-15', 'time': 'evening'},
+      ];
+
+      final result = resolver.resolveInformalTimes(rows);
+
+      final dt = result[0]['dateTime'] as DateTime;
+      expect(dt.hour, 19); // night bucket default start
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  group('_defaultsForBucket cycling via resolveInformalTimes', () {
+    test('am bucket cycles: 9, 11, 12, then wraps back to 9', () {
+      final rows = <Map<String, dynamic>>[
+        {'date': '2023-07-15', 'time': 'am'},
+        {'date': '2023-07-15', 'time': 'am'},
+        {'date': '2023-07-15', 'time': 'am'},
+        {'date': '2023-07-15', 'time': 'am'}, // 4th wraps
+      ];
+
+      final result = resolver.resolveInformalTimes(rows);
+
+      expect((result[0]['dateTime'] as DateTime).hour, 9);
+      expect((result[1]['dateTime'] as DateTime).hour, 11);
+      expect((result[2]['dateTime'] as DateTime).hour, 12);
+      // 4th dive wraps around to index 3 % 3 = 0 -> hour 9
+      expect((result[3]['dateTime'] as DateTime).hour, 9);
+    });
+
+    test('pm bucket cycles: 14, 16, 17, then wraps back to 14', () {
+      final rows = <Map<String, dynamic>>[
+        {'date': '2023-07-15', 'time': 'pm'},
+        {'date': '2023-07-15', 'time': 'pm'},
+        {'date': '2023-07-15', 'time': 'pm'},
+        {'date': '2023-07-15', 'time': 'pm'}, // 4th wraps
+      ];
+
+      final result = resolver.resolveInformalTimes(rows);
+
+      expect((result[0]['dateTime'] as DateTime).hour, 14);
+      expect((result[1]['dateTime'] as DateTime).hour, 16);
+      expect((result[2]['dateTime'] as DateTime).hour, 17);
+      expect((result[3]['dateTime'] as DateTime).hour, 14);
+    });
+
+    test('night bucket cycles: 19, 21, 22, then wraps back to 19', () {
+      final rows = <Map<String, dynamic>>[
+        {'date': '2023-07-15', 'time': 'night'},
+        {'date': '2023-07-15', 'time': 'night'},
+        {'date': '2023-07-15', 'time': 'night'},
+        {'date': '2023-07-15', 'time': 'night'}, // 4th wraps
+      ];
+
+      final result = resolver.resolveInformalTimes(rows);
+
+      expect((result[0]['dateTime'] as DateTime).hour, 19);
+      expect((result[1]['dateTime'] as DateTime).hour, 21);
+      expect((result[2]['dateTime'] as DateTime).hour, 22);
+      expect((result[3]['dateTime'] as DateTime).hour, 19);
+    });
+
+    test('empty bucket cycles: 12, 14, 16, then wraps back to 12', () {
+      final rows = <Map<String, dynamic>>[
+        {'date': '2023-07-15', 'time': ''},
+        {'date': '2023-07-15', 'time': ''},
+        {'date': '2023-07-15', 'time': ''},
+        {'date': '2023-07-15', 'time': ''}, // 4th wraps
+      ];
+
+      final result = resolver.resolveInformalTimes(rows);
+
+      expect((result[0]['dateTime'] as DateTime).hour, 12);
+      expect((result[1]['dateTime'] as DateTime).hour, 14);
+      expect((result[2]['dateTime'] as DateTime).hour, 16);
+      expect((result[3]['dateTime'] as DateTime).hour, 12);
+    });
+
+    test('counters are per-date so different dates start fresh', () {
+      final rows = <Map<String, dynamic>>[
+        {'date': '2023-07-15', 'time': 'am'},
+        {'date': '2023-07-15', 'time': 'am'},
+        {'date': '2023-07-16', 'time': 'am'}, // new date resets counter
+      ];
+
+      final result = resolver.resolveInformalTimes(rows);
+
+      expect((result[0]['dateTime'] as DateTime).hour, 9); // first am on day 15
+      expect(
+        (result[1]['dateTime'] as DateTime).hour,
+        11,
+      ); // second am on day 15
+      expect((result[2]['dateTime'] as DateTime).hour, 9); // first am on day 16
+    });
+
+    test('mixed tokens on same date use independent counters per bucket', () {
+      final rows = <Map<String, dynamic>>[
+        {'date': '2023-07-15', 'time': 'am'},
+        {'date': '2023-07-15', 'time': 'pm'},
+        {'date': '2023-07-15', 'time': 'am'}, // second am
+        {'date': '2023-07-15', 'time': 'pm'}, // second pm
+      ];
+
+      final result = resolver.resolveInformalTimes(rows);
+
+      expect((result[0]['dateTime'] as DateTime).hour, 9); // 1st am
+      expect((result[1]['dateTime'] as DateTime).hour, 14); // 1st pm
+      expect((result[2]['dateTime'] as DateTime).hour, 11); // 2nd am
+      expect((result[3]['dateTime'] as DateTime).hour, 16); // 2nd pm
+    });
+  });
 }

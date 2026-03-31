@@ -1054,6 +1054,44 @@ void main() {
       test('returns false for empty sample values with generic name', () {
         expect(ValueTransformService.isLikelyPsi([], 'pressure'), isFalse);
       });
+
+      test('returns true for mixed-case "PSI" in column name', () {
+        expect(
+          ValueTransformService.isLikelyPsi(['200'], 'Start Pressure (PSI)'),
+          isTrue,
+        );
+      });
+
+      test('returns false for mixed-case "Bar" in column name', () {
+        expect(
+          ValueTransformService.isLikelyPsi(['3000'], 'Pressure (Bar)'),
+          isFalse,
+        );
+      });
+
+      test('uses majority heuristic with mixed high/low values', () {
+        // 2 out of 3 values > 500 -> true
+        expect(
+          ValueTransformService.isLikelyPsi([
+            '3000',
+            '200',
+            '2800',
+          ], 'pressure'),
+          isTrue,
+        );
+        // 1 out of 3 values > 500 -> false
+        expect(
+          ValueTransformService.isLikelyPsi(['200', '210', '3000'], 'pressure'),
+          isFalse,
+        );
+      });
+
+      test('handles non-numeric values in samples gracefully', () {
+        expect(
+          ValueTransformService.isLikelyPsi(['abc', 'def'], 'pressure'),
+          isFalse,
+        );
+      });
     });
   });
 }
