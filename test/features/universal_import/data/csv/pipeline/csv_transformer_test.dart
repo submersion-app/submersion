@@ -637,5 +637,216 @@ void main() {
         isTrue,
       );
     });
+
+    test('infers duration as minutes when value has no colons', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Duration'],
+        rows: [
+          ['2024-06-15', '45'],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Duration', targetField: 'duration'),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      final duration = result.rows[0]['duration'] as Duration;
+      // 45 minutes = 2700 seconds
+      expect(duration.inSeconds, 2700);
+    });
+
+    test('_coerceDefault applies transform to default value', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Depth'],
+        rows: [
+          ['2024-06-15', ''],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(
+                sourceColumn: 'Depth',
+                targetField: 'maxDepth',
+                transform: ValueTransform.feetToMeters,
+                defaultValue: '100',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      // 100 ft -> ~30.5 m via feetToMeters transform on the default value.
+      expect(result.rows[0]['maxDepth'], closeTo(30.5, 0.1));
+    });
+
+    test('_coerceDefault infers double for double target field', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Max Depth'],
+        rows: [
+          ['2024-06-15', ''],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(
+                sourceColumn: 'Max Depth',
+                targetField: 'maxDepth',
+                defaultValue: '25.5',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      expect(result.rows[0]['maxDepth'], isA<double>());
+      expect(result.rows[0]['maxDepth'], 25.5);
+    });
+
+    test('_coerceDefault infers integer for diveNumber field', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Dive No'],
+        rows: [
+          ['2024-06-15', ''],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(
+                sourceColumn: 'Dive No',
+                targetField: 'diveNumber',
+                defaultValue: '99',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      expect(result.rows[0]['diveNumber'], isA<int>());
+      expect(result.rows[0]['diveNumber'], 99);
+    });
+
+    test('_coerceDefault infers rating for rating field', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Rating'],
+        rows: [
+          ['2024-06-15', ''],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(
+                sourceColumn: 'Rating',
+                targetField: 'rating',
+                defaultValue: '3',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      expect(result.rows[0]['rating'], isA<int>());
+      expect(result.rows[0]['rating'], 3);
+    });
+
+    test('_coerceDefault returns string for unrecognized field', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Notes'],
+        rows: [
+          ['2024-06-15', ''],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(
+                sourceColumn: 'Notes',
+                targetField: 'notes',
+                defaultValue: 'No notes',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      expect(result.rows[0]['notes'], 'No notes');
+    });
+
+    test('skips column when source column index exceeds row length', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Depth', 'Extra'],
+        rows: [
+          ['2024-06-15', '25.5'], // row shorter than headers
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Depth', targetField: 'maxDepth'),
+              ColumnMapping(sourceColumn: 'Extra', targetField: 'notes'),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      expect(result.rows[0]['maxDepth'], 25.5);
+      expect(result.rows[0].containsKey('notes'), isFalse);
+    });
   });
 }

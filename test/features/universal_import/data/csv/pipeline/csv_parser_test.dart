@@ -103,5 +103,24 @@ void main() {
       expect(result.headers.last, 'avgdepth [m]');
       expect(result.rows, hasLength(1));
     });
+
+    test('handles mixed CRLF and CR line endings', () {
+      // Mix of \r\n and bare \r in the same file.
+      final bytes = _toBytes('Name,Depth\r\nDive 1,25.5\rDive 2,30.0\r\n');
+      final result = parser.parse(bytes);
+
+      expect(result.headers, ['Name', 'Depth']);
+      expect(result.rows, hasLength(2));
+    });
+
+    test('CsvParseException.toString includes message', () {
+      const exception = CsvParseException('test error');
+      expect(exception.toString(), 'CsvParseException: test error');
+    });
+
+    test('throws CsvParseException for whitespace-only rows after header', () {
+      final bytes = _toBytes('Name,Depth\n  ,  \n   ,   \n');
+      expect(() => parser.parse(bytes), throwsA(isA<CsvParseException>()));
+    });
   });
 }

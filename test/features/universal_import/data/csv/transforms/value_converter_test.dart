@@ -1093,5 +1093,77 @@ void main() {
         );
       });
     });
+
+    // -------------------------------------------------------------------------
+    group('hmsToSeconds - non-numeric edge cases', () {
+      test('returns null for non-numeric 2-part M:SS', () {
+        expect(service.hmsToSeconds('a:b'), isNull);
+      });
+
+      test('returns null for non-numeric 3-part H:M:S', () {
+        expect(service.hmsToSeconds('x:y:z'), isNull);
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    group('parseDate - ISO fallback for non-UTC DateTime', () {
+      test('converts non-UTC parsed DateTime to UTC components', () {
+        // DateTime.tryParse with an offset produces a UTC datetime; test a
+        // string that DateTime.tryParse handles but DateFormat does not.
+        final result = service.parseDate('2024-03-15T10:30:00+05:00');
+        expect(result, isNotNull);
+        expect(result!.isUtc, isTrue);
+        expect(result.year, 2024);
+        expect(result.month, 3);
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    group('parseDate - additional format coverage', () {
+      test('parses dd/MM/yyyy', () {
+        final result = service.parseDate('15/03/2024');
+        expect(result, isNotNull);
+        expect(result!.isUtc, isTrue);
+      });
+
+      test('parses dd-MM-yyyy', () {
+        final result = service.parseDate('15-03-2024');
+        expect(result, isNotNull);
+        expect(result!.isUtc, isTrue);
+      });
+
+      test('parses MM-dd-yyyy', () {
+        final result = service.parseDate('03-25-2024');
+        expect(result, isNotNull);
+        expect(result!.isUtc, isTrue);
+        expect(result.year, 2024);
+        expect(result.month, 3);
+        expect(result.day, 25);
+      });
+
+      test('parses yyyy.MM.dd', () {
+        final result = service.parseDate('2024.03.15');
+        expect(result, isNotNull);
+        expect(result!.isUtc, isTrue);
+        expect(result.year, 2024);
+        expect(result.month, 3);
+        expect(result.day, 15);
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    group('parseTime - edge cases', () {
+      test('returns null for unparseable time strings', () {
+        expect(service.parseTime('not-a-time'), isNull);
+        expect(service.parseTime('xyz'), isNull);
+      });
+
+      test('parses single-digit hour H:mm format', () {
+        final result = service.parseTime('9:05');
+        expect(result, isNotNull);
+        expect(result!.hour, 9);
+        expect(result.minute, 5);
+      });
+    });
   });
 }

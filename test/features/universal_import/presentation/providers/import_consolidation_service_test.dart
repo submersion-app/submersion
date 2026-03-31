@@ -369,6 +369,169 @@ void main() {
       expect(profile, isEmpty);
     });
 
+    test(
+      'maps profile data with all fields (temperature, pressure, setpoint, ppO2)',
+      () async {
+        when(
+          mockRepository.consolidateComputer(
+            targetDiveId: anyNamed('targetDiveId'),
+            secondaryReading: anyNamed('secondaryReading'),
+            secondaryProfile: anyNamed('secondaryProfile'),
+          ),
+        ).thenAnswer((_) async {});
+
+        await performConsolidations(
+          indices: {0},
+          diveItems: [
+            {
+              'dateTime': DateTime(2024, 6, 15, 9, 0),
+              'maxDepth': 25.0,
+              'duration': const Duration(minutes: 45),
+              'profile': <Map<String, dynamic>>[
+                {
+                  'timestamp': 10,
+                  'depth': 5.0,
+                  'temperature': 22.5,
+                  'pressure': 195.0,
+                  'setpoint': 1.3,
+                  'ppO2': 1.1,
+                },
+                {
+                  'timestamp': 20,
+                  'depth': 15.0,
+                  'temperature': 21.0,
+                  'pressure': 190.0,
+                  'setpoint': 1.4,
+                  'ppO2': 1.2,
+                },
+              ],
+            },
+          ],
+          duplicateResult: const ImportDuplicateResult(
+            diveMatches: {
+              0: DiveMatchResult(
+                diveId: 'existing-dive-1',
+                score: 0.9,
+                timeDifferenceMs: 100,
+              ),
+            },
+          ),
+          diveRepository: mockRepository,
+        );
+
+        final captured = verify(
+          mockRepository.consolidateComputer(
+            targetDiveId: 'existing-dive-1',
+            secondaryReading: anyNamed('secondaryReading'),
+            secondaryProfile: captureAnyNamed('secondaryProfile'),
+          ),
+        ).captured;
+
+        final profile = captured.first as List<DiveProfilesCompanion>;
+        expect(profile, hasLength(2));
+
+        expect(profile[0].timestamp.value, 10);
+        expect(profile[0].depth.value, 5.0);
+        expect(profile[0].temperature.value, 22.5);
+        expect(profile[0].pressure.value, 195.0);
+        expect(profile[0].setpoint.value, 1.3);
+        expect(profile[0].ppO2.value, 1.1);
+
+        expect(profile[1].timestamp.value, 20);
+        expect(profile[1].depth.value, 15.0);
+      },
+    );
+
+    test('computes exitTime from runtime when runtime is present', () async {
+      when(
+        mockRepository.consolidateComputer(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryReading: anyNamed('secondaryReading'),
+          secondaryProfile: anyNamed('secondaryProfile'),
+        ),
+      ).thenAnswer((_) async {});
+
+      final entryTime = DateTime(2024, 6, 15, 9, 0);
+      await performConsolidations(
+        indices: {0},
+        diveItems: [
+          {
+            'dateTime': entryTime,
+            'runtime': const Duration(minutes: 50),
+            'maxDepth': 25.0,
+          },
+        ],
+        duplicateResult: const ImportDuplicateResult(
+          diveMatches: {
+            0: DiveMatchResult(
+              diveId: 'existing-dive-1',
+              score: 0.9,
+              timeDifferenceMs: 100,
+            ),
+          },
+        ),
+        diveRepository: mockRepository,
+      );
+
+      final captured = verify(
+        mockRepository.consolidateComputer(
+          targetDiveId: 'existing-dive-1',
+          secondaryReading: captureAnyNamed('secondaryReading'),
+          secondaryProfile: anyNamed('secondaryProfile'),
+        ),
+      ).captured;
+
+      final reading = captured.first as DiveDataSourcesCompanion;
+      // exitTime should be entryTime + runtime = 9:00 + 50 min = 9:50
+      expect(
+        reading.exitTime.value,
+        entryTime.add(const Duration(minutes: 50)),
+      );
+    });
+
+    test('exitTime is null when runtime is absent', () async {
+      when(
+        mockRepository.consolidateComputer(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryReading: anyNamed('secondaryReading'),
+          secondaryProfile: anyNamed('secondaryProfile'),
+        ),
+      ).thenAnswer((_) async {});
+
+      await performConsolidations(
+        indices: {0},
+        diveItems: [
+          {
+            'dateTime': DateTime(2024, 6, 15, 9, 0),
+            'duration': const Duration(minutes: 45),
+            'maxDepth': 25.0,
+          },
+        ],
+        duplicateResult: const ImportDuplicateResult(
+          diveMatches: {
+            0: DiveMatchResult(
+              diveId: 'existing-dive-1',
+              score: 0.9,
+              timeDifferenceMs: 100,
+            ),
+          },
+        ),
+        diveRepository: mockRepository,
+      );
+
+      final captured = verify(
+        mockRepository.consolidateComputer(
+          targetDiveId: 'existing-dive-1',
+          secondaryReading: captureAnyNamed('secondaryReading'),
+          secondaryProfile: anyNamed('secondaryProfile'),
+        ),
+      ).captured;
+
+      final reading = captured.first as DiveDataSourcesCompanion;
+      // No runtime means exitTime is null.
+      expect(reading.exitTime.value, isNull);
+    });
+
     test('skips indices without match but processes matched ones', () async {
       when(
         mockRepository.consolidateComputer(

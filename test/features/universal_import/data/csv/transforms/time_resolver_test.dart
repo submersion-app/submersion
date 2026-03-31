@@ -750,4 +750,58 @@ void main() {
       expect((result[3]['dateTime'] as DateTime).hour, 16); // 2nd pm
     });
   });
+
+  // ---------------------------------------------------------------------------
+  group('parseTime - ISO 8601 fallback path', () {
+    test('parses valid raw time via ISO fallback (e.g. 08:30:00)', () {
+      // "08:30:00" passes _looksLikeRawTime and is parsed via DateTime.parse
+      // as "1970-01-01T08:30:00".
+      final result = resolver.parseTime('08:30:00');
+      expect(result, isNotNull);
+      expect(result!.hour, 8);
+      expect(result.minute, 30);
+      expect(result.second, 0);
+    });
+
+    test('rejects out-of-range hour via _looksLikeRawTime', () {
+      // 25:00 has hour > 23, so _looksLikeRawTime returns false.
+      final result = resolver.parseTime('25:00');
+      expect(result, isNull);
+    });
+
+    test('rejects out-of-range minute via _looksLikeRawTime', () {
+      // 12:60 has minute > 59.
+      final result = resolver.parseTime('12:60');
+      expect(result, isNull);
+    });
+
+    test('rejects out-of-range second via _looksLikeRawTime', () {
+      // 12:30:60 has second > 59.
+      final result = resolver.parseTime('12:30:60');
+      expect(result, isNull);
+    });
+
+    test('rejects non-matching pattern via _looksLikeRawTime', () {
+      // "abc:de" does not match the numeric pattern.
+      final result = resolver.parseTime('abc:de');
+      expect(result, isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  group('resolveInformalTimes - null date handling', () {
+    test('assigns fallback 1970-01-01 when date is unparseable', () {
+      final rows = <Map<String, dynamic>>[
+        {'date': 'not-a-date', 'time': 'am'},
+      ];
+
+      final result = resolver.resolveInformalTimes(rows);
+
+      expect(result[0]['_informalTime'], isTrue);
+      final dt = result[0]['dateTime'] as DateTime;
+      // With an unparseable date, fallback is 1970-01-01 at the default hour.
+      expect(dt.year, 1970);
+      expect(dt.hour, 9); // am bucket default
+    });
+  });
 }

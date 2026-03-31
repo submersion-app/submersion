@@ -818,5 +818,41 @@ void main() {
         );
       }
     });
+
+    test('unknown transform name in JSON throws FormatException', () {
+      final json = jsonEncode({
+        'id': 'bad-transform',
+        'name': 'Bad Transform',
+        'mappings': {
+          'primary': {
+            'name': 'Primary',
+            'columns': [
+              {
+                'sourceColumn': 'Col',
+                'targetField': 'field',
+                'transform': 'totallyFakeTransform',
+              },
+            ],
+          },
+        },
+      });
+
+      expect(() => CsvPreset.fromJson(json), throwsA(isA<FormatException>()));
+    });
+
+    test(
+      'falls back to first mapping value when neither primary nor dive_list key exists',
+      () {
+        const preset = CsvPreset(
+          id: 'fallback-mapping',
+          name: 'Fallback Mapping',
+          signatureHeaders: ['Date'],
+          mappings: {'custom_role': FieldMapping(name: 'Custom', columns: [])},
+        );
+
+        expect(preset.primaryMapping, isNotNull);
+        expect(preset.primaryMapping!.name, 'Custom');
+      },
+    );
   });
 }
