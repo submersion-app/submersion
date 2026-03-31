@@ -92,6 +92,7 @@ class ProfileLegendState {
       'overlays': true,
       'decompression': true,
       'markers': false,
+      'tanks': true,
       'gasAnalysis': false,
       'other': false,
       'tankPressures': true,

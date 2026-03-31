@@ -599,11 +599,6 @@ void main() {
   group('integration - real Subsurface export', () {
     test('parses dual-cylinder fixture as two tanks', () async {
       final file = File(dualTankFixturePath);
-      if (!file.existsSync()) {
-        markTestSkipped('$dualTankFixturePath not found');
-        return;
-      }
-
       final diveXml = await file.readAsString();
       final wrapped =
           '''
@@ -648,11 +643,6 @@ $diveXml
 
     test('parses dual-cylinder gas switch times correctly', () async {
       final file = File(dualTankFixturePath);
-      if (!file.existsSync()) {
-        markTestSkipped('$dualTankFixturePath not found');
-        return;
-      }
-
       final diveXml = await file.readAsString();
       final wrapped =
           '''
