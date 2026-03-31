@@ -246,9 +246,9 @@ void main() {
       expect(converter.normalizeRating('5'), 5);
     });
 
-    test('clamps 0 and negative values to 1', () {
-      expect(converter.normalizeRating('0'), 1);
-      expect(converter.normalizeRating('-1'), 1);
+    test('returns null for 0 and negative values (unrated)', () {
+      expect(converter.normalizeRating('0'), isNull);
+      expect(converter.normalizeRating('-1'), isNull);
     });
 
     test('converts 6-10 scale: divide by 2', () {

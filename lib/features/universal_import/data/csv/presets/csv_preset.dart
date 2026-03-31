@@ -79,6 +79,17 @@ class CsvPreset extends Equatable {
       if (sourceApp != null) 'sourceApp': sourceApp!.name,
       'signatureHeaders': signatureHeaders,
       'matchThreshold': matchThreshold,
+      if (fileRoles.isNotEmpty)
+        'fileRoles': fileRoles
+            .map(
+              (r) => {
+                'roleId': r.roleId,
+                'label': r.label,
+                'required': r.required,
+                'signatureHeaders': r.signatureHeaders,
+              },
+            )
+            .toList(),
       'mappings': mappingsJson,
       if (expectedUnits != null) 'expectedUnits': expectedUnits!.name,
       if (expectedTimeFormat != null)
@@ -141,6 +152,21 @@ class CsvPreset extends Equatable {
     final rawHeaders =
         (data['signatureHeaders'] as List<dynamic>?)?.cast<String>() ?? [];
 
+    final rawFileRoles =
+        (data['fileRoles'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ??
+        [];
+    final fileRoles = rawFileRoles
+        .map(
+          (r) => PresetFileRole(
+            roleId: r['roleId'] as String,
+            label: r['label'] as String,
+            required: r['required'] as bool? ?? true,
+            signatureHeaders:
+                (r['signatureHeaders'] as List<dynamic>?)?.cast<String>() ?? [],
+          ),
+        )
+        .toList();
+
     return CsvPreset(
       id: data['id'] as String,
       name: data['name'] as String,
@@ -148,6 +174,7 @@ class CsvPreset extends Equatable {
       sourceApp: sourceApp,
       signatureHeaders: rawHeaders,
       matchThreshold: (data['matchThreshold'] as num?)?.toDouble() ?? 0.6,
+      fileRoles: fileRoles,
       mappings: mappings,
       expectedUnits: expectedUnits,
       expectedTimeFormat: expectedTimeFormat,

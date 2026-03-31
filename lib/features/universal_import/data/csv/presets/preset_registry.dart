@@ -69,7 +69,9 @@ class PresetRegistry {
   PresetFileRole? identifyFileRole(CsvPreset preset, List<String> headers) {
     if (preset.fileRoles.isEmpty) return null;
 
-    final normalizedHeaders = headers.map((h) => h.toLowerCase()).toList();
+    final normalizedHeaders = headers
+        .map((h) => h.toLowerCase().trim())
+        .toSet();
 
     PresetFileRole? bestRole;
     var bestScore = 0.0;

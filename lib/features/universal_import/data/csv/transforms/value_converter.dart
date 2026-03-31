@@ -134,19 +134,19 @@ class ValueConverter {
   /// Normalize an arbitrary rating string to a 1–5 integer.
   ///
   /// Conversion rules:
-  /// - ≤0 → 1
+  /// - ≤0 → null (no rating / unrated)
   /// - 1–5 → as-is
   /// - 6–10 → divide by 2 (rounded)
   /// - 11–100 → divide by 20 (rounded)
   /// - >100 → 5
   ///
-  /// Returns null for null, empty, or non-numeric input.
+  /// Returns null for null, empty, non-numeric, or zero/negative input.
   int? normalizeRating(String? raw) {
     if (raw == null || raw.trim().isEmpty) return null;
     final value = double.tryParse(raw.trim());
     if (value == null) return null;
 
-    if (value <= 0) return 1;
+    if (value <= 0) return null;
     if (value <= 5) return value.round();
     if (value <= 10) return (value / 2).round();
     if (value <= 100) return (value / 20).round();
