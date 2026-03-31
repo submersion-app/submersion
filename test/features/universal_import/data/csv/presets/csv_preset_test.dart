@@ -513,7 +513,7 @@ void main() {
       expect(preset.primaryMapping, isNull);
     });
 
-    test('returns null when no "primary" key exists', () {
+    test('falls back to "dive_list" when no "primary" key exists', () {
       const preset = CsvPreset(
         id: 'no-primary-key',
         name: 'No Primary Key',
@@ -524,7 +524,8 @@ void main() {
         },
       );
 
-      expect(preset.primaryMapping, isNull);
+      expect(preset.primaryMapping, isNotNull);
+      expect(preset.primaryMapping!.name, 'Dive List');
     });
 
     test('returns "primary" key even when other keys exist', () {
@@ -659,7 +660,7 @@ void main() {
   // ======================== CsvPreset equality ========================
 
   group('CsvPreset equality', () {
-    test('two presets with same id, name, source, sourceApp are equal', () {
+    test('two presets with identical fields are equal', () {
       const preset1 = CsvPreset(
         id: 'test',
         name: 'Test',
@@ -673,12 +674,26 @@ void main() {
         name: 'Test',
         source: PresetSource.builtIn,
         sourceApp: SourceApp.subsurface,
-        signatureHeaders: ['different'],
-        mappings: {},
+        signatureHeaders: ['a'],
+        mappings: {'primary': FieldMapping(name: 'Primary', columns: [])},
       );
 
-      // Equatable props only include id, name, source, sourceApp
       expect(preset1, preset2);
+    });
+
+    test('presets with different signatureHeaders are not equal', () {
+      const preset1 = CsvPreset(
+        id: 'test',
+        name: 'Test',
+        signatureHeaders: ['a'],
+      );
+      const preset2 = CsvPreset(
+        id: 'test',
+        name: 'Test',
+        signatureHeaders: ['b'],
+      );
+
+      expect(preset1, isNot(preset2));
     });
 
     test('presets with different ids are not equal', () {

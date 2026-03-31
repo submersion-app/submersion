@@ -59,7 +59,10 @@ class CsvPreset extends Equatable {
   });
 
   bool get isMultiFile => fileRoles.length > 1;
-  FieldMapping? get primaryMapping => mappings['primary'];
+  FieldMapping? get primaryMapping =>
+      mappings['primary'] ??
+      mappings['dive_list'] ??
+      (mappings.isNotEmpty ? mappings.values.first : null);
 
   // ======================== JSON Serialization ========================
 
@@ -214,5 +217,17 @@ class CsvPreset extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, name, source, sourceApp];
+  List<Object?> get props => [
+    id,
+    name,
+    source,
+    sourceApp,
+    signatureHeaders,
+    matchThreshold,
+    fileRoles,
+    mappings,
+    expectedUnits,
+    expectedTimeFormat,
+    supportedEntities,
+  ];
 }
