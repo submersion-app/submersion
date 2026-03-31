@@ -144,10 +144,7 @@ class CsvCorrelator {
   ///
   /// Handles legacy and user-saved presets that may use non-canonical names.
   List<Map<String, dynamic>> _normalizeRows(List<Map<String, dynamic>> rows) {
-    const aliases = {
-      'site': 'siteName',
-      'divemaster': 'diveMaster',
-    };
+    const aliases = {'site': 'siteName', 'divemaster': 'diveMaster'};
 
     return rows.map((row) {
       Map<String, dynamic>? normalized;
