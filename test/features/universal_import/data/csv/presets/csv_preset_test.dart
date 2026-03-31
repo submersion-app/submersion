@@ -855,4 +855,120 @@ void main() {
       },
     );
   });
+
+  // ======================== fileRoles serialization ========================
+
+  group('fileRoles serialization', () {
+    test('toJson/fromJson roundtrip with fileRoles populated', () {
+      const original = CsvPreset(
+        id: 'roles-roundtrip',
+        name: 'Roles Roundtrip',
+        signatureHeaders: ['Date'],
+        fileRoles: [
+          PresetFileRole(
+            roleId: 'dive_list',
+            label: 'Dive List',
+            required: true,
+            signatureHeaders: ['dive number', 'date'],
+          ),
+          PresetFileRole(
+            roleId: 'dive_profile',
+            label: 'Dive Profile',
+            required: false,
+            signatureHeaders: ['sample time (min)', 'sample depth'],
+          ),
+        ],
+        mappings: {
+          'dive_list': FieldMapping(name: 'Dive List', columns: []),
+          'dive_profile': FieldMapping(name: 'Dive Profile', columns: []),
+        },
+      );
+
+      final json = original.toJson();
+      final restored = CsvPreset.fromJson(json);
+
+      expect(restored.fileRoles, hasLength(2));
+
+      expect(restored.fileRoles[0].roleId, 'dive_list');
+      expect(restored.fileRoles[0].label, 'Dive List');
+      expect(restored.fileRoles[0].required, isTrue);
+      expect(restored.fileRoles[0].signatureHeaders, ['dive number', 'date']);
+
+      expect(restored.fileRoles[1].roleId, 'dive_profile');
+      expect(restored.fileRoles[1].label, 'Dive Profile');
+      expect(restored.fileRoles[1].required, isFalse);
+      expect(restored.fileRoles[1].signatureHeaders, [
+        'sample time (min)',
+        'sample depth',
+      ]);
+    });
+
+    test('fromJson with missing fileRoles key defaults to empty list', () {
+      final json = jsonEncode({'id': 'no-file-roles', 'name': 'No File Roles'});
+
+      final preset = CsvPreset.fromJson(json);
+      expect(preset.fileRoles, isEmpty);
+    });
+
+    test('fromJson with fileRole missing optional fields', () {
+      final json = jsonEncode({
+        'id': 'role-missing-optionals',
+        'name': 'Role Missing Optionals',
+        'fileRoles': [
+          {
+            'roleId': 'dive_list',
+            'label': 'Dive List',
+            // 'required' omitted -> defaults to true
+            // 'signatureHeaders' omitted -> defaults to empty
+          },
+        ],
+      });
+
+      final preset = CsvPreset.fromJson(json);
+      expect(preset.fileRoles, hasLength(1));
+      expect(preset.fileRoles[0].roleId, 'dive_list');
+      expect(preset.fileRoles[0].label, 'Dive List');
+      expect(preset.fileRoles[0].required, isTrue);
+      expect(preset.fileRoles[0].signatureHeaders, isEmpty);
+    });
+
+    test('toJson omits fileRoles when empty', () {
+      const preset = CsvPreset(
+        id: 'empty-roles',
+        name: 'Empty Roles',
+        signatureHeaders: ['A'],
+        fileRoles: [],
+        mappings: {'primary': FieldMapping(name: 'Primary', columns: [])},
+      );
+
+      final json = preset.toJson();
+      final data = jsonDecode(json) as Map<String, dynamic>;
+
+      expect(data.containsKey('fileRoles'), isFalse);
+    });
+
+    test('toJson includes fileRoles when non-empty', () {
+      const preset = CsvPreset(
+        id: 'with-roles',
+        name: 'With Roles',
+        signatureHeaders: ['A'],
+        fileRoles: [
+          PresetFileRole(
+            roleId: 'dive_list',
+            label: 'Dive List',
+            signatureHeaders: ['dive number'],
+          ),
+        ],
+        mappings: {'primary': FieldMapping(name: 'Primary', columns: [])},
+      );
+
+      final json = preset.toJson();
+      final data = jsonDecode(json) as Map<String, dynamic>;
+
+      expect(data.containsKey('fileRoles'), isTrue);
+      final roles = data['fileRoles'] as List;
+      expect(roles, hasLength(1));
+      expect((roles[0] as Map)['roleId'], 'dive_list');
+    });
+  });
 }

@@ -251,5 +251,55 @@ void main() {
       expect(result.metadata['totalRows'], equals(2));
       expect(result.metadata['parsedDives'], equals(2));
     });
+
+    test('normalizes divemaster alias to diveMaster', () {
+      final rows = makeRows([
+        {'dateTime': DateTime(2024, 6, 15, 9, 0), 'divemaster': 'John'},
+      ]);
+
+      final result = correlator.correlate(
+        diveListRows: rows,
+        config: makeConfig(),
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, hasLength(1));
+      // The divemaster alias should be normalized to diveMaster.
+      expect(dives[0].containsKey('diveMaster'), isTrue);
+      expect(dives[0]['diveMaster'], equals('John'));
+    });
+
+    test('extracts tags when in entityTypesToImport', () {
+      final rows = makeRows([
+        {'dateTime': DateTime(2024, 6, 15, 9, 0), 'tags': 'reef, training'},
+      ]);
+
+      final result = correlator.correlate(
+        diveListRows: rows,
+        config: makeConfig(
+          entityTypes: {ImportEntityType.dives, ImportEntityType.tags},
+        ),
+      );
+
+      final tags = result.entitiesOf(ImportEntityType.tags);
+      expect(tags, isNotEmpty);
+    });
+
+    test('extracts gear when in entityTypesToImport', () {
+      final rows = makeRows([
+        {'dateTime': DateTime(2024, 6, 15, 9, 0), 'suit': '7mm Wetsuit'},
+      ]);
+
+      final result = correlator.correlate(
+        diveListRows: rows,
+        config: makeConfig(
+          entityTypes: {ImportEntityType.dives, ImportEntityType.equipment},
+        ),
+      );
+
+      final gear = result.entitiesOf(ImportEntityType.equipment);
+      expect(gear, isNotEmpty);
+      expect(gear[0]['name'], equals('7mm Wetsuit'));
+    });
   });
 }

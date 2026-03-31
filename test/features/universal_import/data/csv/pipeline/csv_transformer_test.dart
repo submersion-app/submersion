@@ -848,5 +848,60 @@ void main() {
       expect(result.rows[0]['maxDepth'], 25.5);
       expect(result.rows[0].containsKey('notes'), isFalse);
     });
+
+    test('infers duration as hms when value contains colons', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Duration'],
+        rows: [
+          ['2024-06-15', '1:05:30'],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Duration', targetField: 'duration'),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      final duration = result.rows[0]['duration'] as Duration;
+      // 1 hour + 5 minutes + 30 seconds = 3930 seconds
+      expect(duration.inSeconds, 3930);
+    });
+
+    test('recognizes diveNum as integer field via _inferType', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Dive Num'],
+        rows: [
+          ['2024-06-15', '42'],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Dive Num', targetField: 'diveNum'),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows, hasLength(1));
+      expect(result.rows[0]['diveNum'], isA<int>());
+      expect(result.rows[0]['diveNum'], 42);
+    });
   });
 }

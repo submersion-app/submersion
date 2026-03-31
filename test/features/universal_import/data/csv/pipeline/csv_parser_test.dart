@@ -122,5 +122,20 @@ void main() {
       final bytes = _toBytes('Name,Depth\n  ,  \n   ,   \n');
       expect(() => parser.parse(bytes), throwsA(isA<CsvParseException>()));
     });
+
+    test('throws on content with only whitespace (non-empty bytes)', () {
+      // Bytes are non-empty but content after normalization produces no rows.
+      final bytes = _toBytes('   \n   \n');
+      expect(() => parser.parse(bytes), throwsA(isA<CsvParseException>()));
+    });
+
+    test('handles row with cell value null via cell.toString()', () {
+      // Test that rows with cells that are all whitespace are skipped.
+      final bytes = _toBytes('A,B\n , \nX,Y\n');
+      final result = parser.parse(bytes);
+      // The whitespace-only row should be skipped, leaving only the X,Y row.
+      expect(result.rows, hasLength(1));
+      expect(result.rows[0], ['X', 'Y']);
+    });
   });
 }

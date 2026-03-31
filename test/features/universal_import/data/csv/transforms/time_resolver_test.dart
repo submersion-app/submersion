@@ -804,4 +804,40 @@ void main() {
       expect(dt.hour, 9); // am bucket default
     });
   });
+
+  // ---------------------------------------------------------------------------
+  group('resolveInformalTimes - null time value', () {
+    test('treats null time as informal and assigns empty bucket default', () {
+      final rows = <Map<String, dynamic>>[
+        {'date': '2023-07-15', 'time': null},
+      ];
+
+      final result = resolver.resolveInformalTimes(rows);
+
+      expect(result[0]['_informalTime'], isTrue);
+      final dt = result[0]['dateTime'] as DateTime;
+      expect(dt.hour, 12); // empty bucket default start
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  group('combineDateTime - returns null for null date', () {
+    test('returns null when dateStr is null and no dateTimeStr', () {
+      final result = resolver.combineDateTime(
+        dateStr: null,
+        timeStr: '09:00',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNull);
+    });
+
+    test('returns null when dateStr is unparseable and no dateTimeStr', () {
+      final result = resolver.combineDateTime(
+        dateStr: 'not-a-date',
+        timeStr: '09:00',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNull);
+    });
+  });
 }

@@ -1164,6 +1164,67 @@ void main() {
         expect(result!.hour, 9);
         expect(result.minute, 5);
       });
+
+      test('parses HH:mm:ss format', () {
+        final result = service.parseTime('14:30:45');
+        expect(result, isNotNull);
+        // HH:mm matches first (not strict), so hour/minute are captured.
+        expect(result!.hour, 14);
+        expect(result.minute, 30);
+      });
     });
   });
+
+  // ===========================================================================
+  // ValueConverter - parseDuration non-numeric edge cases
+  // ===========================================================================
+
+  group('ValueConverter parseDuration - non-numeric colon-separated', () {
+    late ValueConverter converter;
+
+    setUp(() {
+      converter = const ValueConverter();
+    });
+
+    test('returns null for 2-part hms with non-numeric parts', () {
+      expect(converter.parseDuration('a:b', DurationFormat.hms), isNull);
+    });
+
+    test('returns null for 3-part hms with non-numeric parts', () {
+      expect(converter.parseDuration('a:b:c', DurationFormat.hms), isNull);
+    });
+
+    test('returns null for 4-part hms input', () {
+      expect(converter.parseDuration('1:2:3:4', DurationFormat.hms), isNull);
+    });
+  });
+
+  // ===========================================================================
+  // ValueTransformService - parseDate ISO fallback non-UTC path
+  // ===========================================================================
+
+  group(
+    'ValueTransformService parseDate - ISO fallback non-UTC conversion',
+    () {
+      late ValueTransformService service;
+
+      setUp(() {
+        service = const ValueTransformService();
+      });
+
+      test('converts non-UTC DateTime.tryParse result to UTC components', () {
+        // DateTime.tryParse('2024-03-15T10:30:00') returns a local DateTime
+        // (isUtc == false), which the parseDate method should convert to UTC
+        // by copying year/month/day/etc. into DateTime.utc().
+        final result = service.parseDate('2024-03-15T10:30:00');
+        expect(result, isNotNull);
+        expect(result!.isUtc, isTrue);
+        expect(result.year, 2024);
+        expect(result.month, 3);
+        expect(result.day, 15);
+        expect(result.hour, 10);
+        expect(result.minute, 30);
+      });
+    },
+  );
 }
