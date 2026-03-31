@@ -9,7 +9,7 @@ import 'package:submersion/features/universal_import/data/csv/extractors/entity_
 class SiteExtractor implements EntityExtractor<Map<String, dynamic>> {
   final Uuid _uuid;
 
-  /// Map from lowercase site name to generated UUID, rebuilt on each extraction.
+  /// Map from lowercase site name to generated UUID, populated during extraction.
   Map<String, String> _siteNameToId = const {};
 
   SiteExtractor({Uuid uuid = const Uuid()}) : _uuid = uuid;
@@ -41,7 +41,7 @@ class SiteExtractor implements EntityExtractor<Map<String, dynamic>> {
       });
     }
 
-    _siteNameToId = {..._siteNameToId, ...nameToId};
+    _siteNameToId = nameToId;
     return sites;
   }
 

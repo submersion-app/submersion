@@ -12,7 +12,7 @@ import 'package:submersion/features/universal_import/data/csv/extractors/entity_
 class BuddyExtractor implements EntityExtractor<Map<String, dynamic>> {
   final Uuid _uuid;
 
-  /// Map from buddy name to generated UUID, rebuilt on each extraction.
+  /// Map from buddy name to generated UUID, populated during extraction.
   Map<String, String> _buddyNameToId = const {};
 
   BuddyExtractor({Uuid uuid = const Uuid()}) : _uuid = uuid;
@@ -35,7 +35,7 @@ class BuddyExtractor implements EntityExtractor<Map<String, dynamic>> {
       }
     }
 
-    _buddyNameToId = {..._buddyNameToId, ...nameToId};
+    _buddyNameToId = nameToId;
     return buddies;
   }
 

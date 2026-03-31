@@ -270,6 +270,8 @@ void main() {
       expect(dateTime.year, 2024);
       expect(dateTime.month, 1);
       expect(dateTime.day, 15);
+      expect(dateTime.hour, 12);
+      expect(dateTime.minute, 0);
     });
 
     test('times are not shifted by local UTC offset (issue #60)', () async {
@@ -678,9 +680,6 @@ void main() {
     });
 
     test('maps weight header to weight field', () async {
-      // The auto-mapper maps "Weight" -> "weight", but the correlator
-      // normalizes "weight" -> "weightUsed". DiveExtractor includes
-      // "weightUsed" in its known fields.
       const csv =
           'Date,Weight\n'
           '2024-01-15,8\n';
@@ -689,7 +688,7 @@ void main() {
 
       final dives = result.entitiesOf(ImportEntityType.dives);
       expect(dives, isNotEmpty);
-      expect(dives.first['weightUsed'], isNotNull);
+      expect(dives.first['weight'], isNotNull);
     });
 
     test('maps tags header via auto-mapping', () async {

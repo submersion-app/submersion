@@ -147,7 +147,6 @@ class CsvCorrelator {
     const aliases = {
       'site': 'siteName',
       'divemaster': 'diveMaster',
-      'weight': 'weightUsed',
     };
 
     return rows.map((row) {

@@ -51,7 +51,7 @@ class ValueConverter {
   /// Parse a duration string according to [format].
   ///
   /// - [DurationFormat.minutes]: treats [raw] as a decimal number of minutes.
-  /// - [DurationFormat.hms]: expects colon-separated H:MM, M:SS, or H:MM:SS.
+  /// - [DurationFormat.hms]: expects colon-separated M:SS or H:MM:SS.
   ///
   /// Returns null when [raw] is null, empty, or unparseable.
   Duration? parseDuration(String? raw, DurationFormat format) {

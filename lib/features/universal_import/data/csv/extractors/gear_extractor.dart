@@ -9,7 +9,7 @@ import 'package:submersion/features/universal_import/data/csv/extractors/entity_
 class GearExtractor implements EntityExtractor<Map<String, dynamic>> {
   final Uuid _uuid;
 
-  /// Map from gear name to generated UUID, rebuilt on each extraction.
+  /// Map from gear name to generated UUID, populated during extraction.
   Map<String, String> _gearNameToId = const {};
 
   GearExtractor({Uuid uuid = const Uuid()}) : _uuid = uuid;
@@ -32,7 +32,7 @@ class GearExtractor implements EntityExtractor<Map<String, dynamic>> {
       gear.add({'id': id, 'name': name, 'type': 'exposure_suit'});
     }
 
-    _gearNameToId = {..._gearNameToId, ...nameToId};
+    _gearNameToId = nameToId;
     return gear;
   }
 

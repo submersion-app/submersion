@@ -9,7 +9,7 @@ import 'package:submersion/features/universal_import/data/csv/extractors/entity_
 class TagExtractor implements EntityExtractor<Map<String, dynamic>> {
   final Uuid _uuid;
 
-  /// Map from tag name to generated UUID, rebuilt on each extraction.
+  /// Map from tag name to generated UUID, populated during extraction.
   Map<String, String> _tagNameToId = const {};
 
   TagExtractor({Uuid uuid = const Uuid()}) : _uuid = uuid;
@@ -32,7 +32,7 @@ class TagExtractor implements EntityExtractor<Map<String, dynamic>> {
       }
     }
 
-    _tagNameToId = {..._tagNameToId, ...nameToId};
+    _tagNameToId = nameToId;
     return tags;
   }
 

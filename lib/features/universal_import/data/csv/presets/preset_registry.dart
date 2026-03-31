@@ -28,7 +28,9 @@ class PresetRegistry {
   /// meets or exceeds the preset's [CsvPreset.matchThreshold], sorted
   /// descending by score.
   List<PresetMatch> detectPreset(List<String> headers) {
-    final normalizedHeaders = headers.map((h) => h.toLowerCase()).toList();
+    final normalizedHeaders = headers
+        .map((h) => h.toLowerCase().trim())
+        .toSet();
 
     final matches = <PresetMatch>[];
 
