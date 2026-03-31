@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -33,7 +34,7 @@ class PlanTankList extends ConsumerWidget {
               children: [
                 ExcludeSemantics(
                   child: Icon(
-                    Icons.propane_tank,
+                    MdiIcons.divingScubaTank,
                     color: theme.colorScheme.primary,
                   ),
                 ),

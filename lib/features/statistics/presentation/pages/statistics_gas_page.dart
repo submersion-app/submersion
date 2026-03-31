@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -154,7 +155,7 @@ class StatisticsGasPage extends ConsumerWidget {
         data: (data) {
           if (data.isEmpty) {
             return StatEmptyState(
-              icon: Icons.propane_tank,
+              icon: MdiIcons.divingScubaTank,
               message: context.l10n.statistics_gas_sacByRole_empty,
             );
           }
@@ -178,7 +179,7 @@ class StatisticsGasPage extends ConsumerWidget {
                     children: [
                       ExcludeSemantics(
                         child: Icon(
-                          Icons.propane_tank,
+                          MdiIcons.divingScubaTank,
                           size: 20,
                           color: Theme.of(context).colorScheme.primary,
                         ),

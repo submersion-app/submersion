@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -864,7 +865,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
       case EquipmentType.computer:
         return Icons.watch;
       case EquipmentType.tank:
-        return Icons.propane_tank;
+        return MdiIcons.divingScubaTank;
       case EquipmentType.weights:
         return Icons.fitness_center;
       case EquipmentType.light:

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:flutter/services.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -2138,7 +2139,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       case EquipmentType.hood:
         return Icons.face;
       case EquipmentType.tank:
-        return Icons.propane_tank;
+        return MdiIcons.divingScubaTank;
       case EquipmentType.weights:
         return Icons.fitness_center;
       case EquipmentType.computer:
@@ -4664,7 +4665,7 @@ class _EquipmentPickerSheet extends ConsumerWidget {
       case EquipmentType.hood:
         return Icons.face;
       case EquipmentType.tank:
-        return Icons.propane_tank;
+        return MdiIcons.divingScubaTank;
       case EquipmentType.weights:
         return Icons.fitness_center;
       case EquipmentType.computer:

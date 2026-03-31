@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -554,7 +555,7 @@ class EquipmentListTile extends StatelessWidget {
       case EquipmentType.computer:
         return Icons.watch;
       case EquipmentType.tank:
-        return Icons.propane_tank;
+        return MdiIcons.divingScubaTank;
       case EquipmentType.weights:
         return Icons.fitness_center;
       case EquipmentType.light:

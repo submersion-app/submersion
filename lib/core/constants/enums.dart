@@ -380,7 +380,7 @@ enum ProfileEventType {
       case ProfileEventType.missedStop:
         return 'dangerous';
       case ProfileEventType.lowGas:
-        return 'propane_tank';
+        return 'diving_scuba_tank';
       case ProfileEventType.cnsWarning:
       case ProfileEventType.cnsCritical:
         return 'air';

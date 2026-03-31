@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -64,7 +65,7 @@ class CylinderSacCard extends StatelessWidget {
                     // Tank icon
                     ExcludeSemantics(
                       child: Icon(
-                        Icons.propane_tank,
+                        MdiIcons.divingScubaTank,
                         size: 18,
                         color: colorScheme.primary,
                       ),

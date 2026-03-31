@@ -2,8 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -1450,7 +1451,7 @@ class _AppearanceSectionContentState
                         .l10n
                         .settings_appearance_pressureThresholdMarkers_subtitle,
                   ),
-                  secondary: const Icon(Icons.propane_tank),
+                  secondary: Icon(MdiIcons.divingScubaTank),
                   value: settings.showPressureThresholdMarkers,
                   onChanged: (value) {
                     ref
@@ -1913,7 +1914,7 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: const Icon(Icons.propane_tank),
+                  leading: Icon(MdiIcons.divingScubaTank),
                   title: Text(context.l10n.settings_manage_tankPresets),
                   subtitle: Text(
                     context.l10n.settings_manage_tankPresets_subtitle,
