@@ -15,6 +15,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_phase.dar
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
@@ -789,6 +790,51 @@ void main() {
         expect(pressuresByTank.values.last, isNotEmpty);
       },
     );
+
+    test('maps gas switches by tank ref to created tank ids', () async {
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+      when(mockDiveRepo.insertGasSwitches(any)).thenAnswer((_) async {});
+
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 30.0,
+            'tanks': [
+              {'uddfTankId': '0:D80', 'name': 'D80', 'volume': 22.2},
+              {'uddfTankId': '1:AL80', 'name': 'AL80', 'volume': 11.094},
+            ],
+            'gasSwitches': [
+              {'timestamp': 10, 'tankRef': '0:D80'},
+              {'timestamp': 700, 'tankRef': '1:AL80'},
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final capturedDive = verify(mockDiveRepo.createDive(captureAny)).captured;
+      final dive = capturedDive.first as Dive;
+      expect(dive.tanks, hasLength(2));
+      expect(dive.tanks[0].name, 'D80');
+      expect(dive.tanks[1].name, 'AL80');
+
+      final capturedSwitches = verify(
+        mockDiveRepo.insertGasSwitches(captureAny),
+      ).captured;
+      final switches = capturedSwitches.first as List<GasSwitch>;
+      expect(switches, hasLength(2));
+      expect(switches[0].tankId, dive.tanks[0].id);
+      expect(switches[1].tankId, dive.tanks[1].id);
+    });
   });
 
   group('Progress callback', () {
