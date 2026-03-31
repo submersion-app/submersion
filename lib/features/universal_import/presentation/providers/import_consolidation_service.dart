@@ -50,7 +50,8 @@ Future<int> performConsolidations({
     );
 
     final profileData =
-        diveData['profile'] as List<Map<String, dynamic>>? ?? [];
+        (diveData['profile'] as List?)?.cast<Map<String, dynamic>>() ??
+        const <Map<String, dynamic>>[];
     final secondaryProfile = profileData
         .map(
           (p) => DiveProfilesCompanion.insert(

@@ -227,13 +227,13 @@ class CsvPreset extends Equatable {
 
   static ColumnMapping _columnMappingFromJson(Map<String, dynamic> data) {
     final transformName = data['transform'] as String?;
-    final ValueTransform? transform = transformName != null
-        ? ValueTransform.values.firstWhere(
-            (e) => e.name == transformName,
-            orElse: () =>
-                throw FormatException('Unknown ValueTransform: $transformName'),
-          )
-        : null;
+    ValueTransform? transform;
+    if (transformName != null) {
+      final idx = ValueTransform.values.indexWhere(
+        (e) => e.name == transformName,
+      );
+      transform = idx >= 0 ? ValueTransform.values[idx] : null;
+    }
 
     return ColumnMapping(
       sourceColumn: data['sourceColumn'] as String,

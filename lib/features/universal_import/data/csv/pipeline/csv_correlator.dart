@@ -16,8 +16,9 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 /// generated UUID, merges optional profile data, and assembles the final
 /// [CorrelatedPayload].
 ///
-/// Fresh extractor instances are created per [correlate] call so that
-/// deduplication state is never shared across imports.
+/// Stateful extractors (site, buddy, tag, gear) are created fresh per
+/// [correlate] call so that deduplication state is never shared across
+/// imports. Stateless extractors (dive, tank) use const instances.
 class CsvCorrelator {
   const CsvCorrelator();
 

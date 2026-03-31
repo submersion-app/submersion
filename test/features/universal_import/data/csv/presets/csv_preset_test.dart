@@ -819,7 +819,7 @@ void main() {
       }
     });
 
-    test('unknown transform name in JSON throws FormatException', () {
+    test('unknown transform name in JSON is treated as null', () {
       final json = jsonEncode({
         'id': 'bad-transform',
         'name': 'Bad Transform',
@@ -837,7 +837,9 @@ void main() {
         },
       });
 
-      expect(() => CsvPreset.fromJson(json), throwsA(isA<FormatException>()));
+      final preset = CsvPreset.fromJson(json);
+      final col = preset.mappings['primary']!.columns.first;
+      expect(col.transform, isNull);
     });
 
     test(
