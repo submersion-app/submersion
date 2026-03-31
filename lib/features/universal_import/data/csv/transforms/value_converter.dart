@@ -113,7 +113,7 @@ class ValueConverter {
     }
 
     // Descriptive text keywords.
-    if (s.contains('crystal') || s.contains('crystal clear')) {
+    if (s.contains('crystal')) {
       return 'excellent';
     }
     if (s.contains('murky')) return 'poor';

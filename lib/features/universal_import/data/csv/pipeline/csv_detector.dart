@@ -27,8 +27,7 @@ class CsvDetector {
     }
 
     final best = rankedMatches.first;
-    final hasAdditionalFileRoles =
-        best.preset.isMultiFile && best.preset.fileRoles.length > 1;
+    final hasAdditionalFileRoles = best.preset.isMultiFile;
 
     return DetectionResult(
       matchedPreset: best.preset,

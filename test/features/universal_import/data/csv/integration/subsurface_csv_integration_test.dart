@@ -99,7 +99,7 @@ void main() {
       final payload = pipeline.execute(primaryCsv: parsed, config: config);
 
       final sites = payload.entitiesOf(ImportEntityType.sites);
-      // Known named sites: Maclearie Park, The Atantic Club Pool,
+      // Known named sites: Maclearie Park, The Atlantic Club Pool,
       // Escambron Marine Park, Mosquito Pier.
       expect(sites.length, greaterThanOrEqualTo(4));
 

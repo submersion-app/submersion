@@ -25,7 +25,8 @@ Future<int> performConsolidations({
     if (matchResult == null) continue;
 
     final diveData = diveItems[index];
-    final dateTime = diveData['dateTime'] as DateTime? ?? now;
+    final dateTime = diveData['dateTime'] as DateTime?;
+    if (dateTime == null) continue;
     final runtime = diveData['runtime'] as Duration?;
     final duration = diveData['duration'] as Duration?;
     final effectiveDuration = runtime ?? duration;
