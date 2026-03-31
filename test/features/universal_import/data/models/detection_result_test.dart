@@ -160,6 +160,110 @@ void main() {
 
         expect(result.props, hasLength(6));
       });
+
+      test('different sourceApp produces inequality', () {
+        const a = DetectionResult(
+          format: ImportFormat.csv,
+          sourceApp: SourceApp.subsurface,
+          confidence: 0.9,
+        );
+        const b = DetectionResult(
+          format: ImportFormat.csv,
+          sourceApp: SourceApp.macdive,
+          confidence: 0.9,
+        );
+
+        expect(a, isNot(equals(b)));
+      });
+
+      test('null vs non-null sourceApp produces inequality', () {
+        const a = DetectionResult(format: ImportFormat.csv, confidence: 0.9);
+        const b = DetectionResult(
+          format: ImportFormat.csv,
+          sourceApp: SourceApp.subsurface,
+          confidence: 0.9,
+        );
+
+        expect(a, isNot(equals(b)));
+      });
+
+      test('different suggestedMapping produces inequality', () {
+        const a = DetectionResult(
+          format: ImportFormat.csv,
+          confidence: 0.9,
+          suggestedMapping: {'col1': 'maxDepth'},
+        );
+        const b = DetectionResult(
+          format: ImportFormat.csv,
+          confidence: 0.9,
+          suggestedMapping: {'col1': 'waterTemp'},
+        );
+
+        expect(a, isNot(equals(b)));
+      });
+
+      test('different warnings produces inequality', () {
+        const a = DetectionResult(
+          format: ImportFormat.csv,
+          confidence: 0.9,
+          warnings: ['Truncated'],
+        );
+        const b = DetectionResult(
+          format: ImportFormat.csv,
+          confidence: 0.9,
+          warnings: ['Missing headers'],
+        );
+
+        expect(a, isNot(equals(b)));
+      });
+
+      test('different csvHeaders produces inequality', () {
+        const a = DetectionResult(
+          format: ImportFormat.csv,
+          confidence: 0.9,
+          csvHeaders: ['date', 'depth'],
+        );
+        const b = DetectionResult(
+          format: ImportFormat.csv,
+          confidence: 0.9,
+          csvHeaders: ['time', 'temp'],
+        );
+
+        expect(a, isNot(equals(b)));
+      });
+
+      test('null vs non-null csvHeaders produces inequality', () {
+        const a = DetectionResult(format: ImportFormat.csv, confidence: 0.9);
+        const b = DetectionResult(
+          format: ImportFormat.csv,
+          confidence: 0.9,
+          csvHeaders: ['date'],
+        );
+
+        expect(a, isNot(equals(b)));
+      });
+
+      test('null vs non-null suggestedMapping produces inequality', () {
+        const a = DetectionResult(format: ImportFormat.csv, confidence: 0.9);
+        const b = DetectionResult(
+          format: ImportFormat.csv,
+          confidence: 0.9,
+          suggestedMapping: {'col': 'field'},
+        );
+
+        expect(a, isNot(equals(b)));
+      });
+
+      test('empty warnings equals default empty warnings', () {
+        const a = DetectionResult(
+          format: ImportFormat.csv,
+          confidence: 0.9,
+          warnings: [],
+        );
+        const b = DetectionResult(format: ImportFormat.csv, confidence: 0.9);
+
+        expect(a, equals(b));
+      });
     });
   });
 }

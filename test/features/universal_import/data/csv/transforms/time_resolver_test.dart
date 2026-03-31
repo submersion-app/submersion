@@ -296,4 +296,332 @@ void main() {
       expect(resolver.isInformalToken('2:00 PM'), isFalse);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  group('parseDate - additional formats', () {
+    test('parses M/d/yyyy (single-digit month and day)', () {
+      final result = resolver.parseDate('7/5/2023');
+      expect(result, isNotNull);
+      expect(result!.year, 2023);
+      expect(result.month, 7);
+      expect(result.day, 5);
+      expect(result.isUtc, isTrue);
+    });
+
+    test('parses d.M.yyyy (single-digit day and month)', () {
+      final result = resolver.parseDate('5.7.2023');
+      expect(result, isNotNull);
+      expect(result!.year, 2023);
+      expect(result.month, 7);
+      expect(result.day, 5);
+      expect(result.isUtc, isTrue);
+    });
+
+    test('parses yyyy/MM/dd', () {
+      final result = resolver.parseDate('2023/07/15');
+      expect(result, isNotNull);
+      expect(result!.year, 2023);
+      expect(result.month, 7);
+      expect(result.day, 15);
+      expect(result.isUtc, isTrue);
+    });
+
+    test('parses dd-MM-yyyy', () {
+      final result = resolver.parseDate('15-07-2023');
+      expect(result, isNotNull);
+      expect(result!.year, 2023);
+      expect(result.month, 7);
+      expect(result.day, 15);
+      expect(result.isUtc, isTrue);
+    });
+
+    test('parses MM-dd-yyyy', () {
+      final result = resolver.parseDate('03-25-2023');
+      expect(result, isNotNull);
+      expect(result!.year, 2023);
+      expect(result.month, 3);
+      expect(result.day, 25);
+      expect(result.isUtc, isTrue);
+    });
+
+    test('parses ISO 8601 date via fallback (DateTime.parse)', () {
+      // Full ISO 8601 datetime string -- parseDate should extract the date part.
+      final result = resolver.parseDate('2023-07-15T09:17:19Z');
+      expect(result, isNotNull);
+      expect(result!.year, 2023);
+      expect(result.month, 7);
+      expect(result.day, 15);
+      expect(result.hour, 0); // midnight UTC -- date only
+      expect(result.isUtc, isTrue);
+    });
+
+    test('parses ISO 8601 date with offset via fallback', () {
+      final result = resolver.parseDate('2023-07-15T09:17:19-04:00');
+      expect(result, isNotNull);
+      expect(result!.year, 2023);
+      expect(result.month, 7);
+      // Date portion is extracted; exact day depends on UTC conversion of the
+      // parsed value, but the year/month should be correct.
+      expect(result.isUtc, isTrue);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  group('combineDateTime - TimeInterpretation.utc', () {
+    test('stores wall-clock components directly as UTC', () {
+      final result = resolver.combineDateTime(
+        dateStr: '2023-07-15',
+        timeStr: '14:30',
+        interpretation: TimeInterpretation.utc,
+      );
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      expect(result.year, 2023);
+      expect(result.month, 7);
+      expect(result.day, 15);
+      expect(result.hour, 14);
+      expect(result.minute, 30);
+    });
+
+    test('dateTime string with utc interpretation', () {
+      final result = resolver.combineDateTime(
+        dateTimeStr: '2023-07-15 09:00:00',
+        interpretation: TimeInterpretation.utc,
+      );
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      expect(result.hour, 9);
+      expect(result.minute, 0);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  group('combineDateTime - TimeInterpretation.specificOffset', () {
+    test('preserves wall-clock components as UTC with specific offset', () {
+      final result = resolver.combineDateTime(
+        dateStr: '2023-07-15',
+        timeStr: '09:17',
+        interpretation: TimeInterpretation.specificOffset,
+        specificOffset: const Duration(hours: -4),
+      );
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      // Wall-clock is preserved as-is in UTC encoding.
+      expect(result.hour, 9);
+      expect(result.minute, 17);
+    });
+
+    test('dateTime string with specificOffset interpretation', () {
+      final result = resolver.combineDateTime(
+        dateTimeStr: '2023-07-15 14:30:00',
+        interpretation: TimeInterpretation.specificOffset,
+        specificOffset: const Duration(hours: 5, minutes: 30),
+      );
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      expect(result.hour, 14);
+      expect(result.minute, 30);
+    });
+
+    test('date-only with specificOffset defaults to noon', () {
+      final result = resolver.combineDateTime(
+        dateStr: '2023-07-15',
+        interpretation: TimeInterpretation.specificOffset,
+        specificOffset: const Duration(hours: 2),
+      );
+      expect(result, isNotNull);
+      expect(result!.hour, 12);
+      expect(result.minute, 0);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  group('combineDateTime - dateTimeStr combined formats', () {
+    test('parses "yyyy-MM-dd HH:mm" (no seconds)', () {
+      final result = resolver.combineDateTime(
+        dateTimeStr: '2023-07-15 14:30',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNotNull);
+      expect(result!.year, 2023);
+      expect(result.month, 7);
+      expect(result.day, 15);
+      expect(result.hour, 14);
+      expect(result.minute, 30);
+      expect(result.second, 0);
+    });
+
+    test('parses "yyyy-MM-dd H:mm:ss" (single-digit hour)', () {
+      final result = resolver.combineDateTime(
+        dateTimeStr: '2023-07-15 9:17:19',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNotNull);
+      expect(result!.hour, 9);
+      expect(result.minute, 17);
+      expect(result.second, 19);
+    });
+
+    test('parses "yyyy-MM-dd H:mm" (single-digit hour, no seconds)', () {
+      final result = resolver.combineDateTime(
+        dateTimeStr: '2023-07-15 9:17',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNotNull);
+      expect(result!.hour, 9);
+      expect(result.minute, 17);
+    });
+
+    test('parses "MM/dd/yyyy HH:mm:ss"', () {
+      final result = resolver.combineDateTime(
+        dateTimeStr: '07/15/2023 14:30:45',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNotNull);
+      expect(result!.year, 2023);
+      expect(result.month, 7);
+      expect(result.day, 15);
+      expect(result.hour, 14);
+      expect(result.minute, 30);
+      expect(result.second, 45);
+    });
+
+    test('parses "MM/dd/yyyy HH:mm"', () {
+      final result = resolver.combineDateTime(
+        dateTimeStr: '07/15/2023 14:30',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNotNull);
+      expect(result!.year, 2023);
+      expect(result.month, 7);
+      expect(result.day, 15);
+      expect(result.hour, 14);
+      expect(result.minute, 30);
+    });
+
+    test('returns null for unparseable dateTimeStr', () {
+      final result = resolver.combineDateTime(
+        dateTimeStr: 'not-a-date-time',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNull);
+    });
+
+    test('dateTimeStr takes precedence over dateStr/timeStr', () {
+      final result = resolver.combineDateTime(
+        dateStr: '2020-01-01',
+        timeStr: '08:00',
+        dateTimeStr: '2023-07-15 14:30:00',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNotNull);
+      // dateTimeStr wins -- date and time from the combined string.
+      expect(result!.year, 2023);
+      expect(result.hour, 14);
+    });
+
+    test('empty dateTimeStr falls through to dateStr/timeStr', () {
+      final result = resolver.combineDateTime(
+        dateStr: '2023-07-15',
+        timeStr: '09:00',
+        dateTimeStr: '  ',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNotNull);
+      expect(result!.year, 2023);
+      expect(result.hour, 9);
+    });
+
+    test('pure ISO 8601 without offset via dateTimeStr', () {
+      final result = resolver.combineDateTime(
+        dateTimeStr: '2023-07-15T14:30:00',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      expect(result.hour, 14);
+      expect(result.minute, 30);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  group('combineDateTime - ISO 8601 with offset (wall-clock extraction)', () {
+    test('extracts wall-clock from positive offset (+05:30)', () {
+      final result = resolver.combineDateTime(
+        dateTimeStr: '2023-07-15T14:30:00+05:30',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      // Wall-clock at +05:30 should be 14:30.
+      expect(result.hour, 14);
+      expect(result.minute, 30);
+      expect(result.second, 0);
+    });
+
+    test('extracts wall-clock from Z suffix (UTC)', () {
+      final result = resolver.combineDateTime(
+        dateTimeStr: '2023-07-15T09:17:19Z',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      // Z means UTC; wall-clock == UTC components.
+      expect(result.hour, 9);
+      expect(result.minute, 17);
+      expect(result.second, 19);
+    });
+
+    test('extracts wall-clock from +00:00 offset', () {
+      final result = resolver.combineDateTime(
+        dateTimeStr: '2023-07-15T09:17:19+00:00',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      expect(result.hour, 9);
+      expect(result.minute, 17);
+      expect(result.second, 19);
+    });
+
+    test('extracts wall-clock from large negative offset (-12:00)', () {
+      final result = resolver.combineDateTime(
+        dateTimeStr: '2023-07-15T06:00:00-12:00',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      expect(result.hour, 6);
+      expect(result.minute, 0);
+    });
+
+    test('extracts wall-clock with half-hour offset (-09:30)', () {
+      final result = resolver.combineDateTime(
+        dateTimeStr: '2023-07-15T22:45:00-09:30',
+        interpretation: TimeInterpretation.localWallClock,
+      );
+      expect(result, isNotNull);
+      expect(result!.isUtc, isTrue);
+      expect(result.hour, 22);
+      expect(result.minute, 45);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  group('ResolvedTime', () {
+    test('toString pads single-digit values', () {
+      const t = ResolvedTime(9, 5, 3);
+      expect(t.toString(), '09:05:03');
+    });
+
+    test('toString formats double-digit values', () {
+      const t = ResolvedTime(14, 30, 45);
+      expect(t.toString(), '14:30:45');
+    });
+
+    test('toString formats midnight', () {
+      const t = ResolvedTime(0, 0, 0);
+      expect(t.toString(), '00:00:00');
+    });
+  });
 }
