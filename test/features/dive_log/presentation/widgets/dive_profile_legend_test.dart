@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 
@@ -16,6 +17,11 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
+
+const _testTanks = [
+  DiveTank(id: 'tank-1', name: 'D80', gasMix: GasMix(o2: 21), order: 0),
+  DiveTank(id: 'tank-2', name: 'AL80', gasMix: GasMix(o2: 50), order: 1),
+];
 
 void main() {
   group('DiveProfileLegend - primary toggles', () {
@@ -171,6 +177,87 @@ void main() {
       await tester.tap(ceilingText);
       await tester.pumpAndSettle();
       // After tapping, the checkbox icon should change (verify no crash)
+    });
+
+    testWidgets(
+      'shows Tanks section for gas-switch dives without tank pressures',
+      (tester) async {
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            ],
+            child: DiveProfileLegend(
+              config: const ProfileLegendConfig(
+                hasGasSwitches: true,
+                tanks: _testTanks,
+              ),
+              zoomLevel: 1.0,
+              onZoomIn: () {},
+              onZoomOut: () {},
+              onResetZoom: () {},
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byIcon(Icons.tune), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Tanks'), findsOneWidget);
+        expect(find.text('D80 (Air)'), findsOneWidget);
+        expect(find.text('AL80 (EAN50)'), findsOneWidget);
+        expect(find.text('Tank Pressures'), findsNothing);
+      },
+    );
+
+    testWidgets('keeps Tank Pressures section for multi-tank pressure dives', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DiveProfileLegend(
+            config: const ProfileLegendConfig(
+              hasGasSwitches: true,
+              hasMultiTankPressure: true,
+              tanks: _testTanks,
+              tankPressures: {
+                'tank-1': [
+                  TankPressurePoint(
+                    id: 'tp-1',
+                    tankId: 'tank-1',
+                    timestamp: 10,
+                    pressure: 210,
+                  ),
+                ],
+                'tank-2': [
+                  TankPressurePoint(
+                    id: 'tp-2',
+                    tankId: 'tank-2',
+                    timestamp: 700,
+                    pressure: 150,
+                  ),
+                ],
+              },
+            ),
+            zoomLevel: 1.0,
+            onZoomIn: () {},
+            onZoomOut: () {},
+            onResetZoom: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.tune), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tank Pressures'), findsOneWidget);
+      expect(find.text('D80 (Air)'), findsOneWidget);
+      expect(find.text('AL80 (EAN50)'), findsOneWidget);
     });
   });
 

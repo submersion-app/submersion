@@ -11,6 +11,8 @@ import 'package:submersion/features/universal_import/data/parsers/subsurface_xml
 
 void main() {
   final parser = SubsurfaceXmlParser();
+  const dualTankFixturePath =
+      'test/features/universal_import/data/parsers/fixtures/dual-cylinder.ssrf';
 
   Uint8List xmlBytes(String xml) => Uint8List.fromList(utf8.encode(xml));
 
@@ -267,6 +269,33 @@ void main() {
           result.entitiesOf(ImportEntityType.dives).first['tanks']
               as List<Map<String, dynamic>>;
       expect(tanks.length, 1);
+    });
+
+    test('parses multiple populated cylinders as multiple tanks', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <cylinder size='11.094 l' workpressure='206.843 bar' description='Back Gas' o2='32.0%' start='200.0 bar' end='70.0 bar' />
+  <cylinder size='5.550 l' workpressure='206.843 bar' description='Deco' o2='50.0%' start='180.0 bar' end='120.0 bar' />
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final tanks =
+          result.entitiesOf(ImportEntityType.dives).first['tanks']
+              as List<Map<String, dynamic>>;
+
+      expect(tanks.length, 2);
+      expect(tanks[0]['name'], 'Back Gas');
+      expect((tanks[0]['gasMix'] as GasMix).o2, 32.0);
+      expect(tanks[1]['name'], 'Deco');
+      expect((tanks[1]['gasMix'] as GasMix).o2, 50.0);
     });
 
     test('parses trimix cylinder', () async {
@@ -568,6 +597,83 @@ void main() {
   });
 
   group('integration - real Subsurface export', () {
+    test('parses dual-cylinder fixture as two tanks', () async {
+      final file = File(dualTankFixturePath);
+      final diveXml = await file.readAsString();
+      final wrapped =
+          '''
+<divelog program='subsurface' version='3'>
+<dives>
+$diveXml
+</dives>
+</divelog>
+''';
+
+      final result = await parser.parse(xmlBytes(wrapped));
+      final dives = result.entitiesOf(ImportEntityType.dives);
+
+      expect(dives.length, 1);
+      final tanks = dives.first['tanks'] as List<Map<String, dynamic>>?;
+      expect(tanks, isNotNull);
+      expect(tanks!.length, 2);
+
+      expect(tanks[0]['name'], 'D80');
+      expect(tanks[0]['volume'], closeTo(22.2, 0.001));
+      expect(tanks[0]['startPressure'], 210);
+      expect(tanks[0]['endPressure'], 170);
+      expect((tanks[0]['gasMix'] as GasMix).o2, 21.0);
+      expect(tanks[0]['uddfTankId'], '0:D80');
+
+      expect(tanks[1]['name'], 'AL80');
+      expect(tanks[1]['volume'], closeTo(11.094, 0.001));
+      expect(tanks[1]['startPressure'], 150);
+      expect(tanks[1]['endPressure'], 100);
+      expect((tanks[1]['gasMix'] as GasMix).o2, 50.0);
+      expect(tanks[1]['uddfTankId'], '1:AL80');
+
+      final gasSwitches =
+          dives.first['gasSwitches'] as List<Map<String, dynamic>>?;
+      expect(gasSwitches, isNotNull);
+      expect(gasSwitches!.length, 5);
+      expect(gasSwitches[0]['timestamp'], 10);
+      expect(gasSwitches[0]['tankRef'], '0:D80');
+      expect(gasSwitches[1]['timestamp'], 700);
+      expect(gasSwitches[1]['tankRef'], '1:AL80');
+    });
+
+    test('parses dual-cylinder gas switch times correctly', () async {
+      final file = File(dualTankFixturePath);
+      final diveXml = await file.readAsString();
+      final wrapped =
+          '''
+<divelog program='subsurface' version='3'>
+<dives>
+$diveXml
+</dives>
+</divelog>
+''';
+
+      final result = await parser.parse(xmlBytes(wrapped));
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      final gasSwitches =
+          dive['gasSwitches'] as List<Map<String, dynamic>>? ?? const [];
+
+      expect(gasSwitches.map((gs) => gs['timestamp']).toList(), [
+        10,
+        700,
+        980,
+        2910,
+        4050,
+      ]);
+      expect(gasSwitches.map((gs) => gs['tankRef']).toList(), [
+        '0:D80',
+        '1:AL80',
+        '0:D80',
+        '1:AL80',
+        '0:D80',
+      ]);
+    });
+
     test('parses subsurface_export.ssrf with correct counts', () async {
       final file = File('subsurface_export.ssrf');
       if (!file.existsSync()) {
@@ -626,6 +732,37 @@ void main() {
         (w) => w.severity == ImportWarningSeverity.error,
       );
       expect(errors, isEmpty);
+    });
+
+    test('does not invent extra tanks from placeholder cylinders', () async {
+      final file = File('subsurface_export.ssrf');
+      if (!file.existsSync()) {
+        markTestSkipped('subsurface_export.ssrf not found in project root');
+        return;
+      }
+
+      final bytes = Uint8List.fromList(await file.readAsBytes());
+      final result = await parser.parse(bytes);
+      final dives = result.entitiesOf(ImportEntityType.dives);
+
+      final tankCounts = dives.map((dive) {
+        final tanks = dive['tanks'] as List<Map<String, dynamic>>?;
+        return tanks?.length ?? 0;
+      }).toList();
+
+      expect(tankCounts, isNotEmpty);
+      expect(tankCounts.reduce((a, b) => a > b ? a : b), 1);
+
+      final dive1 = dives.firstWhere((d) => d['diveNumber'] == 1);
+      final dive1Tanks = dive1['tanks'] as List<Map<String, dynamic>>?;
+      expect(dive1Tanks, isNotNull);
+      expect(dive1Tanks!.length, 1);
+
+      final dive10 = dives.firstWhere((d) => d['diveNumber'] == 10);
+      expect(dive10.containsKey('tanks'), isFalse);
+
+      final dive11 = dives.firstWhere((d) => d['diveNumber'] == 11);
+      expect(dive11.containsKey('tanks'), isFalse);
     });
   });
 }

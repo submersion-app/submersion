@@ -1150,18 +1150,38 @@ class UddfEntityImporter {
       final gasSwitchesData =
           diveData['gasSwitches'] as List<Map<String, dynamic>>?;
       if (gasSwitchesData != null && gasSwitchesData.isNotEmpty) {
+        final tankIdByRef = <String, String>{};
+        final tanksData = diveData['tanks'] as List<Map<String, dynamic>>?;
+        if (tanksData != null) {
+          for (var i = 0; i < tanks.length && i < tanksData.length; i++) {
+            final tank = tanks[i];
+            final tankData = tanksData[i];
+            final ref = (tankData['uddfTankId'] as String?)?.trim();
+            if (ref != null && ref.isNotEmpty) {
+              tankIdByRef[ref] = tank.id;
+            }
+          }
+        }
+
         final switches = gasSwitchesData
-            .where((gs) => gs['timestamp'] != null)
-            .map(
-              (gs) => GasSwitch(
+            .map((gs) {
+              final timestamp = gs['timestamp'] as int?;
+              if (timestamp == null) return null;
+              final tankRef = (gs['tankRef'] as String?)?.trim();
+              final tankId = tankRef != null && tankRef.isNotEmpty
+                  ? tankIdByRef[tankRef]
+                  : null;
+              if (tankId == null || tankId.isEmpty) return null;
+              return GasSwitch(
                 id: _uuid.v4(),
                 diveId: diveId,
-                timestamp: gs['timestamp'] as int,
-                tankId: gs['tankRef'] as String? ?? '',
+                timestamp: timestamp,
+                tankId: tankId,
                 depth: gs['depth'] as double?,
                 createdAt: now,
-              ),
-            )
+              );
+            })
+            .whereType<GasSwitch>()
             .toList();
         if (switches.isNotEmpty) {
           await repos.diveRepository.insertGasSwitches(switches);
@@ -1248,6 +1268,7 @@ class UddfEntityImporter {
 
         return DiveTank(
           id: _uuid.v4(),
+          name: t['name'] as String?,
           volume: t['volume'] as double?,
           startPressure: t['startPressure'] as int?,
           endPressure: t['endPressure'] as int?,
