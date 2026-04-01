@@ -36,14 +36,10 @@ class TankExtractor {
       final o2 = row['o2Percent_$i'];
       final he = row['hePercent_$i'];
 
-      // Skip groups where all values are null.
-      if (volume == null &&
-          start == null &&
-          end == null &&
-          o2 == null &&
-          he == null) {
-        continue;
-      }
+      // A numbered tank group requires at least a volume to be meaningful.
+      // Pressure-only entries without a volume are incomplete (e.g. Subsurface
+      // sometimes splits data across column groups) and are skipped.
+      if (_toDouble(volume) == null) continue;
 
       tanks.add(
         _buildTank(

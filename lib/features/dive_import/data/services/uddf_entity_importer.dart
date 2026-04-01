@@ -990,6 +990,11 @@ class UddfEntityImporter {
         final uddfSiteId = siteDataMap['uddfId'] as String?;
         if (uddfSiteId != null) linkedSite = siteIdMapping[uddfSiteId];
       }
+      // Fallback: CSV imports store siteId directly on the dive map.
+      if (linkedSite == null) {
+        final directSiteId = diveData['siteId'] as String?;
+        if (directSiteId != null) linkedSite = siteIdMapping[directSiteId];
+      }
 
       // Link to imported trip
       String? linkedTripId;

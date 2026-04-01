@@ -35,6 +35,7 @@ class SiteExtractor implements EntityExtractor<Map<String, dynamic>> {
 
       sites.add({
         'id': id,
+        'uddfId': id,
         'name': name,
         'latitude': gps?.$1,
         'longitude': gps?.$2,
