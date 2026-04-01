@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 
 void main() {
   group('BuhlmannAlgorithm', () {
@@ -36,6 +37,20 @@ void main() {
     });
 
     group('NDL calculations', () {
+      test(
+        'should return a raw Buhlmann NDL near 17 minutes at 30m on air',
+        () {
+          final ndl = algorithm.calculateNdl(
+            depthMeters: 30.0,
+            fN2: airN2Fraction,
+            fHe: 0.0,
+          );
+
+          expect(ndl, greaterThanOrEqualTo(15 * 60));
+          expect(ndl, lessThanOrEqualTo(18 * 60));
+        },
+      );
+
       test('should return reasonable NDL for shallow dive on air', () {
         // At 10m on air, NDL should be very long (near infinite)
         final ndl = algorithm.calculateNdl(
@@ -92,6 +107,24 @@ void main() {
     });
 
     group('tissue loading', () {
+      test('should reach the half-time midpoint after one half-time', () {
+        final initialPN2 = algorithm.compartments.first.currentPN2;
+        final inspiredN2At30m = calculateInspiredN2(4.0, airN2Fraction);
+
+        algorithm.calculateSegment(
+          depthMeters: 30.0,
+          durationSeconds: 4 * 60, // Compartment 1 N2 half-time = 4 min
+          fN2: airN2Fraction,
+          fHe: 0.0,
+        );
+
+        final updatedPN2 = algorithm.compartments.first.currentPN2;
+        final expectedMidpoint =
+            initialPN2 + ((inspiredN2At30m - initialPN2) * 0.5);
+
+        expect(updatedPN2, closeTo(expectedMidpoint, 0.0001));
+      });
+
       test('should load tissues at constant depth', () {
         final initialStatus = algorithm.getDecoStatus(currentDepth: 0);
         final initialLoading = initialStatus.leadingCompartmentLoading;
@@ -151,6 +184,29 @@ void main() {
           lessThan(loadedStatus.leadingCompartmentLoading),
         );
       });
+
+      test(
+        'should approach inspired nitrogen pressure after very long exposure',
+        () {
+          final inspiredN2At30m = calculateInspiredN2(4.0, airN2Fraction);
+
+          algorithm.calculateSegment(
+            depthMeters: 30.0,
+            durationSeconds: 8000 * 60,
+            fN2: airN2Fraction,
+            fHe: 0.0,
+          );
+
+          for (int i = 0; i < algorithm.compartments.length; i++) {
+            expect(
+              algorithm.compartments[i].currentPN2,
+              closeTo(inspiredN2At30m, 0.001),
+              reason:
+                  'Compartment ${i + 1} should converge to inspired nitrogen pressure',
+            );
+          }
+        },
+      );
     });
 
     group('ceiling calculation', () {
@@ -278,6 +334,101 @@ void main() {
           expect(lastBottomNdl, lessThan(firstBottomNdl));
         }
       });
+
+      test(
+        'processProfileWithGasSegments should match processProfile for a single gas',
+        () {
+          final depths = <double>[0.0, 15.0, 30.0, 30.0, 15.0, 6.0, 0.0];
+          final timestamps = <int>[0, 60, 120, 1200, 1320, 1500, 1620];
+
+          final singleGasAlgorithm = BuhlmannAlgorithm(gfLow: 1.0, gfHigh: 1.0);
+          final gasAwareAlgorithm = BuhlmannAlgorithm(gfLow: 1.0, gfHigh: 1.0);
+
+          final singleGasStatuses = singleGasAlgorithm.processProfile(
+            depths: depths,
+            timestamps: timestamps,
+            fN2: airN2Fraction,
+            fHe: 0.0,
+          );
+
+          final gasAwareStatuses = gasAwareAlgorithm
+              .processProfileWithGasSegments(
+                depths: depths,
+                timestamps: timestamps,
+                gasSegments: const [
+                  ProfileGasSegment(
+                    startTimestamp: 0,
+                    fN2: airN2Fraction,
+                    fHe: 0.0,
+                  ),
+                ],
+              );
+
+          expect(gasAwareStatuses.length, equals(singleGasStatuses.length));
+          for (int i = 0; i < singleGasStatuses.length; i++) {
+            expect(
+              gasAwareStatuses[i].ndlSeconds,
+              equals(singleGasStatuses[i].ndlSeconds),
+              reason: 'NDL mismatch at index $i',
+            );
+            expect(
+              gasAwareStatuses[i].ceilingMeters,
+              closeTo(singleGasStatuses[i].ceilingMeters, 0.0001),
+              reason: 'Ceiling mismatch at index $i',
+            );
+            expect(
+              gasAwareStatuses[i].ttsSeconds,
+              equals(singleGasStatuses[i].ttsSeconds),
+              reason: 'TTS mismatch at index $i',
+            );
+          }
+        },
+      );
+
+      test(
+        'processProfileWithGasSegments should improve deco metrics after switching to EAN32',
+        () {
+          final depths = <double>[0.0, 15.0, 30.0, 30.0, 21.0, 12.0, 6.0, 0.0];
+          final timestamps = <int>[0, 60, 120, 1200, 1320, 1440, 1560, 1680];
+
+          final allAirAlgorithm = BuhlmannAlgorithm(gfLow: 1.0, gfHigh: 1.0);
+          final switchedAlgorithm = BuhlmannAlgorithm(gfLow: 1.0, gfHigh: 1.0);
+
+          final allAirStatuses = allAirAlgorithm.processProfile(
+            depths: depths,
+            timestamps: timestamps,
+            fN2: airN2Fraction,
+            fHe: 0.0,
+          );
+
+          final switchedStatuses = switchedAlgorithm
+              .processProfileWithGasSegments(
+                depths: depths,
+                timestamps: timestamps,
+                gasSegments: const [
+                  ProfileGasSegment(
+                    startTimestamp: 0,
+                    fN2: airN2Fraction,
+                    fHe: 0.0,
+                  ),
+                  ProfileGasSegment(startTimestamp: 1320, fN2: 0.68, fHe: 0.0),
+                ],
+              );
+
+          expect(
+            switchedStatuses.last.leadingCompartmentLoading,
+            lessThan(allAirStatuses.last.leadingCompartmentLoading),
+          );
+          expect(
+            switchedStatuses.last.ttsSeconds,
+            lessThanOrEqualTo(allAirStatuses.last.ttsSeconds),
+          );
+          expect(
+            switchedStatuses.last.ceilingMeters,
+            lessThanOrEqualTo(allAirStatuses.last.ceilingMeters + 0.0001),
+          );
+        },
+      );
     });
 
     group('decompression schedule', () {
@@ -415,9 +566,26 @@ void main() {
           }
         },
       );
+
+      test(
+        'should match surface M-value benchmarks for representative compartments',
+        () {
+          final comp1M0 = zhl16cN2A[0] + (1.0 / zhl16cN2B[0]);
+          final comp4M0 = zhl16cN2A[3] + (1.0 / zhl16cN2B[3]);
+          final comp16M0 = zhl16cN2A[15] + (1.0 / zhl16cN2B[15]);
+
+          expect(comp1M0, closeTo(3.240098, 0.000001));
+          expect(comp4M0, closeTo(2.034155, 0.000001));
+          expect(comp16M0, closeTo(1.268647, 0.000001));
+        },
+      );
     });
 
     group('helper functions', () {
+      test('air nitrogen fraction should use the normalized 0.7902 value', () {
+        expect(airN2Fraction, closeTo(0.7902, 0.000001));
+      });
+
       test('calculateAmbientPressure should be correct', () {
         expect(calculateAmbientPressure(0), equals(1.0));
         expect(calculateAmbientPressure(10), equals(2.0));
@@ -436,6 +604,110 @@ void main() {
         // Should be less than straight ambient * fraction due to water vapor
         expect(inspiredN2, lessThan(airN2Fraction));
         expect(inspiredN2, greaterThan(0));
+      });
+
+      test(
+        'calculateInspiredN2 should match the alveolar gas benchmark at the surface',
+        () {
+          final inspiredN2 = calculateInspiredN2(1.0, airN2Fraction);
+          expect(inspiredN2, closeTo(0.74065446, 0.000001));
+        },
+      );
+
+      test(
+        'calculateInspiredN2 should scale linearly with nitrogen fraction',
+        () {
+          final inspiredAir = calculateInspiredN2(3.0, airN2Fraction);
+          final inspiredEan50 = calculateInspiredN2(3.0, 0.5);
+
+          expect(
+            inspiredEan50 / inspiredAir,
+            closeTo(0.5 / airN2Fraction, 0.0001),
+          );
+        },
+      );
+    });
+
+    group('gas switching sanity', () {
+      test(
+        'switching to EAN50 at 6m should offgas faster than staying on air',
+        () {
+          final airAlgorithm = BuhlmannAlgorithm(gfLow: 1.0, gfHigh: 1.0);
+          final ean50Algorithm = BuhlmannAlgorithm(gfLow: 1.0, gfHigh: 1.0);
+
+          final preloadedAir = airAlgorithm.compartments[4].copyWith(
+            currentPN2: 2.5,
+          );
+          final preloadedEan50 = ean50Algorithm.compartments[4].copyWith(
+            currentPN2: 2.5,
+          );
+
+          airAlgorithm.setCompartments([
+            ...airAlgorithm.compartments.sublist(0, 4),
+            preloadedAir,
+            ...airAlgorithm.compartments.sublist(5),
+          ]);
+          ean50Algorithm.setCompartments([
+            ...ean50Algorithm.compartments.sublist(0, 4),
+            preloadedEan50,
+            ...ean50Algorithm.compartments.sublist(5),
+          ]);
+
+          airAlgorithm.calculateSegment(
+            depthMeters: 6.0,
+            durationSeconds: 10 * 60,
+            fN2: airN2Fraction,
+            fHe: 0.0,
+          );
+          ean50Algorithm.calculateSegment(
+            depthMeters: 6.0,
+            durationSeconds: 10 * 60,
+            fN2: 0.5,
+            fHe: 0.0,
+          );
+
+          expect(
+            ean50Algorithm.compartments[4].currentPN2,
+            lessThan(airAlgorithm.compartments[4].currentPN2),
+          );
+        },
+      );
+    });
+
+    group('30m air sanity profile', () {
+      test(
+        'compartment 5 should reach the expected pressure after 20 minutes at 30m',
+        () {
+          algorithm.calculateSegment(
+            depthMeters: 30.0,
+            durationSeconds: 20 * 60,
+            fN2: airN2Fraction,
+            fHe: 0.0,
+          );
+
+          expect(
+            algorithm.compartments[4].currentPN2,
+            closeTo(1.692612, 0.0001),
+          );
+        },
+      );
+
+      test('30m for 20 minutes on air should be in deco at GF 100/100', () {
+        algorithm.calculateSegment(
+          depthMeters: 30.0,
+          durationSeconds: 20 * 60,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+        );
+
+        final status = algorithm.getDecoStatus(
+          currentDepth: 30.0,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+        );
+
+        expect(status.inDeco, isTrue);
+        expect(status.ceilingMeters, greaterThan(0.0));
       });
     });
 

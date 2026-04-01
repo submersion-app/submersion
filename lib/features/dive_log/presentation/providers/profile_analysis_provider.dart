@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
@@ -121,6 +123,116 @@ class _ProfileAnalysisProvider {}
 
 final _log = LoggerService.forClass(_ProfileAnalysisProvider);
 
+class ProfileGasResolution {
+  final List<ProfileGasSegment>? gasSegments;
+  final String? warningMessage;
+
+  const ProfileGasResolution({required this.gasSegments, this.warningMessage});
+
+  bool get isValid => warningMessage == null;
+}
+
+class ResidualDecoState<T> {
+  final T? value;
+  final String? warningMessage;
+
+  const ResidualDecoState({this.value, this.warningMessage});
+
+  bool get isValid => warningMessage == null;
+}
+
+String _formatGasSwitchTimestamp(int seconds) {
+  final minutes = seconds ~/ 60;
+  final secs = seconds % 60;
+  return '$minutes:${secs.toString().padLeft(2, '0')}';
+}
+
+/// Builds a time-ordered gas schedule for decompression analysis.
+///
+/// The schedule always starts at timestamp 0 using the primary tank gas when
+/// available, otherwise air. Gas switches then replace the active gas from
+/// their timestamp onward.
+List<ProfileGasSegment> buildProfileGasSegments(
+  Dive dive,
+  List<GasSwitchWithTank> gasSwitches,
+) {
+  final primaryMix = dive.tanks.isNotEmpty
+      ? dive.tanks.first.gasMix
+      : const GasMix();
+
+  final segments = <ProfileGasSegment>[
+    ProfileGasSegment(
+      startTimestamp: 0,
+      fN2: primaryMix.isAir
+          ? airN2Fraction
+          : (100.0 - primaryMix.o2 - primaryMix.he) / 100.0,
+      fHe: primaryMix.he / 100.0,
+    ),
+  ];
+
+  final sortedSwitches = List<GasSwitchWithTank>.from(gasSwitches)
+    ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+  for (final gasSwitch in sortedSwitches) {
+    final nextSegment = ProfileGasSegment(
+      startTimestamp: gasSwitch.timestamp,
+      fN2: gasSwitch.isAir ? airN2Fraction : gasSwitch.n2Fraction,
+      fHe: gasSwitch.heFraction,
+    );
+
+    if (segments.last.startTimestamp == nextSegment.startTimestamp) {
+      segments[segments.length - 1] = nextSegment;
+      continue;
+    }
+
+    segments.add(nextSegment);
+  }
+
+  return segments;
+}
+
+ProfileGasResolution resolveProfileGasSegments(
+  Dive dive,
+  List<GasSwitchWithTank> gasSwitches,
+) {
+  final firstInvalid = gasSwitches.where((s) => !s.isResolved).firstOrNull;
+  if (firstInvalid != null) {
+    return ProfileGasResolution(
+      gasSegments: null,
+      warningMessage:
+          'Calculated deco unavailable: unknown gas switch at '
+          '${_formatGasSwitchTimestamp(firstInvalid.timestamp)}',
+    );
+  }
+
+  return ProfileGasResolution(
+    gasSegments: buildProfileGasSegments(dive, gasSwitches),
+  );
+}
+
+String? inheritedDecoInvalidityWarning(ProfileAnalysis? previousAnalysis) {
+  if (previousAnalysis?.calculatedDecoWarningMessage == null) {
+    return null;
+  }
+
+  return 'Calculated deco unavailable: previous dive has invalid gas-switch data';
+}
+
+ProfileAnalysis invalidateCalculatedDeco(
+  ProfileAnalysis analysis,
+  String warningMessage,
+) {
+  return analysis.copyWith(
+    ceilingCurve: const [],
+    ndlCurve: const [],
+    decoStatuses: const [],
+    gfCurve: const [],
+    surfaceGfCurve: const [],
+    ttsCurve: const [],
+    calculatedDecoWarningMessage: warningMessage,
+  );
+}
+
 /// Creates a ProfileAnalysisService using dive-specific GF when available,
 /// falling back to user settings.
 ProfileAnalysisService _resolveAnalysisService(
@@ -147,14 +259,12 @@ ProfileAnalysisService _resolveAnalysisService(
 /// [ProfileAnalysis].
 ///
 /// Each metric (NDL, ceiling, TTS, CNS) is independently controlled by its
-/// own [MetricDataSource] parameter. When a source is [MetricDataSource.computer]
-/// and computer data exists in the profile, those values take priority over
-/// the Buhlmann-calculated values. Points without computer data fall back to
-/// the calculated values.
+/// own [MetricDataSource] parameter. The selected source is treated literally:
+/// if computer data is selected but unavailable, the metric is rendered blank
+/// instead of falling back to calculated values.
 ///
 /// Returns a tuple of the (possibly overlaid) [ProfileAnalysis] and a
-/// [MetricSourceInfo] reporting the actual source used per metric after
-/// fallback resolution.
+/// [MetricSourceInfo] reporting the selected source for each metric.
 (ProfileAnalysis, MetricSourceInfo) overlayComputerDecoData(
   ProfileAnalysis analysis,
   List<DiveProfilePoint> profile, {
@@ -170,65 +280,72 @@ ProfileAnalysisService _resolveAnalysisService(
   final hasComputerTts = profile.any((p) => p.tts != null && p.tts! > 0);
   final hasComputerCns = profile.any((p) => p.cns != null);
 
-  // Decide per-metric: overlay only when source=computer AND data exists
   final useNdl = ndlSource == MetricDataSource.computer && hasComputerNdl;
   final useCeiling =
       ceilingSource == MetricDataSource.computer && hasComputerCeiling;
   final useTts = ttsSource == MetricDataSource.computer && hasComputerTts;
   final useCns = cnsSource == MetricDataSource.computer && hasComputerCns;
 
-  // Report actual source used (fallback to calculated if no data)
   final sourceInfo = (
-    ndlActual: useNdl ? MetricDataSource.computer : MetricDataSource.calculated,
-    ceilingActual: useCeiling
-        ? MetricDataSource.computer
-        : MetricDataSource.calculated,
-    ttsActual: useTts ? MetricDataSource.computer : MetricDataSource.calculated,
-    cnsActual: useCns ? MetricDataSource.computer : MetricDataSource.calculated,
+    ndlActual: ndlSource,
+    ceilingActual: ceilingSource,
+    ttsActual: ttsSource,
+    cnsActual: cnsSource,
   );
 
-  if (!useNdl && !useCeiling && !useTts && !useCns) {
+  final showComputerNdl = ndlSource == MetricDataSource.computer;
+  final showComputerCeiling = ceilingSource == MetricDataSource.computer;
+  final showComputerTts = ttsSource == MetricDataSource.computer;
+  final showComputerCns = cnsSource == MetricDataSource.computer;
+
+  if (!showComputerNdl &&
+      !showComputerCeiling &&
+      !showComputerTts &&
+      !showComputerCns) {
     return (analysis, sourceInfo);
   }
 
+  List<T> _forwardFillCurve<T>(
+    T defaultValue,
+    T? Function(DiveProfilePoint point) valueForPoint,
+  ) {
+    final values = <T>[];
+    T? lastValue;
+
+    for (final point in profile) {
+      final pointValue = valueForPoint(point);
+      if (pointValue != null) {
+        lastValue = pointValue;
+      }
+      values.add(lastValue ?? defaultValue);
+    }
+
+    return values;
+  }
+
   final overlaid = analysis.copyWith(
-    ndlCurve: useNdl
-        ? List<int>.generate(
-            profile.length,
-            (i) =>
-                profile[i].ndl ??
-                (i < analysis.ndlCurve.length ? analysis.ndlCurve[i] : 0),
-          )
+    ndlCurve: showComputerNdl
+        ? (useNdl ? _forwardFillCurve<int>(0, (point) => point.ndl) : const [])
         : null,
-    ceilingCurve: useCeiling
-        ? List<double>.generate(
-            profile.length,
-            (i) =>
-                profile[i].ceiling ??
-                (i < analysis.ceilingCurve.length
-                    ? analysis.ceilingCurve[i]
-                    : 0.0),
-          )
+    ceilingCurve: showComputerCeiling
+        ? (useCeiling
+              ? _forwardFillCurve<double>(0.0, (point) => point.ceiling)
+              : const [])
         : null,
-    ttsCurve: useTts
-        ? List<int>.generate(profile.length, (i) {
-            final computerTts = profile[i].tts;
-            if (computerTts != null && computerTts > 0) return computerTts;
-            if (analysis.ttsCurve != null && i < analysis.ttsCurve!.length) {
-              return analysis.ttsCurve![i];
-            }
-            return 0;
-          })
+    ttsCurve: showComputerTts
+        ? (useTts
+              ? _forwardFillCurve<int>(0, (point) {
+                  final computerTts = point.tts;
+                  return computerTts != null && computerTts > 0
+                      ? computerTts
+                      : null;
+                })
+              : const [])
         : null,
-    cnsCurve: useCns
-        ? List<double>.generate(
-            profile.length,
-            (i) =>
-                profile[i].cns ??
-                (analysis.cnsCurve != null && i < analysis.cnsCurve!.length
-                    ? analysis.cnsCurve![i]
-                    : 0.0),
-          )
+    cnsCurve: showComputerCns
+        ? (useCns
+              ? _forwardFillCurve<double>(0.0, (point) => point.cns)
+              : const [])
         : null,
   );
 
@@ -259,6 +376,12 @@ final profileAnalysisServiceProvider = Provider<ProfileAnalysisService>((ref) {
   );
 });
 
+/// Whether profile analysis should run on a background isolate.
+///
+/// Tests can override this to `false` to execute analysis inline and avoid
+/// Flutter test compiler/isolate instability.
+final useBackgroundProfileAnalysisProvider = Provider<bool>((ref) => true);
+
 /// Input parameters for running profile analysis on a background isolate.
 ///
 /// All fields must be isolate-safe (primitives, lists, enums, simple classes).
@@ -286,6 +409,7 @@ class _ProfileAnalysisInput {
   final double scrVo2;
   final List<TissueCompartment>? startCompartments;
   final double startOtu;
+  final List<ProfileGasSegment>? gasSegments;
 
   const _ProfileAnalysisInput({
     required this.gfLow,
@@ -311,6 +435,7 @@ class _ProfileAnalysisInput {
     this.scrVo2 = ScrCalculator.defaultVo2,
     this.startCompartments,
     this.startOtu = 0.0,
+    this.gasSegments,
   });
 }
 
@@ -343,6 +468,7 @@ ProfileAnalysis _runProfileAnalysis(_ProfileAnalysisInput input) {
     scrVo2: input.scrVo2,
     startCompartments: input.startCompartments,
     startOtu: input.startOtu,
+    gasSegments: input.gasSegments,
   );
 }
 
@@ -379,6 +505,7 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
       return null;
     }
 
+    final repository = ref.watch(diveRepositoryProvider);
     // Resolve GF values: use dive-specific if provided, else user settings
     final double gfLow;
     final double gfHigh;
@@ -398,10 +525,10 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
     final depths = dive.profile.map((p) => p.depth).toList();
     final timestamps = dive.profile.map((p) => p.timestamp).toList();
 
-    // Try to get per-tank pressure data first (works for single and multi-tank)
+    // Try to get multi-tank pressure data first
     List<double>? pressures;
-    if (dive.tanks.isNotEmpty) {
-      // Load per-tank pressure data from tank_pressure_profiles table
+    if (dive.tanks.length > 1) {
+      // Load per-tank pressure data for multi-tank dives
       final tankPressureRepo = ref.watch(tankPressureRepositoryProvider);
       final tankPressures = await tankPressureRepo.getTankPressuresForDive(
         diveId,
@@ -451,54 +578,65 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
         : null;
 
     // Compute residual CNS (skip if this dive has computer CNS data)
-    final startCns = computerCns != null
-        ? computerCns.cnsStart
+    final residualCns = computerCns != null
+        ? const ResidualDecoState<double>(value: 0.0)
         : await _computeResidualCns(ref, diveId);
 
     // Compute residual tissue state from previous dives (48h cutoff)
-    final startCompartments = await _computeResidualTissueState(ref, diveId);
+    final residualTissueState = await _computeResidualTissueState(ref, diveId);
 
     // Compute cumulative OTU from earlier same-day dives
     final startOtu = await _computeResidualOtu(ref, diveId);
+
+    final gasSwitches = await repository.getGasSwitchesForDive(diveId);
+    final gasResolution = resolveProfileGasSegments(dive, gasSwitches);
 
     // Run Buhlmann analysis on a background isolate to keep UI responsive
     _log.debug(
       'Analyzing profile for dive $diveId with ${depths.length} points, '
       'pressures: ${pressures?.length ?? 0}, mode: ${dive.diveMode}, '
-      'startCns: ${startCns.toStringAsFixed(1)}',
+      'startCns: ${(computerCns?.cnsStart ?? residualCns.value ?? 0.0).toStringAsFixed(1)}',
     );
-    final analysis = await compute(
-      _runProfileAnalysis,
-      _ProfileAnalysisInput(
-        gfLow: gfLow,
-        gfHigh: gfHigh,
-        ppO2WarningThreshold: ref.watch(ppO2MaxWorkingProvider),
-        ppO2CriticalThreshold: ref.watch(ppO2MaxDecoProvider),
-        cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
-        ascentRateWarning: ref.watch(ascentRateWarningProvider),
-        ascentRateCritical: ref.watch(ascentRateCriticalProvider),
-        lastStopDepth: ref.watch(lastStopDepthProvider),
-        diveId: diveId,
-        depths: depths,
-        timestamps: timestamps,
-        o2Fraction: o2Fraction,
-        heFraction: heFraction,
-        startCns: startCns,
-        pressures: pressures,
-        diveMode: dive.diveMode,
-        setpointHigh: dive.setpointHigh,
-        setpointLow: dive.setpointLow,
-        scrInjectionRate: dive.scrInjectionRate,
-        scrSupplyO2Percent: dive.diluentGas?.o2,
-        scrVo2: dive.assumedVo2 ?? 1.3,
-        startCompartments: startCompartments,
-        startOtu: startOtu,
-      ),
+    final analysisInput = _ProfileAnalysisInput(
+      gfLow: gfLow,
+      gfHigh: gfHigh,
+      ppO2WarningThreshold: ref.watch(ppO2MaxWorkingProvider),
+      ppO2CriticalThreshold: ref.watch(ppO2MaxDecoProvider),
+      cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
+      ascentRateWarning: ref.watch(ascentRateWarningProvider),
+      ascentRateCritical: ref.watch(ascentRateCriticalProvider),
+      lastStopDepth: ref.watch(lastStopDepthProvider),
+      diveId: diveId,
+      depths: depths,
+      timestamps: timestamps,
+      o2Fraction: o2Fraction,
+      heFraction: heFraction,
+      startCns: computerCns?.cnsStart ?? residualCns.value ?? 0.0,
+      pressures: pressures,
+      diveMode: dive.diveMode,
+      setpointHigh: dive.setpointHigh,
+      setpointLow: dive.setpointLow,
+      scrInjectionRate: dive.scrInjectionRate,
+      scrSupplyO2Percent: dive.diluentGas?.o2,
+      scrVo2: dive.assumedVo2 ?? 1.3,
+      startCompartments: residualTissueState.value,
+      startOtu: startOtu,
+      gasSegments: gasResolution.gasSegments,
     );
+    final analysis = ref.watch(useBackgroundProfileAnalysisProvider)
+        ? await compute(_runProfileAnalysis, analysisInput)
+        : _runProfileAnalysis(analysisInput);
+
+    final inheritedWarning =
+        residualCns.warningMessage ?? residualTissueState.warningMessage;
+    final decoWarning = gasResolution.warningMessage ?? inheritedWarning;
+    final analysisWithGasWarning = decoWarning == null
+        ? analysis
+        : invalidateCalculatedDeco(analysis, decoWarning);
 
     // Overlay computer-reported deco data where available
     final (overlaid, sourceInfo) = overlayComputerDecoData(
-      analysis,
+      analysisWithGasWarning,
       dive.profile,
       ndlSource: ndlSource,
       ceilingSource: ceilingSource,
@@ -541,15 +679,21 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
 /// Fetches the previous dive, gets its full profile analysis (which itself
 /// recursively accounts for even earlier dives), then applies exponential
 /// decay based on the surface interval.
-Future<double> _computeResidualCns(Ref ref, String diveId) async {
+Future<ResidualDecoState<double>> _computeResidualCns(
+  Ref ref,
+  String diveId,
+) async {
   try {
     final repository = ref.watch(diveRepositoryProvider);
 
     final surfaceInterval = await repository.getSurfaceInterval(diveId);
-    if (surfaceInterval == null || surfaceInterval.inHours >= 24) return 0.0;
+    if (surfaceInterval == null || surfaceInterval.inHours >= 24) {
+      return const ResidualDecoState<double>(value: 0.0);
+    }
 
     final previousDive = await repository.getPreviousDive(diveId);
-    if (previousDive == null) return 0.0;
+    if (previousDive == null)
+      return const ResidualDecoState<double>(value: 0.0);
 
     // Short-circuit: if the legend's CNS source is set to computer and the
     // previous dive has computer CNS, use its last CNS sample directly
@@ -562,9 +706,11 @@ Future<double> _computeResidualCns(Ref ref, String diveId) async {
     if (useComputerCns) {
       final prevComputerCns = extractComputerCns(previousDive.profile);
       if (prevComputerCns != null) {
-        return CnsTable.cnsAfterSurfaceInterval(
-          prevComputerCns.cnsEnd,
-          surfaceInterval.inMinutes,
+        return ResidualDecoState<double>(
+          value: CnsTable.cnsAfterSurfaceInterval(
+            prevComputerCns.cnsEnd,
+            surfaceInterval.inMinutes,
+          ),
         );
       }
     }
@@ -575,11 +721,19 @@ Future<double> _computeResidualCns(Ref ref, String diveId) async {
     final previousAnalysis = await ref.read(
       profileAnalysisProvider(previousDive.id).future,
     );
-    if (previousAnalysis == null) return 0.0;
+    final inheritedWarning = inheritedDecoInvalidityWarning(previousAnalysis);
+    if (inheritedWarning != null) {
+      return ResidualDecoState<double>(warningMessage: inheritedWarning);
+    }
+    if (previousAnalysis == null) {
+      return const ResidualDecoState<double>(value: 0.0);
+    }
 
-    return CnsTable.cnsAfterSurfaceInterval(
-      previousAnalysis.o2Exposure.cnsEnd,
-      surfaceInterval.inMinutes,
+    return ResidualDecoState<double>(
+      value: CnsTable.cnsAfterSurfaceInterval(
+        previousAnalysis.o2Exposure.cnsEnd,
+        surfaceInterval.inMinutes,
+      ),
     );
   } catch (e, stackTrace) {
     _log.error(
@@ -587,7 +741,7 @@ Future<double> _computeResidualCns(Ref ref, String diveId) async {
       error: e,
       stackTrace: stackTrace,
     );
-    return 0.0;
+    return const ResidualDecoState<double>(value: 0.0);
   }
 }
 
@@ -600,7 +754,7 @@ Future<double> _computeResidualCns(Ref ref, String diveId) async {
 ///
 /// Returns null if no previous dive exists or surface interval >= 48 hours
 /// (tissues are effectively surface-saturated).
-Future<List<TissueCompartment>?> _computeResidualTissueState(
+Future<ResidualDecoState<List<TissueCompartment>>> _computeResidualTissueState(
   Ref ref,
   String diveId,
 ) async {
@@ -608,10 +762,14 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
     final repository = ref.watch(diveRepositoryProvider);
 
     final surfaceInterval = await repository.getSurfaceInterval(diveId);
-    if (surfaceInterval == null || surfaceInterval.inHours >= 48) return null;
+    if (surfaceInterval == null || surfaceInterval.inHours >= 48) {
+      return const ResidualDecoState<List<TissueCompartment>>();
+    }
 
     final previousDive = await repository.getPreviousDive(diveId);
-    if (previousDive == null) return null;
+    if (previousDive == null) {
+      return const ResidualDecoState<List<TissueCompartment>>();
+    }
 
     // Read (not watch) the previous dive's full analysis to avoid cascading
     // Riverpod invalidations. Each profileAnalysisProvider independently
@@ -619,8 +777,14 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
     final previousAnalysis = await ref.read(
       profileAnalysisProvider(previousDive.id).future,
     );
+    final inheritedWarning = inheritedDecoInvalidityWarning(previousAnalysis);
+    if (inheritedWarning != null) {
+      return ResidualDecoState<List<TissueCompartment>>(
+        warningMessage: inheritedWarning,
+      );
+    }
     if (previousAnalysis == null || previousAnalysis.decoStatuses.isEmpty) {
-      return null;
+      return const ResidualDecoState<List<TissueCompartment>>();
     }
 
     // Extract end-of-dive compartment state
@@ -639,14 +803,16 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
       fHe: 0.0,
     );
 
-    return algorithm.compartments;
+    return ResidualDecoState<List<TissueCompartment>>(
+      value: algorithm.compartments,
+    );
   } catch (e, stackTrace) {
     _log.error(
       'Failed to calculate residual tissue state for: $diveId',
       error: e,
       stackTrace: stackTrace,
     );
-    return null;
+    return const ResidualDecoState<List<TissueCompartment>>();
   }
 }
 
@@ -724,7 +890,8 @@ final residualTissueStateProvider =
       ref,
       diveId,
     ) async {
-      return _computeResidualTissueState(ref, diveId);
+      final residualState = await _computeResidualTissueState(ref, diveId);
+      return residualState.value;
     });
 
 /// Provider that exposes the residual OTU from earlier same-day dives.

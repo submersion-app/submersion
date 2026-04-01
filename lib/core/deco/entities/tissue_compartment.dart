@@ -40,7 +40,7 @@ class TissueCompartment extends Equatable {
     required this.mValueBN2,
     required this.mValueAHe,
     required this.mValueBHe,
-    this.currentPN2 = 0.79, // Surface N2 tension at sea level
+    this.currentPN2 = 0.74065446, // Inspired surface N2 tension at sea level
     this.currentPHe = 0.0,
   });
 

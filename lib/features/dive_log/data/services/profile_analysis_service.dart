@@ -9,6 +9,7 @@ import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
@@ -267,6 +268,9 @@ class ProfileAnalysis {
   /// Dive duration in seconds
   final int durationSeconds;
 
+  /// Visible warning to show when calculated decompression is unavailable or unreliable.
+  final String? calculatedDecoWarningMessage;
+
   const ProfileAnalysis({
     required this.ascentRates,
     required this.ascentRateStats,
@@ -294,6 +298,7 @@ class ProfileAnalysis {
     required this.averageDepth,
     required this.maxDepthTimestamp,
     required this.durationSeconds,
+    this.calculatedDecoWarningMessage,
   });
 
   /// Whether diver went into decompression obligation
@@ -381,6 +386,7 @@ class ProfileAnalysis {
     double? averageDepth,
     int? maxDepthTimestamp,
     int? durationSeconds,
+    String? calculatedDecoWarningMessage,
   }) {
     return ProfileAnalysis(
       ascentRates: ascentRates ?? this.ascentRates,
@@ -409,6 +415,8 @@ class ProfileAnalysis {
       averageDepth: averageDepth ?? this.averageDepth,
       maxDepthTimestamp: maxDepthTimestamp ?? this.maxDepthTimestamp,
       durationSeconds: durationSeconds ?? this.durationSeconds,
+      calculatedDecoWarningMessage:
+          calculatedDecoWarningMessage ?? this.calculatedDecoWarningMessage,
     );
   }
 
@@ -436,6 +444,7 @@ class ProfileAnalysis {
       averageDepth: 0,
       maxDepthTimestamp: 0,
       durationSeconds: 0,
+      calculatedDecoWarningMessage: null,
     );
   }
 }
@@ -493,6 +502,8 @@ class ProfileAnalysisService {
   /// [startCompartments] is optional pre-loaded tissue state from a previous
   /// dive (must have exactly [zhl16CompartmentCount] elements if provided).
   /// [startOtu] is cumulative OTU from earlier same-day dives (non-negative).
+  /// [gasSegments] optionally provides a time-ordered gas schedule for
+  /// decompression calculations across the profile.
   ProfileAnalysis analyze({
     required String diveId,
     required List<double> depths,
@@ -510,6 +521,7 @@ class ProfileAnalysisService {
     double scrVo2 = ScrCalculator.defaultVo2,
     List<TissueCompartment>? startCompartments,
     double startOtu = 0.0,
+    List<ProfileGasSegment>? gasSegments,
   }) {
     if (depths.isEmpty || depths.length != timestamps.length) {
       return ProfileAnalysis.empty();
@@ -543,12 +555,18 @@ class ProfileAnalysisService {
     } else {
       _buhlmannAlgorithm.reset();
     }
-    final decoStatuses = _buhlmannAlgorithm.processProfile(
-      depths: depths,
-      timestamps: timestamps,
-      fN2: n2Fraction,
-      fHe: heFraction,
-    );
+    final decoStatuses = gasSegments == null
+        ? _buhlmannAlgorithm.processProfile(
+            depths: depths,
+            timestamps: timestamps,
+            fN2: n2Fraction,
+            fHe: heFraction,
+          )
+        : _buhlmannAlgorithm.processProfileWithGasSegments(
+            depths: depths,
+            timestamps: timestamps,
+            gasSegments: gasSegments,
+          );
     final ceilingCurve = decoStatuses.map((s) => s.ceilingMeters).toList();
     final ndlCurve = decoStatuses.map((s) => s.ndlSeconds).toList();
 

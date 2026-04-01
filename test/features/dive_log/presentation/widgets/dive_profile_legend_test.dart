@@ -293,4 +293,39 @@ void main() {
       expect(find.text('2'), findsOneWidget);
     });
   });
+
+  group('Invalid gas-switch warning', () {
+    testWidgets(
+      'shows a visible caution icon beside more options with tooltip text',
+      (tester) async {
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            ],
+            child: DiveProfileLegend(
+              config: const ProfileLegendConfig(
+                hasCeilingCurve: true,
+                calculatedDecoWarningMessage:
+                    'Calculated deco unavailable: unknown gas switch at 18:42',
+              ),
+              zoomLevel: 1.0,
+              onZoomIn: () {},
+              onZoomOut: () {},
+              onResetZoom: () {},
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
+        expect(find.byIcon(Icons.tune), findsOneWidget);
+
+        final iconButton = find.byTooltip(
+          'Calculated deco unavailable: unknown gas switch at 18:42',
+        );
+        expect(iconButton, findsOneWidget);
+      },
+    );
+  });
 }

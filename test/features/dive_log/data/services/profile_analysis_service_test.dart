@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 
@@ -155,6 +156,90 @@ void main() {
             contains('non-negative'),
           ),
         ),
+      );
+    });
+
+    test('single gas segment matches single-gas analysis', () {
+      final depths = <double>[];
+      final timestamps = <int>[];
+      for (int t = 0; t <= 20 * 60; t += 60) {
+        timestamps.add(t);
+        depths.add(24.0);
+      }
+
+      final legacy = service.analyze(
+        diveId: 'legacy-single-gas',
+        depths: depths,
+        timestamps: timestamps,
+        o2Fraction: 0.21,
+      );
+
+      final segmented = service.analyze(
+        diveId: 'segmented-single-gas',
+        depths: depths,
+        timestamps: timestamps,
+        gasSegments: const [
+          ProfileGasSegment(startTimestamp: 0, fN2: airN2Fraction, fHe: 0.0),
+        ],
+      );
+
+      expect(segmented.ndlCurve.length, equals(legacy.ndlCurve.length));
+      for (int i = 0; i < legacy.ndlCurve.length; i++) {
+        expect(
+          segmented.ndlCurve[i],
+          closeTo(legacy.ndlCurve[i], 1),
+          reason: 'Single-gas segmented analysis should match legacy path',
+        );
+        expect(
+          segmented.ceilingCurve[i],
+          closeTo(legacy.ceilingCurve[i], 0.001),
+        );
+        expect(segmented.ttsCurve![i], closeTo(legacy.ttsCurve![i], 1));
+      }
+    });
+
+    test('switching to EAN32 reduces decompression burden versus all air', () {
+      final depths = <double>[];
+      final timestamps = <int>[];
+
+      for (int t = 0; t <= 15 * 60; t += 60) {
+        timestamps.add(t);
+        depths.add(30.0);
+      }
+      for (int t = 16 * 60; t <= 25 * 60; t += 60) {
+        timestamps.add(t);
+        depths.add(6.0);
+      }
+
+      final allAir = service.analyze(
+        diveId: 'all-air',
+        depths: depths,
+        timestamps: timestamps,
+        o2Fraction: 0.21,
+      );
+
+      final switched = service.analyze(
+        diveId: 'air-to-ean32',
+        depths: depths,
+        timestamps: timestamps,
+        gasSegments: const [
+          ProfileGasSegment(startTimestamp: 0, fN2: airN2Fraction, fHe: 0.0),
+          ProfileGasSegment(startTimestamp: 16 * 60, fN2: 0.68, fHe: 0.0),
+        ],
+      );
+
+      expect(
+        switched.decoStatuses.last.compartments.first.currentPN2,
+        lessThan(allAir.decoStatuses.last.compartments.first.currentPN2),
+      );
+      expect(
+        switched.ceilingCurve.last,
+        lessThanOrEqualTo(allAir.ceilingCurve.last),
+      );
+      expect(switched.ttsCurve!.last, lessThanOrEqualTo(allAir.ttsCurve!.last));
+      expect(
+        switched.ndlCurve.last,
+        greaterThanOrEqualTo(allAir.ndlCurve.last),
       );
     });
   });

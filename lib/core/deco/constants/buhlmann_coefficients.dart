@@ -146,7 +146,7 @@ const double surfacePressureBar = 1.0;
 const double waterPressureGradient = 1.0;
 
 /// Nitrogen fraction in air.
-const double airN2Fraction = 0.79;
+const double airN2Fraction = 0.7902;
 
 /// Oxygen fraction in air.
 const double airO2Fraction = 0.21;

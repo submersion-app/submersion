@@ -38,6 +38,7 @@ class ProfileLegendConfig {
   final bool hasTtsData;
   final bool hasCnsData;
   final bool hasOtuData;
+  final String? calculatedDecoWarningMessage;
 
   const ProfileLegendConfig({
     this.hasTemperatureData = false,
@@ -65,6 +66,7 @@ class ProfileLegendConfig {
     this.hasTtsData = false,
     this.hasCnsData = false,
     this.hasOtuData = false,
+    this.calculatedDecoWarningMessage,
   });
 
   bool get hasTankListSection =>
@@ -182,7 +184,26 @@ class DiveProfileLegend extends ConsumerWidget {
                   ),
                 // "More" button flows right after the last toggle
                 if (config.hasSecondaryToggles)
-                  _MoreOptionsButton(config: config, legendState: legendState),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _MoreOptionsButton(
+                        config: config,
+                        legendState: legendState,
+                      ),
+                      if (config.calculatedDecoWarningMessage != null) ...[
+                        const SizedBox(width: 2),
+                        Tooltip(
+                          message: config.calculatedDecoWarningMessage!,
+                          child: Icon(
+                            Icons.warning_amber_rounded,
+                            size: 18,
+                            color: Colors.amber.shade700,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
               ],
             ),
           ),
