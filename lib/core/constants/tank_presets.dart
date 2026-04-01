@@ -39,7 +39,7 @@ class TankPresets {
   static const al40 = TankPreset(
     name: 'al40',
     displayName: 'AL40',
-    volumeLiters: 5.8,
+    volumeLiters: 5.7, // 350 in³
     workingPressureBar: 206.843, // 3000 psi
     material: TankMaterial.aluminum,
     description: 'Aluminum 40 cu ft (pony)',
@@ -150,7 +150,7 @@ class TankPresets {
   static const al40Stage = TankPreset(
     name: 'al40stage',
     displayName: 'AL40 Stage',
-    volumeLiters: 5.8,
+    volumeLiters: 5.7, // 350 in³
     workingPressureBar: 206.843, // 3000 psi
     material: TankMaterial.aluminum,
     description: 'Aluminum 40 cu ft stage tank',
