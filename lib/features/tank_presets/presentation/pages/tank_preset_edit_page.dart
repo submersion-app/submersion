@@ -74,7 +74,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
 
           // Convert pressure to user's preferred units
           _workingPressureController.text = units
-              .convertPressure(preset.workingPressureBar.toDouble())
+              .convertPressure(preset.workingPressureBar)
               .toStringAsFixed(0);
         });
       }
@@ -266,7 +266,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
     }
 
     // Calculate the values for display
-    final pressureBar = units.pressureToBar(pressureDisplay).round();
+    final pressureBar = units.pressureToBar(pressureDisplay);
     double volumeLiters;
     double volumeCuft;
 
@@ -302,7 +302,9 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             Text(
-              context.l10n.tankPresets_edit_workingPressureBar(pressureBar),
+              context.l10n.tankPresets_edit_workingPressureBar(
+                pressureBar.round(),
+              ),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
@@ -330,7 +332,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
       final description = _descriptionController.text.trim();
 
       // Convert to storage units (metric)
-      final workingPressureBar = units.pressureToBar(pressureDisplay).round();
+      final workingPressureBar = units.pressureToBar(pressureDisplay);
 
       double volumeLiters;
       if (settings.volumeUnit == VolumeUnit.cubicFeet) {

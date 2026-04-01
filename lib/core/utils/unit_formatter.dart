@@ -109,7 +109,7 @@ class UnitFormatter {
   /// For cuft, calculates gas capacity from physical volume and working pressure
   String formatTankVolume(
     double? volumeLiters,
-    int? workingPressureBar, {
+    double? workingPressureBar, {
     int decimals = 0,
   }) {
     if (volumeLiters == null) return '--';
@@ -117,7 +117,7 @@ class UnitFormatter {
     if (settings.volumeUnit == VolumeUnit.cubicFeet) {
       if (workingPressureBar != null && workingPressureBar > 0) {
         // Calculate gas capacity in cubic feet with Z-factor correction
-        final z = TankPreset.zFactor(workingPressureBar.toDouble());
+        final z = TankPreset.zFactor(workingPressureBar);
         final cuft = (volumeLiters * workingPressureBar) / (28.3168 * z);
         return '${cuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
       } else {

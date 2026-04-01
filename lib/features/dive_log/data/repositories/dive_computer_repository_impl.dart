@@ -1007,8 +1007,8 @@ class DiveComputerRepository {
                 id: Value(tankId),
                 diveId: Value(diveId),
                 volume: Value(tank.volumeLiters),
-                startPressure: Value(tank.startPressure?.round()),
-                endPressure: Value(tank.endPressure?.round()),
+                startPressure: Value(tank.startPressure),
+                endPressure: Value(tank.endPressure),
                 o2Percent: Value(tank.o2Percent),
                 hePercent: Value(tank.hePercent),
                 tankOrder: Value(tank.index),
@@ -1097,17 +1097,17 @@ class DiveComputerRepository {
               )..where((t) => t.id.equals(tankId))).write(
                 DiveTanksCompanion(
                   startPressure: tank.startPressure == null
-                      ? Value(sorted.first.pressure.round())
+                      ? Value(sorted.first.pressure)
                       : const Value.absent(),
                   endPressure: tank.endPressure == null
-                      ? Value(sorted.last.pressure.round())
+                      ? Value(sorted.last.pressure)
                       : const Value.absent(),
                 ),
               );
               _log.info(
                 'Derived tank $tankIndex pressures from profile: '
-                'start=${sorted.first.pressure.round()} bar, '
-                'end=${sorted.last.pressure.round()} bar',
+                'start=${sorted.first.pressure.toStringAsFixed(1)} bar, '
+                'end=${sorted.last.pressure.toStringAsFixed(1)} bar',
               );
             }
           }

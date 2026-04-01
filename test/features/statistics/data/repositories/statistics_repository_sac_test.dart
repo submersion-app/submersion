@@ -58,8 +58,8 @@ void main() {
           DiveTanksCompanion(
             id: Value('tank-$diveId'),
             diveId: Value(diveId),
-            startPressure: Value(startPressure),
-            endPressure: Value(endPressure),
+            startPressure: Value(startPressure.toDouble()),
+            endPressure: Value(endPressure.toDouble()),
             volume: Value(volume),
             tankRole: Value(tankRole),
             o2Percent: const Value(21.0),

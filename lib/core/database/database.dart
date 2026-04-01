@@ -324,10 +324,9 @@ class DiveTanks extends Table {
       text().references(Dives, #id, onDelete: KeyAction.cascade)();
   TextColumn get equipmentId => text().nullable().references(Equipment, #id)();
   RealColumn get volume => real().nullable()(); // liters
-  IntColumn get workingPressure =>
-      integer().nullable()(); // bar - rated pressure
-  IntColumn get startPressure => integer().nullable()(); // bar
-  IntColumn get endPressure => integer().nullable()(); // bar
+  RealColumn get workingPressure => real().nullable()(); // bar - rated pressure
+  RealColumn get startPressure => real().nullable()(); // bar
+  RealColumn get endPressure => real().nullable()(); // bar
   RealColumn get o2Percent => real().withDefault(const Constant(21.0))();
   RealColumn get hePercent => real().withDefault(const Constant(0.0))();
   IntColumn get tankOrder => integer().withDefault(const Constant(0))();
@@ -883,7 +882,7 @@ class TankPresets extends Table {
   TextColumn get name => text()(); // Internal name/identifier
   TextColumn get displayName => text()(); // User-friendly display name
   RealColumn get volumeLiters => real()(); // Water volume in liters
-  IntColumn get workingPressureBar => integer()(); // Rated working pressure
+  RealColumn get workingPressureBar => real()(); // Rated working pressure
   TextColumn get material => text()(); // aluminum, steel, carbonFiber
   TextColumn get description =>
       text().withDefault(const Constant(''))(); // Optional description
@@ -1240,7 +1239,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 57;
+  static const int currentSchemaVersion = 58;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -2481,6 +2480,70 @@ class AppDatabase extends _$AppDatabase {
           // Add dive detail section configuration column to diver_settings
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN dive_detail_sections TEXT',
+          );
+        }
+        if (from < 58) {
+          // Convert pressure columns from INTEGER to REAL in dive_tanks
+          // to avoid rounding errors in PSI/bar conversions.
+          // SQLite doesn't support ALTER COLUMN, so recreate the table.
+          await customStatement('''
+            CREATE TABLE dive_tanks_new (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+              equipment_id TEXT REFERENCES equipment(id),
+              volume REAL,
+              working_pressure REAL,
+              start_pressure REAL,
+              end_pressure REAL,
+              o2_percent REAL NOT NULL DEFAULT 21.0,
+              he_percent REAL NOT NULL DEFAULT 0.0,
+              tank_order INTEGER NOT NULL DEFAULT 0,
+              tank_role TEXT NOT NULL DEFAULT 'backGas',
+              tank_material TEXT,
+              tank_name TEXT,
+              preset_name TEXT
+            )
+          ''');
+          await customStatement('''
+            INSERT INTO dive_tanks_new
+            SELECT id, dive_id, equipment_id, volume,
+                   CAST(working_pressure AS REAL),
+                   CAST(start_pressure AS REAL),
+                   CAST(end_pressure AS REAL),
+                   o2_percent, he_percent, tank_order, tank_role,
+                   tank_material, tank_name, preset_name
+            FROM dive_tanks
+          ''');
+          await customStatement('DROP TABLE dive_tanks');
+          await customStatement(
+            'ALTER TABLE dive_tanks_new RENAME TO dive_tanks',
+          );
+          // Convert workingPressureBar from INTEGER to REAL in tank_presets
+          await customStatement('''
+            CREATE TABLE tank_presets_new (
+              id TEXT NOT NULL PRIMARY KEY,
+              diver_id TEXT REFERENCES divers(id),
+              name TEXT NOT NULL,
+              display_name TEXT NOT NULL,
+              volume_liters REAL NOT NULL,
+              working_pressure_bar REAL NOT NULL,
+              material TEXT NOT NULL,
+              description TEXT NOT NULL DEFAULT '',
+              sort_order INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+          await customStatement('''
+            INSERT INTO tank_presets_new
+            SELECT id, diver_id, name, display_name, volume_liters,
+                   CAST(working_pressure_bar AS REAL),
+                   material, description, sort_order, created_at, updated_at
+            FROM tank_presets
+          ''');
+          await customStatement('DROP TABLE tank_presets');
+          await customStatement(
+            'ALTER TABLE tank_presets_new RENAME TO tank_presets',
           );
         }
       },

@@ -136,7 +136,7 @@ class TankPresetsPage extends ConsumerWidget {
       decimals: 0,
     );
     final pressureStr = units.formatPressure(
-      preset.workingPressureBar.toDouble(),
+      preset.workingPressureBar,
       decimals: 0,
     );
 

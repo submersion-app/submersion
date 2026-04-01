@@ -411,21 +411,21 @@ class UddfExportBuilders {
                 if (tank.workingPressure != null) {
                   builder.element(
                     'tankworkingpressure',
-                    nest: (tank.workingPressure! * 100000).toString(),
+                    nest: (tank.workingPressure! * 100000).toStringAsFixed(0),
                   );
                 }
                 // Start pressure in Pascal
                 if (tank.startPressure != null) {
                   builder.element(
                     'tankpressurebegin',
-                    nest: (tank.startPressure! * 100000).toString(),
+                    nest: (tank.startPressure! * 100000).toStringAsFixed(0),
                   );
                 }
                 // End pressure in Pascal
                 if (tank.endPressure != null) {
                   builder.element(
                     'tankpressureend',
-                    nest: (tank.endPressure! * 100000).toString(),
+                    nest: (tank.endPressure! * 100000).toStringAsFixed(0),
                   );
                 }
                 // Tank role (app-specific)

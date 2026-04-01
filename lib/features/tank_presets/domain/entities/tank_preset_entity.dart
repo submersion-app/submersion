@@ -10,7 +10,7 @@ class TankPresetEntity extends Equatable {
   final String name; // Internal name/identifier
   final String displayName; // User-friendly display name
   final double volumeLiters; // Water volume in liters
-  final int workingPressureBar; // Rated working pressure in bar
+  final double workingPressureBar; // Rated working pressure in bar
   final TankMaterial material;
   final String description;
   final int sortOrder;
@@ -37,7 +37,7 @@ class TankPresetEntity extends Equatable {
   /// Uses real-gas Z-factor correction for accuracy at high pressures.
   double get volumeCuft =>
       (volumeLiters * workingPressureBar) /
-      (28.3168 * TankPreset.zFactor(workingPressureBar.toDouble()));
+      (28.3168 * TankPreset.zFactor(workingPressureBar));
 
   /// Create from a built-in TankPreset constant
   factory TankPresetEntity.fromBuiltIn(TankPreset preset) {
@@ -62,7 +62,7 @@ class TankPresetEntity extends Equatable {
     required String name,
     required String displayName,
     required double volumeLiters,
-    required int workingPressureBar,
+    required double workingPressureBar,
     required TankMaterial material,
     String? diverId,
     String description = '',
@@ -100,7 +100,7 @@ class TankPresetEntity extends Equatable {
     String? name,
     String? displayName,
     double? volumeLiters,
-    int? workingPressureBar,
+    double? workingPressureBar,
     TankMaterial? material,
     String? description,
     int? sortOrder,

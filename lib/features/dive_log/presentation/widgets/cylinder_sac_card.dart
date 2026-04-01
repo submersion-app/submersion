@@ -229,8 +229,8 @@ class CylinderSacCard extends StatelessWidget {
 
   /// Format pressure range (start → end)
   String _formatPressureRange() {
-    final start = units.convertPressure(cylinderSac.startPressure!.toDouble());
-    final end = units.convertPressure(cylinderSac.endPressure!.toDouble());
+    final start = units.convertPressure(cylinderSac.startPressure!);
+    final end = units.convertPressure(cylinderSac.endPressure!);
     final used = start - end;
     return '${start.toInt()} → ${end.toInt()} (${used.toInt()} ${units.pressureSymbol})';
   }

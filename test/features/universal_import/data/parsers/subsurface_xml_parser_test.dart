@@ -213,9 +213,9 @@ void main() {
       final tanks = dive['tanks'] as List<Map<String, dynamic>>;
       expect(tanks.length, 1);
       expect(tanks[0]['volume'], closeTo(11.094, 0.001));
-      expect(tanks[0]['workingPressure'], 207);
-      expect(tanks[0]['startPressure'], 200);
-      expect(tanks[0]['endPressure'], 50);
+      expect(tanks[0]['workingPressure'], closeTo(207, 1));
+      expect(tanks[0]['startPressure'], closeTo(200, 1));
+      expect(tanks[0]['endPressure'], closeTo(50, 1));
       expect(tanks[0]['gasMix'], isA<GasMix>());
       expect((tanks[0]['gasMix'] as GasMix).o2, 32.0);
       expect((tanks[0]['gasMix'] as GasMix).he, 0.0);
@@ -316,8 +316,8 @@ void main() {
         final tanks =
             result.entitiesOf(ImportEntityType.dives).first['tanks']
                 as List<Map<String, dynamic>>;
-        expect(tanks[0]['startPressure'], 201);
-        expect(tanks[0]['endPressure'], 100);
+        expect(tanks[0]['startPressure'], closeTo(201, 1));
+        expect(tanks[0]['endPressure'], closeTo(100, 1));
       },
     );
   });

@@ -154,7 +154,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
                 pw.SizedBox(width: 16),
                 PdfSharedComponents.buildInfoChip(
                   'Air',
-                  '${tank.startPressure ?? '-'} - ${tank.endPressure ?? '-'} bar',
+                  '${tank.startPressure?.round() ?? '-'} - ${tank.endPressure?.round() ?? '-'} bar',
                 ),
               ],
             ],

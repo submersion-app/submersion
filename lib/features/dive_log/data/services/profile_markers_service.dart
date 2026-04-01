@@ -165,7 +165,7 @@ class ProfileMarkersService {
 
     for (var tankIndex = 0; tankIndex < tanksWithPressure.length; tankIndex++) {
       final tank = tanksWithPressure[tankIndex];
-      final startPressure = tank.startPressure!.toDouble();
+      final startPressure = tank.startPressure!;
 
       // Calculate threshold values
       final thresholds = {
@@ -333,8 +333,8 @@ class ProfileMarkersService {
   }) {
     final markers = <ProfileMarker>[];
 
-    final startPressure = tank.startPressure?.toDouble();
-    final endPressure = tank.endPressure?.toDouble();
+    final startPressure = tank.startPressure;
+    final endPressure = tank.endPressure;
 
     if (startPressure == null || endPressure == null || profile.isEmpty) {
       return markers;
@@ -388,7 +388,7 @@ class ProfileMarkersService {
 
     for (var tankIndex = 0; tankIndex < tanks.length; tankIndex++) {
       final tank = tanks[tankIndex];
-      final startPressure = tank.startPressure?.toDouble();
+      final startPressure = tank.startPressure;
 
       if (startPressure == null) continue;
 

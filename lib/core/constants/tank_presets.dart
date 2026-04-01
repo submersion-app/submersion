@@ -5,7 +5,7 @@ class TankPreset {
   final String name;
   final String displayName;
   final double volumeLiters;
-  final int workingPressureBar;
+  final double workingPressureBar;
   final TankMaterial material;
   final String? description;
 
@@ -23,7 +23,7 @@ class TankPreset {
   /// This is the imperial "tank size" rating (e.g., AL80 = ~77.4 cuft)
   double get volumeCuft =>
       (volumeLiters * workingPressureBar) /
-      (28.3168 * zFactor(workingPressureBar.toDouble()));
+      (28.3168 * zFactor(workingPressureBar));
 
   /// Compressibility Z-factor for air at a given pressure in bar.
   /// At high pressures, real gas is denser than ideal gas predicts,
@@ -43,7 +43,7 @@ class TankPresets {
     name: 'al40',
     displayName: 'AL40',
     volumeLiters: 5.8,
-    workingPressureBar: 207,
+    workingPressureBar: 207.0,
     material: TankMaterial.aluminum,
     description: 'Aluminum 40 cu ft (pony)',
   );
@@ -52,7 +52,7 @@ class TankPresets {
     name: 'al63',
     displayName: 'AL63',
     volumeLiters: 9.0,
-    workingPressureBar: 207,
+    workingPressureBar: 207.0,
     material: TankMaterial.aluminum,
     description: 'Aluminum 63 cu ft',
   );
@@ -61,7 +61,7 @@ class TankPresets {
     name: 'al80',
     displayName: 'AL80',
     volumeLiters: 11.1,
-    workingPressureBar: 207,
+    workingPressureBar: 207.0,
     material: TankMaterial.aluminum,
     description: 'Aluminum 80 cu ft (most common)',
   );
@@ -71,7 +71,7 @@ class TankPresets {
     name: 'hp80',
     displayName: 'HP80',
     volumeLiters: 10.2,
-    workingPressureBar: 237,
+    workingPressureBar: 237.0,
     material: TankMaterial.steel,
     description: 'High Pressure Steel 80 cu ft',
   );
@@ -80,7 +80,7 @@ class TankPresets {
     name: 'hp100',
     displayName: 'HP100',
     volumeLiters: 12.9,
-    workingPressureBar: 237,
+    workingPressureBar: 237.0,
     material: TankMaterial.steel,
     description: 'High Pressure Steel 100 cu ft',
   );
@@ -89,7 +89,7 @@ class TankPresets {
     name: 'hp120',
     displayName: 'HP120',
     volumeLiters: 15.3,
-    workingPressureBar: 237,
+    workingPressureBar: 237.0,
     material: TankMaterial.steel,
     description: 'High Pressure Steel 120 cu ft',
   );
@@ -99,7 +99,7 @@ class TankPresets {
     name: 'lp85',
     displayName: 'LP85',
     volumeLiters: 13.0,
-    workingPressureBar: 182,
+    workingPressureBar: 182.0,
     material: TankMaterial.steel,
     description: 'Low Pressure Steel 85 cu ft',
   );
@@ -109,7 +109,7 @@ class TankPresets {
     name: 'steel10',
     displayName: 'Steel 10L',
     volumeLiters: 10.0,
-    workingPressureBar: 200,
+    workingPressureBar: 200.0,
     material: TankMaterial.steel,
     description: 'Steel 10 liter (Europe)',
   );
@@ -118,7 +118,7 @@ class TankPresets {
     name: 'steel12',
     displayName: 'Steel 12L',
     volumeLiters: 12.0,
-    workingPressureBar: 200,
+    workingPressureBar: 200.0,
     material: TankMaterial.steel,
     description: 'Steel 12 liter (Europe)',
   );
@@ -127,7 +127,7 @@ class TankPresets {
     name: 'steel15',
     displayName: 'Steel 15L',
     volumeLiters: 15.0,
-    workingPressureBar: 200,
+    workingPressureBar: 200.0,
     material: TankMaterial.steel,
     description: 'Steel 15 liter (Europe)',
   );
@@ -137,7 +137,7 @@ class TankPresets {
     name: 'al30stage',
     displayName: 'AL30 Stage',
     volumeLiters: 4.3,
-    workingPressureBar: 207,
+    workingPressureBar: 207.0,
     material: TankMaterial.aluminum,
     description: 'Aluminum 30 cu ft stage tank',
   );
@@ -146,7 +146,7 @@ class TankPresets {
     name: 'al40stage',
     displayName: 'AL40 Stage',
     volumeLiters: 5.8,
-    workingPressureBar: 207,
+    workingPressureBar: 207.0,
     material: TankMaterial.aluminum,
     description: 'Aluminum 40 cu ft stage tank',
   );

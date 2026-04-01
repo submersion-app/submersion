@@ -1146,8 +1146,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
   }
 
   List<DiveTank> _buildTanks(Map<String, dynamic> diveData, Uuid uuid) {
-    final startPressure = diveData['startPressure'] as int?;
-    final endPressure = diveData['endPressure'] as int?;
+    final startPressure = (diveData['startPressure'] as num?)?.toDouble();
+    final endPressure = (diveData['endPressure'] as num?)?.toDouble();
     final tankVolume = diveData['tankVolume'] as double?;
     final o2Percent = diveData['o2Percent'] as double?;
 

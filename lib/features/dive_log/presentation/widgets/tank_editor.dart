@@ -86,22 +86,18 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _workingPressureController = TextEditingController(
       text: widget.tank.workingPressure != null
           ? units
-                .convertPressure(widget.tank.workingPressure!.toDouble())
+                .convertPressure(widget.tank.workingPressure!)
                 .toStringAsFixed(0)
           : '',
     );
     _startPressureController = TextEditingController(
       text: widget.tank.startPressure != null
-          ? units
-                .convertPressure(widget.tank.startPressure!.toDouble())
-                .toStringAsFixed(0)
+          ? units.convertPressure(widget.tank.startPressure!).toStringAsFixed(0)
           : '',
     );
     _endPressureController = TextEditingController(
       text: widget.tank.endPressure != null
-          ? units
-                .convertPressure(widget.tank.endPressure!.toDouble())
-                .toStringAsFixed(0)
+          ? units.convertPressure(widget.tank.endPressure!).toStringAsFixed(0)
           : '',
     );
     _o2Controller = TextEditingController(
@@ -160,7 +156,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
     // Convert working pressure to bar first (needed for cuft->liters conversion)
     final workingPressureBar = workingPressureDisplay != null
-        ? units.pressureToBar(workingPressureDisplay).round()
+        ? units.pressureToBar(workingPressureDisplay)
         : null;
 
     // For tank volume: convert cuft (gas capacity) back to liters (water volume)
@@ -184,10 +180,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         volume: volumeLiters,
         workingPressure: workingPressureBar,
         startPressure: startPressureDisplay != null
-            ? units.pressureToBar(startPressureDisplay).round()
+            ? units.pressureToBar(startPressureDisplay)
             : null,
         endPressure: endPressureDisplay != null
-            ? units.pressureToBar(endPressureDisplay).round()
+            ? units.pressureToBar(endPressureDisplay)
             : null,
         gasMix: GasMix(
           o2: double.tryParse(_o2Controller.text) ?? 21.0,
@@ -704,7 +700,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         _volumeController.text = preset.volumeLiters.toStringAsFixed(1);
       }
       _workingPressureController.text = units
-          .convertPressure(preset.workingPressureBar.toDouble())
+          .convertPressure(preset.workingPressureBar)
           .toStringAsFixed(0);
       // Don't overwrite startPressure with workingPressure — a tank's rated
       // pressure is its physical spec, not the actual fill pressure for a dive.

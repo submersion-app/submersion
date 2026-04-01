@@ -425,7 +425,7 @@ class PdfExportService {
                 pw.SizedBox(width: 16),
                 _buildPdfInfoChip(
                   'Air',
-                  '${tank.startPressure ?? '-'} \u2192 ${tank.endPressure ?? '-'} bar',
+                  '${tank.startPressure?.round() ?? '-'} \u2192 ${tank.endPressure?.round() ?? '-'} bar',
                 ),
               ],
             ],

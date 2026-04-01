@@ -516,8 +516,8 @@ class SubsurfaceXmlParser implements ImportParser {
       final heRaw = _parseDouble(cyl.getAttribute('he')?.replaceAll('%', ''));
       final gasMix = GasMix(o2: o2Raw ?? 21.0, he: heRaw ?? 0.0);
 
-      int? startPressure = _parseInt(cyl.getAttribute('start'));
-      int? endPressure = _parseInt(cyl.getAttribute('end'));
+      double? startPressure = _parseDouble(cyl.getAttribute('start'));
+      double? endPressure = _parseDouble(cyl.getAttribute('end'));
 
       // First cylinder: fall back to first/last sample pressure0
       if (index == 0 && profilePoints != null && profilePoints.isNotEmpty) {
@@ -525,20 +525,20 @@ class SubsurfaceXmlParser implements ImportParser {
           final firstPressure = profilePoints
               .map((p) => p['pressure'] as double?)
               .firstWhere((p) => p != null, orElse: () => null);
-          startPressure = firstPressure?.round();
+          startPressure = firstPressure;
         }
         if (endPressure == null) {
           final lastPressure = profilePoints
               .map((p) => p['pressure'] as double?)
               .lastWhere((p) => p != null, orElse: () => null);
-          endPressure = lastPressure?.round();
+          endPressure = lastPressure;
         }
       }
 
       final tank = <String, dynamic>{'gasMix': gasMix};
       final volume = _parseDouble(size);
       if (volume != null) tank['volume'] = volume;
-      final workingPressure = _parseInt(cyl.getAttribute('workpressure'));
+      final workingPressure = _parseDouble(cyl.getAttribute('workpressure'));
       if (workingPressure != null) tank['workingPressure'] = workingPressure;
       if (startPressure != null) tank['startPressure'] = startPressure;
       if (endPressure != null) tank['endPressure'] = endPressure;

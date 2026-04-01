@@ -140,16 +140,16 @@ class GasConsumption extends Equatable {
   final double gasUsedBar;
 
   /// Starting pressure in bar.
-  final int? startPressure;
+  final double? startPressure;
 
   /// Projected remaining pressure at end of dive.
-  final int? remainingPressure;
+  final double? remainingPressure;
 
   /// Percentage of tank used.
   final double percentUsed;
 
   /// Minimum gas reserve required for this tank (bar).
-  final int? minGasReserve;
+  final double? minGasReserve;
 
   /// Whether reserve is violated.
   final bool reserveViolation;
@@ -171,7 +171,7 @@ class GasConsumption extends Equatable {
   String get remainingFormatted {
     if (remainingPressure == null) return '--';
     if (remainingPressure! <= 0) return 'EMPTY';
-    return '${remainingPressure}bar';
+    return '${remainingPressure!.round()}bar';
   }
 
   /// Formatted percentage used.

@@ -1949,7 +1949,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         ),
                         if (cylinder.gasUsedBar != null)
                           Text(
-                            '${units.convertPressure(cylinder.gasUsedBar!.toDouble()).toInt()} ${units.pressureSymbol} used',
+                            '${units.convertPressure(cylinder.gasUsedBar!).toInt()} ${units.pressureSymbol} used',
                             style: textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -3802,7 +3802,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     }
 
     // 3. Stored tank metadata (fallback)
-    return (tank.startPressure?.toDouble(), tank.endPressure?.toDouble());
+    return (tank.startPressure, tank.endPressure);
   }
 
   Widget _buildEquipmentSection(

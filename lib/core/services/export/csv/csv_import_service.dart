@@ -79,9 +79,9 @@ class CsvImportService {
         } else if (header.contains('type')) {
           diveData['diveType'] = _parseDiveType(value);
         } else if (header.contains('start') && header.contains('pressure')) {
-          diveData['startPressure'] = int.tryParse(value);
+          diveData['startPressure'] = double.tryParse(value);
         } else if (header.contains('end') && header.contains('pressure')) {
-          diveData['endPressure'] = int.tryParse(value);
+          diveData['endPressure'] = double.tryParse(value);
         } else if (header.contains('tank') && header.contains('volume')) {
           diveData['tankVolume'] = _parseDouble(value);
         } else if (header.contains('o2') || header.contains('oxygen')) {
