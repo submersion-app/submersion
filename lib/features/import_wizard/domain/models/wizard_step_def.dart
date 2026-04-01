@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show AsyncCallback;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 
@@ -34,8 +35,9 @@ class WizardStepDef {
   /// Optional callback invoked by the wizard just before advancing past this
   /// step. Adapters use this to commit pending user choices (e.g. confirming
   /// a source selection or finalising a field mapping) so the wizard itself
-  /// stays generic.
-  final VoidCallback? onBeforeAdvance;
+  /// stays generic. May be async — the wizard awaits its completion before
+  /// proceeding.
+  final AsyncCallback? onBeforeAdvance;
 
   /// When true, the wizard hides the standard bottom bar (Back/Next) for this
   /// step. The step widget is responsible for its own navigation controls.

@@ -120,14 +120,21 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
   // -- Step 1: Source Confirmation --
 
-  /// Store a pending source-app override chosen by the user.
+  /// Store a pending source-app and format override chosen by the user.
   ///
   /// This is persisted in state so the wizard's [onBeforeAdvance] callback
   /// can pass it through to [confirmSource] when the user taps "Next".
-  void setPendingSourceOverride(SourceApp? app) {
+  void setPendingSourceOverride(SourceApp? app, {ImportFormat? format}) {
     state = app == null
-        ? state.copyWith(clearPendingSourceOverride: true)
-        : state.copyWith(pendingSourceOverride: app);
+        ? state.copyWith(
+            clearPendingSourceOverride: true,
+            clearPendingFormatOverride: true,
+          )
+        : state.copyWith(
+            pendingSourceOverride: app,
+            pendingFormatOverride: format,
+            clearPendingFormatOverride: format == null,
+          );
   }
 
   /// Confirm the detected source or override with a user selection.
@@ -143,7 +150,8 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
     final effectiveOverride = overrideApp ?? state.pendingSourceOverride;
 
-    final format = overrideFormat ?? detection.format;
+    final format =
+        overrideFormat ?? state.pendingFormatOverride ?? detection.format;
     final sourceApp =
         effectiveOverride ?? detection.sourceApp ?? SourceApp.generic;
 
@@ -163,6 +171,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         state = state.copyWith(
           options: options,
           clearPendingSourceOverride: true,
+          clearPendingFormatOverride: true,
           detectedCsvPreset: csvDetection.matchedPreset,
           parsedCsv: parsedCsv,
           currentStep: nextStep,
@@ -176,6 +185,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     state = state.copyWith(
       options: options,
       clearPendingSourceOverride: true,
+      clearPendingFormatOverride: true,
       currentStep: format == ImportFormat.csv
           ? ImportWizardStep.fieldMapping
           : ImportWizardStep.review,
@@ -247,10 +257,10 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// This is a no-op if the payload has already been produced (e.g. for
   /// non-CSV formats where parsing happens immediately after source
   /// confirmation).
-  void confirmFieldMapping() {
+  Future<void> confirmFieldMapping() async {
     if (state.payload != null) return;
     state = state.copyWith(currentStep: ImportWizardStep.review);
-    _parseAndCheckDuplicates();
+    await _parseAndCheckDuplicates();
   }
 
   // -- Parsing + Duplicate Check --

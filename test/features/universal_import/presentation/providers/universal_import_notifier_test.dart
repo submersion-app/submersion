@@ -46,6 +46,41 @@ void main() {
 
         expect(notifier.state.pendingSourceOverride, SourceApp.shearwater);
       });
+
+      test('sets pendingFormatOverride when format is provided', () {
+        notifier.setPendingSourceOverride(
+          SourceApp.subsurface,
+          format: ImportFormat.csv,
+        );
+
+        expect(notifier.state.pendingSourceOverride, SourceApp.subsurface);
+        expect(notifier.state.pendingFormatOverride, ImportFormat.csv);
+      });
+
+      test('clears pendingFormatOverride when app is null', () {
+        notifier.setPendingSourceOverride(
+          SourceApp.subsurface,
+          format: ImportFormat.csv,
+        );
+        notifier.setPendingSourceOverride(null);
+
+        expect(notifier.state.pendingSourceOverride, isNull);
+        expect(notifier.state.pendingFormatOverride, isNull);
+      });
+
+      test('replaces both app and format when overridden', () {
+        notifier.setPendingSourceOverride(
+          SourceApp.subsurface,
+          format: ImportFormat.csv,
+        );
+        notifier.setPendingSourceOverride(
+          SourceApp.shearwater,
+          format: ImportFormat.shearwaterDb,
+        );
+
+        expect(notifier.state.pendingSourceOverride, SourceApp.shearwater);
+        expect(notifier.state.pendingFormatOverride, ImportFormat.shearwaterDb);
+      });
     });
 
     group('skipAdditionalFile', () {
@@ -332,7 +367,10 @@ void main() {
     group('reset', () {
       test('resets to initial state', () {
         // Modify state in multiple ways.
-        notifier.setPendingSourceOverride(SourceApp.subsurface);
+        notifier.setPendingSourceOverride(
+          SourceApp.subsurface,
+          format: ImportFormat.csv,
+        );
         notifier.skipAdditionalFile();
         notifier.toggleSelection(ImportEntityType.dives, 0);
         notifier.setDiveResolution(1, DiveDuplicateResolution.consolidate);
@@ -347,6 +385,7 @@ void main() {
         expect(notifier.state.fileName, isNull);
         expect(notifier.state.detectionResult, isNull);
         expect(notifier.state.pendingSourceOverride, isNull);
+        expect(notifier.state.pendingFormatOverride, isNull);
         expect(notifier.state.options, isNull);
         expect(notifier.state.fieldMapping, isNull);
         expect(notifier.state.payload, isNull);

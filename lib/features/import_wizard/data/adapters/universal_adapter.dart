@@ -131,7 +131,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       icon: Icons.check_circle_outline,
       builder: (context) => const SourceConfirmationStep(),
       canAdvance: universalAdapterSourceReadyProvider,
-      onBeforeAdvance: () {
+      onBeforeAdvance: () async {
         _ref.read(universalImportNotifierProvider.notifier).confirmSource();
       },
     ),
@@ -144,9 +144,9 @@ class UniversalAdapter implements ImportSourceAdapter {
       // immediately after source confirmation (the notifier skips field
       // mapping). CSV formats wait for the user to tap "Next".
       autoAdvance: true,
-      onBeforeAdvance: () {
+      onBeforeAdvance: () async {
         final notifier = _ref.read(universalImportNotifierProvider.notifier);
-        notifier.confirmFieldMapping();
+        await notifier.confirmFieldMapping();
       },
     ),
   ];

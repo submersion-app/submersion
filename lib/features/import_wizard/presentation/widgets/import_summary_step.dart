@@ -31,6 +31,10 @@ class ImportSummaryStep extends ConsumerWidget {
     final result = state.importResult;
 
     if (result == null) {
+      final error = state.error;
+      if (error != null) {
+        return _ErrorView(errorMessage: error, onDone: onDone);
+      }
       return const Center(child: CircularProgressIndicator());
     }
 

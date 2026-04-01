@@ -127,10 +127,23 @@ class _SourceConfirmationStepState
 
           // Override section (collapsed by default)
           _OverrideSection(
-            selectedOverride: selectedOverride,
-            onChanged: (app) => ref
-                .read(universalImportNotifierProvider.notifier)
-                .setPendingSourceOverride(app),
+            selectedOverride: SourceOverrideOption.findMatch(
+              selectedOverride,
+              state.pendingFormatOverride,
+            ),
+            onChanged: (option) {
+              final notifier = ref.read(
+                universalImportNotifierProvider.notifier,
+              );
+              if (option != null) {
+                notifier.setPendingSourceOverride(
+                  option.sourceApp,
+                  format: option.format,
+                );
+              } else {
+                notifier.setPendingSourceOverride(null);
+              }
+            },
           ),
         ],
       ),
@@ -138,10 +151,10 @@ class _SourceConfirmationStepState
   }
 }
 
-/// Collapsible section for overriding the detected source app.
+/// Collapsible section for overriding the detected source app and format.
 class _OverrideSection extends StatelessWidget {
-  final SourceApp? selectedOverride;
-  final ValueChanged<SourceApp?> onChanged;
+  final SourceOverrideOption? selectedOverride;
+  final ValueChanged<SourceOverrideOption?> onChanged;
 
   const _OverrideSection({
     required this.selectedOverride,
@@ -151,7 +164,6 @@ class _OverrideSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final apps = SourceApp.values.where((a) => a != SourceApp.generic).toList();
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -165,17 +177,17 @@ class _OverrideSection extends StatelessWidget {
         dense: true,
         visualDensity: VisualDensity.compact,
         children: [
-          RadioGroup<SourceApp?>(
+          RadioGroup<SourceOverrideOption?>(
             groupValue: selectedOverride,
             onChanged: onChanged,
             child: Column(
               children: [
-                for (final app in apps)
+                for (final option in SourceOverrideOption.supported)
                   ListTile(
                     dense: true,
-                    title: Text(app.displayName),
-                    leading: Radio<SourceApp?>(value: app),
-                    onTap: () => onChanged(app),
+                    title: Text(option.displayName),
+                    leading: Radio<SourceOverrideOption?>(value: option),
+                    onTap: () => onChanged(option),
                   ),
               ],
             ),

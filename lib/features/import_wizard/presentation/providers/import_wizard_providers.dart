@@ -310,7 +310,17 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// failure. Advances [currentStep] past the importing step on success.
   Future<void> performImport() async {
     final bundle = state.bundle;
-    if (bundle == null) return;
+    if (bundle == null) {
+      state = state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          errorMessage: 'No import data available',
+        ),
+      );
+      return;
+    }
 
     state = state.copyWith(isImporting: true, clearError: true);
 
@@ -351,7 +361,16 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
         error: tagWarning,
       );
     } catch (e) {
-      state = state.copyWith(isImporting: false, error: 'Import failed: $e');
+      state = state.copyWith(
+        isImporting: false,
+        error: 'Import failed: $e',
+        importResult: UnifiedImportResult(
+          importedCounts: const {},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          errorMessage: 'Import failed: $e',
+        ),
+      );
     }
   }
 

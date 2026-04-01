@@ -136,11 +136,9 @@ void main() {
     });
 
     test('detects Subsurface CSV', () {
-      // Subsurface scoring needs signatures: divesiteid, cylindertype,
-      // diveguide, divemaster, sac -- need 4+ to score > 0.6
       const csv =
-          'divesiteid,date,time,duration,maxdepth,avgdepth,cylindertype,divemaster,sac\n'
-          '1,2024-01-15,10:00,0:45:00,25,18,AL80,John,15\n';
+          'dive number,date,time,duration [min],sac [l/min],maxdepth [m],avgdepth [m],cylinder size (1) [l],divemaster\n'
+          '1,2024-01-15,10:00,0:45,15,25,18,11.1,John\n';
       final result = detector.detect(_toBytes(csv));
       expect(result.format, ImportFormat.csv);
       expect(result.sourceApp, SourceApp.subsurface);

@@ -41,6 +41,7 @@ class UniversalImportState {
     this.additionalFileName,
     this.detectionResult,
     this.pendingSourceOverride,
+    this.pendingFormatOverride,
     this.detectedCsvPreset,
     this.parsedCsv,
     this.options,
@@ -76,6 +77,9 @@ class UniversalImportState {
   /// Stored here so the wizard's [onBeforeAdvance] callback can pass it to
   /// [confirmSource] when the user taps "Next".
   final SourceApp? pendingSourceOverride;
+
+  /// Format override paired with [pendingSourceOverride].
+  final ImportFormat? pendingFormatOverride;
 
   /// Detected CSV preset from the pipeline Detect stage.
   final CsvPreset? detectedCsvPreset;
@@ -138,6 +142,8 @@ class UniversalImportState {
     int? importTotal,
     SourceApp? pendingSourceOverride,
     bool clearPendingSourceOverride = false,
+    ImportFormat? pendingFormatOverride,
+    bool clearPendingFormatOverride = false,
     CsvPreset? detectedCsvPreset,
     bool clearDetectedCsvPreset = false,
     ParsedCsv? parsedCsv,
@@ -160,6 +166,9 @@ class UniversalImportState {
       pendingSourceOverride: clearPendingSourceOverride
           ? null
           : (pendingSourceOverride ?? this.pendingSourceOverride),
+      pendingFormatOverride: clearPendingFormatOverride
+          ? null
+          : (pendingFormatOverride ?? this.pendingFormatOverride),
       detectedCsvPreset: clearDetectedCsvPreset
           ? null
           : (detectedCsvPreset ?? this.detectedCsvPreset),

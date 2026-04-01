@@ -34,7 +34,7 @@ void main() {
         builder: (context) => const SizedBox.shrink(),
         canAdvance: _alwaysFalseProvider,
         autoAdvance: true,
-        onBeforeAdvance: () {
+        onBeforeAdvance: () async {
           callbackInvoked = true;
         },
         hideBottomBar: true,

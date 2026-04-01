@@ -39,6 +39,16 @@ void main() {
         expect(updated.pendingSourceOverride, isNull);
       });
 
+      test('clearPendingFormatOverride sets pendingFormatOverride to null', () {
+        const state = UniversalImportState(
+          pendingFormatOverride: ImportFormat.csv,
+        );
+
+        final updated = state.copyWith(clearPendingFormatOverride: true);
+
+        expect(updated.pendingFormatOverride, isNull);
+      });
+
       test('clearDetectedCsvPreset sets detectedCsvPreset to null', () {
         const state = UniversalImportState(
           detectedCsvPreset: CsvPreset(id: 'test', name: 'Test Preset'),

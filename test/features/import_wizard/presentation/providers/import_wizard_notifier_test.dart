@@ -507,7 +507,8 @@ void main() {
 
         expect(notifier.state.error, isNotNull);
         expect(notifier.state.isImporting, isFalse);
-        expect(notifier.state.importResult, isNull);
+        expect(notifier.state.importResult, isNotNull);
+        expect(notifier.state.importResult!.errorMessage, isNotNull);
       });
 
       test('advances to summary step on success', () async {

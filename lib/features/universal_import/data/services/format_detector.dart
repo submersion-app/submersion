@@ -317,11 +317,11 @@ class FormatDetector {
 
   double _scoreSubsurfaceCsv(List<String> headers) {
     const signatures = [
-      'divesiteid',
-      'cylindertype',
-      'diveguide',
-      'divemaster',
-      'sac',
+      'sac [l/min]',
+      'maxdepth [m]',
+      'cylinder size',
+      'avgdepth [m]',
+      'duration [min]',
     ];
     return _matchScore(headers, signatures);
   }

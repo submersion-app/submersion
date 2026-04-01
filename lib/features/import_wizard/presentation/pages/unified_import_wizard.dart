@@ -135,7 +135,7 @@ class _UnifiedImportWizardBodyState
     if (_currentPage < _reviewIndex) {
       // Let the current step commit any pending state before we leave it.
       final step = _acquisitionSteps[_currentPage];
-      step.onBeforeAdvance?.call();
+      await step.onBeforeAdvance?.call();
 
       // Last acquisition step: build bundle then advance to review.
       if (_currentPage == _reviewIndex - 1) {

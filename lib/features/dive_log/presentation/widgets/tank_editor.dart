@@ -49,6 +49,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   late TankRole _role;
   late TankMaterial? _material;
   TankPresetEntity? _selectedPreset;
+  bool _volumeDisplayedAsCuft = false;
 
   @override
   void initState() {
@@ -68,7 +69,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
 
-    // For tank volume: imperial uses gas capacity (cuft), metric uses water volume (liters)
+    // For tank volume: imperial uses gas capacity (cuft), metric uses water volume (liters).
+    // When working pressure is missing, cuft conversion is impossible — fall
+    // back to showing the raw liters value with an "L" suffix.
     String volumeText = '';
     if (widget.tank.volume != null) {
       if (settings.volumeUnit == VolumeUnit.cubicFeet &&
@@ -77,8 +80,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         final cuft =
             (widget.tank.volume! * widget.tank.workingPressure!) / 28.3168;
         volumeText = cuft.toStringAsFixed(1);
+        _volumeDisplayedAsCuft = true;
       } else {
         volumeText = widget.tank.volume!.toStringAsFixed(1);
+        _volumeDisplayedAsCuft = false;
       }
     }
 
@@ -402,7 +407,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             controller: _volumeController,
             decoration: InputDecoration(
               labelText: context.l10n.diveLog_tank_label_volume,
-              suffixText: units.volumeSymbol,
+              suffixText: _volumeDisplayedAsCuft ? units.volumeSymbol : 'L',
               isDense: true,
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),

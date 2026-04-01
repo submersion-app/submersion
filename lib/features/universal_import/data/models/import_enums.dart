@@ -81,6 +81,120 @@ enum SourceApp {
   };
 }
 
+/// A valid (source app, format) combination for the source override dropdown.
+///
+/// Each entry represents a specific import pathway that the system supports,
+/// pairing an application with the file format it produces.
+class SourceOverrideOption {
+  final SourceApp sourceApp;
+  final ImportFormat format;
+  final String displayName;
+
+  const SourceOverrideOption({
+    required this.sourceApp,
+    required this.format,
+    required this.displayName,
+  });
+
+  /// All supported (app, format) combinations for the override dropdown.
+  static const List<SourceOverrideOption> supported = [
+    SourceOverrideOption(
+      sourceApp: SourceApp.submersion,
+      format: ImportFormat.csv,
+      displayName: 'Submersion (CSV)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.submersion,
+      format: ImportFormat.uddf,
+      displayName: 'Submersion (UDDF)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.subsurface,
+      format: ImportFormat.csv,
+      displayName: 'Subsurface (CSV)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.subsurface,
+      format: ImportFormat.subsurfaceXml,
+      displayName: 'Subsurface (XML)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.macdive,
+      format: ImportFormat.csv,
+      displayName: 'MacDive (CSV)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.divingLog,
+      format: ImportFormat.csv,
+      displayName: 'Diving Log (CSV)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.diveMate,
+      format: ImportFormat.csv,
+      displayName: 'DiveMate (CSV)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.shearwater,
+      format: ImportFormat.csv,
+      displayName: 'Shearwater (CSV)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.shearwater,
+      format: ImportFormat.shearwaterDb,
+      displayName: 'Shearwater (Cloud DB)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.garminConnect,
+      format: ImportFormat.csv,
+      displayName: 'Garmin Connect (CSV)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.garminConnect,
+      format: ImportFormat.fit,
+      displayName: 'Garmin Connect (FIT)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.suunto,
+      format: ImportFormat.uddf,
+      displayName: 'Suunto (UDDF)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.ssiMyDiveGuide,
+      format: ImportFormat.csv,
+      displayName: 'SSI MyDiveGuide (CSV)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.scubapro,
+      format: ImportFormat.uddf,
+      displayName: 'Scubapro (UDDF)',
+    ),
+  ];
+
+  /// Find the matching option for a given app and format pair, or null.
+  static SourceOverrideOption? findMatch(
+    SourceApp? sourceApp,
+    ImportFormat? format,
+  ) {
+    if (sourceApp == null || format == null) return null;
+    for (final option in supported) {
+      if (option.sourceApp == sourceApp && option.format == format) {
+        return option;
+      }
+    }
+    return null;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SourceOverrideOption &&
+          other.sourceApp == sourceApp &&
+          other.format == format;
+
+  @override
+  int get hashCode => Object.hash(sourceApp, format);
+}
+
 /// Resolution choice for a dive that was flagged as a potential duplicate.
 ///
 /// When a dive match is detected during import, the user can choose how to
