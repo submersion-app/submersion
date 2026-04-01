@@ -1,6 +1,5 @@
 import 'package:intl/intl.dart';
 
-import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -105,25 +104,28 @@ class UnitFormatter {
     return '${converted.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
   }
 
-  /// Format tank volume - handles gas capacity conversion for imperial units
-  /// For cuft, calculates gas capacity from physical volume and working pressure
+  /// Format tank volume - handles gas capacity conversion for imperial units.
+  /// Pass [ratedCapacityCuft] (from a preset) for accurate display;
+  /// otherwise falls back to ideal-gas calculation from volume and pressure.
   String formatTankVolume(
     double? volumeLiters,
     double? workingPressureBar, {
+    double? ratedCapacityCuft,
     int decimals = 0,
   }) {
     if (volumeLiters == null) return '--';
 
     if (settings.volumeUnit == VolumeUnit.cubicFeet) {
+      if (ratedCapacityCuft != null) {
+        return '${ratedCapacityCuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
+      }
       if (workingPressureBar != null && workingPressureBar > 0) {
-        // Calculate gas capacity in cubic feet with Z-factor correction
-        final z = TankPreset.zFactor(workingPressureBar);
-        final cuft = (volumeLiters * workingPressureBar) / (28.3168 * z);
+        // Ideal gas approximation for custom/unknown tanks
+        final cuft = (volumeLiters * workingPressureBar) / 28.3168;
         return '${cuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
       } else {
-        // No working pressure - use approximate conversion assuming 200 bar
-        final z = TankPreset.zFactor(200);
-        final cuft = (volumeLiters * 200) / (28.3168 * z);
+        // No working pressure - approximate assuming 200 bar
+        final cuft = (volumeLiters * 200) / 28.3168;
         return '~${cuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
       }
     }

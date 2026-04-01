@@ -36,7 +36,7 @@ void main() {
         defaultPreset: al80,
         defaultStartPressure: 200,
       );
-      expect(result['workingPressure'], 207);
+      expect(result['workingPressure'], closeTo(207, 1));
     });
 
     test('does not overwrite existing workingPressure', () {
@@ -96,7 +96,7 @@ void main() {
         defaultPreset: al80,
         defaultStartPressure: 200,
       );
-      expect(result['workingPressure'], 207);
+      expect(result['workingPressure'], closeTo(207, 1));
     });
 
     test('returns unmodified tank when no preset provided', () {

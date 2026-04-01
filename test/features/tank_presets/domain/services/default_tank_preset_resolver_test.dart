@@ -10,7 +10,7 @@ void main() {
       expect(result, isNotNull);
       expect(result!.name, 'al80');
       expect(result.volumeLiters, 11.1);
-      expect(result.workingPressureBar, 207);
+      expect(result.workingPressureBar, closeTo(207, 1));
     });
 
     test('returns null for unknown preset name', () async {

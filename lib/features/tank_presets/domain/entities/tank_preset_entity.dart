@@ -18,6 +18,10 @@ class TankPresetEntity extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// Manufacturer's published gas capacity in cubic feet.
+  /// Null for custom presets or metric-only tanks.
+  final double? ratedCapacityCuft;
+
   const TankPresetEntity({
     required this.id,
     this.diverId,
@@ -31,13 +35,13 @@ class TankPresetEntity extends Equatable {
     this.isBuiltIn = false,
     required this.createdAt,
     required this.updatedAt,
+    this.ratedCapacityCuft,
   });
 
-  /// Calculate gas capacity in cubic feet (imperial tank size rating)
-  /// Uses real-gas Z-factor correction for accuracy at high pressures.
+  /// Gas capacity in cubic feet. Returns the manufacturer's rated value
+  /// when available, otherwise calculates from ideal gas law.
   double get volumeCuft =>
-      (volumeLiters * workingPressureBar) /
-      (28.3168 * TankPreset.zFactor(workingPressureBar));
+      ratedCapacityCuft ?? (volumeLiters * workingPressureBar) / 28.3168;
 
   /// Create from a built-in TankPreset constant
   factory TankPresetEntity.fromBuiltIn(TankPreset preset) {
@@ -53,6 +57,7 @@ class TankPresetEntity extends Equatable {
       isBuiltIn: true,
       createdAt: fixedDate,
       updatedAt: fixedDate,
+      ratedCapacityCuft: preset.ratedCapacityCuft,
     );
   }
 
@@ -107,6 +112,7 @@ class TankPresetEntity extends Equatable {
     bool? isBuiltIn,
     DateTime? createdAt,
     DateTime? updatedAt,
+    double? ratedCapacityCuft,
   }) {
     return TankPresetEntity(
       id: id ?? this.id,
@@ -121,6 +127,7 @@ class TankPresetEntity extends Equatable {
       isBuiltIn: isBuiltIn ?? this.isBuiltIn,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      ratedCapacityCuft: ratedCapacityCuft ?? this.ratedCapacityCuft,
     );
   }
 
@@ -138,5 +145,6 @@ class TankPresetEntity extends Equatable {
     isBuiltIn,
     createdAt,
     updatedAt,
+    ratedCapacityCuft,
   ];
 }
