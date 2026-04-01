@@ -97,17 +97,39 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
           controller: _tabController,
           tabs: [
             Tab(
-              icon: const Icon(Icons.backpack),
-              text: context.l10n.equipment_tab_equipment,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.backpack, size: 20),
+                  const SizedBox(width: 8),
+                  Text(context.l10n.equipment_tab_equipment),
+                ],
+              ),
             ),
             Tab(
-              icon: const Icon(Icons.folder_special),
-              text: context.l10n.equipment_tab_sets,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.folder_special, size: 20),
+                  const SizedBox(width: 8),
+                  Text(context.l10n.equipment_tab_sets),
+                ],
+              ),
             ),
           ],
-          indicatorColor: colorScheme.primary,
-          labelColor: colorScheme.primary,
+          indicatorSize: TabBarIndicatorSize.tab,
+          indicator: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            color: colorScheme.primaryContainer,
+          ),
+          indicatorPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 6,
+          ),
+          labelColor: colorScheme.onPrimaryContainer,
+          labelStyle: const TextStyle(fontWeight: FontWeight.w600),
           unselectedLabelColor: colorScheme.onSurfaceVariant,
+          splashBorderRadius: BorderRadius.circular(24),
         ),
       ),
       body: TabBarView(
@@ -131,17 +153,39 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
           controller: _tabController,
           tabs: [
             Tab(
-              icon: const Icon(Icons.backpack),
-              text: context.l10n.equipment_tab_equipment,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.backpack, size: 20),
+                  const SizedBox(width: 8),
+                  Text(context.l10n.equipment_tab_equipment),
+                ],
+              ),
             ),
             Tab(
-              icon: const Icon(Icons.folder_special),
-              text: context.l10n.equipment_tab_sets,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.folder_special, size: 20),
+                  const SizedBox(width: 8),
+                  Text(context.l10n.equipment_tab_sets),
+                ],
+              ),
             ),
           ],
-          indicatorColor: colorScheme.primary,
-          labelColor: colorScheme.primary,
+          indicatorSize: TabBarIndicatorSize.tab,
+          indicator: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            color: colorScheme.primaryContainer,
+          ),
+          indicatorPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 6,
+          ),
+          labelColor: colorScheme.onPrimaryContainer,
+          labelStyle: const TextStyle(fontWeight: FontWeight.w600),
           unselectedLabelColor: colorScheme.onSurfaceVariant,
+          splashBorderRadius: BorderRadius.circular(24),
         ),
       ),
       body: _isEquipmentTab
