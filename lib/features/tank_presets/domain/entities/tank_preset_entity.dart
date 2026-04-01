@@ -34,8 +34,10 @@ class TankPresetEntity extends Equatable {
   });
 
   /// Calculate gas capacity in cubic feet (imperial tank size rating)
-  /// Formula: (water_volume_liters * working_pressure_bar) / 28.3168
-  double get volumeCuft => (volumeLiters * workingPressureBar) / 28.3168;
+  /// Uses real-gas Z-factor correction for accuracy at high pressures.
+  double get volumeCuft =>
+      (volumeLiters * workingPressureBar) /
+      (28.3168 * TankPreset.zFactor(workingPressureBar.toDouble()));
 
   /// Create from a built-in TankPreset constant
   factory TankPresetEntity.fromBuiltIn(TankPreset preset) {

@@ -19,9 +19,19 @@ class TankPreset {
   });
 
   /// Calculate the gas capacity in cubic feet at surface pressure.
-  /// Formula: (water_volume_liters * working_pressure_bar) / 28.3168
-  /// This is the imperial "tank size" rating (e.g., AL80 = 80 cuft)
-  double get volumeCuft => (volumeLiters * workingPressureBar) / 28.3168;
+  /// Uses real-gas correction (Z-factor) for accuracy at high pressures.
+  /// This is the imperial "tank size" rating (e.g., AL80 = ~77.4 cuft)
+  double get volumeCuft =>
+      (volumeLiters * workingPressureBar) /
+      (28.3168 * zFactor(workingPressureBar.toDouble()));
+
+  /// Compressibility Z-factor for air at a given pressure in bar.
+  /// At high pressures, real gas is denser than ideal gas predicts,
+  /// so the actual free gas volume is less than P*V / atmospheric.
+  /// Polynomial fit to NIST data for air at 20C, valid 1-300 bar.
+  static double zFactor(double pressureBar) {
+    return 1.0 + 0.000418 * pressureBar - 2.72e-7 * pressureBar * pressureBar;
+  }
 }
 
 /// Built-in tank presets (common configurations)
@@ -32,7 +42,7 @@ class TankPresets {
   static const al40 = TankPreset(
     name: 'al40',
     displayName: 'AL40',
-    volumeLiters: 5.7,
+    volumeLiters: 5.8,
     workingPressureBar: 207,
     material: TankMaterial.aluminum,
     description: 'Aluminum 40 cu ft (pony)',
@@ -61,7 +71,7 @@ class TankPresets {
     name: 'hp80',
     displayName: 'HP80',
     volumeLiters: 10.2,
-    workingPressureBar: 234,
+    workingPressureBar: 237,
     material: TankMaterial.steel,
     description: 'High Pressure Steel 80 cu ft',
   );
@@ -70,7 +80,7 @@ class TankPresets {
     name: 'hp100',
     displayName: 'HP100',
     volumeLiters: 12.9,
-    workingPressureBar: 234,
+    workingPressureBar: 237,
     material: TankMaterial.steel,
     description: 'High Pressure Steel 100 cu ft',
   );
@@ -78,8 +88,8 @@ class TankPresets {
   static const hp120 = TankPreset(
     name: 'hp120',
     displayName: 'HP120',
-    volumeLiters: 15.1,
-    workingPressureBar: 234,
+    volumeLiters: 15.3,
+    workingPressureBar: 237,
     material: TankMaterial.steel,
     description: 'High Pressure Steel 120 cu ft',
   );
@@ -88,8 +98,8 @@ class TankPresets {
   static const lp85 = TankPreset(
     name: 'lp85',
     displayName: 'LP85',
-    volumeLiters: 12.0,
-    workingPressureBar: 193,
+    volumeLiters: 13.0,
+    workingPressureBar: 182,
     material: TankMaterial.steel,
     description: 'Low Pressure Steel 85 cu ft',
   );
@@ -135,7 +145,7 @@ class TankPresets {
   static const al40Stage = TankPreset(
     name: 'al40stage',
     displayName: 'AL40 Stage',
-    volumeLiters: 5.7,
+    volumeLiters: 5.8,
     workingPressureBar: 207,
     material: TankMaterial.aluminum,
     description: 'Aluminum 40 cu ft stage tank',

@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -115,14 +116,14 @@ class UnitFormatter {
 
     if (settings.volumeUnit == VolumeUnit.cubicFeet) {
       if (workingPressureBar != null && workingPressureBar > 0) {
-        // Calculate gas capacity in cubic feet
-        // cuft = (liters * working_pressure_bar) / 28.3168
-        final cuft = (volumeLiters * workingPressureBar) / 28.3168;
+        // Calculate gas capacity in cubic feet with Z-factor correction
+        final z = TankPreset.zFactor(workingPressureBar.toDouble());
+        final cuft = (volumeLiters * workingPressureBar) / (28.3168 * z);
         return '${cuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
       } else {
         // No working pressure - use approximate conversion assuming 200 bar
-        // This is a reasonable default for most tanks
-        final cuft = (volumeLiters * 200) / 28.3168;
+        final z = TankPreset.zFactor(200);
+        final cuft = (volumeLiters * 200) / (28.3168 * z);
         return '~${cuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
       }
     }
