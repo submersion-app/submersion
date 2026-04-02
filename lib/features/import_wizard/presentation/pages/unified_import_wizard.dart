@@ -17,6 +17,7 @@ import 'package:submersion/features/import_wizard/data/adapters/dive_computer_ad
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
+import 'package:submersion/features/import_wizard/domain/services/step_skip_calculator.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -141,21 +142,19 @@ class _UnifiedImportWizardBodyState
       // Determine the next page. Skip any remaining acquisition steps whose
       // canAutoAdvance provider is already satisfied (e.g. Map Fields when the
       // payload is already produced for non-CSV formats like SSRF/UDDF).
-      var nextPage = _currentPage + 1;
-      while (nextPage < _reviewIndex) {
-        final nextStep = _acquisitionSteps[nextPage];
-        final autoProvider = nextStep.canAutoAdvance;
-        if (autoProvider != null && nextStep.autoAdvance) {
-          final ready = ref.read(autoProvider);
-          if (ready) {
-            // Run the skipped step's onBeforeAdvance so it can finalize state.
-            await nextStep.onBeforeAdvance?.call();
-            if (!mounted) return;
-            nextPage++;
-            continue;
-          }
-        }
-        break;
+      final skipped = <WizardStepDef>[];
+      final nextPage = calculateNextPage(
+        currentPage: _currentPage,
+        reviewIndex: _reviewIndex,
+        steps: _acquisitionSteps,
+        isAutoAdvanceReady: (step) => ref.read(step.canAutoAdvance!),
+        skippedSteps: skipped,
+      );
+
+      // Run onBeforeAdvance for each skipped step so it can finalize state.
+      for (final step in skipped) {
+        await step.onBeforeAdvance?.call();
+        if (!mounted) return;
       }
 
       // Last acquisition step (or skipped past all of them): build bundle.
