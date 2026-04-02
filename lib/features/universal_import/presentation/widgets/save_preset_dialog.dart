@@ -179,11 +179,13 @@ class _SavePresetDialogState extends State<SavePresetDialog> {
       name: _nameController.text.trim(),
       source: PresetSource.userSaved,
       sourceApp: _sourceApp,
-      signatureHeaders: widget.csvHeaders
-          .map((h) => h.trim().toLowerCase())
-          .where((h) => h.isNotEmpty)
-          .toSet()
-          .toList(),
+      signatureHeaders:
+          widget.csvHeaders
+              .map((h) => h.trim().toLowerCase())
+              .where((h) => h.isNotEmpty)
+              .toSet()
+              .toList()
+            ..sort(),
       matchThreshold: _matchThreshold,
       mappings: {'primary': widget.mapping},
       supportedEntities: _entityTypes,

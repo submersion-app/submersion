@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/built_in_presets.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
-import 'package:submersion/features/universal_import/data/csv/presets/preset_registry.dart';
 import 'package:submersion/features/universal_import/presentation/providers/csv_preset_providers.dart';
 
 /// Bottom sheet that displays all available CSV presets (built-in + user-saved)
@@ -74,19 +73,26 @@ class SelectPresetSheet extends ConsumerWidget {
     ScrollController scrollController,
   ) {
     final theme = Theme.of(context);
-    final registry = PresetRegistry(builtInPresets: builtInCsvPresets);
 
-    // Register user presets then score all presets in one pass.
-    for (final preset in userPresets) {
-      registry.addUserPreset(preset);
+    // Score all presets directly without threshold filtering so the UI
+    // shows partial match percentages even for low-scoring presets.
+    final normalizedHeaders = csvHeaders
+        .map((h) => h.toLowerCase().trim())
+        .toSet();
+
+    double scorePreset(CsvPreset preset) {
+      if (preset.signatureHeaders.isEmpty) return 0.0;
+      var matched = 0;
+      for (final sig in preset.signatureHeaders) {
+        if (normalizedHeaders.contains(sig.toLowerCase())) matched++;
+      }
+      return matched / preset.signatureHeaders.length;
     }
-    final allMatches = registry.detectPreset(csvHeaders);
-    final scoreById = {for (final m in allMatches) m.preset.id: m.score};
 
     final builtInScores = {
-      for (final p in builtInCsvPresets) p: scoreById[p.id] ?? 0.0,
+      for (final p in builtInCsvPresets) p: scorePreset(p),
     };
-    final userScores = {for (final p in userPresets) p: scoreById[p.id] ?? 0.0};
+    final userScores = {for (final p in userPresets) p: scorePreset(p)};
 
     final hasUserPresets = userPresets.isNotEmpty;
 
