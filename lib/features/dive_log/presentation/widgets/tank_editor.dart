@@ -73,8 +73,14 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     if (widget.tank.volume != null) {
       if (settings.volumeUnit == VolumeUnit.cubicFeet &&
           widget.tank.workingPressure != null) {
-        // Calculate cuft from liters and working pressure
+        // Use manufacturer's rated cuft if this matches a known preset,
+        // otherwise fall back to ideal gas calculation
+        final match = TankPresets.matchBySpecs(
+          widget.tank.volume!,
+          widget.tank.workingPressure!,
+        );
         final cuft =
+            match?.ratedCapacityCuft ??
             (widget.tank.volume! * widget.tank.workingPressure!) / 28.3168;
         volumeText = cuft.toStringAsFixed(1);
       } else {

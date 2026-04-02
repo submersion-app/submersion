@@ -119,4 +119,29 @@ void main() {
       expect(lp85Psi, 2640);
     });
   });
+
+  group('matchBySpecs', () {
+    test('matches AL80 by volume and pressure', () {
+      // Imported data might have 207 bar (rounded) instead of 206.843
+      final match = TankPresets.matchBySpecs(11.1, 207.0);
+      expect(match, isNotNull);
+      expect(match!.name, 'al80');
+      expect(match.ratedCapacityCuft, 77.4);
+    });
+
+    test('matches HP100 by volume and pressure', () {
+      final match = TankPresets.matchBySpecs(12.9, 237.0);
+      expect(match, isNotNull);
+      expect(match!.name, 'hp100');
+    });
+
+    test('returns null for non-matching specs', () {
+      expect(TankPresets.matchBySpecs(14.0, 220.0), isNull);
+    });
+
+    test('returns null for metric tanks (no ratedCapacityCuft)', () {
+      // Steel 12L is 12.0L @ 200 bar but has no ratedCapacityCuft
+      expect(TankPresets.matchBySpecs(12.0, 200.0), isNull);
+    });
+  });
 }

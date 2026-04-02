@@ -53,9 +53,15 @@ void main() {
       );
     });
 
-    test('imperial calculates from ideal gas when no rated cuft', () {
-      // 11.1 * 207.0 / 28.3168 ≈ 81.1
-      expect(imperialFormatter.formatTankVolume(11.1, 207.0), '81 cuft');
+    test('imperial auto-matches known preset specs', () {
+      // 11.1L @ 207 bar matches AL80 -> 77.4 cuft
+      expect(imperialFormatter.formatTankVolume(11.1, 207.0), '77 cuft');
+    });
+
+    test('imperial calculates from ideal gas for non-standard tanks', () {
+      // 14.0L @ 220 bar doesn't match any preset -> ideal gas
+      // 14.0 * 220.0 / 28.3168 ≈ 108.8
+      expect(imperialFormatter.formatTankVolume(14.0, 220.0), '109 cuft');
     });
 
     test('imperial shows approximate when no working pressure', () {

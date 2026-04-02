@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -116,17 +117,29 @@ class UnitFormatter {
     if (volumeLiters == null) return '--';
 
     if (settings.volumeUnit == VolumeUnit.cubicFeet) {
-      if (ratedCapacityCuft != null) {
-        return '${ratedCapacityCuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
+      // Try to use manufacturer's rated cuft, either passed directly
+      // or by matching volume/pressure against known tank presets
+      var cuft = ratedCapacityCuft;
+      if (cuft == null &&
+          workingPressureBar != null &&
+          workingPressureBar > 0) {
+        final match = TankPresets.matchBySpecs(
+          volumeLiters,
+          workingPressureBar,
+        );
+        cuft = match?.ratedCapacityCuft;
+      }
+      if (cuft != null) {
+        return '${cuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
       }
       if (workingPressureBar != null && workingPressureBar > 0) {
-        // Ideal gas approximation for custom/unknown tanks
-        final cuft = (volumeLiters * workingPressureBar) / 28.3168;
-        return '${cuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
+        // Ideal gas approximation for non-standard tanks
+        final calcCuft = (volumeLiters * workingPressureBar) / 28.3168;
+        return '${calcCuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
       } else {
         // No working pressure - approximate assuming 200 bar
-        final cuft = (volumeLiters * 200) / 28.3168;
-        return '~${cuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
+        final calcCuft = (volumeLiters * 200) / 28.3168;
+        return '~${calcCuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
       }
     }
 

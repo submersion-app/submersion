@@ -188,4 +188,20 @@ class TankPresets {
       return null;
     }
   }
+
+  /// Match a preset by volume and working pressure within tolerance.
+  /// Returns the matching preset (with ratedCapacityCuft) or null.
+  static TankPreset? matchBySpecs(
+    double volumeLiters,
+    double workingPressureBar,
+  ) {
+    for (final preset in all) {
+      if (preset.ratedCapacityCuft != null &&
+          (preset.volumeLiters - volumeLiters).abs() < 0.2 &&
+          (preset.workingPressureBar - workingPressureBar).abs() < 2.0) {
+        return preset;
+      }
+    }
+    return null;
+  }
 }
