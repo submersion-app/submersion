@@ -420,6 +420,8 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
           style: theme.textTheme.bodySmall?.copyWith(
             color: Colors.white.withValues(alpha: 0.7),
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
