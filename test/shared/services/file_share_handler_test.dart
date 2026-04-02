@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show TargetPlatform;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, debugDefaultTargetPlatformOverride;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:submersion/shared/services/file_share_handler.dart';
@@ -28,6 +30,48 @@ void main() {
           onFileReceived: (bytes, name) async {},
         );
         expect(() => handler.dispose(), returnsNormally);
+      },
+    );
+
+    test(
+      'initialize sets up stream subscription and processes initial media on mobile',
+      () async {
+        TestWidgetsFlutterBinding.ensureInitialized();
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+
+        final streamController =
+            StreamController<List<SharedMediaFile>>.broadcast();
+        final tempDir = await Directory.systemTemp.createTemp('share_init_');
+        final tempFile = File('${tempDir.path}/dive.uddf');
+        await tempFile.writeAsString('<uddf/>');
+
+        try {
+          ReceiveSharingIntent.setMockValues(
+            initialMedia: [
+              SharedMediaFile(path: tempFile.path, type: SharedMediaType.file),
+            ],
+            mediaStream: streamController.stream,
+          );
+
+          final received = <String>[];
+          final handler = FileShareHandler(
+            onFileReceived: (bytes, name) async {
+              received.add(name);
+            },
+          );
+
+          handler.initialize();
+          // Let the async chain (getInitialMedia -> handleMediaFiles) resolve.
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+
+          expect(received, contains('dive.uddf'));
+
+          handler.dispose();
+          await streamController.close();
+        } finally {
+          debugDefaultTargetPlatformOverride = null;
+          await tempDir.delete(recursive: true);
+        }
       },
     );
 
