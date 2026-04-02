@@ -215,17 +215,13 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
     required String ytd,
   }) {
     final icon = ExcludeSemantics(
-      child: Image.asset(
-        'assets/icon/icon.png',
-        width: 80,
-        height: 80,
-      ),
+      child: Image.asset('assets/icon/icon.png', width: 80, height: 80),
     );
 
     final nameWidget = Text(
       diverName,
       style: TextStyle(
-        fontSize: isWide ? 18 : 20,
+        fontSize: isWide ? 18 : 14,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
@@ -320,7 +316,7 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
     );
   }
 
-  /// Phone: icon left column, name + stats stacked right.
+  /// Phone: icon left, name + stats stacked right, compact to match desktop height.
   Widget _buildPhoneLayout({
     required BuildContext context,
     required ThemeData theme,
@@ -333,16 +329,17 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
     required String ytd,
   }) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Padding(padding: const EdgeInsets.only(top: 2), child: icon),
-        const SizedBox(width: 16),
+        icon,
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               nameWidget,
-              const SizedBox(height: 10),
+              const SizedBox(height: 4),
               // Career stats
               Row(
                 children: [
@@ -350,39 +347,36 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
                     totalDives,
                     context.l10n.dashboard_hero_divesLoggedLabel,
                     theme,
-                    fontSize: 28,
+                    fontSize: 18,
                   ),
-                  const SizedBox(width: 16),
-                  _verticalSeparator(32),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
+                  _verticalSeparator(22),
+                  const SizedBox(width: 12),
                   _careerStatColumn(
                     hoursValue,
                     context.l10n.dashboard_hero_hoursUnderwaterLabel,
                     theme,
-                    fontSize: 28,
+                    fontSize: 18,
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-              // Divider
-              Container(height: 1, color: Colors.white.withValues(alpha: 0.1)),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               // Activity stats
               Row(
                 children: [
-                  _activityStatColumn(
+                  _phoneActivityStat(
                     daysSinceValue,
                     context.l10n.dashboard_hero_daysSinceLabel,
                     theme,
                   ),
-                  const SizedBox(width: 12),
-                  _activityStatColumn(
+                  const SizedBox(width: 10),
+                  _phoneActivityStat(
                     monthly,
                     context.l10n.dashboard_hero_thisMonthLabel,
                     theme,
                   ),
-                  const SizedBox(width: 12),
-                  _activityStatColumn(
+                  const SizedBox(width: 10),
+                  _phoneActivityStat(
                     ytd,
                     context.l10n.dashboard_hero_thisYearLabel,
                     theme,
@@ -390,6 +384,30 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
                 ],
               ),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _phoneActivityStat(String value, String label, ThemeData theme) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(width: 3),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 9,
+            color: Colors.white.withValues(alpha: 0.6),
           ),
         ),
       ],
@@ -426,28 +444,6 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
           label,
           style: theme.textTheme.bodySmall?.copyWith(
             color: Colors.white.withValues(alpha: 0.7),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _activityStatColumn(String value, String label, ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          value,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: Colors.white.withValues(alpha: 0.6),
           ),
         ),
       ],
