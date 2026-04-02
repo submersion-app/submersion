@@ -15729,6 +15729,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_detail_weatherSourceOpenMeteo => 'via Open-Meteo';
 
   @override
+  String get dropTarget_title => 'Drop to Import';
+
+  @override
+  String get dropTarget_subtitle => 'Release to open import wizard';
+
+  @override
+  String get dropTarget_error_unsupportedFile => 'Unsupported file type';
+
+  @override
+  String get dropTarget_error_wizardActive => 'Finish current import first';
+
+  @override
+  String get dropTarget_error_readFailed => 'Could not read file';
+
+  @override
   String get enum_cloudCover_clear => 'Clear';
 
   @override

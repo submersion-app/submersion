@@ -26546,6 +26546,36 @@ abstract class AppLocalizations {
   /// **'via Open-Meteo'**
   String get diveLog_detail_weatherSourceOpenMeteo;
 
+  /// No description provided for @dropTarget_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop to Import'**
+  String get dropTarget_title;
+
+  /// No description provided for @dropTarget_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Release to open import wizard'**
+  String get dropTarget_subtitle;
+
+  /// No description provided for @dropTarget_error_unsupportedFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported file type'**
+  String get dropTarget_error_unsupportedFile;
+
+  /// No description provided for @dropTarget_error_wizardActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish current import first'**
+  String get dropTarget_error_wizardActive;
+
+  /// No description provided for @dropTarget_error_readFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read file'**
+  String get dropTarget_error_readFailed;
+
   /// No description provided for @enum_cloudCover_clear.
   ///
   /// In en, this message translates to:
