@@ -100,7 +100,7 @@ class SelectPresetSheet extends ConsumerWidget {
             _PresetCard(
               preset: preset,
               score: userScores[preset] ?? 0.0,
-              headerCount: csvHeaders.length,
+
               onTap: () => Navigator.of(context).pop(preset),
               onDelete: () => _deletePreset(context, ref, preset),
             ),
@@ -111,7 +111,6 @@ class SelectPresetSheet extends ConsumerWidget {
           _PresetCard(
             preset: preset,
             score: builtInScores[preset] ?? 0.0,
-            headerCount: csvHeaders.length,
             onTap: () => Navigator.of(context).pop(preset),
           ),
         const SizedBox(height: 16),
@@ -180,14 +179,13 @@ class _SectionHeader extends StatelessWidget {
 class _PresetCard extends StatelessWidget {
   final CsvPreset preset;
   final double score;
-  final int headerCount;
+
   final VoidCallback onTap;
   final VoidCallback? onDelete;
 
   const _PresetCard({
     required this.preset,
     required this.score,
-    required this.headerCount,
     required this.onTap,
     this.onDelete,
   });
