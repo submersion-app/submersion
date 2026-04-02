@@ -1949,7 +1949,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         ),
                         if (cylinder.gasUsedBar != null)
                           Text(
-                            '${units.convertPressure(cylinder.gasUsedBar!).toInt()} ${units.pressureSymbol} used',
+                            '${units.convertPressure(cylinder.gasUsedBar!).round()} ${units.pressureSymbol} used',
                             style: textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
