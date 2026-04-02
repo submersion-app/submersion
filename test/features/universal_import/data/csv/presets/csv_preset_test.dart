@@ -973,4 +973,263 @@ void main() {
       expect((roles[0] as Map)['roleId'], 'dive_list');
     });
   });
+
+  // ======================== toJson/fromJson full roundtrip ========================
+
+  group('toJson/fromJson full roundtrip with every field populated', () {
+    test('roundtrips a preset with all fields including fileRoles', () {
+      const original = CsvPreset(
+        id: 'full-roundtrip',
+        name: 'Full Roundtrip Test',
+        source: PresetSource.builtIn,
+        sourceApp: SourceApp.macdive,
+        signatureHeaders: ['Date', 'Max Depth', 'Duration', 'Water Temp'],
+        matchThreshold: 0.8,
+        fileRoles: [
+          PresetFileRole(
+            roleId: 'dive_list',
+            label: 'Dive List CSV',
+            required: true,
+            signatureHeaders: ['Date', 'Max Depth'],
+          ),
+          PresetFileRole(
+            roleId: 'site_export',
+            label: 'Sites CSV',
+            required: false,
+            signatureHeaders: ['Site Name', 'Latitude'],
+          ),
+        ],
+        mappings: {
+          'dive_list': FieldMapping(
+            name: 'MacDive Dive List',
+            sourceApp: SourceApp.macdive,
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(
+                sourceColumn: 'Max Depth',
+                targetField: 'maxDepth',
+                transform: ValueTransform.feetToMeters,
+              ),
+              ColumnMapping(
+                sourceColumn: 'Duration',
+                targetField: 'duration',
+                transform: ValueTransform.minutesToSeconds,
+                defaultValue: '0',
+              ),
+              ColumnMapping(
+                sourceColumn: 'Water Temp',
+                targetField: 'waterTemp',
+                transform: ValueTransform.fahrenheitToCelsius,
+              ),
+              ColumnMapping(
+                sourceColumn: 'Rating',
+                targetField: 'rating',
+                transform: ValueTransform.ratingScale,
+              ),
+              ColumnMapping(
+                sourceColumn: 'Visibility',
+                targetField: 'visibility',
+                transform: ValueTransform.visibilityScale,
+                defaultValue: 'good',
+              ),
+              ColumnMapping(
+                sourceColumn: 'Type',
+                targetField: 'diveType',
+                transform: ValueTransform.diveTypeMap,
+              ),
+            ],
+          ),
+          'site_export': FieldMapping(
+            name: 'MacDive Sites',
+            columns: [
+              ColumnMapping(sourceColumn: 'Site Name', targetField: 'siteName'),
+            ],
+          ),
+        },
+        expectedUnits: UnitSystem.imperial,
+        expectedTimeFormat: ExpectedTimeFormat.h12,
+        supportedEntities: {
+          ImportEntityType.dives,
+          ImportEntityType.sites,
+          ImportEntityType.buddies,
+          ImportEntityType.equipment,
+          ImportEntityType.tags,
+        },
+      );
+
+      final json = original.toJson();
+      final restored = CsvPreset.fromJson(json);
+
+      // Scalar fields
+      expect(restored.id, original.id);
+      expect(restored.name, original.name);
+      expect(restored.source, PresetSource.userSaved); // always userSaved
+      expect(restored.sourceApp, original.sourceApp);
+      expect(restored.signatureHeaders, original.signatureHeaders);
+      expect(restored.matchThreshold, original.matchThreshold);
+      expect(restored.expectedUnits, original.expectedUnits);
+      expect(restored.expectedTimeFormat, original.expectedTimeFormat);
+      expect(restored.supportedEntities, original.supportedEntities);
+
+      // File roles
+      expect(restored.fileRoles, hasLength(2));
+      expect(restored.fileRoles[0].roleId, 'dive_list');
+      expect(restored.fileRoles[0].label, 'Dive List CSV');
+      expect(restored.fileRoles[0].required, isTrue);
+      expect(restored.fileRoles[0].signatureHeaders, ['Date', 'Max Depth']);
+      expect(restored.fileRoles[1].roleId, 'site_export');
+      expect(restored.fileRoles[1].required, isFalse);
+
+      // Mappings
+      expect(restored.mappings, hasLength(2));
+      final diveMapping = restored.mappings['dive_list']!;
+      expect(diveMapping.name, 'MacDive Dive List');
+      expect(diveMapping.sourceApp, SourceApp.macdive);
+      expect(diveMapping.columns, hasLength(7));
+
+      final ratingCol = diveMapping.columns[4];
+      expect(ratingCol.sourceColumn, 'Rating');
+      expect(ratingCol.transform, ValueTransform.ratingScale);
+
+      final visCol = diveMapping.columns[5];
+      expect(visCol.transform, ValueTransform.visibilityScale);
+      expect(visCol.defaultValue, 'good');
+
+      final typeCol = diveMapping.columns[6];
+      expect(typeCol.transform, ValueTransform.diveTypeMap);
+    });
+  });
+
+  // ======================== fromJson unknown value handling ========================
+
+  group('fromJson unknown value handling', () {
+    test('unknown sourceApp deserializes to null', () {
+      final json = jsonEncode({
+        'id': 'unknown-source',
+        'name': 'Unknown Source',
+        'sourceApp': 'nonExistentApp',
+      });
+
+      final preset = CsvPreset.fromJson(json);
+      expect(preset.sourceApp, isNull);
+    });
+
+    test('unknown entity type names are filtered out', () {
+      final json = jsonEncode({
+        'id': 'mixed-entities',
+        'name': 'Mixed Entities',
+        'supportedEntities': [
+          'dives',
+          'nonExistentEntity',
+          'sites',
+          'anotherFake',
+          'buddies',
+        ],
+      });
+
+      final preset = CsvPreset.fromJson(json);
+      expect(preset.supportedEntities, hasLength(3));
+      expect(preset.supportedEntities, contains(ImportEntityType.dives));
+      expect(preset.supportedEntities, contains(ImportEntityType.sites));
+      expect(preset.supportedEntities, contains(ImportEntityType.buddies));
+    });
+
+    test('all unknown entity types results in default fallback', () {
+      final json = jsonEncode({
+        'id': 'all-unknown-entities',
+        'name': 'All Unknown Entities',
+        'supportedEntities': ['fakeEntity1', 'fakeEntity2'],
+      });
+
+      final preset = CsvPreset.fromJson(json);
+      // Empty after filtering, so falls back to default {dives, sites}.
+      expect(preset.supportedEntities, {
+        ImportEntityType.dives,
+        ImportEntityType.sites,
+      });
+    });
+
+    test(
+      'unknown sourceApp in mapping columns deserializes mapping sourceApp to null',
+      () {
+        final json = jsonEncode({
+          'id': 'unknown-mapping-app',
+          'name': 'Unknown Mapping App',
+          'mappings': {
+            'primary': {
+              'name': 'Primary',
+              'sourceApp': 'notARealApp',
+              'columns': [],
+            },
+          },
+        });
+
+        final preset = CsvPreset.fromJson(json);
+        expect(preset.mappings['primary']!.sourceApp, isNull);
+      },
+    );
+  });
+
+  // ======================== primaryMapping getter edge cases ========================
+
+  group('primaryMapping getter edge cases', () {
+    test('prefers "primary" key over "dive_list" key', () {
+      const preset = CsvPreset(
+        id: 'prefer-primary',
+        name: 'Prefer Primary',
+        signatureHeaders: ['Date'],
+        mappings: {
+          'dive_list': FieldMapping(name: 'Dive List Mapping', columns: []),
+          'primary': FieldMapping(name: 'Primary Mapping', columns: []),
+        },
+      );
+
+      expect(preset.primaryMapping!.name, 'Primary Mapping');
+    });
+
+    test('prefers "dive_list" over arbitrary key when "primary" absent', () {
+      const preset = CsvPreset(
+        id: 'prefer-dive-list',
+        name: 'Prefer Dive List',
+        signatureHeaders: ['Date'],
+        mappings: {
+          'custom_key': FieldMapping(name: 'Custom Mapping', columns: []),
+          'dive_list': FieldMapping(name: 'Dive List Mapping', columns: []),
+        },
+      );
+
+      expect(preset.primaryMapping!.name, 'Dive List Mapping');
+    });
+
+    test(
+      'falls back to first mapping value when neither primary nor dive_list exists',
+      () {
+        const preset = CsvPreset(
+          id: 'fallback-first',
+          name: 'Fallback First',
+          signatureHeaders: ['Date'],
+          mappings: {
+            'some_other_key': FieldMapping(
+              name: 'Some Other Mapping',
+              columns: [],
+            ),
+          },
+        );
+
+        expect(preset.primaryMapping, isNotNull);
+        expect(preset.primaryMapping!.name, 'Some Other Mapping');
+      },
+    );
+
+    test('returns null when mappings is empty', () {
+      const preset = CsvPreset(
+        id: 'no-mappings',
+        name: 'No Mappings',
+        signatureHeaders: ['Date'],
+        mappings: {},
+      );
+
+      expect(preset.primaryMapping, isNull);
+    });
+  });
 }

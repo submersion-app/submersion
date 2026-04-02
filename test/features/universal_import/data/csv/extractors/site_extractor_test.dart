@@ -106,5 +106,115 @@ void main() {
       expect(sites[0]['latitude'], isNull);
       expect(sites[0]['longitude'], isNull);
     });
+
+    test('each site has a uddfId matching its id', () {
+      final rows = <Map<String, dynamic>>[
+        {'siteName': 'Blue Hole'},
+        {'siteName': 'The Wall'},
+      ];
+
+      final sites = extractor.extractFromRows(rows);
+
+      expect(sites, hasLength(2));
+      for (final site in sites) {
+        expect(site['uddfId'], isNotNull);
+        expect(site['uddfId'], equals(site['id']));
+      }
+    });
+
+    test('handles GPS with extra whitespace', () {
+      final rows = <Map<String, dynamic>>[
+        {'siteName': 'Blue Hole', 'gps': '  24.0786   -76.1234  '},
+      ];
+
+      final sites = extractor.extractFromRows(rows);
+
+      expect(sites, hasLength(1));
+      expect(sites[0]['latitude'], closeTo(24.0786, 0.0001));
+      expect(sites[0]['longitude'], closeTo(-76.1234, 0.0001));
+    });
+
+    test('returns null GPS for empty gps field', () {
+      final rows = <Map<String, dynamic>>[
+        {'siteName': 'Blue Hole', 'gps': ''},
+      ];
+
+      final sites = extractor.extractFromRows(rows);
+
+      expect(sites, hasLength(1));
+      expect(sites[0]['latitude'], isNull);
+      expect(sites[0]['longitude'], isNull);
+    });
+
+    test('returns null GPS for whitespace-only gps field', () {
+      final rows = <Map<String, dynamic>>[
+        {'siteName': 'Blue Hole', 'gps': '   '},
+      ];
+
+      final sites = extractor.extractFromRows(rows);
+
+      expect(sites, hasLength(1));
+      expect(sites[0]['latitude'], isNull);
+      expect(sites[0]['longitude'], isNull);
+    });
+
+    test('returns null GPS for single value (missing longitude)', () {
+      final rows = <Map<String, dynamic>>[
+        {'siteName': 'Blue Hole', 'gps': '24.0786'},
+      ];
+
+      final sites = extractor.extractFromRows(rows);
+
+      expect(sites, hasLength(1));
+      expect(sites[0]['latitude'], isNull);
+      expect(sites[0]['longitude'], isNull);
+    });
+
+    test('returns null GPS for non-numeric values', () {
+      final rows = <Map<String, dynamic>>[
+        {'siteName': 'Blue Hole', 'gps': 'invalid location'},
+      ];
+
+      final sites = extractor.extractFromRows(rows);
+
+      expect(sites, hasLength(1));
+      expect(sites[0]['latitude'], isNull);
+      expect(sites[0]['longitude'], isNull);
+    });
+
+    test('parses negative GPS coordinates', () {
+      final rows = <Map<String, dynamic>>[
+        {'siteName': 'South Reef', 'gps': '-33.8688 151.2093'},
+      ];
+
+      final sites = extractor.extractFromRows(rows);
+
+      expect(sites, hasLength(1));
+      expect(sites[0]['latitude'], closeTo(-33.8688, 0.0001));
+      expect(sites[0]['longitude'], closeTo(151.2093, 0.0001));
+    });
+
+    test('siteIdForName returns null for unseen site name', () {
+      final rows = <Map<String, dynamic>>[
+        {'siteName': 'Blue Hole'},
+      ];
+
+      extractor.extractFromRows(rows);
+
+      expect(extractor.siteIdForName('Unknown Site'), isNull);
+    });
+
+    test('GPS from first occurrence wins for deduped sites', () {
+      final rows = <Map<String, dynamic>>[
+        {'siteName': 'Blue Hole', 'gps': '24.0786 -76.1234'},
+        {'siteName': 'Blue Hole', 'gps': '99.0 -99.0'},
+      ];
+
+      final sites = extractor.extractFromRows(rows);
+
+      expect(sites, hasLength(1));
+      expect(sites[0]['latitude'], closeTo(24.0786, 0.0001));
+      expect(sites[0]['longitude'], closeTo(-76.1234, 0.0001));
+    });
   });
 }

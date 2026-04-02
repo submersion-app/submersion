@@ -594,6 +594,73 @@ void main() {
         expect(notifier.state.isImporting, isFalse);
       });
 
+      test('sets importResult with error when no bundle is set', () async {
+        await notifier.performImport();
+
+        expect(notifier.state.importResult, isNotNull);
+        expect(
+          notifier.state.importResult!.errorMessage,
+          equals('No import data available'),
+        );
+        expect(notifier.state.importResult!.importedCounts, isEmpty);
+        expect(notifier.state.importResult!.consolidatedCount, equals(0));
+        expect(notifier.state.importResult!.skippedCount, equals(0));
+      });
+
+      test('sets importResult with error message on import failure', () async {
+        final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);
+        notifier.setBundle(bundle);
+
+        when(
+          mockAdapter.performImport(
+            any,
+            any,
+            any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+            onProgress: anyNamed('onProgress'),
+          ),
+        ).thenThrow(Exception('Database connection lost'));
+
+        await notifier.performImport();
+
+        expect(notifier.state.importResult, isNotNull);
+        expect(notifier.state.importResult!.errorMessage, isNotNull);
+        expect(
+          notifier.state.importResult!.errorMessage,
+          contains('Import failed'),
+        );
+        expect(
+          notifier.state.importResult!.errorMessage,
+          contains('Database connection lost'),
+        );
+        expect(notifier.state.importResult!.importedCounts, isEmpty);
+        expect(notifier.state.importResult!.consolidatedCount, equals(0));
+        expect(notifier.state.importResult!.skippedCount, equals(0));
+      });
+
+      test('error field is set alongside importResult on failure', () async {
+        final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);
+        notifier.setBundle(bundle);
+
+        when(
+          mockAdapter.performImport(
+            any,
+            any,
+            any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+            onProgress: anyNamed('onProgress'),
+          ),
+        ).thenThrow(Exception('IO failure'));
+
+        await notifier.performImport();
+
+        // Both error and importResult should be populated.
+        expect(notifier.state.error, contains('Import failed'));
+        expect(notifier.state.importResult, isNotNull);
+        expect(notifier.state.importResult!.errorMessage, isNotNull);
+        expect(notifier.state.isImporting, isFalse);
+      });
+
       test('applies import tags to all imported dives after import', () async {
         final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);
         notifier.setBundle(bundle);

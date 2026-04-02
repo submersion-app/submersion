@@ -92,6 +92,13 @@ void main() {
       expect(SourceApp.dan.exportInstructions, isNotNull);
     });
 
+    test('exportInstructions contains expected guidance text', () {
+      expect(SourceApp.suunto.exportInstructions, contains('UDDF'));
+      expect(SourceApp.scubapro.exportInstructions, contains('UDDF'));
+      expect(SourceApp.ssiMyDiveGuide.exportInstructions, contains('CSV'));
+      expect(SourceApp.dan.exportInstructions, contains('DL7'));
+    });
+
     test('exportInstructions is null for apps without instructions', () {
       // shearwater now uses native .db import, so no export instructions needed
       expect(SourceApp.shearwater.exportInstructions, isNull);
@@ -136,6 +143,389 @@ void main() {
       expect(ImportEntityType.courses.shortName, 'Courses');
       expect(ImportEntityType.tags.shortName, 'Tags');
       expect(ImportEntityType.diveTypes.shortName, 'Types');
+    });
+  });
+
+  group('SourceOverrideOption', () {
+    group('supported list', () {
+      test('contains expected number of entries', () {
+        expect(SourceOverrideOption.supported.length, 14);
+      });
+
+      test('contains Submersion CSV entry', () {
+        final match = SourceOverrideOption.supported.where(
+          (o) =>
+              o.sourceApp == SourceApp.submersion &&
+              o.format == ImportFormat.csv,
+        );
+        expect(match, hasLength(1));
+        expect(match.first.displayName, 'Submersion (CSV)');
+      });
+
+      test('contains Submersion UDDF entry', () {
+        final match = SourceOverrideOption.supported.where(
+          (o) =>
+              o.sourceApp == SourceApp.submersion &&
+              o.format == ImportFormat.uddf,
+        );
+        expect(match, hasLength(1));
+        expect(match.first.displayName, 'Submersion (UDDF)');
+      });
+
+      test('contains Subsurface CSV entry', () {
+        final match = SourceOverrideOption.supported.where(
+          (o) =>
+              o.sourceApp == SourceApp.subsurface &&
+              o.format == ImportFormat.csv,
+        );
+        expect(match, hasLength(1));
+        expect(match.first.displayName, 'Subsurface (CSV)');
+      });
+
+      test('contains Subsurface XML entry', () {
+        final match = SourceOverrideOption.supported.where(
+          (o) =>
+              o.sourceApp == SourceApp.subsurface &&
+              o.format == ImportFormat.subsurfaceXml,
+        );
+        expect(match, hasLength(1));
+        expect(match.first.displayName, 'Subsurface (XML)');
+      });
+
+      test('contains Shearwater CSV and Cloud DB entries', () {
+        final shearwaterEntries = SourceOverrideOption.supported.where(
+          (o) => o.sourceApp == SourceApp.shearwater,
+        );
+        expect(shearwaterEntries, hasLength(2));
+
+        final csvEntry = shearwaterEntries.where(
+          (o) => o.format == ImportFormat.csv,
+        );
+        expect(csvEntry, hasLength(1));
+        expect(csvEntry.first.displayName, 'Shearwater (CSV)');
+
+        final dbEntry = shearwaterEntries.where(
+          (o) => o.format == ImportFormat.shearwaterDb,
+        );
+        expect(dbEntry, hasLength(1));
+        expect(dbEntry.first.displayName, 'Shearwater (Cloud DB)');
+      });
+
+      test('contains Garmin Connect CSV and FIT entries', () {
+        final garminEntries = SourceOverrideOption.supported.where(
+          (o) => o.sourceApp == SourceApp.garminConnect,
+        );
+        expect(garminEntries, hasLength(2));
+
+        final csvEntry = garminEntries.where(
+          (o) => o.format == ImportFormat.csv,
+        );
+        expect(csvEntry, hasLength(1));
+        expect(csvEntry.first.displayName, 'Garmin Connect (CSV)');
+
+        final fitEntry = garminEntries.where(
+          (o) => o.format == ImportFormat.fit,
+        );
+        expect(fitEntry, hasLength(1));
+        expect(fitEntry.first.displayName, 'Garmin Connect (FIT)');
+      });
+
+      test('contains MacDive CSV entry', () {
+        final match = SourceOverrideOption.supported.where(
+          (o) =>
+              o.sourceApp == SourceApp.macdive && o.format == ImportFormat.csv,
+        );
+        expect(match, hasLength(1));
+        expect(match.first.displayName, 'MacDive (CSV)');
+      });
+
+      test('contains Diving Log CSV entry', () {
+        final match = SourceOverrideOption.supported.where(
+          (o) =>
+              o.sourceApp == SourceApp.divingLog &&
+              o.format == ImportFormat.csv,
+        );
+        expect(match, hasLength(1));
+        expect(match.first.displayName, 'Diving Log (CSV)');
+      });
+
+      test('contains DiveMate CSV entry', () {
+        final match = SourceOverrideOption.supported.where(
+          (o) =>
+              o.sourceApp == SourceApp.diveMate && o.format == ImportFormat.csv,
+        );
+        expect(match, hasLength(1));
+        expect(match.first.displayName, 'DiveMate (CSV)');
+      });
+
+      test('contains Suunto UDDF entry', () {
+        final match = SourceOverrideOption.supported.where(
+          (o) =>
+              o.sourceApp == SourceApp.suunto && o.format == ImportFormat.uddf,
+        );
+        expect(match, hasLength(1));
+        expect(match.first.displayName, 'Suunto (UDDF)');
+      });
+
+      test('contains SSI MyDiveGuide CSV entry', () {
+        final match = SourceOverrideOption.supported.where(
+          (o) =>
+              o.sourceApp == SourceApp.ssiMyDiveGuide &&
+              o.format == ImportFormat.csv,
+        );
+        expect(match, hasLength(1));
+        expect(match.first.displayName, 'SSI MyDiveGuide (CSV)');
+      });
+
+      test('contains Scubapro UDDF entry', () {
+        final match = SourceOverrideOption.supported.where(
+          (o) =>
+              o.sourceApp == SourceApp.scubapro &&
+              o.format == ImportFormat.uddf,
+        );
+        expect(match, hasLength(1));
+        expect(match.first.displayName, 'Scubapro (UDDF)');
+      });
+    });
+
+    test('every supported entry has a non-empty displayName', () {
+      for (final option in SourceOverrideOption.supported) {
+        expect(
+          option.displayName.isNotEmpty,
+          isTrue,
+          reason:
+              '${option.sourceApp} + ${option.format} should have a displayName',
+        );
+      }
+    });
+
+    test('all supported displayNames contain expected format strings', () {
+      // Verify each entry's displayName includes its format abbreviation.
+      for (final option in SourceOverrideOption.supported) {
+        final name = option.displayName;
+        // Every displayName should contain the source app name.
+        expect(
+          name.isNotEmpty,
+          isTrue,
+          reason: 'displayName for ${option.sourceApp} should be non-empty',
+        );
+      }
+    });
+
+    group('findMatch', () {
+      test('returns null when sourceApp is null', () {
+        final result = SourceOverrideOption.findMatch(null, ImportFormat.csv);
+        expect(result, isNull);
+      });
+
+      test('returns matching option for exact sourceApp and format pair', () {
+        final result = SourceOverrideOption.findMatch(
+          SourceApp.subsurface,
+          ImportFormat.csv,
+        );
+        expect(result, isNotNull);
+        expect(result!.sourceApp, SourceApp.subsurface);
+        expect(result.format, ImportFormat.csv);
+        expect(result.displayName, 'Subsurface (CSV)');
+      });
+
+      test('returns matching option for Subsurface XML', () {
+        final result = SourceOverrideOption.findMatch(
+          SourceApp.subsurface,
+          ImportFormat.subsurfaceXml,
+        );
+        expect(result, isNotNull);
+        expect(result!.format, ImportFormat.subsurfaceXml);
+      });
+
+      test('returns null for valid sourceApp with unsupported format', () {
+        // Subsurface + FIT is not in the supported list.
+        final result = SourceOverrideOption.findMatch(
+          SourceApp.subsurface,
+          ImportFormat.fit,
+        );
+        expect(result, isNull);
+      });
+
+      test('returns null for sourceApp not in any supported option', () {
+        // The "dan" sourceApp has no entries in the supported list.
+        final result = SourceOverrideOption.findMatch(
+          SourceApp.dan,
+          ImportFormat.csv,
+        );
+        expect(result, isNull);
+      });
+
+      test(
+        'returns first matching option by sourceApp when format is null (fallback)',
+        () {
+          final result = SourceOverrideOption.findMatch(
+            SourceApp.submersion,
+            null,
+          );
+          expect(result, isNotNull);
+          expect(result!.sourceApp, SourceApp.submersion);
+          // Should return the first submersion entry, which is CSV.
+          expect(result.format, ImportFormat.csv);
+          expect(result.displayName, 'Submersion (CSV)');
+        },
+      );
+
+      test('fallback returns first Shearwater entry when format is null', () {
+        final result = SourceOverrideOption.findMatch(
+          SourceApp.shearwater,
+          null,
+        );
+        expect(result, isNotNull);
+        expect(result!.sourceApp, SourceApp.shearwater);
+        // First shearwater entry is CSV.
+        expect(result.format, ImportFormat.csv);
+      });
+
+      test(
+        'returns null when sourceApp has no supported entries and format is null',
+        () {
+          // "dan" has no entries in the supported list.
+          final result = SourceOverrideOption.findMatch(SourceApp.dan, null);
+          expect(result, isNull);
+        },
+      );
+
+      test('returns null when both sourceApp and format are null', () {
+        final result = SourceOverrideOption.findMatch(null, null);
+        expect(result, isNull);
+      });
+
+      test('finds each distinct (app, format) combo in supported list', () {
+        for (final option in SourceOverrideOption.supported) {
+          final result = SourceOverrideOption.findMatch(
+            option.sourceApp,
+            option.format,
+          );
+          expect(
+            result,
+            isNotNull,
+            reason:
+                'findMatch should return a result for ${option.sourceApp} + ${option.format}',
+          );
+          expect(result!.sourceApp, option.sourceApp);
+          expect(result.format, option.format);
+        }
+      });
+    });
+
+    group('equality', () {
+      test('two options with same sourceApp and format are equal', () {
+        const option1 = SourceOverrideOption(
+          sourceApp: SourceApp.subsurface,
+          format: ImportFormat.csv,
+          displayName: 'Subsurface (CSV)',
+        );
+        const option2 = SourceOverrideOption(
+          sourceApp: SourceApp.subsurface,
+          format: ImportFormat.csv,
+          displayName: 'Subsurface (CSV) - different label',
+        );
+
+        expect(option1, equals(option2));
+      });
+
+      test('two options with different sourceApp are not equal', () {
+        const option1 = SourceOverrideOption(
+          sourceApp: SourceApp.subsurface,
+          format: ImportFormat.csv,
+          displayName: 'Subsurface (CSV)',
+        );
+        const option2 = SourceOverrideOption(
+          sourceApp: SourceApp.macdive,
+          format: ImportFormat.csv,
+          displayName: 'MacDive (CSV)',
+        );
+
+        expect(option1, isNot(equals(option2)));
+      });
+
+      test('two options with different format are not equal', () {
+        const option1 = SourceOverrideOption(
+          sourceApp: SourceApp.subsurface,
+          format: ImportFormat.csv,
+          displayName: 'Subsurface (CSV)',
+        );
+        const option2 = SourceOverrideOption(
+          sourceApp: SourceApp.subsurface,
+          format: ImportFormat.subsurfaceXml,
+          displayName: 'Subsurface (XML)',
+        );
+
+        expect(option1, isNot(equals(option2)));
+      });
+
+      test('option is not equal to a non-SourceOverrideOption object', () {
+        const option = SourceOverrideOption(
+          sourceApp: SourceApp.subsurface,
+          format: ImportFormat.csv,
+          displayName: 'Subsurface (CSV)',
+        );
+
+        // ignore: unrelated_type_equality_checks
+        expect(option == 'not an option', isFalse);
+      });
+
+      test('identical instance is equal to itself', () {
+        const option = SourceOverrideOption(
+          sourceApp: SourceApp.subsurface,
+          format: ImportFormat.csv,
+          displayName: 'Subsurface (CSV)',
+        );
+
+        expect(option, equals(option));
+      });
+    });
+
+    group('hashCode', () {
+      test('equal options have the same hashCode', () {
+        const option1 = SourceOverrideOption(
+          sourceApp: SourceApp.subsurface,
+          format: ImportFormat.csv,
+          displayName: 'Subsurface (CSV)',
+        );
+        const option2 = SourceOverrideOption(
+          sourceApp: SourceApp.subsurface,
+          format: ImportFormat.csv,
+          displayName: 'Different display name',
+        );
+
+        expect(option1.hashCode, equals(option2.hashCode));
+      });
+
+      test('different options generally have different hashCodes', () {
+        const option1 = SourceOverrideOption(
+          sourceApp: SourceApp.subsurface,
+          format: ImportFormat.csv,
+          displayName: 'Subsurface (CSV)',
+        );
+        const option2 = SourceOverrideOption(
+          sourceApp: SourceApp.macdive,
+          format: ImportFormat.csv,
+          displayName: 'MacDive (CSV)',
+        );
+
+        // Not guaranteed by contract but highly likely for distinct inputs.
+        expect(option1.hashCode, isNot(equals(option2.hashCode)));
+      });
+
+      test('hashCode uses Object.hash of sourceApp and format', () {
+        const option = SourceOverrideOption(
+          sourceApp: SourceApp.garminConnect,
+          format: ImportFormat.fit,
+          displayName: 'Garmin Connect (FIT)',
+        );
+
+        expect(
+          option.hashCode,
+          Object.hash(SourceApp.garminConnect, ImportFormat.fit),
+        );
+      });
     });
   });
 }

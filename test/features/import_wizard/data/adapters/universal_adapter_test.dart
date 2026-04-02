@@ -51,6 +51,9 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
+import 'package:submersion/features/universal_import/data/models/detection_result.dart';
+import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart'
     as ui;
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
@@ -110,6 +113,22 @@ class _TestableImportNotifier extends UniversalImportNotifier {
 
   void setFileName(String name) {
     state = state.copyWith(fileName: name);
+  }
+
+  void setDetectedCsvPreset(CsvPreset? preset) {
+    state = state.copyWith(detectedCsvPreset: preset);
+  }
+
+  void setFieldMapping(FieldMapping? mapping) {
+    state = state.copyWith(fieldMapping: mapping);
+  }
+
+  void setDetectionResult(DetectionResult? result) {
+    state = state.copyWith(detectionResult: result);
+  }
+
+  void setCurrentStep(ImportWizardStep step) {
+    state = state.copyWith(currentStep: step);
   }
 }
 
@@ -2147,6 +2166,672 @@ void main() {
           final tripGroup = result.groups[ImportEntityType.trips];
           expect(tripGroup, isNotNull);
           expect(tripGroup!.duplicateIndices, contains(0));
+        },
+      );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Provider tests — universalAdapterFileSelectedProvider
+  // -------------------------------------------------------------------------
+
+  group('universalAdapterFileSelectedProvider', () {
+    testWidgets('returns false when detectionResult is null', (tester) async {
+      await _runWithAdapter(
+        tester,
+        overrides: [
+          universalImportNotifierProvider.overrideWith((ref) {
+            return _TestableImportNotifier(ref);
+          }),
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+        callback: (adapter) async {
+          final step = adapter.acquisitionSteps[0];
+          expect(step.label, equals('Select File'));
+        },
+      );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Provider tests — universalAdapterMappingReadyProvider
+  // -------------------------------------------------------------------------
+
+  group('universalAdapterMappingReadyProvider', () {
+    testWidgets('returns true when payload is non-null', (tester) async {
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.dives: [
+            {'dateTime': DateTime(2026, 1, 1)},
+          ],
+        },
+      );
+
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            universalImportNotifierProvider.overrideWith((ref) {
+              final notifier = _TestableImportNotifier(ref);
+              notifier.setPayload(payload);
+              return notifier;
+            }),
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                container = ProviderScope.containerOf(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final result = container.read(universalAdapterMappingReadyProvider);
+      expect(result, isTrue);
+    });
+
+    testWidgets('returns true when fieldMapping has columns', (tester) async {
+      const mapping = FieldMapping(
+        name: 'Test Mapping',
+        columns: [ColumnMapping(sourceColumn: 'date', targetField: 'dateTime')],
+      );
+
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            universalImportNotifierProvider.overrideWith((ref) {
+              final notifier = _TestableImportNotifier(ref);
+              notifier.setFieldMapping(mapping);
+              return notifier;
+            }),
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                container = ProviderScope.containerOf(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final result = container.read(universalAdapterMappingReadyProvider);
+      expect(result, isTrue);
+    });
+
+    testWidgets('returns false when no payload and no fieldMapping', (
+      tester,
+    ) async {
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            universalImportNotifierProvider.overrideWith((ref) {
+              return _TestableImportNotifier(ref);
+            }),
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                container = ProviderScope.containerOf(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final result = container.read(universalAdapterMappingReadyProvider);
+      expect(result, isFalse);
+    });
+
+    testWidgets('returns false when fieldMapping has empty columns', (
+      tester,
+    ) async {
+      const mapping = FieldMapping(name: 'Empty Mapping', columns: []);
+
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            universalImportNotifierProvider.overrideWith((ref) {
+              final notifier = _TestableImportNotifier(ref);
+              notifier.setFieldMapping(mapping);
+              return notifier;
+            }),
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                container = ProviderScope.containerOf(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final result = container.read(universalAdapterMappingReadyProvider);
+      expect(result, isFalse);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Provider tests — canAutoAdvance (mapping auto-advance)
+  // -------------------------------------------------------------------------
+
+  group('mapping auto-advance provider (via acquisitionSteps[2])', () {
+    testWidgets('auto-advance is true when payload is non-null', (
+      tester,
+    ) async {
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.dives: [
+            {'dateTime': DateTime(2026, 1, 1)},
+          ],
+        },
+      );
+
+      late ProviderContainer container;
+      late UniversalAdapter adapter;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            universalImportNotifierProvider.overrideWith((ref) {
+              final notifier = _TestableImportNotifier(ref);
+              notifier.setPayload(payload);
+              return notifier;
+            }),
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                container = ProviderScope.containerOf(context);
+                adapter = UniversalAdapter(ref: ref);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final autoAdvanceProvider = adapter.acquisitionSteps[2].canAutoAdvance!;
+      final result = container.read(autoAdvanceProvider);
+      expect(result, isTrue);
+    });
+
+    testWidgets(
+      'auto-advance is true when detectedCsvPreset is set and mapping has columns',
+      (tester) async {
+        const preset = CsvPreset(
+          id: 'test-preset',
+          name: 'Test Preset',
+          signatureHeaders: ['date', 'depth'],
+          mappings: {},
+        );
+        const mapping = FieldMapping(
+          name: 'Test Mapping',
+          columns: [
+            ColumnMapping(sourceColumn: 'date', targetField: 'dateTime'),
+          ],
+        );
+
+        late ProviderContainer container;
+        late UniversalAdapter adapter;
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              universalImportNotifierProvider.overrideWith((ref) {
+                final notifier = _TestableImportNotifier(ref);
+                notifier.setDetectedCsvPreset(preset);
+                notifier.setFieldMapping(mapping);
+                return notifier;
+              }),
+              settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            ],
+            child: MaterialApp(
+              home: Consumer(
+                builder: (context, ref, _) {
+                  container = ProviderScope.containerOf(context);
+                  adapter = UniversalAdapter(ref: ref);
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final autoAdvanceProvider = adapter.acquisitionSteps[2].canAutoAdvance!;
+        final result = container.read(autoAdvanceProvider);
+        expect(result, isTrue);
+      },
+    );
+
+    testWidgets(
+      'auto-advance is false when no preset and no payload (manual CSV)',
+      (tester) async {
+        const mapping = FieldMapping(
+          name: 'Manual Mapping',
+          columns: [
+            ColumnMapping(sourceColumn: 'date', targetField: 'dateTime'),
+          ],
+        );
+
+        late ProviderContainer container;
+        late UniversalAdapter adapter;
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              universalImportNotifierProvider.overrideWith((ref) {
+                final notifier = _TestableImportNotifier(ref);
+                // No payload, no detectedCsvPreset, but has manual mapping.
+                notifier.setFieldMapping(mapping);
+                return notifier;
+              }),
+              settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            ],
+            child: MaterialApp(
+              home: Consumer(
+                builder: (context, ref, _) {
+                  container = ProviderScope.containerOf(context);
+                  adapter = UniversalAdapter(ref: ref);
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final autoAdvanceProvider = adapter.acquisitionSteps[2].canAutoAdvance!;
+        final result = container.read(autoAdvanceProvider);
+        expect(result, isFalse);
+      },
+    );
+
+    testWidgets(
+      'auto-advance is false when detectedCsvPreset is set but mapping is null',
+      (tester) async {
+        const preset = CsvPreset(
+          id: 'test-preset',
+          name: 'Test Preset',
+          signatureHeaders: ['date', 'depth'],
+          mappings: {},
+        );
+
+        late ProviderContainer container;
+        late UniversalAdapter adapter;
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              universalImportNotifierProvider.overrideWith((ref) {
+                final notifier = _TestableImportNotifier(ref);
+                notifier.setDetectedCsvPreset(preset);
+                // No field mapping yet.
+                return notifier;
+              }),
+              settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            ],
+            child: MaterialApp(
+              home: Consumer(
+                builder: (context, ref, _) {
+                  container = ProviderScope.containerOf(context);
+                  adapter = UniversalAdapter(ref: ref);
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final autoAdvanceProvider = adapter.acquisitionSteps[2].canAutoAdvance!;
+        final result = container.read(autoAdvanceProvider);
+        expect(result, isFalse);
+      },
+    );
+
+    testWidgets(
+      'auto-advance is false when no payload, no preset, and no mapping',
+      (tester) async {
+        late ProviderContainer container;
+        late UniversalAdapter adapter;
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              universalImportNotifierProvider.overrideWith((ref) {
+                return _TestableImportNotifier(ref);
+              }),
+              settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            ],
+            child: MaterialApp(
+              home: Consumer(
+                builder: (context, ref, _) {
+                  container = ProviderScope.containerOf(context);
+                  adapter = UniversalAdapter(ref: ref);
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final autoAdvanceProvider = adapter.acquisitionSteps[2].canAutoAdvance!;
+        final result = container.read(autoAdvanceProvider);
+        expect(result, isFalse);
+      },
+    );
+  });
+
+  // -------------------------------------------------------------------------
+  // Provider tests — universalAdapterSourceReadyProvider
+  // -------------------------------------------------------------------------
+
+  group('universalAdapterSourceReadyProvider', () {
+    testWidgets('returns true when detection result has supported format', (
+      tester,
+    ) async {
+      const detection = DetectionResult(
+        format: ui.ImportFormat.csv,
+        confidence: 0.9,
+      );
+
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            universalImportNotifierProvider.overrideWith((ref) {
+              final notifier = _TestableImportNotifier(ref);
+              notifier.setDetectionResult(detection);
+              return notifier;
+            }),
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                container = ProviderScope.containerOf(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final result = container.read(universalAdapterSourceReadyProvider);
+      expect(result, isTrue);
+    });
+
+    testWidgets('returns false when detection result has unsupported format', (
+      tester,
+    ) async {
+      const detection = DetectionResult(
+        format: ui.ImportFormat.unknown,
+        confidence: 0.5,
+      );
+
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            universalImportNotifierProvider.overrideWith((ref) {
+              final notifier = _TestableImportNotifier(ref);
+              notifier.setDetectionResult(detection);
+              return notifier;
+            }),
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                container = ProviderScope.containerOf(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final result = container.read(universalAdapterSourceReadyProvider);
+      expect(result, isFalse);
+    });
+
+    testWidgets('returns false when detection result is null', (tester) async {
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            universalImportNotifierProvider.overrideWith((ref) {
+              return _TestableImportNotifier(ref);
+            }),
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                container = ProviderScope.containerOf(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final result = container.read(universalAdapterSourceReadyProvider);
+      expect(result, isFalse);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Provider tests — universalAdapterFileSelectedProvider
+  // -------------------------------------------------------------------------
+
+  group('universalAdapterFileSelectedProvider', () {
+    testWidgets(
+      'returns true when detection is done and step is past fileSelection',
+      (tester) async {
+        const detection = DetectionResult(
+          format: ui.ImportFormat.csv,
+          confidence: 0.9,
+        );
+
+        late ProviderContainer container;
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              universalImportNotifierProvider.overrideWith((ref) {
+                final notifier = _TestableImportNotifier(ref);
+                notifier.setDetectionResult(detection);
+                notifier.setCurrentStep(ImportWizardStep.sourceConfirmation);
+                return notifier;
+              }),
+              settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            ],
+            child: MaterialApp(
+              home: Consumer(
+                builder: (context, ref, _) {
+                  container = ProviderScope.containerOf(context);
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final result = container.read(universalAdapterFileSelectedProvider);
+        expect(result, isTrue);
+      },
+    );
+
+    testWidgets('returns false when still on fileSelection step', (
+      tester,
+    ) async {
+      const detection = DetectionResult(
+        format: ui.ImportFormat.csv,
+        confidence: 0.9,
+      );
+
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            universalImportNotifierProvider.overrideWith((ref) {
+              final notifier = _TestableImportNotifier(ref);
+              notifier.setDetectionResult(detection);
+              // Still on fileSelection step.
+              return notifier;
+            }),
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                container = ProviderScope.containerOf(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final result = container.read(universalAdapterFileSelectedProvider);
+      expect(result, isFalse);
+    });
+
+    testWidgets('returns false when detection result is null', (tester) async {
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            universalImportNotifierProvider.overrideWith((ref) {
+              return _TestableImportNotifier(ref);
+            }),
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                container = ProviderScope.containerOf(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final result = container.read(universalAdapterFileSelectedProvider);
+      expect(result, isFalse);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // buildBundle edge cases — _diveToEntityItem
+  // -------------------------------------------------------------------------
+
+  group('buildBundle() - _diveToEntityItem edge cases', () {
+    testWidgets('dive with empty siteName is not included in subtitle', (
+      tester,
+    ) async {
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.dives: [
+            {
+              'dateTime': DateTime(2026, 3, 15, 10, 0),
+              'siteName': '',
+              'maxDepth': 25.0,
+            },
+          ],
+        },
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: _buildBundleOverrides(payload: payload),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final item = bundle.groups[ImportEntityType.dives]!.items.first;
+
+          // Empty siteName should not appear as a subtitle part.
+          expect(item.subtitle, isNot(contains('\u00b7 \u00b7')));
+          expect(item.subtitle, contains('25.0'));
+        },
+      );
+    });
+
+    testWidgets('dive with runtime prefers runtime over duration', (
+      tester,
+    ) async {
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.dives: [
+            {
+              'dateTime': DateTime(2026, 3, 15, 10, 0),
+              'runtime': const Duration(minutes: 47),
+              'duration': const Duration(minutes: 35),
+            },
+          ],
+        },
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: _buildBundleOverrides(payload: payload),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final item = bundle.groups[ImportEntityType.dives]!.items.first;
+
+          expect(item.subtitle, contains('47 min'));
+          expect(item.subtitle, isNot(contains('35 min')));
+        },
+      );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // buildBundle edge cases — _certificationToEntityItem
+  // -------------------------------------------------------------------------
+
+  group('buildBundle() - certification edge cases', () {
+    testWidgets('certification with no level or name shows Unnamed', (
+      tester,
+    ) async {
+      const payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.certifications: [<String, dynamic>{}],
+        },
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: _buildBundleOverrides(payload: payload),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final item =
+              bundle.groups[ImportEntityType.certifications]!.items.first;
+
+          expect(item.title, equals('Unnamed'));
         },
       );
     });

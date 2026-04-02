@@ -101,5 +101,55 @@ void main() {
 
       expect(buddies, hasLength(2));
     });
+
+    test('buddyIdForName returns null for unseen name', () {
+      final rows = <Map<String, dynamic>>[
+        {'buddy': 'Jane Smith'},
+      ];
+
+      extractor.extractFromRows(rows);
+
+      expect(extractor.buddyIdForName('Unknown Person'), isNull);
+    });
+
+    test('each buddy has a uddfId matching its id', () {
+      final rows = <Map<String, dynamic>>[
+        {'buddy': 'Jane Smith'},
+        {'buddy': 'John Doe'},
+      ];
+
+      final buddies = extractor.extractFromRows(rows);
+
+      expect(buddies, hasLength(2));
+      for (final buddy in buddies) {
+        expect(buddy['uddfId'], isNotNull);
+        expect(buddy['uddfId'], equals(buddy['id']));
+      }
+    });
+
+    test('handles Subsurface leading-comma with multiple buddies', () {
+      final rows = <Map<String, dynamic>>[
+        {'buddy': ', Alice, Bob'},
+      ];
+
+      final buddies = extractor.extractFromRows(rows);
+
+      expect(buddies, hasLength(2));
+      final names = buddies.map((b) => b['name']).toList();
+      expect(names, containsAll(['Alice', 'Bob']));
+    });
+
+    test('buddyIdForName returns IDs that match extractFromRows output', () {
+      final rows = <Map<String, dynamic>>[
+        {'buddy': 'Alice, Bob'},
+      ];
+
+      final buddies = extractor.extractFromRows(rows);
+
+      final aliceBuddy = buddies.firstWhere((b) => b['name'] == 'Alice');
+      final bobBuddy = buddies.firstWhere((b) => b['name'] == 'Bob');
+      expect(extractor.buddyIdForName('Alice'), equals(aliceBuddy['id']));
+      expect(extractor.buddyIdForName('Bob'), equals(bobBuddy['id']));
+    });
   });
 }

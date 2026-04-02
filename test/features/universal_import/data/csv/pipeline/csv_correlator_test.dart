@@ -301,5 +301,268 @@ void main() {
       expect(gear, isNotEmpty);
       expect(gear[0]['name'], equals('7mm Wetsuit'));
     });
+
+    group('_attachBuddyRefs', () {
+      test('converts buddy field to buddyRefs with IDs', () {
+        final rows = makeRows([
+          {'dateTime': DateTime(2024, 6, 15, 9, 0), 'buddy': 'Alice, Bob'},
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(
+            entityTypes: {
+              ImportEntityType.dives,
+              ImportEntityType.sites,
+              ImportEntityType.buddies,
+            },
+          ),
+        );
+
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        final buddies = result.entitiesOf(ImportEntityType.buddies);
+        expect(dives, hasLength(1));
+        expect(buddies, hasLength(2));
+
+        // Dive should have buddyRefs (list of IDs) instead of raw buddy string.
+        final dive = dives[0];
+        expect(dive.containsKey('buddyRefs'), isTrue);
+        expect(dive.containsKey('buddy'), isFalse);
+
+        final refs = dive['buddyRefs'] as List;
+        expect(refs, hasLength(2));
+
+        // Each ref should match a buddy entity ID.
+        final buddyIds = buddies.map((b) => b['id']).toSet();
+        for (final ref in refs) {
+          expect(buddyIds, contains(ref));
+        }
+      });
+
+      test('converts diveMaster field to unmatchedDiveGuideNames', () {
+        final rows = makeRows([
+          {
+            'dateTime': DateTime(2024, 6, 15, 9, 0),
+            'diveMaster': 'Captain Jack',
+          },
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(
+            entityTypes: {
+              ImportEntityType.dives,
+              ImportEntityType.sites,
+              ImportEntityType.buddies,
+            },
+          ),
+        );
+
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        expect(dives, hasLength(1));
+
+        final dive = dives[0];
+        expect(dive.containsKey('unmatchedDiveGuideNames'), isTrue);
+        expect(dive.containsKey('diveMaster'), isFalse);
+
+        final names = dive['unmatchedDiveGuideNames'] as List;
+        expect(names, hasLength(1));
+        expect(names[0], 'Captain Jack');
+      });
+
+      test('handles dive with both buddy and diveMaster', () {
+        final rows = makeRows([
+          {
+            'dateTime': DateTime(2024, 6, 15, 9, 0),
+            'buddy': 'Alice',
+            'diveMaster': 'Bob',
+          },
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(
+            entityTypes: {
+              ImportEntityType.dives,
+              ImportEntityType.sites,
+              ImportEntityType.buddies,
+            },
+          ),
+        );
+
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        expect(dives, hasLength(1));
+
+        final dive = dives[0];
+        expect(dive.containsKey('buddyRefs'), isTrue);
+        expect(dive.containsKey('unmatchedDiveGuideNames'), isTrue);
+
+        final refs = dive['buddyRefs'] as List;
+        expect(refs, hasLength(1));
+
+        final dmNames = dive['unmatchedDiveGuideNames'] as List;
+        expect(dmNames, hasLength(1));
+        expect(dmNames[0], 'Bob');
+      });
+
+      test('does not attach buddyRefs when buddies not in entityTypes', () {
+        final rows = makeRows([
+          {'dateTime': DateTime(2024, 6, 15, 9, 0), 'buddy': 'Alice'},
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(
+            entityTypes: {ImportEntityType.dives, ImportEntityType.sites},
+          ),
+        );
+
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        expect(dives, hasLength(1));
+
+        // Without buddies in entityTypes, raw buddy string should remain.
+        final dive = dives[0];
+        expect(dive.containsKey('buddyRefs'), isFalse);
+        expect(dive['buddy'], equals('Alice'));
+      });
+
+      test('handles comma-separated diveMaster names', () {
+        final rows = makeRows([
+          {'dateTime': DateTime(2024, 6, 15, 9, 0), 'diveMaster': 'Jack, Jill'},
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(
+            entityTypes: {
+              ImportEntityType.dives,
+              ImportEntityType.sites,
+              ImportEntityType.buddies,
+            },
+          ),
+        );
+
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        final dive = dives[0];
+        final names = dive['unmatchedDiveGuideNames'] as List;
+        expect(names, hasLength(2));
+        expect(names, containsAll(['Jack', 'Jill']));
+      });
+    });
+
+    group('_diveKey seconds normalization', () {
+      test('profile matches dive with DateTime including seconds', () {
+        // Dive with DateTime that has seconds (09:00:37).
+        final diveRows = makeRows([
+          {
+            'diveNumber': 1,
+            'dateTime': DateTime(2024, 6, 15, 9, 0, 37),
+            'maxDepth': 25.0,
+          },
+        ]);
+
+        // Profile rows whose time key must include seconds to match.
+        const profileRows = TransformedRows(
+          rows: [
+            {
+              'diveNumber': 1,
+              'date': '2024-06-15',
+              'time': '09:00:37',
+              'sampleTime': '0:30',
+              'sampleDepth': 5.0,
+            },
+          ],
+          fileRole: 'dive_profile',
+        );
+
+        final result = correlator.correlate(
+          diveListRows: diveRows,
+          profileRows: profileRows,
+          config: makeConfig(),
+        );
+
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        expect(dives, hasLength(1));
+        final profile = dives[0]['profile'] as List?;
+        expect(profile, isNotNull);
+        expect(profile, hasLength(1));
+      });
+
+      test(
+        '_diveKey normalizes HH:MM to HH:MM:00 for profile string times',
+        () {
+          // Dive has a DateTime (which generates HH:MM:SS with :00 seconds).
+          final diveRows = makeRows([
+            {
+              'diveNumber': 1,
+              'dateTime': DateTime(2024, 6, 15, 9, 0),
+              'maxDepth': 25.0,
+            },
+          ]);
+
+          // Profile rows use "09:00" (HH:MM) - should be normalized to
+          // "09:00:00" to match the DateTime-based dive key.
+          const profileRows = TransformedRows(
+            rows: [
+              {
+                'diveNumber': 1,
+                'date': '2024-06-15',
+                'time': '09:00',
+                'sampleTime': '1:00',
+                'sampleDepth': 10.0,
+              },
+            ],
+            fileRole: 'dive_profile',
+          );
+
+          final result = correlator.correlate(
+            diveListRows: diveRows,
+            profileRows: profileRows,
+            config: makeConfig(),
+          );
+
+          final dives = result.entitiesOf(ImportEntityType.dives);
+          expect(dives, hasLength(1));
+          final profile = dives[0]['profile'] as List?;
+          expect(profile, isNotNull);
+          expect(profile, hasLength(1));
+        },
+      );
+
+      test('profile does not match when dive key differs', () {
+        final diveRows = makeRows([
+          {
+            'diveNumber': 1,
+            'dateTime': DateTime(2024, 6, 15, 9, 0),
+            'maxDepth': 25.0,
+          },
+        ]);
+
+        // Profile row with different date should not match.
+        const profileRows = TransformedRows(
+          rows: [
+            {
+              'diveNumber': 1,
+              'date': '2024-06-16',
+              'time': '09:00',
+              'sampleTime': '1:00',
+              'sampleDepth': 10.0,
+            },
+          ],
+          fileRole: 'dive_profile',
+        );
+
+        final result = correlator.correlate(
+          diveListRows: diveRows,
+          profileRows: profileRows,
+          config: makeConfig(),
+        );
+
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        expect(dives, hasLength(1));
+        final profile = dives[0]['profile'];
+        expect(profile, isNull);
+      });
+    });
   });
 }

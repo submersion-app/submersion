@@ -121,5 +121,34 @@ void main() {
       expect(gear, hasLength(1));
       expect(gear[0]['name'], '7mm Wetsuit');
     });
+
+    test('each gear item has a uddfId matching its id', () {
+      final rows = <Map<String, dynamic>>[
+        {'suit': '7mm Wetsuit'},
+        {'suit': '3mm Shorty'},
+      ];
+
+      final gear = extractor.extractFromRows(rows);
+
+      expect(gear, hasLength(2));
+      for (final item in gear) {
+        expect(item['uddfId'], isNotNull);
+        expect(item['uddfId'], equals(item['id']));
+      }
+    });
+
+    test('gearIdForName returns ID that matches extractFromRows output', () {
+      final rows = <Map<String, dynamic>>[
+        {'suit': '7mm Wetsuit'},
+        {'suit': '3mm Shorty'},
+      ];
+
+      final gear = extractor.extractFromRows(rows);
+
+      final wetsuit = gear.firstWhere((g) => g['name'] == '7mm Wetsuit');
+      final shorty = gear.firstWhere((g) => g['name'] == '3mm Shorty');
+      expect(extractor.gearIdForName('7mm Wetsuit'), equals(wetsuit['id']));
+      expect(extractor.gearIdForName('3mm Shorty'), equals(shorty['id']));
+    });
   });
 }

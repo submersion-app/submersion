@@ -953,4 +953,99 @@ void main() {
       expect(dives, isNotEmpty);
     });
   });
+
+  group('_buildConfiguration - Case 1: custom mapping with preset entities', () {
+    test(
+      'custom mapping override preserves entity types from detected preset',
+      () async {
+        // Use MacDive-style headers so the detector picks up the MacDive
+        // preset which includes buddies in supportedEntities.
+        const csv =
+            'Dive No,Date,Time,Location,Max. Depth,Avg. Depth,Bottom Time,'
+            'Water Temp,Air Temp,Visibility,Dive Type,Rating,Notes,Buddy,'
+            'Dive Master\n'
+            '1,2024-01-15,10:00,Blue Hole,25.5,18.0,45,27.0,28.0,Good,'
+            'Recreation,5,Saw a turtle,Alice,Bob\n';
+
+        // Provide a custom mapping override. Under _buildConfiguration Case 1,
+        // the entityTypesToImport should come from the detected MacDive preset
+        // (which includes buddies), not the default {dives, sites}.
+        const customMapping = FieldMapping(
+          name: 'Custom Override',
+          sourceApp: SourceApp.macdive,
+          columns: [
+            ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+            ColumnMapping(sourceColumn: 'Time', targetField: 'time'),
+            ColumnMapping(sourceColumn: 'Max. Depth', targetField: 'maxDepth'),
+            ColumnMapping(sourceColumn: 'Buddy', targetField: 'buddy'),
+            ColumnMapping(sourceColumn: 'Location', targetField: 'siteName'),
+          ],
+        );
+
+        final result = await parser.parse(
+          csvBytes(csv),
+          customMappingOverride: customMapping,
+        );
+
+        // If entity types are preserved from the MacDive preset, buddies
+        // should be extracted.
+        final buddies = result.entitiesOf(ImportEntityType.buddies);
+        expect(
+          buddies,
+          isNotEmpty,
+          reason:
+              'Custom mapping should inherit entity types from detected '
+              'preset, including buddies',
+        );
+
+        final names = buddies.map((b) => b['name']).toList();
+        expect(names, contains('Alice'));
+      },
+    );
+
+    test(
+      'custom mapping without detected preset falls back to default entity types',
+      () async {
+        // Headers that do not match any known preset.
+        const csv =
+            'my_date,my_time,my_depth,my_buddy,my_tags\n'
+            '2024-01-15,10:00,25.5,Alice,reef\n';
+
+        const customMapping = FieldMapping(
+          name: 'Unknown Source',
+          columns: [
+            ColumnMapping(sourceColumn: 'my_date', targetField: 'date'),
+            ColumnMapping(sourceColumn: 'my_time', targetField: 'time'),
+            ColumnMapping(sourceColumn: 'my_depth', targetField: 'maxDepth'),
+            ColumnMapping(sourceColumn: 'my_buddy', targetField: 'buddy'),
+            ColumnMapping(sourceColumn: 'my_tags', targetField: 'tags'),
+          ],
+        );
+
+        final result = await parser.parse(
+          csvBytes(csv),
+          customMappingOverride: customMapping,
+        );
+
+        // Without a detected preset, the default entity types are
+        // {dives, sites} only. Buddies and tags should not be extracted.
+        final buddies = result.entitiesOf(ImportEntityType.buddies);
+        final tags = result.entitiesOf(ImportEntityType.tags);
+        expect(
+          buddies,
+          isEmpty,
+          reason:
+              'Without detected preset, default entity types should not '
+              'include buddies',
+        );
+        expect(
+          tags,
+          isEmpty,
+          reason:
+              'Without detected preset, default entity types should not '
+              'include tags',
+        );
+      },
+    );
+  });
 }

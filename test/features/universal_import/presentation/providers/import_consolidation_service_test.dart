@@ -583,5 +583,317 @@ void main() {
 
       expect(count, 2);
     });
+
+    test('exitTime is null when both runtime and duration are null', () async {
+      when(
+        mockRepository.consolidateComputer(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryReading: anyNamed('secondaryReading'),
+          secondaryProfile: anyNamed('secondaryProfile'),
+        ),
+      ).thenAnswer((_) async {});
+
+      await performConsolidations(
+        indices: {0},
+        diveItems: [
+          {
+            'dateTime': DateTime(2024, 6, 15, 9, 0),
+            'maxDepth': 25.0,
+            // No 'runtime' and no 'duration' keys.
+          },
+        ],
+        duplicateResult: const ImportDuplicateResult(
+          diveMatches: {
+            0: DiveMatchResult(
+              diveId: 'existing-dive-1',
+              score: 0.9,
+              timeDifferenceMs: 100,
+            ),
+          },
+        ),
+        diveRepository: mockRepository,
+      );
+
+      final captured = verify(
+        mockRepository.consolidateComputer(
+          targetDiveId: 'existing-dive-1',
+          secondaryReading: captureAnyNamed('secondaryReading'),
+          secondaryProfile: anyNamed('secondaryProfile'),
+        ),
+      ).captured;
+
+      final reading = captured.first as DiveDataSourcesCompanion;
+      // With no runtime and no duration, exitTime should be null.
+      expect(reading.exitTime.value, isNull);
+      // duration in the companion should also be null.
+      expect(reading.duration.value, isNull);
+    });
+
+    test(
+      'duration field in companion uses effectiveDuration (runtime over duration)',
+      () async {
+        when(
+          mockRepository.consolidateComputer(
+            targetDiveId: anyNamed('targetDiveId'),
+            secondaryReading: anyNamed('secondaryReading'),
+            secondaryProfile: anyNamed('secondaryProfile'),
+          ),
+        ).thenAnswer((_) async {});
+
+        await performConsolidations(
+          indices: {0},
+          diveItems: [
+            {
+              'dateTime': DateTime(2024, 6, 15, 9, 0),
+              'runtime': const Duration(minutes: 55),
+              'duration': const Duration(minutes: 45),
+              'maxDepth': 25.0,
+            },
+          ],
+          duplicateResult: const ImportDuplicateResult(
+            diveMatches: {
+              0: DiveMatchResult(
+                diveId: 'existing-dive-1',
+                score: 0.9,
+                timeDifferenceMs: 100,
+              ),
+            },
+          ),
+          diveRepository: mockRepository,
+        );
+
+        final captured = verify(
+          mockRepository.consolidateComputer(
+            targetDiveId: 'existing-dive-1',
+            secondaryReading: captureAnyNamed('secondaryReading'),
+            secondaryProfile: anyNamed('secondaryProfile'),
+          ),
+        ).captured;
+
+        final reading = captured.first as DiveDataSourcesCompanion;
+        // effectiveDuration should prefer runtime (55 min = 3300 sec).
+        expect(reading.duration.value, 3300);
+        // exitTime should be entryTime + runtime (55 min).
+        expect(
+          reading.exitTime.value,
+          DateTime(2024, 6, 15, 9, 0).add(const Duration(minutes: 55)),
+        );
+      },
+    );
+
+    test('skips dive item when dateTime is null', () async {
+      when(
+        mockRepository.consolidateComputer(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryReading: anyNamed('secondaryReading'),
+          secondaryProfile: anyNamed('secondaryProfile'),
+        ),
+      ).thenAnswer((_) async {});
+
+      final count = await performConsolidations(
+        indices: {0},
+        diveItems: [
+          {
+            // No 'dateTime' key -- should skip this dive.
+            'maxDepth': 25.0,
+            'duration': const Duration(minutes: 45),
+          },
+        ],
+        duplicateResult: const ImportDuplicateResult(
+          diveMatches: {
+            0: DiveMatchResult(
+              diveId: 'existing-dive-1',
+              score: 0.9,
+              timeDifferenceMs: 100,
+            ),
+          },
+        ),
+        diveRepository: mockRepository,
+      );
+
+      expect(count, 0);
+      verifyNever(
+        mockRepository.consolidateComputer(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryReading: anyNamed('secondaryReading'),
+          secondaryProfile: anyNamed('secondaryProfile'),
+        ),
+      );
+    });
+
+    test(
+      'profile entries with missing timestamp/depth use defaults (0 / 0.0)',
+      () async {
+        when(
+          mockRepository.consolidateComputer(
+            targetDiveId: anyNamed('targetDiveId'),
+            secondaryReading: anyNamed('secondaryReading'),
+            secondaryProfile: anyNamed('secondaryProfile'),
+          ),
+        ).thenAnswer((_) async {});
+
+        await performConsolidations(
+          indices: {0},
+          diveItems: [
+            {
+              'dateTime': DateTime(2024, 6, 15, 9, 0),
+              'maxDepth': 25.0,
+              'duration': const Duration(minutes: 45),
+              'profile': <Map<String, dynamic>>[
+                {
+                  // Missing 'timestamp' and 'depth' -- should default.
+                  'temperature': 22.0,
+                },
+              ],
+            },
+          ],
+          duplicateResult: const ImportDuplicateResult(
+            diveMatches: {
+              0: DiveMatchResult(
+                diveId: 'existing-dive-1',
+                score: 0.9,
+                timeDifferenceMs: 100,
+              ),
+            },
+          ),
+          diveRepository: mockRepository,
+        );
+
+        final captured = verify(
+          mockRepository.consolidateComputer(
+            targetDiveId: 'existing-dive-1',
+            secondaryReading: anyNamed('secondaryReading'),
+            secondaryProfile: captureAnyNamed('secondaryProfile'),
+          ),
+        ).captured;
+
+        final profile = captured.first as List<DiveProfilesCompanion>;
+        expect(profile, hasLength(1));
+        expect(profile[0].timestamp.value, 0);
+        expect(profile[0].depth.value, 0.0);
+        expect(profile[0].temperature.value, 22.0);
+      },
+    );
+
+    test(
+      'profile entries with null optional fields produce null Values',
+      () async {
+        when(
+          mockRepository.consolidateComputer(
+            targetDiveId: anyNamed('targetDiveId'),
+            secondaryReading: anyNamed('secondaryReading'),
+            secondaryProfile: anyNamed('secondaryProfile'),
+          ),
+        ).thenAnswer((_) async {});
+
+        await performConsolidations(
+          indices: {0},
+          diveItems: [
+            {
+              'dateTime': DateTime(2024, 6, 15, 9, 0),
+              'maxDepth': 25.0,
+              'duration': const Duration(minutes: 45),
+              'profile': <Map<String, dynamic>>[
+                {
+                  'timestamp': 30,
+                  'depth': 12.0,
+                  // All optional fields absent.
+                },
+              ],
+            },
+          ],
+          duplicateResult: const ImportDuplicateResult(
+            diveMatches: {
+              0: DiveMatchResult(
+                diveId: 'existing-dive-1',
+                score: 0.9,
+                timeDifferenceMs: 100,
+              ),
+            },
+          ),
+          diveRepository: mockRepository,
+        );
+
+        final captured = verify(
+          mockRepository.consolidateComputer(
+            targetDiveId: 'existing-dive-1',
+            secondaryReading: anyNamed('secondaryReading'),
+            secondaryProfile: captureAnyNamed('secondaryProfile'),
+          ),
+        ).captured;
+
+        final profile = captured.first as List<DiveProfilesCompanion>;
+        expect(profile, hasLength(1));
+        expect(profile[0].timestamp.value, 30);
+        expect(profile[0].depth.value, 12.0);
+        expect(profile[0].temperature.value, isNull);
+        expect(profile[0].pressure.value, isNull);
+        expect(profile[0].setpoint.value, isNull);
+        expect(profile[0].ppO2.value, isNull);
+      },
+    );
+
+    test(
+      'secondary reading contains all expected fields from diveData',
+      () async {
+        when(
+          mockRepository.consolidateComputer(
+            targetDiveId: anyNamed('targetDiveId'),
+            secondaryReading: anyNamed('secondaryReading'),
+            secondaryProfile: anyNamed('secondaryProfile'),
+          ),
+        ).thenAnswer((_) async {});
+
+        await performConsolidations(
+          indices: {0},
+          diveItems: [
+            {
+              'dateTime': DateTime(2024, 6, 15, 9, 0),
+              'maxDepth': 30.5,
+              'avgDepth': 22.1,
+              'waterTemp': 19.5,
+              'diveComputerModel': 'Shearwater Perdix',
+              'diveComputerSerial': 'ABC123',
+              'sourceFormat': 'UDDF',
+              'duration': const Duration(minutes: 60),
+            },
+          ],
+          duplicateResult: const ImportDuplicateResult(
+            diveMatches: {
+              0: DiveMatchResult(
+                diveId: 'dive-xyz',
+                score: 0.95,
+                timeDifferenceMs: 50,
+              ),
+            },
+          ),
+          diveRepository: mockRepository,
+        );
+
+        final captured = verify(
+          mockRepository.consolidateComputer(
+            targetDiveId: 'dive-xyz',
+            secondaryReading: captureAnyNamed('secondaryReading'),
+            secondaryProfile: anyNamed('secondaryProfile'),
+          ),
+        ).captured;
+
+        final reading = captured.first as DiveDataSourcesCompanion;
+        expect(reading.diveId.value, 'dive-xyz');
+        expect(reading.isPrimary.value, false);
+        expect(reading.computerModel.value, 'Shearwater Perdix');
+        expect(reading.computerSerial.value, 'ABC123');
+        expect(reading.sourceFormat.value, 'UDDF');
+        expect(reading.maxDepth.value, 30.5);
+        expect(reading.avgDepth.value, 22.1);
+        expect(reading.waterTemp.value, 19.5);
+        expect(reading.duration.value, 3600); // 60 min in seconds
+        expect(reading.entryTime.value, DateTime(2024, 6, 15, 9, 0));
+        expect(
+          reading.exitTime.value,
+          DateTime(2024, 6, 15, 9, 0).add(const Duration(minutes: 60)),
+        );
+      },
+    );
   });
 }
