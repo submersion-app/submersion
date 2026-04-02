@@ -133,6 +133,7 @@ class UniversalImportState {
     FieldMapping? fieldMapping,
     bool clearFieldMapping = false,
     ImportPayload? payload,
+    bool clearPayload = false,
     ImportDuplicateResult? duplicateResult,
     Map<ImportEntityType, Set<int>>? selections,
     Map<int, DiveDuplicateResolution>? diveResolutions,
@@ -177,7 +178,7 @@ class UniversalImportState {
       fieldMapping: clearFieldMapping
           ? null
           : (fieldMapping ?? this.fieldMapping),
-      payload: payload ?? this.payload,
+      payload: clearPayload ? null : (payload ?? this.payload),
       duplicateResult: duplicateResult ?? this.duplicateResult,
       selections: selections ?? this.selections,
       diveResolutions: diveResolutions ?? this.diveResolutions,

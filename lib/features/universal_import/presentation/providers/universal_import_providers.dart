@@ -248,8 +248,11 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   // -- Step 2b: Field Mapping (CSV only) --
 
   /// Update the field mapping for CSV imports.
+  ///
+  /// Clears any previously produced payload so it will be regenerated from
+  /// the updated mapping when the user advances past the Map Fields step.
   void updateFieldMapping(FieldMapping mapping) {
-    state = state.copyWith(fieldMapping: mapping);
+    state = state.copyWith(fieldMapping: mapping, clearPayload: true);
   }
 
   /// Confirm field mapping and proceed to parsing.
