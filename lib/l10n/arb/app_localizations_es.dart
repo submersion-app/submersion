@@ -1827,7 +1827,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dashboard_hero_thisMonthLabel => 'this month';
 
   @override
-  String get dashboard_hero_thisYearLabel => 'this year';
+  String get dashboard_hero_thisYearLabel => 'dives this year';
 
   @override
   String get dashboard_hero_todayLabel => 'today!';

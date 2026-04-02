@@ -3195,7 +3195,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboard_hero_thisYearLabel.
   ///
   /// In en, this message translates to:
-  /// **'this year'**
+  /// **'dives this year'**
   String get dashboard_hero_thisYearLabel;
 
   /// No description provided for @dashboard_hero_todayLabel.

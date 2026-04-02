@@ -1145,7 +1145,7 @@
   "dashboard_hero_hoursUnderwaterLabel": "hours underwater",
   "dashboard_hero_daysSinceLabel": "days since last dive",
   "dashboard_hero_thisMonthLabel": "this month",
-  "dashboard_hero_thisYearLabel": "this year",
+  "dashboard_hero_thisYearLabel": "dives this year",
   "dashboard_hero_todayLabel": "today!",
   "dashboard_hero_noDivesLabel": "no dives yet",
   "dashboard_hero_diverFallbackName": "Diver",
