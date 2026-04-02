@@ -270,12 +270,6 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
   }) {
     return Row(
       children: [
-        icon,
-        const SizedBox(width: 16),
-        Flexible(child: nameWidget),
-        const SizedBox(width: 16),
-        _verticalSeparator(40),
-        const SizedBox(width: 16),
         _careerStatColumn(
           totalDives,
           context.l10n.dashboard_hero_divesLoggedLabel,
@@ -312,6 +306,10 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
           theme,
           fontSize: 24,
         ),
+        const Spacer(),
+        Flexible(child: nameWidget),
+        const SizedBox(width: 16),
+        icon,
       ],
     );
   }
@@ -331,15 +329,11 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        icon,
-        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              nameWidget,
-              const SizedBox(height: 4),
               // Career stats
               Row(
                 children: [
@@ -385,6 +379,11 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
               ),
             ],
           ),
+        ),
+        const SizedBox(width: 14),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [nameWidget, const SizedBox(height: 4), icon],
         ),
       ],
     );
