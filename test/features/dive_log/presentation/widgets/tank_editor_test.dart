@@ -289,9 +289,11 @@ void main() {
       // Working pressure should show 3000 psi
       expect(find.widgetWithText(TextFormField, '3000'), findsOneWidget);
 
-      // The onChanged callback should have been called with converted values
+      // The onChanged callback should use the preset's authoritative
+      // volumeLiters (11.1), not a back-calculated value from cuft
       expect(updatedTank, isNotNull);
       expect(updatedTank!.presetName, 'al80');
+      expect(updatedTank!.volume, 11.1);
     });
   });
 }

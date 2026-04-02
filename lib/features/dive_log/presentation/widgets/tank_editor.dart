@@ -160,13 +160,17 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         : null;
 
     // For tank volume: convert cuft (gas capacity) back to liters (water volume)
-    // Formula: liters = (cuft * 28.3168) / working_pressure_bar
     double? volumeLiters;
     if (volumeDisplay != null) {
-      if (settings.volumeUnit == VolumeUnit.cubicFeet &&
-          workingPressureBar != null &&
-          workingPressureBar > 0) {
-        volumeLiters = (volumeDisplay * 28.3168) / workingPressureBar;
+      if (settings.volumeUnit == VolumeUnit.cubicFeet) {
+        if (_selectedPreset != null) {
+          // Use the preset's authoritative water volume -- the rated cuft
+          // can't be accurately reverse-converted via ideal gas law because
+          // it includes compressibility and other manufacturer factors.
+          volumeLiters = _selectedPreset!.volumeLiters;
+        } else if (workingPressureBar != null && workingPressureBar > 0) {
+          volumeLiters = (volumeDisplay * 28.3168) / workingPressureBar;
+        }
       } else {
         // Metric: value is already in liters
         volumeLiters = volumeDisplay;
