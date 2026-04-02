@@ -1195,6 +1195,25 @@ void main() {
         expect(result.format, ImportFormat.csv);
       });
 
+      test('detects SQLite format and checks Shearwater DB', () async {
+        // SQLite magic bytes: "SQLite format 3\0"
+        final sqliteBytes = Uint8List.fromList(
+          'SQLite format 3\x00'.codeUnits + List.filled(84, 0),
+        );
+
+        final result = await notifier.loadFileFromBytes(
+          sqliteBytes,
+          'cloud.db',
+        );
+
+        // Non-Shearwater SQLite is recognized but unsupported.
+        expect(result.format, ImportFormat.sqlite);
+        expect(result.format.isSupported, isFalse);
+        // State should NOT advance to sourceConfirmation.
+        expect(notifier.state.currentStep, ImportWizardStep.fileSelection);
+        expect(notifier.state.fileBytes, isNull);
+      });
+
       test('resets state before detection to enable auto-advance', () async {
         // Simulate prior wizard state
         notifier.setPendingSourceOverride(SourceApp.subsurface);

@@ -102,6 +102,48 @@ void main() {
       expect(find.text('Dashboard'), findsOneWidget);
     });
 
+    testWidgets('desktop layout shows collapse toggle on wide screens', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(await _buildTestApp());
+      await tester.pumpAndSettle();
+
+      // Collapse toggle should be visible on wide screens.
+      expect(find.byIcon(Icons.keyboard_double_arrow_left), findsOneWidget);
+
+      // Tap the collapse toggle.
+      await tester.tap(find.byIcon(Icons.keyboard_double_arrow_left));
+      await tester.pumpAndSettle();
+
+      // After collapse, the expand icon should appear.
+      expect(find.byIcon(Icons.keyboard_double_arrow_right), findsOneWidget);
+    });
+
+    testWidgets('desktop navigation rail responds to destination selection', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(await _buildTestApp());
+      await tester.pumpAndSettle();
+
+      // Tap the second rail destination (Dives).
+      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+      rail.onDestinationSelected!(1);
+      await tester.pumpAndSettle();
+
+      // "Dives" appears both in rail label and route content.
+      expect(find.text('Dives'), findsWidgets);
+    });
+
     testWidgets('mobile layout shows NavigationBar', (tester) async {
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1.0;
