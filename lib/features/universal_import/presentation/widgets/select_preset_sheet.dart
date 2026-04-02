@@ -263,23 +263,6 @@ class _PresetCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (score > 0)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Icon(
-                    score >= 0.7
-                        ? Icons.check_circle
-                        : score >= 0.4
-                        ? Icons.help_outline
-                        : Icons.cancel_outlined,
-                    color: score >= 0.7
-                        ? theme.colorScheme.primary
-                        : score >= 0.4
-                        ? theme.colorScheme.tertiary
-                        : theme.colorScheme.error,
-                    size: 20,
-                  ),
-                ),
               if (onDelete != null)
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
