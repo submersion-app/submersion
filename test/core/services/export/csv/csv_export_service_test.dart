@@ -36,7 +36,7 @@ void main() {
       expect(csv, contains('50'));
     });
 
-    test('exports tank pressure values rounded to integer', () {
+    test('exports tank pressure values with 1 decimal precision', () {
       final dives = [
         Dive(
           id: 'dive-1',

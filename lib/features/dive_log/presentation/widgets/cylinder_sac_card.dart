@@ -232,7 +232,7 @@ class CylinderSacCard extends StatelessWidget {
     final start = units.convertPressure(cylinderSac.startPressure!);
     final end = units.convertPressure(cylinderSac.endPressure!);
     final used = start - end;
-    return '${start.toInt()} → ${end.toInt()} (${used.toInt()} ${units.pressureSymbol})';
+    return '${start.toStringAsFixed(0)} → ${end.toStringAsFixed(0)} (${used.toStringAsFixed(0)} ${units.pressureSymbol})';
   }
 
   /// Build data quality badge (enhanced vs basic)
