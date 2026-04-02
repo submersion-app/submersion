@@ -37,10 +37,13 @@ class FileShareHandler {
     final file = File(sharedFile.path);
     if (!await file.exists()) return;
 
-    final bytes = await file.readAsBytes();
-    final fileName = file.uri.pathSegments.last;
-
-    await onFileReceived(bytes, fileName);
+    try {
+      final bytes = await file.readAsBytes();
+      final fileName = file.uri.pathSegments.last;
+      await onFileReceived(bytes, fileName);
+    } catch (_) {
+      // File unreadable (permissions, corrupted path, etc.) — silently ignore.
+    }
   }
 
   void dispose() {

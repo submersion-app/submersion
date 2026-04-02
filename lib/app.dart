@@ -107,9 +107,18 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     final router = ref.read(appRouterProvider);
     final location = router.routeInformationProvider.value.uri.path;
 
+    final l10n = _scaffoldMessengerKey.currentContext != null
+        ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
+        : null;
+
     if (location.startsWith('/transfer/import-wizard')) {
       _scaffoldMessengerKey.currentState?.showSnackBar(
-        const SnackBar(content: Text('Finish current import first')),
+        SnackBar(
+          content: Text(
+            l10n?.dropTarget_error_wizardActive ??
+                'Finish current import first',
+          ),
+        ),
       );
       return;
     }
@@ -120,7 +129,11 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
     if (detection.format == ImportFormat.unknown) {
       _scaffoldMessengerKey.currentState?.showSnackBar(
-        const SnackBar(content: Text('Unsupported file type')),
+        SnackBar(
+          content: Text(
+            l10n?.dropTarget_error_unsupportedFile ?? 'Unsupported file type',
+          ),
+        ),
       );
       return;
     }
