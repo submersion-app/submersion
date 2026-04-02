@@ -29,8 +29,14 @@ class WizardStepDef {
   final ProviderListenable<bool> canAdvance;
 
   /// When true, the wizard automatically advances to the next step as soon as
-  /// [canAdvance] emits true.
+  /// [canAutoAdvance] (or [canAdvance] if [canAutoAdvance] is null) emits true.
   final bool autoAdvance;
+
+  /// When non-null, used instead of [canAdvance] for auto-advance decisions.
+  /// This allows auto-advance to require stricter conditions than the Next
+  /// button (e.g., auto-advance only for preset-detected CSVs while still
+  /// enabling Next for manual mapping).
+  final ProviderListenable<bool>? canAutoAdvance;
 
   /// Optional callback invoked by the wizard just before advancing past this
   /// step. Adapters use this to commit pending user choices (e.g. confirming
@@ -49,6 +55,7 @@ class WizardStepDef {
     required this.builder,
     required this.canAdvance,
     this.autoAdvance = false,
+    this.canAutoAdvance,
     this.onBeforeAdvance,
     this.hideBottomBar = false,
   });

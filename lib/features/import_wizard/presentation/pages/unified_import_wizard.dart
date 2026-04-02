@@ -136,11 +136,14 @@ class _UnifiedImportWizardBodyState
       // Let the current step commit any pending state before we leave it.
       final step = _acquisitionSteps[_currentPage];
       await step.onBeforeAdvance?.call();
+      if (!mounted) return;
 
       // Last acquisition step: build bundle then advance to review.
       if (_currentPage == _reviewIndex - 1) {
         final bundle = await widget.adapter.buildBundle();
+        if (!mounted) return;
         final checkedBundle = await widget.adapter.checkDuplicates(bundle);
+        if (!mounted) return;
         ref
             .read(importWizardNotifierProvider.notifier)
             .setBundle(checkedBundle);
@@ -155,9 +158,11 @@ class _UnifiedImportWizardBodyState
   Future<void> _startImport() async {
     await _animateToPage(_importIndex);
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    if (!mounted) return;
     final notifier = ref.read(importWizardNotifierProvider.notifier);
     notifier.setDiverId(diverId);
     await notifier.performImport();
+    if (!mounted) return;
     _invalidateImportedProviders();
     await _animateToPage(_summaryIndex);
   }
@@ -409,8 +414,9 @@ class _AcquisitionStepPage extends ConsumerWidget {
         isCurrentPage &&
         navigatingForward &&
         resetComplete) {
+      final autoProvider = step.canAutoAdvance ?? step.canAdvance;
       // Listen for transitions from false → true.
-      ref.listen<bool>(step.canAdvance, (previous, next) {
+      ref.listen<bool>(autoProvider, (previous, next) {
         if (next && previous != true) {
           onAutoAdvance();
         }
@@ -418,7 +424,7 @@ class _AcquisitionStepPage extends ConsumerWidget {
 
       // Also advance if already true when we arrive (e.g., the Map Fields
       // step for non-CSV imports where the payload is already produced).
-      final alreadyReady = ref.read(step.canAdvance);
+      final alreadyReady = ref.read(autoProvider);
       if (alreadyReady) {
         WidgetsBinding.instance.addPostFrameCallback((_) => onAutoAdvance());
       }
