@@ -212,9 +212,10 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
           : ImportWizardStep.review,
     );
 
-    // For non-CSV formats, parse immediately
+    // For non-CSV formats, parse immediately and await so payload is ready
+    // before the wizard advances past the Map Fields step.
     if (format != ImportFormat.csv) {
-      _parseAndCheckDuplicates();
+      await _parseAndCheckDuplicates();
     }
   }
 
