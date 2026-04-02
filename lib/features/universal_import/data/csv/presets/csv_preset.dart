@@ -139,11 +139,10 @@ class CsvPreset extends Equatable {
         (data['supportedEntities'] as List<dynamic>?)?.cast<String>() ?? [];
     final supportedEntities = rawEntities
         .map(
-          (name) => ImportEntityType.values.firstWhere(
-            (e) => e.name == name,
-            orElse: () => ImportEntityType.dives,
-          ),
+          (name) =>
+              ImportEntityType.values.where((e) => e.name == name).firstOrNull,
         )
+        .whereType<ImportEntityType>()
         .toSet();
 
     final rawHeaders =

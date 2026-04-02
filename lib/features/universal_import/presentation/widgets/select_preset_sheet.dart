@@ -76,23 +76,17 @@ class SelectPresetSheet extends ConsumerWidget {
     final theme = Theme.of(context);
     final registry = PresetRegistry(builtInPresets: builtInCsvPresets);
 
-    // Score all presets against current headers.
-    final builtInScores = <CsvPreset, double>{};
-    for (final preset in builtInCsvPresets) {
-      final matches = registry.detectPreset(csvHeaders);
-      final match = matches.where((m) => m.preset.id == preset.id);
-      builtInScores[preset] = match.isNotEmpty ? match.first.score : 0.0;
-    }
-
-    final userScores = <CsvPreset, double>{};
+    // Register user presets then score all presets in one pass.
     for (final preset in userPresets) {
       registry.addUserPreset(preset);
     }
-    for (final preset in userPresets) {
-      final matches = registry.detectPreset(csvHeaders);
-      final match = matches.where((m) => m.preset.id == preset.id);
-      userScores[preset] = match.isNotEmpty ? match.first.score : 0.0;
-    }
+    final allMatches = registry.detectPreset(csvHeaders);
+    final scoreById = {for (final m in allMatches) m.preset.id: m.score};
+
+    final builtInScores = {
+      for (final p in builtInCsvPresets) p: scoreById[p.id] ?? 0.0,
+    };
+    final userScores = {for (final p in userPresets) p: scoreById[p.id] ?? 0.0};
 
     final hasUserPresets = userPresets.isNotEmpty;
 

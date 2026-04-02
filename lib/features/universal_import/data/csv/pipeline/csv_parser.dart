@@ -45,7 +45,9 @@ class CsvParser {
       throw const CsvParseException('CSV file is empty');
     }
 
-    final headers = allRows.first.map((h) => h.toString().trim()).toList();
+    final headers = allRows.first
+        .map((h) => (h?.toString() ?? '').trim())
+        .toList();
 
     final dataRows = allRows
         .skip(1)
