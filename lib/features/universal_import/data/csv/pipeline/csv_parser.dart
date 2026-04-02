@@ -50,7 +50,7 @@ class CsvParser {
     final dataRows = allRows
         .skip(1)
         .where((row) => !_isEmptyRow(row))
-        .map((row) => row.map((cell) => cell.toString()).toList())
+        .map((row) => row.map((cell) => cell?.toString() ?? '').toList())
         .toList();
 
     if (dataRows.isEmpty) {

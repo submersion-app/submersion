@@ -247,10 +247,13 @@ class CsvCorrelator {
           '${dateTime.day.toString().padLeft(2, '0')}';
       time =
           '${dateTime.hour.toString().padLeft(2, '0')}:'
-          '${dateTime.minute.toString().padLeft(2, '0')}';
+          '${dateTime.minute.toString().padLeft(2, '0')}:'
+          '${dateTime.second.toString().padLeft(2, '0')}';
     } else {
       date = dive['date']?.toString() ?? '';
-      time = dive['time']?.toString() ?? '';
+      final rawTime = dive['time']?.toString() ?? '';
+      // Normalize to HH:MM:SS so string times match DateTime-derived keys.
+      time = rawTime.split(':').length == 2 ? '$rawTime:00' : rawTime;
     }
     return '$number|$date|$time';
   }

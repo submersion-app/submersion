@@ -171,14 +171,24 @@ class SourceOverrideOption {
   ];
 
   /// Find the matching option for a given app and format pair, or null.
+  ///
+  /// When [format] is null (e.g. state from the old SourceApp-only override),
+  /// returns the first option matching [sourceApp] so the UI still shows a
+  /// selection.
   static SourceOverrideOption? findMatch(
     SourceApp? sourceApp,
     ImportFormat? format,
   ) {
-    if (sourceApp == null || format == null) return null;
+    if (sourceApp == null) return null;
     for (final option in supported) {
       if (option.sourceApp == sourceApp && option.format == format) {
         return option;
+      }
+    }
+    // Fallback: match by sourceApp only when format is unknown.
+    if (format == null) {
+      for (final option in supported) {
+        if (option.sourceApp == sourceApp) return option;
       }
     }
     return null;

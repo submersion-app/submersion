@@ -339,7 +339,7 @@ void main() {
       expect(restored.source, PresetSource.userSaved);
     });
 
-    test('unknown sourceApp name in JSON falls back to generic', () {
+    test('unknown sourceApp name in JSON returns null', () {
       final json = jsonEncode({
         'id': 'unknown-app',
         'name': 'Unknown App',
@@ -347,7 +347,7 @@ void main() {
       });
 
       final preset = CsvPreset.fromJson(json);
-      expect(preset.sourceApp, SourceApp.generic);
+      expect(preset.sourceApp, isNull);
     });
 
     test('unknown expectedUnits name in JSON falls back to metric', () {

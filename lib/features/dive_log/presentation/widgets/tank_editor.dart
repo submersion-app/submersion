@@ -49,7 +49,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   late TankRole _role;
   late TankMaterial? _material;
   TankPresetEntity? _selectedPreset;
-  bool _volumeDisplayedAsCuft = false;
 
   @override
   void initState() {
@@ -80,10 +79,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         final cuft =
             (widget.tank.volume! * widget.tank.workingPressure!) / 28.3168;
         volumeText = cuft.toStringAsFixed(1);
-        _volumeDisplayedAsCuft = true;
       } else {
         volumeText = widget.tank.volume!.toStringAsFixed(1);
-        _volumeDisplayedAsCuft = false;
       }
     }
 
@@ -149,6 +146,17 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _mndFocusNode.removeListener(_onMndFocusChanged);
     _mndFocusNode.dispose();
     super.dispose();
+  }
+
+  /// Compute the volume suffix based on current state: "cuft" only when
+  /// imperial mode AND working pressure is available, otherwise "L".
+  String _effectiveVolumeSuffix(UnitFormatter units) {
+    final settings = ref.read(settingsProvider);
+    final wp = double.tryParse(_workingPressureController.text);
+    if (settings.volumeUnit == VolumeUnit.cubicFeet && wp != null && wp > 0) {
+      return units.volumeSymbol;
+    }
+    return 'L';
   }
 
   void _notifyChange() {
@@ -407,7 +415,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             controller: _volumeController,
             decoration: InputDecoration(
               labelText: context.l10n.diveLog_tank_label_volume,
-              suffixText: _volumeDisplayedAsCuft ? units.volumeSymbol : 'L',
+              suffixText: _effectiveVolumeSuffix(units),
               isDense: true,
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),

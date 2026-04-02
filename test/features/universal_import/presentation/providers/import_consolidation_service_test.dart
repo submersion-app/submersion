@@ -489,7 +489,7 @@ void main() {
       );
     });
 
-    test('exitTime is null when runtime is absent', () async {
+    test('exitTime uses duration when runtime is absent', () async {
       when(
         mockRepository.consolidateComputer(
           targetDiveId: anyNamed('targetDiveId'),
@@ -528,8 +528,11 @@ void main() {
       ).captured;
 
       final reading = captured.first as DiveDataSourcesCompanion;
-      // No runtime means exitTime is null.
-      expect(reading.exitTime.value, isNull);
+      // No runtime but duration present: exitTime = entryTime + duration.
+      expect(
+        reading.exitTime.value,
+        DateTime(2024, 6, 15, 9, 0).add(const Duration(minutes: 45)),
+      );
     });
 
     test('skips indices without match but processes matched ones', () async {

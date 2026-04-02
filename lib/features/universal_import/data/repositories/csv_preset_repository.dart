@@ -40,20 +40,21 @@ class CsvPresetRepository {
       _log.info('Saving CSV preset: ${preset.name} (${preset.id})');
       final now = DateTime.now().millisecondsSinceEpoch;
 
+      final json = preset.toJson();
       await _db
           .into(_db.csvPresets)
           .insert(
             CsvPresetsCompanion(
               id: Value(preset.id),
               name: Value(preset.name),
-              presetJson: Value(preset.toJson()),
+              presetJson: Value(json),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
             onConflict: DoUpdate(
               (old) => CsvPresetsCompanion(
                 name: Value(preset.name),
-                presetJson: Value(preset.toJson()),
+                presetJson: Value(json),
                 updatedAt: Value(now),
               ),
             ),

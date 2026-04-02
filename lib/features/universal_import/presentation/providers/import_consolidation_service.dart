@@ -30,7 +30,9 @@ Future<int> performConsolidations({
     final runtime = diveData['runtime'] as Duration?;
     final duration = diveData['duration'] as Duration?;
     final effectiveDuration = runtime ?? duration;
-    final exitTime = runtime != null ? dateTime.add(runtime) : null;
+    final exitTime = effectiveDuration != null
+        ? dateTime.add(effectiveDuration)
+        : null;
 
     final secondaryReading = DiveDataSourcesCompanion.insert(
       id: uuid.v4(),

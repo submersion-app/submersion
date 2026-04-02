@@ -37,8 +37,8 @@ void main() {
       final grouped = extractor.extractProfiles(rows);
 
       expect(grouped.keys, hasLength(2));
-      expect(grouped['1|2023-01-01|09:00'], hasLength(2));
-      expect(grouped['2|2023-01-01|14:00'], hasLength(1));
+      expect(grouped['1|2023-01-01|09:00:00'], hasLength(2));
+      expect(grouped['2|2023-01-01|14:00:00'], hasLength(1));
     });
 
     test('extracts depth, temp, pressure, heartrate per sample', () {
@@ -56,7 +56,7 @@ void main() {
       ];
 
       final grouped = extractor.extractProfiles(rows);
-      final sample = grouped['1|2023-01-01|09:00']!.first;
+      final sample = grouped['1|2023-01-01|09:00:00']!.first;
 
       expect(sample['depth'], 15.5);
       expect(sample['temperature'], 22.0);
@@ -76,7 +76,7 @@ void main() {
       ];
 
       final grouped = extractor.extractProfiles(rows);
-      final sample = grouped['1|2023-01-01|09:00']!.first;
+      final sample = grouped['1|2023-01-01|09:00:00']!.first;
 
       expect(sample['timestamp'], 90);
     });
@@ -93,7 +93,7 @@ void main() {
       ];
 
       final grouped = extractor.extractProfiles(rows);
-      final sample = grouped['1|2023-01-01|09:00']!.first;
+      final sample = grouped['1|2023-01-01|09:00:00']!.first;
 
       expect(sample['timestamp'], 0);
     });
@@ -110,7 +110,7 @@ void main() {
       ];
 
       final grouped = extractor.extractProfiles(rows);
-      final sample = grouped['1|2023-01-01|09:00']!.first;
+      final sample = grouped['1|2023-01-01|09:00:00']!.first;
 
       expect(sample['timestamp'], 1545);
     });

@@ -12,7 +12,7 @@ class ProfileExtractor {
   /// Group profile samples from [rows] by dive key.
   ///
   /// The dive key is constructed as "diveNumber|date|time".
-  /// Each sample map contains: timeSeconds, depth, temperature, pressure,
+  /// Each sample map contains: timestamp, depth, temperature, pressure,
   /// heartRate.
   Map<String, List<Map<String, dynamic>>> extractProfiles(
     List<Map<String, dynamic>> rows,
@@ -56,10 +56,13 @@ class ProfileExtractor {
           '${dateTime.day.toString().padLeft(2, '0')}';
       time =
           '${dateTime.hour.toString().padLeft(2, '0')}:'
-          '${dateTime.minute.toString().padLeft(2, '0')}';
+          '${dateTime.minute.toString().padLeft(2, '0')}:'
+          '${dateTime.second.toString().padLeft(2, '0')}';
     } else {
       date = row['date']?.toString() ?? '';
-      time = row['time']?.toString() ?? '';
+      final rawTime = row['time']?.toString() ?? '';
+      // Normalize to HH:MM:SS so string times match DateTime-derived keys.
+      time = rawTime.split(':').length == 2 ? '$rawTime:00' : rawTime;
     }
     return '$number|$date|$time';
   }

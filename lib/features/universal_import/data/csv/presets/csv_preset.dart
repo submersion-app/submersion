@@ -107,10 +107,7 @@ class CsvPreset extends Equatable {
 
     final sourceAppName = data['sourceApp'] as String?;
     final SourceApp? sourceApp = sourceAppName != null
-        ? SourceApp.values.firstWhere(
-            (e) => e.name == sourceAppName,
-            orElse: () => SourceApp.generic,
-          )
+        ? SourceApp.values.where((e) => e.name == sourceAppName).firstOrNull
         : null;
 
     final expectedUnitsName = data['expectedUnits'] as String?;
@@ -197,10 +194,7 @@ class CsvPreset extends Equatable {
   static FieldMapping _fieldMappingFromJson(Map<String, dynamic> data) {
     final sourceAppName = data['sourceApp'] as String?;
     final SourceApp? sourceApp = sourceAppName != null
-        ? SourceApp.values.firstWhere(
-            (e) => e.name == sourceAppName,
-            orElse: () => SourceApp.generic,
-          )
+        ? SourceApp.values.where((e) => e.name == sourceAppName).firstOrNull
         : null;
 
     final rawColumns =
