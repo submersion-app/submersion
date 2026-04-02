@@ -1249,9 +1249,9 @@ class UddfEntityImporter {
         return DiveTank(
           id: _uuid.v4(),
           volume: t['volume'] as double?,
-          startPressure: t['startPressure'] as double?,
-          endPressure: t['endPressure'] as double?,
-          workingPressure: t['workingPressure'] as double?,
+          startPressure: (t['startPressure'] as num?)?.toDouble(),
+          endPressure: (t['endPressure'] as num?)?.toDouble(),
+          workingPressure: (t['workingPressure'] as num?)?.toDouble(),
           gasMix: t['gasMix'] as GasMix? ?? const GasMix(),
           material: material,
           role: role,

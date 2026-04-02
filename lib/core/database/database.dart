@@ -2506,6 +2506,10 @@ class AppDatabase extends _$AppDatabase {
           ''');
           await customStatement('''
             INSERT INTO dive_tanks_new
+              (id, dive_id, equipment_id, volume,
+               working_pressure, start_pressure, end_pressure,
+               o2_percent, he_percent, tank_order, tank_role,
+               tank_material, tank_name, preset_name)
             SELECT id, dive_id, equipment_id, volume,
                    CAST(working_pressure AS REAL),
                    CAST(start_pressure AS REAL),
@@ -2517,6 +2521,9 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('DROP TABLE dive_tanks');
           await customStatement(
             'ALTER TABLE dive_tanks_new RENAME TO dive_tanks',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_dive_tanks_dive_id ON dive_tanks(dive_id)',
           );
           // Convert workingPressureBar from INTEGER to REAL in tank_presets
           await customStatement('''
@@ -2536,6 +2543,9 @@ class AppDatabase extends _$AppDatabase {
           ''');
           await customStatement('''
             INSERT INTO tank_presets_new
+              (id, diver_id, name, display_name, volume_liters,
+               working_pressure_bar, material, description,
+               sort_order, created_at, updated_at)
             SELECT id, diver_id, name, display_name, volume_liters,
                    CAST(working_pressure_bar AS REAL),
                    material, description, sort_order, created_at, updated_at

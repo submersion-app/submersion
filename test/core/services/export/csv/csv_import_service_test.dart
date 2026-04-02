@@ -149,4 +149,28 @@ void main() {
       expect(dateTime.minute, 30);
     });
   });
+
+  group('pressure columns', () {
+    test('parses start and end pressure as doubles', () async {
+      const csv =
+          'Date,Start Pressure,End Pressure\r\n'
+          '2024-01-15,200.5,50.3\r\n';
+
+      final dives = await service.importDivesFromCsv(csv);
+      expect(dives, hasLength(1));
+      expect(dives.first['startPressure'], 200.5);
+      expect(dives.first['endPressure'], 50.3);
+    });
+
+    test('parses integer pressure values as doubles', () async {
+      const csv =
+          'Date,Start Pressure,End Pressure\r\n'
+          '2024-01-15,200,50\r\n';
+
+      final dives = await service.importDivesFromCsv(csv);
+      expect(dives, hasLength(1));
+      expect(dives.first['startPressure'], 200.0);
+      expect(dives.first['endPressure'], 50.0);
+    });
+  });
 }

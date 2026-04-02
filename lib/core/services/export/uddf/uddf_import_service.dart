@@ -447,10 +447,10 @@ class UddfImportService {
       }
 
       // Validate tank data before adding
-      final startPressure = tankInfo['startPressure'] as double?;
-      final endPressure = tankInfo['endPressure'] as double?;
+      final startPressure = (tankInfo['startPressure'] as num?)?.toDouble();
+      final endPressure = (tankInfo['endPressure'] as num?)?.toDouble();
       final volume = tankInfo['volume'] as double?;
-      final workingPressure = tankInfo['workingPressure'] as double?;
+      final workingPressure = (tankInfo['workingPressure'] as num?)?.toDouble();
 
       // Check if pressure data is valid (not both zero or nonsensical)
       final hasValidPressure =
