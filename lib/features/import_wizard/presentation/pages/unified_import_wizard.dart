@@ -138,8 +138,28 @@ class _UnifiedImportWizardBodyState
       await step.onBeforeAdvance?.call();
       if (!mounted) return;
 
-      // Last acquisition step: build bundle then advance to review.
-      if (_currentPage == _reviewIndex - 1) {
+      // Determine the next page. Skip any remaining acquisition steps whose
+      // canAutoAdvance provider is already satisfied (e.g. Map Fields when the
+      // payload is already produced for non-CSV formats like SSRF/UDDF).
+      var nextPage = _currentPage + 1;
+      while (nextPage < _reviewIndex) {
+        final nextStep = _acquisitionSteps[nextPage];
+        final autoProvider = nextStep.canAutoAdvance;
+        if (autoProvider != null && nextStep.autoAdvance) {
+          final ready = ref.read(autoProvider);
+          if (ready) {
+            // Run the skipped step's onBeforeAdvance so it can finalize state.
+            await nextStep.onBeforeAdvance?.call();
+            if (!mounted) return;
+            nextPage++;
+            continue;
+          }
+        }
+        break;
+      }
+
+      // Last acquisition step (or skipped past all of them): build bundle.
+      if (nextPage >= _reviewIndex) {
         final bundle = await widget.adapter.buildBundle();
         if (!mounted) return;
         final checkedBundle = await widget.adapter.checkDuplicates(bundle);
@@ -149,7 +169,7 @@ class _UnifiedImportWizardBodyState
             .setBundle(checkedBundle);
         ref.read(importWizardNotifierProvider.notifier).initializeDefaultTag();
       }
-      await _animateToPage(_currentPage + 1);
+      await _animateToPage(nextPage);
     } else if (_currentPage == _reviewIndex) {
       await _startImport();
     }
