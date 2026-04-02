@@ -221,7 +221,7 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
     final nameWidget = Text(
       diverName,
       style: TextStyle(
-        fontSize: isWide ? 18 : 14,
+        fontSize: isWide ? 18 : 16,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
