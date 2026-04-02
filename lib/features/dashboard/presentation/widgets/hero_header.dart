@@ -181,102 +181,19 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
                   ),
                 ),
               ),
-              // Diver name + app icon (top-right)
-              Positioned(
-                right: 16,
-                top: 12,
-                child: ExcludeSemantics(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 120),
-                        child: Text(
-                          diverName,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Image.asset(
-                        'assets/icon/icon.png',
-                        width: 52,
-                        height: 52,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              // Content
+              // Content: responsive layout
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Career stats row
-                    Padding(
-                      padding: const EdgeInsets.only(right: 190),
-                      child: Row(
-                        children: [
-                          // Total dives
-                          _CareerStat(
-                            value: totalDives,
-                            label: context.l10n.dashboard_hero_divesLoggedLabel,
-                            theme: theme,
-                          ),
-                          const SizedBox(width: 16),
-                          Container(
-                            width: 1,
-                            height: 36,
-                            color: Colors.white.withValues(alpha: 0.3),
-                          ),
-                          const SizedBox(width: 16),
-                          // Hours logged
-                          _CareerStat(
-                            value: hoursValue,
-                            label: context
-                                .l10n
-                                .dashboard_hero_hoursUnderwaterLabel,
-                            theme: theme,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    // Divider
-                    Container(
-                      height: 1,
-                      color: Colors.white.withValues(alpha: 0.1),
-                    ),
-                    const SizedBox(height: 12),
-                    // Activity stats row
-                    Row(
-                      children: [
-                        _ActivityStat(
-                          value: daysSinceValue,
-                          label: context.l10n.dashboard_hero_daysSinceLabel,
-                          theme: theme,
-                        ),
-                        const SizedBox(width: 16),
-                        _ActivityStat(
-                          value: monthly,
-                          label: context.l10n.dashboard_hero_thisMonthLabel,
-                          theme: theme,
-                        ),
-                        const SizedBox(width: 16),
-                        _ActivityStat(
-                          value: ytd,
-                          label: context.l10n.dashboard_hero_thisYearLabel,
-                          theme: theme,
-                        ),
-                      ],
-                    ),
-                  ],
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                child: _buildHeroContent(
+                  context: context,
+                  theme: theme,
+                  isWide: MediaQuery.sizeOf(context).width >= 900,
+                  diverName: diverName,
+                  totalDives: totalDives,
+                  hoursValue: hoursValue,
+                  daysSinceValue: daysSinceValue,
+                  monthly: monthly,
+                  ytd: ytd,
                 ),
               ),
             ],
@@ -285,30 +202,219 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
       ),
     );
   }
-}
 
-/// A single career stat block (large value + small label).
-class _CareerStat extends StatelessWidget {
-  final String value;
-  final String label;
-  final ThemeData theme;
+  Widget _buildHeroContent({
+    required BuildContext context,
+    required ThemeData theme,
+    required bool isWide,
+    required String diverName,
+    required String totalDives,
+    required String hoursValue,
+    required String daysSinceValue,
+    required String monthly,
+    required String ytd,
+  }) {
+    final icon = ExcludeSemantics(
+      child: Image.asset(
+        'assets/icon/icon.png',
+        width: isWide ? 56 : 72,
+        height: isWide ? 56 : 72,
+      ),
+    );
 
-  const _CareerStat({
-    required this.value,
-    required this.label,
-    required this.theme,
-  });
+    final nameWidget = Text(
+      diverName,
+      style: TextStyle(
+        fontSize: isWide ? 18 : 20,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+    );
 
-  @override
-  Widget build(BuildContext context) {
+    if (isWide) {
+      return _buildDesktopLayout(
+        context: context,
+        theme: theme,
+        icon: icon,
+        nameWidget: nameWidget,
+        totalDives: totalDives,
+        hoursValue: hoursValue,
+        daysSinceValue: daysSinceValue,
+        monthly: monthly,
+        ytd: ytd,
+      );
+    }
+
+    return _buildPhoneLayout(
+      context: context,
+      theme: theme,
+      icon: icon,
+      nameWidget: nameWidget,
+      totalDives: totalDives,
+      hoursValue: hoursValue,
+      daysSinceValue: daysSinceValue,
+      monthly: monthly,
+      ytd: ytd,
+    );
+  }
+
+  /// Desktop: single horizontal row with vertical separators.
+  Widget _buildDesktopLayout({
+    required BuildContext context,
+    required ThemeData theme,
+    required Widget icon,
+    required Widget nameWidget,
+    required String totalDives,
+    required String hoursValue,
+    required String daysSinceValue,
+    required String monthly,
+    required String ytd,
+  }) {
+    return Row(
+      children: [
+        icon,
+        const SizedBox(width: 16),
+        Flexible(child: nameWidget),
+        const SizedBox(width: 16),
+        _verticalSeparator(40),
+        const SizedBox(width: 16),
+        _careerStatColumn(
+          totalDives,
+          context.l10n.dashboard_hero_divesLoggedLabel,
+          theme,
+          fontSize: 24,
+        ),
+        const SizedBox(width: 20),
+        _careerStatColumn(
+          hoursValue,
+          context.l10n.dashboard_hero_hoursUnderwaterLabel,
+          theme,
+          fontSize: 24,
+        ),
+        const SizedBox(width: 16),
+        _verticalSeparator(40),
+        const SizedBox(width: 16),
+        _activityStatColumn(
+          daysSinceValue,
+          context.l10n.dashboard_hero_daysSinceLabel,
+          theme,
+        ),
+        const SizedBox(width: 16),
+        _activityStatColumn(
+          monthly,
+          context.l10n.dashboard_hero_thisMonthLabel,
+          theme,
+        ),
+        const SizedBox(width: 16),
+        _activityStatColumn(
+          ytd,
+          context.l10n.dashboard_hero_thisYearLabel,
+          theme,
+        ),
+      ],
+    );
+  }
+
+  /// Phone: icon left column, name + stats stacked right.
+  Widget _buildPhoneLayout({
+    required BuildContext context,
+    required ThemeData theme,
+    required Widget icon,
+    required Widget nameWidget,
+    required String totalDives,
+    required String hoursValue,
+    required String daysSinceValue,
+    required String monthly,
+    required String ytd,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(padding: const EdgeInsets.only(top: 2), child: icon),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              nameWidget,
+              const SizedBox(height: 10),
+              // Career stats
+              Row(
+                children: [
+                  _careerStatColumn(
+                    totalDives,
+                    context.l10n.dashboard_hero_divesLoggedLabel,
+                    theme,
+                    fontSize: 28,
+                  ),
+                  const SizedBox(width: 16),
+                  _verticalSeparator(32),
+                  const SizedBox(width: 16),
+                  _careerStatColumn(
+                    hoursValue,
+                    context.l10n.dashboard_hero_hoursUnderwaterLabel,
+                    theme,
+                    fontSize: 28,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              // Divider
+              Container(height: 1, color: Colors.white.withValues(alpha: 0.1)),
+              const SizedBox(height: 8),
+              // Activity stats
+              Row(
+                children: [
+                  _activityStatColumn(
+                    daysSinceValue,
+                    context.l10n.dashboard_hero_daysSinceLabel,
+                    theme,
+                  ),
+                  const SizedBox(width: 12),
+                  _activityStatColumn(
+                    monthly,
+                    context.l10n.dashboard_hero_thisMonthLabel,
+                    theme,
+                  ),
+                  const SizedBox(width: 12),
+                  _activityStatColumn(
+                    ytd,
+                    context.l10n.dashboard_hero_thisYearLabel,
+                    theme,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _verticalSeparator(double height) {
+    return Container(
+      width: 1,
+      height: height,
+      color: Colors.white.withValues(alpha: 0.15),
+    );
+  }
+
+  Widget _careerStatColumn(
+    String value,
+    String label,
+    ThemeData theme, {
+    required double fontSize,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 36,
+          style: TextStyle(
+            fontSize: fontSize,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
@@ -322,22 +428,8 @@ class _CareerStat extends StatelessWidget {
       ],
     );
   }
-}
 
-/// A single activity stat pair (value + label inline).
-class _ActivityStat extends StatelessWidget {
-  final String value;
-  final String label;
-  final ThemeData theme;
-
-  const _ActivityStat({
-    required this.value,
-    required this.label,
-    required this.theme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _activityStatColumn(String value, String label, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
