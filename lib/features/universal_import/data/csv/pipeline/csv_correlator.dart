@@ -80,9 +80,11 @@ class CsvCorrelator {
     }
 
     // Step 6a: Extract buddies if requested.
+    BuddyExtractor? buddyExtractor;
     final buddies = <Map<String, dynamic>>[];
     if (entityTypes.contains(ImportEntityType.buddies)) {
-      buddies.addAll(BuddyExtractor().extractFromRows(rows));
+      buddyExtractor = BuddyExtractor();
+      buddies.addAll(buddyExtractor.extractFromRows(rows));
     }
 
     // Step 6b: Extract tags if requested.
@@ -105,10 +107,16 @@ class CsvCorrelator {
       return Map<String, dynamic>.from(dive)..['tanks'] = tanks;
     }).toList();
 
+    // Step 7b: Link buddies and divemasters to dives so the importer's
+    // _linkBuddiesToDive method creates proper entity associations.
+    final divesWithBuddyRefs = buddyExtractor != null
+        ? _attachBuddyRefs(divesWithTanks, buddyExtractor)
+        : divesWithTanks;
+
     // Step 8: Attach profile data if provided.
     final finalDives = profileRows != null
-        ? _attachProfiles(divesWithTanks, profileRows.rows)
-        : divesWithTanks;
+        ? _attachProfiles(divesWithBuddyRefs, profileRows.rows)
+        : divesWithBuddyRefs;
 
     // Step 9: Build metadata and entities map.
     final metadata = <String, dynamic>{
@@ -140,6 +148,54 @@ class CsvCorrelator {
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
+
+  /// Convert raw buddy/diveMaster string fields on each dive into the
+  /// buddyRefs / unmatchedDiveGuideNames lists that
+  /// [UddfEntityImporter._linkBuddiesToDive] expects, and remove the raw
+  /// strings so they don't appear as free-text in the Details section.
+  List<Map<String, dynamic>> _attachBuddyRefs(
+    List<Map<String, dynamic>> dives,
+    BuddyExtractor extractor,
+  ) {
+    return dives.map((dive) {
+      final updated = Map<String, dynamic>.from(dive);
+
+      // Buddy field → buddyRefs (IDs of extracted buddy entities).
+      final rawBuddy = updated['buddy']?.toString();
+      if (rawBuddy != null && rawBuddy.isNotEmpty) {
+        final names = rawBuddy
+            .split(',')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty);
+        final refs = <String>[];
+        for (final name in names) {
+          final id = extractor.buddyIdForName(name);
+          if (id != null) refs.add(id);
+        }
+        if (refs.isNotEmpty) {
+          updated['buddyRefs'] = refs;
+          updated.remove('buddy');
+        }
+      }
+
+      // DiveMaster field → unmatchedDiveGuideNames so the importer
+      // creates/finds the buddy and links with diveGuide role.
+      final rawDm = updated['diveMaster']?.toString();
+      if (rawDm != null && rawDm.isNotEmpty) {
+        final names = rawDm
+            .split(',')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
+        if (names.isNotEmpty) {
+          updated['unmatchedDiveGuideNames'] = names;
+          updated.remove('diveMaster');
+        }
+      }
+
+      return updated;
+    }).toList();
+  }
 
   /// Normalize field name aliases to canonical names for extractors.
   ///

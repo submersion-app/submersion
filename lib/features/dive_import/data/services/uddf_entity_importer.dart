@@ -1054,7 +1054,10 @@ class UddfEntityImporter {
           [];
 
       final dateTime = diveData['dateTime'] as DateTime? ?? now;
-      final runtime = diveData['runtime'] as Duration?;
+      // CSV imports provide only 'duration' (used as bottomTime); fall back
+      // to it for runtime so the total dive time is populated.
+      final runtime =
+          diveData['runtime'] as Duration? ?? diveData['duration'] as Duration?;
       final parsedEntryTime = diveData['entryTime'] as DateTime?;
       final entryTime = parsedEntryTime ?? dateTime;
       final exitTime = runtime != null ? dateTime.add(runtime) : null;
