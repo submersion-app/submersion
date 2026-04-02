@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:intl/intl.dart' show DateFormat;
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
@@ -1882,7 +1883,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     return CollapsibleCardSection(
       title: context.l10n.diveLog_detail_section_sacByCylinder,
-      icon: Icons.propane_tank,
+      icon: MdiIcons.divingScubaTank,
       collapsedSubtitle: context.l10n.diveLog_detail_tankCount(
         cylinderSacs.length,
       ),
@@ -1909,7 +1910,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
-                      Icons.propane_tank,
+                      MdiIcons.divingScubaTank,
                       size: 16,
                       color: colorScheme.primary,
                     ),
@@ -1949,7 +1950,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         ),
                         if (cylinder.gasUsedBar != null)
                           Text(
-                            '${units.convertPressure(cylinder.gasUsedBar!.toDouble()).toInt()} ${units.pressureSymbol} used',
+                            '${units.convertPressure(cylinder.gasUsedBar!).round()} ${units.pressureSymbol} used',
                             style: textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -3747,7 +3748,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               }
               return ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.propane_tank),
+                leading: Icon(MdiIcons.divingScubaTank),
                 title: Text('$tankTitle (${tank.gasMix.name})'),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -3802,7 +3803,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     }
 
     // 3. Stored tank metadata (fallback)
-    return (tank.startPressure?.toDouble(), tank.endPressure?.toDouble());
+    return (tank.startPressure, tank.endPressure);
   }
 
   Widget _buildEquipmentSection(
@@ -3896,7 +3897,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       case EquipmentType.computer:
         return Icons.watch;
       case EquipmentType.tank:
-        return Icons.propane_tank;
+        return MdiIcons.divingScubaTank;
       case EquipmentType.weights:
         return Icons.fitness_center;
       case EquipmentType.light:

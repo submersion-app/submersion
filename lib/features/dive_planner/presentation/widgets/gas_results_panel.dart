@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -35,7 +36,7 @@ class GasResultsPanel extends ConsumerWidget {
               children: [
                 ExcludeSemantics(
                   child: Icon(
-                    Icons.propane_tank,
+                    MdiIcons.divingScubaTank,
                     color: theme.colorScheme.primary,
                   ),
                 ),

@@ -5,10 +5,7 @@ import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
-/// Flush all pending async I/O initiated by the logger's unawaited writeLine.
-/// The logger calls _fileService?.writeLine() without await, so writes are
-/// fire-and-forget Futures. We need to pump the event queue to let them land.
-Future<void> flushLogs() => pumpEventQueue(times: 10);
+Future<void> flushLogs() => LoggerService.flushPendingWrites();
 
 void main() {
   group('LoggerService', () {
@@ -22,7 +19,9 @@ void main() {
       LoggerService.setFileService(fileService);
     });
 
-    tearDown(() {
+    tearDown(() async {
+      await flushLogs();
+      LoggerService.setFileService(null);
       tempDir.deleteSync(recursive: true);
     });
 

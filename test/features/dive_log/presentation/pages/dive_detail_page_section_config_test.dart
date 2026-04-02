@@ -141,7 +141,14 @@ final _richDive = Dive(
       amountKg: 4.0,
     ),
   ],
-  tanks: [const DiveTank(id: 'tank-1', volume: 11.1, startPressure: 200)],
+  tanks: [
+    const DiveTank(
+      id: 'tank-1',
+      volume: 11.1,
+      startPressure: 200.0,
+      endPressure: 50.0,
+    ),
+  ],
   equipment: [
     const EquipmentItem(
       id: 'eq-1',

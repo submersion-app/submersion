@@ -330,11 +330,11 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                                   _buildNauiField('Gas', tank.gasMix.name),
                                   _buildNauiField(
                                     'Start',
-                                    '${tank.startPressure ?? '-'} bar',
+                                    '${tank.startPressure?.round() ?? '-'} bar',
                                   ),
                                   _buildNauiField(
                                     'End',
-                                    '${tank.endPressure ?? '-'} bar',
+                                    '${tank.endPressure?.round() ?? '-'} bar',
                                   ),
                                 ],
                               ],

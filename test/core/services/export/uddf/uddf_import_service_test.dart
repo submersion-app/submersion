@@ -355,5 +355,53 @@ void main() {
         expect(gasMix.name, 'EAN50');
       },
     );
+
+    test('parses tankworkingpressure from Pascal to bar', () async {
+      // 20684300 Pa = 206.843 bar (3000 psi)
+      const uddfContent = '''
+<uddf version="3.2.3">
+  <profiledata>
+    <repetitiongroup>
+      <dive id="dive-1">
+        <informationbeforedive>
+          <datetime>2026-01-15T09:00:00Z</datetime>
+          <divenumber>100</divenumber>
+        </informationbeforedive>
+        <tankdata id="tank-1">
+          <tankvolume>11.1</tankvolume>
+          <tankworkingpressure>20684300</tankworkingpressure>
+          <tankpressurebegin>20684300</tankpressurebegin>
+          <tankpressureend>5000000</tankpressureend>
+        </tankdata>
+        <samples>
+          <waypoint>
+            <depth>1</depth>
+            <divetime>0</divetime>
+          </waypoint>
+        </samples>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>
+''';
+
+      final service = UddfImportService();
+
+      final result = await service.importDivesFromUddf(uddfContent);
+      final dives = result['dives']!;
+      expect(dives, hasLength(1));
+
+      final dive = dives.first;
+      final tanks = dive['tanks'] as List<Map<String, dynamic>>;
+      expect(tanks, hasLength(1));
+
+      // Working pressure: 20684300 Pa / 100000 = 206.843 bar
+      final workingPressure = tanks[0]['workingPressure'] as double;
+      expect(workingPressure, closeTo(206.843, 0.001));
+
+      // Volume should also be parsed
+      final volume = tanks[0]['volume'] as double;
+      expect(volume, closeTo(11.1, 0.01));
+    });
   });
 }

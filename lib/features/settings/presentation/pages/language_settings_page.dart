@@ -35,6 +35,11 @@ class LanguageSettingsPage extends ConsumerWidget {
       nativeName: '\u05E2\u05D1\u05E8\u05D9\u05EA',
       englishName: 'Hebrew',
     ),
+    _LocaleOption(
+      code: 'zh',
+      nativeName: '简体中文',
+      englishName: 'Chinese (Simplified)',
+    ),
   ];
 
   @override

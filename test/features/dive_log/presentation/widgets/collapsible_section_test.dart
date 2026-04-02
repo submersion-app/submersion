@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 
 import '../../../../helpers/test_app.dart';
@@ -243,7 +244,7 @@ void main() {
           child: SingleChildScrollView(
             child: CollapsibleCardSection(
               title: 'Tanks',
-              icon: Icons.propane_tank,
+              icon: MdiIcons.divingScubaTank,
               collapsedTrailing: const Icon(Icons.check_circle),
               isExpanded: false,
               onToggle: (_) {},
@@ -263,7 +264,7 @@ void main() {
           child: SingleChildScrollView(
             child: CollapsibleCardSection(
               title: 'Tanks',
-              icon: Icons.propane_tank,
+              icon: MdiIcons.divingScubaTank,
               collapsedTrailing: const Icon(Icons.check_circle),
               isExpanded: true,
               onToggle: (_) {},

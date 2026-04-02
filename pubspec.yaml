@@ -14,6 +14,7 @@ dependencies:
 
   # Core
   cupertino_icons: ^1.0.8
+  material_design_icons_flutter: ^7.0.7296
 
   # State Management
   flutter_riverpod: ^3.1.0

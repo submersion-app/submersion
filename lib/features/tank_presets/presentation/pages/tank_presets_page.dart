@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -133,16 +134,17 @@ class TankPresetsPage extends ConsumerWidget {
     final volumeStr = units.formatTankVolume(
       preset.volumeLiters,
       preset.workingPressureBar,
+      ratedCapacityCuft: preset.ratedCapacityCuft,
       decimals: 0,
     );
     final pressureStr = units.formatPressure(
-      preset.workingPressureBar.toDouble(),
+      preset.workingPressureBar,
       decimals: 0,
     );
 
     return ListTile(
       leading: Icon(
-        canEdit ? Icons.propane_tank_outlined : Icons.propane_tank,
+        MdiIcons.divingScubaTank,
         color: canEdit
             ? Theme.of(context).colorScheme.secondary
             : Theme.of(context).colorScheme.primary,

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 
@@ -12,6 +13,7 @@ class LoggerService {
 
   /// The shared LogFileService instance. Set during app initialization.
   static LogFileService? _fileService;
+  static Future<void> _pendingWrite = Future<void>.value();
 
   /// Broadcast stream that emits every [LogEntry] as it is created.
   /// Used by the debug log viewer to update in real time.
@@ -25,6 +27,7 @@ class LoggerService {
   /// Pass `null` to disable file logging (e.g. when debug mode is off).
   static void setFileService(LogFileService? fileService) {
     _fileService = fileService;
+    _pendingWrite = Future<void>.value();
   }
 
   const LoggerService(this._name);
@@ -121,7 +124,22 @@ class LoggerService {
       level: level,
       message: error != null ? '$message | error: $error' : message,
     );
-    _fileService?.writeLine(entry.toLogLine());
+    final logLine = entry.toLogLine();
+    // Capture the current file service so that later changes to
+    // _fileService do not affect already-emitted log entries.
+    final service = _fileService;
+    if (service != null) {
+      _pendingWrite = _pendingWrite
+          .then((_) => service.writeLine(logLine))
+          .catchError((Object e, StackTrace st) {
+            developer.log(
+              'Log write failed',
+              name: _name,
+              error: e,
+              stackTrace: st,
+            );
+          });
+    }
 
     // Notify live listeners (debug log viewer).
     _logStreamController.add(entry);
@@ -129,6 +147,22 @@ class LoggerService {
 
   /// Create a logger for a specific class
   static LoggerService forClass(Type type) => LoggerService(type.toString());
+
+  /// Wait for all currently pending file writes to complete.
+  ///
+  /// This method is primarily intended for tests that need deterministic
+  /// synchronization with log file writes.
+  @visibleForTesting
+  static Future<void> flushPendingWrites() async {
+    while (true) {
+      final current = _pendingWrite;
+      await current;
+      // If no new write was scheduled while we were waiting, we're done.
+      if (identical(current, _pendingWrite)) {
+        break;
+      }
+    }
+  }
 }
 
 /// Custom exception for repository errors

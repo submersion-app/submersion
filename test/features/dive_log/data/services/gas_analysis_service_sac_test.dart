@@ -41,8 +41,8 @@ void main() {
   DiveTank makeTank({
     String id = 'tank-1',
     double? volume,
-    int? startPressure,
-    int? endPressure,
+    double? startPressure,
+    double? endPressure,
   }) {
     return DiveTank(
       id: id,

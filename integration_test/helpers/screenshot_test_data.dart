@@ -447,9 +447,9 @@ class ScreenshotTestDataSeeder {
               id: _uuid.v4(),
               diveId: diveId,
               volume: const Value(11.1),
-              workingPressure: const Value(207),
-              startPressure: Value(200 + random.nextInt(10)),
-              endPressure: Value(40 + random.nextInt(30)),
+              workingPressure: const Value(207.0),
+              startPressure: Value((200 + random.nextInt(10)).toDouble()),
+              endPressure: Value((40 + random.nextInt(30)).toDouble()),
               o2Percent: const Value(21.0),
             ),
           );

@@ -300,7 +300,7 @@ class PlanCalculatorService {
               type: PlanWarningType.gasOut,
               severity: PlanWarningSeverity.critical,
               message: 'Tank ${tank.name ?? tank.gasMix.name} will be empty',
-              value: remainingPressure.toDouble(),
+              value: remainingPressure,
             ),
           );
         } else if (remainingPressure != null &&
@@ -311,7 +311,7 @@ class PlanCalculatorService {
               severity: PlanWarningSeverity.alert,
               message:
                   'Tank ${tank.name ?? tank.gasMix.name} below ${reservePressure.toStringAsFixed(0)} bar reserve',
-              value: remainingPressure.toDouble(),
+              value: remainingPressure,
               threshold: reservePressure,
             ),
           );
@@ -573,7 +573,7 @@ class PlanCalculatorService {
 
 /// Internal tracker for gas usage per tank.
 class _GasUsageTracker {
-  final int? startPressure;
+  final double? startPressure;
   final double volume;
   double gasUsedLiters = 0;
 
@@ -587,9 +587,9 @@ class _GasUsageTracker {
   double get gasUsedBar => volume > 0 ? gasUsedLiters / volume : 0;
 
   /// Calculate remaining pressure.
-  int? get remainingPressure {
+  double? get remainingPressure {
     if (startPressure == null) return null;
-    return (startPressure! - gasUsedBar).round();
+    return startPressure! - gasUsedBar;
   }
 
   /// Calculate percentage of tank used.

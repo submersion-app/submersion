@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:flutter/services.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -199,8 +200,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         id: _uuid.v4(),
         volume: _defaultPreset?.volumeLiters ?? settings.defaultTankVolume,
         workingPressure: _defaultPreset?.workingPressureBar,
-        startPressure: settings.defaultStartPressure,
-        endPressure: 50,
+        startPressure: settings.defaultStartPressure.toDouble(),
+        endPressure: 50.0,
         gasMix: const GasMix(),
         role: TankRole.backGas,
         material: _defaultPreset?.material,
@@ -1973,8 +1974,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           id: _uuid.v4(),
           volume: _defaultPreset?.volumeLiters ?? settings.defaultTankVolume,
           workingPressure: _defaultPreset?.workingPressureBar,
-          startPressure: settings.defaultStartPressure,
-          endPressure: 50,
+          startPressure: settings.defaultStartPressure.toDouble(),
+          endPressure: 50.0,
           gasMix: const GasMix(),
           role: _tanks.isEmpty ? TankRole.backGas : TankRole.stage,
           material: _defaultPreset?.material,
@@ -2138,7 +2139,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       case EquipmentType.hood:
         return Icons.face;
       case EquipmentType.tank:
-        return Icons.propane_tank;
+        return MdiIcons.divingScubaTank;
       case EquipmentType.weights:
         return Icons.fitness_center;
       case EquipmentType.computer:
@@ -4664,7 +4665,7 @@ class _EquipmentPickerSheet extends ConsumerWidget {
       case EquipmentType.hood:
         return Icons.face;
       case EquipmentType.tank:
-        return Icons.propane_tank;
+        return MdiIcons.divingScubaTank;
       case EquipmentType.weights:
         return Icons.fitness_center;
       case EquipmentType.computer:

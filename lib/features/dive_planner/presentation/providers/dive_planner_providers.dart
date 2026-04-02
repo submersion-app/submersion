@@ -69,8 +69,8 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       id: _uuid.v4(),
       name: 'Primary',
       volume: 11.1, // AL80
-      workingPressure: 207,
-      startPressure: 200,
+      workingPressure: 207.0,
+      startPressure: 200.0,
       gasMix: const GasMix(o2: 21, he: 0),
       role: TankRole.backGas,
       order: 0,

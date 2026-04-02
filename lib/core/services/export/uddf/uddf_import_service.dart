@@ -395,7 +395,7 @@ class UddfImportService {
         // UDDF stores in Pascal, convert to bar
         final pascal = double.tryParse(startPressureText);
         if (pascal != null) {
-          tankInfo['startPressure'] = (pascal / 100000).round();
+          tankInfo['startPressure'] = pascal / 100000;
         }
       }
 
@@ -406,7 +406,7 @@ class UddfImportService {
       if (endPressureText != null) {
         final pascal = double.tryParse(endPressureText);
         if (pascal != null) {
-          tankInfo['endPressure'] = (pascal / 100000).round();
+          tankInfo['endPressure'] = pascal / 100000;
         }
       }
 
@@ -424,7 +424,7 @@ class UddfImportService {
       if (workingPressureText != null) {
         final pascal = double.tryParse(workingPressureText);
         if (pascal != null) {
-          tankInfo['workingPressure'] = (pascal / 100000).round();
+          tankInfo['workingPressure'] = pascal / 100000;
         }
       }
 
@@ -447,10 +447,10 @@ class UddfImportService {
       }
 
       // Validate tank data before adding
-      final startPressure = tankInfo['startPressure'] as int?;
-      final endPressure = tankInfo['endPressure'] as int?;
+      final startPressure = (tankInfo['startPressure'] as num?)?.toDouble();
+      final endPressure = (tankInfo['endPressure'] as num?)?.toDouble();
       final volume = tankInfo['volume'] as double?;
-      final workingPressure = tankInfo['workingPressure'] as int?;
+      final workingPressure = (tankInfo['workingPressure'] as num?)?.toDouble();
 
       // Check if pressure data is valid (not both zero or nonsensical)
       final hasValidPressure =

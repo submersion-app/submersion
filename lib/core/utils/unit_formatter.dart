@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -104,26 +105,41 @@ class UnitFormatter {
     return '${converted.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
   }
 
-  /// Format tank volume - handles gas capacity conversion for imperial units
-  /// For cuft, calculates gas capacity from physical volume and working pressure
+  /// Format tank volume - handles gas capacity conversion for imperial units.
+  /// Pass [ratedCapacityCuft] (from a preset) for accurate display;
+  /// otherwise falls back to ideal-gas calculation from volume and pressure.
   String formatTankVolume(
     double? volumeLiters,
-    int? workingPressureBar, {
+    double? workingPressureBar, {
+    double? ratedCapacityCuft,
     int decimals = 0,
   }) {
     if (volumeLiters == null) return '--';
 
     if (settings.volumeUnit == VolumeUnit.cubicFeet) {
-      if (workingPressureBar != null && workingPressureBar > 0) {
-        // Calculate gas capacity in cubic feet
-        // cuft = (liters * working_pressure_bar) / 28.3168
-        final cuft = (volumeLiters * workingPressureBar) / 28.3168;
+      // Try to use manufacturer's rated cuft, either passed directly
+      // or by matching volume/pressure against known tank presets
+      var cuft = ratedCapacityCuft;
+      if (cuft == null &&
+          workingPressureBar != null &&
+          workingPressureBar > 0) {
+        final match = TankPresets.matchBySpecs(
+          volumeLiters,
+          workingPressureBar,
+        );
+        cuft = match?.ratedCapacityCuft;
+      }
+      if (cuft != null) {
         return '${cuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
+      }
+      if (workingPressureBar != null && workingPressureBar > 0) {
+        // Ideal gas approximation for non-standard tanks
+        final calcCuft = (volumeLiters * workingPressureBar) / 28.3168;
+        return '${calcCuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
       } else {
-        // No working pressure - use approximate conversion assuming 200 bar
-        // This is a reasonable default for most tanks
-        final cuft = (volumeLiters * 200) / 28.3168;
-        return '~${cuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
+        // No working pressure - approximate assuming 200 bar
+        final calcCuft = (volumeLiters * 200) / 28.3168;
+        return '~${calcCuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
       }
     }
 

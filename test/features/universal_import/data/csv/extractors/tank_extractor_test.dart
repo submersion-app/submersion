@@ -100,7 +100,7 @@ void main() {
         expect(tanks[0]['hePercent'], 0.0);
       });
 
-      test('rounds pressures to int', () {
+      test('preserves pressure precision as double', () {
         final row = <String, dynamic>{
           'tankVolume_1': 12.0,
           'startPressure_1': 200.7,
@@ -109,8 +109,8 @@ void main() {
 
         final tanks = extractor.extract(row, diveId);
 
-        expect(tanks[0]['startPressure'], 201);
-        expect(tanks[0]['endPressure'], 50);
+        expect(tanks[0]['startPressure'], 200.7);
+        expect(tanks[0]['endPressure'], 50.3);
       });
 
       test('skips numbered tanks that have pressure but no volume', () {

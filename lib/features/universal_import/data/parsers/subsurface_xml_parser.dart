@@ -295,6 +295,13 @@ class SubsurfaceXmlParser implements ImportParser {
     final tanks = _parseCylinders(dive, profilePoints);
     if (tanks.isNotEmpty) result['tanks'] = tanks;
 
+    final gasSwitches = divecomputer != null
+        ? _parseGasSwitches(divecomputer)
+        : null;
+    if (gasSwitches != null && gasSwitches.isNotEmpty) {
+      result['gasSwitches'] = gasSwitches;
+    }
+
     // Weights
     final weights = _parseWeights(dive);
     if (weights.isNotEmpty) result['weights'] = weights;
@@ -503,12 +510,14 @@ class SubsurfaceXmlParser implements ImportParser {
   ) {
     final tanks = <Map<String, dynamic>>[];
     var index = 0;
+    var cylinderIndex = 0;
     for (final cyl in dive.findElements('cylinder')) {
       final size = cyl.getAttribute('size');
       final description = cyl.getAttribute('description');
       // Skip empty cylinder elements
       if ((size == null || size.isEmpty) &&
           (description == null || description.isEmpty)) {
+        cylinderIndex++;
         continue;
       }
 
@@ -516,8 +525,8 @@ class SubsurfaceXmlParser implements ImportParser {
       final heRaw = _parseDouble(cyl.getAttribute('he')?.replaceAll('%', ''));
       final gasMix = GasMix(o2: o2Raw ?? 21.0, he: heRaw ?? 0.0);
 
-      int? startPressure = _parseInt(cyl.getAttribute('start'));
-      int? endPressure = _parseInt(cyl.getAttribute('end'));
+      double? startPressure = _parseDouble(cyl.getAttribute('start'));
+      double? endPressure = _parseDouble(cyl.getAttribute('end'));
 
       // First cylinder: fall back to first/last sample pressure0
       if (index == 0 && profilePoints != null && profilePoints.isNotEmpty) {
@@ -525,30 +534,68 @@ class SubsurfaceXmlParser implements ImportParser {
           final firstPressure = profilePoints
               .map((p) => p['pressure'] as double?)
               .firstWhere((p) => p != null, orElse: () => null);
-          startPressure = firstPressure?.round();
+          startPressure = firstPressure;
         }
         if (endPressure == null) {
           final lastPressure = profilePoints
               .map((p) => p['pressure'] as double?)
               .lastWhere((p) => p != null, orElse: () => null);
-          endPressure = lastPressure?.round();
+          endPressure = lastPressure;
         }
       }
 
       final tank = <String, dynamic>{'gasMix': gasMix};
       final volume = _parseDouble(size);
       if (volume != null) tank['volume'] = volume;
-      final workingPressure = _parseInt(cyl.getAttribute('workpressure'));
+      final workingPressure = _parseDouble(cyl.getAttribute('workpressure'));
       if (workingPressure != null) tank['workingPressure'] = workingPressure;
       if (startPressure != null) tank['startPressure'] = startPressure;
       if (endPressure != null) tank['endPressure'] = endPressure;
       if (description != null && description.isNotEmpty) {
         tank['name'] = description;
       }
+      tank['order'] = index;
+      tank['uddfTankId'] = _subsurfaceTankRef(cylinderIndex, description);
       tanks.add(tank);
       index++;
+      cylinderIndex++;
     }
     return tanks;
+  }
+
+  List<Map<String, dynamic>> _parseGasSwitches(XmlElement divecomputer) {
+    final gasSwitches = <Map<String, dynamic>>[];
+    for (final event in divecomputer.findElements('event')) {
+      final name = event.getAttribute('name')?.trim().toLowerCase();
+      if (name != 'gaschange') continue;
+
+      final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+      final cylinderIndex = _parseInt(event.getAttribute('cylinder'));
+      if (timestamp == null || cylinderIndex == null || cylinderIndex < 0) {
+        continue;
+      }
+
+      final cylinders = divecomputer.parentElement
+          ?.findElements('cylinder')
+          .toList();
+      final description = cylinders != null && cylinderIndex < cylinders.length
+          ? cylinders[cylinderIndex].getAttribute('description')
+          : null;
+
+      gasSwitches.add({
+        'timestamp': timestamp,
+        'tankRef': _subsurfaceTankRef(cylinderIndex, description),
+      });
+    }
+    return gasSwitches;
+  }
+
+  String _subsurfaceTankRef(int cylinderIndex, String? description) {
+    final cleanedDescription = (description ?? '').trim();
+    final safeDescription = cleanedDescription.isEmpty
+        ? 'tank'
+        : cleanedDescription;
+    return '$cylinderIndex:$safeDescription';
   }
 
   /// Parses `<weightsystem>` elements into weight maps with [WeightType] values.

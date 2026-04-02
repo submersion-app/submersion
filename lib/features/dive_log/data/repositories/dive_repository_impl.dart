@@ -2436,11 +2436,11 @@ class DiveRepository {
         final profilePoints = tankPressuresByTankId[t.id];
         final profileStartPressure =
             profilePoints != null && profilePoints.isNotEmpty
-            ? profilePoints.first.pressure.round()
+            ? profilePoints.first.pressure
             : null;
         final profileEndPressure =
             profilePoints != null && profilePoints.isNotEmpty
-            ? profilePoints.last.pressure.round()
+            ? profilePoints.last.pressure
             : null;
 
         return domain.DiveTank(

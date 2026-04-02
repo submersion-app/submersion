@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -33,7 +34,7 @@ class PlanTankList extends ConsumerWidget {
               children: [
                 ExcludeSemantics(
                   child: Icon(
-                    Icons.propane_tank,
+                    MdiIcons.divingScubaTank,
                     color: theme.colorScheme.primary,
                   ),
                 ),
@@ -133,7 +134,7 @@ class _TankChip extends StatelessWidget {
 
     final tankLabel =
         '${tank.name ?? tank.gasMix.name}, '
-        '${units.formatPressure(tank.startPressure?.toDouble())}, '
+        '${units.formatPressure(tank.startPressure)}, '
         '${units.formatVolume(tank.volume)}';
 
     return Semantics(
@@ -157,7 +158,7 @@ class _TankChip extends StatelessWidget {
           children: [
             Text(tank.name ?? tank.gasMix.name),
             Text(
-              '${units.formatPressure(tank.startPressure?.toDouble())} • ${units.formatVolume(tank.volume)}',
+              '${units.formatPressure(tank.startPressure)} • ${units.formatVolume(tank.volume)}',
               style: theme.textTheme.bodySmall,
             ),
           ],
@@ -201,7 +202,7 @@ class _TankEditDialogState extends State<_TankEditDialog> {
     _pressureController = TextEditingController(
       text: widget.tank?.startPressure != null
           ? widget.units
-                .convertPressure(widget.tank!.startPressure!.toDouble())
+                .convertPressure(widget.tank!.startPressure!)
                 .toStringAsFixed(0)
           : widget.units.convertPressure(200).toStringAsFixed(0),
     );
@@ -346,7 +347,7 @@ class _TankEditDialogState extends State<_TankEditDialog> {
           ? widget.units.volumeToLiters(parsedVolume)
           : null,
       startPressure: parsedPressure != null
-          ? widget.units.pressureToBar(parsedPressure).round()
+          ? widget.units.pressureToBar(parsedPressure)
           : null,
       gasMix: GasMix(
         o2: double.tryParse(_o2Controller.text) ?? 21,

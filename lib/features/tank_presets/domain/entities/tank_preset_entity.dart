@@ -10,13 +10,17 @@ class TankPresetEntity extends Equatable {
   final String name; // Internal name/identifier
   final String displayName; // User-friendly display name
   final double volumeLiters; // Water volume in liters
-  final int workingPressureBar; // Rated working pressure in bar
+  final double workingPressureBar; // Rated working pressure in bar
   final TankMaterial material;
   final String description;
   final int sortOrder;
   final bool isBuiltIn; // true for system presets
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  /// Manufacturer's published gas capacity in cubic feet.
+  /// Null for custom presets or metric-only tanks.
+  final double? ratedCapacityCuft;
 
   const TankPresetEntity({
     required this.id,
@@ -31,11 +35,13 @@ class TankPresetEntity extends Equatable {
     this.isBuiltIn = false,
     required this.createdAt,
     required this.updatedAt,
+    this.ratedCapacityCuft,
   });
 
-  /// Calculate gas capacity in cubic feet (imperial tank size rating)
-  /// Formula: (water_volume_liters * working_pressure_bar) / 28.3168
-  double get volumeCuft => (volumeLiters * workingPressureBar) / 28.3168;
+  /// Gas capacity in cubic feet. Returns the manufacturer's rated value
+  /// when available, otherwise calculates from ideal gas law.
+  double get volumeCuft =>
+      ratedCapacityCuft ?? (volumeLiters * workingPressureBar) / 28.3168;
 
   /// Create from a built-in TankPreset constant
   factory TankPresetEntity.fromBuiltIn(TankPreset preset) {
@@ -51,6 +57,7 @@ class TankPresetEntity extends Equatable {
       isBuiltIn: true,
       createdAt: fixedDate,
       updatedAt: fixedDate,
+      ratedCapacityCuft: preset.ratedCapacityCuft,
     );
   }
 
@@ -60,7 +67,7 @@ class TankPresetEntity extends Equatable {
     required String name,
     required String displayName,
     required double volumeLiters,
-    required int workingPressureBar,
+    required double workingPressureBar,
     required TankMaterial material,
     String? diverId,
     String description = '',
@@ -98,13 +105,14 @@ class TankPresetEntity extends Equatable {
     String? name,
     String? displayName,
     double? volumeLiters,
-    int? workingPressureBar,
+    double? workingPressureBar,
     TankMaterial? material,
     String? description,
     int? sortOrder,
     bool? isBuiltIn,
     DateTime? createdAt,
     DateTime? updatedAt,
+    double? ratedCapacityCuft,
   }) {
     return TankPresetEntity(
       id: id ?? this.id,
@@ -119,6 +127,7 @@ class TankPresetEntity extends Equatable {
       isBuiltIn: isBuiltIn ?? this.isBuiltIn,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      ratedCapacityCuft: ratedCapacityCuft ?? this.ratedCapacityCuft,
     );
   }
 
@@ -136,5 +145,6 @@ class TankPresetEntity extends Equatable {
     isBuiltIn,
     createdAt,
     updatedAt,
+    ratedCapacityCuft,
   ];
 }

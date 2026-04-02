@@ -262,13 +262,13 @@ class ShearwaterDiveMapper {
   /// Parses a PSI string value and converts to bar.
   ///
   /// Returns null for empty or non-numeric values.
-  static int? _parsePsiPressure(dynamic value) {
+  static double? _parsePsiPressure(dynamic value) {
     if (value == null) return null;
     final str = value.toString();
     if (str.isEmpty) return null;
     final psi = double.tryParse(str);
     if (psi == null) return null;
-    return ShearwaterValueMapper.psiToBar(psi).round();
+    return ShearwaterValueMapper.psiToBar(psi);
   }
 
   static DiveMode _mapDiveMode(String? apparatus) {

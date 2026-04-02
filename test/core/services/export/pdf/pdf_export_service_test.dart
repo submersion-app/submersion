@@ -46,6 +46,40 @@ void main() {
     );
   }
 
+  group('generateDivePdfBytes with tank pressure data', () {
+    test('generates PDF with tank start/end pressure values', () async {
+      final dives = [
+        Dive(
+          id: 'dive-tank-1',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 3, 28, 10, 0),
+          bottomTime: const Duration(minutes: 45),
+          maxDepth: 25.0,
+          waterTemp: 22.0,
+          tanks: const [
+            DiveTank(
+              id: 'tank-1',
+              startPressure: 206.843,
+              endPressure: 50.5,
+              volume: 11.1,
+            ),
+          ],
+          profile: const [],
+          equipment: const [],
+          notes: '',
+          photoIds: const [],
+          sightings: const [],
+          weights: const [],
+          tags: const [],
+        ),
+      ];
+
+      final result = await service.generateDivePdfBytes(dives);
+      expect(result.bytes, isNotEmpty);
+      expect(String.fromCharCodes(result.bytes.take(4)), '%PDF');
+    });
+  });
+
   group('generateDivePdfBytes', () {
     test('generates PDF with bottomTime data', () async {
       final dives = [

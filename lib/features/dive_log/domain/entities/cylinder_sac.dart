@@ -33,13 +33,13 @@ class CylinderSac extends Equatable {
       sacRate != null && tankVolume != null ? sacRate! * tankVolume! : null;
 
   /// Start pressure in bar
-  final int? startPressure;
+  final double? startPressure;
 
   /// End pressure in bar
-  final int? endPressure;
+  final double? endPressure;
 
   /// Total gas used in bar
-  int? get gasUsedBar => startPressure != null && endPressure != null
+  double? get gasUsedBar => startPressure != null && endPressure != null
       ? startPressure! - endPressure!
       : null;
 
@@ -101,8 +101,8 @@ class CylinderSac extends Equatable {
     TankRole? role,
     double? tankVolume,
     double? sacRate,
-    int? startPressure,
-    int? endPressure,
+    double? startPressure,
+    double? endPressure,
     Duration? usageDuration,
     double? avgDepthDuringUse,
     bool? hasTimeSeriesData,

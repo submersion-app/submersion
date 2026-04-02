@@ -833,9 +833,9 @@ class DiveTank extends Equatable {
   final String id;
   final String? name; // user-friendly name like "Primary AL80"
   final double? volume; // liters
-  final int? workingPressure; // bar - rated pressure
-  final int? startPressure; // bar
-  final int? endPressure; // bar
+  final double? workingPressure; // bar - rated pressure
+  final double? startPressure; // bar
+  final double? endPressure; // bar
   final GasMix gasMix;
   final TankRole role; // back gas, stage, deco, bailout, etc.
   final TankMaterial? material; // aluminum, steel, carbon fiber
@@ -857,7 +857,7 @@ class DiveTank extends Equatable {
   });
 
   /// Pressure consumed during dive
-  int? get pressureUsed {
+  double? get pressureUsed {
     if (startPressure == null || endPressure == null) return null;
     return startPressure! - endPressure!;
   }
@@ -867,9 +867,9 @@ class DiveTank extends Equatable {
     String? id,
     String? name,
     double? volume,
-    int? workingPressure,
-    int? startPressure,
-    int? endPressure,
+    double? workingPressure,
+    double? startPressure,
+    double? endPressure,
     GasMix? gasMix,
     TankRole? role,
     TankMaterial? material,

@@ -67,6 +67,9 @@ class ProfileLegendConfig {
     this.hasOtuData = false,
   });
 
+  bool get hasTankListSection =>
+      hasGasSwitches && !hasMultiTankPressure && (tanks?.length ?? 0) > 1;
+
   /// Whether any secondary toggles should be shown
   bool get hasSecondaryToggles =>
       hasCeilingCurve ||
@@ -76,6 +79,7 @@ class ProfileLegendConfig {
       hasMaxDepthMarker ||
       hasPressureMarkers ||
       hasGasSwitches ||
+      hasTankListSection ||
       hasMultiTankPressure ||
       hasNdlData ||
       hasPpO2Data ||
@@ -514,6 +518,34 @@ class _ChartOptionsDialog extends StatelessWidget {
       );
     }
 
+    // Tanks section (for gas-switch dives without multi-tank pressure traces)
+    if (config.hasTankListSection && config.tanks != null) {
+      final sortedTanks = [...config.tanks!]
+        ..sort((a, b) => a.order.compareTo(b.order));
+      final tankItems = <Widget>[];
+
+      for (var i = 0; i < sortedTanks.length; i++) {
+        final tank = sortedTanks[i];
+        final color = GasColors.forGasMix(tank.gasMix);
+        final label = _buildTankLabel(context, tank, fallbackIndex: i + 1);
+
+        tankItems.add(_buildStaticItem(context, label: label, color: color));
+      }
+
+      if (tankItems.isNotEmpty) {
+        sections.add(
+          _buildSection(
+            context,
+            key: 'tanks',
+            title: context.l10n.diveLog_detail_section_tanks,
+            legendState: legendState,
+            legendNotifier: legendNotifier,
+            children: tankItems,
+          ),
+        );
+      }
+    }
+
     // Tank Pressures section
     if (config.hasMultiTankPressure && config.tankPressures != null) {
       final sortedTankIds = _sortedTankIds(config.tankPressures!.keys);
@@ -524,7 +556,9 @@ class _ChartOptionsDialog extends StatelessWidget {
         final color = tank != null
             ? GasColors.forGasMix(tank.gasMix)
             : _getTankColor(i);
-        final label = tank?.name ?? context.l10n.diveLog_tank_title(i + 1);
+        final label = tank != null
+            ? _buildTankLabel(context, tank, fallbackIndex: i + 1)
+            : context.l10n.diveLog_tank_title(i + 1);
 
         tankItems.add(
           _buildToggleItem(
@@ -850,6 +884,43 @@ class _ChartOptionsDialog extends StatelessWidget {
             Expanded(child: Text(label)),
           ],
         ),
+      ),
+    );
+  }
+
+  String _buildTankLabel(
+    BuildContext context,
+    DiveTank tank, {
+    required int fallbackIndex,
+  }) {
+    final tankTitle = tank.name?.trim().isNotEmpty == true
+        ? tank.name!.trim()
+        : context.l10n.diveLog_tank_title(fallbackIndex);
+    return '$tankTitle (${tank.gasMix.name})';
+  }
+
+  Widget _buildStaticItem(
+    BuildContext context, {
+    required String label,
+    required Color color,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          Icon(Icons.circle, size: 12, color: color),
+          const SizedBox(width: 12),
+          Container(
+            width: 16,
+            height: 4,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(child: Text(label)),
+        ],
       ),
     );
   }
