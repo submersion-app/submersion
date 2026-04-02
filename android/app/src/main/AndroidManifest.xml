@@ -49,9 +49,16 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Handle files shared via the Share sheet -->
+            <!-- Handle files shared via the Share sheet (single file) -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/*"/>
+                <data android:mimeType="application/octet-stream"/>
+            </intent-filter>
+            <!-- Handle multi-file shares (only the first file is used) -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:mimeType="text/*"/>
                 <data android:mimeType="application/octet-stream"/>

@@ -105,11 +105,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     Uint8List bytes,
     String fileName,
   ) async {
-    state = state.copyWith(
-      isLoading: true,
-      clearError: true,
-      currentStep: ImportWizardStep.fileSelection,
-    );
+    // Reset to a clean slate so stale fileBytes/detectionResult from a
+    // previous run don't leak through if detection fails or is unsupported.
+    state = const UniversalImportState().copyWith(isLoading: true);
 
     try {
       final detection = await _detectFormat(bytes);

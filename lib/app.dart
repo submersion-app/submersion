@@ -70,7 +70,21 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     registerUpdateMenuChannel(ref);
-    _fileShareHandler = FileShareHandler(onFileReceived: _handleIncomingFile);
+    _fileShareHandler = FileShareHandler(
+      onFileReceived: _handleIncomingFile,
+      onError: (_) {
+        final l10n = _scaffoldMessengerKey.currentContext != null
+            ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
+            : null;
+        _scaffoldMessengerKey.currentState?.showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n?.dropTarget_error_readFailed ?? 'Could not read file',
+            ),
+          ),
+        );
+      },
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeSyncOnLaunch();
       _fileShareHandler.initialize();
