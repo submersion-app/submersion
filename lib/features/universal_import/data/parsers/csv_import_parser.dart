@@ -116,9 +116,14 @@ class CsvImportParser implements ImportParser {
     required Duration? specificUtcOffset,
   }) {
     // Case 1: User provided a custom mapping.
+    // Preserve entity types from the detected preset so buddies, tags, etc.
+    // are still extracted even when the user customizes column mappings.
     if (resolvedMapping != null) {
       return ImportConfiguration(
         mappings: {'primary': resolvedMapping},
+        entityTypesToImport:
+            detection.matchedPreset?.supportedEntities ??
+            const {ImportEntityType.dives, ImportEntityType.sites},
         timeInterpretation: timeInterpretation,
         specificUtcOffset: specificUtcOffset,
         sourceApp: options?.sourceApp,
