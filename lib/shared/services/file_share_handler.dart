@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 /// Listens for files shared to the app via the OS share sheet (mobile only).
@@ -23,14 +24,15 @@ class FileShareHandler {
 
     // Handle files shared while app is running
     _subscription = ReceiveSharingIntent.instance.getMediaStream().listen(
-      _handleMediaFiles,
+      handleMediaFiles,
     );
 
     // Handle file that launched the app (cold start)
-    ReceiveSharingIntent.instance.getInitialMedia().then(_handleMediaFiles);
+    ReceiveSharingIntent.instance.getInitialMedia().then(handleMediaFiles);
   }
 
-  Future<void> _handleMediaFiles(List<SharedMediaFile> files) async {
+  @visibleForTesting
+  Future<void> handleMediaFiles(List<SharedMediaFile> files) async {
     if (files.isEmpty) return;
 
     final sharedFile = files.first;
