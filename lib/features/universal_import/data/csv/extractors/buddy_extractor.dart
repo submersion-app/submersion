@@ -31,7 +31,7 @@ class BuddyExtractor implements EntityExtractor<Map<String, dynamic>> {
         if (nameToId.containsKey(name)) continue;
         final id = _uuid.v4();
         nameToId[name] = id;
-        buddies.add({'id': id, 'name': name});
+        buddies.add({'id': id, 'uddfId': id, 'name': name});
       }
     }
 

@@ -28,7 +28,7 @@ class TagExtractor implements EntityExtractor<Map<String, dynamic>> {
         if (nameToId.containsKey(name)) continue;
         final id = _uuid.v4();
         nameToId[name] = id;
-        tags.add({'id': id, 'name': name});
+        tags.add({'id': id, 'uddfId': id, 'name': name});
       }
     }
 

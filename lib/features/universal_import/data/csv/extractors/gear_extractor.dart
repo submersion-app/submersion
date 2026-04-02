@@ -29,7 +29,7 @@ class GearExtractor implements EntityExtractor<Map<String, dynamic>> {
 
       final id = _uuid.v4();
       nameToId[name] = id;
-      gear.add({'id': id, 'name': name, 'type': 'exposure_suit'});
+      gear.add({'id': id, 'uddfId': id, 'name': name, 'type': 'exposure_suit'});
     }
 
     _gearNameToId = nameToId;
