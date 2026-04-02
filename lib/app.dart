@@ -10,7 +10,6 @@ import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_menu_channel.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
-import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/shared/services/file_share_handler.dart';
 
@@ -127,7 +126,8 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     notifier.reset();
     final detection = await notifier.loadFileFromBytes(bytes, fileName);
 
-    if (detection.format == ImportFormat.unknown) {
+    if (!detection.format.isSupported) {
+      notifier.reset();
       _scaffoldMessengerKey.currentState?.showSnackBar(
         SnackBar(
           content: Text(

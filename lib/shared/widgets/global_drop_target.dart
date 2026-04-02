@@ -2,12 +2,12 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
+
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -82,8 +82,9 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
 
     if (!mounted) return;
 
-    // Check for unsupported format
-    if (detection.format == ImportFormat.unknown) {
+    // Check for unsupported format (unknown or recognized-but-unsupported)
+    if (!detection.format.isSupported) {
+      notifier.reset();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.dropTarget_error_unsupportedFile)),
       );

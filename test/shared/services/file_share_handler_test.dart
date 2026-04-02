@@ -113,7 +113,31 @@ void main() {
         }
       });
 
-      test('silently ignores callback exceptions', () async {
+      test('calls onError when callback throws', () async {
+        Object? receivedError;
+        final handler = FileShareHandler(
+          onFileReceived: (bytes, name) async {
+            throw Exception('Callback failed');
+          },
+          onError: (e) => receivedError = e,
+        );
+
+        final tempDir = await Directory.systemTemp.createTemp('test_share_');
+        final tempFile = File('${tempDir.path}/test.uddf');
+        await tempFile.writeAsString('data');
+
+        try {
+          await handler.handleMediaFiles([
+            SharedMediaFile(path: tempFile.path, type: SharedMediaType.file),
+          ]);
+
+          expect(receivedError, isA<Exception>());
+        } finally {
+          await tempDir.delete(recursive: true);
+        }
+      });
+
+      test('does not throw when onError is null and callback fails', () async {
         final handler = FileShareHandler(
           onFileReceived: (bytes, name) async {
             throw Exception('Callback failed');
@@ -125,7 +149,7 @@ void main() {
         await tempFile.writeAsString('data');
 
         try {
-          // Should not throw even if callback throws.
+          // Should not throw even without an onError handler.
           await handler.handleMediaFiles([
             SharedMediaFile(path: tempFile.path, type: SharedMediaType.file),
           ]);

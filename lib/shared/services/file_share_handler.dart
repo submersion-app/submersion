@@ -10,11 +10,15 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 /// Call [initialize] once at app startup, and [dispose] when done.
 /// On non-mobile platforms, [initialize] is a no-op.
 class FileShareHandler {
-  FileShareHandler({required this.onFileReceived});
+  FileShareHandler({required this.onFileReceived, this.onError});
 
   /// Called when a file is shared to the app.
   /// Receives the file bytes and the original file name.
   final Future<void> Function(Uint8List bytes, String fileName) onFileReceived;
+
+  /// Called when a shared file cannot be read.
+  /// Receives the error for display or logging.
+  final void Function(Object error)? onError;
 
   StreamSubscription<List<SharedMediaFile>>? _subscription;
 
@@ -28,7 +32,10 @@ class FileShareHandler {
     );
 
     // Handle file that launched the app (cold start)
-    ReceiveSharingIntent.instance.getInitialMedia().then(handleMediaFiles);
+    ReceiveSharingIntent.instance
+        .getInitialMedia()
+        .then(handleMediaFiles)
+        .catchError((_) {});
   }
 
   @visibleForTesting
@@ -43,8 +50,8 @@ class FileShareHandler {
       final bytes = await file.readAsBytes();
       final fileName = file.uri.pathSegments.last;
       await onFileReceived(bytes, fileName);
-    } catch (_) {
-      // File unreadable (permissions, corrupted path, etc.) — silently ignore.
+    } catch (e) {
+      onError?.call(e);
     }
   }
 

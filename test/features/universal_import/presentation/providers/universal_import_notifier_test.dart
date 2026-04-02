@@ -1149,16 +1149,26 @@ void main() {
         },
       );
 
-      test('returns unknown for unsupported file types', () async {
-        final pngBytes = Uint8List.fromList([
-          0x89, 0x50, 0x4E, 0x47, // PNG magic bytes
-          0x0D, 0x0A, 0x1A, 0x0A,
-        ]);
+      test(
+        'returns unknown for unsupported file types without advancing state',
+        () async {
+          final pngBytes = Uint8List.fromList([
+            0x89, 0x50, 0x4E, 0x47, // PNG magic bytes
+            0x0D, 0x0A, 0x1A, 0x0A,
+          ]);
 
-        final result = await notifier.loadFileFromBytes(pngBytes, 'photo.png');
+          final result = await notifier.loadFileFromBytes(
+            pngBytes,
+            'photo.png',
+          );
 
-        expect(result.format, ImportFormat.unknown);
-      });
+          expect(result.format, ImportFormat.unknown);
+          // State must stay at fileSelection so the wizard isn't left dirty.
+          expect(notifier.state.currentStep, ImportWizardStep.fileSelection);
+          expect(notifier.state.fileBytes, isNull);
+          expect(notifier.state.isLoading, isFalse);
+        },
+      );
 
       test('detects FIT format from binary magic bytes', () async {
         final fitBytes = Uint8List(14);

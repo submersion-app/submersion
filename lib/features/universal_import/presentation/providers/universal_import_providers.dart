@@ -69,15 +69,38 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     return registry;
   }
 
+  // -- Format Detection --
+
+  /// Run format detection and normalize SQLite → Shearwater when appropriate.
+  ///
+  /// Shared by [loadFileFromBytes] and [pickFile] to avoid duplicating the
+  /// detection + Shearwater special-casing logic.
+  Future<DetectionResult> _detectFormat(Uint8List bytes) async {
+    const detector = FormatDetector();
+    var detection = detector.detect(bytes);
+
+    if (detection.format == ImportFormat.sqlite) {
+      final isShearwater = await ShearwaterDbReader.isShearwaterCloudDb(bytes);
+      if (isShearwater) {
+        detection = const DetectionResult(
+          format: ImportFormat.shearwaterDb,
+          sourceApp: SourceApp.shearwater,
+          confidence: 0.95,
+        );
+      }
+    }
+
+    return detection;
+  }
+
   // -- External File Loading (drag-and-drop / sharing intents) --
 
   /// Load a file from raw bytes, bypassing the file picker.
   ///
   /// Used by drag-and-drop on desktop and file sharing intents on mobile.
-  /// Runs format detection and sets wizard state to [ImportWizardStep.sourceConfirmation].
-  /// Returns the [DetectionResult] so callers can check for unsupported formats
-  /// before navigating. Detection runs once inside this method -- callers do
-  /// not need to run [FormatDetector] separately.
+  /// Runs format detection and advances to [ImportWizardStep.sourceConfirmation]
+  /// only when the format is supported. Returns the [DetectionResult] so
+  /// callers can check for unsupported formats before navigating.
   Future<DetectionResult> loadFileFromBytes(
     Uint8List bytes,
     String fileName,
@@ -89,20 +112,14 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     );
 
     try {
-      const detector = FormatDetector();
-      var detection = detector.detect(bytes);
+      final detection = await _detectFormat(bytes);
 
-      if (detection.format == ImportFormat.sqlite) {
-        final isShearwater = await ShearwaterDbReader.isShearwaterCloudDb(
-          bytes,
-        );
-        if (isShearwater) {
-          detection = const DetectionResult(
-            format: ImportFormat.shearwaterDb,
-            sourceApp: SourceApp.shearwater,
-            confidence: 0.95,
-          );
-        }
+      // Don't advance to sourceConfirmation for unsupported formats so the
+      // wizard isn't left holding stale bytes if the caller shows a snackbar
+      // and doesn't navigate.
+      if (!detection.format.isSupported) {
+        state = state.copyWith(isLoading: false);
+        return detection;
       }
 
       state = state.copyWith(
@@ -163,22 +180,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
       final bytes = await File(filePath).readAsBytes();
       final fileName = pickedFile.name;
-
-      const detector = FormatDetector();
-      var detection = detector.detect(bytes);
-
-      if (detection.format == ImportFormat.sqlite) {
-        final isShearwater = await ShearwaterDbReader.isShearwaterCloudDb(
-          bytes,
-        );
-        if (isShearwater) {
-          detection = const DetectionResult(
-            format: ImportFormat.shearwaterDb,
-            sourceApp: SourceApp.shearwater,
-            confidence: 0.95,
-          );
-        }
-      }
+      final detection = await _detectFormat(bytes);
 
       state = state.copyWith(
         isLoading: false,
