@@ -1125,6 +1125,91 @@ void main() {
       });
     });
 
+    group('loadFileFromBytes', () {
+      test(
+        'sets state to sourceConfirmation for a recognized UDDF file',
+        () async {
+          final uddfBytes = Uint8List.fromList(
+            '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits,
+          );
+
+          final result = await notifier.loadFileFromBytes(
+            uddfBytes,
+            'test.uddf',
+          );
+
+          expect(result.format, ImportFormat.uddf);
+          expect(
+            notifier.state.currentStep,
+            ImportWizardStep.sourceConfirmation,
+          );
+          expect(notifier.state.fileName, 'test.uddf');
+          expect(notifier.state.fileBytes, uddfBytes);
+          expect(notifier.state.isLoading, false);
+        },
+      );
+
+      test('returns unknown for unsupported file types', () async {
+        final pngBytes = Uint8List.fromList([
+          0x89, 0x50, 0x4E, 0x47, // PNG magic bytes
+          0x0D, 0x0A, 0x1A, 0x0A,
+        ]);
+
+        final result = await notifier.loadFileFromBytes(pngBytes, 'photo.png');
+
+        expect(result.format, ImportFormat.unknown);
+      });
+
+      test('detects FIT format from binary magic bytes', () async {
+        final fitBytes = Uint8List(14);
+        fitBytes[0] = 14; // header size
+        fitBytes[8] = 0x2E; // .
+        fitBytes[9] = 0x46; // F
+        fitBytes[10] = 0x49; // I
+        fitBytes[11] = 0x54; // T
+
+        final result = await notifier.loadFileFromBytes(fitBytes, 'dive.fit');
+
+        expect(result.format, ImportFormat.fit);
+        expect(result.sourceApp, SourceApp.garminConnect);
+      });
+
+      test('detects CSV with dive keywords', () async {
+        final csvBytes = _csvBytes(
+          'dive number,date,max depth,bottom time,water temp\n'
+          '1,2024-01-01,30.0,45,22.0\n',
+        );
+
+        final result = await notifier.loadFileFromBytes(csvBytes, 'dives.csv');
+
+        expect(result.format, ImportFormat.csv);
+      });
+
+      test('resets state before detection to enable auto-advance', () async {
+        // Simulate prior wizard state
+        notifier.setPendingSourceOverride(SourceApp.subsurface);
+
+        final uddfBytes = Uint8List.fromList(
+          '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits,
+        );
+        await notifier.loadFileFromBytes(uddfBytes, 'test.uddf');
+
+        expect(notifier.state.currentStep, ImportWizardStep.sourceConfirmation);
+        expect(notifier.state.error, isNull);
+      });
+
+      test('populates detectionResult in state', () async {
+        final uddfBytes = Uint8List.fromList(
+          '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits,
+        );
+
+        await notifier.loadFileFromBytes(uddfBytes, 'test.uddf');
+
+        expect(notifier.state.detectionResult, isNotNull);
+        expect(notifier.state.detectionResult!.format, ImportFormat.uddf);
+      });
+    });
+
     group('state transitions for wizard flow', () {
       test(
         'full CSV wizard flow: pick -> confirm source -> map -> confirm',

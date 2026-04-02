@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -66,6 +67,64 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       // If loading user presets fails, proceed with built-ins only.
     }
     return registry;
+  }
+
+  // -- External File Loading (drag-and-drop / sharing intents) --
+
+  /// Load a file from raw bytes, bypassing the file picker.
+  ///
+  /// Used by drag-and-drop on desktop and file sharing intents on mobile.
+  /// Runs format detection and sets wizard state to [ImportWizardStep.sourceConfirmation].
+  /// Returns the [DetectionResult] so callers can check for unsupported formats
+  /// before navigating. Detection runs once inside this method -- callers do
+  /// not need to run [FormatDetector] separately.
+  Future<DetectionResult> loadFileFromBytes(
+    Uint8List bytes,
+    String fileName,
+  ) async {
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+      currentStep: ImportWizardStep.fileSelection,
+    );
+
+    try {
+      const detector = FormatDetector();
+      var detection = detector.detect(bytes);
+
+      if (detection.format == ImportFormat.sqlite) {
+        final isShearwater = await ShearwaterDbReader.isShearwaterCloudDb(
+          bytes,
+        );
+        if (isShearwater) {
+          detection = const DetectionResult(
+            format: ImportFormat.shearwaterDb,
+            sourceApp: SourceApp.shearwater,
+            confidence: 0.95,
+          );
+        }
+      }
+
+      state = state.copyWith(
+        isLoading: false,
+        fileBytes: bytes,
+        fileName: fileName,
+        detectionResult: detection,
+        currentStep: ImportWizardStep.sourceConfirmation,
+      );
+
+      return detection;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to load file: $e',
+      );
+      return const DetectionResult(
+        format: ImportFormat.unknown,
+        confidence: 0.0,
+        warnings: ['Failed to detect file format'],
+      );
+    }
   }
 
   // -- Step 0: File Selection --
