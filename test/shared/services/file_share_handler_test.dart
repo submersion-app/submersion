@@ -1,23 +1,35 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show TargetPlatform;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:submersion/shared/services/file_share_handler.dart';
 
 void main() {
   group('FileShareHandler', () {
-    test('initialize is no-op on non-mobile platforms', () {
-      final handler = FileShareHandler(onFileReceived: (bytes, name) async {});
-      // On macOS (test environment), this should return early.
-      handler.initialize();
-      handler.dispose();
-    });
+    testWidgets(
+      'initialize is no-op on non-mobile platforms',
+      variant: const TargetPlatformVariant({TargetPlatform.macOS}),
+      (tester) async {
+        final handler = FileShareHandler(
+          onFileReceived: (bytes, name) async {},
+        );
+        handler.initialize();
+        handler.dispose();
+      },
+    );
 
-    test('dispose without initialize does not throw', () {
-      final handler = FileShareHandler(onFileReceived: (bytes, name) async {});
-      expect(() => handler.dispose(), returnsNormally);
-    });
+    testWidgets(
+      'dispose without initialize does not throw',
+      variant: const TargetPlatformVariant({TargetPlatform.macOS}),
+      (tester) async {
+        final handler = FileShareHandler(
+          onFileReceived: (bytes, name) async {},
+        );
+        expect(() => handler.dispose(), returnsNormally);
+      },
+    );
 
     group('handleMediaFiles', () {
       test('returns early for empty file list', () async {

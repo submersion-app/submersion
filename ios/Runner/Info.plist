@@ -68,7 +68,7 @@
 			<string>Alternate</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>public.database</string>
+				<string>org.sqlite.v3</string>
 			</array>
 		</dict>
 	</array>

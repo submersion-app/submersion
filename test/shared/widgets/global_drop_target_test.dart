@@ -10,6 +10,9 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
 
+/// Platform variant that runs tests as macOS (desktop).
+const _macOS = TargetPlatformVariant({TargetPlatform.macOS});
+
 /// Build a test app that places [GlobalDropTarget] inside a GoRouter.
 Widget _buildTestApp({String initialLocation = '/home'}) {
   final router = GoRouter(
@@ -100,21 +103,27 @@ final _fitBytes = () {
 
 void main() {
   group('GlobalDropTarget', () {
-    testWidgets('renders child content on desktop', (tester) async {
+    testWidgets('renders child content on desktop', variant: _macOS, (
+      tester,
+    ) async {
       await tester.pumpWidget(_buildTestApp());
       await tester.pumpAndSettle();
 
       expect(find.text('Home Content'), findsOneWidget);
     });
 
-    testWidgets('wraps child with DropTarget on desktop', (tester) async {
+    testWidgets('wraps child with DropTarget on desktop', variant: _macOS, (
+      tester,
+    ) async {
       await tester.pumpWidget(_buildTestApp());
       await tester.pumpAndSettle();
 
       expect(find.byType(DropTarget), findsOneWidget);
     });
 
-    testWidgets('shows frosted overlay on drag enter', (tester) async {
+    testWidgets('shows frosted overlay on drag enter', variant: _macOS, (
+      tester,
+    ) async {
       await tester.pumpWidget(_buildTestApp());
       await tester.pumpAndSettle();
 
@@ -132,7 +141,7 @@ void main() {
       expect(find.byIcon(Icons.upload_file), findsOneWidget);
     });
 
-    testWidgets('hides overlay on drag exit', (tester) async {
+    testWidgets('hides overlay on drag exit', variant: _macOS, (tester) async {
       await tester.pumpWidget(_buildTestApp());
       await tester.pumpAndSettle();
 
@@ -157,7 +166,9 @@ void main() {
       expect(find.text('Drop to Import'), findsNothing);
     });
 
-    testWidgets('clears dragging state on drop', (tester) async {
+    testWidgets('clears dragging state on drop', variant: _macOS, (
+      tester,
+    ) async {
       await tester.pumpWidget(_buildTestApp());
       await tester.pumpAndSettle();
 
@@ -183,7 +194,9 @@ void main() {
       expect(find.text('Drop to Import'), findsNothing);
     });
 
-    testWidgets('empty drop is a no-op (no navigation)', (tester) async {
+    testWidgets('empty drop is a no-op (no navigation)', variant: _macOS, (
+      tester,
+    ) async {
       await tester.pumpWidget(_buildTestApp());
       await tester.pumpAndSettle();
 
@@ -200,106 +213,118 @@ void main() {
       expect(find.text('Home Content'), findsOneWidget);
     });
 
-    testWidgets('shows error snackbar when wizard is already active', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _buildTestApp(initialLocation: '/transfer/import-wizard'),
-      );
-      await tester.pumpAndSettle();
+    testWidgets(
+      'shows error snackbar when wizard is already active',
+      variant: _macOS,
+      (tester) async {
+        await tester.pumpWidget(
+          _buildTestApp(initialLocation: '/transfer/import-wizard'),
+        );
+        await tester.pumpAndSettle();
 
-      // Wizard-active path returns before readAsBytes, so any XFile works.
-      await _triggerDrop(
-        tester,
-        DropDoneDetails(
-          files: [_xFileFromBytes(_uddfBytes, 'test.uddf')],
-          localPosition: Offset.zero,
-          globalPosition: Offset.zero,
-        ),
-      );
-
-      expect(find.text('Finish current import first'), findsOneWidget);
-    });
-
-    testWidgets('shows error snackbar when file cannot be read', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_buildTestApp());
-      await tester.pumpAndSettle();
-
-      // XFile with no bytes AND a non-existent path -> readAsBytes throws.
-      // Uses runAsync so the real I/O exception can propagate.
-      await tester.runAsync(() async {
-        final dropTarget = tester.widget<DropTarget>(find.byType(DropTarget));
-        dropTarget.onDragDone?.call(
+        // Wizard-active path returns before readAsBytes, so any XFile works.
+        await _triggerDrop(
+          tester,
           DropDoneDetails(
-            files: [XFile('/nonexistent/path/file.uddf')],
+            files: [_xFileFromBytes(_uddfBytes, 'test.uddf')],
             localPosition: Offset.zero,
             globalPosition: Offset.zero,
           ),
         );
-        await Future<void>.delayed(const Duration(milliseconds: 200));
-      });
-      await tester.pump();
 
-      expect(find.text('Could not read file'), findsOneWidget);
-    });
+        expect(find.text('Finish current import first'), findsOneWidget);
+      },
+    );
 
-    testWidgets('shows error snackbar for unsupported file format', (
+    testWidgets(
+      'shows error snackbar when file cannot be read',
+      variant: _macOS,
+      (tester) async {
+        await tester.pumpWidget(_buildTestApp());
+        await tester.pumpAndSettle();
+
+        // XFile with no bytes AND a non-existent path -> readAsBytes throws.
+        // Uses runAsync so the real I/O exception can propagate.
+        await tester.runAsync(() async {
+          final dropTarget = tester.widget<DropTarget>(find.byType(DropTarget));
+          dropTarget.onDragDone?.call(
+            DropDoneDetails(
+              files: [XFile('/nonexistent/path/file.uddf')],
+              localPosition: Offset.zero,
+              globalPosition: Offset.zero,
+            ),
+          );
+          await Future<void>.delayed(const Duration(milliseconds: 200));
+        });
+        await tester.pump();
+
+        expect(find.text('Could not read file'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'shows error snackbar for unsupported file format',
+      variant: _macOS,
+      (tester) async {
+        await tester.pumpWidget(_buildTestApp());
+        await tester.pumpAndSettle();
+
+        await _triggerDrop(
+          tester,
+          DropDoneDetails(
+            files: [_xFileFromBytes(_pngBytes, 'photo.png')],
+            localPosition: Offset.zero,
+            globalPosition: Offset.zero,
+          ),
+        );
+
+        expect(find.text('Unsupported file type'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'navigates to import wizard for supported UDDF file',
+      variant: _macOS,
+      (tester) async {
+        await tester.pumpWidget(_buildTestApp());
+        await tester.pumpAndSettle();
+
+        await _triggerDrop(
+          tester,
+          DropDoneDetails(
+            files: [_xFileFromBytes(_uddfBytes, 'dive.uddf')],
+            localPosition: Offset.zero,
+            globalPosition: Offset.zero,
+          ),
+        );
+
+        expect(find.text('Import Wizard'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'navigates to wizard for CSV file with dive headers',
+      variant: _macOS,
+      (tester) async {
+        await tester.pumpWidget(_buildTestApp());
+        await tester.pumpAndSettle();
+
+        await _triggerDrop(
+          tester,
+          DropDoneDetails(
+            files: [_xFileFromBytes(_csvBytes, 'dives.csv')],
+            localPosition: Offset.zero,
+            globalPosition: Offset.zero,
+          ),
+        );
+
+        expect(find.text('Import Wizard'), findsOneWidget);
+      },
+    );
+
+    testWidgets('navigates to wizard for FIT file', variant: _macOS, (
       tester,
     ) async {
-      await tester.pumpWidget(_buildTestApp());
-      await tester.pumpAndSettle();
-
-      await _triggerDrop(
-        tester,
-        DropDoneDetails(
-          files: [_xFileFromBytes(_pngBytes, 'photo.png')],
-          localPosition: Offset.zero,
-          globalPosition: Offset.zero,
-        ),
-      );
-
-      expect(find.text('Unsupported file type'), findsOneWidget);
-    });
-
-    testWidgets('navigates to import wizard for supported UDDF file', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_buildTestApp());
-      await tester.pumpAndSettle();
-
-      await _triggerDrop(
-        tester,
-        DropDoneDetails(
-          files: [_xFileFromBytes(_uddfBytes, 'dive.uddf')],
-          localPosition: Offset.zero,
-          globalPosition: Offset.zero,
-        ),
-      );
-
-      expect(find.text('Import Wizard'), findsOneWidget);
-    });
-
-    testWidgets('navigates to wizard for CSV file with dive headers', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_buildTestApp());
-      await tester.pumpAndSettle();
-
-      await _triggerDrop(
-        tester,
-        DropDoneDetails(
-          files: [_xFileFromBytes(_csvBytes, 'dives.csv')],
-          localPosition: Offset.zero,
-          globalPosition: Offset.zero,
-        ),
-      );
-
-      expect(find.text('Import Wizard'), findsOneWidget);
-    });
-
-    testWidgets('navigates to wizard for FIT file', (tester) async {
       await tester.pumpWidget(_buildTestApp());
       await tester.pumpAndSettle();
 
@@ -315,7 +340,9 @@ void main() {
       expect(find.text('Import Wizard'), findsOneWidget);
     });
 
-    testWidgets('uses only first dropped file', (tester) async {
+    testWidgets('uses only first dropped file', variant: _macOS, (
+      tester,
+    ) async {
       await tester.pumpWidget(_buildTestApp());
       await tester.pumpAndSettle();
 

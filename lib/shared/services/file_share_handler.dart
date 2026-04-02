@@ -2,13 +2,14 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb, visibleForTesting;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 /// Listens for files shared to the app via the OS share sheet (mobile only).
 ///
 /// Call [initialize] once at app startup, and [dispose] when done.
-/// On non-mobile platforms, [initialize] is a no-op.
+/// On non-mobile platforms (and on web), [initialize] is a no-op.
 class FileShareHandler {
   FileShareHandler({required this.onFileReceived, this.onError});
 
@@ -16,15 +17,19 @@ class FileShareHandler {
   /// Receives the file bytes and the original file name.
   final Future<void> Function(Uint8List bytes, String fileName) onFileReceived;
 
-  /// Called when a shared file cannot be read.
-  /// Receives the error for display or logging.
+  /// Called when a shared file cannot be read or a platform error occurs.
   final void Function(Object error)? onError;
 
   StreamSubscription<List<SharedMediaFile>>? _subscription;
 
+  static bool get _isMobile =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
+
   /// Start listening for shared files. Only active on iOS and Android.
   void initialize() {
-    if (!Platform.isAndroid && !Platform.isIOS) return;
+    if (!_isMobile) return;
 
     // Handle files shared while app is running
     _subscription = ReceiveSharingIntent.instance.getMediaStream().listen(
@@ -35,7 +40,9 @@ class FileShareHandler {
     ReceiveSharingIntent.instance
         .getInitialMedia()
         .then(handleMediaFiles)
-        .catchError((_) {});
+        .catchError((Object error) {
+          onError?.call(error);
+        });
   }
 
   @visibleForTesting

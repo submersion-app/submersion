@@ -1,7 +1,7 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 
 import 'package:desktop_drop/desktop_drop.dart';
@@ -29,8 +29,12 @@ class GlobalDropTarget extends ConsumerStatefulWidget {
 class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
   bool _isDragging = false;
 
-  static bool get _isDesktop =>
-      Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+  static bool get _isDesktop {
+    final platform = defaultTargetPlatform;
+    return platform == TargetPlatform.windows ||
+        platform == TargetPlatform.macOS ||
+        platform == TargetPlatform.linux;
+  }
 
   @override
   Widget build(BuildContext context) {
