@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
+import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
@@ -88,7 +89,10 @@ class _UnifiedImportWizardBodyState
       };
     }
 
-    // Reset adapter state from any previous import session.
+    // Reset adapter state from any previous import session, unless the
+    // adapter already has externally pre-loaded state (e.g. from
+    // drag-and-drop or share intent) that should be preserved.
+    //
     // Deferred to post-frame because Riverpod forbids provider modifications
     // during initState/build. The _resetComplete flag prevents auto-advance
     // from firing during the first frame while stale state is still present.
@@ -97,7 +101,12 @@ class _UnifiedImportWizardBodyState
     // Riverpod's scheduled provider rebuilds (triggered by resetState)
     // complete before the widget tree re-accesses those providers.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.adapter.resetState();
+      final adapter = widget.adapter;
+      final hasPreloaded =
+          adapter is UniversalAdapter && adapter.hasPreloadedState;
+      if (!hasPreloaded) {
+        widget.adapter.resetState();
+      }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) setState(() => _resetComplete = true);
       });

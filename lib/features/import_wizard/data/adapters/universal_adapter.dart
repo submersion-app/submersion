@@ -98,6 +98,11 @@ class UniversalAdapter implements ImportSourceAdapter {
   final WidgetRef _ref;
   final String _displayName;
 
+  bool get hasPreloadedState {
+    final state = _ref.read(universalImportNotifierProvider);
+    return state.detectionResult != null;
+  }
+
   @override
   void resetState() {
     _ref.read(universalImportNotifierProvider.notifier).reset();
