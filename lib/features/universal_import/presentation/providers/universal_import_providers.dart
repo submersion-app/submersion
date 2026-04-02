@@ -25,6 +25,9 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/csv/pipeline/csv_pipeline.dart';
+import 'package:submersion/features/universal_import/data/csv/presets/built_in_presets.dart';
+import 'package:submersion/features/universal_import/data/csv/presets/preset_registry.dart';
+import 'package:submersion/features/universal_import/presentation/providers/csv_preset_providers.dart';
 import 'package:submersion/features/universal_import/data/parsers/csv_import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/fit_import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
@@ -49,6 +52,21 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   UniversalImportNotifier(this._ref) : super(const UniversalImportState());
 
   final Ref _ref;
+
+  /// Build a [PresetRegistry] that includes both built-in and user-saved
+  /// presets so auto-detection scores against all of them.
+  Future<PresetRegistry> _buildPresetRegistry() async {
+    final registry = PresetRegistry(builtInPresets: builtInCsvPresets);
+    try {
+      final userPresets = await _ref.read(userCsvPresetsProvider.future);
+      for (final preset in userPresets) {
+        registry.addUserPreset(preset);
+      }
+    } catch (_) {
+      // If loading user presets fails, proceed with built-ins only.
+    }
+    return registry;
+  }
 
   // -- Step 0: File Selection --
 
@@ -140,7 +158,10 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// Confirm the detected source or override with a user selection.
   ///
   /// When [overrideApp] is null the pending override from state is used.
-  void confirmSource({SourceApp? overrideApp, ImportFormat? overrideFormat}) {
+  Future<void> confirmSource({
+    SourceApp? overrideApp,
+    ImportFormat? overrideFormat,
+  }) async {
     final detection = state.detectionResult;
     if (detection == null) return;
 
@@ -159,7 +180,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
     // For CSV files, run pipeline detection to check for multi-file presets.
     if (format == ImportFormat.csv && state.fileBytes != null) {
-      final pipeline = CsvPipeline();
+      final pipeline = CsvPipeline(registry: await _buildPresetRegistry());
       try {
         final parsedCsv = pipeline.parse(state.fileBytes!);
         final csvDetection = pipeline.detect(parsedCsv);
@@ -276,7 +297,10 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      final parser = _parserFor(opts.format);
+      final registry = opts.format == ImportFormat.csv
+          ? await _buildPresetRegistry()
+          : null;
+      final parser = _parserFor(opts.format, registry: registry);
       final ImportPayload payload;
       if (parser is CsvImportParser) {
         payload = await parser.parse(
@@ -333,9 +357,12 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     }
   }
 
-  ImportParser _parserFor(ImportFormat format) {
+  ImportParser _parserFor(ImportFormat format, {PresetRegistry? registry}) {
     return switch (format) {
-      ImportFormat.csv => CsvImportParser(customMapping: state.fieldMapping),
+      ImportFormat.csv => CsvImportParser(
+        customMapping: state.fieldMapping,
+        pipeline: registry != null ? CsvPipeline(registry: registry) : null,
+      ),
       ImportFormat.uddf => UddfImportParser(),
       ImportFormat.subsurfaceXml => SubsurfaceXmlParser(),
       ImportFormat.fit => const FitImportParser(),

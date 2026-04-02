@@ -147,7 +147,9 @@ class UniversalAdapter implements ImportSourceAdapter {
       builder: (context) => const SourceConfirmationStep(),
       canAdvance: universalAdapterSourceReadyProvider,
       onBeforeAdvance: () async {
-        _ref.read(universalImportNotifierProvider.notifier).confirmSource();
+        await _ref
+            .read(universalImportNotifierProvider.notifier)
+            .confirmSource();
       },
     ),
     WizardStepDef(

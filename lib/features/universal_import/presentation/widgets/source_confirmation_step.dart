@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/presentation/providers/csv_preset_providers.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
 /// Step 1: Show detection result and let user confirm or override.
@@ -152,7 +153,7 @@ class _SourceConfirmationStepState
 }
 
 /// Collapsible section for overriding the detected source app and format.
-class _OverrideSection extends StatelessWidget {
+class _OverrideSection extends ConsumerWidget {
   final SourceOverrideOption? selectedOverride;
   final ValueChanged<SourceOverrideOption?> onChanged;
 
@@ -162,8 +163,16 @@ class _OverrideSection extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final userPresets = ref.watch(userCsvPresetsProvider).valueOrNull ?? [];
+    final userOptions = userPresets.map(
+      (p) => SourceOverrideOption(
+        sourceApp: p.sourceApp ?? SourceApp.generic,
+        format: ImportFormat.csv,
+        displayName: '${p.name} (Custom)',
+      ),
+    );
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -182,7 +191,10 @@ class _OverrideSection extends StatelessWidget {
             onChanged: onChanged,
             child: Column(
               children: [
-                for (final option in SourceOverrideOption.supported)
+                for (final option in [
+                  ...SourceOverrideOption.supported,
+                  ...userOptions,
+                ])
                   ListTile(
                     dense: true,
                     title: Text(option.displayName),
