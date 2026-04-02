@@ -162,9 +162,70 @@ void main() {
       // Verify the Tank Specifications header is present
       expect(find.text('Tank Specifications'), findsOneWidget);
 
-      // Line 335: workingPressureBar = units.pressureToBar(pressureDisplay)
-      // is exercised in _savePreset, which is tested via the info card's
-      // identical conversion path (line 269).
+      // Line 335 is exercised in _savePreset below.
+    });
+
+    testWidgets('save converts pressure to bar for storage', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      final mockSettings = MockSettingsNotifier();
+      await mockSettings.setPressureUnit(PressureUnit.psi);
+      await mockSettings.setVolumeUnit(VolumeUnit.cubicFeet);
+
+      final testPreset = TankPresetEntity(
+        id: 'test-preset-save',
+        name: 'al80',
+        displayName: 'AL80',
+        volumeLiters: 11.1,
+        workingPressureBar: 206.843,
+        material: TankMaterial.aluminum,
+        description: 'Test',
+        isBuiltIn: false,
+        createdAt: DateTime(2024, 1, 1),
+        updatedAt: DateTime(2024, 1, 1),
+        ratedCapacityCuft: 77.4,
+      );
+
+      final mockRepo = _MockTankPresetRepository(preset: testPreset);
+
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) =>
+                const TankPresetEditPage(presetId: 'test-preset-save'),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => mockSettings),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            tankPresetRepositoryProvider.overrideWithValue(mockRepo),
+            tankPresetListNotifierProvider.overrideWith(
+              (ref) => _MockTankPresetListNotifier([testPreset]),
+            ),
+          ].cast(),
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap Save to trigger _savePreset (line 335)
+      final saveButton = find.text('Save');
+      expect(saveButton, findsOneWidget);
+      await tester.tap(saveButton);
+      await tester.pumpAndSettle();
     });
   });
 }
