@@ -12,6 +12,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/shared/services/file_share_handler.dart';
+import 'package:submersion/shared/services/incoming_file_handler.dart';
 
 const Locale _defaultFallbackLocale = Locale('en');
 const Set<String> _invalidSystemLocaleLanguageCodes = {'c', 'posix'};
@@ -110,35 +111,19 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
         : null;
 
-    if (location.startsWith('/transfer/import-wizard')) {
-      _scaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text(
-            l10n?.dropTarget_error_wizardActive ??
-                'Finish current import first',
-          ),
-        ),
-      );
-      return;
+    final shouldNavigate = await handleIncomingFile(
+      bytes: bytes,
+      fileName: fileName,
+      currentPath: location,
+      notifier: ref.read(universalImportNotifierProvider.notifier),
+      messenger: _scaffoldMessengerKey.currentState,
+      wizardActiveMessage: l10n?.dropTarget_error_wizardActive,
+      unsupportedFileMessage: l10n?.dropTarget_error_unsupportedFile,
+    );
+
+    if (shouldNavigate) {
+      router.go('/transfer/import-wizard');
     }
-
-    final notifier = ref.read(universalImportNotifierProvider.notifier);
-    notifier.reset();
-    final detection = await notifier.loadFileFromBytes(bytes, fileName);
-
-    if (!detection.format.isSupported) {
-      notifier.reset();
-      _scaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text(
-            l10n?.dropTarget_error_unsupportedFile ?? 'Unsupported file type',
-          ),
-        ),
-      );
-      return;
-    }
-
-    router.go('/transfer/import-wizard');
   }
 
   Locale? _resolveLocale(String localeSetting) {

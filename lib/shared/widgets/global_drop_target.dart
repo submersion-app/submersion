@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/services/incoming_file_handler.dart';
 
 /// Wraps content with a desktop drag-and-drop target that navigates to the
 /// import wizard when a supported file is dropped.
@@ -50,17 +51,6 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
 
     if (details.files.isEmpty) return;
 
-    // Check if wizard is already active
-    final location = GoRouterState.of(context).uri.path;
-    if (location.startsWith('/transfer/import-wizard')) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.dropTarget_error_wizardActive)),
-        );
-      }
-      return;
-    }
-
     // Read the first file only
     final xFile = details.files.first;
     final Uint8List bytes;
@@ -75,24 +65,23 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
       return;
     }
 
-    // Load into the notifier (runs format detection internally)
-    final notifier = ref.read(universalImportNotifierProvider.notifier);
-    notifier.reset();
-    final detection = await notifier.loadFileFromBytes(bytes, xFile.name);
+    if (!mounted) return;
+
+    final shouldNavigate = await handleIncomingFile(
+      bytes: bytes,
+      fileName: xFile.name,
+      currentPath: GoRouterState.of(context).uri.path,
+      notifier: ref.read(universalImportNotifierProvider.notifier),
+      messenger: ScaffoldMessenger.of(context),
+      wizardActiveMessage: context.l10n.dropTarget_error_wizardActive,
+      unsupportedFileMessage: context.l10n.dropTarget_error_unsupportedFile,
+    );
 
     if (!mounted) return;
 
-    // Check for unsupported format (unknown or recognized-but-unsupported)
-    if (!detection.format.isSupported) {
-      notifier.reset();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.dropTarget_error_unsupportedFile)),
-      );
-      return;
+    if (shouldNavigate) {
+      context.go('/transfer/import-wizard');
     }
-
-    // Navigate to the import wizard
-    context.go('/transfer/import-wizard');
   }
 }
 
