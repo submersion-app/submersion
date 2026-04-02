@@ -281,7 +281,7 @@ packages:
     source: hosted
     version: "1.15.0"
   cross_file:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: cross_file
       sha256: "701dcfc06da0882883a2657c445103380e53e647060ad8d9dfb710c100996608"

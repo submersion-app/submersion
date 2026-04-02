@@ -104,7 +104,9 @@ class _UnifiedImportWizardBodyState
       final adapter = widget.adapter;
       final hasPreloaded =
           adapter is UniversalAdapter && adapter.hasPreloadedState;
-      if (!hasPreloaded) {
+      if (hasPreloaded) {
+        adapter.consumePreloadedState();
+      } else {
         widget.adapter.resetState();
       }
       WidgetsBinding.instance.addPostFrameCallback((_) {

@@ -126,6 +126,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         fileName: fileName,
         detectionResult: detection,
         currentStep: ImportWizardStep.sourceConfirmation,
+        wasLoadedExternally: true,
       );
 
       return detection;
@@ -710,6 +711,11 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   }
 
   /// Reset to initial state.
+  /// Clear the external-load flag after the wizard has consumed it.
+  void clearExternalLoadFlag() {
+    state = state.copyWith(wasLoadedExternally: false);
+  }
+
   void reset() {
     state = const UniversalImportState();
   }

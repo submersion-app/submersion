@@ -100,7 +100,12 @@ class UniversalAdapter implements ImportSourceAdapter {
 
   bool get hasPreloadedState {
     final state = _ref.read(universalImportNotifierProvider);
-    return state.detectionResult != null;
+    return state.wasLoadedExternally;
+  }
+
+  /// Clear the external-load flag so subsequent wizard opens reset normally.
+  void consumePreloadedState() {
+    _ref.read(universalImportNotifierProvider.notifier).clearExternalLoadFlag();
   }
 
   @override

@@ -41,8 +41,12 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
     if (!_isDesktop) return widget.child;
 
     return DropTarget(
-      onDragEntered: (_) => setState(() => _isDragging = true),
-      onDragExited: (_) => setState(() => _isDragging = false),
+      onDragEntered: (_) {
+        if (mounted) setState(() => _isDragging = true);
+      },
+      onDragExited: (_) {
+        if (mounted) setState(() => _isDragging = false);
+      },
       onDragDone: (details) => _handleDrop(details),
       child: Stack(
         children: [widget.child, if (_isDragging) const _FrostedDropOverlay()],
@@ -51,7 +55,7 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
   }
 
   Future<void> _handleDrop(DropDoneDetails details) async {
-    setState(() => _isDragging = false);
+    if (mounted) setState(() => _isDragging = false);
 
     if (details.files.isEmpty) return;
 
