@@ -44,11 +44,15 @@ subprojects {
     }
     // afterEvaluate ensures this runs after the Android plugin applies its
     // own compileOptions, which would otherwise override the JavaCompile
-    // task configuration set above.
-    afterEvaluate {
-        tasks.withType<JavaCompile>().configureEach {
-            sourceCompatibility = JavaVersion.VERSION_21.toString()
-            targetCompatibility = JavaVersion.VERSION_21.toString()
+    // task configuration set above. Guard with state.executed because
+    // :app is already evaluated via evaluationDependsOn and afterEvaluate
+    // is illegal on already-evaluated projects.
+    if (!project.state.executed) {
+        afterEvaluate {
+            tasks.withType<JavaCompile>().configureEach {
+                sourceCompatibility = JavaVersion.VERSION_21.toString()
+                targetCompatibility = JavaVersion.VERSION_21.toString()
+            }
         }
     }
 }
