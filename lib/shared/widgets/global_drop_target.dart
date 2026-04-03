@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'package:desktop_drop/desktop_drop.dart';
@@ -30,6 +30,7 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
   bool _isDragging = false;
 
   static bool get _isDesktop {
+    if (kIsWeb) return false;
     final platform = defaultTargetPlatform;
     return platform == TargetPlatform.windows ||
         platform == TargetPlatform.macOS ||

@@ -27,7 +27,6 @@ Future<bool> handleIncomingFile({
     return false;
   }
 
-  notifier.reset();
   final detection = await notifier.loadFileFromBytes(bytes, fileName);
 
   if (!detection.format.isSupported) {
