@@ -38,7 +38,7 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
   /// Default tile layer options for OpenStreetMap.
   TileLayer get _tileLayerOptions => TileLayer(
     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    userAgentPackageName: 'com.submersion.app',
+    userAgentPackageName: 'app.submersion',
     maxZoom: 19,
   );
 
