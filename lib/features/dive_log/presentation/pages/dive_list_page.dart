@@ -714,6 +714,10 @@ class DiveListTile extends ConsumerWidget {
                 Positioned.fill(
                   child: CachedNetworkImage(
                     imageUrl: tileUrl,
+                    httpHeaders: const {
+                      'User-Agent':
+                          'Submersion Dive Log App (app.submersion)',
+                    },
                     fit: BoxFit.cover,
                     fadeInDuration: Duration.zero,
                     placeholder: (_, _) =>

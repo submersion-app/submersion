@@ -236,7 +236,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
           children: [
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.submersion.app',
+              userAgentPackageName: 'app.submersion',
               maxZoom: 19,
               tileProvider: TileCacheService.instance.isInitialized
                   ? TileCacheService.instance.getTileProvider()
