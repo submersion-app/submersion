@@ -52,7 +52,12 @@ class FileShareHandlerDelegate {
   }) async {
     if (files.isEmpty) return;
 
-    final sharedFile = files.first as SharedMediaFile;
+    final first = files.first;
+    if (first is! SharedMediaFile) {
+      onError?.call(TypeError());
+      return;
+    }
+    final sharedFile = first;
     final file = File(sharedFile.path);
     if (!await file.exists()) return;
 
