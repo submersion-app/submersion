@@ -158,7 +158,8 @@ class _UnifiedImportWizardBodyState
         currentPage: _currentPage,
         reviewIndex: _reviewIndex,
         steps: _acquisitionSteps,
-        isAutoAdvanceReady: (step) => ref.read(step.canAutoAdvance!),
+        isAutoAdvanceReady: (step) =>
+            ref.read(step.canAutoAdvance ?? step.canAdvance),
         skippedSteps: skipped,
       );
 

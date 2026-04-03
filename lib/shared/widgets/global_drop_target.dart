@@ -60,6 +60,18 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
 
     if (details.files.isEmpty) return;
 
+    // Check wizard-active BEFORE reading bytes to avoid unnecessary I/O and
+    // to ensure the "wizard active" message always takes precedence over a
+    // read-failure snackbar.
+    if (!mounted) return;
+    final currentPath = GoRouterState.of(context).uri.path;
+    if (currentPath.startsWith('/transfer/import-wizard')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.dropTarget_error_wizardActive)),
+      );
+      return;
+    }
+
     // Read the first file only
     final xFile = details.files.first;
     final Uint8List bytes;
@@ -79,10 +91,9 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
     final shouldNavigate = await handleIncomingFile(
       bytes: bytes,
       fileName: xFile.name,
-      currentPath: GoRouterState.of(context).uri.path,
+      currentPath: currentPath,
       notifier: ref.read(universalImportNotifierProvider.notifier),
       messenger: ScaffoldMessenger.of(context),
-      wizardActiveMessage: context.l10n.dropTarget_error_wizardActive,
       unsupportedFileMessage: context.l10n.dropTarget_error_unsupportedFile,
     );
 

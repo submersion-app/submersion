@@ -710,7 +710,6 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     _ref.invalidate(allBuddiesWithDiveCountProvider);
   }
 
-  /// Reset to initial state.
   /// Clear the external-load flag after the wizard has consumed it.
   void clearExternalLoadFlag() {
     state = state.copyWith(wasLoadedExternally: false);

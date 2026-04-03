@@ -128,27 +128,25 @@ void main() {
       expect(result, 3);
     });
 
-    test(
-      'stops at step with no canAutoAdvance even if autoAdvance is true',
-      () {
-        final steps = [
-          _step(),
-          _step(
-            autoAdvance: true,
-          ), // autoAdvance but no canAutoAdvance provider
-          _step(),
-        ];
+    test('skips step with no canAutoAdvance when canAdvance is ready', () {
+      // When canAutoAdvance is null, falls back to canAdvance (which is
+      // _readyProvider by default in _step). isAutoAdvanceReady returns
+      // true, so the step should be skipped.
+      final steps = [
+        _step(),
+        _step(autoAdvance: true), // no canAutoAdvance, uses canAdvance
+        _step(),
+      ];
 
-        final result = calculateNextPage(
-          currentPage: 0,
-          reviewIndex: 3,
-          steps: steps,
-          isAutoAdvanceReady: (_) => true,
-        );
+      final result = calculateNextPage(
+        currentPage: 0,
+        reviewIndex: 3,
+        steps: steps,
+        isAutoAdvanceReady: (_) => true,
+      );
 
-        expect(result, 1);
-      },
-    );
+      expect(result, 2);
+    });
 
     test('populates skippedSteps with auto-advanced steps', () {
       final steps = [

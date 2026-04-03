@@ -27,6 +27,7 @@ class FileShareHandlerDelegate {
         onFileReceived: onFileReceived,
         onError: onError,
       ),
+      onError: (Object e) => onError?.call(e),
     );
 
     ReceiveSharingIntent.instance

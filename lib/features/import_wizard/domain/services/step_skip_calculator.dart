@@ -17,8 +17,9 @@ int calculateNextPage({
   var nextPage = currentPage + 1;
   while (nextPage < reviewIndex) {
     final nextStep = steps[nextPage];
-    final autoProvider = nextStep.canAutoAdvance;
-    if (autoProvider != null && nextStep.autoAdvance) {
+    if (nextStep.autoAdvance) {
+      // Use the same fallback as _AcquisitionStepPage: prefer
+      // canAutoAdvance, but fall back to canAdvance.
       if (isAutoAdvanceReady(nextStep)) {
         skippedSteps?.add(nextStep);
         nextPage++;
