@@ -36,22 +36,22 @@ subprojects {
 
 // Force all subproject Kotlin and Java compilation to target JVM 21 so
 // plugins that default to JVM 1.8 don't cause a JVM-target mismatch.
+//
+// Uses pluginManager.withPlugin to configure compileOptions on the Android
+// extension directly (the source of truth for Java version). This fires
+// when the Android plugin is applied — or immediately if already applied —
+// so it works regardless of evaluation order.
 subprojects {
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         }
     }
-    // afterEvaluate ensures this runs after the Android plugin applies its
-    // own compileOptions, which would otherwise override the JavaCompile
-    // task configuration set above. Guard with state.executed because
-    // :app is already evaluated via evaluationDependsOn and afterEvaluate
-    // is illegal on already-evaluated projects.
-    if (!project.state.executed) {
-        afterEvaluate {
-            tasks.withType<JavaCompile>().configureEach {
-                sourceCompatibility = JavaVersion.VERSION_21.toString()
-                targetCompatibility = JavaVersion.VERSION_21.toString()
+    pluginManager.withPlugin("com.android.library") {
+        extensions.configure<com.android.build.gradle.LibraryExtension> {
+            compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_21
+                targetCompatibility = JavaVersion.VERSION_21
             }
         }
     }
