@@ -1794,7 +1794,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String dashboard_activityStats_divesInYear(String year) {
-    return 'dives in $year';
+    return 'غطسات في $year';
   }
 
   @override
@@ -12628,6 +12628,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get transfer_export_aboutContent =>
       'قم بتصدير بيانات الغوص بصيغ متعددة. ينشئ PDF سجل غوص قابل للطباعة. UDDF هو تنسيق عالمي متوافق مع معظم برامج تسجيل الغوص. يمكن فتح ملفات CSV في تطبيقات جداول البيانات.';
+
+  @override
+  String get transfer_export_backupLink =>
+      'انتقال إلى النسخ الاحتياطي والاستعادة';
 
   @override
   String get transfer_export_aboutTitle => 'حول التصدير';

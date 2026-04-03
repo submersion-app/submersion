@@ -141,7 +141,7 @@ Future<void> _runWithAdapter(
   WidgetTester tester, {
   required List<Override> overrides,
   required Future<void> Function(UniversalAdapter adapter) callback,
-  String displayName = 'Universal Import',
+  String displayName = 'File Import',
 }) async {
   late UniversalAdapter adapter;
 
@@ -285,12 +285,12 @@ void main() {
       );
     });
 
-    testWidgets('displayName defaults to Universal Import', (tester) async {
+    testWidgets('displayName defaults to File Import', (tester) async {
       await _runWithAdapter(
         tester,
         overrides: _buildBundleOverrides(),
         callback: (adapter) async {
-          expect(adapter.displayName, equals('Universal Import'));
+          expect(adapter.displayName, equals('File Import'));
         },
       );
     });
@@ -384,7 +384,7 @@ void main() {
         callback: (adapter) async {
           expect(
             adapter.defaultTagName,
-            matches(RegExp(r'^Universal Import \d{4}-\d{2}-\d{2}$')),
+            matches(RegExp(r'^File Import \d{4}-\d{2}-\d{2}$')),
           );
         },
       );
@@ -426,7 +426,7 @@ void main() {
 
           expect(bundle.groups, isEmpty);
           expect(bundle.source.type, equals(ImportSourceType.universal));
-          expect(bundle.source.displayName, equals('Universal Import'));
+          expect(bundle.source.displayName, equals('File Import'));
         },
       );
     });

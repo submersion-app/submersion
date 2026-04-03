@@ -1832,7 +1832,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String dashboard_activityStats_divesInYear(String year) {
-    return 'dives in $year';
+    return 'merülések $year-ben';
   }
 
   @override
@@ -12846,6 +12846,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get transfer_export_aboutContent =>
       'Merülesi adatok exportalasa különbozo formatumokban. A PDF nyomtathato naplokonyvet keszit. Az UDDF egy univerzalis formatum, amely kompatibilis a legtobb merülesi naplo szoftverrel. A CSV fajlokat tablazatkezelo alkalmazasokban nyithatja meg.';
+
+  @override
+  String get transfer_export_backupLink => 'Mentés és visszaállítás';
 
   @override
   String get transfer_export_aboutTitle => 'Az exportalasrol';

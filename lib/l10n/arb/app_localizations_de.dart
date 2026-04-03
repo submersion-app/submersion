@@ -1855,7 +1855,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String dashboard_activityStats_divesInYear(String year) {
-    return 'dives in $year';
+    return 'Tauchgänge in $year';
   }
 
   @override
@@ -12874,6 +12874,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get transfer_export_aboutContent =>
       'Exportieren Sie Ihre Tauchdaten in verschiedenen Formaten. PDF erstellt ein druckbares Tauchlogbuch. UDDF ist ein universelles Format, das mit den meisten Tauchlog-Programmen kompatibel ist. CSV-Dateien koennen in Tabellenkalkulationen geoeffnet werden.';
+
+  @override
+  String get transfer_export_backupLink => 'Zu Sicherung & Wiederherstellung';
 
   @override
   String get transfer_export_aboutTitle => 'Ueber Export';

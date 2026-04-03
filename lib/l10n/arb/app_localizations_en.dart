@@ -12660,7 +12660,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'Export your dive data in various formats. PDF creates a printable logbook. UDDF is a universal format compatible with most dive logging software. CSV files can be opened in spreadsheet applications.';
+      'Export your dive data in various formats. PDF creates a printable logbook. UDDF is a universal format compatible with most dive logging software. CSV and Excel files can be opened in spreadsheet applications. You can also back up your entire database from Settings > Backup & Restore.';
+
+  @override
+  String get transfer_export_backupLink => 'Go to Backup & Restore';
 
   @override
   String get transfer_export_aboutTitle => 'About Export';
@@ -12729,7 +12732,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transfer_import_aboutContent =>
-      'Use \"Import Data\" for the best experience -- it auto-detects your file format and source app. The individual format options below are also available for direct access.';
+      'File Import auto-detects your file format and source app. Supported formats include CSV, UDDF, Subsurface XML, Garmin FIT, and Shearwater Cloud databases.';
 
   @override
   String get transfer_import_aboutTitle => 'About Import';
@@ -12740,7 +12743,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transfer_import_fileImportSubtitle =>
-      'UDDF, Subsurface, CSV, FIT, and more';
+      'CSV, UDDF, Subsurface XML, Garmin FIT, Shearwater Cloud';
 
   @override
   String get transfer_import_fileImportTitle => 'File Import';
@@ -13667,7 +13670,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get universalImport_description_supportedFormats =>
-      'Select a dive log file to import. Supported formats include CSV, UDDF, Subsurface XML, and Garmin FIT.';
+      'Select a dive log file to import. Supported formats include CSV, UDDF, Subsurface XML, Garmin FIT, and Shearwater Cloud databases.';
 
   @override
   String get universalImport_error_unsupportedFormat =>
@@ -13812,7 +13815,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get universalImport_step_select => 'Select';
 
   @override
-  String get universalImport_title => 'Import Data';
+  String get universalImport_title => 'File Import';
 
   @override
   String get universalImport_tooltip_closeWizard => 'Close import wizard';

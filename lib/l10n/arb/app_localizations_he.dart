@@ -1783,7 +1783,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String dashboard_activityStats_divesInYear(String year) {
-    return 'dives in $year';
+    return 'צלילות ב-$year';
   }
 
   @override
@@ -12529,6 +12529,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get transfer_export_aboutContent =>
       'ייצא את נתוני הצלילה שלך בפורמטים שונים. PDF יוצר יומן צלילות להדפסה. UDDF הוא פורמט אוניברסלי התואם לרוב תוכנות יומני הצלילה. ניתן לפתוח קבצי CSV ביישומי גיליונות אלקטרוניים.';
+
+  @override
+  String get transfer_export_backupLink => 'עבור לגיבוי ושחזור';
 
   @override
   String get transfer_export_aboutTitle => 'אודות ייצוא';

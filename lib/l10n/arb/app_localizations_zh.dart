@@ -1752,7 +1752,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String dashboard_activityStats_divesInYear(String year) {
-    return 'dives in $year';
+    return '$year年潜水次数';
   }
 
   @override
@@ -12230,6 +12230,9 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get transfer_export_aboutContent =>
       '以多种格式导出您的潜水数据。PDF 可创建可打印的潜水日志。UDDF 是与大多数潜水日志软件兼容的通用格式。CSV 文件可在电子表格应用中打开。';
+
+  @override
+  String get transfer_export_backupLink => '前往备份与恢复';
 
   @override
   String get transfer_export_aboutTitle => '关于导出';

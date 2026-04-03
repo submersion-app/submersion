@@ -1846,7 +1846,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String dashboard_activityStats_divesInYear(String year) {
-    return 'dives in $year';
+    return 'immersioni nel $year';
   }
 
   @override
@@ -12888,6 +12888,9 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get transfer_export_aboutContent =>
       'Esporta i tuoi dati di immersione in vari formati. Il PDF crea un logbook stampabile. L\'UDDF è un formato universale compatibile con la maggior parte dei software di registrazione immersioni. I file CSV possono essere aperti nelle applicazioni di fogli di calcolo.';
+
+  @override
+  String get transfer_export_backupLink => 'Vai a Backup e ripristino';
 
   @override
   String get transfer_export_aboutTitle => 'Informazioni sull\'esportazione';

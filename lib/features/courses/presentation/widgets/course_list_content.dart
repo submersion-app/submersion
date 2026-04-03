@@ -103,19 +103,29 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
   }
 
   Widget _buildCompactAppBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 8, 0),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).colorScheme.outlineVariant,
+            width: 1,
+          ),
+        ),
+      ),
       child: Row(
         children: [
+          const SizedBox(width: 8),
           Text(
             context.l10n.courses_title,
             style: Theme.of(
               context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           IconButton(
-            icon: const Icon(Icons.sort),
+            icon: const Icon(Icons.sort, size: 20),
             tooltip: context.l10n.courses_action_sort,
             onPressed: () => _showSortSheet(context),
           ),

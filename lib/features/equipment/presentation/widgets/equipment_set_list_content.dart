@@ -61,7 +61,6 @@ class EquipmentSetListContent extends ConsumerWidget {
   Widget _buildCompactAppBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border(
@@ -73,7 +72,7 @@ class EquipmentSetListContent extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          const SizedBox(width: 8),
+          const SizedBox(width: 8, height: 40),
           Text(
             context.l10n.equipment_appBar_title,
             style: Theme.of(

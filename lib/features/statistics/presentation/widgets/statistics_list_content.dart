@@ -103,67 +103,82 @@ class StatisticsListContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final listContent = ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: statisticsCategoriesOf(context).length,
+      separatorBuilder: (context, index) => const Divider(height: 1),
+      itemBuilder: (context, index) {
+        final category = statisticsCategoriesOf(context)[index];
+        final isSelected = selectedId == category.id;
+
+        return _StatisticsCategoryTile(
+          category: category,
+          isSelected: isSelected,
+          onTap: () {
+            if (onItemSelected != null) {
+              onItemSelected!(category.id);
+            }
+          },
+        );
+      },
+    );
+
+    if (!showAppBar) {
+      return Column(
+        children: [
+          _buildCompactAppBar(context),
+          Expanded(child: listContent),
+        ],
+      );
+    }
 
     return Scaffold(
-      appBar: showAppBar
-          ? AppBar(
-              title: Text(context.l10n.statistics_appBar_title),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.emoji_events),
-                  tooltip: context.l10n.statistics_tooltip_diveRecords,
-                  onPressed: () {
-                    // Navigate to records page
-                    context.push('/records');
-                  },
-                ),
-              ],
-            )
-          : PreferredSize(
-              preferredSize: const Size.fromHeight(56),
-              child: Container(
-                color: colorScheme.surface,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: SafeArea(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          context.l10n.statistics_appBar_title,
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.emoji_events),
-                        tooltip: context.l10n.statistics_tooltip_diveRecords,
-                        onPressed: () {
-                          context.push('/records');
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-      body: ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: statisticsCategoriesOf(context).length,
-        separatorBuilder: (context, index) => const Divider(height: 1),
-        itemBuilder: (context, index) {
-          final category = statisticsCategoriesOf(context)[index];
-          final isSelected = selectedId == category.id;
-
-          return _StatisticsCategoryTile(
-            category: category,
-            isSelected: isSelected,
-            onTap: () {
-              if (onItemSelected != null) {
-                onItemSelected!(category.id);
-              }
+      appBar: AppBar(
+        title: Text(context.l10n.statistics_appBar_title),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.emoji_events),
+            tooltip: context.l10n.statistics_tooltip_diveRecords,
+            onPressed: () {
+              context.push('/records');
             },
-          );
-        },
+          ),
+        ],
+      ),
+      body: listContent,
+    );
+  }
+
+  Widget _buildCompactAppBar(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).colorScheme.outlineVariant,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 8),
+          Text(
+            context.l10n.statistics_appBar_title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.emoji_events, size: 20),
+            tooltip: context.l10n.statistics_tooltip_diveRecords,
+            onPressed: () {
+              context.push('/records');
+            },
+          ),
+        ],
       ),
     );
   }

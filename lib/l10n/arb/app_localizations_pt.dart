@@ -1842,7 +1842,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String dashboard_activityStats_divesInYear(String year) {
-    return 'dives in $year';
+    return 'mergulhos em $year';
   }
 
   @override
@@ -12892,6 +12892,9 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get transfer_export_aboutContent =>
       'Exporte seus dados de mergulho em varios formatos. PDF cria um logbook imprimivel. UDDF e um formato universal compativel com a maioria dos softwares de registro de mergulho. Arquivos CSV podem ser abertos em aplicativos de planilha.';
+
+  @override
+  String get transfer_export_backupLink => 'Ir para Backup e restauração';
 
   @override
   String get transfer_export_aboutTitle => 'Sobre Exportacao';

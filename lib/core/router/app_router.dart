@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -178,7 +179,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'planning',
                 pageBuilder: (context, state) {
                   // On wide screens show welcome placeholder, on mobile show hub
-                  final isWide = MediaQuery.of(context).size.width >= 900;
+                  final isWide = ResponsiveBreakpoints.isMasterDetail(context);
                   return NoTransitionPage(
                     key: state.pageKey,
                     child: isWide

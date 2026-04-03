@@ -1840,7 +1840,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String dashboard_activityStats_divesInYear(String year) {
-    return 'dives in $year';
+    return 'inmersiones en $year';
   }
 
   @override
@@ -12884,6 +12884,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get transfer_export_aboutContent =>
       'Exporta tus datos de buceo en varios formatos. PDF crea un libro de registro imprimible. UDDF es un formato universal compatible con la mayoria del software de registro de buceo. Los archivos CSV se pueden abrir en aplicaciones de hojas de calculo.';
+
+  @override
+  String get transfer_export_backupLink =>
+      'Ir a Copia de seguridad y restauración';
 
   @override
   String get transfer_export_aboutTitle => 'Acerca de la exportacion';

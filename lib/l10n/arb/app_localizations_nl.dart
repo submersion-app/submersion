@@ -1832,7 +1832,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String dashboard_activityStats_divesInYear(String year) {
-    return 'dives in $year';
+    return 'duiken in $year';
   }
 
   @override
@@ -12773,6 +12773,9 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get transfer_export_aboutContent =>
       'Exporteer je duikgegevens in verschillende formaten. PDF maakt een afdrukbaar logboek. UDDF is een universeel formaat dat compatibel is met de meeste duiklogsoftware. CSV-bestanden kunnen worden geopend in spreadsheetapplicaties.';
+
+  @override
+  String get transfer_export_backupLink => 'Ga naar Back-up en herstel';
 
   @override
   String get transfer_export_aboutTitle => 'Over exporteren';

@@ -59,48 +59,64 @@ class TransferListContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final listContent = ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: transferSections.length,
+      separatorBuilder: (context, index) => const Divider(height: 1),
+      itemBuilder: (context, index) {
+        final section = transferSections[index];
+        final isSelected = selectedId == section.id;
+
+        return _TransferSectionTile(
+          section: section,
+          isSelected: isSelected,
+          onTap: () {
+            if (onItemSelected != null) {
+              onItemSelected!(section.id);
+            }
+          },
+        );
+      },
+    );
+
+    if (!showAppBar) {
+      return Column(
+        children: [
+          _buildCompactAppBar(context),
+          Expanded(child: listContent),
+        ],
+      );
+    }
 
     return Scaffold(
-      appBar: showAppBar
-          ? AppBar(title: Text(context.l10n.transfer_appBar_title))
-          : PreferredSize(
-              preferredSize: const Size.fromHeight(56),
-              child: Container(
-                color: colorScheme.surface,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: SafeArea(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          context.l10n.transfer_appBar_title,
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-      body: ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: transferSections.length,
-        separatorBuilder: (context, index) => const Divider(height: 1),
-        itemBuilder: (context, index) {
-          final section = transferSections[index];
-          final isSelected = selectedId == section.id;
+      appBar: AppBar(title: Text(context.l10n.transfer_appBar_title)),
+      body: listContent,
+    );
+  }
 
-          return _TransferSectionTile(
-            section: section,
-            isSelected: isSelected,
-            onTap: () {
-              if (onItemSelected != null) {
-                onItemSelected!(section.id);
-              }
-            },
-          );
-        },
+  Widget _buildCompactAppBar(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).colorScheme.outlineVariant,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 8, height: 40),
+          Text(
+            context.l10n.transfer_appBar_title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const Spacer(),
+        ],
       ),
     );
   }

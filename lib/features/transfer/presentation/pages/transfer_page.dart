@@ -393,6 +393,10 @@ class _ExportSectionContent extends ConsumerWidget {
             context,
             context.l10n.transfer_export_aboutTitle,
             context.l10n.transfer_export_aboutContent,
+            action: TextButton(
+              onPressed: () => context.push('/settings/backup'),
+              child: Text(context.l10n.transfer_export_backupLink),
+            ),
           ),
         ],
       ),
@@ -866,7 +870,12 @@ Widget _buildSectionHeader(BuildContext context, String title) {
   );
 }
 
-Widget _buildInfoCard(BuildContext context, String title, String content) {
+Widget _buildInfoCard(
+  BuildContext context,
+  String title,
+  String content, {
+  Widget? action,
+}) {
   return Card(
     color: Theme.of(
       context,
@@ -894,6 +903,7 @@ Widget _buildInfoCard(BuildContext context, String title, String content) {
           ),
           const SizedBox(height: 8),
           Text(content, style: Theme.of(context).textTheme.bodySmall),
+          if (action != null) ...[const SizedBox(height: 8), action],
         ],
       ),
     ),

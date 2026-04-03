@@ -21854,8 +21854,14 @@ abstract class AppLocalizations {
   /// No description provided for @transfer_export_aboutContent.
   ///
   /// In en, this message translates to:
-  /// **'Export your dive data in various formats. PDF creates a printable logbook. UDDF is a universal format compatible with most dive logging software. CSV files can be opened in spreadsheet applications.'**
+  /// **'Export your dive data in various formats. PDF creates a printable logbook. UDDF is a universal format compatible with most dive logging software. CSV and Excel files can be opened in spreadsheet applications. You can also back up your entire database from Settings > Backup & Restore.'**
   String get transfer_export_aboutContent;
+
+  /// No description provided for @transfer_export_backupLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Backup & Restore'**
+  String get transfer_export_backupLink;
 
   /// No description provided for @transfer_export_aboutTitle.
   ///
@@ -21980,7 +21986,7 @@ abstract class AppLocalizations {
   /// No description provided for @transfer_import_aboutContent.
   ///
   /// In en, this message translates to:
-  /// **'Use \"Import Data\" for the best experience -- it auto-detects your file format and source app. The individual format options below are also available for direct access.'**
+  /// **'File Import auto-detects your file format and source app. Supported formats include CSV, UDDF, Subsurface XML, Garmin FIT, and Shearwater Cloud databases.'**
   String get transfer_import_aboutContent;
 
   /// No description provided for @transfer_import_aboutTitle.
@@ -21998,7 +22004,7 @@ abstract class AppLocalizations {
   /// No description provided for @transfer_import_fileImportSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'UDDF, Subsurface, CSV, FIT, and more'**
+  /// **'CSV, UDDF, Subsurface XML, Garmin FIT, Shearwater Cloud'**
   String get transfer_import_fileImportSubtitle;
 
   /// No description provided for @transfer_import_fileImportTitle.
@@ -23654,7 +23660,7 @@ abstract class AppLocalizations {
   /// Description text on the file selection step listing supported formats
   ///
   /// In en, this message translates to:
-  /// **'Select a dive log file to import. Supported formats include CSV, UDDF, Subsurface XML, and Garmin FIT.'**
+  /// **'Select a dive log file to import. Supported formats include CSV, UDDF, Subsurface XML, Garmin FIT, and Shearwater Cloud databases.'**
   String get universalImport_description_supportedFormats;
 
   /// Error message shown when the detected file format is not supported
@@ -23868,7 +23874,7 @@ abstract class AppLocalizations {
   /// Title for the universal import wizard page and file selection heading
   ///
   /// In en, this message translates to:
-  /// **'Import Data'**
+  /// **'File Import'**
   String get universalImport_title;
 
   /// Tooltip for the close button on the import wizard app bar

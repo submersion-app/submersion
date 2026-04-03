@@ -1854,7 +1854,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String dashboard_activityStats_divesInYear(String year) {
-    return 'dives in $year';
+    return 'plongées en $year';
   }
 
   @override
@@ -12942,6 +12942,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get transfer_export_aboutContent =>
       'Exportez vos donnees de plongee dans differents formats. Le PDF cree un carnet de plongee imprimable. L\'UDDF est un format universel compatible avec la plupart des logiciels de carnet de plongee. Les fichiers CSV peuvent etre ouverts dans des applications de tableur.';
+
+  @override
+  String get transfer_export_backupLink => 'Aller à Sauvegarde et restauration';
 
   @override
   String get transfer_export_aboutTitle => 'A propos de l\'export';

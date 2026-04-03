@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// Shell widget that provides master/detail layout for Planning section.
 ///
@@ -16,8 +17,7 @@ class PlanningShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWideScreen = screenWidth >= 900;
+    final isWideScreen = ResponsiveBreakpoints.isMasterDetail(context);
 
     if (!isWideScreen) {
       // Mobile/narrow: just show the child
@@ -29,7 +29,7 @@ class PlanningShell extends StatelessWidget {
       body: Row(
         children: [
           // Sidebar (master)
-          SizedBox(width: 320, child: _PlanningSidebar()),
+          SizedBox(width: 440, child: _PlanningSidebar()),
           const VerticalDivider(width: 1, thickness: 1),
           // Content (detail)
           Expanded(child: child),
@@ -90,53 +90,74 @@ class _PlanningSidebar extends StatelessWidget {
       ),
     ];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.planning_sidebar_appBar_title),
-        automaticallyImplyLeading: false,
-      ),
-      body: ListView(
-        children: [
-          const SizedBox(height: 8),
-          ...List.generate(tools.length * 2 - 1, (index) {
-            if (index.isOdd) return const Divider(height: 1);
-            final tool = tools[index ~/ 2];
-            return _SidebarTile(item: tool);
-          }),
-          const Divider(height: 1),
-          const SizedBox(height: 16),
-          // Info card
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Card(
-              color: colorScheme.surfaceContainerHighest,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 18,
-                      color: colorScheme.onSurfaceVariant,
-                    ).excludeFromSemantics(),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        context.l10n.planning_sidebar_info_disclaimer,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            border: Border(
+              bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
             ),
           ),
-          const SizedBox(height: 16),
-        ],
-      ),
+          child: Row(
+            children: [
+              const SizedBox(width: 8, height: 40),
+              Text(
+                context.l10n.planning_sidebar_appBar_title,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const Spacer(),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView(
+            children: [
+              const SizedBox(height: 8),
+              ...List.generate(tools.length * 2 - 1, (index) {
+                if (index.isOdd) return const Divider(height: 1);
+                final tool = tools[index ~/ 2];
+                return _SidebarTile(item: tool);
+              }),
+              const Divider(height: 1),
+              const SizedBox(height: 16),
+              // Info card
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Card(
+                  color: colorScheme.surfaceContainerHighest,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 18,
+                          color: colorScheme.onSurfaceVariant,
+                        ).excludeFromSemantics(),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            context.l10n.planning_sidebar_info_disclaimer,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -203,12 +224,14 @@ class _SidebarTile extends StatelessWidget {
             context,
           ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
-        trailing: item.isSelected
-            ? Icon(
-                Icons.chevron_right,
-                color: colorScheme.primary,
-              ).excludeFromSemantics()
-            : null,
+        trailing: ExcludeSemantics(
+          child: Icon(
+            Icons.chevron_right,
+            color: item.isSelected
+                ? colorScheme.primary
+                : colorScheme.onSurfaceVariant,
+          ),
+        ),
         onTap: () => context.go(item.route),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       ),

@@ -89,11 +89,9 @@ final _universalAdapterMappingAutoAdvanceProvider = Provider<bool>((ref) {
 /// UDDF, auto-detected formats). Wraps [UniversalImportNotifier] into the
 /// unified import wizard framework.
 class UniversalAdapter implements ImportSourceAdapter {
-  UniversalAdapter({
-    required WidgetRef ref,
-    String displayName = 'Universal Import',
-  }) : _ref = ref,
-       _displayName = displayName;
+  UniversalAdapter({required WidgetRef ref, String displayName = 'File Import'})
+    : _ref = ref,
+      _displayName = displayName;
 
   final WidgetRef _ref;
   final String _displayName;
@@ -175,7 +173,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       return const ImportBundle(
         source: ImportSourceInfo(
           type: ImportSourceType.universal,
-          displayName: 'Universal Import',
+          displayName: 'File Import',
         ),
         groups: {},
       );
