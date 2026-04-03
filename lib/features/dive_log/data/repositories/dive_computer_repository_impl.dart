@@ -713,8 +713,8 @@ class DiveComputerRepository {
           MAX(d.bottom_time) as longest_duration,
           AVG(d.max_depth) as avg_depth,
           AVG(d.bottom_time) as avg_duration,
-          MIN(d.min_temperature) as coldest,
-          MAX(d.max_temperature) as warmest,
+          MIN(d.water_temp) as coldest,
+          MAX(d.water_temp) as warmest,
           SUM(d.bottom_time) as total_time
         FROM dives d
         INNER JOIN dive_profiles dp ON d.id = dp.dive_id
