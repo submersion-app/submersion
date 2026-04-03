@@ -34,25 +34,31 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
-// Force all subproject Kotlin and Java compilation to target JVM 21 so
-// plugins that default to JVM 1.8 don't cause a JVM-target mismatch.
+// Force all subproject Kotlin and Java compilation to target JVM 21.
 //
-// Uses pluginManager.withPlugin to configure compileOptions on the Android
-// extension directly (the source of truth for Java version). This fires
-// when the Android plugin is applied — or immediately if already applied —
-// so it works regardless of evaluation order.
+// Third-party Flutter plugins (desktop_drop, receive_sharing_intent) default
+// to JVM 1.8 for one or both languages. Our app targets JVM 21, and AGP 8+
+// rejects mismatched Kotlin/Java targets within a subproject.
+//
+// Kotlin: configureEach with the Property API (jvmTarget.set) takes
+// precedence over the plugin's kotlinOptions block.
+//
+// Java: configureEach registered here is overridden when the plugin's own
+// compileOptions is applied by AGP. gradle.projectsEvaluated runs after
+// every project (including plugins) has been evaluated and all afterEvaluate
+// callbacks have fired, so configureEach registered there is the final word.
 subprojects {
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         }
     }
-    pluginManager.withPlugin("com.android.library") {
-        extensions.configure<com.android.build.gradle.LibraryExtension> {
-            compileOptions {
-                sourceCompatibility = JavaVersion.VERSION_21
-                targetCompatibility = JavaVersion.VERSION_21
-            }
+}
+gradle.projectsEvaluated {
+    subprojects {
+        tasks.withType<JavaCompile>().configureEach {
+            sourceCompatibility = JavaVersion.VERSION_21.toString()
+            targetCompatibility = JavaVersion.VERSION_21.toString()
         }
     }
 }
