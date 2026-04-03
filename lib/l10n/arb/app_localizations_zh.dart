@@ -14967,19 +14967,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_weatherSourceOpenMeteo => '数据来自 Open-Meteo';
 
   @override
-  String get dropTarget_title => 'Drop to Import';
+  String get dropTarget_title => '拖放以导入';
 
   @override
-  String get dropTarget_subtitle => 'Release to open import wizard';
+  String get dropTarget_subtitle => '释放以打开导入向导';
 
   @override
-  String get dropTarget_error_unsupportedFile => 'Unsupported file type';
+  String get dropTarget_error_unsupportedFile => '不支持的文件类型';
 
   @override
-  String get dropTarget_error_wizardActive => 'Finish current import first';
+  String get dropTarget_error_wizardActive => '请先完成当前导入';
 
   @override
-  String get dropTarget_error_readFailed => 'Could not read file';
+  String get dropTarget_error_readFailed => '无法读取文件';
 
   @override
   String get enum_cloudCover_clear => '清除';

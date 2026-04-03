@@ -15314,19 +15314,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_weatherSourceOpenMeteo => 'via Open-Meteo';
 
   @override
-  String get dropTarget_title => 'Drop to Import';
+  String get dropTarget_title => 'שחרר לייבוא';
 
   @override
-  String get dropTarget_subtitle => 'Release to open import wizard';
+  String get dropTarget_subtitle => 'שחרר כדי לפתוח את אשף הייבוא';
 
   @override
-  String get dropTarget_error_unsupportedFile => 'Unsupported file type';
+  String get dropTarget_error_unsupportedFile => 'סוג קובץ לא נתמך';
 
   @override
-  String get dropTarget_error_wizardActive => 'Finish current import first';
+  String get dropTarget_error_wizardActive => 'סיים את הייבוא הנוכחי קודם';
 
   @override
-  String get dropTarget_error_readFailed => 'Could not read file';
+  String get dropTarget_error_readFailed => 'לא ניתן לקרוא את הקובץ';
 
   @override
   String get enum_cloudCover_clear => 'Clear';

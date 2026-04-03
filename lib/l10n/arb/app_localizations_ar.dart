@@ -15422,19 +15422,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_weatherSourceOpenMeteo => 'via Open-Meteo';
 
   @override
-  String get dropTarget_title => 'Drop to Import';
+  String get dropTarget_title => 'أفلت للاستيراد';
 
   @override
-  String get dropTarget_subtitle => 'Release to open import wizard';
+  String get dropTarget_subtitle => 'حرر لفتح معالج الاستيراد';
 
   @override
-  String get dropTarget_error_unsupportedFile => 'Unsupported file type';
+  String get dropTarget_error_unsupportedFile => 'نوع ملف غير مدعوم';
 
   @override
-  String get dropTarget_error_wizardActive => 'Finish current import first';
+  String get dropTarget_error_wizardActive => 'أنهِ الاستيراد الحالي أولاً';
 
   @override
-  String get dropTarget_error_readFailed => 'Could not read file';
+  String get dropTarget_error_readFailed => 'تعذرت قراءة الملف';
 
   @override
   String get enum_cloudCover_clear => 'Clear';
