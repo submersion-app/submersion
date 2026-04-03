@@ -1237,6 +1237,53 @@ void main() {
         expect(notifier.state.detectionResult, isNotNull);
         expect(notifier.state.detectionResult!.format, ImportFormat.uddf);
       });
+
+      test('sets wasLoadedExternally flag for supported formats', () async {
+        final uddfBytes = Uint8List.fromList(
+          '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits,
+        );
+
+        await notifier.loadFileFromBytes(uddfBytes, 'test.uddf');
+
+        expect(notifier.state.wasLoadedExternally, isTrue);
+      });
+
+      test(
+        'does not set wasLoadedExternally for unsupported formats',
+        () async {
+          final pngBytes = Uint8List.fromList([
+            0x89,
+            0x50,
+            0x4E,
+            0x47,
+            0x0D,
+            0x0A,
+            0x1A,
+            0x0A,
+          ]);
+
+          await notifier.loadFileFromBytes(pngBytes, 'photo.png');
+
+          expect(notifier.state.wasLoadedExternally, isFalse);
+        },
+      );
+    });
+
+    group('clearExternalLoadFlag', () {
+      test('clears wasLoadedExternally', () async {
+        final uddfBytes = Uint8List.fromList(
+          '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits,
+        );
+        await notifier.loadFileFromBytes(uddfBytes, 'test.uddf');
+        expect(notifier.state.wasLoadedExternally, isTrue);
+
+        notifier.clearExternalLoadFlag();
+
+        expect(notifier.state.wasLoadedExternally, isFalse);
+        // Other state should be preserved.
+        expect(notifier.state.detectionResult, isNotNull);
+        expect(notifier.state.fileBytes, isNotNull);
+      });
     });
 
     group('state transitions for wizard flow', () {

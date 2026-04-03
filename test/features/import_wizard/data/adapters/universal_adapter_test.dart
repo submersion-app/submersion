@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -1936,6 +1938,76 @@ void main() {
           // rebuild the bundle after reset (the notifier has new state), just
           // verify the call does not throw.
           adapter.resetState();
+        },
+      );
+    });
+  });
+
+  group('hasPreloadedState / consumePreloadedState', () {
+    testWidgets('returns false when no file was loaded externally', (
+      tester,
+    ) async {
+      // Use default overrides (notifier starts with clean state).
+      await _runWithAdapter(
+        tester,
+        overrides: _buildBundleOverrides(),
+        callback: (adapter) async {
+          expect(adapter.hasPreloadedState, isFalse);
+        },
+      );
+    });
+
+    testWidgets('returns true after loadFileFromBytes', (tester) async {
+      // Override with a plain notifier (no pre-set payload) so
+      // loadFileFromBytes can run its own detection.
+      await _runWithAdapter(
+        tester,
+        overrides: [
+          universalImportNotifierProvider.overrideWith((ref) {
+            return UniversalImportNotifier(ref);
+          }),
+        ],
+        callback: (adapter) async {
+          final container = ProviderScope.containerOf(
+            tester.element(find.byType(SizedBox)),
+          );
+          final notifier = container.read(
+            universalImportNotifierProvider.notifier,
+          );
+          final uddfBytes = Uint8List.fromList(
+            '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits,
+          );
+          await notifier.loadFileFromBytes(uddfBytes, 'dive.uddf');
+
+          expect(adapter.hasPreloadedState, isTrue);
+        },
+      );
+    });
+
+    testWidgets('consumePreloadedState clears the flag', (tester) async {
+      await _runWithAdapter(
+        tester,
+        overrides: [
+          universalImportNotifierProvider.overrideWith((ref) {
+            return UniversalImportNotifier(ref);
+          }),
+        ],
+        callback: (adapter) async {
+          final container = ProviderScope.containerOf(
+            tester.element(find.byType(SizedBox)),
+          );
+          final notifier = container.read(
+            universalImportNotifierProvider.notifier,
+          );
+          final uddfBytes = Uint8List.fromList(
+            '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits,
+          );
+          await notifier.loadFileFromBytes(uddfBytes, 'dive.uddf');
+          expect(adapter.hasPreloadedState, isTrue);
+
+          adapter.consumePreloadedState();
+
+          expect(adapter.hasPreloadedState, isFalse);
         },
       );
     });
