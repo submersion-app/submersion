@@ -34,13 +34,17 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
-// Force all subproject Kotlin compilation to target JVM 21 so plugins
-// that default to JVM 1.8 (e.g. receive_sharing_intent) don't mismatch.
+// Force all subproject Kotlin and Java compilation to target JVM 21 so
+// plugins that default to JVM 1.8 don't cause a JVM-target mismatch.
 subprojects {
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         }
+    }
+    tasks.withType<JavaCompile>().configureEach {
+        sourceCompatibility = JavaVersion.VERSION_21.toString()
+        targetCompatibility = JavaVersion.VERSION_21.toString()
     }
 }
 
