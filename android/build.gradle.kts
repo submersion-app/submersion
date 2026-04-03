@@ -43,10 +43,15 @@ subprojects {
 // we align Kotlin to each subproject's own Java target after evaluation.
 gradle.projectsEvaluated {
     subprojects {
-        // Read the Java target that the plugin's build script configured.
-        val javaTarget = extensions.findByType(
+        // Read the Java bytecode target that the plugin's build script configured.
+        // Prefer targetCompatibility (what AGP checks against) with a fallback
+        // to sourceCompatibility.
+        val compileOptions = extensions.findByType(
             com.android.build.gradle.BaseExtension::class.java,
-        )?.compileOptions?.sourceCompatibility ?: return@subprojects
+        )?.compileOptions ?: return@subprojects
+        val javaTarget = compileOptions.targetCompatibility
+            ?: compileOptions.sourceCompatibility
+            ?: return@subprojects
 
         val kotlinTarget = when (javaTarget) {
             JavaVersion.VERSION_1_8 ->
