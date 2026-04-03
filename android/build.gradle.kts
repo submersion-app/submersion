@@ -34,32 +34,39 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
-// Force all subproject Kotlin and Java compilation to target JVM 21.
+// Ensure Kotlin and Java JVM targets match within each subproject.
 //
-// Third-party Flutter plugins (desktop_drop, receive_sharing_intent) default
-// to JVM 1.8 for one or both languages. Our app targets JVM 21, and AGP 8+
-// rejects mismatched Kotlin/Java targets within a subproject.
-//
-// Kotlin: configureEach with the Property API (jvmTarget.set) takes
-// precedence over the plugin's kotlinOptions block.
-//
-// Java: configureEach registered here is overridden when the plugin's own
-// compileOptions is applied by AGP. gradle.projectsEvaluated runs after
-// every project (including plugins) has been evaluated and all afterEvaluate
-// callbacks have fired, so configureEach registered there is the final word.
-subprojects {
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
-        }
-    }
-}
+// AGP 8+ rejects mismatched Kotlin/Java targets. Third-party Flutter plugins
+// (e.g. desktop_drop) set compileOptions to 1.8 but don't set kotlinOptions,
+// causing Kotlin to inherit a different default. Rather than forcing all
+// subprojects to JVM 21 (which breaks plugins whose source requires JVM 1.8),
+// we align Kotlin to each subproject's own Java target after evaluation.
 gradle.projectsEvaluated {
     subprojects {
-        tasks.withType<JavaCompile>().configureEach {
-            sourceCompatibility = JavaVersion.VERSION_21.toString()
-            targetCompatibility = JavaVersion.VERSION_21.toString()
+        // Read the Java target that the plugin's build script configured.
+        val javaTarget = extensions.findByType(
+            com.android.build.gradle.BaseExtension::class.java,
+        )?.compileOptions?.sourceCompatibility ?: return@subprojects
+
+        val kotlinTarget = when (javaTarget) {
+            JavaVersion.VERSION_1_8 ->
+                org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+            JavaVersion.VERSION_11 ->
+                org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+            JavaVersion.VERSION_17 ->
+                org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+            JavaVersion.VERSION_21 ->
+                org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
+            else ->
+                org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
         }
+
+        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>()
+            .configureEach {
+                compilerOptions {
+                    jvmTarget.set(kotlinTarget)
+                }
+            }
     }
 }
 
