@@ -15431,6 +15431,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_weatherSourceOpenMeteo => 'via Open-Meteo';
 
   @override
+  String get dropTarget_title => 'أفلت للاستيراد';
+
+  @override
+  String get dropTarget_subtitle => 'حرر لفتح معالج الاستيراد';
+
+  @override
+  String get dropTarget_error_unsupportedFile => 'نوع ملف غير مدعوم';
+
+  @override
+  String get dropTarget_error_wizardActive => 'أنهِ الاستيراد الحالي أولاً';
+
+  @override
+  String get dropTarget_error_readFailed => 'تعذرت قراءة الملف';
+
+  @override
   String get enum_cloudCover_clear => 'Clear';
 
   @override

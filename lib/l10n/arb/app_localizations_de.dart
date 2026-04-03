@@ -15725,6 +15725,23 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_detail_weatherSourceOpenMeteo => 'via Open-Meteo';
 
   @override
+  String get dropTarget_title => 'Zum Importieren ablegen';
+
+  @override
+  String get dropTarget_subtitle =>
+      'Loslassen, um den Import-Assistenten zu öffnen';
+
+  @override
+  String get dropTarget_error_unsupportedFile => 'Nicht unterstützter Dateityp';
+
+  @override
+  String get dropTarget_error_wizardActive =>
+      'Aktuellen Import zuerst abschließen';
+
+  @override
+  String get dropTarget_error_readFailed => 'Datei konnte nicht gelesen werden';
+
+  @override
   String get enum_cloudCover_clear => 'Clear';
 
   @override

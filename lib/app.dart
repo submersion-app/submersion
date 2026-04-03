@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -5,9 +7,12 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/features/auto_update/presentation/providers/update_menu_channel.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
-import 'package:submersion/features/auto_update/presentation/providers/update_menu_channel.dart';
+import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+import 'package:submersion/shared/services/file_share_handler.dart';
+import 'package:submersion/shared/services/incoming_file_handler.dart';
 
 const Locale _defaultFallbackLocale = Locale('en');
 const Set<String> _invalidSystemLocaleLanguageCodes = {'c', 'posix'};
@@ -57,18 +62,38 @@ class SubmersionApp extends ConsumerStatefulWidget {
 
 class _SubmersionAppState extends ConsumerState<SubmersionApp>
     with WidgetsBindingObserver {
+  final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+  late final FileShareHandler _fileShareHandler;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     registerUpdateMenuChannel(ref);
+    _fileShareHandler = FileShareHandler(
+      onFileReceived: _handleIncomingFile,
+      onError: (_) {
+        final l10n = _scaffoldMessengerKey.currentContext != null
+            ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
+            : null;
+        _scaffoldMessengerKey.currentState?.showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n?.dropTarget_error_readFailed ?? 'Could not read file',
+            ),
+          ),
+        );
+      },
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeSyncOnLaunch();
+      _fileShareHandler.initialize();
     });
   }
 
   @override
   void dispose() {
+    _fileShareHandler.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -92,6 +117,29 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     ref.read(syncStateProvider.notifier).performSync();
   }
 
+  Future<void> _handleIncomingFile(Uint8List bytes, String fileName) async {
+    final router = ref.read(appRouterProvider);
+    final location = router.routeInformationProvider.value.uri.path;
+
+    final l10n = _scaffoldMessengerKey.currentContext != null
+        ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
+        : null;
+
+    final shouldNavigate = await handleIncomingFile(
+      bytes: bytes,
+      fileName: fileName,
+      currentPath: location,
+      notifier: ref.read(universalImportNotifierProvider.notifier),
+      messenger: _scaffoldMessengerKey.currentState,
+      wizardActiveMessage: l10n?.dropTarget_error_wizardActive,
+      unsupportedFileMessage: l10n?.dropTarget_error_unsupportedFile,
+    );
+
+    if (shouldNavigate) {
+      router.go('/transfer/import-wizard');
+    }
+  }
+
   Locale? _resolveLocale(String localeSetting) {
     if (localeSetting == 'system') return null;
     return Locale(localeSetting);
@@ -108,6 +156,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     ref.watch(restoreLastProviderProvider);
 
     return MaterialApp.router(
+      scaffoldMessengerKey: _scaffoldMessengerKey,
       title: 'Submersion',
       debugShowCheckedModeBanner: false,
       theme: AppThemeRegistry.resolveTheme(themePreset, Brightness.light),

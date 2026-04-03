@@ -15608,6 +15608,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_detail_weatherSourceOpenMeteo => 'via Open-Meteo';
 
   @override
+  String get dropTarget_title => 'Sleep om te importeren';
+
+  @override
+  String get dropTarget_subtitle => 'Laat los om de importwizard te openen';
+
+  @override
+  String get dropTarget_error_unsupportedFile =>
+      'Niet-ondersteund bestandstype';
+
+  @override
+  String get dropTarget_error_wizardActive => 'Voltooi eerst de huidige import';
+
+  @override
+  String get dropTarget_error_readFailed => 'Kan bestand niet lezen';
+
+  @override
   String get enum_cloudCover_clear => 'Clear';
 
   @override

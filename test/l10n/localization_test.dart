@@ -230,6 +230,31 @@ void main() {
     });
   });
 
+  group('Drop target strings exist in all locales', () {
+    for (final code in [
+      'en',
+      'es',
+      'fr',
+      'de',
+      'it',
+      'nl',
+      'pt',
+      'ar',
+      'he',
+      'hu',
+      'zh',
+    ]) {
+      test('$code has all dropTarget_ strings', () async {
+        final l10n = await AppLocalizations.delegate.load(Locale(code));
+        expect(l10n.dropTarget_title, isNotEmpty);
+        expect(l10n.dropTarget_subtitle, isNotEmpty);
+        expect(l10n.dropTarget_error_unsupportedFile, isNotEmpty);
+        expect(l10n.dropTarget_error_wizardActive, isNotEmpty);
+        expect(l10n.dropTarget_error_readFailed, isNotEmpty);
+      });
+    }
+  });
+
   group('RTL text direction', () {
     testWidgets('Arabic locale uses RTL direction', (tester) async {
       await tester.pumpWidget(

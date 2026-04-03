@@ -49,6 +49,34 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Handle files shared via the Share sheet (single file) -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/*"/>
+                <data android:mimeType="application/octet-stream"/>
+                <data android:mimeType="application/xml"/>
+            </intent-filter>
+            <!-- Handle multi-file shares (only the first file is used) -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/*"/>
+                <data android:mimeType="application/octet-stream"/>
+                <data android:mimeType="application/xml"/>
+            </intent-filter>
+            <!-- Handle "Open with" for dive log files -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="content" android:mimeType="text/*"/>
+                <data android:scheme="content" android:mimeType="application/octet-stream"/>
+                <data android:scheme="content" android:mimeType="application/xml"/>
+                <data android:scheme="file" android:mimeType="text/*"/>
+                <data android:scheme="file" android:mimeType="application/octet-stream"/>
+                <data android:scheme="file" android:mimeType="application/xml"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

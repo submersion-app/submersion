@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -1122,6 +1124,201 @@ void main() {
 
         expect(notifier.state.options!.sourceApp, SourceApp.shearwater);
         expect(notifier.state.options!.format, ImportFormat.shearwaterDb);
+      });
+    });
+
+    group('loadFileFromBytes', () {
+      test(
+        'sets state to sourceConfirmation for a recognized UDDF file',
+        () async {
+          final uddfBytes = Uint8List.fromList(
+            '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits,
+          );
+
+          final result = await notifier.loadFileFromBytes(
+            uddfBytes,
+            'test.uddf',
+          );
+
+          expect(result.format, ImportFormat.uddf);
+          expect(
+            notifier.state.currentStep,
+            ImportWizardStep.sourceConfirmation,
+          );
+          expect(notifier.state.fileName, 'test.uddf');
+          expect(notifier.state.fileBytes, uddfBytes);
+          expect(notifier.state.isLoading, false);
+        },
+      );
+
+      test(
+        'returns unknown for unsupported file types without advancing state',
+        () async {
+          final pngBytes = Uint8List.fromList([
+            0x89, 0x50, 0x4E, 0x47, // PNG magic bytes
+            0x0D, 0x0A, 0x1A, 0x0A,
+          ]);
+
+          final result = await notifier.loadFileFromBytes(
+            pngBytes,
+            'photo.png',
+          );
+
+          expect(result.format, ImportFormat.unknown);
+          // State must stay at fileSelection so the wizard isn't left dirty.
+          expect(notifier.state.currentStep, ImportWizardStep.fileSelection);
+          expect(notifier.state.fileBytes, isNull);
+          expect(notifier.state.isLoading, isFalse);
+        },
+      );
+
+      test('detects FIT format from binary magic bytes', () async {
+        final fitBytes = Uint8List(14);
+        fitBytes[0] = 14; // header size
+        fitBytes[8] = 0x2E; // .
+        fitBytes[9] = 0x46; // F
+        fitBytes[10] = 0x49; // I
+        fitBytes[11] = 0x54; // T
+
+        final result = await notifier.loadFileFromBytes(fitBytes, 'dive.fit');
+
+        expect(result.format, ImportFormat.fit);
+        expect(result.sourceApp, SourceApp.garminConnect);
+      });
+
+      test('detects CSV with dive keywords', () async {
+        final csvBytes = _csvBytes(
+          'dive number,date,max depth,bottom time,water temp\n'
+          '1,2024-01-01,30.0,45,22.0\n',
+        );
+
+        final result = await notifier.loadFileFromBytes(csvBytes, 'dives.csv');
+
+        expect(result.format, ImportFormat.csv);
+      });
+
+      test('detects SQLite format and checks Shearwater DB', () async {
+        // SQLite magic bytes: "SQLite format 3\0"
+        final sqliteBytes = Uint8List.fromList(
+          'SQLite format 3\x00'.codeUnits + List.filled(84, 0),
+        );
+
+        final result = await notifier.loadFileFromBytes(
+          sqliteBytes,
+          'cloud.db',
+        );
+
+        // Non-Shearwater SQLite is recognized but unsupported.
+        expect(result.format, ImportFormat.sqlite);
+        expect(result.format.isSupported, isFalse);
+        // State should NOT advance to sourceConfirmation.
+        expect(notifier.state.currentStep, ImportWizardStep.fileSelection);
+        expect(notifier.state.fileBytes, isNull);
+      });
+
+      test(
+        'detects Shearwater Cloud DB from real SQLite with required tables',
+        () async {
+          // Create a minimal SQLite database with the tables that
+          // ShearwaterDbReader.isShearwaterCloudDb checks for.
+          final tempDir = await Directory.systemTemp.createTemp('shearwater_');
+          final dbPath = '${tempDir.path}/shearwater_cloud.db';
+          final db = sqlite3.sqlite3.open(dbPath);
+          try {
+            db.execute('CREATE TABLE dive_details (DiveId INTEGER)');
+            db.execute('CREATE TABLE log_data (DiveId INTEGER)');
+            db.dispose();
+
+            final bytes = await File(dbPath).readAsBytes();
+            final result = await notifier.loadFileFromBytes(
+              bytes,
+              'shearwater_cloud.db',
+            );
+
+            expect(result.format, ImportFormat.shearwaterDb);
+            expect(result.sourceApp, SourceApp.shearwater);
+            expect(result.confidence, 0.95);
+            // Shearwater DB is supported, so state should advance.
+            expect(
+              notifier.state.currentStep,
+              ImportWizardStep.sourceConfirmation,
+            );
+            expect(notifier.state.fileBytes, isNotNull);
+          } finally {
+            await tempDir.delete(recursive: true);
+          }
+        },
+      );
+
+      test('resets state before detection to enable auto-advance', () async {
+        // Simulate prior wizard state
+        notifier.setPendingSourceOverride(SourceApp.subsurface);
+
+        final uddfBytes = Uint8List.fromList(
+          '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits,
+        );
+        await notifier.loadFileFromBytes(uddfBytes, 'test.uddf');
+
+        expect(notifier.state.currentStep, ImportWizardStep.sourceConfirmation);
+        expect(notifier.state.error, isNull);
+      });
+
+      test('populates detectionResult in state', () async {
+        final uddfBytes = Uint8List.fromList(
+          '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits,
+        );
+
+        await notifier.loadFileFromBytes(uddfBytes, 'test.uddf');
+
+        expect(notifier.state.detectionResult, isNotNull);
+        expect(notifier.state.detectionResult!.format, ImportFormat.uddf);
+      });
+
+      test('sets wasLoadedExternally flag for supported formats', () async {
+        final uddfBytes = Uint8List.fromList(
+          '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits,
+        );
+
+        await notifier.loadFileFromBytes(uddfBytes, 'test.uddf');
+
+        expect(notifier.state.wasLoadedExternally, isTrue);
+      });
+
+      test(
+        'does not set wasLoadedExternally for unsupported formats',
+        () async {
+          final pngBytes = Uint8List.fromList([
+            0x89,
+            0x50,
+            0x4E,
+            0x47,
+            0x0D,
+            0x0A,
+            0x1A,
+            0x0A,
+          ]);
+
+          await notifier.loadFileFromBytes(pngBytes, 'photo.png');
+
+          expect(notifier.state.wasLoadedExternally, isFalse);
+        },
+      );
+    });
+
+    group('clearExternalLoadFlag', () {
+      test('clears wasLoadedExternally', () async {
+        final uddfBytes = Uint8List.fromList(
+          '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits,
+        );
+        await notifier.loadFileFromBytes(uddfBytes, 'test.uddf');
+        expect(notifier.state.wasLoadedExternally, isTrue);
+
+        notifier.clearExternalLoadFlag();
+
+        expect(notifier.state.wasLoadedExternally, isFalse);
+        // Other state should be preserved.
+        expect(notifier.state.detectionResult, isNotNull);
+        expect(notifier.state.fileBytes, isNotNull);
       });
     });
 

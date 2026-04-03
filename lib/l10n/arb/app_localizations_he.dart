@@ -15322,6 +15322,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_weatherSourceOpenMeteo => 'via Open-Meteo';
 
   @override
+  String get dropTarget_title => 'שחרר לייבוא';
+
+  @override
+  String get dropTarget_subtitle => 'שחרר כדי לפתוח את אשף הייבוא';
+
+  @override
+  String get dropTarget_error_unsupportedFile => 'סוג קובץ לא נתמך';
+
+  @override
+  String get dropTarget_error_wizardActive => 'סיים את הייבוא הנוכחי קודם';
+
+  @override
+  String get dropTarget_error_readFailed => 'לא ניתן לקרוא את הקובץ';
+
+  @override
   String get enum_cloudCover_clear => 'Clear';
 
   @override

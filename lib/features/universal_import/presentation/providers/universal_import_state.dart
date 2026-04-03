@@ -54,6 +54,7 @@ class UniversalImportState {
     this.importPhase = '',
     this.importCurrent = 0,
     this.importTotal = 0,
+    this.wasLoadedExternally = false,
   });
 
   final ImportWizardStep currentStep;
@@ -116,6 +117,11 @@ class UniversalImportState {
   final int importCurrent;
   final int importTotal;
 
+  /// True when the file was loaded externally (drag-and-drop / share intent)
+  /// rather than via the in-wizard file picker. Consumed once by the wizard
+  /// to skip resetState on init, then cleared.
+  final bool wasLoadedExternally;
+
   UniversalImportState copyWith({
     ImportWizardStep? currentStep,
     bool? isLoading,
@@ -149,6 +155,7 @@ class UniversalImportState {
     bool clearDetectedCsvPreset = false,
     ParsedCsv? parsedCsv,
     bool clearParsedCsv = false,
+    bool? wasLoadedExternally,
   }) {
     return UniversalImportState(
       currentStep: currentStep ?? this.currentStep,
@@ -186,6 +193,7 @@ class UniversalImportState {
       importPhase: importPhase ?? this.importPhase,
       importCurrent: importCurrent ?? this.importCurrent,
       importTotal: importTotal ?? this.importTotal,
+      wasLoadedExternally: wasLoadedExternally ?? this.wasLoadedExternally,
     );
   }
 

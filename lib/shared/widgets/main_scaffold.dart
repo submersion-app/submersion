@@ -6,6 +6,7 @@ import 'package:submersion/features/auto_update/presentation/widgets/update_bann
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/download_exit_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/global_drop_target.dart';
 
 class MainScaffold extends ConsumerStatefulWidget {
   final Widget child;
@@ -278,125 +279,132 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       final showExtended = isDesktopExtended && !_isCollapsed;
 
       return Scaffold(
-        body: SafeArea(
-          child: Row(
-            children: [
-              // Wrap in a scrollable container so the rail doesn't overflow
-              // on short screens (e.g. phone landscape with 13 destinations).
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: IntrinsicHeight(
-                        child: NavigationRail(
-                          extended: showExtended,
-                          minExtendedWidth: 190,
-                          leading: isDesktopExtended
-                              ? IconButton(
-                                  icon: Icon(
-                                    _isCollapsed
-                                        ? Icons.keyboard_double_arrow_right
-                                        : Icons.keyboard_double_arrow_left,
-                                  ),
-                                  tooltip: _isCollapsed
-                                      ? context.l10n.nav_tooltip_expandMenu
-                                      : context.l10n.nav_tooltip_collapseMenu,
-                                  onPressed: () {
-                                    setState(() {
-                                      _isCollapsed = !_isCollapsed;
-                                    });
-                                  },
-                                )
-                              : null,
-                          selectedIndex: selectedIndex,
-                          onDestinationSelected: (index) =>
-                              _onDestinationSelected(index, isWideScreen: true),
-                          destinations: [
-                            NavigationRailDestination(
-                              icon: const Icon(Icons.home_outlined),
-                              selectedIcon: const Icon(Icons.home),
-                              label: Text(context.l10n.nav_home),
-                            ),
-                            NavigationRailDestination(
-                              icon: const Icon(Icons.scuba_diving_outlined),
-                              selectedIcon: const Icon(Icons.scuba_diving),
-                              label: Text(context.l10n.nav_dives),
-                            ),
-                            NavigationRailDestination(
-                              icon: const Icon(Icons.location_on_outlined),
-                              selectedIcon: const Icon(Icons.location_on),
-                              label: Text(context.l10n.nav_sites),
-                            ),
-                            NavigationRailDestination(
-                              icon: const Icon(Icons.flight_outlined),
-                              selectedIcon: const Icon(Icons.flight),
-                              label: Text(context.l10n.nav_trips),
-                            ),
-                            NavigationRailDestination(
-                              icon: const Icon(Icons.backpack_outlined),
-                              selectedIcon: const Icon(Icons.backpack),
-                              label: Text(context.l10n.nav_equipment),
-                            ),
-                            NavigationRailDestination(
-                              icon: const Icon(Icons.people_outlined),
-                              selectedIcon: const Icon(Icons.people),
-                              label: Text(context.l10n.nav_buddies),
-                            ),
-                            NavigationRailDestination(
-                              icon: const Icon(Icons.store_outlined),
-                              selectedIcon: const Icon(Icons.store),
-                              label: Text(context.l10n.nav_diveCenters),
-                            ),
-                            NavigationRailDestination(
-                              icon: const Icon(Icons.card_membership_outlined),
-                              selectedIcon: const Icon(Icons.card_membership),
-                              label: Text(context.l10n.nav_certifications),
-                            ),
-                            NavigationRailDestination(
-                              icon: const Icon(Icons.school_outlined),
-                              selectedIcon: const Icon(Icons.school),
-                              label: Text(context.l10n.nav_courses),
-                            ),
-                            NavigationRailDestination(
-                              icon: const Icon(Icons.bar_chart_outlined),
-                              selectedIcon: const Icon(Icons.bar_chart),
-                              label: Text(context.l10n.nav_statistics),
-                            ),
-                            NavigationRailDestination(
-                              icon: const Icon(Icons.edit_calendar_outlined),
-                              selectedIcon: const Icon(Icons.edit_calendar),
-                              label: Text(context.l10n.nav_planning),
-                            ),
-                            NavigationRailDestination(
-                              icon: const Icon(Icons.sync_alt_outlined),
-                              selectedIcon: const Icon(Icons.sync_alt),
-                              label: Text(context.l10n.nav_transfer),
-                            ),
-                            NavigationRailDestination(
-                              icon: const Icon(Icons.settings_outlined),
-                              selectedIcon: const Icon(Icons.settings),
-                              label: Text(context.l10n.nav_settings),
-                            ),
-                          ],
+        body: GlobalDropTarget(
+          child: SafeArea(
+            child: Row(
+              children: [
+                // Wrap in a scrollable container so the rail doesn't overflow
+                // on short screens (e.g. phone landscape with 13 destinations).
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: IntrinsicHeight(
+                          child: NavigationRail(
+                            extended: showExtended,
+                            minExtendedWidth: 190,
+                            leading: isDesktopExtended
+                                ? IconButton(
+                                    icon: Icon(
+                                      _isCollapsed
+                                          ? Icons.keyboard_double_arrow_right
+                                          : Icons.keyboard_double_arrow_left,
+                                    ),
+                                    tooltip: _isCollapsed
+                                        ? context.l10n.nav_tooltip_expandMenu
+                                        : context.l10n.nav_tooltip_collapseMenu,
+                                    onPressed: () {
+                                      setState(() {
+                                        _isCollapsed = !_isCollapsed;
+                                      });
+                                    },
+                                  )
+                                : null,
+                            selectedIndex: selectedIndex,
+                            onDestinationSelected: (index) =>
+                                _onDestinationSelected(
+                                  index,
+                                  isWideScreen: true,
+                                ),
+                            destinations: [
+                              NavigationRailDestination(
+                                icon: const Icon(Icons.home_outlined),
+                                selectedIcon: const Icon(Icons.home),
+                                label: Text(context.l10n.nav_home),
+                              ),
+                              NavigationRailDestination(
+                                icon: const Icon(Icons.scuba_diving_outlined),
+                                selectedIcon: const Icon(Icons.scuba_diving),
+                                label: Text(context.l10n.nav_dives),
+                              ),
+                              NavigationRailDestination(
+                                icon: const Icon(Icons.location_on_outlined),
+                                selectedIcon: const Icon(Icons.location_on),
+                                label: Text(context.l10n.nav_sites),
+                              ),
+                              NavigationRailDestination(
+                                icon: const Icon(Icons.flight_outlined),
+                                selectedIcon: const Icon(Icons.flight),
+                                label: Text(context.l10n.nav_trips),
+                              ),
+                              NavigationRailDestination(
+                                icon: const Icon(Icons.backpack_outlined),
+                                selectedIcon: const Icon(Icons.backpack),
+                                label: Text(context.l10n.nav_equipment),
+                              ),
+                              NavigationRailDestination(
+                                icon: const Icon(Icons.people_outlined),
+                                selectedIcon: const Icon(Icons.people),
+                                label: Text(context.l10n.nav_buddies),
+                              ),
+                              NavigationRailDestination(
+                                icon: const Icon(Icons.store_outlined),
+                                selectedIcon: const Icon(Icons.store),
+                                label: Text(context.l10n.nav_diveCenters),
+                              ),
+                              NavigationRailDestination(
+                                icon: const Icon(
+                                  Icons.card_membership_outlined,
+                                ),
+                                selectedIcon: const Icon(Icons.card_membership),
+                                label: Text(context.l10n.nav_certifications),
+                              ),
+                              NavigationRailDestination(
+                                icon: const Icon(Icons.school_outlined),
+                                selectedIcon: const Icon(Icons.school),
+                                label: Text(context.l10n.nav_courses),
+                              ),
+                              NavigationRailDestination(
+                                icon: const Icon(Icons.bar_chart_outlined),
+                                selectedIcon: const Icon(Icons.bar_chart),
+                                label: Text(context.l10n.nav_statistics),
+                              ),
+                              NavigationRailDestination(
+                                icon: const Icon(Icons.edit_calendar_outlined),
+                                selectedIcon: const Icon(Icons.edit_calendar),
+                                label: Text(context.l10n.nav_planning),
+                              ),
+                              NavigationRailDestination(
+                                icon: const Icon(Icons.sync_alt_outlined),
+                                selectedIcon: const Icon(Icons.sync_alt),
+                                label: Text(context.l10n.nav_transfer),
+                              ),
+                              NavigationRailDestination(
+                                icon: const Icon(Icons.settings_outlined),
+                                selectedIcon: const Icon(Icons.settings),
+                                label: Text(context.l10n.nav_settings),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-              const VerticalDivider(thickness: 1, width: 1),
-              Expanded(
-                child: Column(
-                  children: [
-                    const UpdateBanner(),
-                    Expanded(child: widget.child),
-                  ],
+                    );
+                  },
                 ),
-              ),
-            ],
+                const VerticalDivider(thickness: 1, width: 1),
+                Expanded(
+                  child: Column(
+                    children: [
+                      const UpdateBanner(),
+                      Expanded(child: widget.child),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -404,11 +412,13 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
 
     // Mobile layout with BottomNavigationBar
     return Scaffold(
-      body: Column(
-        children: [
-          const UpdateBanner(),
-          Expanded(child: widget.child),
-        ],
+      body: GlobalDropTarget(
+        child: Column(
+          children: [
+            const UpdateBanner(),
+            Expanded(child: widget.child),
+          ],
+        ),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,

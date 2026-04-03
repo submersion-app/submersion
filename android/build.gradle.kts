@@ -34,6 +34,47 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// Ensure Kotlin and Java JVM targets match within each subproject.
+//
+// AGP 8+ rejects mismatched Kotlin/Java targets. Third-party Flutter plugins
+// (e.g. desktop_drop) set compileOptions to 1.8 but don't set kotlinOptions,
+// causing Kotlin to inherit a different default. Rather than forcing all
+// subprojects to JVM 21 (which breaks plugins whose source requires JVM 1.8),
+// we align Kotlin to each subproject's own Java target after evaluation.
+gradle.projectsEvaluated {
+    subprojects {
+        // Read the Java bytecode target that the plugin's build script configured.
+        // Prefer targetCompatibility (what AGP checks against) with a fallback
+        // to sourceCompatibility.
+        val compileOptions = extensions.findByType(
+            com.android.build.gradle.BaseExtension::class.java,
+        )?.compileOptions ?: return@subprojects
+        val javaTarget = compileOptions.targetCompatibility
+            ?: compileOptions.sourceCompatibility
+            ?: return@subprojects
+
+        val kotlinTarget = when (javaTarget) {
+            JavaVersion.VERSION_1_8 ->
+                org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+            JavaVersion.VERSION_11 ->
+                org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+            JavaVersion.VERSION_17 ->
+                org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+            JavaVersion.VERSION_21 ->
+                org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
+            else ->
+                org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+        }
+
+        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>()
+            .configureEach {
+                compilerOptions {
+                    jvmTarget.set(kotlinTarget)
+                }
+            }
+    }
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }

@@ -14,9 +14,11 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
+import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
+import 'package:submersion/features/import_wizard/domain/services/step_skip_calculator.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -87,7 +89,10 @@ class _UnifiedImportWizardBodyState
       };
     }
 
-    // Reset adapter state from any previous import session.
+    // Reset adapter state from any previous import session, unless the
+    // adapter already has externally pre-loaded state (e.g. from
+    // drag-and-drop or share intent) that should be preserved.
+    //
     // Deferred to post-frame because Riverpod forbids provider modifications
     // during initState/build. The _resetComplete flag prevents auto-advance
     // from firing during the first frame while stale state is still present.
@@ -96,7 +101,14 @@ class _UnifiedImportWizardBodyState
     // Riverpod's scheduled provider rebuilds (triggered by resetState)
     // complete before the widget tree re-accesses those providers.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.adapter.resetState();
+      final adapter = widget.adapter;
+      final hasPreloaded =
+          adapter is UniversalAdapter && adapter.hasPreloadedState;
+      if (hasPreloaded) {
+        adapter.consumePreloadedState();
+      } else {
+        widget.adapter.resetState();
+      }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) setState(() => _resetComplete = true);
       });
@@ -138,8 +150,27 @@ class _UnifiedImportWizardBodyState
       await step.onBeforeAdvance?.call();
       if (!mounted) return;
 
-      // Last acquisition step: build bundle then advance to review.
-      if (_currentPage == _reviewIndex - 1) {
+      // Determine the next page. Skip any remaining acquisition steps whose
+      // canAutoAdvance provider is already satisfied (e.g. Map Fields when the
+      // payload is already produced for non-CSV formats like SSRF/UDDF).
+      final skipped = <WizardStepDef>[];
+      final nextPage = calculateNextPage(
+        currentPage: _currentPage,
+        reviewIndex: _reviewIndex,
+        steps: _acquisitionSteps,
+        isAutoAdvanceReady: (step) =>
+            ref.read(step.canAutoAdvance ?? step.canAdvance),
+        skippedSteps: skipped,
+      );
+
+      // Run onBeforeAdvance for each skipped step so it can finalize state.
+      for (final step in skipped) {
+        await step.onBeforeAdvance?.call();
+        if (!mounted) return;
+      }
+
+      // Last acquisition step (or skipped past all of them): build bundle.
+      if (nextPage >= _reviewIndex) {
         final bundle = await widget.adapter.buildBundle();
         if (!mounted) return;
         final checkedBundle = await widget.adapter.checkDuplicates(bundle);
@@ -149,7 +180,7 @@ class _UnifiedImportWizardBodyState
             .setBundle(checkedBundle);
         ref.read(importWizardNotifierProvider.notifier).initializeDefaultTag();
       }
-      await _animateToPage(_currentPage + 1);
+      await _animateToPage(nextPage);
     } else if (_currentPage == _reviewIndex) {
       await _startImport();
     }

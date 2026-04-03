@@ -15689,6 +15689,23 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_detail_weatherSourceOpenMeteo => 'via Open-Meteo';
 
   @override
+  String get dropTarget_title => 'Ejtsd ide az importáláshoz';
+
+  @override
+  String get dropTarget_subtitle =>
+      'Engedd el az importálási varázsló megnyitásához';
+
+  @override
+  String get dropTarget_error_unsupportedFile => 'Nem támogatott fájltípus';
+
+  @override
+  String get dropTarget_error_wizardActive =>
+      'Előbb fejezd be a jelenlegi importálást';
+
+  @override
+  String get dropTarget_error_readFailed => 'A fájl nem olvasható';
+
+  @override
   String get enum_cloudCover_clear => 'Clear';
 
   @override
