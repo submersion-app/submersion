@@ -3183,13 +3183,13 @@ abstract class AppLocalizations {
   /// No description provided for @dashboard_hero_daysSinceLabel.
   ///
   /// In en, this message translates to:
-  /// **'days since last dive'**
+  /// **'days since diving'**
   String get dashboard_hero_daysSinceLabel;
 
   /// No description provided for @dashboard_hero_thisMonthLabel.
   ///
   /// In en, this message translates to:
-  /// **'this month'**
+  /// **'dives this month'**
   String get dashboard_hero_thisMonthLabel;
 
   /// No description provided for @dashboard_hero_thisYearLabel.
@@ -3215,6 +3215,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Diver'**
   String get dashboard_hero_diverFallbackName;
+
+  /// No description provided for @dashboard_activityStats_divesInYear.
+  ///
+  /// In en, this message translates to:
+  /// **'dives in {year}'**
+  String dashboard_activityStats_divesInYear(String year);
 
   /// No description provided for @dashboard_semantics_statsBar.
   ///
@@ -16099,7 +16105,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboarding_welcome_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Advanced dive logging and analysis'**
+  /// **'Advanced dive logging and analytics'**
   String get onboarding_welcome_subtitle;
 
   /// No description provided for @onboarding_welcome_title.

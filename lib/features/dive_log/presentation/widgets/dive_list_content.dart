@@ -855,12 +855,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     return AppBar(
       title: Text(context.l10n.diveLog_listPage_title),
       actions: [
-        ListViewModeToggle(
-          currentMode: ref.watch(diveListViewModeProvider),
-          onModeChanged: (mode) {
-            ref.read(diveListViewModeProvider.notifier).state = mode;
-          },
-        ),
         IconButton(
           icon: const Icon(Icons.map),
           tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
@@ -898,30 +892,43 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               showDiveNumberingDialog(context);
             } else if (value == 'advanced_search') {
               context.go('/dives/search');
+            } else if (value.startsWith('view_')) {
+              final mode = ListViewMode.fromName(
+                value.replaceFirst('view_', ''),
+              );
+              ref.read(diveListViewModeProvider.notifier).state = mode;
             }
           },
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'advanced_search',
-              child: Row(
-                children: [
-                  const Icon(Icons.manage_search),
-                  const SizedBox(width: 12),
-                  Text(context.l10n.diveLog_listPage_menuAdvancedSearch),
-                ],
+          itemBuilder: (context) {
+            final currentMode = ref.read(diveListViewModeProvider);
+            return [
+              ...ListViewModeToggle.menuItems(
+                context,
+                currentMode: currentMode,
               ),
-            ),
-            PopupMenuItem(
-              value: 'numbering',
-              child: Row(
-                children: [
-                  const Icon(Icons.format_list_numbered),
-                  const SizedBox(width: 12),
-                  Text(context.l10n.diveLog_listPage_menuDiveNumbering),
-                ],
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'advanced_search',
+                child: Row(
+                  children: [
+                    const Icon(Icons.manage_search),
+                    const SizedBox(width: 12),
+                    Text(context.l10n.diveLog_listPage_menuAdvancedSearch),
+                  ],
+                ),
               ),
-            ),
-          ],
+              PopupMenuItem(
+                value: 'numbering',
+                child: Row(
+                  children: [
+                    const Icon(Icons.format_list_numbered),
+                    const SizedBox(width: 12),
+                    Text(context.l10n.diveLog_listPage_menuDiveNumbering),
+                  ],
+                ),
+              ),
+            ];
+          },
         ),
       ],
     );
@@ -950,14 +957,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
-          ListViewModeToggle(
-            currentMode: ref.watch(diveListViewModeProvider),
-            onModeChanged: (mode) {
-              ref.read(diveListViewModeProvider.notifier).state = mode;
-            },
-            iconSize: 18,
-          ),
-          const SizedBox(width: 4),
           if (widget.onMapViewToggle != null)
             MapViewToggleButton(
               isActive: widget.isMapViewActive,
@@ -1006,30 +1005,43 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 showDiveNumberingDialog(context);
               } else if (value == 'advanced_search') {
                 context.go('/dives/search');
+              } else if (value.startsWith('view_')) {
+                final mode = ListViewMode.fromName(
+                  value.replaceFirst('view_', ''),
+                );
+                ref.read(diveListViewModeProvider.notifier).state = mode;
               }
             },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'advanced_search',
-                child: Row(
-                  children: [
-                    const Icon(Icons.manage_search, size: 20),
-                    const SizedBox(width: 12),
-                    Text(context.l10n.diveLog_listPage_menuAdvancedSearch),
-                  ],
+            itemBuilder: (context) {
+              final currentMode = ref.read(diveListViewModeProvider);
+              return [
+                ...ListViewModeToggle.menuItems(
+                  context,
+                  currentMode: currentMode,
                 ),
-              ),
-              PopupMenuItem(
-                value: 'numbering',
-                child: Row(
-                  children: [
-                    const Icon(Icons.format_list_numbered, size: 20),
-                    const SizedBox(width: 12),
-                    Text(context.l10n.diveLog_listPage_menuDiveNumbering),
-                  ],
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'advanced_search',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.manage_search, size: 20),
+                      const SizedBox(width: 12),
+                      Text(context.l10n.diveLog_listPage_menuAdvancedSearch),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                PopupMenuItem(
+                  value: 'numbering',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.format_list_numbered, size: 20),
+                      const SizedBox(width: 12),
+                      Text(context.l10n.diveLog_listPage_menuDiveNumbering),
+                    ],
+                  ),
+                ),
+              ];
+            },
           ),
         ],
       ),

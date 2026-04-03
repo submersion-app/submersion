@@ -39,6 +39,54 @@ class ListViewModeToggle extends StatelessWidget {
     };
   }
 
+  /// Build PopupMenuItems for use in overflow menus.
+  /// Values are prefixed with 'view_' (e.g. 'view_detailed').
+  static List<PopupMenuEntry<String>> menuItems(
+    BuildContext context, {
+    required ListViewMode currentMode,
+    List<ListViewMode> modes = ListViewMode.values,
+  }) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return modes.map((mode) {
+      final isCurrent = mode == currentMode;
+      return PopupMenuItem<String>(
+        value: 'view_${mode.name}',
+        child: Row(
+          children: [
+            Icon(
+              _iconForModeStatic(mode),
+              size: 20,
+              color: isCurrent ? primary : null,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              _labelForModeStatic(mode),
+              style: isCurrent
+                  ? TextStyle(color: primary, fontWeight: FontWeight.w600)
+                  : null,
+            ),
+          ],
+        ),
+      );
+    }).toList();
+  }
+
+  static IconData _iconForModeStatic(ListViewMode mode) {
+    return switch (mode) {
+      ListViewMode.detailed => Icons.view_agenda,
+      ListViewMode.compact => Icons.view_list,
+      ListViewMode.dense => Icons.list,
+    };
+  }
+
+  static String _labelForModeStatic(ListViewMode mode) {
+    return switch (mode) {
+      ListViewMode.detailed => 'Detailed',
+      ListViewMode.compact => 'Compact',
+      ListViewMode.dense => 'Dense',
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<ListViewMode>(

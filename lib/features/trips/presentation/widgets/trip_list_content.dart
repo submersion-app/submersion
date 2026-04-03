@@ -155,12 +155,6 @@ class _TripListContentState extends ConsumerState<TripListContent> {
       appBar: AppBar(
         title: Text(context.l10n.trips_appBar_title),
         actions: [
-          ListViewModeToggle(
-            currentMode: ref.watch(tripListViewModeProvider),
-            onModeChanged: (mode) {
-              ref.read(tripListViewModeProvider.notifier).state = mode;
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.search),
             tooltip: context.l10n.trips_list_tooltip_search,
@@ -172,6 +166,25 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             icon: const Icon(Icons.sort),
             tooltip: context.l10n.trips_list_tooltip_sort,
             onPressed: () => _showSortSheet(context),
+          ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value.startsWith('view_')) {
+                final mode = ListViewMode.fromName(
+                  value.replaceFirst('view_', ''),
+                );
+                ref.read(tripListViewModeProvider.notifier).state = mode;
+              }
+            },
+            itemBuilder: (context) {
+              final currentMode = ref.read(tripListViewModeProvider);
+              return [
+                ...ListViewModeToggle.menuItems(
+                  context,
+                  currentMode: currentMode,
+                ),
+              ];
+            },
           ),
         ],
       ),
@@ -202,14 +215,6 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
-          ListViewModeToggle(
-            currentMode: ref.watch(tripListViewModeProvider),
-            onModeChanged: (mode) {
-              ref.read(tripListViewModeProvider.notifier).state = mode;
-            },
-            iconSize: 18,
-          ),
-          const SizedBox(width: 4),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
             tooltip: context.l10n.trips_list_tooltip_search,
@@ -221,6 +226,26 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             icon: const Icon(Icons.sort, size: 20),
             tooltip: context.l10n.trips_list_tooltip_sort,
             onPressed: () => _showSortSheet(context),
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) {
+              if (value.startsWith('view_')) {
+                final mode = ListViewMode.fromName(
+                  value.replaceFirst('view_', ''),
+                );
+                ref.read(tripListViewModeProvider.notifier).state = mode;
+              }
+            },
+            itemBuilder: (context) {
+              final currentMode = ref.read(tripListViewModeProvider);
+              return [
+                ...ListViewModeToggle.menuItems(
+                  context,
+                  currentMode: currentMode,
+                ),
+              ];
+            },
           ),
         ],
       ),

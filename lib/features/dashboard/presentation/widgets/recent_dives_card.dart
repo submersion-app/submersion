@@ -93,6 +93,7 @@ class RecentDivesCard extends ConsumerWidget {
                   gradientEndColor: gradientColors.end,
                   siteLatitude: dive.site?.location?.latitude,
                   siteLongitude: dive.site?.location?.longitude,
+                  margin: const EdgeInsets.symmetric(vertical: 4),
                   onTap: () => context.push('/dives/${dive.id}'),
                 );
               }).toList(),

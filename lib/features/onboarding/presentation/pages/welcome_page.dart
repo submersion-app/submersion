@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -75,124 +76,126 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // App icon/logo
-                  ExcludeSemantics(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: Image.asset(
-                        'assets/icon/icon.png',
-                        width: 120,
-                        height: 120,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Welcome text
-                  Text(
-                    context.l10n.onboarding_welcome_title,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-
-                  Text(
-                    context.l10n.onboarding_welcome_subtitle,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 48),
-
-                  // Profile creation card
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              context.l10n.onboarding_welcome_createProfile,
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              context
-                                  .l10n
-                                  .onboarding_welcome_createProfileSubtitle,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            TextFormField(
-                              controller: _nameController,
-                              decoration: InputDecoration(
-                                labelText:
-                                    context.l10n.onboarding_welcome_nameLabel,
-                                prefixIcon: const Icon(Icons.person),
-                                hintText:
-                                    context.l10n.onboarding_welcome_nameHint,
-                              ),
-                              textCapitalization: TextCapitalization.words,
-                              autofocus: true,
-                              textInputAction: TextInputAction.done,
-                              onFieldSubmitted: (_) => _createProfile(),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return context
-                                      .l10n
-                                      .onboarding_welcome_nameValidation;
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 24),
-                            FilledButton.icon(
-                              onPressed: _isSaving ? null : _createProfile,
-                              icon: _isSaving
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Icon(Icons.arrow_forward),
-                              label: Text(
-                                _isSaving
-                                    ? context.l10n.onboarding_welcome_creating
-                                    : context
-                                          .l10n
-                                          .onboarding_welcome_getStarted,
-                              ),
-                            ),
-                          ],
+      body: OceanBackground(
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(32),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // App icon/logo
+                    ExcludeSemantics(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Image.asset(
+                          'assets/icon/icon.png',
+                          width: 120,
+                          height: 120,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 32),
+
+                    // Welcome text
+                    Text(
+                      context.l10n.onboarding_welcome_title,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+
+                    Text(
+                      context.l10n.onboarding_welcome_subtitle,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 48),
+
+                    // Profile creation card
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                context.l10n.onboarding_welcome_createProfile,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                context
+                                    .l10n
+                                    .onboarding_welcome_createProfileSubtitle,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              TextFormField(
+                                controller: _nameController,
+                                decoration: InputDecoration(
+                                  labelText:
+                                      context.l10n.onboarding_welcome_nameLabel,
+                                  prefixIcon: const Icon(Icons.person),
+                                  hintText:
+                                      context.l10n.onboarding_welcome_nameHint,
+                                ),
+                                textCapitalization: TextCapitalization.words,
+                                autofocus: true,
+                                textInputAction: TextInputAction.done,
+                                onFieldSubmitted: (_) => _createProfile(),
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return context
+                                        .l10n
+                                        .onboarding_welcome_nameValidation;
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 24),
+                              FilledButton.icon(
+                                onPressed: _isSaving ? null : _createProfile,
+                                icon: _isSaving
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Icon(Icons.arrow_forward),
+                                label: Text(
+                                  _isSaving
+                                      ? context.l10n.onboarding_welcome_creating
+                                      : context
+                                            .l10n
+                                            .onboarding_welcome_getStarted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

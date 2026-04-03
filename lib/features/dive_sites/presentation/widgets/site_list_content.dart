@@ -389,12 +389,6 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           : AppBar(
               title: Text(context.l10n.diveSites_list_appBar_title),
               actions: [
-                ListViewModeToggle(
-                  currentMode: ref.watch(siteListViewModeProvider),
-                  onModeChanged: (mode) {
-                    ref.read(siteListViewModeProvider.notifier).state = mode;
-                  },
-                ),
                 IconButton(
                   icon: const Icon(Icons.map),
                   tooltip: context.l10n.diveSites_list_tooltip_mapView,
@@ -432,21 +426,33 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert),
                   onSelected: (value) {
-                    switch (value) {
-                      case 'import':
-                        context.push('/sites/import');
+                    if (value == 'import') {
+                      context.push('/sites/import');
+                    } else if (value.startsWith('view_')) {
+                      final mode = ListViewMode.fromName(
+                        value.replaceFirst('view_', ''),
+                      );
+                      ref.read(siteListViewModeProvider.notifier).state = mode;
                     }
                   },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'import',
-                      child: ListTile(
-                        leading: const Icon(Icons.download),
-                        title: Text(context.l10n.diveSites_list_menu_import),
-                        contentPadding: EdgeInsets.zero,
+                  itemBuilder: (context) {
+                    final currentMode = ref.read(siteListViewModeProvider);
+                    return [
+                      ...ListViewModeToggle.menuItems(
+                        context,
+                        currentMode: currentMode,
                       ),
-                    ),
-                  ],
+                      const PopupMenuDivider(),
+                      PopupMenuItem(
+                        value: 'import',
+                        child: ListTile(
+                          leading: const Icon(Icons.download),
+                          title: Text(context.l10n.diveSites_list_menu_import),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ];
+                  },
                 ),
               ],
             ),
@@ -481,14 +487,6 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
-          ListViewModeToggle(
-            currentMode: ref.watch(siteListViewModeProvider),
-            onModeChanged: (mode) {
-              ref.read(siteListViewModeProvider.notifier).state = mode;
-            },
-            iconSize: 18,
-          ),
-          const SizedBox(width: 4),
           if (widget.onMapViewToggle != null)
             MapViewToggleButton(
               isActive: widget.isMapViewActive,
@@ -532,14 +530,27 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             onSelected: (value) {
               if (value == 'import') {
                 context.push('/sites/import');
+              } else if (value.startsWith('view_')) {
+                final mode = ListViewMode.fromName(
+                  value.replaceFirst('view_', ''),
+                );
+                ref.read(siteListViewModeProvider.notifier).state = mode;
               }
             },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'import',
-                child: Text(context.l10n.diveSites_list_menu_import),
-              ),
-            ],
+            itemBuilder: (context) {
+              final currentMode = ref.read(siteListViewModeProvider);
+              return [
+                ...ListViewModeToggle.menuItems(
+                  context,
+                  currentMode: currentMode,
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'import',
+                  child: Text(context.l10n.diveSites_list_menu_import),
+                ),
+              ];
+            },
           ),
         ],
       ),

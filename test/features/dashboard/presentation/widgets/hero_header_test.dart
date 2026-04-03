@@ -64,10 +64,10 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       }
 
-      // Diver name displayed
-      expect(find.text('Eric Griffin'), findsOneWidget);
-      // Total dives displayed
-      expect(find.text('2'), findsWidgets);
+      // Greeting includes first name
+      expect(find.textContaining('Eric'), findsOneWidget);
+      // Stats subtitle includes dive count
+      expect(find.textContaining('2 dives logged'), findsOneWidget);
     });
 
     testWidgets('shows fallback name when no diver set', (tester) async {
@@ -100,10 +100,10 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       }
 
-      expect(find.text('Diver'), findsOneWidget);
+      expect(find.textContaining('Diver'), findsOneWidget);
     });
 
-    testWidgets('does not display greeting text', (tester) async {
+    testWidgets('displays time-of-day greeting', (tester) async {
       final overrides = await getBaseOverrides();
 
       await tester.pumpWidget(
@@ -133,9 +133,12 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       }
 
-      expect(find.text('Good morning'), findsNothing);
-      expect(find.text('Good afternoon'), findsNothing);
-      expect(find.text('Good evening'), findsNothing);
+      // One of the time-of-day greetings should be present
+      final hasGreeting =
+          find.textContaining('Good morning').evaluate().isNotEmpty ||
+          find.textContaining('Good afternoon').evaluate().isNotEmpty ||
+          find.textContaining('Good evening').evaluate().isNotEmpty;
+      expect(hasGreeting, isTrue);
     });
   });
 }

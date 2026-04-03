@@ -1854,6 +1854,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dashboard_hero_diverFallbackName => 'Taucher';
 
   @override
+  String dashboard_activityStats_divesInYear(String year) {
+    return 'dives in $year';
+  }
+
+  @override
   String get dashboard_semantics_statsBar => 'Tauchstatistik-Zusammenfassung';
 
   @override

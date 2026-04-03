@@ -1143,12 +1143,20 @@
   "dashboard_hero_noDives": "Ready to log your first dive?",
   "dashboard_hero_divesLoggedLabel": "dives logged",
   "dashboard_hero_hoursUnderwaterLabel": "hours underwater",
-  "dashboard_hero_daysSinceLabel": "days since last dive",
-  "dashboard_hero_thisMonthLabel": "this month",
+  "dashboard_hero_daysSinceLabel": "days since diving",
+  "dashboard_hero_thisMonthLabel": "dives this month",
   "dashboard_hero_thisYearLabel": "dives this year",
   "dashboard_hero_todayLabel": "today!",
   "dashboard_hero_noDivesLabel": "no dives yet",
   "dashboard_hero_diverFallbackName": "Diver",
+  "dashboard_activityStats_divesInYear": "dives in {year}",
+  "@dashboard_activityStats_divesInYear": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
   "dashboard_semantics_statsBar": "Dive statistics summary",
   "dashboard_personalRecords_coldest": "Coldest",
   "dashboard_personalRecords_deepest": "Deepest",
@@ -5150,7 +5158,7 @@
   "onboarding_welcome_nameHint": "Enter your name",
   "onboarding_welcome_nameLabel": "Your Name",
   "onboarding_welcome_nameValidation": "Please enter your name",
-  "onboarding_welcome_subtitle": "Advanced dive logging and analysis",
+  "onboarding_welcome_subtitle": "Advanced dive logging and analytics",
   "onboarding_welcome_title": "Welcome to Submersion",
   "@onboarding_welcome_errorCreatingProfile": {
     "placeholders": {

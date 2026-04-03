@@ -1791,10 +1791,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_hero_hoursUnderwaterLabel => 'hours underwater';
 
   @override
-  String get dashboard_hero_daysSinceLabel => 'days since last dive';
+  String get dashboard_hero_daysSinceLabel => 'days since diving';
 
   @override
-  String get dashboard_hero_thisMonthLabel => 'this month';
+  String get dashboard_hero_thisMonthLabel => 'dives this month';
 
   @override
   String get dashboard_hero_thisYearLabel => 'dives this year';
@@ -1807,6 +1807,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboard_hero_diverFallbackName => 'Diver';
+
+  @override
+  String dashboard_activityStats_divesInYear(String year) {
+    return 'dives in $year';
+  }
 
   @override
   String get dashboard_semantics_statsBar => 'Dive statistics summary';
@@ -9235,7 +9240,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboarding_welcome_subtitle =>
-      'Advanced dive logging and analysis';
+      'Advanced dive logging and analytics';
 
   @override
   String get onboarding_welcome_title => 'Welcome to Submersion';

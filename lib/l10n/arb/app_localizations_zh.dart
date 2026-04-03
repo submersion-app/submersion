@@ -1751,6 +1751,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dashboard_hero_diverFallbackName => '潜水员';
 
   @override
+  String dashboard_activityStats_divesInYear(String year) {
+    return 'dives in $year';
+  }
+
+  @override
   String get dashboard_semantics_statsBar => '潜水统计摘要';
 
   @override

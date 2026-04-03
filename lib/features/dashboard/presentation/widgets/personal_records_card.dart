@@ -53,6 +53,7 @@ class PersonalRecordsCard extends ConsumerWidget {
     }
 
     return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -115,7 +116,6 @@ class _RecordRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final onSurfaceVariant = theme.colorScheme.onSurfaceVariant;
-    final bodySmall = theme.textTheme.bodySmall;
     final bodyMedium = theme.textTheme.bodyMedium;
 
     return InkWell(
@@ -124,11 +124,11 @@ class _RecordRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
           children: [
-            Text(label, style: bodySmall?.copyWith(color: onSurfaceVariant)),
+            Text(label, style: bodyMedium?.copyWith(color: onSurfaceVariant)),
             const Spacer(),
             Text(
               value,
-              style: bodyMedium?.copyWith(
+              style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: color,
               ),

@@ -13,6 +13,7 @@ class QuickActionsCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -25,39 +26,41 @@ class QuickActionsCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: () => showAddDiveBottomSheet(
-                      context: context,
-                      onLogManually: () => context.go('/dives/new'),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () => showAddDiveBottomSheet(
+                        context: context,
+                        onLogManually: () => context.go('/dives/new'),
+                      ),
+                      icon: const Icon(Icons.add),
+                      label: Text(context.l10n.dashboard_quickActions_logDive),
                     ),
-                    icon: const Icon(Icons.add),
-                    label: Text(context.l10n.dashboard_quickActions_logDive),
                   ),
-                ),
-                const SizedBox(height: 6),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.tonalIcon(
-                    onPressed: () => context.go('/planning/dive-planner'),
-                    icon: const Icon(Icons.edit_calendar),
-                    label: Text(context.l10n.dashboard_quickActions_planDive),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.tonalIcon(
+                      onPressed: () => context.go('/planning/dive-planner'),
+                      icon: const Icon(Icons.edit_calendar),
+                      label: Text(context.l10n.dashboard_quickActions_planDive),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => context.go('/statistics'),
-                    icon: const Icon(Icons.bar_chart),
-                    label: Text(context.l10n.dashboard_quickActions_statistics),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => context.go('/statistics'),
+                      icon: const Icon(Icons.bar_chart),
+                      label: Text(
+                        context.l10n.dashboard_quickActions_statistics,
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),

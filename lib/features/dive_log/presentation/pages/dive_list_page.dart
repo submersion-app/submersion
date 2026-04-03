@@ -381,6 +381,9 @@ class DiveListTile extends ConsumerWidget {
   final double? siteLatitude;
   final double? siteLongitude;
 
+  /// Card margin override (defaults to horizontal: 16, vertical: 4)
+  final EdgeInsetsGeometry? margin;
+
   const DiveListTile({
     super.key,
     required this.diveId,
@@ -405,6 +408,7 @@ class DiveListTile extends ConsumerWidget {
     this.gradientEndColor,
     this.siteLatitude,
     this.siteLongitude,
+    this.margin,
   });
 
   /// Calculate background color based on the active color attribute
@@ -695,7 +699,8 @@ class DiveListTile extends ConsumerWidget {
     if (shouldShowMap) {
       final tileUrl = _osmTileUrl(siteLatitude!, siteLongitude!, 13);
       return Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        margin:
+            margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         clipBehavior: Clip.antiAlias,
         child: Semantics(
           button: true,
@@ -746,7 +751,7 @@ class DiveListTile extends ConsumerWidget {
 
     // Standard card without map
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       color: cardColor,
       child: Semantics(
         button: true,

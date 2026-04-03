@@ -393,16 +393,6 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           : AppBar(
               title: Text(context.l10n.buddies_title),
               actions: [
-                ListViewModeToggle(
-                  currentMode: ref.watch(buddyListViewModeProvider),
-                  availableModes: const [
-                    ListViewMode.detailed,
-                    ListViewMode.dense,
-                  ],
-                  onModeChanged: (mode) {
-                    ref.read(buddyListViewModeProvider.notifier).state = mode;
-                  },
-                ),
                 IconButton(
                   icon: const Icon(Icons.sort),
                   tooltip: context.l10n.buddies_action_sort,
@@ -423,20 +413,37 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
                   onSelected: (value) {
                     if (value == 'import') {
                       _importFromContacts(context);
+                    } else if (value.startsWith('view_')) {
+                      final mode = ListViewMode.fromName(
+                        value.replaceFirst('view_', ''),
+                      );
+                      ref.read(buddyListViewModeProvider.notifier).state = mode;
                     }
                   },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'import',
-                      child: ListTile(
-                        leading: const Icon(Icons.contacts),
-                        title: Text(
-                          context.l10n.buddies_action_importFromContacts,
-                        ),
-                        contentPadding: EdgeInsets.zero,
+                  itemBuilder: (context) {
+                    final currentMode = ref.read(buddyListViewModeProvider);
+                    return [
+                      ...ListViewModeToggle.menuItems(
+                        context,
+                        currentMode: currentMode,
+                        modes: const [
+                          ListViewMode.detailed,
+                          ListViewMode.dense,
+                        ],
                       ),
-                    ),
-                  ],
+                      const PopupMenuDivider(),
+                      PopupMenuItem(
+                        value: 'import',
+                        child: ListTile(
+                          leading: const Icon(Icons.contacts),
+                          title: Text(
+                            context.l10n.buddies_action_importFromContacts,
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ];
+                  },
                 ),
               ],
             ),
@@ -469,14 +476,6 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
-          ListViewModeToggle(
-            currentMode: ref.watch(buddyListViewModeProvider),
-            availableModes: const [ListViewMode.detailed, ListViewMode.dense],
-            onModeChanged: (mode) {
-              ref.read(buddyListViewModeProvider.notifier).state = mode;
-            },
-            iconSize: 20,
-          ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
             tooltip: context.l10n.buddies_action_sort,
@@ -495,18 +494,32 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
             onSelected: (value) {
               if (value == 'import') {
                 _importFromContacts(context);
+              } else if (value.startsWith('view_')) {
+                final mode = ListViewMode.fromName(
+                  value.replaceFirst('view_', ''),
+                );
+                ref.read(buddyListViewModeProvider.notifier).state = mode;
               }
             },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'import',
-                child: ListTile(
-                  leading: const Icon(Icons.contacts),
-                  title: Text(context.l10n.buddies_action_importFromContacts),
-                  contentPadding: EdgeInsets.zero,
+            itemBuilder: (context) {
+              final currentMode = ref.read(buddyListViewModeProvider);
+              return [
+                ...ListViewModeToggle.menuItems(
+                  context,
+                  currentMode: currentMode,
+                  modes: const [ListViewMode.detailed, ListViewMode.dense],
                 ),
-              ),
-            ],
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'import',
+                  child: ListTile(
+                    leading: const Icon(Icons.contacts),
+                    title: Text(context.l10n.buddies_action_importFromContacts),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ];
+            },
           ),
         ],
       ),

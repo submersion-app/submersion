@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/activity_stats_bar.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/alerts_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/hero_header.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/personal_records_card.dart';
@@ -37,6 +38,8 @@ class DashboardPage extends ConsumerWidget {
               children: [
                 const HeroHeader(),
                 const SizedBox(height: 12),
+                const ActivityStatsBar(),
+                const SizedBox(height: 12),
                 const AlertsCard(),
                 const SizedBox(height: 12),
                 const RecentDivesCard(),
@@ -52,13 +55,15 @@ class DashboardPage extends ConsumerWidget {
   }
 
   Widget _buildBottomRow(BuildContext context, WidgetRef ref) {
-    return const Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: PersonalRecordsCard()),
-        SizedBox(width: 8),
-        Expanded(child: QuickActionsCard()),
-      ],
+    return const IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: PersonalRecordsCard()),
+          SizedBox(width: 8),
+          Expanded(child: QuickActionsCard()),
+        ],
+      ),
     );
   }
 }

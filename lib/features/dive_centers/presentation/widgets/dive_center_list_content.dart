@@ -172,13 +172,6 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
       appBar: AppBar(
         title: Text(context.l10n.diveCenters_title),
         actions: [
-          ListViewModeToggle(
-            currentMode: ref.watch(diveCenterListViewModeProvider),
-            onModeChanged: (mode) {
-              ref.read(diveCenterListViewModeProvider.notifier).state = mode;
-            },
-            iconSize: 24,
-          ),
           IconButton(
             icon: const Icon(Icons.map),
             tooltip: context.l10n.diveCenters_tooltip_mapView,
@@ -205,18 +198,31 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             onSelected: (value) {
               if (value == 'import') {
                 context.push('/dive-centers/import');
+              } else if (value.startsWith('view_')) {
+                final mode = ListViewMode.fromName(
+                  value.replaceFirst('view_', ''),
+                );
+                ref.read(diveCenterListViewModeProvider.notifier).state = mode;
               }
             },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'import',
-                child: ListTile(
-                  leading: const Icon(Icons.download),
-                  title: Text(context.l10n.diveCenters_action_import),
-                  contentPadding: EdgeInsets.zero,
+            itemBuilder: (context) {
+              final currentMode = ref.read(diveCenterListViewModeProvider);
+              return [
+                ...ListViewModeToggle.menuItems(
+                  context,
+                  currentMode: currentMode,
                 ),
-              ),
-            ],
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'import',
+                  child: ListTile(
+                    leading: const Icon(Icons.download),
+                    title: Text(context.l10n.diveCenters_action_import),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ];
+            },
           ),
         ],
       ),
@@ -247,12 +253,6 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
-          ListViewModeToggle(
-            currentMode: ref.watch(diveCenterListViewModeProvider),
-            onModeChanged: (mode) {
-              ref.read(diveCenterListViewModeProvider.notifier).state = mode;
-            },
-          ),
           if (widget.onMapViewToggle != null)
             MapViewToggleButton(
               isActive: widget.isMapViewActive,
@@ -285,14 +285,27 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             onSelected: (value) {
               if (value == 'import') {
                 context.push('/dive-centers/import');
+              } else if (value.startsWith('view_')) {
+                final mode = ListViewMode.fromName(
+                  value.replaceFirst('view_', ''),
+                );
+                ref.read(diveCenterListViewModeProvider.notifier).state = mode;
               }
             },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'import',
-                child: Text(context.l10n.diveCenters_action_import),
-              ),
-            ],
+            itemBuilder: (context) {
+              final currentMode = ref.read(diveCenterListViewModeProvider);
+              return [
+                ...ListViewModeToggle.menuItems(
+                  context,
+                  currentMode: currentMode,
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'import',
+                  child: Text(context.l10n.diveCenters_action_import),
+                ),
+              ];
+            },
           ),
         ],
       ),

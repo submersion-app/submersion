@@ -1,524 +1,155 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Specification for a single animated bubble.
-class _BubbleSpec {
-  final double x;
-  final double size;
-  final double speed;
-  final double phase;
-
-  const _BubbleSpec({
-    required this.x,
-    required this.size,
-    required this.speed,
-    required this.phase,
-  });
-}
-
-/// 15 bubbles: 7 large, 5 medium, 3 small.
-/// [speed] = controller cycles per bubble rise (higher = faster).
-/// [phase] = initial offset in [0,1] to stagger start times.
-const _bubbleSpecs = [
-  // Large
-  _BubbleSpec(x: 0.08, size: 18, speed: 1.43, phase: 0.00),
-  _BubbleSpec(x: 0.22, size: 14, speed: 1.18, phase: 0.20),
-  _BubbleSpec(x: 0.38, size: 20, speed: 1.11, phase: 0.05),
-  _BubbleSpec(x: 0.52, size: 12, speed: 1.33, phase: 0.35),
-  _BubbleSpec(x: 0.65, size: 16, speed: 1.25, phase: 0.12),
-  _BubbleSpec(x: 0.78, size: 22, speed: 1.00, phase: 0.08),
-  _BubbleSpec(x: 0.90, size: 10, speed: 1.54, phase: 0.40),
-  // Medium
-  _BubbleSpec(x: 0.15, size: 9, speed: 1.67, phase: 0.18),
-  _BubbleSpec(x: 0.45, size: 11, speed: 1.43, phase: 0.30),
-  _BubbleSpec(x: 0.58, size: 8, speed: 1.82, phase: 0.03),
-  _BubbleSpec(x: 0.72, size: 13, speed: 1.25, phase: 0.25),
-  _BubbleSpec(x: 0.85, size: 7, speed: 1.67, phase: 0.50),
-  // Small
-  _BubbleSpec(x: 0.30, size: 5, speed: 2.00, phase: 0.10),
-  _BubbleSpec(x: 0.48, size: 6, speed: 1.82, phase: 0.45),
-  _BubbleSpec(x: 0.82, size: 4, speed: 2.22, phase: 0.22),
-];
-
-/// Format total seconds into a concise hours string.
-String _formatHours(int totalSeconds) {
-  if (totalSeconds == 0) return '0';
-  final hours = totalSeconds / 3600;
-  if (hours < 1) {
-    final minutes = totalSeconds ~/ 60;
-    return '${minutes}m';
-  }
-  if (hours < 10) {
-    return hours.toStringAsFixed(1);
-  }
-  return hours.round().toString();
-}
-
-/// Hero header widget with diver name, career totals, activity stats,
+/// Hero header widget with personalized greeting, key stats,
 /// and animated ambient ocean effects (caustic shimmer + rising bubbles).
-class HeroHeader extends ConsumerStatefulWidget {
+class HeroHeader extends ConsumerWidget {
   const HeroHeader({super.key});
 
   @override
-  ConsumerState<HeroHeader> createState() => _HeroHeaderState();
-}
-
-class _HeroHeaderState extends ConsumerState<HeroHeader>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ticker;
-  final _stopwatch = Stopwatch();
-
-  /// Seconds for one conceptual animation cycle (controls bubble rise speed).
-  static const _cyclePeriod = 10.0;
-
-  @override
-  void initState() {
-    super.initState();
-    _stopwatch.start();
-    // Controller is used only to schedule repaints every frame.
-    _ticker = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 1),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _ticker.dispose();
-    _stopwatch.stop();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final diverAsync = ref.watch(dashboardDiverProvider);
     final statsAsync = ref.watch(diveStatisticsProvider);
-    final daysSinceAsync = ref.watch(daysSinceLastDiveProvider);
-    final monthlyAsync = ref.watch(monthlyDiveCountProvider);
-    final ytdAsync = ref.watch(yearToDateDiveCountProvider);
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    // Gradient uses icon-harmonious cyan-teal hues instead of theme colors,
-    // ensuring the app icon in the corner blends naturally with the banner.
-    final gradientColors = isDark
-        ? [
-            const Color(0xFF00838F),
-            const Color(0xFF00838F).withValues(alpha: 0.9),
-            const Color(0xFF00796B).withValues(alpha: 0.85),
-          ]
-        : [
-            const Color(0xFF00ACC1),
-            const Color(0xFF00ACC1).withValues(alpha: 0.9),
-            const Color(0xFF009688).withValues(alpha: 0.85),
-          ];
-    final bubbleColor = isDark
-        ? Colors.white.withValues(alpha: 0.10)
-        : Colors.white.withValues(alpha: 0.22);
-    final causticOpacity = isDark ? 0.06 : 0.12;
-
-    // Resolve provider values with fallbacks for loading/error states
-    final diverName =
-        diverAsync.valueOrNull?.name ??
-        context.l10n.dashboard_hero_diverFallbackName;
-    final stats = statsAsync.valueOrNull;
-    final totalDives = stats?.totalDives.toString() ?? '-';
-    final hoursValue = stats != null
-        ? _formatHours(stats.totalTimeSeconds)
-        : '-';
-    final daysSince = daysSinceAsync.valueOrNull;
-    final monthly = monthlyAsync.valueOrNull?.toString() ?? '-';
-    final ytd = ytdAsync.valueOrNull?.toString() ?? '-';
-
-    // Format days-since value
-    String daysSinceValue;
-    if (daysSince == null) {
-      daysSinceValue = '-';
-    } else if (daysSince == 0) {
-      daysSinceValue = context.l10n.dashboard_hero_todayLabel;
-    } else {
-      daysSinceValue = daysSince.toString();
-    }
 
     return Semantics(
-      label: context.l10n.dashboard_semantics_statsBar,
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: gradientColors,
-          ),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Stack(
-            children: [
-              // Animated ocean effects (caustic shimmer + rising bubbles)
-              Positioned.fill(
-                child: RepaintBoundary(
-                  child: AnimatedBuilder(
-                    animation: _ticker,
-                    builder: (context, _) {
-                      final t =
-                          _stopwatch.elapsedMilliseconds /
-                          (_cyclePeriod * 1000);
-                      return CustomPaint(
-                        painter: _OceanEffectPainter(
-                          animationValue: t,
-                          bubbleColor: bubbleColor,
-                          causticOpacity: causticOpacity,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              // Content: responsive layout
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                child: _buildHeroContent(
-                  context: context,
-                  theme: theme,
-                  isWide: MediaQuery.sizeOf(context).width >= 900,
-                  diverName: diverName,
-                  totalDives: totalDives,
-                  hoursValue: hoursValue,
-                  daysSinceValue: daysSinceValue,
-                  monthly: monthly,
-                  ytd: ytd,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeroContent({
-    required BuildContext context,
-    required ThemeData theme,
-    required bool isWide,
-    required String diverName,
-    required String totalDives,
-    required String hoursValue,
-    required String daysSinceValue,
-    required String monthly,
-    required String ytd,
-  }) {
-    final icon = ExcludeSemantics(
-      child: Image.asset('assets/icon/icon.png', width: 80, height: 80),
-    );
-
-    final nameWidget = Text(
-      diverName,
-      style: TextStyle(
-        fontSize: isWide ? 18 : 16,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-      ),
-      overflow: TextOverflow.ellipsis,
-      maxLines: 1,
-    );
-
-    if (isWide) {
-      return _buildDesktopLayout(
-        context: context,
-        theme: theme,
-        icon: icon,
-        nameWidget: nameWidget,
-        totalDives: totalDives,
-        hoursValue: hoursValue,
-        daysSinceValue: daysSinceValue,
-        monthly: monthly,
-        ytd: ytd,
-      );
-    }
-
-    return _buildPhoneLayout(
-      context: context,
-      theme: theme,
-      icon: icon,
-      nameWidget: nameWidget,
-      totalDives: totalDives,
-      hoursValue: hoursValue,
-      daysSinceValue: daysSinceValue,
-      monthly: monthly,
-      ytd: ytd,
-    );
-  }
-
-  /// Desktop: single horizontal row with vertical separators.
-  Widget _buildDesktopLayout({
-    required BuildContext context,
-    required ThemeData theme,
-    required Widget icon,
-    required Widget nameWidget,
-    required String totalDives,
-    required String hoursValue,
-    required String daysSinceValue,
-    required String monthly,
-    required String ytd,
-  }) {
-    return Row(
-      children: [
-        _careerStatColumn(
-          totalDives,
-          context.l10n.dashboard_hero_divesLoggedLabel,
-          theme,
-          fontSize: 24,
-        ),
-        const SizedBox(width: 20),
-        _careerStatColumn(
-          hoursValue,
-          context.l10n.dashboard_hero_hoursUnderwaterLabel,
-          theme,
-          fontSize: 24,
-        ),
-        const SizedBox(width: 16),
-        _verticalSeparator(40),
-        const SizedBox(width: 16),
-        _careerStatColumn(
-          daysSinceValue,
-          context.l10n.dashboard_hero_daysSinceLabel,
-          theme,
-          fontSize: 24,
-        ),
-        const SizedBox(width: 20),
-        _careerStatColumn(
-          monthly,
-          context.l10n.dashboard_hero_thisMonthLabel,
-          theme,
-          fontSize: 24,
-        ),
-        const SizedBox(width: 20),
-        _careerStatColumn(
-          ytd,
-          context.l10n.dashboard_hero_thisYearLabel,
-          theme,
-          fontSize: 24,
-        ),
-        const Spacer(),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 160),
-          child: nameWidget,
-        ),
-        const SizedBox(width: 16),
-        icon,
-      ],
-    );
-  }
-
-  /// Phone: icon left, name + stats stacked right, compact to match desktop height.
-  Widget _buildPhoneLayout({
-    required BuildContext context,
-    required ThemeData theme,
-    required Widget icon,
-    required Widget nameWidget,
-    required String totalDives,
-    required String hoursValue,
-    required String daysSinceValue,
-    required String monthly,
-    required String ytd,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
+      label: context.l10n.dashboard_semantics_greetingBanner,
+      child: OceanBackground(
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Flexible(
-                child: _careerStatColumn(
-                  totalDives,
-                  context.l10n.dashboard_hero_divesLoggedLabel,
-                  theme,
-                  fontSize: 22,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Greeting
+                    diverAsync.when(
+                      data: (diver) {
+                        final greeting = _getGreeting(context);
+                        final name =
+                            diver?.name.split(' ').first ??
+                            context.l10n.dashboard_hero_diverFallbackName;
+                        return Text(
+                          context.l10n.dashboard_greeting_withName(
+                            greeting,
+                            name,
+                          ),
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      },
+                      loading: () => Text(
+                        context.l10n.dashboard_greeting_withoutName(
+                          _getGreeting(context),
+                        ),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      error: (_, _) => Text(
+                        context.l10n.dashboard_greeting_withoutName(
+                          _getGreeting(context),
+                        ),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Headline stats
+                    statsAsync.when(
+                      data: (stats) {
+                        final screenWidth = MediaQuery.sizeOf(context).width;
+                        final showHours = screenWidth >= 600;
+                        return Text(
+                          _buildHeadlineStats(
+                            context,
+                            stats,
+                            showHours: showHours,
+                          ),
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.9),
+                          ),
+                        );
+                      },
+                      loading: () => Text(
+                        context.l10n.dashboard_hero_loading,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                      ),
+                      error: (_, _) => Text(
+                        context.l10n.dashboard_hero_error,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
-              _verticalSeparator(28),
-              const SizedBox(width: 8),
-              Flexible(
-                child: _careerStatColumn(
-                  hoursValue,
-                  context.l10n.dashboard_hero_hoursUnderwaterLabel,
-                  theme,
-                  fontSize: 22,
-                ),
-              ),
-              const SizedBox(width: 8),
-              _verticalSeparator(28),
-              const SizedBox(width: 8),
-              Flexible(
-                child: _careerStatColumn(
-                  daysSinceValue,
-                  context.l10n.dashboard_hero_daysSinceLabel,
-                  theme,
-                  fontSize: 22,
-                ),
-              ),
-              const SizedBox(width: 8),
-              _verticalSeparator(28),
-              const SizedBox(width: 8),
-              Flexible(
-                child: _careerStatColumn(
-                  ytd,
-                  context.l10n.dashboard_hero_thisYearLabel,
-                  theme,
-                  fontSize: 22,
+              const SizedBox(width: 16),
+              ExcludeSemantics(
+                child: Image.asset(
+                  'assets/icon/icon.png',
+                  width: 80,
+                  height: 80,
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(width: 14),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [nameWidget, const SizedBox(height: 4), icon],
-        ),
-      ],
+      ),
     );
   }
 
-  Widget _verticalSeparator(double height) {
-    return Container(
-      width: 1,
-      height: height,
-      color: Colors.white.withValues(alpha: 0.15),
-    );
+  String _getGreeting(BuildContext context) {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return context.l10n.dashboard_greeting_morning;
+    if (hour < 17) return context.l10n.dashboard_greeting_afternoon;
+    return context.l10n.dashboard_greeting_evening;
   }
 
-  Widget _careerStatColumn(
-    String value,
-    String label,
-    ThemeData theme, {
-    required double fontSize,
+  String _buildHeadlineStats(
+    BuildContext context,
+    DiveStatistics stats, {
+    bool showHours = true,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: Colors.white.withValues(alpha: 0.7),
-          ),
-        ),
-      ],
-    );
-  }
-}
+    if (stats.totalDives == 0) return context.l10n.dashboard_hero_noDives;
 
-/// Paints caustic light shimmer and rising bubbles in a single paint pass.
-class _OceanEffectPainter extends CustomPainter {
-  final double animationValue;
-  final Color bubbleColor;
-  final double causticOpacity;
+    final parts = <String>[];
 
-  _OceanEffectPainter({
-    required this.animationValue,
-    required this.bubbleColor,
-    required this.causticOpacity,
-  });
+    final diveText = stats.totalDives == 1
+        ? context.l10n.dashboard_hero_divesLoggedOne
+        : context.l10n.dashboard_hero_divesLoggedOther(stats.totalDives);
+    parts.add(diveText);
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    _paintCaustics(canvas, size);
-    _paintBubbles(canvas, size);
-  }
-
-  void _paintCaustics(Canvas canvas, Size size) {
-    final t = animationValue * 2 * math.pi;
-    final dx = math.sin(t) * 8;
-    final dy = math.cos(t) * 4;
-    final rect = Offset.zero & size;
-
-    // First caustic patch (upper-left area)
-    final center1 = Offset(size.width * 0.3 + dx, size.height * 0.4 + dy);
-    final paint1 = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          Colors.white.withValues(alpha: causticOpacity),
-          Colors.transparent,
-        ],
-      ).createShader(Rect.fromCircle(center: center1, radius: 80));
-    canvas.drawRect(rect, paint1);
-
-    // Second caustic patch (lower-right area)
-    final center2 = Offset(size.width * 0.7 - dx, size.height * 0.6 - dy);
-    final paint2 = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          Colors.white.withValues(alpha: causticOpacity * 0.67),
-          Colors.transparent,
-        ],
-      ).createShader(Rect.fromCircle(center: center2, radius: 60));
-    canvas.drawRect(rect, paint2);
-  }
-
-  void _paintBubbles(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-    final highlightPaint = Paint()..style = PaintingStyle.fill;
-
-    for (final spec in _bubbleSpecs) {
-      final progress = (animationValue * spec.speed + spec.phase) % 1.0;
-
-      // Y: rises from below bottom to above top
-      final y = size.height * (1.2 - progress * 1.4);
-
-      // X: base position + gentle sine wobble
-      final wobble = math.sin(progress * 4 * math.pi) * 3;
-      final x = spec.x * size.width + wobble;
-
-      // Opacity: fade in quickly at bottom, sustain, fade out at top
-      double opacity;
-      if (progress < 0.05) {
-        opacity = progress / 0.05;
-      } else if (progress > 0.85) {
-        opacity = (1.0 - progress) / 0.15;
-      } else {
-        opacity = 1.0;
-      }
-      opacity = opacity.clamp(0.0, 1.0);
-      if (opacity <= 0) continue;
-
-      final radius = spec.size / 2;
-
-      // Main bubble
-      paint.color = bubbleColor.withValues(alpha: bubbleColor.a * opacity);
-      canvas.drawCircle(Offset(x, y), radius, paint);
-
-      // Subtle glass highlight on larger bubbles
-      if (spec.size >= 10) {
-        highlightPaint.color = Colors.white.withValues(alpha: 0.08 * opacity);
-        canvas.drawCircle(
-          Offset(x - radius * 0.25, y - radius * 0.25),
-          radius * 0.4,
-          highlightPaint,
-        );
+    if (showHours) {
+      final hours = stats.totalTimeSeconds / 3600;
+      if (hours >= 1) {
+        final hoursStr = hours < 10
+            ? hours.toStringAsFixed(1)
+            : hours.round().toString();
+        parts.add(context.l10n.dashboard_hero_hoursUnderwater(hoursStr));
+      } else if (stats.totalTimeSeconds > 0) {
+        final minutes = stats.totalTimeSeconds ~/ 60;
+        parts.add(context.l10n.dashboard_hero_minutesUnderwater(minutes));
       }
     }
-  }
 
-  @override
-  bool shouldRepaint(_OceanEffectPainter oldDelegate) =>
-      animationValue != oldDelegate.animationValue;
+    return parts.join(' \u2022 ');
+  }
 }
