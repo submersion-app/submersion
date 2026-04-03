@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -1213,6 +1215,40 @@ void main() {
         expect(notifier.state.currentStep, ImportWizardStep.fileSelection);
         expect(notifier.state.fileBytes, isNull);
       });
+
+      test(
+        'detects Shearwater Cloud DB from real SQLite with required tables',
+        () async {
+          // Create a minimal SQLite database with the tables that
+          // ShearwaterDbReader.isShearwaterCloudDb checks for.
+          final tempDir = await Directory.systemTemp.createTemp('shearwater_');
+          final dbPath = '${tempDir.path}/shearwater_cloud.db';
+          final db = sqlite3.sqlite3.open(dbPath);
+          try {
+            db.execute('CREATE TABLE dive_details (DiveId INTEGER)');
+            db.execute('CREATE TABLE log_data (DiveId INTEGER)');
+            db.dispose();
+
+            final bytes = await File(dbPath).readAsBytes();
+            final result = await notifier.loadFileFromBytes(
+              bytes,
+              'shearwater_cloud.db',
+            );
+
+            expect(result.format, ImportFormat.shearwaterDb);
+            expect(result.sourceApp, SourceApp.shearwater);
+            expect(result.confidence, 0.95);
+            // Shearwater DB is supported, so state should advance.
+            expect(
+              notifier.state.currentStep,
+              ImportWizardStep.sourceConfirmation,
+            );
+            expect(notifier.state.fileBytes, isNotNull);
+          } finally {
+            await tempDir.delete(recursive: true);
+          }
+        },
+      );
 
       test('resets state before detection to enable auto-advance', () async {
         // Simulate prior wizard state
