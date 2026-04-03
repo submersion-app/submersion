@@ -132,44 +132,28 @@ void main() {
     testWidgets('consumes preloaded state from UniversalAdapter', (
       tester,
     ) async {
-      // Pre-load bytes into the universalImportNotifierProvider before the
-      // wizard is created, so the UniversalAdapter sees hasPreloadedState.
-      late UniversalAdapter universalAdapter;
+      // Use a shared ProviderContainer so state persists across widget
+      // rebuilds and the assertion validates real state consumption.
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
 
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Consumer(
-              builder: (context, ref, _) {
-                universalAdapter = UniversalAdapter(ref: ref);
-                return const SizedBox.shrink();
-              },
-            ),
-          ),
-        ),
-      );
-      await tester.pump();
-
-      // Pre-load state via the notifier before building the wizard.
+      // Pre-load state so the UniversalAdapter sees hasPreloadedState.
       await tester.runAsync(() async {
-        final container = ProviderScope.containerOf(
-          tester.element(find.byType(Consumer)),
-        );
         final notifier = container.read(
           universalImportNotifierProvider.notifier,
         );
         await notifier.loadFileFromBytes(_uddfBytes, 'dive.uddf');
       });
-      await tester.pump();
 
-      // Confirm the adapter reports preloaded state.
-      expect(universalAdapter.hasPreloadedState, isTrue);
+      expect(
+        container.read(universalImportNotifierProvider).wasLoadedExternally,
+        isTrue,
+      );
 
-      // Now rebuild with the actual wizard using the same ProviderScope.
+      // Build the wizard using the shared container.
       await tester.pumpWidget(
-        ProviderScope(
+        UncontrolledProviderScope(
+          container: container,
           child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
@@ -188,10 +172,7 @@ void main() {
       await tester.pump();
 
       // After the wizard consumes preloaded state, wasLoadedExternally
-      // should be cleared.
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(UnifiedImportWizard)),
-      );
+      // should be cleared in the shared container.
       final state = container.read(universalImportNotifierProvider);
       expect(state.wasLoadedExternally, isFalse);
     });
