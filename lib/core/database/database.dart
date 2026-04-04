@@ -2616,7 +2616,8 @@ class AppDatabase extends _$AppDatabase {
 
             // Copy pressure points into tank_pressure_profiles
             // Use hex(randomblob(16)) for UUID generation in SQLite
-            await customStatement('''
+            await customStatement(
+              '''
               INSERT INTO tank_pressure_profiles (id, dive_id, tank_id, timestamp, pressure)
               SELECT
                 lower(hex(randomblob(4)) || '-' || hex(randomblob(2)) || '-4' ||
@@ -2624,15 +2625,17 @@ class AppDatabase extends _$AppDatabase {
                   substr('89ab', abs(random()) % 4 + 1, 1) ||
                   substr(hex(randomblob(2)),2) || '-' ||
                   hex(randomblob(6))),
-                '$diveId',
-                '$tankId',
+                ?,
+                ?,
                 dp.timestamp,
                 dp.pressure
               FROM dive_profiles dp
-              WHERE dp.dive_id = '$diveId'
+              WHERE dp.dive_id = ?
                 AND dp.pressure IS NOT NULL
                 AND dp.is_primary = 1
-            ''');
+              ''',
+              [diveId, tankId, diveId],
+            );
           }
         }
       },

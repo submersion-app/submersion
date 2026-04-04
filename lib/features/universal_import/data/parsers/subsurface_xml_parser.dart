@@ -453,8 +453,11 @@ class SubsurfaceXmlParser implements ImportParser {
       points.add(point);
     }
 
+    // Sort tank indices for deterministic output ordering
+    final sortedTankIndices = tankIndicesWithPressure.toList()..sort();
+
     // Interpolate each tank's pressure independently
-    for (final tankIdx in tankIndicesWithPressure) {
+    for (final tankIdx in sortedTankIndices) {
       _fillSparseField(points, '_pressure_$tankIdx');
     }
     _fillSparseField(points, 'temperature');
@@ -462,7 +465,7 @@ class SubsurfaceXmlParser implements ImportParser {
     // Convert per-tank pressure fields into allTankPressures arrays
     for (final point in points) {
       final allTankPressures = <Map<String, dynamic>>[];
-      for (final tankIdx in tankIndicesWithPressure) {
+      for (final tankIdx in sortedTankIndices) {
         final pressure = point.remove('_pressure_$tankIdx') as double?;
         if (pressure != null) {
           allTankPressures.add({'pressure': pressure, 'tankIndex': tankIdx});

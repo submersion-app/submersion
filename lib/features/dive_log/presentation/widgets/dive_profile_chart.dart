@@ -207,6 +207,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 
 class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showTemperature = true;
+  bool _showPressure = false;
 
   bool _showHeartRate = false;
   bool _showSac = false;
@@ -452,6 +453,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // Sync local state with provider for backward compatibility
     // This allows the chart rendering logic to continue using local state
     _showTemperature = legendState.showTemperature;
+    _showPressure = legendState.showPressure;
     _showHeartRate = legendState.showHeartRate;
     _showSac = legendState.showSac;
     _showCeiling = legendState.showCeiling;
@@ -989,8 +991,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   units,
                 ),
 
-              // Multi-tank pressure lines
-              if (_hasMultiTankPressure)
+              // Multi-tank pressure lines (gated by pressure toggle)
+              if (_showPressure && _hasMultiTankPressure)
                 ..._buildMultiTankPressureLines(totalMaxDepth),
 
               // Heart rate line (if showing)

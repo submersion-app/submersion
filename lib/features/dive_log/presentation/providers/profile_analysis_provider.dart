@@ -816,7 +816,6 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
     // Extract profile data
     final depths = dive.profile.map((p) => p.depth).toList();
     final timestamps = dive.profile.map((p) => p.timestamp).toList();
-    final pressures = <double>[];
 
     // Get gas mix from primary tank
     double o2Fraction = 0.21; // Default to air
@@ -847,7 +846,10 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       startCns: startCns,
       startCompartments: startCompartments,
       startOtu: startOtu,
-      pressures: pressures.length == depths.length ? pressures : null,
+      // Pressure data requires async TankPressureRepository access;
+      // this synchronous provider omits it. Use profileAnalysisProvider
+      // (by diveId) for pressure-dependent analysis.
+      pressures: null,
       // CCR/SCR parameters
       diveMode: dive.diveMode,
       setpointHigh: dive.setpointHigh,

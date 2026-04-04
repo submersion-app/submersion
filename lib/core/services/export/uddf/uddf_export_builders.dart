@@ -332,6 +332,7 @@ class UddfExportBuilders {
                         if (pressure != null) {
                           builder.element(
                             'tankpressure',
+                            attributes: {'ref': 'tank_${entry.key}'},
                             nest: (pressure * 100000).toString(),
                           );
                         }
