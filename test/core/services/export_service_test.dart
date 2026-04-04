@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 void main() {
@@ -229,6 +230,166 @@ void main() {
       // Should not crash and should produce valid CSV
       expect(csvOutput, isNotEmpty);
       expect(csvOutput, contains('Test Trip'));
+    });
+  });
+
+  group('UDDF export with tank pressure', () {
+    test('exportDivesToUddf includes tankpressure elements with ref', () async {
+      final dive = Dive(
+        id: 'dive-1',
+        dateTime: DateTime(2025, 6, 15, 10, 30),
+        maxDepth: 20.0,
+        profile: [
+          const DiveProfilePoint(timestamp: 0, depth: 0.0),
+          const DiveProfilePoint(timestamp: 60, depth: 10.0),
+          const DiveProfilePoint(timestamp: 120, depth: 20.0),
+          const DiveProfilePoint(timestamp: 180, depth: 10.0),
+          const DiveProfilePoint(timestamp: 240, depth: 0.0),
+        ],
+        tanks: [
+          const DiveTank(id: 'tank-a', startPressure: 200, endPressure: 150),
+          const DiveTank(id: 'tank-b', startPressure: 190, endPressure: 140),
+        ],
+      );
+
+      final tankPressures = <String, Map<String, List<TankPressurePoint>>>{
+        'dive-1': {
+          'tank-a': [
+            const TankPressurePoint(
+              id: 'tp1',
+              tankId: 'tank-a',
+              timestamp: 0,
+              pressure: 200.0,
+            ),
+            const TankPressurePoint(
+              id: 'tp2',
+              tankId: 'tank-a',
+              timestamp: 120,
+              pressure: 175.0,
+            ),
+            const TankPressurePoint(
+              id: 'tp3',
+              tankId: 'tank-a',
+              timestamp: 240,
+              pressure: 150.0,
+            ),
+          ],
+          'tank-b': [
+            const TankPressurePoint(
+              id: 'tp4',
+              tankId: 'tank-b',
+              timestamp: 0,
+              pressure: 190.0,
+            ),
+            const TankPressurePoint(
+              id: 'tp5',
+              tankId: 'tank-b',
+              timestamp: 120,
+              pressure: 165.0,
+            ),
+            const TankPressurePoint(
+              id: 'tp6',
+              tankId: 'tank-b',
+              timestamp: 240,
+              pressure: 140.0,
+            ),
+          ],
+        },
+      };
+
+      final path = await exportService.exportDivesToUddf([
+        dive,
+      ], diveTankPressures: tankPressures);
+
+      // Read the generated file to verify tankpressure elements
+      final uddfFile = File(path);
+      expect(await uddfFile.exists(), isTrue);
+      final xml = await uddfFile.readAsString();
+
+      // Should contain tankpressure elements with ref attributes
+      expect(xml, contains('tankpressure'));
+      expect(xml, contains('ref="tank_tank-a"'));
+      expect(xml, contains('ref="tank_tank-b"'));
+
+      // Pressure values should be in Pascal (bar * 100000)
+      expect(xml, contains('20000000')); // 200.0 bar
+      expect(xml, contains('19000000')); // 190.0 bar
+
+      // Clean up
+      if (await uddfFile.exists()) await uddfFile.delete();
+    });
+
+    test('exportAllDataToUddf includes tankpressure with ref', () async {
+      final dive = Dive(
+        id: 'dive-full',
+        dateTime: DateTime(2025, 6, 15, 10, 30),
+        maxDepth: 20.0,
+        profile: [
+          const DiveProfilePoint(timestamp: 0, depth: 0.0),
+          const DiveProfilePoint(timestamp: 60, depth: 20.0),
+          const DiveProfilePoint(timestamp: 120, depth: 0.0),
+        ],
+        tanks: [
+          const DiveTank(id: 'tank-full', startPressure: 200, endPressure: 150),
+        ],
+      );
+
+      final tankPressures = <String, Map<String, List<TankPressurePoint>>>{
+        'dive-full': {
+          'tank-full': [
+            const TankPressurePoint(
+              id: 'tp-f1',
+              tankId: 'tank-full',
+              timestamp: 0,
+              pressure: 200.0,
+            ),
+            const TankPressurePoint(
+              id: 'tp-f2',
+              tankId: 'tank-full',
+              timestamp: 120,
+              pressure: 150.0,
+            ),
+          ],
+        },
+      };
+
+      final path = await exportService.exportAllDataToUddf(
+        dives: [dive],
+        diveTankPressures: tankPressures,
+      );
+
+      final uddfFile = File(path);
+      expect(await uddfFile.exists(), isTrue);
+      final xml = await uddfFile.readAsString();
+
+      expect(xml, contains('tankpressure'));
+      expect(xml, contains('ref="tank_tank-full"'));
+
+      if (await uddfFile.exists()) await uddfFile.delete();
+    });
+
+    test('exportDivesToUddf works without tank pressures', () async {
+      final dive = Dive(
+        id: 'dive-2',
+        dateTime: DateTime(2025, 6, 15, 10, 30),
+        maxDepth: 15.0,
+        profile: [
+          const DiveProfilePoint(timestamp: 0, depth: 0.0),
+          const DiveProfilePoint(timestamp: 60, depth: 15.0),
+          const DiveProfilePoint(timestamp: 120, depth: 0.0),
+        ],
+      );
+
+      final path = await exportService.exportDivesToUddf([dive]);
+
+      final uddfFile = File(path);
+      expect(await uddfFile.exists(), isTrue);
+      final xml = await uddfFile.readAsString();
+
+      // Should not contain tankpressure elements
+      expect(xml, isNot(contains('tankpressure')));
+
+      if (await uddfFile.exists()) await uddfFile.delete();
     });
   });
 }
