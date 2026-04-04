@@ -543,6 +543,12 @@ class BuhlmannAlgorithm {
     if (gasSegments.isEmpty) {
       throw ArgumentError('gasSegments must not be empty');
     }
+    if (gasSegments.first.startTimestamp > timestamps.first) {
+      throw ArgumentError(
+        'gasSegments.first.startTimestamp must be less than or equal to '
+        'the first profile timestamp',
+      );
+    }
     for (int i = 1; i < gasSegments.length; i++) {
       if (gasSegments[i].startTimestamp < gasSegments[i - 1].startTimestamp) {
         throw ArgumentError('gasSegments must be sorted by startTimestamp');
@@ -559,20 +565,56 @@ class BuhlmannAlgorithm {
 
     for (int i = 0; i < depths.length; i++) {
       if (i > 0) {
-        final duration = timestamps[i] - timestamps[i - 1];
-        final avgDepth = (depths[i - 1] + depths[i]) / 2.0;
-        final gas = _activeGasAtTimestamp(timestamps[i - 1], gasSegments);
+        final intervalStart = timestamps[i - 1];
+        final intervalEnd = timestamps[i];
+        final intervalBoundaries = <int>[
+          intervalStart,
+          ...gasSegments
+              .where(
+                (segment) =>
+                    segment.startTimestamp > intervalStart &&
+                    segment.startTimestamp < intervalEnd,
+              )
+              .map((segment) => segment.startTimestamp),
+          intervalEnd,
+        ];
 
-        calculateSegment(
-          depthMeters: avgDepth,
-          durationSeconds: duration,
-          fN2: gas.fN2,
-          fHe: gas.fHe,
-        );
+        for (
+          int boundaryIndex = 1;
+          boundaryIndex < intervalBoundaries.length;
+          boundaryIndex++
+        ) {
+          final subIntervalStart = intervalBoundaries[boundaryIndex - 1];
+          final subIntervalEnd = intervalBoundaries[boundaryIndex];
+          final duration = subIntervalEnd - subIntervalStart;
+          final startDepth = _interpolateDepth(
+            startTimestamp: intervalStart,
+            endTimestamp: intervalEnd,
+            startDepth: depths[i - 1],
+            endDepth: depths[i],
+            targetTimestamp: subIntervalStart,
+          );
+          final endDepth = _interpolateDepth(
+            startTimestamp: intervalStart,
+            endTimestamp: intervalEnd,
+            startDepth: depths[i - 1],
+            endDepth: depths[i],
+            targetTimestamp: subIntervalEnd,
+          );
+          final avgDepth = (startDepth + endDepth) / 2.0;
+          final gas = _activeGasAtTimestamp(subIntervalStart, gasSegments);
 
-        // Accumulate time if average depth was in safety stop zone
-        if (avgDepth >= safetyStopZoneMin && avgDepth <= safetyStopZoneMax) {
-          safetyStopTimeAccumulated += duration;
+          calculateSegment(
+            depthMeters: avgDepth,
+            durationSeconds: duration,
+            fN2: gas.fN2,
+            fHe: gas.fHe,
+          );
+
+          // Accumulate time if average depth was in safety stop zone
+          if (avgDepth >= safetyStopZoneMin && avgDepth <= safetyStopZoneMax) {
+            safetyStopTimeAccumulated += duration;
+          }
         }
       }
 
@@ -587,6 +629,22 @@ class BuhlmannAlgorithm {
     }
 
     return results;
+  }
+
+  double _interpolateDepth({
+    required int startTimestamp,
+    required int endTimestamp,
+    required double startDepth,
+    required double endDepth,
+    required int targetTimestamp,
+  }) {
+    if (endTimestamp == startTimestamp) {
+      return endDepth;
+    }
+
+    final progress =
+        (targetTimestamp - startTimestamp) / (endTimestamp - startTimestamp);
+    return startDepth + ((endDepth - startDepth) * progress);
   }
 
   ProfileGasSegment _activeGasAtTimestamp(

@@ -169,6 +169,10 @@ const double minDecoStopDepth = 3.0;
 /// Deco stop depth increment in meters.
 const double decoStopIncrement = 3.0;
 
+/// Inspired surface N2 pressure in bar, accounting for water vapor.
+const double inspiredSurfaceN2Bar =
+    (surfacePressureBar - waterVaporPressure) * airN2Fraction;
+
 /// Calculate inspired N2 pressure at a given ambient pressure.
 ///
 /// [ambientPressure] is the total pressure in bar.

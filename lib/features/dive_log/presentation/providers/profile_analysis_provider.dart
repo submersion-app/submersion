@@ -147,7 +147,14 @@ List<ProfileGasSegment> buildProfileGasSegments(
   ];
 
   final sortedSwitches = List<GasSwitchWithTank>.from(gasSwitches)
-    ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    ..sort((a, b) {
+      final timestampCompare = a.timestamp.compareTo(b.timestamp);
+      if (timestampCompare != 0) {
+        return timestampCompare;
+      }
+
+      return a.id.compareTo(b.id);
+    });
 
   for (final gasSwitch in sortedSwitches) {
     final nextSegment = ProfileGasSegment(
@@ -157,6 +164,10 @@ List<ProfileGasSegment> buildProfileGasSegments(
     );
 
     if (segments.last.startTimestamp == nextSegment.startTimestamp) {
+      _log.warning(
+        'Multiple gas switches share timestamp ${nextSegment.startTimestamp}; '
+        'using switch ${gasSwitch.id} after id-based tie-breaker',
+      );
       segments[segments.length - 1] = nextSegment;
       continue;
     }

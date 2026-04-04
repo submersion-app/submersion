@@ -429,6 +429,80 @@ void main() {
           );
         },
       );
+
+      test(
+        'processProfileWithGasSegments throws if first gas segment starts after profile start',
+        () {
+          final algorithm = BuhlmannAlgorithm(gfLow: 1.0, gfHigh: 1.0);
+
+          expect(
+            () => algorithm.processProfileWithGasSegments(
+              depths: const [10.0, 10.0],
+              timestamps: const [0, 60],
+              gasSegments: const [
+                ProfileGasSegment(
+                  startTimestamp: 30,
+                  fN2: airN2Fraction,
+                  fHe: 0.0,
+                ),
+              ],
+            ),
+            throwsArgumentError,
+          );
+        },
+      );
+
+      test(
+        'processProfileWithGasSegments applies in-interval gas switches at their exact timestamp',
+        () {
+          final sparseAlgorithm = BuhlmannAlgorithm(gfLow: 1.0, gfHigh: 1.0);
+          final explicitBoundaryAlgorithm = BuhlmannAlgorithm(
+            gfLow: 1.0,
+            gfHigh: 1.0,
+          );
+
+          final sparseStatuses = sparseAlgorithm.processProfileWithGasSegments(
+            depths: const [0.0, 30.0, 30.0],
+            timestamps: const [0, 120, 1320],
+            gasSegments: const [
+              ProfileGasSegment(
+                startTimestamp: 0,
+                fN2: airN2Fraction,
+                fHe: 0.0,
+              ),
+              ProfileGasSegment(startTimestamp: 720, fN2: 0.68, fHe: 0.0),
+            ],
+          );
+
+          final explicitBoundaryStatuses = explicitBoundaryAlgorithm
+              .processProfileWithGasSegments(
+                depths: const [0.0, 30.0, 30.0, 30.0],
+                timestamps: const [0, 120, 720, 1320],
+                gasSegments: const [
+                  ProfileGasSegment(
+                    startTimestamp: 0,
+                    fN2: airN2Fraction,
+                    fHe: 0.0,
+                  ),
+                  ProfileGasSegment(startTimestamp: 720, fN2: 0.68, fHe: 0.0),
+                ],
+              );
+
+          final sparseFinal = sparseStatuses.last;
+          final explicitFinal = explicitBoundaryStatuses.last;
+
+          expect(
+            sparseFinal.leadingCompartmentLoading,
+            closeTo(explicitFinal.leadingCompartmentLoading, 0.0001),
+          );
+          expect(
+            sparseFinal.ceilingMeters,
+            closeTo(explicitFinal.ceilingMeters, 0.0001),
+          );
+          expect(sparseFinal.ndlSeconds, equals(explicitFinal.ndlSeconds));
+          expect(sparseFinal.ttsSeconds, equals(explicitFinal.ttsSeconds));
+        },
+      );
     });
 
     group('decompression schedule', () {
