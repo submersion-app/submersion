@@ -1,8 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+class _SettingsNotifier extends StateNotifier<AppSettings>
+    implements SettingsNotifier {
+  _SettingsNotifier() : super(const AppSettings());
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 /// Generate a simple square-profile dive for testing:
 /// Descent to [maxDepth] over [descentSeconds], hold for [bottomSeconds],
@@ -469,6 +479,51 @@ void main() {
       );
       expect(result.ndlCurve, equals(baseAnalysis.ndlCurve));
       expect(sourceInfo.ndlActual, MetricDataSource.calculated);
+    });
+  });
+
+  group('diveProfileAnalysisProvider', () {
+    test('returns analysis for a dive with profile data', () {
+      final profile = _generateSquareProfile(
+        maxDepth: 18.0,
+        descentSeconds: 30,
+        bottomSeconds: 600,
+        ascentSeconds: 90,
+      );
+      final dive = Dive(
+        id: 'test-dive',
+        dateTime: DateTime(2025, 1, 1),
+        profile: profile,
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _SettingsNotifier()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final result = container.read(diveProfileAnalysisProvider(dive));
+      expect(result, isNotNull);
+      expect(result!.ascentRates, isNotEmpty);
+    });
+
+    test('returns null for empty profile', () {
+      final dive = Dive(
+        id: 'empty-dive',
+        dateTime: DateTime(2025, 1, 1),
+        profile: const [],
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _SettingsNotifier()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final result = container.read(diveProfileAnalysisProvider(dive));
+      expect(result, isNull);
     });
   });
 }

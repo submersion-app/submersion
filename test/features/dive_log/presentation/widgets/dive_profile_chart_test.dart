@@ -35,6 +35,8 @@ Widget _buildChart({
   Set<String>? visibleComputers,
   Map<String, Color>? computerLineColors,
   Set<String>? primaryComputers,
+  Map<String, List<TankPressurePoint>>? tankPressures,
+  List<DiveTank>? tanks,
 }) {
   return ProviderScope(
     overrides: [
@@ -53,6 +55,8 @@ Widget _buildChart({
             visibleComputers: visibleComputers,
             computerLineColors: computerLineColors,
             primaryComputers: primaryComputers,
+            tankPressures: tankPressures,
+            tanks: tanks,
           ),
         ),
       ),
@@ -170,6 +174,76 @@ void main() {
 
       await tester.pumpWidget(
         _buildChart(computerProfiles: {'comp-a': profileA, 'comp-b': profileB}),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveProfileChart), findsOneWidget);
+    });
+  });
+
+  group('DiveProfileChart - multi-tank pressure rendering', () {
+    testWidgets('renders with tank pressure data', (tester) async {
+      final profile = _makeProfile(points: 10);
+      final tankPressures = <String, List<TankPressurePoint>>{
+        'tank-1': List.generate(
+          10,
+          (i) => TankPressurePoint(
+            id: 'tp-1-$i',
+            tankId: 'tank-1',
+            timestamp: i * 30,
+            pressure: 200.0 - i * 5,
+          ),
+        ),
+        'tank-2': List.generate(
+          10,
+          (i) => TankPressurePoint(
+            id: 'tp-2-$i',
+            tankId: 'tank-2',
+            timestamp: i * 30,
+            pressure: 180.0 - i * 4,
+          ),
+        ),
+      };
+      final tanks = [
+        const DiveTank(id: 'tank-1', startPressure: 200, endPressure: 155),
+        const DiveTank(id: 'tank-2', startPressure: 180, endPressure: 144),
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profile,
+          tankPressures: tankPressures,
+          tanks: tanks,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveProfileChart), findsOneWidget);
+    });
+
+    testWidgets('renders with single tank pressure data', (tester) async {
+      final profile = _makeProfile(points: 5);
+      final tankPressures = <String, List<TankPressurePoint>>{
+        'tank-1': List.generate(
+          5,
+          (i) => TankPressurePoint(
+            id: 'tp-$i',
+            tankId: 'tank-1',
+            timestamp: i * 30,
+            pressure: 200.0 - i * 10,
+          ),
+        ),
+      };
+      final tanks = [
+        const DiveTank(id: 'tank-1', startPressure: 200, endPressure: 160),
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profile,
+          tankPressures: tankPressures,
+          tanks: tanks,
+        ),
       );
       await tester.pumpAndSettle();
 
