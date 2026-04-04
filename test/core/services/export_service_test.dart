@@ -306,10 +306,9 @@ void main() {
       expect(await uddfFile.exists(), isTrue);
       final xml = await uddfFile.readAsString();
 
-      // Should contain tankpressure elements with ref attributes
+      // Should contain tankpressure elements (simple export omits ref
+      // since it doesn't export <tankdata> elements with matching ids)
       expect(xml, contains('tankpressure'));
-      expect(xml, contains('ref="tank_tank-a"'));
-      expect(xml, contains('ref="tank_tank-b"'));
 
       // Pressure values should be in Pascal (bar * 100000)
       expect(xml, contains('20000000')); // 200.0 bar
@@ -363,6 +362,8 @@ void main() {
       final xml = await uddfFile.readAsString();
 
       expect(xml, contains('tankpressure'));
+      // Full export includes tankdata id and matching tankpressure ref
+      expect(xml, contains('id="tank_tank-full"'));
       expect(xml, contains('ref="tank_tank-full"'));
 
       if (await uddfFile.exists()) await uddfFile.delete();

@@ -404,6 +404,7 @@ class UddfExportBuilders {
           for (final tank in dive.tanks) {
             builder.element(
               'tankdata',
+              attributes: {'id': 'tank_${tank.id}'},
               nest: () {
                 // Link to gas mix
                 final mixId =
