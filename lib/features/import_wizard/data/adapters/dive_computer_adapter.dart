@@ -483,7 +483,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
             timestamp: p.timeSeconds,
             depth: p.depth,
             temperature: Value(p.temperature),
-            pressure: Value(p.pressure),
+            pressure: const Value(null),
             setpoint: Value(p.setpoint),
             ppO2: Value(p.ppo2),
           ),
