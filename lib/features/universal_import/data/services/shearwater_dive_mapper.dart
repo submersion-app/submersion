@@ -379,7 +379,9 @@ class ShearwaterDiveMapper {
         sampleMap['temperature'] = s.temperatureCelsius;
       }
       if (s.pressureBar != null) {
-        sampleMap['pressure'] = s.pressureBar;
+        sampleMap['allTankPressures'] = <Map<String, dynamic>>[
+          {'pressure': s.pressureBar, 'tankIndex': s.tankIndex ?? 0},
+        ];
       }
       if (s.setpoint != null) {
         sampleMap['setpoint'] = s.setpoint;

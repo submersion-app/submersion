@@ -285,7 +285,11 @@ void main() {
         expect(s1['timestamp'], 10);
         expect(s1['depth'], 5.0);
         expect(s1['temperature'], 22.0);
-        expect(s1['pressure'], 200.0);
+        expect(s1.containsKey('pressure'), isFalse);
+        final s1Pressures =
+            s1['allTankPressures'] as List<Map<String, dynamic>>;
+        expect(s1Pressures[0]['pressure'], 200.0);
+        expect(s1Pressures[0]['tankIndex'], 0);
         expect(s1['setpoint'], 1.3);
         expect(s1['ppO2'], 1.1);
         expect(s1['heartRate'], 80);
@@ -302,6 +306,7 @@ void main() {
         expect(s2['depth'], 10.0);
         expect(s2.containsKey('temperature'), isFalse);
         expect(s2.containsKey('pressure'), isFalse);
+        expect(s2.containsKey('allTankPressures'), isFalse);
         expect(s2.containsKey('setpoint'), isFalse);
         expect(s2.containsKey('ppO2'), isFalse);
         expect(s2.containsKey('heartRate'), isFalse);
@@ -443,6 +448,113 @@ void main() {
           parsed,
         );
         expect(result['waterTemp'], isNull);
+      });
+
+      test('builds allTankPressures from FFI samples with tank indices', () {
+        final baseMap = <String, dynamic>{'profile': <Map<String, dynamic>>[]};
+        final parsed = pigeon.ParsedDive(
+          fingerprint: '',
+          dateTimeYear: 2025,
+          dateTimeMonth: 1,
+          dateTimeDay: 1,
+          dateTimeHour: 0,
+          dateTimeMinute: 0,
+          dateTimeSecond: 0,
+          maxDepthMeters: 20,
+          avgDepthMeters: 10,
+          durationSeconds: 600,
+          samples: [
+            pigeon.ProfileSample(
+              timeSeconds: 10,
+              depthMeters: 5.0,
+              pressureBar: 200.0,
+              tankIndex: 0,
+            ),
+            pigeon.ProfileSample(
+              timeSeconds: 10,
+              depthMeters: 5.0,
+              pressureBar: 190.0,
+              tankIndex: 1,
+            ),
+            pigeon.ProfileSample(
+              timeSeconds: 20,
+              depthMeters: 10.0,
+              pressureBar: 195.0,
+              tankIndex: 0,
+            ),
+            pigeon.ProfileSample(
+              timeSeconds: 20,
+              depthMeters: 10.0,
+              pressureBar: 185.0,
+              tankIndex: 1,
+            ),
+            pigeon.ProfileSample(timeSeconds: 30, depthMeters: 12.0),
+          ],
+          tanks: [],
+          gasMixes: [],
+          events: [],
+        );
+        final result = ShearwaterDiveMapper.mergeWithParsedDive(
+          baseMap,
+          parsed,
+        );
+        final profile = result['profile'] as List;
+        expect(profile, hasLength(5));
+
+        final s1 = profile[0] as Map<String, dynamic>;
+        expect(s1.containsKey('pressure'), isFalse);
+        final s1Pressures =
+            s1['allTankPressures'] as List<Map<String, dynamic>>;
+        expect(s1Pressures, hasLength(1));
+        expect(s1Pressures[0]['pressure'], 200.0);
+        expect(s1Pressures[0]['tankIndex'], 0);
+
+        final s2 = profile[1] as Map<String, dynamic>;
+        expect(s2.containsKey('pressure'), isFalse);
+        final s2Pressures =
+            s2['allTankPressures'] as List<Map<String, dynamic>>;
+        expect(s2Pressures, hasLength(1));
+        expect(s2Pressures[0]['pressure'], 190.0);
+        expect(s2Pressures[0]['tankIndex'], 1);
+
+        final s5 = profile[4] as Map<String, dynamic>;
+        expect(s5.containsKey('allTankPressures'), isFalse);
+        expect(s5.containsKey('pressure'), isFalse);
+      });
+
+      test('defaults tankIndex to 0 when FFI sample has null tankIndex', () {
+        final baseMap = <String, dynamic>{'profile': <Map<String, dynamic>>[]};
+        final parsed = pigeon.ParsedDive(
+          fingerprint: '',
+          dateTimeYear: 2025,
+          dateTimeMonth: 1,
+          dateTimeDay: 1,
+          dateTimeHour: 0,
+          dateTimeMinute: 0,
+          dateTimeSecond: 0,
+          maxDepthMeters: 20,
+          avgDepthMeters: 10,
+          durationSeconds: 600,
+          samples: [
+            pigeon.ProfileSample(
+              timeSeconds: 10,
+              depthMeters: 5.0,
+              pressureBar: 200.0,
+            ),
+          ],
+          tanks: [],
+          gasMixes: [],
+          events: [],
+        );
+        final result = ShearwaterDiveMapper.mergeWithParsedDive(
+          baseMap,
+          parsed,
+        );
+        final profile = result['profile'] as List;
+        final s1 = profile[0] as Map<String, dynamic>;
+        final s1Pressures =
+            s1['allTankPressures'] as List<Map<String, dynamic>>;
+        expect(s1Pressures[0]['tankIndex'], 0);
       });
     });
   });
