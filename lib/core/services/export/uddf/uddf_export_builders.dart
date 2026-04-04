@@ -1504,20 +1504,46 @@ class UddfExportBuilders {
     );
   }
 
+  /// Find pressure at a given timestamp using binary search.
+  /// Points must be sorted by timestamp (ascending).
+  /// Returns null if no point exists within 2 seconds of [timestamp].
   static double? findPressureAtTimestamp(
     List<TankPressurePoint> points,
     int timestamp,
   ) {
     if (points.isEmpty) return null;
-    TankPressurePoint? closest;
-    int minDiff = 3;
-    for (final p in points) {
-      final diff = (p.timestamp - timestamp).abs();
-      if (diff < minDiff) {
-        minDiff = diff;
-        closest = p;
+
+    // Binary search for the insertion point
+    int low = 0;
+    int high = points.length;
+    while (low < high) {
+      final mid = low + ((high - low) >> 1);
+      if (points[mid].timestamp < timestamp) {
+        low = mid + 1;
+      } else {
+        high = mid;
       }
     }
+
+    // Check the two candidates (before and at insertion point)
+    const maxDiff = 3; // exclusive — accepts diffs of 0, 1, 2
+    TankPressurePoint? closest;
+    int minDiff = maxDiff;
+
+    if (low > 0) {
+      final diff = (points[low - 1].timestamp - timestamp).abs();
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = points[low - 1];
+      }
+    }
+    if (low < points.length) {
+      final diff = (points[low].timestamp - timestamp).abs();
+      if (diff < minDiff) {
+        closest = points[low];
+      }
+    }
+
     return closest?.pressure;
   }
 
