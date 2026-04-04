@@ -1516,12 +1516,6 @@ class UddfFullImportService {
             }
 
             allTankPressures.add({'pressure': pressure, 'tankIndex': tankIdx});
-
-            // Store first tank's pressure in legacy fields for backward compatibility
-            if (!point.containsKey('pressure')) {
-              point['pressure'] = pressure;
-              point['tankIndex'] = tankIdx;
-            }
           }
         }
 

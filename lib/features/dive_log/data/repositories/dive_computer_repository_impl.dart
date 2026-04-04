@@ -966,12 +966,7 @@ class DiveComputerRepository {
               computerId: Value(computerId),
               timestamp: Value(point.timestamp),
               depth: Value(point.depth),
-              // Store primary tank pressure for legacy compatibility
-              pressure: Value(
-                point.tankIndex == 0 || point.tankIndex == null
-                    ? point.pressure
-                    : null,
-              ),
+              pressure: const Value(null),
               temperature: Value(point.temperature),
               heartRate: Value(point.heartRate),
               isPrimary: Value(isPrimary),

@@ -1387,7 +1387,6 @@ class UddfEntityImporter {
     for (final p in profileData) {
       final timestamp = p['timestamp'] as int? ?? 0;
 
-      // Check for multi-tank pressure data first
       final allTankPressures =
           p['allTankPressures'] as List<Map<String, dynamic>>?;
       if (allTankPressures != null && allTankPressures.isNotEmpty) {
@@ -1401,17 +1400,6 @@ class UddfEntityImporter {
               pressure: pressure,
             ));
           }
-        }
-      } else {
-        // Legacy single pressure field
-        final pressure = p['pressure'] as double?;
-        final tankIdx = (p['tankIndex'] as int?) ?? 0;
-        if (pressure != null && tankIdx >= 0 && tankIdx < tanks.length) {
-          final tankId = tanks[tankIdx].id;
-          pressuresByTank.putIfAbsent(tankId, () => []).add((
-            timestamp: timestamp,
-            pressure: pressure,
-          ));
         }
       }
     }
