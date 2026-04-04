@@ -28,13 +28,19 @@ class ProfileExtractor {
 
       final key = _diveKey(row);
       result.putIfAbsent(key, () => []);
-      result[key]!.add({
+      final samplePoint = <String, dynamic>{
         'timestamp': timeSeconds,
         'depth': row['sampleDepth'],
         'temperature': row['sampleTemperature'],
-        'pressure': row['samplePressure'],
         'heartRate': row['sampleHeartRate'],
-      });
+      };
+      final samplePressure = row['samplePressure'] as double?;
+      if (samplePressure != null) {
+        samplePoint['allTankPressures'] = <Map<String, dynamic>>[
+          {'pressure': samplePressure, 'tankIndex': 0},
+        ];
+      }
+      result[key]!.add(samplePoint);
     }
 
     return result;

@@ -63,7 +63,7 @@ Future<int> performConsolidations({
             timestamp: p['timestamp'] as int? ?? 0,
             depth: p['depth'] as double? ?? 0.0,
             temperature: Value(p['temperature'] as double?),
-            pressure: Value(p['pressure'] as double?),
+            pressure: const Value(null),
             setpoint: Value(p['setpoint'] as double?),
             ppO2: Value(p['ppO2'] as double?),
           ),

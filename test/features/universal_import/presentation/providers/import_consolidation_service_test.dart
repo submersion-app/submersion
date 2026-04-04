@@ -433,7 +433,7 @@ void main() {
         expect(profile[0].timestamp.value, 10);
         expect(profile[0].depth.value, 5.0);
         expect(profile[0].temperature.value, 22.5);
-        expect(profile[0].pressure.value, 195.0);
+        expect(profile[0].pressure.value, isNull);
         expect(profile[0].setpoint.value, 1.3);
         expect(profile[0].ppO2.value, 1.1);
 

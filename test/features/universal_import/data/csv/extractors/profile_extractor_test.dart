@@ -60,7 +60,11 @@ void main() {
 
       expect(sample['depth'], 15.5);
       expect(sample['temperature'], 22.0);
-      expect(sample['pressure'], 180.0);
+      expect(sample.containsKey('pressure'), isFalse);
+      final allTP = sample['allTankPressures'] as List<Map<String, dynamic>>;
+      expect(allTP, hasLength(1));
+      expect(allTP[0]['pressure'], 180.0);
+      expect(allTP[0]['tankIndex'], 0);
       expect(sample['heartRate'], 70);
     });
 
