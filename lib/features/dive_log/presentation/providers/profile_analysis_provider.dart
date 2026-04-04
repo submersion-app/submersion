@@ -352,201 +352,200 @@ ProfileAnalysis _runProfileAnalysis(_ProfileAnalysisInput input) {
 /// previous dive via [profileAnalysisProvider] (different dive ID), applies
 /// surface-interval decay, and uses the result as startCns. The chain
 /// terminates when there is no previous dive or the surface interval >= 24h.
-final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
-  (ref, diveId) async {
-    try {
-      // Get the dive with profile data
-      final diveAsync = ref.watch(diveProvider(diveId));
+final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>((
+  ref,
+  diveId,
+) async {
+  try {
+    // Get the dive with profile data
+    final diveAsync = ref.watch(diveProvider(diveId));
 
-      // Await the dive data
-      final dive = await diveAsync.when(
-        data: (d) async => d,
-        loading: () async => null,
-        error: (e, st) async {
-          _log.error(
-            'Error loading dive for analysis: $diveId',
-            error: e,
-            stackTrace: st,
-          );
-          return null;
-        },
-      );
-
-      if (dive == null || dive.profile.isEmpty) {
-        _log.debug('No profile data for dive $diveId');
+    // Await the dive data
+    final dive = await diveAsync.when(
+      data: (d) async => d,
+      loading: () async => null,
+      error: (e, st) async {
+        _log.error(
+          'Error loading dive for analysis: $diveId',
+          error: e,
+          stackTrace: st,
+        );
         return null;
-      }
+      },
+    );
 
-      // Resolve GF values: use dive-specific if provided, else user settings
-      final double gfLow;
-      final double gfHigh;
-      if (dive.gradientFactorLow != null && dive.gradientFactorHigh != null) {
-        _log.debug(
-          'Using dive-specific GF ${dive.gradientFactorLow}/'
-          '${dive.gradientFactorHigh} for dive $diveId',
-        );
-        gfLow = (dive.gradientFactorLow! / 100.0).clamp(0.0, 1.0);
-        gfHigh = (dive.gradientFactorHigh! / 100.0).clamp(0.0, 1.0);
-      } else {
-        gfLow = ref.watch(gfLowProvider) / 100.0;
-        gfHigh = ref.watch(gfHighProvider) / 100.0;
-      }
-
-      // Extract profile data
-      final depths = dive.profile.map((p) => p.depth).toList();
-      final timestamps = dive.profile.map((p) => p.timestamp).toList();
-
-      // Try to get multi-tank pressure data first
-      List<double>? pressures;
-      if (dive.tanks.length > 1) {
-        // Load per-tank pressure data for multi-tank dives
-        final tankPressureRepo = ref.watch(tankPressureRepositoryProvider);
-        final tankPressures = await tankPressureRepo.getTankPressuresForDive(
-          diveId,
-        );
-
-        if (tankPressures.isNotEmpty) {
-          _log.debug(
-            'Loading multi-tank pressure data: ${tankPressures.length} tanks',
-          );
-          pressures = _combineMultiTankPressures(
-            timestamps: timestamps,
-            tankPressures: tankPressures,
-            tanks: dive.tanks,
-          );
-        }
-      }
-
-      // Fall back to single pressure from profile if no multi-tank data
-      if (pressures == null || pressures.length != depths.length) {
-        final singlePressures = dive.profile
-            .where((p) => p.pressure != null)
-            .map((p) => p.pressure!)
-            .toList();
-        if (singlePressures.length == depths.length) {
-          pressures = singlePressures;
-        }
-      }
-
-      // Get gas mix from primary tank
-      double o2Fraction = 0.21; // Default to air
-      double heFraction = 0.0;
-      if (dive.tanks.isNotEmpty) {
-        final primaryTank = dive.tanks.first;
-        o2Fraction = primaryTank.gasMix.o2 / 100.0;
-        heFraction = primaryTank.gasMix.he / 100.0;
-      }
-
-      // Read per-metric source preferences from legend state.
-      // Use select() to only watch the 4 data-source fields — toggling
-      // visibility or expanding menu sections should NOT trigger a full
-      // Buhlmann recalculation.
-      final ndlSource = ref.watch(
-        profileLegendProvider.select((s) => s.ndlSource),
-      );
-      final ceilingSource = ref.watch(
-        profileLegendProvider.select((s) => s.ceilingSource),
-      );
-      final ttsSource = ref.watch(
-        profileLegendProvider.select((s) => s.ttsSource),
-      );
-      final cnsSource = ref.watch(
-        profileLegendProvider.select((s) => s.cnsSource),
-      );
-
-      final useComputerCns = cnsSource == MetricDataSource.computer;
-      final computerCns = useComputerCns
-          ? extractComputerCns(dive.profile)
-          : null;
-
-      // Compute residual CNS (skip if this dive has computer CNS data)
-      final startCns = computerCns != null
-          ? computerCns.cnsStart
-          : await _computeResidualCns(ref, diveId);
-
-      // Compute residual tissue state from previous dives (48h cutoff)
-      final startCompartments = await _computeResidualTissueState(ref, diveId);
-
-      // Compute cumulative OTU from earlier same-day dives
-      final startOtu = await _computeResidualOtu(ref, diveId);
-
-      // Run Buhlmann analysis on a background isolate to keep UI responsive
-      _log.debug(
-        'Analyzing profile for dive $diveId with ${depths.length} points, '
-        'pressures: ${pressures?.length ?? 0}, mode: ${dive.diveMode}, '
-        'startCns: ${startCns.toStringAsFixed(1)}',
-      );
-      final analysis = await compute(
-        _runProfileAnalysis,
-        _ProfileAnalysisInput(
-          gfLow: gfLow,
-          gfHigh: gfHigh,
-          ppO2WarningThreshold: ref.watch(ppO2MaxWorkingProvider),
-          ppO2CriticalThreshold: ref.watch(ppO2MaxDecoProvider),
-          cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
-          ascentRateWarning: ref.watch(ascentRateWarningProvider),
-          ascentRateCritical: ref.watch(ascentRateCriticalProvider),
-          lastStopDepth: ref.watch(lastStopDepthProvider),
-          diveId: diveId,
-          depths: depths,
-          timestamps: timestamps,
-          o2Fraction: o2Fraction,
-          heFraction: heFraction,
-          startCns: startCns,
-          pressures: pressures,
-          diveMode: dive.diveMode,
-          setpointHigh: dive.setpointHigh,
-          setpointLow: dive.setpointLow,
-          scrInjectionRate: dive.scrInjectionRate,
-          scrSupplyO2Percent: dive.diluentGas?.o2,
-          scrVo2: dive.assumedVo2 ?? 1.3,
-          startCompartments: startCompartments,
-          startOtu: startOtu,
-        ),
-      );
-
-      // Overlay computer-reported deco data where available
-      final (overlaid, sourceInfo) = overlayComputerDecoData(
-        analysis,
-        dive.profile,
-        ndlSource: ndlSource,
-        ceilingSource: ceilingSource,
-        ttsSource: ttsSource,
-        cnsSource: cnsSource,
-      );
-
-      // Publish actual source info for legend badge display
-      ref.read(metricSourceInfoProvider.notifier).state = sourceInfo;
-
-      // Override o2Exposure with computer-reported CNS start/end
-      final withCns = computerCns != null
-          ? overlaid.copyWith(
-              o2Exposure: overlaid.o2Exposure.copyWith(
-                cnsStart: computerCns.cnsStart,
-                cnsEnd: computerCns.cnsEnd,
-              ),
-            )
-          : overlaid;
-
-      // Merge DB events (dive computer events) with auto-detected events
-      final dbEvents = await ref.watch(
-        diveComputerEventsProvider(diveId).future,
-      );
-      if (dbEvents.isEmpty) {
-        return withCns;
-      }
-      final merged = mergeEvents(withCns.events, dbEvents);
-      return withCns.copyWith(events: merged);
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to analyze profile for dive: $diveId',
-        error: e,
-        stackTrace: stackTrace,
-      );
+    if (dive == null || dive.profile.isEmpty) {
+      _log.debug('No profile data for dive $diveId');
       return null;
     }
-  },
-);
+
+    // Resolve GF values: use dive-specific if provided, else user settings
+    final double gfLow;
+    final double gfHigh;
+    if (dive.gradientFactorLow != null && dive.gradientFactorHigh != null) {
+      _log.debug(
+        'Using dive-specific GF ${dive.gradientFactorLow}/'
+        '${dive.gradientFactorHigh} for dive $diveId',
+      );
+      gfLow = (dive.gradientFactorLow! / 100.0).clamp(0.0, 1.0);
+      gfHigh = (dive.gradientFactorHigh! / 100.0).clamp(0.0, 1.0);
+    } else {
+      gfLow = ref.watch(gfLowProvider) / 100.0;
+      gfHigh = ref.watch(gfHighProvider) / 100.0;
+    }
+
+    // Extract profile data
+    final depths = dive.profile.map((p) => p.depth).toList();
+    final timestamps = dive.profile.map((p) => p.timestamp).toList();
+
+    // Try to get per-tank pressure data first (works for single and multi-tank)
+    List<double>? pressures;
+    if (dive.tanks.isNotEmpty) {
+      // Load per-tank pressure data from tank_pressure_profiles table
+      final tankPressureRepo = ref.watch(tankPressureRepositoryProvider);
+      final tankPressures = await tankPressureRepo.getTankPressuresForDive(
+        diveId,
+      );
+
+      if (tankPressures.isNotEmpty) {
+        _log.debug(
+          'Loading multi-tank pressure data: ${tankPressures.length} tanks',
+        );
+        pressures = _combineMultiTankPressures(
+          timestamps: timestamps,
+          tankPressures: tankPressures,
+          tanks: dive.tanks,
+        );
+      }
+    }
+
+    // Fall back to single pressure from profile if no multi-tank data
+    if (pressures == null || pressures.length != depths.length) {
+      final singlePressures = dive.profile
+          .where((p) => p.pressure != null)
+          .map((p) => p.pressure!)
+          .toList();
+      if (singlePressures.length == depths.length) {
+        pressures = singlePressures;
+      }
+    }
+
+    // Get gas mix from primary tank
+    double o2Fraction = 0.21; // Default to air
+    double heFraction = 0.0;
+    if (dive.tanks.isNotEmpty) {
+      final primaryTank = dive.tanks.first;
+      o2Fraction = primaryTank.gasMix.o2 / 100.0;
+      heFraction = primaryTank.gasMix.he / 100.0;
+    }
+
+    // Read per-metric source preferences from legend state.
+    // Use select() to only watch the 4 data-source fields — toggling
+    // visibility or expanding menu sections should NOT trigger a full
+    // Buhlmann recalculation.
+    final ndlSource = ref.watch(
+      profileLegendProvider.select((s) => s.ndlSource),
+    );
+    final ceilingSource = ref.watch(
+      profileLegendProvider.select((s) => s.ceilingSource),
+    );
+    final ttsSource = ref.watch(
+      profileLegendProvider.select((s) => s.ttsSource),
+    );
+    final cnsSource = ref.watch(
+      profileLegendProvider.select((s) => s.cnsSource),
+    );
+
+    final useComputerCns = cnsSource == MetricDataSource.computer;
+    final computerCns = useComputerCns
+        ? extractComputerCns(dive.profile)
+        : null;
+
+    // Compute residual CNS (skip if this dive has computer CNS data)
+    final startCns = computerCns != null
+        ? computerCns.cnsStart
+        : await _computeResidualCns(ref, diveId);
+
+    // Compute residual tissue state from previous dives (48h cutoff)
+    final startCompartments = await _computeResidualTissueState(ref, diveId);
+
+    // Compute cumulative OTU from earlier same-day dives
+    final startOtu = await _computeResidualOtu(ref, diveId);
+
+    // Run Buhlmann analysis on a background isolate to keep UI responsive
+    _log.debug(
+      'Analyzing profile for dive $diveId with ${depths.length} points, '
+      'pressures: ${pressures?.length ?? 0}, mode: ${dive.diveMode}, '
+      'startCns: ${startCns.toStringAsFixed(1)}',
+    );
+    final analysis = await compute(
+      _runProfileAnalysis,
+      _ProfileAnalysisInput(
+        gfLow: gfLow,
+        gfHigh: gfHigh,
+        ppO2WarningThreshold: ref.watch(ppO2MaxWorkingProvider),
+        ppO2CriticalThreshold: ref.watch(ppO2MaxDecoProvider),
+        cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
+        ascentRateWarning: ref.watch(ascentRateWarningProvider),
+        ascentRateCritical: ref.watch(ascentRateCriticalProvider),
+        lastStopDepth: ref.watch(lastStopDepthProvider),
+        diveId: diveId,
+        depths: depths,
+        timestamps: timestamps,
+        o2Fraction: o2Fraction,
+        heFraction: heFraction,
+        startCns: startCns,
+        pressures: pressures,
+        diveMode: dive.diveMode,
+        setpointHigh: dive.setpointHigh,
+        setpointLow: dive.setpointLow,
+        scrInjectionRate: dive.scrInjectionRate,
+        scrSupplyO2Percent: dive.diluentGas?.o2,
+        scrVo2: dive.assumedVo2 ?? 1.3,
+        startCompartments: startCompartments,
+        startOtu: startOtu,
+      ),
+    );
+
+    // Overlay computer-reported deco data where available
+    final (overlaid, sourceInfo) = overlayComputerDecoData(
+      analysis,
+      dive.profile,
+      ndlSource: ndlSource,
+      ceilingSource: ceilingSource,
+      ttsSource: ttsSource,
+      cnsSource: cnsSource,
+    );
+
+    // Publish actual source info for legend badge display
+    ref.read(metricSourceInfoProvider.notifier).state = sourceInfo;
+
+    // Override o2Exposure with computer-reported CNS start/end
+    final withCns = computerCns != null
+        ? overlaid.copyWith(
+            o2Exposure: overlaid.o2Exposure.copyWith(
+              cnsStart: computerCns.cnsStart,
+              cnsEnd: computerCns.cnsEnd,
+            ),
+          )
+        : overlaid;
+
+    // Merge DB events (dive computer events) with auto-detected events
+    final dbEvents = await ref.watch(diveComputerEventsProvider(diveId).future);
+    if (dbEvents.isEmpty) {
+      return withCns;
+    }
+    final merged = mergeEvents(withCns.events, dbEvents);
+    return withCns.copyWith(events: merged);
+  } catch (e, stackTrace) {
+    _log.error(
+      'Failed to analyze profile for dive: $diveId',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return null;
+  }
+});
 
 /// Computes residual CNS% from the previous dive using recursive lookback.
 ///
