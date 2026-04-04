@@ -31,10 +31,30 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
-    show TankPressurePoint;
+    show Dive, TankPressurePoint;
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+
+/// Load per-tank pressure data for a list of dives.
+///
+/// Returns a map keyed by dive ID, where each value is a map of
+/// tank ID to pressure point list.
+Future<Map<String, Map<String, List<TankPressurePoint>>>>
+loadTankPressuresForDives(
+  TankPressureRepository repository,
+  List<Dive> dives,
+) async {
+  final result = <String, Map<String, List<TankPressurePoint>>>{};
+  for (final dive in dives) {
+    final pressures = await repository.getTankPressuresForDive(dive.id);
+    if (pressures.isNotEmpty) {
+      result[dive.id] = pressures;
+    }
+  }
+  return result;
+}
 
 /// Export service provider
 final exportServiceProvider = Provider<ExportService>((ref) {
@@ -412,17 +432,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       }
 
       // Load per-tank pressure data for each dive
-      final tankPressureRepository = _ref.read(tankPressureRepositoryProvider);
-      final Map<String, Map<String, List<TankPressurePoint>>>
-      diveTankPressures = {};
-      for (final dive in dives) {
-        final pressures = await tankPressureRepository.getTankPressuresForDive(
-          dive.id,
-        );
-        if (pressures.isNotEmpty) {
-          diveTankPressures[dive.id] = pressures;
-        }
-      }
+      final diveTankPressures = await loadTankPressuresForDives(
+        _ref.read(tankPressureRepositoryProvider),
+        dives,
+      );
 
       state = state.copyWith(message: 'Generating UDDF file...');
       final path = await _exportService.exportAllDataToUddf(
@@ -908,17 +921,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       }
 
       // Load per-tank pressure data for each dive
-      final tankPressureRepository = _ref.read(tankPressureRepositoryProvider);
-      final Map<String, Map<String, List<TankPressurePoint>>>
-      diveTankPressures = {};
-      for (final dive in dives) {
-        final pressures = await tankPressureRepository.getTankPressuresForDive(
-          dive.id,
-        );
-        if (pressures.isNotEmpty) {
-          diveTankPressures[dive.id] = pressures;
-        }
-      }
+      final diveTankPressures = await loadTankPressuresForDives(
+        _ref.read(tankPressureRepositoryProvider),
+        dives,
+      );
 
       state = state.copyWith(message: 'Choose save location...');
       final path = await _exportService.saveAllDataToUddfFile(
