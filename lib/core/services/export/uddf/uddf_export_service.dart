@@ -3,6 +3,7 @@ import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
@@ -13,6 +14,7 @@ class UddfExportService {
   Future<String> exportDivesToUddf(
     List<Dive> dives, {
     List<DiveSite>? sites,
+    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
   }) async {
     final builder = XmlBuilder();
 
@@ -283,6 +285,26 @@ class UddfExportService {
                                         nest: (point.temperature! + 273.15)
                                             .toString(),
                                       ); // Kelvin
+                                    }
+                                    // Tank pressure from tank_pressure_profiles
+                                    final divePressures =
+                                        diveTankPressures?[dive.id];
+                                    if (divePressures != null) {
+                                      for (final entry
+                                          in divePressures.entries) {
+                                        final pressure =
+                                            UddfExportBuilders.findPressureAtTimestamp(
+                                              entry.value,
+                                              point.timestamp,
+                                            );
+                                        if (pressure != null) {
+                                          builder.element(
+                                            'tankpressure',
+                                            nest: (pressure * 100000)
+                                                .toString(),
+                                          );
+                                        }
+                                      }
                                     }
                                   },
                                 );

@@ -325,7 +325,7 @@ class UddfExportBuilders {
                     }
                     if (tankPressures != null) {
                       for (final entry in tankPressures.entries) {
-                        final pressure = _findPressureAtTimestamp(
+                        final pressure = findPressureAtTimestamp(
                           entry.value,
                           point.timestamp,
                         );
@@ -1503,7 +1503,7 @@ class UddfExportBuilders {
     );
   }
 
-  static double? _findPressureAtTimestamp(
+  static double? findPressureAtTimestamp(
     List<TankPressurePoint> points,
     int timestamp,
   ) {

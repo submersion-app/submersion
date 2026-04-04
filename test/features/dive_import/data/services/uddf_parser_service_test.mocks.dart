@@ -466,13 +466,22 @@ class MockExportService extends _i1.Mock implements _i3.ExportService {
   _i4.Future<String> exportDivesToUddf(
     List<_i5.Dive>? dives, {
     List<_i7.DiveSite>? sites,
+    Map<String, Map<String, List<_i5.TankPressurePoint>>>? diveTankPressures,
   }) =>
       (super.noSuchMethod(
-            Invocation.method(#exportDivesToUddf, [dives], {#sites: sites}),
+            Invocation.method(
+              #exportDivesToUddf,
+              [dives],
+              {#sites: sites, #diveTankPressures: diveTankPressures},
+            ),
             returnValue: _i4.Future<String>.value(
               _i6.dummyValue<String>(
                 this,
-                Invocation.method(#exportDivesToUddf, [dives], {#sites: sites}),
+                Invocation.method(
+                  #exportDivesToUddf,
+                  [dives],
+                  {#sites: sites, #diveTankPressures: diveTankPressures},
+                ),
               ),
             ),
           )
@@ -501,6 +510,7 @@ class MockExportService extends _i1.Mock implements _i3.ExportService {
     List<_i23.EquipmentSet>? equipmentSets,
     List<_i11.Course>? courses,
     Map<String, List<_i24.GasSwitchWithTank>>? diveGasSwitches,
+    Map<String, Map<String, List<_i5.TankPressurePoint>>>? diveTankPressures,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#exportAllDataToUddf, [], {
@@ -525,6 +535,7 @@ class MockExportService extends _i1.Mock implements _i3.ExportService {
               #equipmentSets: equipmentSets,
               #courses: courses,
               #diveGasSwitches: diveGasSwitches,
+              #diveTankPressures: diveTankPressures,
             }),
             returnValue: _i4.Future<String>.value(
               _i6.dummyValue<String>(
@@ -551,6 +562,7 @@ class MockExportService extends _i1.Mock implements _i3.ExportService {
                   #equipmentSets: equipmentSets,
                   #courses: courses,
                   #diveGasSwitches: diveGasSwitches,
+                  #diveTankPressures: diveTankPressures,
                 }),
               ),
             ),
@@ -580,6 +592,7 @@ class MockExportService extends _i1.Mock implements _i3.ExportService {
     List<_i23.EquipmentSet>? equipmentSets,
     List<_i11.Course>? courses,
     Map<String, List<_i24.GasSwitchWithTank>>? diveGasSwitches,
+    Map<String, Map<String, List<_i5.TankPressurePoint>>>? diveTankPressures,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#saveAllDataToUddfFile, [], {
@@ -604,6 +617,7 @@ class MockExportService extends _i1.Mock implements _i3.ExportService {
               #equipmentSets: equipmentSets,
               #courses: courses,
               #diveGasSwitches: diveGasSwitches,
+              #diveTankPressures: diveTankPressures,
             }),
             returnValue: _i4.Future<String?>.value(),
           )

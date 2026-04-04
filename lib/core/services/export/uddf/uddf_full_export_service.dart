@@ -60,6 +60,7 @@ class UddfFullExportService {
     List<EquipmentSet>? equipmentSets,
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
+    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
   }) {
     final builder = XmlBuilder();
 
@@ -389,6 +390,7 @@ class UddfFullExportService {
                         weightList,
                         trips,
                         gasSwitchList,
+                        tankPressures: diveTankPressures?[dive.id],
                       );
                     }
                   },
@@ -446,6 +448,7 @@ class UddfFullExportService {
     List<EquipmentSet>? equipmentSets,
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
+    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
   }) {
     final xmlString = _generateAllDataXml(
       dives: dives,
@@ -469,6 +472,7 @@ class UddfFullExportService {
       equipmentSets: equipmentSets,
       courses: courses,
       diveGasSwitches: diveGasSwitches,
+      diveTankPressures: diveTankPressures,
     );
     final fileName =
         'submersion_backup_${_dateFormat.format(DateTime.now())}.uddf';
@@ -499,6 +503,7 @@ class UddfFullExportService {
     List<EquipmentSet>? equipmentSets,
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
+    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
   }) async {
     final xmlString = _generateAllDataXml(
       dives: dives,
@@ -522,6 +527,7 @@ class UddfFullExportService {
       equipmentSets: equipmentSets,
       courses: courses,
       diveGasSwitches: diveGasSwitches,
+      diveTankPressures: diveTankPressures,
     );
     final fileName =
         'submersion_backup_${_dateFormat.format(DateTime.now())}.uddf';

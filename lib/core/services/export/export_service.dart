@@ -224,8 +224,15 @@ class ExportService {
 
   // ==================== UDDF Export ====================
 
-  Future<String> exportDivesToUddf(List<Dive> dives, {List<DiveSite>? sites}) =>
-      _uddf.exportDivesToUddf(dives, sites: sites);
+  Future<String> exportDivesToUddf(
+    List<Dive> dives, {
+    List<DiveSite>? sites,
+    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+  }) => _uddf.exportDivesToUddf(
+    dives,
+    sites: sites,
+    diveTankPressures: diveTankPressures,
+  );
 
   Future<String> exportAllDataToUddf({
     required List<Dive> dives,
@@ -249,6 +256,7 @@ class ExportService {
     List<EquipmentSet>? equipmentSets,
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
+    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
   }) => _uddfFull.exportAllDataToUddf(
     dives: dives,
     sites: sites,
@@ -271,6 +279,7 @@ class ExportService {
     equipmentSets: equipmentSets,
     courses: courses,
     diveGasSwitches: diveGasSwitches,
+    diveTankPressures: diveTankPressures,
   );
 
   Future<String?> saveAllDataToUddfFile({
@@ -295,6 +304,7 @@ class ExportService {
     List<EquipmentSet>? equipmentSets,
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
+    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
   }) => _uddfFull.saveAllDataToUddfFile(
     dives: dives,
     sites: sites,
@@ -317,6 +327,7 @@ class ExportService {
     equipmentSets: equipmentSets,
     courses: courses,
     diveGasSwitches: diveGasSwitches,
+    diveTankPressures: diveTankPressures,
   );
 
   // ==================== UDDF Import ====================
