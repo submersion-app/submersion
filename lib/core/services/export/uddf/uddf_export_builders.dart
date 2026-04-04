@@ -99,8 +99,9 @@ class UddfExportBuilders {
     List<ProfileEvent> profileEvents,
     List<DiveWeight> diveWeights,
     List<Trip>? trips,
-    List<GasSwitchWithTank> gasSwitches,
-  ) {
+    List<GasSwitchWithTank> gasSwitches, {
+    Map<String, List<TankPressurePoint>>? tankPressures,
+  }) {
     // Separate buddies by role for UDDF export
     final regularBuddies = diveBuddyList
         .where((b) => b.role == BuddyRole.buddy || b.role == BuddyRole.student)
@@ -322,11 +323,19 @@ class UddfExportBuilders {
                         nest: (point.temperature! + 273.15).toString(),
                       );
                     }
-                    if (point.pressure != null) {
-                      builder.element(
-                        'tankpressure',
-                        nest: (point.pressure! * 100000).toString(),
-                      );
+                    if (tankPressures != null) {
+                      for (final entry in tankPressures.entries) {
+                        final pressure = _findPressureAtTimestamp(
+                          entry.value,
+                          point.timestamp,
+                        );
+                        if (pressure != null) {
+                          builder.element(
+                            'tankpressure',
+                            nest: (pressure * 100000).toString(),
+                          );
+                        }
+                      }
                     }
                     if (point.heartRate != null) {
                       builder.element(
@@ -1492,6 +1501,23 @@ class UddfExportBuilders {
         );
       },
     );
+  }
+
+  static double? _findPressureAtTimestamp(
+    List<TankPressurePoint> points,
+    int timestamp,
+  ) {
+    if (points.isEmpty) return null;
+    TankPressurePoint? closest;
+    int minDiff = 3;
+    for (final p in points) {
+      final diff = (p.timestamp - timestamp).abs();
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = p;
+      }
+    }
+    return closest?.pressure;
   }
 
   static String _visibilityToUddf(enums.Visibility visibility) {

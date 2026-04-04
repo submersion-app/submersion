@@ -230,7 +230,6 @@ class DiveRepository {
               (p) => domain.DiveProfilePoint(
                 timestamp: p.timestamp,
                 depth: p.depth,
-                pressure: p.pressure,
                 temperature: p.temperature,
                 heartRate: p.heartRate,
                 heartRateSource: p.heartRateSource,
@@ -284,7 +283,7 @@ class DiveRepository {
                 isPrimary: const Value(true),
                 timestamp: Value(point.timestamp),
                 depth: Value(point.depth),
-                pressure: Value(point.pressure),
+                pressure: const Value(null),
                 temperature: Value(point.temperature),
                 heartRate: Value(point.heartRate),
                 heartRateSource: Value(point.heartRateSource),
@@ -378,7 +377,6 @@ class DiveRepository {
               domain.DiveProfilePoint(
                 timestamp: row.timestamp,
                 depth: row.depth,
-                pressure: row.pressure,
                 temperature: row.temperature,
                 heartRate: row.heartRate,
                 heartRateSource: row.heartRateSource,
@@ -701,7 +699,7 @@ class DiveRepository {
               diveId: Value(id),
               timestamp: Value(point.timestamp),
               depth: Value(point.depth),
-              pressure: Value(point.pressure),
+              pressure: const Value(null),
               temperature: Value(point.temperature),
               heartRate: Value(point.heartRate),
               heartRateSource: Value(point.heartRateSource),
@@ -2474,7 +2472,6 @@ class DiveRepository {
             (p) => domain.DiveProfilePoint(
               timestamp: p.timestamp,
               depth: p.depth,
-              pressure: p.pressure,
               temperature: p.temperature,
               heartRate: p.heartRate,
               heartRateSource: p.heartRateSource,

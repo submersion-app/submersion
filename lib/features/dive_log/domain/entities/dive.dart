@@ -717,7 +717,6 @@ class Dive extends Equatable {
 class DiveProfilePoint extends Equatable {
   final int timestamp; // seconds from dive start
   final double depth; // meters
-  final double? pressure; // bar
   final double? temperature; // celsius
   final int? heartRate; // bpm
   // CCR/SCR rebreather data (v1.5)
@@ -737,7 +736,6 @@ class DiveProfilePoint extends Equatable {
   const DiveProfilePoint({
     required this.timestamp,
     required this.depth,
-    this.pressure,
     this.temperature,
     this.heartRate,
     this.setpoint,
@@ -755,7 +753,6 @@ class DiveProfilePoint extends Equatable {
   DiveProfilePoint copyWith({
     int? timestamp,
     double? depth,
-    double? pressure,
     double? temperature,
     int? heartRate,
     double? setpoint,
@@ -772,7 +769,6 @@ class DiveProfilePoint extends Equatable {
     return DiveProfilePoint(
       timestamp: timestamp ?? this.timestamp,
       depth: depth ?? this.depth,
-      pressure: pressure ?? this.pressure,
       temperature: temperature ?? this.temperature,
       heartRate: heartRate ?? this.heartRate,
       setpoint: setpoint ?? this.setpoint,
@@ -792,7 +788,6 @@ class DiveProfilePoint extends Equatable {
   List<Object?> get props => [
     timestamp,
     depth,
-    pressure,
     temperature,
     heartRate,
     setpoint,

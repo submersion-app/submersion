@@ -547,17 +547,7 @@ class GasAnalysisService {
       }
     }
 
-    // Fallback to profile pressure data
-    if (pressureUsed == null) {
-      final pressurePoints = profile.where((p) => p.pressure != null).toList();
-      if (pressurePoints.length >= 2) {
-        final startPressure = pressurePoints.first.pressure!;
-        final endPressure = pressurePoints.last.pressure!;
-        pressureUsed = startPressure - endPressure;
-      }
-    }
-
-    // Last fallback: estimate from tank start/end (less accurate for segments)
+    // Fallback: estimate from tank start/end (less accurate for segments)
     if (pressureUsed == null || pressureUsed <= 0) {
       if (tank.startPressure != null && tank.endPressure != null) {
         // Estimate proportionally based on segment duration

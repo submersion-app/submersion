@@ -284,13 +284,6 @@ class UddfExportService {
                                             .toString(),
                                       ); // Kelvin
                                     }
-                                    if (point.pressure != null) {
-                                      builder.element(
-                                        'tankpressure',
-                                        nest: (point.pressure! * 100000)
-                                            .toString(),
-                                      ); // Pascal
-                                    }
                                   },
                                 );
                               }

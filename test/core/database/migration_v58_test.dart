@@ -86,6 +86,28 @@ void main() {
             )
           ''');
 
+          // Tables needed by migration v59 (legacy pressure data migration)
+          rawDb.execute('''
+            CREATE TABLE dive_profiles (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+              timestamp INTEGER NOT NULL,
+              depth REAL NOT NULL,
+              pressure REAL,
+              temperature REAL,
+              is_primary INTEGER NOT NULL DEFAULT 1
+            )
+          ''');
+          rawDb.execute('''
+            CREATE TABLE tank_pressure_profiles (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_id TEXT NOT NULL,
+              tank_id TEXT NOT NULL,
+              timestamp INTEGER NOT NULL,
+              pressure REAL NOT NULL
+            )
+          ''');
+
           // Insert test data with INTEGER pressures
           rawDb.execute('''
             INSERT INTO dives (id, dive_date_time, created_at, updated_at)

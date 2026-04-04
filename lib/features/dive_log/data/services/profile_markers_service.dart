@@ -155,10 +155,7 @@ class ProfileMarkersService {
     // Check if we have per-tank pressure data
     final hasMultiTankData = tankPressures != null && tankPressures.isNotEmpty;
 
-    // Check if we have legacy pressure data in the profile
-    final hasProfilePressure = profile.any((p) => p.pressure != null);
-
-    if (!hasMultiTankData && !hasProfilePressure) {
+    if (!hasMultiTankData) {
       // No time-series pressure data - estimate based on linear consumption
       return _estimatePressureMarkersLinear(profile, tanksWithPressure);
     }
@@ -186,18 +183,8 @@ class ProfileMarkersService {
             tankIndex: tankIndex,
           ),
         );
-      } else if (tankIndex == 0 && hasProfilePressure) {
-        // Fall back to legacy profile pressure for primary tank
-        markers.addAll(
-          _findPressureCrossingsFromProfile(
-            profile: profile,
-            thresholds: thresholds,
-            tank: tank,
-            tankIndex: tankIndex,
-          ),
-        );
       } else {
-        // Estimate for other tanks (or if no profile data)
+        // Estimate based on linear consumption
         markers.addAll(
           _estimatePressureCrossings(
             profile: profile,
@@ -281,47 +268,6 @@ class ProfileMarkersService {
     }
 
     return closest?.depth ?? 0.0;
-  }
-
-  /// Find exact timestamps when pressure crosses thresholds using profile data
-  static List<ProfileMarker> _findPressureCrossingsFromProfile({
-    required List<DiveProfilePoint> profile,
-    required Map<ProfileMarkerType, double> thresholds,
-    required DiveTank tank,
-    required int tankIndex,
-  }) {
-    final markers = <ProfileMarker>[];
-    final foundThresholds = <ProfileMarkerType>{};
-
-    // Scan chronologically to find first crossing of each threshold
-    for (final point in profile) {
-      if (point.pressure == null) continue;
-
-      for (final entry in thresholds.entries) {
-        if (foundThresholds.contains(entry.key)) continue;
-
-        // Check if pressure has dropped below threshold
-        if (point.pressure! <= entry.value) {
-          markers.add(
-            ProfileMarker(
-              timestamp: point.timestamp,
-              depth: point.depth,
-              type: entry.key,
-              tankId: tank.id,
-              tankName: tank.name ?? 'Tank ${tankIndex + 1}',
-              tankIndex: tankIndex,
-              value: entry.value,
-            ),
-          );
-          foundThresholds.add(entry.key);
-        }
-      }
-
-      // If all thresholds found, stop scanning
-      if (foundThresholds.length == thresholds.length) break;
-    }
-
-    return markers;
   }
 
   /// Estimate pressure crossings based on linear consumption

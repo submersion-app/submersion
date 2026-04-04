@@ -5,14 +5,14 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 void main() {
   group('ProfileMarkersService.getPressureThresholdMarkers', () {
     final profile = [
-      const DiveProfilePoint(timestamp: 0, depth: 0.0, pressure: 200.0),
-      const DiveProfilePoint(timestamp: 300, depth: 20.0, pressure: 150.0),
-      const DiveProfilePoint(timestamp: 600, depth: 20.0, pressure: 100.0),
-      const DiveProfilePoint(timestamp: 900, depth: 10.0, pressure: 70.0),
-      const DiveProfilePoint(timestamp: 1200, depth: 0.0, pressure: 50.0),
+      const DiveProfilePoint(timestamp: 0, depth: 0.0),
+      const DiveProfilePoint(timestamp: 300, depth: 20.0),
+      const DiveProfilePoint(timestamp: 600, depth: 20.0),
+      const DiveProfilePoint(timestamp: 900, depth: 10.0),
+      const DiveProfilePoint(timestamp: 1200, depth: 0.0),
     ];
 
-    test('detects pressure thresholds from profile data', () {
+    test('estimates pressure thresholds from tank start/end pressure', () {
       const tank = DiveTank(
         id: 't1',
         name: 'AL80',

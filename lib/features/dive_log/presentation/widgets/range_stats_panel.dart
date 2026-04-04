@@ -215,24 +215,6 @@ class RangeStatsPanel extends ConsumerWidget {
                 chipWidth,
               ),
             ],
-            if (stats.hasPressure) ...[
-              _buildStatChip(
-                context,
-                context.l10n.diveLog_rangeStats_label_gasConsumed,
-                units.formatPressure(stats.pressureConsumed!),
-                Icons.local_gas_station,
-                Colors.orange,
-                chipWidth,
-              ),
-              _buildStatChip(
-                context,
-                context.l10n.diveLog_rangeStats_label_sacRate,
-                _formatSacValue(stats),
-                Icons.air,
-                Colors.orange,
-                chipWidth,
-              ),
-            ],
             // Conditional: Heart rate
             if (stats.hasHeartRate) ...[
               _buildStatChip(
@@ -323,21 +305,6 @@ class RangeStatsPanel extends ConsumerWidget {
     return '$sign${converted.toStringAsFixed(1)} ${units.depthSymbol}/min';
   }
 
-  /// Format SAC value respecting user's SAC unit preference.
-  /// Falls back to pressure/min if volume/min is selected but no tank volume.
-  String _formatSacValue(_RangeStats stats) {
-    if (sacUnit == SacUnit.litersPerMin &&
-        stats.sacVolume != null &&
-        stats.hasTankVolume) {
-      final value = units.convertVolume(stats.sacVolume!);
-      return '${value.toStringAsFixed(1)} ${units.volumeSymbol}/min';
-    } else if (stats.sacRate != null) {
-      final value = units.convertPressure(stats.sacRate!);
-      return '${value.toStringAsFixed(1)} ${units.pressureSymbol}/min';
-    }
-    return '--';
-  }
-
   _RangeStats _calculateRangeStats(
     RangeSelectionState rangeState,
     List<DiveTank> tanks,
@@ -421,44 +388,6 @@ class RangeStatsPanel extends ConsumerWidget {
       maxTemp = temps.reduce(math.max);
     }
 
-    // Pressure / gas consumption stats
-    final pressurePoints = rangePoints
-        .where((p) => p.pressure != null)
-        .toList();
-    double? pressureConsumed, sacRate, sacVolume;
-    double? primaryTankVolume;
-
-    if (pressurePoints.length >= 2) {
-      final firstPressure = pressurePoints.first.pressure!;
-      final lastPressure = pressurePoints.last.pressure!;
-      final rawConsumed = firstPressure - lastPressure;
-
-      if (rawConsumed <= 0) {
-        // Sensor noise or ascending from high-pressure zone — no meaningful consumption
-        pressureConsumed = null;
-      } else {
-        pressureConsumed = rawConsumed;
-      }
-
-      if (pressureConsumed != null) {
-        final consumptionRate = pressureConsumed / elapsedMinutes;
-
-        // SAC = consumption_rate / avg_ambient_pressure
-        final avgAmbientPressure = 1.0 + (avgDepth / 10.0);
-        if (avgAmbientPressure > 0) {
-          sacRate = consumptionRate / avgAmbientPressure;
-        }
-
-        // SAC volume (L/min) if tank volume is known
-        if (tanks.isNotEmpty && tanks.first.volume != null) {
-          primaryTankVolume = tanks.first.volume;
-          if (sacRate != null && primaryTankVolume! > 0) {
-            sacVolume = sacRate * primaryTankVolume;
-          }
-        }
-      }
-    }
-
     // Heart rate stats
     final heartRates = rangePoints
         .where((p) => p.heartRate != null)
@@ -481,10 +410,6 @@ class RangeStatsPanel extends ConsumerWidget {
       avgVerticalSpeed: avgVerticalSpeed,
       minTemp: minTemp,
       maxTemp: maxTemp,
-      pressureConsumed: pressureConsumed,
-      sacRate: sacRate,
-      sacVolume: sacVolume,
-      tankVolume: primaryTankVolume,
       minHR: minHR,
       maxHR: maxHR,
     );
@@ -503,10 +428,6 @@ class _RangeStats {
   final double avgVerticalSpeed;
   final double? minTemp;
   final double? maxTemp;
-  final double? pressureConsumed;
-  final double? sacRate;
-  final double? sacVolume;
-  final double? tankVolume;
   final int? minHR;
   final int? maxHR;
 
@@ -521,16 +442,10 @@ class _RangeStats {
     required this.avgVerticalSpeed,
     this.minTemp,
     this.maxTemp,
-    this.pressureConsumed,
-    this.sacRate,
-    this.sacVolume,
-    this.tankVolume,
     this.minHR,
     this.maxHR,
   });
 
   bool get hasTemperature => minTemp != null;
-  bool get hasPressure => pressureConsumed != null;
   bool get hasHeartRate => minHR != null;
-  bool get hasTankVolume => tankVolume != null && tankVolume! > 0;
 }

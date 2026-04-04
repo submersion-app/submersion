@@ -3796,13 +3796,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       }
     }
 
-    // 2. Legacy profile pressure (only valid for single-tank dives)
-    final pressurePoints = profile.where((p) => p.pressure != null).toList();
-    if (pressurePoints.isNotEmpty) {
-      return (pressurePoints.first.pressure, pressurePoints.last.pressure);
-    }
-
-    // 3. Stored tank metadata (fallback)
+    // 2. Stored tank metadata (fallback)
     return (tank.startPressure, tank.endPressure);
   }
 
@@ -5029,22 +5023,16 @@ class _FullscreenProfilePageState
       ]),
     );
 
-    // Temperature and pressure row
-    if (point.temperature != null || point.pressure != null) {
-      final items = <(String, String)>[];
-      if (point.temperature != null) {
-        items.add((
-          context.l10n.diveLog_legend_label_temp,
-          units.formatTemperature(point.temperature),
-        ));
-      }
-      if (point.pressure != null) {
-        items.add((
-          context.l10n.diveLog_legend_label_pressure,
-          units.formatPressure(point.pressure),
-        ));
-      }
-      rows.add(_buildMetricRow(context, items));
+    // Temperature row
+    if (point.temperature != null) {
+      rows.add(
+        _buildMetricRow(context, [
+          (
+            context.l10n.diveLog_legend_label_temp,
+            units.formatTemperature(point.temperature),
+          ),
+        ]),
+      );
     }
 
     // Heart rate
@@ -5275,16 +5263,6 @@ class _FullscreenProfilePageState
           context,
           context.l10n.diveLog_tooltip_temp,
           units.formatTemperature(point.temperature),
-        ),
-      );
-    }
-
-    if (point.pressure != null) {
-      metrics.add(
-        _buildCompactMetricRow(
-          context,
-          context.l10n.diveLog_tooltip_press,
-          units.formatPressure(point.pressure),
         ),
       );
     }

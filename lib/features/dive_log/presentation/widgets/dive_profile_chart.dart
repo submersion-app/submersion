@@ -207,7 +207,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 
 class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showTemperature = true;
-  bool _showPressure = false;
+
   bool _showHeartRate = false;
   bool _showSac = false;
 
@@ -251,14 +251,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Whether multi-tank pressure data is available
   bool get _hasMultiTankPressure =>
       widget.tankPressures != null && widget.tankPressures!.isNotEmpty;
-
-  /// Whether tank pressure data is expected but hasn't loaded yet.
-  /// When tanks exist but tankPressures is still null (async loading),
-  /// suppress the legacy pressure line to prevent a flash during loading.
-  bool get _tankPressuresPending =>
-      widget.tanks != null &&
-      widget.tanks!.isNotEmpty &&
-      widget.tankPressures == null;
 
   /// Get tank by ID for display purposes
   DiveTank? _getTankById(String tankId) {
@@ -384,7 +376,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   void initState() {
     super.initState();
     _showTemperature = widget.showTemperature;
-    _showPressure = widget.showPressure;
     _showSac = widget.showSac;
     _showCeiling = widget.showCeiling;
     _showAscentRateColors = widget.showAscentRateColors;
@@ -451,10 +442,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final hasTemperatureData = widget.profile.any((p) => p.temperature != null);
-    // Suppress legacy pressure when tank pressures are expected but still
-    // loading, to avoid a flash of the orange line during the async gap.
-    final hasPressureData =
-        widget.profile.any((p) => p.pressure != null) && !_tankPressuresPending;
+    final hasPressureData = _hasMultiTankPressure;
     final hasHeartRateData = widget.profile.any((p) => p.heartRate != null);
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -464,7 +452,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // Sync local state with provider for backward compatibility
     // This allows the chart rendering logic to continue using local state
     _showTemperature = legendState.showTemperature;
-    _showPressure = legendState.showPressure;
     _showHeartRate = legendState.showHeartRate;
     _showSac = legendState.showSac;
     _showCeiling = legendState.showCeiling;
@@ -740,7 +727,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     final sacUnit = ref.read(sacUnitProvider);
-    const pressureColor = Colors.orange;
     const heartRateColor = Colors.red;
 
     // Calculate full data bounds (all values stored in meters, convert for display)
@@ -790,18 +776,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         ? _getMetricRange(effectiveRightAxisMetric, units)
         : null;
 
-    // Pressure bounds (if showing) - includes both legacy single pressure and multi-tank
+    // Pressure bounds from multi-tank pressure data
     double? minPressure, maxPressure;
-    if (_showPressure && hasPressureData) {
-      final pressures = widget.profile
-          .where((p) => p.pressure != null)
-          .map((p) => p.pressure!);
-      if (pressures.isNotEmpty) {
-        minPressure = pressures.reduce(math.min) - 10;
-        maxPressure = pressures.reduce(math.max) + 10;
-      }
-    }
-    // Also calculate from multi-tank pressure data if available
     if (_hasMultiTankPressure && widget.tankPressures != null) {
       for (final pressurePoints in widget.tankPressures!.values) {
         for (final point in pressurePoints) {
@@ -1013,19 +989,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   units,
                 ),
 
-              // Pressure lines - multi-tank if available, legacy single otherwise
+              // Multi-tank pressure lines
               if (_hasMultiTankPressure)
-                ..._buildMultiTankPressureLines(totalMaxDepth)
-              else if (_showPressure &&
-                  hasPressureData &&
-                  minPressure != null &&
-                  maxPressure != null)
-                _buildPressureLine(
-                  pressureColor,
-                  totalMaxDepth,
-                  minPressure,
-                  maxPressure,
-                ),
+                ..._buildMultiTankPressureLines(totalMaxDepth),
 
               // Heart rate line (if showing)
               if (_showHeartRate &&
@@ -1259,21 +1225,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         context.l10n.diveLog_tooltip_temp,
                         tempValue,
                         colorScheme.tertiary,
-                      );
-                    }
-
-                    // Legacy single-tank pressure (skip when multi-tank data
-                    // exists or is still loading to avoid duplicate rows)
-                    if (_showPressure &&
-                        !_hasMultiTankPressure &&
-                        !_tankPressuresPending) {
-                      final pressValue = point.pressure != null
-                          ? units.formatPressure(point.pressure)
-                          : '—';
-                      addRow(
-                        context.l10n.diveLog_tooltip_press,
-                        pressValue,
-                        Colors.orange,
                       );
                     }
 
@@ -2036,37 +1987,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
       dashArray: [5, 3],
-    );
-  }
-
-  LineChartBarData _buildPressureLine(
-    Color color,
-    double chartMaxDepth,
-    double minPressure,
-    double maxPressure,
-  ) {
-    return LineChartBarData(
-      spots: widget.profile
-          .where((p) => p.pressure != null)
-          .map(
-            (p) => FlSpot(
-              p.timestamp.toDouble(),
-              -_mapValueToDepth(
-                p.pressure!,
-                chartMaxDepth,
-                minPressure,
-                maxPressure,
-              ),
-            ),
-          )
-          .toList(),
-      isCurved: true,
-      curveSmoothness: 0.2,
-      color: color,
-      barWidth: 2,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      dashArray: [8, 4],
     );
   }
 
@@ -2888,7 +2808,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       case ProfileRightAxisMetric.temperature:
         return widget.profile.any((p) => p.temperature != null);
       case ProfileRightAxisMetric.pressure:
-        return widget.profile.any((p) => p.pressure != null);
+        return _hasMultiTankPressure;
       case ProfileRightAxisMetric.heartRate:
         return widget.profile.any((p) => p.heartRate != null);
       case ProfileRightAxisMetric.sac:
@@ -2958,14 +2878,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         );
 
       case ProfileRightAxisMetric.pressure:
-        final pressures = widget.profile
-            .where((p) => p.pressure != null)
-            .map((p) => p.pressure!);
-        if (pressures.isEmpty) return null;
-        return (
-          min: pressures.reduce(math.min) - 10,
-          max: pressures.reduce(math.max) + 10,
-        );
+        if (!_hasMultiTankPressure || widget.tankPressures == null) return null;
+        double? pMin, pMax;
+        for (final points in widget.tankPressures!.values) {
+          for (final pt in points) {
+            if (pMin == null || pt.pressure < pMin) pMin = pt.pressure;
+            if (pMax == null || pt.pressure > pMax) pMax = pt.pressure;
+          }
+        }
+        if (pMin == null || pMax == null) return null;
+        return (min: pMin - 10, max: pMax + 10);
 
       case ProfileRightAxisMetric.heartRate:
         final hrs = widget.profile

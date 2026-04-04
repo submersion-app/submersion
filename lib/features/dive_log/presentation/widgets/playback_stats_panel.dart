@@ -95,13 +95,6 @@ class PlaybackStatsPanel extends StatelessWidget {
                   icon: Icons.thermostat,
                   color: colorScheme.tertiary,
                 ),
-              if (pointData.pressure != null)
-                _StatItem(
-                  label: context.l10n.diveLog_playbackStats_pressure,
-                  value: '${pointData.pressure!.toStringAsFixed(0)} bar',
-                  icon: Icons.speed,
-                  color: Colors.orange,
-                ),
               if (pointData.heartRate != null)
                 _StatItem(
                   label: context.l10n.diveLog_playbackStats_heartRate,
@@ -175,9 +168,6 @@ class PlaybackStatsPanel extends StatelessWidget {
       temperature: before.temperature != null && after.temperature != null
           ? _lerp(before.temperature!, after.temperature!, t)
           : before.temperature ?? after.temperature,
-      pressure: before.pressure != null && after.pressure != null
-          ? _lerp(before.pressure!, after.pressure!, t)
-          : before.pressure ?? after.pressure,
       heartRate: before.heartRate ?? after.heartRate,
       ndl: _getNdlAtTimestamp(timestamp),
       ceiling: _getCeilingAtTimestamp(timestamp),
@@ -189,7 +179,6 @@ class PlaybackStatsPanel extends StatelessWidget {
     return _PlaybackPointData(
       depth: point.depth,
       temperature: point.temperature,
-      pressure: point.pressure,
       heartRate: point.heartRate,
       ndl: analysisIndex != null && analysis?.ndlCurve != null
           ? analysis!.ndlCurve[analysisIndex]
@@ -295,7 +284,6 @@ class PlaybackStatsPanel extends StatelessWidget {
 class _PlaybackPointData {
   final double depth;
   final double? temperature;
-  final double? pressure;
   final int? heartRate;
   final int? ndl;
   final double? ceiling;
@@ -304,7 +292,6 @@ class _PlaybackPointData {
   const _PlaybackPointData({
     required this.depth,
     this.temperature,
-    this.pressure,
     this.heartRate,
     this.ndl,
     this.ceiling,

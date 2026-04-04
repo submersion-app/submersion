@@ -972,7 +972,6 @@ class UddfEntityImporter {
                   timestamp: p['timestamp'] as int? ?? 0,
                   depth: p['depth'] as double? ?? 0.0,
                   temperature: p['temperature'] as double?,
-                  pressure: p['pressure'] as double?,
                   setpoint: p['setpoint'] as double?,
                   ppO2: p['ppO2'] as double?,
                 ),
