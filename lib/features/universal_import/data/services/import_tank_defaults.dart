@@ -2,7 +2,7 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 
 /// Apply default tank values to a single tank data map.
 ///
-/// Fills missing fields (volume, workingPressure, material) from [defaultPreset]
+/// Fills missing fields (volume, workingPressure, material, presetName) from [defaultPreset]
 /// and missing startPressure from [defaultStartPressure].
 /// Fields that already have non-zero values are left untouched.
 ///
@@ -30,6 +30,11 @@ Map<String, dynamic> applyTankDefaults(
     // Fill material if missing
     if (result['material'] == null) {
       result['material'] = defaultPreset.material;
+    }
+
+    // Fill presetName if missing
+    if (result['presetName'] == null) {
+      result['presetName'] = defaultPreset.name;
     }
   }
 

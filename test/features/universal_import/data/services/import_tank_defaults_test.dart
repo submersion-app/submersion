@@ -110,6 +110,26 @@ void main() {
       expect(result.containsKey('workingPressure'), false);
     });
 
+    test('fills missing presetName from preset', () {
+      final tank = <String, dynamic>{};
+      final result = applyTankDefaults(
+        tank,
+        defaultPreset: al80,
+        defaultStartPressure: 200,
+      );
+      expect(result['presetName'], al80.name);
+    });
+
+    test('does not overwrite existing presetName', () {
+      final tank = <String, dynamic>{'presetName': 'hp100'};
+      final result = applyTankDefaults(
+        tank,
+        defaultPreset: al80,
+        defaultStartPressure: 200,
+      );
+      expect(result['presetName'], 'hp100');
+    });
+
     test('applies startPressure fallback even without preset', () {
       final tank = <String, dynamic>{};
       final result = applyTankDefaults(

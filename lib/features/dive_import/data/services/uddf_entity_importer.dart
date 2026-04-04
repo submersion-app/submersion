@@ -1302,6 +1302,7 @@ class UddfEntityImporter {
         return DiveTank(
           id: _uuid.v4(),
           name: t['name'] as String?,
+          presetName: t['presetName'] as String?,
           volume: t['volume'] as double?,
           startPressure: (t['startPressure'] as num?)?.toDouble(),
           endPressure: (t['endPressure'] as num?)?.toDouble(),
