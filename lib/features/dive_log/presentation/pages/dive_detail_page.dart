@@ -1274,8 +1274,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         ttsCurve: analysis?.ttsCurve,
                         cnsCurve: analysis?.cnsCurve,
                         otuCurve: analysis?.otuCurve,
-                        calculatedDecoWarningMessage:
-                            analysis?.calculatedDecoWarningMessage,
                         tankVolume: dive.tanks
                             .where((t) => t.volume != null && t.volume! > 0)
                             .map((t) => t.volume!)
@@ -4926,8 +4924,6 @@ class _FullscreenProfilePageState
                       ttsCurve: widget.analysis?.ttsCurve,
                       cnsCurve: widget.analysis?.cnsCurve,
                       otuCurve: widget.analysis?.otuCurve,
-                      calculatedDecoWarningMessage:
-                          widget.analysis?.calculatedDecoWarningMessage,
                       tankVolume: dive.tanks
                           .where((t) => t.volume != null && t.volume! > 0)
                           .map((t) => t.volume!)

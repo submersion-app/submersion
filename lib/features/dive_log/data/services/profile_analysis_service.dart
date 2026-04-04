@@ -268,9 +268,6 @@ class ProfileAnalysis {
   /// Dive duration in seconds
   final int durationSeconds;
 
-  /// Visible warning to show when calculated decompression is unavailable or unreliable.
-  final String? calculatedDecoWarningMessage;
-
   const ProfileAnalysis({
     required this.ascentRates,
     required this.ascentRateStats,
@@ -298,7 +295,6 @@ class ProfileAnalysis {
     required this.averageDepth,
     required this.maxDepthTimestamp,
     required this.durationSeconds,
-    this.calculatedDecoWarningMessage,
   });
 
   /// Whether diver went into decompression obligation
@@ -386,7 +382,6 @@ class ProfileAnalysis {
     double? averageDepth,
     int? maxDepthTimestamp,
     int? durationSeconds,
-    String? calculatedDecoWarningMessage,
   }) {
     return ProfileAnalysis(
       ascentRates: ascentRates ?? this.ascentRates,
@@ -415,8 +410,6 @@ class ProfileAnalysis {
       averageDepth: averageDepth ?? this.averageDepth,
       maxDepthTimestamp: maxDepthTimestamp ?? this.maxDepthTimestamp,
       durationSeconds: durationSeconds ?? this.durationSeconds,
-      calculatedDecoWarningMessage:
-          calculatedDecoWarningMessage ?? this.calculatedDecoWarningMessage,
     );
   }
 
@@ -444,7 +437,6 @@ class ProfileAnalysis {
       averageDepth: 0,
       maxDepthTimestamp: 0,
       durationSeconds: 0,
-      calculatedDecoWarningMessage: null,
     );
   }
 }

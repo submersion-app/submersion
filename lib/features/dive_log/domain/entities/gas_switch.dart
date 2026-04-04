@@ -88,16 +88,12 @@ class GasSwitchWithTank extends Equatable {
   /// He fraction (0.0-1.0)
   final double heFraction;
 
-  /// Whether the switch target resolved to a usable tank/gas definition.
-  final bool isResolved;
-
   const GasSwitchWithTank({
     required this.gasSwitch,
     required this.tankName,
     required this.gasMix,
     required this.o2Fraction,
     this.heFraction = 0.0,
-    this.isResolved = true,
   });
 
   /// N2 fraction
@@ -150,6 +146,5 @@ class GasSwitchWithTank extends Equatable {
     gasMix,
     o2Fraction,
     heFraction,
-    isResolved,
   ];
 }

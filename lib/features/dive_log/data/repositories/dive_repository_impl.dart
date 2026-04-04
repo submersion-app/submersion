@@ -2827,10 +2827,10 @@ class DiveRepository {
   /// Returns gas switches with full tank info for display purposes
   Future<List<GasSwitchWithTank>> getGasSwitchesForDive(String diveId) async {
     try {
-      // Left join so unresolved switch targets still surface to callers.
+      // Join gas_switches with dive_tanks to get full tank info
       final query =
           _db.select(_db.gasSwitches).join([
-              leftOuterJoin(
+              innerJoin(
                 _db.diveTanks,
                 _db.diveTanks.id.equalsExp(_db.gasSwitches.tankId),
               ),
@@ -2841,7 +2841,7 @@ class DiveRepository {
       final rows = await query.get();
       return rows.map((row) {
         final gs = row.readTable(_db.gasSwitches);
-        final tank = row.readTableOrNull(_db.diveTanks);
+        final tank = row.readTable(_db.diveTanks);
 
         return GasSwitchWithTank(
           gasSwitch: GasSwitch(
@@ -2852,13 +2852,10 @@ class DiveRepository {
             depth: gs.depth,
             createdAt: DateTime.fromMillisecondsSinceEpoch(gs.createdAt),
           ),
-          tankName: tank?.tankName ?? 'Unknown Tank',
-          gasMix: tank != null
-              ? _formatGasMixName(tank.o2Percent, tank.hePercent)
-              : 'Unknown',
-          o2Fraction: tank != null ? tank.o2Percent / 100.0 : 0.0,
-          heFraction: tank != null ? tank.hePercent / 100.0 : 0.0,
-          isResolved: tank != null,
+          tankName: tank.tankName ?? 'Tank ${tank.tankOrder + 1}',
+          gasMix: _formatGasMixName(tank.o2Percent, tank.hePercent),
+          o2Fraction: tank.o2Percent / 100.0,
+          heFraction: tank.hePercent / 100.0,
         );
       }).toList();
     } catch (e, stackTrace) {

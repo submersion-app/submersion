@@ -144,9 +144,6 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Cumulative OTU curve
   final List<double>? otuCurve;
 
-  /// Warning message for degraded or unavailable calculated decompression.
-  final String? calculatedDecoWarningMessage;
-
   // Multi-computer rendering parameters
   /// Map of computerId -> profile points for multi-computer rendering.
   /// When non-null with 2+ entries, each computer is drawn with its own color.
@@ -221,7 +218,6 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.ttsCurve,
     this.cnsCurve,
     this.otuCurve,
-    this.calculatedDecoWarningMessage,
     this.computerProfiles,
     this.visibleComputers,
     this.computerLineColors,
@@ -913,7 +909,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasTtsData: hasTtsData,
       hasCnsData: hasCnsData,
       hasOtuData: hasOtuData,
-      calculatedDecoWarningMessage: widget.calculatedDecoWarningMessage,
     );
 
     return LayoutBuilder(

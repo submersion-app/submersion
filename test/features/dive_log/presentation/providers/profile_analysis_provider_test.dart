@@ -1,119 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
-import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
-import 'package:submersion/features/divers/data/repositories/diver_repository.dart'
-    as divers;
-import 'package:submersion/features/divers/domain/entities/diver.dart' as domain;
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-late SharedPreferences _prefs;
-
-class _FakeDiverRepository extends divers.DiverRepository {
-  @override
-  Future<domain.Diver?> getDiverById(String id) async => null;
-
-  @override
-  Future<domain.Diver?> getDefaultDiver() async => null;
-
-  @override
-  Future<String?> getActiveDiverIdFromSettings() async => null;
-
-  @override
-  Future<void> setActiveDiverIdInSettings(String? diverId) async {}
-}
-
-class _FakeDiverSettingsRepository extends DiverSettingsRepository {
-  @override
-  Future<AppSettings> getOrCreateSettingsForDiver(
-    String diverId, {
-    AppSettings? defaultSettings,
-  }) async {
-    return const AppSettings(notificationsEnabled: false);
-  }
-
-  @override
-  Future<void> updateSettingsForDiver(
-    String diverId,
-    AppSettings settings,
-  ) async {}
-}
-
-class _TestSettingsNotifier extends SettingsNotifier {
-  _TestSettingsNotifier(Ref ref) : super(_FakeDiverSettingsRepository(), ref);
-}
-
-class _SettingsNotifier extends _TestSettingsNotifier {
-  _SettingsNotifier(super.ref);
-}
-
-class _FakeDiveRepository extends DiveRepository {
-  _FakeDiveRepository({
-    required this.currentDive,
-    this.previousDive,
-    this.surfaceInterval,
-    this.sameDayDives = const [],
-  });
-
-  final Dive currentDive;
-  final Dive? previousDive;
-  final Duration? surfaceInterval;
-  final List<Dive> sameDayDives;
-
-  @override
-  Future<Dive?> getDiveById(String id) async {
-    if (id == currentDive.id) return currentDive;
-    if (id == previousDive?.id) return previousDive;
-    return null;
-  }
-
-  @override
-  Future<Dive?> getPreviousDive(String diveId) async {
-    if (diveId == currentDive.id) return previousDive;
-    return null;
-  }
-
-  @override
-  Future<Duration?> getSurfaceInterval(String diveId) async {
-    if (diveId == currentDive.id) return surfaceInterval;
-    return null;
-  }
-
-  @override
-  Future<List<GasSwitchWithTank>> getGasSwitchesForDive(String diveId) async {
-    return const [];
-  }
-
-  @override
-  Future<List<Dive>> getDivesInRange(
-    DateTime start,
-    DateTime end, {
-    String? diverId,
-  }) async {
-    return sameDayDives;
-  }
-}
-
-class _FakeTankPressureRepository extends TankPressureRepository {
-  @override
-  Future<Map<String, List<TankPressurePoint>>> getTankPressuresForDive(
-    String diveId,
-  ) async {
-    return const {};
-  }
-}
 
 /// Generate a simple square-profile dive for testing:
 /// Descent to [maxDepth] over [descentSeconds], hold for [bottomSeconds],
@@ -153,12 +44,21 @@ List<DiveProfilePoint> _generateSquareProfile({
 }
 
 void main() {
-  setUpAll(() async {
-    SharedPreferences.setMockInitialValues({});
-    _prefs = await SharedPreferences.getInstance();
-  });
-
   group('buildProfileGasSegments', () {
+    test('defaults to air when dive has no tanks', () {
+      final dive = Dive(
+        id: 'dive-no-tanks',
+        dateTime: DateTime.utc(2026, 3, 31),
+      );
+
+      final segments = buildProfileGasSegments(dive, const []);
+
+      expect(segments, hasLength(1));
+      expect(segments.single.startTimestamp, equals(0));
+      expect(segments.single.fN2, closeTo(airN2Fraction, 0.000001));
+      expect(segments.single.fHe, closeTo(0.0, 0.000001));
+    });
+
     test('returns primary tank gas when there are no switches', () {
       final dive = Dive(
         id: 'dive-1',
@@ -223,43 +123,51 @@ void main() {
       expect(segments[2].fN2, closeTo(0.5, 0.000001));
     });
 
-    test(
-      'resolveProfileGasSegments returns warning for unresolved gas switch',
-      () {
-        final dive = Dive(
-          id: 'dive-3',
-          dateTime: DateTime.utc(2026, 3, 31),
-          tanks: const [
-            DiveTank(id: 'tank-air', gasMix: GasMix(o2: 21, he: 0)),
-          ],
-        );
+    test('later switch replaces earlier one at the same timestamp', () {
+      final dive = Dive(
+        id: 'dive-same-time',
+        dateTime: DateTime.utc(2026, 3, 31),
+        tanks: const [
+          DiveTank(id: 'tank-air', gasMix: GasMix(o2: 21, he: 0)),
+          DiveTank(id: 'tank-ean32', gasMix: GasMix(o2: 32, he: 0)),
+          DiveTank(id: 'tank-ean50', gasMix: GasMix(o2: 50, he: 0)),
+        ],
+      );
 
-        final resolution = resolveProfileGasSegments(dive, [
-          GasSwitchWithTank(
-            gasSwitch: GasSwitch(
-              id: 'switch-bad',
-              diveId: dive.id,
-              timestamp: 1122,
-              tankId: 'missing-tank',
-              createdAt: DateTime.utc(2026, 3, 31),
-            ),
-            tankName: 'Unknown Tank',
-            gasMix: 'Unknown',
-            o2Fraction: 0,
-            isResolved: false,
+      final segments = buildProfileGasSegments(dive, [
+        GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: 'switch-1',
+            diveId: dive.id,
+            timestamp: 600,
+            tankId: 'tank-ean32',
+            createdAt: DateTime.utc(2026, 3, 31),
           ),
-        ]);
+          tankName: '32%',
+          gasMix: 'EAN32',
+          o2Fraction: 0.32,
+        ),
+        GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: 'switch-2',
+            diveId: dive.id,
+            timestamp: 600,
+            tankId: 'tank-ean50',
+            createdAt: DateTime.utc(2026, 3, 31),
+          ),
+          tankName: '50%',
+          gasMix: 'EAN50',
+          o2Fraction: 0.50,
+        ),
+      ]);
 
-        expect(resolution.isValid, isFalse);
-        expect(resolution.gasSegments, isNull);
-        expect(
-          resolution.warningMessage,
-          equals('Calculated deco unavailable: unknown gas switch at 18:42'),
-        );
-      },
-    );
+      expect(segments, hasLength(2));
+      expect(segments[1].startTimestamp, equals(600));
+      expect(segments[1].fN2, closeTo(0.5, 0.000001));
+      expect(segments[1].fHe, closeTo(0.0, 0.000001));
+    });
 
-    test('treats an existing default-air tank as a valid switch target', () {
+    test('treats an existing default-air tank as an air segment', () {
       final dive = Dive(
         id: 'dive-air-default',
         dateTime: DateTime.utc(2026, 3, 31),
@@ -269,7 +177,7 @@ void main() {
         ],
       );
 
-      final resolution = resolveProfileGasSegments(dive, [
+      final segments = buildProfileGasSegments(dive, [
         GasSwitchWithTank(
           gasSwitch: GasSwitch(
             id: 'switch-air',
@@ -282,65 +190,11 @@ void main() {
           gasMix: 'Air',
           o2Fraction: 0.21,
           heFraction: 0.0,
-          isResolved: true,
         ),
       ]);
 
-      expect(resolution.isValid, isTrue);
-      expect(resolution.warningMessage, isNull);
-      expect(resolution.gasSegments, isNotNull);
-      expect(resolution.gasSegments![1].fN2, closeTo(airN2Fraction, 0.000001));
-    });
-  });
-
-  group('calculated deco invalidation', () {
-    test('inherits invalid warning from previous dive analysis', () {
-      final analysis = ProfileAnalysis.empty().copyWith(
-        calculatedDecoWarningMessage:
-            'Calculated deco unavailable: unknown gas switch at 18:42',
-      );
-
-      expect(
-        inheritedDecoInvalidityWarning(analysis),
-        equals(
-          'Calculated deco unavailable: previous dive has invalid gas-switch data',
-        ),
-      );
-    });
-
-    test('invalidateCalculatedDeco clears Buhlmann-derived outputs only', () {
-      final service = ProfileAnalysisService(gfLow: 0.30, gfHigh: 0.70);
-      final profile = _generateSquareProfile(
-        maxDepth: 30.0,
-        bottomSeconds: 600,
-      );
-      final depths = profile.map((p) => p.depth).toList();
-      final timestamps = profile.map((p) => p.timestamp).toList();
-
-      final analysis = service.analyze(
-        diveId: 'invalidate-calculated-deco',
-        depths: depths,
-        timestamps: timestamps,
-      );
-
-      final invalidated = invalidateCalculatedDeco(
-        analysis,
-        'Calculated deco unavailable: unknown gas switch at 18:42',
-      );
-
-      expect(invalidated.ceilingCurve, isEmpty);
-      expect(invalidated.ndlCurve, isEmpty);
-      expect(invalidated.decoStatuses, isEmpty);
-      expect(invalidated.gfCurve, isEmpty);
-      expect(invalidated.surfaceGfCurve, isEmpty);
-      expect(invalidated.ttsCurve, isEmpty);
-      expect(invalidated.ppO2Curve, equals(analysis.ppO2Curve));
-      expect(invalidated.cnsCurve, equals(analysis.cnsCurve));
-      expect(invalidated.otuCurve, equals(analysis.otuCurve));
-      expect(
-        invalidated.calculatedDecoWarningMessage,
-        equals('Calculated deco unavailable: unknown gas switch at 18:42'),
-      );
+      expect(segments, hasLength(2));
+      expect(segments[1].fN2, closeTo(airN2Fraction, 0.000001));
     });
   });
 
@@ -765,258 +619,6 @@ void main() {
       );
       expect(result.ndlCurve, isEmpty);
       expect(sourceInfo.ndlActual, MetricDataSource.computer);
-    });
-
-    test(
-      'computer overlays can repopulate suppressed deco metrics on invalid analysis',
-      () {
-        final invalidAnalysis = invalidateCalculatedDeco(
-          baseAnalysis,
-          'Calculated deco unavailable: unknown gas switch at 18:42',
-        );
-
-        final profileWithComputerDeco = <DiveProfilePoint>[];
-        for (int i = 0; i < baseProfile.length; i++) {
-          if (i >= 100 && i < 200) {
-            profileWithComputerDeco.add(
-              baseProfile[i].copyWith(ndl: 500, ceiling: 4.5, tts: 90),
-            );
-          } else {
-            profileWithComputerDeco.add(baseProfile[i]);
-          }
-        }
-
-        final (result, sourceInfo) = overlayComputerDecoData(
-          invalidAnalysis,
-          profileWithComputerDeco,
-          ndlSource: MetricDataSource.computer,
-          ceilingSource: MetricDataSource.computer,
-          ttsSource: MetricDataSource.computer,
-        );
-
-        expect(result.ndlCurve[150], equals(500));
-        expect(result.ceilingCurve[150], closeTo(4.5, 0.001));
-        expect(result.ttsCurve![150], equals(90));
-        expect(
-          result.calculatedDecoWarningMessage,
-          equals('Calculated deco unavailable: unknown gas switch at 18:42'),
-        );
-        expect(sourceInfo.ndlActual, MetricDataSource.computer);
-        expect(sourceInfo.ceilingActual, MetricDataSource.computer);
-        expect(sourceInfo.ttsActual, MetricDataSource.computer);
-      },
-    );
-  });
-
-  group('profileAnalysisProvider inherited invalidity', () {
-    test(
-      'suppresses calculated deco when previous dive analysis is invalid',
-      () async {
-        final currentDive = Dive(
-          id: 'current-dive',
-          dateTime: DateTime.utc(2026, 3, 31, 12),
-          entryTime: DateTime.utc(2026, 3, 31, 12),
-          profile: _generateSquareProfile(maxDepth: 24.0, bottomSeconds: 300),
-          tanks: const [
-            DiveTank(id: 'tank-air', gasMix: GasMix(o2: 21, he: 0)),
-          ],
-        );
-        final previousDive = Dive(
-          id: 'previous-dive',
-          dateTime: DateTime.utc(2026, 3, 31, 10),
-          entryTime: DateTime.utc(2026, 3, 31, 10),
-          tanks: const [
-            DiveTank(id: 'tank-air', gasMix: GasMix(o2: 21, he: 0)),
-          ],
-        );
-
-        final repository = _FakeDiveRepository(
-          currentDive: currentDive,
-          previousDive: previousDive,
-          surfaceInterval: const Duration(hours: 2),
-          sameDayDives: [currentDive],
-        );
-
-        final previousAnalysis = ProfileAnalysis.empty().copyWith(
-          calculatedDecoWarningMessage:
-              'Calculated deco unavailable: unknown gas switch at 18:42',
-        );
-
-        final container = ProviderContainer(
-          overrides: [
-            useBackgroundProfileAnalysisProvider.overrideWith((ref) => false),
-            sharedPreferencesProvider.overrideWithValue(_prefs),
-            diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
-            settingsProvider.overrideWith((ref) => _TestSettingsNotifier(ref)),
-            diveRepositoryProvider.overrideWithValue(repository),
-            tankPressureRepositoryProvider.overrideWithValue(
-              _FakeTankPressureRepository(),
-            ),
-            diveProvider(currentDive.id).overrideWith((ref) => currentDive),
-            profileAnalysisProvider(
-              previousDive.id,
-            ).overrideWith((ref) => previousAnalysis),
-            diveComputerEventsProvider(
-              currentDive.id,
-            ).overrideWith((ref) => <ProfileEvent>[]),
-          ],
-        );
-        addTearDown(container.dispose);
-
-        final analysis = await container.read(
-          profileAnalysisProvider(currentDive.id).future,
-        );
-
-        expect(analysis, isNotNull);
-        expect(analysis!.ceilingCurve, isEmpty);
-        expect(analysis.ndlCurve, isEmpty);
-        expect(analysis.decoStatuses, isEmpty);
-        expect(analysis.gfCurve, isEmpty);
-        expect(analysis.surfaceGfCurve, isEmpty);
-        expect(analysis.ttsCurve, isEmpty);
-        expect(
-          analysis.calculatedDecoWarningMessage,
-          equals(
-            'Calculated deco unavailable: previous dive has invalid gas-switch data',
-          ),
-        );
-      },
-    );
-
-    test(
-      'allows computer overlays to repopulate invalid inherited deco metrics',
-      () async {
-        final profile = _generateSquareProfile(
-          maxDepth: 24.0,
-          bottomSeconds: 300,
-        );
-        final profileWithComputerDeco = List<DiveProfilePoint>.generate(
-          profile.length,
-          (i) => i >= 90 && i < 140
-              ? profile[i].copyWith(ndl: 420, ceiling: 3.0, tts: 75)
-              : profile[i],
-        );
-
-        final currentDive = Dive(
-          id: 'current-dive-computer',
-          dateTime: DateTime.utc(2026, 3, 31, 12),
-          entryTime: DateTime.utc(2026, 3, 31, 12),
-          profile: profileWithComputerDeco,
-          tanks: const [
-            DiveTank(id: 'tank-air', gasMix: GasMix(o2: 21, he: 0)),
-          ],
-        );
-        final previousDive = Dive(
-          id: 'previous-dive-computer',
-          dateTime: DateTime.utc(2026, 3, 31, 10),
-          entryTime: DateTime.utc(2026, 3, 31, 10),
-          tanks: const [
-            DiveTank(id: 'tank-air', gasMix: GasMix(o2: 21, he: 0)),
-          ],
-        );
-
-        final repository = _FakeDiveRepository(
-          currentDive: currentDive,
-          previousDive: previousDive,
-          surfaceInterval: const Duration(hours: 2),
-          sameDayDives: [currentDive],
-        );
-
-        final previousAnalysis = ProfileAnalysis.empty().copyWith(
-          calculatedDecoWarningMessage:
-              'Calculated deco unavailable: unknown gas switch at 18:42',
-        );
-
-        final container = ProviderContainer(
-          overrides: [
-            useBackgroundProfileAnalysisProvider.overrideWith((ref) => false),
-            sharedPreferencesProvider.overrideWithValue(_prefs),
-            diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
-            settingsProvider.overrideWith((ref) => _TestSettingsNotifier(ref)),
-            diveRepositoryProvider.overrideWithValue(repository),
-            tankPressureRepositoryProvider.overrideWithValue(
-              _FakeTankPressureRepository(),
-            ),
-            diveProvider(currentDive.id).overrideWith((ref) => currentDive),
-            profileAnalysisProvider(
-              previousDive.id,
-            ).overrideWith((ref) => previousAnalysis),
-            diveComputerEventsProvider(
-              currentDive.id,
-            ).overrideWith((ref) => <ProfileEvent>[]),
-          ],
-        );
-        addTearDown(container.dispose);
-
-        final legendNotifier = container.read(profileLegendProvider.notifier);
-        legendNotifier.setNdlSource(MetricDataSource.computer);
-        legendNotifier.setCeilingSource(MetricDataSource.computer);
-        legendNotifier.setTtsSource(MetricDataSource.computer);
-
-        final analysis = await container.read(
-          profileAnalysisProvider(currentDive.id).future,
-        );
-
-        expect(analysis, isNotNull);
-        expect(analysis!.ndlCurve[100], equals(420));
-        expect(analysis.ceilingCurve[100], closeTo(3.0, 0.001));
-        expect(analysis.ttsCurve![100], equals(75));
-        expect(
-          analysis.calculatedDecoWarningMessage,
-          equals(
-            'Calculated deco unavailable: previous dive has invalid gas-switch data',
-          ),
-        );
-      },
-    );
-  });
-
-  group('diveProfileAnalysisProvider', () {
-    test('returns analysis for a dive with profile data', () {
-      final profile = _generateSquareProfile(
-        maxDepth: 18.0,
-        descentSeconds: 30,
-        bottomSeconds: 600,
-        ascentSeconds: 90,
-      );
-      final dive = Dive(
-        id: 'test-dive',
-        dateTime: DateTime(2025, 1, 1),
-        profile: profile,
-      );
-
-      final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(_prefs),
-          diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
-          settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
-        ],
-      );
-      addTearDown(container.dispose);
-
-      final result = container.read(diveProfileAnalysisProvider(dive));
-      expect(result, isNotNull);
-      expect(result!.ascentRates, isNotEmpty);
-    });
-
-    test('returns null for empty profile', () {
-      final dive = Dive(
-        id: 'empty-dive',
-        dateTime: DateTime(2025, 1, 1),
-        profile: const [],
-      );
-
-      final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(_prefs),
-          diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
-          settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
-        ],
-      );
-      addTearDown(container.dispose);
-
-      final result = container.read(diveProfileAnalysisProvider(dive));
-      expect(result, isNull);
     });
   });
 }
