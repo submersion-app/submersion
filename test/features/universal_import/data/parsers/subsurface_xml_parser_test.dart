@@ -375,28 +375,78 @@ void main() {
       final profile = dive['profile'] as List<Map<String, dynamic>>;
       expect(profile.length, 5);
 
+      // Helper to extract tank 0 pressure from allTankPressures
+      double? pressureAt(int idx) {
+        final all =
+            profile[idx]['allTankPressures'] as List<Map<String, dynamic>>?;
+        if (all == null || all.isEmpty) return null;
+        return all.firstWhere((t) => t['tankIndex'] == 0)['pressure'] as double;
+      }
+
       // First sample: explicit pressure
       expect(profile[0]['timestamp'], 0);
       expect(profile[0]['depth'], 0.0);
       expect(profile[0]['temperature'], 21.0);
-      expect(profile[0]['pressure'], 196.9);
+      expect(pressureAt(0), 196.9);
 
       // Second sample: pressure interpolated, temperature forward-filled
       expect(profile[1]['timestamp'], 30);
       expect(profile[1]['depth'], 10.5);
       expect(profile[1]['temperature'], 21.0);
-      expect(profile[1]['pressure'], closeTo(188.45, 0.01));
+      expect(pressureAt(1), closeTo(188.45, 0.01));
 
       // Third sample: explicit pressure
-      expect(profile[2]['pressure'], 180.0);
+      expect(pressureAt(2), 180.0);
 
       // Fourth sample: interpolated between 180.0 (t=60) and 170.0 (t=120)
-      expect(profile[3]['pressure'], closeTo(175.0, 0.01));
+      expect(pressureAt(3), closeTo(175.0, 0.01));
 
       // Last sample: explicit pressure
       expect(profile[4]['timestamp'], 120);
       expect(profile[4]['depth'], 0.0);
-      expect(profile[4]['pressure'], 170.0);
+      expect(pressureAt(4), 170.0);
+    });
+
+    test('parses multi-tank pressure from pressure0 and pressure1', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='2:00 min'>
+  <cylinder size='11.1 l' description='AL80' o2='32%' start='200 bar' end='100 bar' />
+  <cylinder size='11.1 l' description='AL80' o2='21%' start='190 bar' end='90 bar' />
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  <sample time='0:00 min' depth='0.0 m' pressure0='200.0 bar' pressure1='190.0 bar' />
+  <sample time='1:00 min' depth='20.0 m' pressure0='150.0 bar' pressure1='140.0 bar' />
+  <sample time='2:00 min' depth='0.0 m' pressure0='100.0 bar' pressure1='90.0 bar' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final profile = dive['profile'] as List<Map<String, dynamic>>;
+
+      // Each sample should have allTankPressures with both tanks
+      final first =
+          profile[0]['allTankPressures'] as List<Map<String, dynamic>>;
+      expect(first, hasLength(2));
+      expect(first[0], {'pressure': 200.0, 'tankIndex': 0});
+      expect(first[1], {'pressure': 190.0, 'tankIndex': 1});
+
+      final last = profile[2]['allTankPressures'] as List<Map<String, dynamic>>;
+      expect(last[0], {'pressure': 100.0, 'tankIndex': 0});
+      expect(last[1], {'pressure': 90.0, 'tankIndex': 1});
+
+      // Both tanks should have start/end pressure derived from profile
+      final tanks = dive['tanks'] as List<Map<String, dynamic>>;
+      expect(tanks, hasLength(2));
+      expect(tanks[0]['startPressure'], 200.0);
+      expect(tanks[0]['endPressure'], 100.0);
+      expect(tanks[1]['startPressure'], 190.0);
+      expect(tanks[1]['endPressure'], 90.0);
     });
   });
 

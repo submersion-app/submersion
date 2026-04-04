@@ -425,8 +425,14 @@ class SubsurfaceXmlParser implements ImportParser {
   /// Subsurface only records tank pressure on a subset of samples (when the
   /// transmitter reports). After parsing, pressure values are linearly
   /// interpolated so every point has a smooth pressure reading.
+  ///
+  /// Reads `pressure0`, `pressure1`, etc. for multi-tank dives and stores
+  /// them as `allTankPressures` entries keyed by tank index.
   List<Map<String, dynamic>> _parseProfile(XmlElement divecomputer) {
     final points = <Map<String, dynamic>>[];
+    // Track which tank indices have pressure data across all samples
+    final tankIndicesWithPressure = <int>{};
+
     for (final sample in divecomputer.findElements('sample')) {
       final timestamp = _parseDurationSeconds(sample.getAttribute('time'));
       final depth = _parseDouble(sample.getAttribute('depth'));
@@ -434,12 +440,39 @@ class SubsurfaceXmlParser implements ImportParser {
       final point = <String, dynamic>{'timestamp': timestamp, 'depth': depth};
       final temp = _parseDouble(sample.getAttribute('temp'));
       if (temp != null) point['temperature'] = temp;
-      final pressure = _parseDouble(sample.getAttribute('pressure0'));
-      if (pressure != null) point['pressure'] = pressure;
+
+      // Read pressure0, pressure1, ... for each tank
+      for (var tankIdx = 0; tankIdx < 10; tankIdx++) {
+        final pressure = _parseDouble(sample.getAttribute('pressure$tankIdx'));
+        if (pressure != null) {
+          // Store per-tank pressure in a namespaced key for interpolation
+          point['_pressure_$tankIdx'] = pressure;
+          tankIndicesWithPressure.add(tankIdx);
+        }
+      }
       points.add(point);
     }
-    _fillSparseField(points, 'pressure');
+
+    // Interpolate each tank's pressure independently
+    for (final tankIdx in tankIndicesWithPressure) {
+      _fillSparseField(points, '_pressure_$tankIdx');
+    }
     _fillSparseField(points, 'temperature');
+
+    // Convert per-tank pressure fields into allTankPressures arrays
+    for (final point in points) {
+      final allTankPressures = <Map<String, dynamic>>[];
+      for (final tankIdx in tankIndicesWithPressure) {
+        final pressure = point.remove('_pressure_$tankIdx') as double?;
+        if (pressure != null) {
+          allTankPressures.add({'pressure': pressure, 'tankIndex': tankIdx});
+        }
+      }
+      if (allTankPressures.isNotEmpty) {
+        point['allTankPressures'] = allTankPressures;
+      }
+    }
+
     return points;
   }
 
@@ -528,20 +561,25 @@ class SubsurfaceXmlParser implements ImportParser {
       double? startPressure = _parseDouble(cyl.getAttribute('start'));
       double? endPressure = _parseDouble(cyl.getAttribute('end'));
 
-      // First cylinder: fall back to first/last sample pressure0
-      if (index == 0 && profilePoints != null && profilePoints.isNotEmpty) {
-        if (startPressure == null) {
-          final firstPressure = profilePoints
-              .map((p) => p['pressure'] as double?)
-              .firstWhere((p) => p != null, orElse: () => null);
-          startPressure = firstPressure;
+      // Fall back to first/last sample pressure from allTankPressures
+      if (profilePoints != null && profilePoints.isNotEmpty) {
+        double? firstForTank;
+        double? lastForTank;
+        for (final p in profilePoints) {
+          final allTP = p['allTankPressures'] as List<Map<String, dynamic>>?;
+          if (allTP == null) continue;
+          for (final tp in allTP) {
+            if (tp['tankIndex'] == cylinderIndex) {
+              final pressure = tp['pressure'] as double?;
+              if (pressure != null) {
+                firstForTank ??= pressure;
+                lastForTank = pressure;
+              }
+            }
+          }
         }
-        if (endPressure == null) {
-          final lastPressure = profilePoints
-              .map((p) => p['pressure'] as double?)
-              .lastWhere((p) => p != null, orElse: () => null);
-          endPressure = lastPressure;
-        }
+        startPressure ??= firstForTank;
+        endPressure ??= lastForTank;
       }
 
       final tank = <String, dynamic>{'gasMix': gasMix};
