@@ -255,7 +255,8 @@ class DiveProfiles extends Table {
   )(); // Primary profile for stats
   IntColumn get timestamp => integer()(); // seconds from dive start
   RealColumn get depth => real()();
-  RealColumn get pressure => real().nullable()(); // bar
+  // Deprecated: use tank_pressure_profiles table. Column retained for schema compat.
+  RealColumn get pressure => real().nullable()();
   RealColumn get temperature => real().nullable()();
   IntColumn get heartRate => integer().nullable()();
   // Computed decompression data (optional, can be calculated on-the-fly)
@@ -1253,7 +1254,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 58;
+  static const int currentSchemaVersion = 59;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -2579,6 +2580,63 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'ALTER TABLE tank_presets_new RENAME TO tank_presets',
           );
+        }
+        if (from < 59) {
+          // Migrate legacy dive_profiles.pressure data into tank_pressure_profiles.
+          // For each dive that has pressure data in dive_profiles but NO existing
+          // rows in tank_pressure_profiles, copy the pressure points into
+          // tank_pressure_profiles associated with the dive's first tank.
+          final divesWithLegacyPressure = await customSelect('''
+            SELECT DISTINCT dp.dive_id
+            FROM dive_profiles dp
+            WHERE dp.pressure IS NOT NULL
+              AND dp.is_primary = 1
+              AND NOT EXISTS (
+                SELECT 1 FROM tank_pressure_profiles tpp
+                WHERE tpp.dive_id = dp.dive_id
+              )
+          ''').get();
+
+          for (final row in divesWithLegacyPressure) {
+            final diveId = row.read<String>('dive_id');
+
+            // Get the first tank for this dive (lowest rowid)
+            final tankRows = await customSelect(
+              '''
+              SELECT id FROM dive_tanks
+              WHERE dive_id = ?
+              ORDER BY rowid ASC
+              LIMIT 1
+            ''',
+              variables: [Variable(diveId)],
+            ).get();
+
+            if (tankRows.isEmpty) continue;
+            final tankId = tankRows.first.read<String>('id');
+
+            // Copy pressure points into tank_pressure_profiles
+            // Use hex(randomblob(16)) for UUID generation in SQLite
+            await customStatement(
+              '''
+              INSERT INTO tank_pressure_profiles (id, dive_id, tank_id, timestamp, pressure)
+              SELECT
+                lower(hex(randomblob(4)) || '-' || hex(randomblob(2)) || '-4' ||
+                  substr(hex(randomblob(2)),2) || '-' ||
+                  substr('89ab', abs(random()) % 4 + 1, 1) ||
+                  substr(hex(randomblob(2)),2) || '-' ||
+                  hex(randomblob(6))),
+                ?,
+                ?,
+                dp.timestamp,
+                dp.pressure
+              FROM dive_profiles dp
+              WHERE dp.dive_id = ?
+                AND dp.pressure IS NOT NULL
+                AND dp.is_primary = 1
+            ''',
+              variables: [Variable(diveId), Variable(tankId), Variable(diveId)],
+            );
+          }
         }
       },
       beforeOpen: (details) async {
