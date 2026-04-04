@@ -154,7 +154,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: 'Exporting dives to CSV...',
     );
     try {
-      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+      final dives = await _ref.read(divesProvider.future);
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,
@@ -244,7 +244,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: 'Generating PDF logbook...',
     );
     try {
-      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+      final dives = await _ref.read(divesProvider.future);
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,
@@ -320,7 +320,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: 'Generating UDDF file...',
     );
     try {
-      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+      final dives = await _ref.read(divesProvider.future);
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,
@@ -484,7 +484,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: 'Generating Excel file...',
     );
     try {
-      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+      final dives = await _ref.read(divesProvider.future);
       final sites = await _ref.read(sitesProvider.future);
       final equipment = await _ref.read(allEquipmentProvider.future);
 
@@ -535,7 +535,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
     );
     try {
       final sites = await _ref.read(sitesProvider.future);
-      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+      final dives = await _ref.read(divesProvider.future);
 
       if (sites.isEmpty) {
         state = state.copyWith(
@@ -581,7 +581,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: 'Preparing Excel file...',
     );
     try {
-      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+      final dives = await _ref.read(divesProvider.future);
       final sites = await _ref.read(sitesProvider.future);
       final equipment = await _ref.read(allEquipmentProvider.future);
 
@@ -639,7 +639,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
     );
     try {
       final sites = await _ref.read(sitesProvider.future);
-      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+      final dives = await _ref.read(divesProvider.future);
 
       if (sites.isEmpty) {
         state = state.copyWith(
@@ -693,7 +693,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: 'Preparing dives CSV...',
     );
     try {
-      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+      final dives = await _ref.read(divesProvider.future);
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,
@@ -816,7 +816,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: 'Preparing UDDF file...',
     );
     try {
-      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+      final dives = await _ref.read(divesProvider.future);
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,
@@ -981,7 +981,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: 'Preparing PDF...',
     );
     try {
-      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+      final dives = await _ref.read(divesProvider.future);
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,
