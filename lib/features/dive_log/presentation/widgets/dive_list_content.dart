@@ -1317,6 +1317,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     onLongPress: _isSelectionMode
                         ? null
                         : () => _enterSelectionMode(dive.id),
+                    summary: dive,
                   ),
                   ListViewMode.compact => CompactDiveListTile(
                     diveId: dive.id,

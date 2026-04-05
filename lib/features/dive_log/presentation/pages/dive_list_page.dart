@@ -17,8 +17,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
+import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
@@ -396,6 +399,12 @@ class DiveListTile extends ConsumerWidget {
   /// Card margin override (defaults to horizontal: 16, vertical: 4)
   final EdgeInsetsGeometry? margin;
 
+  /// Full dive summary used to render configurable extra fields.
+  ///
+  /// When provided and [detailedCardConfigProvider] has extra fields configured,
+  /// an additional row of label:value pairs is rendered below the tags section.
+  final DiveSummary? summary;
+
   const DiveListTile({
     super.key,
     required this.diveId,
@@ -421,6 +430,7 @@ class DiveListTile extends ConsumerWidget {
     this.siteLatitude,
     this.siteLongitude,
     this.margin,
+    this.summary,
   });
 
   /// Calculate background color based on the active color attribute
@@ -482,6 +492,10 @@ class DiveListTile extends ConsumerWidget {
     final accentColor = useLightText
         ? Colors.cyan.shade200
         : Colors.teal.shade800;
+
+    // Extra fields from detailed card config
+    final detailedConfig = ref.watch(detailedCardConfigProvider);
+    final extraFields = detailedConfig.extraFields;
 
     // Build the content widget (used in both map and non-map variants)
     Widget buildContent() {
@@ -698,6 +712,54 @@ class DiveListTile extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsetsDirectional.only(start: 52),
                     child: TagChips(tags: tags, maxTags: 3),
+                  ),
+                ],
+                // Extra configurable fields area
+                if (extraFields.isNotEmpty && summary != null) ...[
+                  const SizedBox(height: 4),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 52),
+                    child: LayoutBuilder(
+                      builder: (context, innerConstraints) {
+                        final useOneColumn = innerConstraints.maxWidth < 250;
+                        return Wrap(
+                          spacing: 16,
+                          runSpacing: 4,
+                          children: extraFields.map((field) {
+                            final value = field.extractFromSummary(summary!);
+                            final formatted = field.formatValue(value, units);
+                            return SizedBox(
+                              width: useOneColumn
+                                  ? innerConstraints.maxWidth
+                                  : (innerConstraints.maxWidth - 16) / 2,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '${field.shortLabel}: ',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: secondaryTextColor,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Flexible(
+                                    child: Text(
+                                      formatted,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: primaryTextColor,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
                   ),
                 ],
               ],
