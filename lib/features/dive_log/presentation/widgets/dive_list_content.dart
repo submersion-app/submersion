@@ -91,6 +91,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   String? _lastScrolledToId;
   bool _selectionFromList =
       false; // Track if selection originated from list tap
+  String? _tableHighlightedId; // Last-tapped dive in table mode
 
   @override
   void initState() {
@@ -1233,9 +1234,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   if (_isSelectionMode) {
                     _toggleSelection(id);
                   } else {
-                    // Push on the shell navigator so the detail page
-                    // slides in within the content area, keeping the
-                    // navigation rail visible on desktop.
+                    setState(() => _tableHighlightedId = id);
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => DiveDetailPage(diveId: id),
@@ -1248,6 +1247,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     : (id) => _enterSelectionMode(id),
                 selectedIds: _selectedIds,
                 isSelectionMode: _isSelectionMode,
+                highlightedId: _tableHighlightedId,
               ),
             ),
           ],

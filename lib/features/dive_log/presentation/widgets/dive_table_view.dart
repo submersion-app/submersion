@@ -31,6 +31,7 @@ class DiveTableView extends ConsumerStatefulWidget {
   final void Function(String diveId)? onDiveLongPress;
   final Set<String> selectedIds;
   final bool isSelectionMode;
+  final String? highlightedId;
 
   const DiveTableView({
     super.key,
@@ -40,6 +41,7 @@ class DiveTableView extends ConsumerStatefulWidget {
     this.onDiveLongPress,
     this.selectedIds = const {},
     this.isSelectionMode = false,
+    this.highlightedId,
   });
 
   @override
@@ -240,10 +242,14 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
   Color _rowBackground({
     required int index,
     required bool isSelected,
+    required bool isHighlighted,
     required ColorScheme colorScheme,
   }) {
     if (isSelected) {
       return colorScheme.primaryContainer;
+    }
+    if (isHighlighted) {
+      return colorScheme.primaryContainer.withValues(alpha: 0.3);
     }
     if (index.isOdd) {
       return colorScheme.surfaceContainerLowest;
@@ -356,6 +362,9 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                           final isSelected =
                               widget.isSelectionMode &&
                               widget.selectedIds.contains(dive.id);
+                          final isHighlighted =
+                              !widget.isSelectionMode &&
+                              widget.highlightedId == dive.id;
 
                           return GestureDetector(
                             behavior: HitTestBehavior.opaque,
@@ -367,6 +376,7 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                               color: _rowBackground(
                                 index: index,
                                 isSelected: isSelected,
+                                isHighlighted: isHighlighted,
                                 colorScheme: colorScheme,
                               ),
                               child: Row(
@@ -430,6 +440,9 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                               final isSelected =
                                   widget.isSelectionMode &&
                                   widget.selectedIds.contains(dive.id);
+                              final isHighlighted =
+                                  !widget.isSelectionMode &&
+                                  widget.highlightedId == dive.id;
 
                               return GestureDetector(
                                 behavior: HitTestBehavior.opaque,
@@ -441,6 +454,7 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                                   color: _rowBackground(
                                     index: index,
                                     isSelected: isSelected,
+                                    isHighlighted: isHighlighted,
                                     colorScheme: colorScheme,
                                   ),
                                   child: Row(
