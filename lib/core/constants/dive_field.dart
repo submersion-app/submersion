@@ -906,7 +906,7 @@ extension DiveFieldMetadata on DiveField {
 
       case DiveField.sacRate:
         if (value is double) {
-          return '${value.toStringAsFixed(1)} L/min';
+          return '${value.toStringAsFixed(1)} ${units.volumeSymbol}/min';
         }
         return '--';
 
