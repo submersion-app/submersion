@@ -79,5 +79,64 @@ void main() {
 
       expect(find.text('#1'), findsOneWidget);
     });
+
+    testWidgets('fires onDoubleTap on double-tap gesture', (tester) async {
+      bool doubleTapped = false;
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: CompactDiveListTile(
+            diveId: 'test-id',
+            diveNumber: 42,
+            dateTime: DateTime(2026, 3, 15),
+            siteName: 'Test Site',
+            onTap: () {},
+            onDoubleTap: () => doubleTapped = true,
+          ),
+        ),
+      );
+
+      final tile = find.text('Test Site');
+      await tester.tap(tile);
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+
+      expect(doubleTapped, isTrue);
+    });
+
+    testWidgets('shows highlight styling when isHighlighted is true', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: CompactDiveListTile(
+            diveId: 'test-id',
+            diveNumber: 42,
+            dateTime: DateTime(2026, 3, 15),
+            siteName: 'Test Site',
+            isHighlighted: true,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      // The outer Container should have a highlight border decoration
+      final container = tester.widget<Container>(
+        find
+            .descendant(
+              of: find.byType(CompactDiveListTile),
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+      final decoration = container.decoration;
+      expect(decoration, isNotNull);
+    });
   });
 }

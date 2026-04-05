@@ -23,6 +23,8 @@ class CompactDiveListTile extends ConsumerWidget {
   final VoidCallback? onLongPress;
   final bool isSelectionMode;
   final bool isSelected;
+  final bool isHighlighted;
+  final VoidCallback? onDoubleTap;
 
   // Card coloring
   final double? colorValue;
@@ -52,6 +54,8 @@ class CompactDiveListTile extends ConsumerWidget {
     this.onLongPress,
     this.isSelectionMode = false,
     this.isSelected = false,
+    this.isHighlighted = false,
+    this.onDoubleTap,
     this.colorValue,
     this.minValueInList,
     this.maxValueInList,
@@ -165,6 +169,8 @@ class CompactDiveListTile extends ConsumerWidget {
         : null;
     final cardColor = isSelected
         ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+        : isHighlighted
+        ? colorScheme.primaryContainer.withValues(alpha: 0.15)
         : attributeColor;
 
     final effectiveBackground =
@@ -203,107 +209,120 @@ class CompactDiveListTile extends ConsumerWidget {
               ? duration != null
               : maxDepth != null);
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      color: cardColor,
-      child: Semantics(
-        button: true,
-        label: 'Dive $diveNumber at ${siteName ?? 'Unknown Site'}',
-        child: InkWell(
-          onTap: onTap,
-          onLongPress: onLongPress,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Line 1: dive number, title slot, date slot, chevron
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 36,
-                      child: Stack(
-                        alignment: Alignment.centerLeft,
-                        children: [
-                          Visibility(
-                            visible: isSelectionMode,
-                            maintainSize: true,
-                            maintainAnimation: true,
-                            maintainState: true,
-                            child: Checkbox(
-                              value: isSelected,
-                              onChanged: (_) => onTap?.call(),
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          ),
-                          if (!isSelectionMode)
-                            Text(
-                              '#$diveNumber',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                                color: accentColor,
+      decoration: isHighlighted
+          ? BoxDecoration(
+              border: Border(
+                left: BorderSide(color: colorScheme.primary, width: 3),
+              ),
+              borderRadius: BorderRadius.circular(12),
+            )
+          : null,
+      child: Card(
+        margin: EdgeInsets.zero,
+        color: cardColor,
+        child: Semantics(
+          button: true,
+          label: 'Dive $diveNumber at ${siteName ?? 'Unknown Site'}',
+          child: InkWell(
+            onTap: onTap,
+            onDoubleTap: onDoubleTap,
+            onLongPress: onLongPress,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Line 1: dive number, title slot, date slot, chevron
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: 36,
+                        child: Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [
+                            Visibility(
+                              visible: isSelectionMode,
+                              maintainSize: true,
+                              maintainAnimation: true,
+                              maintainState: true,
+                              child: Checkbox(
+                                value: isSelected,
+                                onChanged: (_) => onTap?.call(),
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                                visualDensity: VisualDensity.compact,
                               ),
                             ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        titleText,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: primaryTextColor,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      dateText,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: secondaryTextColor,
-                      ),
-                    ),
-                    ExcludeSemantics(
-                      child: Icon(
-                        Icons.chevron_right,
-                        color: secondaryTextColor,
-                        size: 20,
-                      ),
-                    ),
-                  ],
-                ),
-                // Line 2: stat1 and stat2 slots
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 44),
-                  child: Row(
-                    children: [
-                      ExcludeSemantics(
-                        child: _buildStatSlot(
-                          stat1Field,
-                          stat1Text,
-                          stat1HasValue ? statStyle! : statStyleDim!,
-                          stat1HasValue ? accentColor : secondaryTextColor,
+                            if (!isSelectionMode)
+                              Text(
+                                '#$diveNumber',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: accentColor,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          titleText,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: primaryTextColor,
+                              ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        dateText,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: secondaryTextColor,
+                        ),
+                      ),
                       ExcludeSemantics(
-                        child: _buildStatSlot(
-                          stat2Field,
-                          stat2Text,
-                          stat2HasValue ? statStyle! : statStyleDim!,
-                          stat2HasValue ? accentColor : secondaryTextColor,
+                        child: Icon(
+                          Icons.chevron_right,
+                          color: secondaryTextColor,
+                          size: 20,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  // Line 2: stat1 and stat2 slots
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(start: 44),
+                    child: Row(
+                      children: [
+                        ExcludeSemantics(
+                          child: _buildStatSlot(
+                            stat1Field,
+                            stat1Text,
+                            stat1HasValue ? statStyle! : statStyleDim!,
+                            stat1HasValue ? accentColor : secondaryTextColor,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        ExcludeSemantics(
+                          child: _buildStatSlot(
+                            stat2Field,
+                            stat2Text,
+                            stat2HasValue ? statStyle! : statStyleDim!,
+                            stat2HasValue ? accentColor : secondaryTextColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
