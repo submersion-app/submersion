@@ -1188,6 +1188,34 @@ class CsvPresets extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Stores the active view configuration per (diver, view_mode).
+class ViewConfigs extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId =>
+      text().references(Divers, #id, onDelete: KeyAction.cascade)();
+  TextColumn get viewMode => text()();
+  TextColumn get configJson => text()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Named presets per (diver, view_mode).
+class FieldPresets extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId =>
+      text().references(Divers, #id, onDelete: KeyAction.cascade)();
+  TextColumn get viewMode => text()();
+  TextColumn get name => text()();
+  TextColumn get configJson => text()();
+  BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // Database Class
 // ============================================================================
@@ -1247,6 +1275,9 @@ class CsvPresets extends Table {
     TripItineraryDays,
     // CSV import presets (local-only)
     CsvPresets,
+    // Column view configuration
+    ViewConfigs,
+    FieldPresets,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -1254,7 +1285,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 59;
+  static const int currentSchemaVersion = 60;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -2637,6 +2668,35 @@ class AppDatabase extends _$AppDatabase {
               [diveId, tankId, diveId],
             );
           }
+        }
+
+        if (from < 60) {
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS view_configs (
+              id TEXT NOT NULL PRIMARY KEY,
+              diver_id TEXT NOT NULL REFERENCES divers(id) ON DELETE CASCADE,
+              view_mode TEXT NOT NULL,
+              config_json TEXT NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS field_presets (
+              id TEXT NOT NULL PRIMARY KEY,
+              diver_id TEXT NOT NULL REFERENCES divers(id) ON DELETE CASCADE,
+              view_mode TEXT NOT NULL,
+              name TEXT NOT NULL,
+              config_json TEXT NOT NULL,
+              is_built_in INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL
+            )
+          ''');
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_view_configs_diver ON view_configs(diver_id, view_mode)',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_field_presets_diver ON field_presets(diver_id, view_mode)',
+          );
         }
       },
       beforeOpen: (details) async {

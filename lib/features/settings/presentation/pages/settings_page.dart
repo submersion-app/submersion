@@ -1590,6 +1590,7 @@ class _AppearanceSectionContentState
       ListViewMode.detailed => 'Detailed',
       ListViewMode.compact => 'Compact',
       ListViewMode.dense => 'Dense',
+      ListViewMode.table => 'Table',
     };
   }
 

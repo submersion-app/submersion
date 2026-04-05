@@ -364,7 +364,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
               isSelected: isSelected,
               onTap: () => _handleItemTap(center),
             ),
-            ListViewMode.dense => DenseDiveCenterListTile(
+            ListViewMode.dense || ListViewMode.table => DenseDiveCenterListTile(
               center: center,
               diveCount: diveCount,
               isSelected: isSelected,

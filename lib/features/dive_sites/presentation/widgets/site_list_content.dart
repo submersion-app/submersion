@@ -706,7 +706,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                   ? null
                   : () => _enterSelectionMode(site.id),
             ),
-            ListViewMode.dense => DenseSiteListTile(
+            ListViewMode.dense || ListViewMode.table => DenseSiteListTile(
               name: site.name,
               location: locationString,
               diveCount: siteData.diveCount,

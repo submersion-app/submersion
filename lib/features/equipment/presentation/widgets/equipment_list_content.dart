@@ -370,7 +370,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               isSelected: isSelected,
               onTap: () => _handleItemTap(item),
             ),
-            ListViewMode.dense => DenseEquipmentListTile(
+            ListViewMode.dense || ListViewMode.table => DenseEquipmentListTile(
               item: item,
               isSelected: isSelected,
               onTap: () => _handleItemTap(item),

@@ -338,7 +338,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                     isSelected: isSelected,
                     onTap: () => _handleItemTap(tripWithStats.trip),
                   ),
-                  ListViewMode.dense => DenseTripListTile(
+                  ListViewMode.dense || ListViewMode.table => DenseTripListTile(
                     tripWithStats: tripWithStats,
                     isSelected: isSelected,
                     onTap: () => _handleItemTap(tripWithStats.trip),

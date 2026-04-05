@@ -1256,7 +1256,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                         ? null
                         : () => _enterSelectionMode(dive.id),
                   ),
-                  ListViewMode.dense => DenseDiveListTile(
+                  ListViewMode.dense || ListViewMode.table => DenseDiveListTile(
                     diveId: dive.id,
                     diveNumber: dive.diveNumber ?? index + 1,
                     dateTime: dive.dateTime,

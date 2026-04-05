@@ -28,6 +28,7 @@ class ListViewModeToggle extends StatelessWidget {
       ListViewMode.detailed => Icons.view_agenda,
       ListViewMode.compact => Icons.view_list,
       ListViewMode.dense => Icons.list,
+      ListViewMode.table => Icons.table_rows,
     };
   }
 
@@ -36,6 +37,7 @@ class ListViewModeToggle extends StatelessWidget {
       ListViewMode.detailed => 'Detailed',
       ListViewMode.compact => 'Compact',
       ListViewMode.dense => 'Dense',
+      ListViewMode.table => 'Table',
     };
   }
 
@@ -76,6 +78,7 @@ class ListViewModeToggle extends StatelessWidget {
       ListViewMode.detailed => Icons.view_agenda,
       ListViewMode.compact => Icons.view_list,
       ListViewMode.dense => Icons.list,
+      ListViewMode.table => Icons.table_rows,
     };
   }
 
@@ -84,6 +87,7 @@ class ListViewModeToggle extends StatelessWidget {
       ListViewMode.detailed => 'Detailed',
       ListViewMode.compact => 'Compact',
       ListViewMode.dense => 'Dense',
+      ListViewMode.table => 'Table',
     };
   }
 

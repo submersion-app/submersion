@@ -3,8 +3,8 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 
 void main() {
   group('ListViewMode', () {
-    test('has three values', () {
-      expect(ListViewMode.values.length, 3);
+    test('has four values', () {
+      expect(ListViewMode.values.length, 4);
     });
 
     test('fromName returns correct value for each name', () {

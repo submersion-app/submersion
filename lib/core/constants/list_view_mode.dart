@@ -7,7 +7,10 @@ enum ListViewMode {
   compact,
 
   /// Single-row flat, divider-separated
-  dense;
+  dense,
+
+  /// Spreadsheet-style table with configurable columns
+  table;
 
   /// Parse from stored string, defaulting to detailed.
   static ListViewMode fromName(String name) {

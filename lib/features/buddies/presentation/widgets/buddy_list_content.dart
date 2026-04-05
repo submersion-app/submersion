@@ -676,7 +676,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
                 onTap: () => _handleItemTap(buddy),
               ),
             ),
-            ListViewMode.dense => GestureDetector(
+            ListViewMode.dense || ListViewMode.table => GestureDetector(
               onLongPress: _isSelectionMode
                   ? null
                   : () => _enterSelectionMode(buddy.id),
