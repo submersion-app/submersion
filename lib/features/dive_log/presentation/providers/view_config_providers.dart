@@ -163,9 +163,9 @@ final tableViewConfigProvider =
       ref,
     ) {
       final notifier = TableViewConfigNotifier();
-      final repo = ref.watch(viewConfigRepositoryProvider);
       final diverId = ref.watch(currentDiverIdProvider);
       if (diverId != null) {
+        final repo = ref.watch(viewConfigRepositoryProvider);
         notifier.init(repo, diverId);
       }
       return notifier;
@@ -293,9 +293,9 @@ class CardViewConfigNotifier extends StateNotifier<domain.CardViewConfig> {
 final compactCardConfigProvider =
     StateNotifierProvider<CardViewConfigNotifier, domain.CardViewConfig>((ref) {
       final notifier = CardViewConfigNotifier.withMode(ListViewMode.compact);
-      final repo = ref.watch(viewConfigRepositoryProvider);
       final diverId = ref.watch(currentDiverIdProvider);
       if (diverId != null) {
+        final repo = ref.watch(viewConfigRepositoryProvider);
         notifier.init(repo, diverId, ListViewMode.compact);
       }
       return notifier;
@@ -305,9 +305,9 @@ final compactCardConfigProvider =
 final denseCardConfigProvider =
     StateNotifierProvider<CardViewConfigNotifier, domain.CardViewConfig>((ref) {
       final notifier = CardViewConfigNotifier.withMode(ListViewMode.dense);
-      final repo = ref.watch(viewConfigRepositoryProvider);
       final diverId = ref.watch(currentDiverIdProvider);
       if (diverId != null) {
+        final repo = ref.watch(viewConfigRepositoryProvider);
         notifier.init(repo, diverId, ListViewMode.dense);
       }
       return notifier;
@@ -317,9 +317,9 @@ final denseCardConfigProvider =
 final detailedCardConfigProvider =
     StateNotifierProvider<CardViewConfigNotifier, domain.CardViewConfig>((ref) {
       final notifier = CardViewConfigNotifier.withMode(ListViewMode.detailed);
-      final repo = ref.watch(viewConfigRepositoryProvider);
       final diverId = ref.watch(currentDiverIdProvider);
       if (diverId != null) {
+        final repo = ref.watch(viewConfigRepositoryProvider);
         notifier.init(repo, diverId, ListViewMode.detailed);
       }
       return notifier;
