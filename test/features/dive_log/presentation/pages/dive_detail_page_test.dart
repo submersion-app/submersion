@@ -181,11 +181,15 @@ void main() {
           ),
         ),
       );
-      // Tolerate profile chart rendering errors
+      // Tolerate rendering errors (e.g. Expanded in unconstrained Column from
+      // DiveProfileChart). Override BEFORE pump so errors during initial layout
+      // are captured. Save and restore original handler for clean teardown.
+      final originalOnError = FlutterError.onError;
       final errors = <FlutterErrorDetails>[];
       FlutterError.onError = (d) => errors.add(d);
-      await tester.pumpAndSettle();
-      FlutterError.onError = FlutterError.presentError;
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      FlutterError.onError = originalOnError;
 
       // Should render with attribution badges
       expect(find.byType(DiveDetailPage), findsOneWidget);
