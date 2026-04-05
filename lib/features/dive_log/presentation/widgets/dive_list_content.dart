@@ -1216,7 +1216,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               title: context.l10n.nav_dives,
               extraActions: [
                 IconButton(
-                  icon: Icon(Icons.view_column_outlined, color: Colors.orange),
+                  icon: const Icon(Icons.view_column_outlined, color: Colors.orange),
                   tooltip: 'Column settings',
                   onPressed: () => showTableColumnPicker(context),
                 ),
