@@ -1,0 +1,421 @@
+import 'package:flutter/material.dart';
+import 'package:submersion/core/providers/provider.dart';
+
+import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
+
+class ColumnConfigPage extends ConsumerStatefulWidget {
+  const ColumnConfigPage({super.key});
+
+  @override
+  ConsumerState<ColumnConfigPage> createState() => _ColumnConfigPageState();
+}
+
+class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
+  ListViewMode _selectedMode = ListViewMode.table;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Column Configuration')),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Row(
+              children: [
+                const Text('View Mode'),
+                const SizedBox(width: 16),
+                DropdownButton<ListViewMode>(
+                  value: _selectedMode,
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _selectedMode = value);
+                    }
+                  },
+                  items: ListViewMode.values.map((mode) {
+                    return DropdownMenuItem(
+                      value: mode,
+                      child: Text(_modeDisplayName(mode)),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+          Expanded(child: _buildModeSection()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeSection() {
+    switch (_selectedMode) {
+      case ListViewMode.table:
+        return const _TableColumnConfigSection();
+      case ListViewMode.detailed:
+        return const _DetailedCardConfigSection();
+      case ListViewMode.compact:
+        return const _SlotCardConfigSection(
+          mode: ListViewMode.compact,
+          key: ValueKey(ListViewMode.compact),
+        );
+      case ListViewMode.dense:
+        return const _SlotCardConfigSection(
+          mode: ListViewMode.dense,
+          key: ValueKey(ListViewMode.dense),
+        );
+    }
+  }
+
+  String _modeDisplayName(ListViewMode mode) {
+    return switch (mode) {
+      ListViewMode.table => 'Table',
+      ListViewMode.detailed => 'Detailed',
+      ListViewMode.compact => 'Compact',
+      ListViewMode.dense => 'Dense',
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Table mode section
+// ---------------------------------------------------------------------------
+
+class _TableColumnConfigSection extends ConsumerWidget {
+  const _TableColumnConfigSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(tableViewConfigProvider);
+    final notifier = ref.read(tableViewConfigProvider.notifier);
+    final theme = Theme.of(context);
+    final visibleFields = config.columns.map((c) => c.field).toSet();
+    const allFields = DiveField.values;
+    final availableFields = allFields
+        .where((f) => !visibleFields.contains(f))
+        .toList();
+
+    // Group available fields by category
+    final Map<DiveFieldCategory, List<DiveField>> grouped = {};
+    for (final field in availableFields) {
+      grouped.putIfAbsent(field.category, () => []).add(field);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionHeader(title: 'VISIBLE COLUMNS', theme: theme),
+        Expanded(
+          child: Column(
+            children: [
+              Expanded(
+                child: ReorderableListView.builder(
+                  buildDefaultDragHandles: false,
+                  itemCount: config.columns.length,
+                  onReorder: notifier.reorderColumn,
+                  itemBuilder: (context, index) {
+                    final col = config.columns[index];
+                    return ListTile(
+                      key: ValueKey(col.field),
+                      leading: ReorderableDragStartListener(
+                        index: index,
+                        child: const Icon(Icons.drag_handle),
+                      ),
+                      title: Text(col.field.shortLabel),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              col.isPinned
+                                  ? Icons.push_pin
+                                  : Icons.push_pin_outlined,
+                            ),
+                            tooltip: col.isPinned ? 'Unpin' : 'Pin',
+                            onPressed: () => notifier.togglePin(col.field),
+                          ),
+                          if (!col.isPinned)
+                            IconButton(
+                              icon: const Icon(Icons.remove_circle_outline),
+                              tooltip: 'Remove',
+                              onPressed: () => notifier.toggleColumn(col.field),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const Divider(height: 1),
+              _SectionHeader(title: 'AVAILABLE FIELDS', theme: theme),
+              Expanded(
+                child: ListView(
+                  children: [
+                    for (final category in DiveFieldCategory.values)
+                      if (grouped.containsKey(category)) ...[
+                        _CategoryHeader(
+                          label: category.name.toUpperCase(),
+                          theme: theme,
+                        ),
+                        for (final field in grouped[category]!)
+                          ListTile(
+                            title: Text(field.shortLabel),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.add_circle_outline),
+                              tooltip: 'Add',
+                              onPressed: () => notifier.toggleColumn(field),
+                            ),
+                          ),
+                      ],
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: OutlinedButton(
+                  onPressed: () {
+                    notifier.replaceConfig(TableViewConfig.defaultConfig());
+                  },
+                  child: const Text('Reset to Default'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Detailed card mode section
+// ---------------------------------------------------------------------------
+
+class _DetailedCardConfigSection extends ConsumerWidget {
+  const _DetailedCardConfigSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(detailedCardConfigProvider);
+    final notifier = ref.read(detailedCardConfigProvider.notifier);
+    final theme = Theme.of(context);
+
+    final extraFieldSet = config.extraFields.toSet();
+    final available = DiveField.summaryFields
+        .where((f) => !extraFieldSet.contains(f))
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionHeader(title: 'EXTRA FIELDS', theme: theme),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: Text(
+            'Additional fields shown below the standard card content.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Column(
+            children: [
+              Expanded(
+                child: config.extraFields.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No extra fields configured.',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      )
+                    : ReorderableListView.builder(
+                        buildDefaultDragHandles: false,
+                        itemCount: config.extraFields.length,
+                        onReorder: notifier.reorderExtraFields,
+                        itemBuilder: (context, index) {
+                          final field = config.extraFields[index];
+                          return ListTile(
+                            key: ValueKey(field),
+                            leading: ReorderableDragStartListener(
+                              index: index,
+                              child: const Icon(Icons.drag_handle),
+                            ),
+                            title: Text(field.shortLabel),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.remove_circle_outline),
+                              tooltip: 'Remove',
+                              onPressed: () => notifier.removeExtraField(field),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+              const Divider(height: 1),
+              _SectionHeader(title: 'AVAILABLE FIELDS', theme: theme),
+              Expanded(
+                child: ListView(
+                  children: available
+                      .map(
+                        (field) => ListTile(
+                          title: Text(field.shortLabel),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.add_circle_outline),
+                            tooltip: 'Add',
+                            onPressed: () => notifier.addExtraField(field),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: OutlinedButton(
+                  onPressed: notifier.resetToDefault,
+                  child: const Text('Reset to Default'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Slot card mode section (Compact and Dense)
+// ---------------------------------------------------------------------------
+
+class _SlotCardConfigSection extends ConsumerWidget {
+  final ListViewMode mode;
+
+  const _SlotCardConfigSection({required this.mode, super.key});
+
+  StateNotifierProvider<CardViewConfigNotifier, CardViewConfig> get _provider {
+    return switch (mode) {
+      ListViewMode.compact => compactCardConfigProvider,
+      ListViewMode.dense => denseCardConfigProvider,
+      _ => compactCardConfigProvider,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(_provider);
+    final notifier = ref.read(_provider.notifier);
+    final theme = Theme.of(context);
+    final summaryFields = DiveField.summaryFields.toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionHeader(title: 'SLOT ASSIGNMENTS', theme: theme),
+        Expanded(
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView(
+                  children: config.slots.map((slot) {
+                    return ListTile(
+                      title: Text(_slotDisplayName(slot.slotId)),
+                      trailing: DropdownButton<DiveField>(
+                        value: slot.field,
+                        underline: const SizedBox(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            notifier.updateSlot(slot.slotId, value);
+                          }
+                        },
+                        items: summaryFields.map((field) {
+                          return DropdownMenuItem(
+                            value: field,
+                            child: Text(field.shortLabel),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: OutlinedButton(
+                  onPressed: notifier.resetToDefault,
+                  child: const Text('Reset to Default'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _slotDisplayName(String slotId) {
+    return switch (slotId) {
+      'title' => 'Title',
+      'date' => 'Date / Subtitle',
+      'stat1' => 'Stat 1',
+      'stat2' => 'Stat 2',
+      'slot1' => 'Slot 1',
+      'slot2' => 'Slot 2',
+      'slot3' => 'Slot 3',
+      'slot4' => 'Slot 4',
+      _ => slotId,
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Shared helper widgets
+// ---------------------------------------------------------------------------
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final ThemeData theme;
+
+  const _SectionHeader({required this.title, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Text(
+        title,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.0,
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryHeader extends StatelessWidget {
+  final String label;
+  final ThemeData theme;
+
+  const _CategoryHeader({required this.label, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 2),
+      child: Text(
+        label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}

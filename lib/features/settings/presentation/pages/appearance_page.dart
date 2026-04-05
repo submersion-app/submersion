@@ -134,6 +134,13 @@ class AppearancePage extends ConsumerWidget {
                   .setShowMapBackgroundOnDiveCards(value);
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.view_column),
+            title: const Text('Column Configuration'),
+            subtitle: const Text('Customize fields shown in dive list views'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/appearance/column-config'),
+          ),
           const Divider(),
           _buildSectionHeader(context, 'Dive Sites'),
           ListTile(
