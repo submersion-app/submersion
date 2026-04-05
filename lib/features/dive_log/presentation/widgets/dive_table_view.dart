@@ -345,7 +345,7 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                     width:
                         pinnedWidth +
                         (widget.isSelectionMode ? _kCheckboxWidth : 0),
-                    child: NotificationListener<ScrollNotification>(
+                    child: NotificationListener<ScrollUpdateNotification>(
                       onNotification: (notification) {
                         _syncVerticalScroll(
                           _pinnedVerticalController,
@@ -355,6 +355,7 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                       },
                       child: ListView.builder(
                         controller: _pinnedVerticalController,
+                        physics: const ClampingScrollPhysics(),
                         itemExtent: _kRowHeight,
                         itemCount: sortedDives.length,
                         itemBuilder: (context, index) {
@@ -423,7 +424,7 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                       physics: const ClampingScrollPhysics(),
                       child: SizedBox(
                         width: scrollableWidth,
-                        child: NotificationListener<ScrollNotification>(
+                        child: NotificationListener<ScrollUpdateNotification>(
                           onNotification: (notification) {
                             _syncVerticalScroll(
                               _scrollableVerticalController,
@@ -433,6 +434,7 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                           },
                           child: ListView.builder(
                             controller: _scrollableVerticalController,
+                            physics: const ClampingScrollPhysics(),
                             itemExtent: _kRowHeight,
                             itemCount: sortedDives.length,
                             itemBuilder: (context, index) {
