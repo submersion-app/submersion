@@ -23,6 +23,8 @@ class DenseDiveListTile extends ConsumerWidget {
   final VoidCallback? onLongPress;
   final bool isSelectionMode;
   final bool isSelected;
+  final bool isHighlighted;
+  final VoidCallback? onDoubleTap;
 
   // Card coloring
   final double? colorValue;
@@ -52,6 +54,8 @@ class DenseDiveListTile extends ConsumerWidget {
     this.onLongPress,
     this.isSelectionMode = false,
     this.isSelected = false,
+    this.isHighlighted = false,
+    this.onDoubleTap,
     this.colorValue,
     this.minValueInList,
     this.maxValueInList,
@@ -175,6 +179,8 @@ class DenseDiveListTile extends ConsumerWidget {
         : null;
     final rowColor = isSelected
         ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+        : isHighlighted
+        ? colorScheme.primaryContainer.withValues(alpha: 0.15)
         : attributeColor;
 
     final effectiveBackground = rowColor ?? colorScheme.surface;
@@ -237,6 +243,9 @@ class DenseDiveListTile extends ConsumerWidget {
         decoration: BoxDecoration(
           color: rowColor,
           border: Border(
+            left: isHighlighted
+                ? BorderSide(color: colorScheme.primary, width: 3)
+                : BorderSide.none,
             bottom: BorderSide(
               color: colorScheme.outlineVariant.withValues(alpha: 0.5),
               width: 0.5,
@@ -245,6 +254,7 @@ class DenseDiveListTile extends ConsumerWidget {
         ),
         child: InkWell(
           onTap: onTap,
+          onDoubleTap: onDoubleTap,
           onLongPress: onLongPress,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
