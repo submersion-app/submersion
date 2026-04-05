@@ -381,7 +381,7 @@ void main() {
       expect(sourceInfo.cnsActual, MetricDataSource.calculated);
     });
 
-    test('forward-fills computer NDL after first reported value', () {
+    test('overlays computer NDL when available', () {
       // Add computer NDL to some profile points
       final profileWithNdl = <DiveProfilePoint>[];
       for (int i = 0; i < baseProfile.length; i++) {
@@ -401,13 +401,13 @@ void main() {
       // Points with computer NDL should use computer value
       expect(result.ndlCurve[150], equals(600));
 
-      // Points before the first computer NDL sample remain unpopulated
-      expect(result.ndlCurve[50], equals(0));
+      // Points without computer NDL should fall back to calculated values
+      expect(result.ndlCurve[50], equals(baseAnalysis.ndlCurve[50]));
 
       expect(sourceInfo.ndlActual, MetricDataSource.computer);
     });
 
-    test('forward-fills computer ceiling after first reported value', () {
+    test('overlays computer ceiling when available', () {
       final profileWithCeiling = <DiveProfilePoint>[];
       for (int i = 0; i < baseProfile.length; i++) {
         if (i >= 200 && i < 400) {
@@ -426,13 +426,16 @@ void main() {
       // Points with computer ceiling should use computer value
       expect(result.ceilingCurve[250], closeTo(3.0, 0.001));
 
-      // Points before the first computer ceiling sample remain unpopulated
-      expect(result.ceilingCurve[50], closeTo(0.0, 0.001));
+      // Points without computer ceiling should fall back to calculated values
+      expect(
+        result.ceilingCurve[50],
+        closeTo(baseAnalysis.ceilingCurve[50], 0.001),
+      );
 
       expect(sourceInfo.ceilingActual, MetricDataSource.computer);
     });
 
-    test('forward-fills computer TTS after first reported value', () {
+    test('overlays computer TTS when available', () {
       final profileWithTts = <DiveProfilePoint>[];
       for (int i = 0; i < baseProfile.length; i++) {
         if (i >= 100 && i < 300) {
@@ -451,13 +454,13 @@ void main() {
       // Points with computer TTS should use computer value
       expect(result.ttsCurve![200], equals(120));
 
-      // Points before the first computer TTS sample remain unpopulated
-      expect(result.ttsCurve![50], equals(0));
+      // Points without computer TTS should fall back to calculated values
+      expect(result.ttsCurve![50], equals(baseAnalysis.ttsCurve![50]));
 
       expect(sourceInfo.ttsActual, MetricDataSource.computer);
     });
 
-    test('forward-fills computer CNS after first reported value', () {
+    test('overlays computer CNS when available', () {
       final profileWithCns = <DiveProfilePoint>[];
       for (int i = 0; i < baseProfile.length; i++) {
         if (i >= 100 && i < 300) {
@@ -476,13 +479,13 @@ void main() {
       // Points with computer CNS should use computer value
       expect(result.cnsCurve![150], closeTo(25.0, 0.001));
 
-      // Points before the first computer CNS sample remain unpopulated
-      expect(result.cnsCurve![50], closeTo(0.0, 0.001));
+      // Points without computer CNS should fall back to calculated values
+      expect(result.cnsCurve![50], closeTo(baseAnalysis.cnsCurve![50], 0.001));
 
       expect(sourceInfo.cnsActual, MetricDataSource.computer);
     });
 
-    test('forward-fills sparse computer data between reported points', () {
+    test('handles mixed computer data - some points have data, some do not', () {
       // Alternate: every other point has computer NDL
       final profileMixed = <DiveProfilePoint>[];
       for (int i = 0; i < baseProfile.length; i++) {
@@ -505,8 +508,8 @@ void main() {
       // Even indices in range should have computer value
       expect(result.ndlCurve[100], equals(777));
 
-      // Odd indices inherit the most recent prior computer value
-      expect(result.ndlCurve[101], equals(777));
+      // Odd indices without computer data should fall back to calculated values
+      expect(result.ndlCurve[101], equals(baseAnalysis.ndlCurve[101]));
 
       expect(sourceInfo.ndlActual, MetricDataSource.computer);
     });
@@ -611,14 +614,14 @@ void main() {
       expect(sourceInfo.ndlActual, MetricDataSource.calculated);
     });
 
-    test('source=computer without data leaves metric blank', () {
+    test('source=computer without data falls back to calculated', () {
       final (result, sourceInfo) = overlayComputerDecoData(
         baseAnalysis,
         baseProfile,
         ndlSource: MetricDataSource.computer,
       );
-      expect(result.ndlCurve, isEmpty);
-      expect(sourceInfo.ndlActual, MetricDataSource.computer);
+      expect(result.ndlCurve, equals(baseAnalysis.ndlCurve));
+      expect(sourceInfo.ndlActual, MetricDataSource.calculated);
     });
   });
 }

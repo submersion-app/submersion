@@ -204,12 +204,14 @@ ProfileAnalysisService _resolveAnalysisService(
 /// [ProfileAnalysis].
 ///
 /// Each metric (NDL, ceiling, TTS, CNS) is independently controlled by its
-/// own [MetricDataSource] parameter. The selected source is treated literally:
-/// if computer data is selected but unavailable, the metric is rendered blank
-/// instead of falling back to calculated values.
+/// own [MetricDataSource] parameter. When a source is [MetricDataSource.computer]
+/// and computer data exists in the profile, those values take priority over
+/// the Buhlmann-calculated values. Points without computer data fall back to
+/// the calculated values.
 ///
 /// Returns a tuple of the (possibly overlaid) [ProfileAnalysis] and a
-/// [MetricSourceInfo] reporting the selected source for each metric.
+/// [MetricSourceInfo] reporting the actual source used per metric after
+/// fallback resolution.
 (ProfileAnalysis, MetricSourceInfo) overlayComputerDecoData(
   ProfileAnalysis analysis,
   List<DiveProfilePoint> profile, {
@@ -231,66 +233,58 @@ ProfileAnalysisService _resolveAnalysisService(
   final useTts = ttsSource == MetricDataSource.computer && hasComputerTts;
   final useCns = cnsSource == MetricDataSource.computer && hasComputerCns;
 
+  // Report actual source used (fallback to calculated if no data)
   final sourceInfo = (
-    ndlActual: ndlSource,
-    ceilingActual: ceilingSource,
-    ttsActual: ttsSource,
-    cnsActual: cnsSource,
+    ndlActual: useNdl ? MetricDataSource.computer : MetricDataSource.calculated,
+    ceilingActual: useCeiling
+        ? MetricDataSource.computer
+        : MetricDataSource.calculated,
+    ttsActual: useTts ? MetricDataSource.computer : MetricDataSource.calculated,
+    cnsActual: useCns ? MetricDataSource.computer : MetricDataSource.calculated,
   );
 
-  final showComputerNdl = ndlSource == MetricDataSource.computer;
-  final showComputerCeiling = ceilingSource == MetricDataSource.computer;
-  final showComputerTts = ttsSource == MetricDataSource.computer;
-  final showComputerCns = cnsSource == MetricDataSource.computer;
-
-  if (!showComputerNdl &&
-      !showComputerCeiling &&
-      !showComputerTts &&
-      !showComputerCns) {
+  if (!useNdl && !useCeiling && !useTts && !useCns) {
     return (analysis, sourceInfo);
   }
 
-  List<T> forwardFillCurve<T>(
-    T defaultValue,
-    T? Function(DiveProfilePoint point) valueForPoint,
-  ) {
-    final values = <T>[];
-    T? lastValue;
-
-    for (final point in profile) {
-      final pointValue = valueForPoint(point);
-      if (pointValue != null) {
-        lastValue = pointValue;
-      }
-      values.add(lastValue ?? defaultValue);
-    }
-
-    return values;
-  }
-
   final overlaid = analysis.copyWith(
-    ndlCurve: showComputerNdl
-        ? (useNdl ? forwardFillCurve<int>(0, (point) => point.ndl) : const [])
+    ndlCurve: useNdl
+        ? List<int>.generate(
+            profile.length,
+            (i) =>
+                profile[i].ndl ??
+                (i < analysis.ndlCurve.length ? analysis.ndlCurve[i] : 0),
+          )
         : null,
-    ceilingCurve: showComputerCeiling
-        ? (useCeiling
-              ? forwardFillCurve<double>(0.0, (point) => point.ceiling)
-              : const [])
+    ceilingCurve: useCeiling
+        ? List<double>.generate(
+            profile.length,
+            (i) =>
+                profile[i].ceiling ??
+                (i < analysis.ceilingCurve.length
+                    ? analysis.ceilingCurve[i]
+                    : 0.0),
+          )
         : null,
-    ttsCurve: showComputerTts
-        ? (useTts
-              ? forwardFillCurve<int>(0, (point) {
-                  final computerTts = point.tts;
-                  return computerTts != null && computerTts > 0
-                      ? computerTts
-                      : null;
-                })
-              : const [])
+    ttsCurve: useTts
+        ? List<int>.generate(profile.length, (i) {
+            final computerTts = profile[i].tts;
+            if (computerTts != null && computerTts > 0) return computerTts;
+            if (analysis.ttsCurve != null && i < analysis.ttsCurve!.length) {
+              return analysis.ttsCurve![i];
+            }
+            return 0;
+          })
         : null,
-    cnsCurve: showComputerCns
-        ? (useCns
-              ? forwardFillCurve<double>(0.0, (point) => point.cns)
-              : const [])
+    cnsCurve: useCns
+        ? List<double>.generate(
+            profile.length,
+            (i) =>
+                profile[i].cns ??
+                (analysis.cnsCurve != null && i < analysis.cnsCurve!.length
+                    ? analysis.cnsCurve![i]
+                    : 0.0),
+          )
         : null,
   );
 
