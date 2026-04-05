@@ -323,84 +323,114 @@ class _DetailedCardConfigSection extends ConsumerWidget {
         .where((f) => !extraFieldSet.contains(f))
         .toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _SectionHeader(title: 'EXTRA FIELDS', theme: theme),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-          child: Text(
-            'Additional fields shown below the standard card content.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+    // Group available fields by category
+    final Map<DiveFieldCategory, List<DiveField>> grouped = {};
+    for (final field in available) {
+      grouped.putIfAbsent(field.category, () => []).add(field);
+    }
+
+    return Expanded(
+      child: ListView(
+        children: [
+          // -- Slot assignments (fixed card area) --
+          _SectionHeader(title: 'SLOT ASSIGNMENTS', theme: theme),
+          ...config.slots.map((slot) {
+            return ListTile(
+              title: Text(_slotDisplayName(slot.slotId)),
+              trailing: DropdownButton<DiveField>(
+                value: slot.field,
+                underline: const SizedBox(),
+                onChanged: (value) {
+                  if (value != null) {
+                    notifier.updateSlot(slot.slotId, value);
+                  }
+                },
+                items: DiveField.values.map((field) {
+                  return DropdownMenuItem(
+                    value: field,
+                    child: Text(field.shortLabel),
+                  );
+                }).toList(),
+              ),
+            );
+          }),
+
+          const Divider(),
+
+          // -- Extra fields (flexible area below card) --
+          _SectionHeader(title: 'EXTRA FIELDS', theme: theme),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(
+              'Additional fields shown below the standard card content.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
-        ),
-        Expanded(
-          child: Column(
-            children: [
-              Expanded(
-                child: config.extraFields.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No extra fields configured.',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      )
-                    : ReorderableListView.builder(
-                        buildDefaultDragHandles: false,
-                        itemCount: config.extraFields.length,
-                        onReorder: notifier.reorderExtraFields,
-                        itemBuilder: (context, index) {
-                          final field = config.extraFields[index];
-                          return ListTile(
-                            key: ValueKey(field),
-                            leading: ReorderableDragStartListener(
-                              index: index,
-                              child: const Icon(Icons.drag_handle),
-                            ),
-                            title: Text(field.shortLabel),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.remove_circle_outline),
-                              tooltip: 'Remove',
-                              onPressed: () => notifier.removeExtraField(field),
-                            ),
-                          );
-                        },
-                      ),
+          ...config.extraFields.asMap().entries.map((entry) {
+            final field = entry.value;
+            return ListTile(
+              key: ValueKey(field),
+              leading: const Icon(Icons.drag_handle),
+              title: Text(field.shortLabel),
+              trailing: IconButton(
+                icon: const Icon(Icons.remove_circle_outline),
+                tooltip: 'Remove',
+                onPressed: () => notifier.removeExtraField(field),
               ),
-              const Divider(height: 1),
-              _SectionHeader(title: 'AVAILABLE FIELDS', theme: theme),
-              Expanded(
-                child: ListView(
-                  children: available
-                      .map(
-                        (field) => ListTile(
-                          title: Text(field.shortLabel),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.add_circle_outline),
-                            tooltip: 'Add',
-                            onPressed: () => notifier.addExtraField(field),
-                          ),
-                        ),
-                      )
-                      .toList(),
+            );
+          }),
+          if (config.extraFields.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                'No extra fields configured. Add fields below.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: OutlinedButton(
-                  onPressed: notifier.resetToDefault,
-                  child: const Text('Reset to Default'),
+            ),
+
+          const Divider(),
+
+          // -- Available fields to add --
+          _SectionHeader(title: 'AVAILABLE FIELDS', theme: theme),
+          for (final category in DiveFieldCategory.values)
+            if (grouped.containsKey(category)) ...[
+              _CategoryHeader(label: category.name.toUpperCase(), theme: theme),
+              for (final field in grouped[category]!)
+                ListTile(
+                  title: Text(field.shortLabel),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.add_circle_outline),
+                    tooltip: 'Add',
+                    onPressed: () => notifier.addExtraField(field),
+                  ),
                 ),
-              ),
             ],
+
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: OutlinedButton(
+              onPressed: notifier.resetToDefault,
+              child: const Text('Reset to Default'),
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 16),
+        ],
+      ),
     );
+  }
+
+  String _slotDisplayName(String slotId) {
+    return switch (slotId) {
+      'title' => 'Title',
+      'date' => 'Date / Subtitle',
+      'stat1' => 'Stat 1',
+      'stat2' => 'Stat 2',
+      _ => slotId,
+    };
   }
 }
 
