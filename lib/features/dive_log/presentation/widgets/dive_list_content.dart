@@ -1297,19 +1297,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           children: [
             if (filter.hasActiveFilters) _buildActiveFiltersBar(context),
             if (showPanel)
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final panelHeight = (constraints.maxHeight * 0.35).clamp(
-                    270.0,
-                    350.0,
-                  );
-                  return ClipRect(
-                    child: SizedBox(
-                      height: panelHeight,
-                      child: const DiveProfilePanel(),
-                    ),
-                  );
-                },
+              const ClipRect(
+                child: SizedBox(height: 265, child: DiveProfilePanel()),
               ),
             Expanded(
               child: DiveTableView(
