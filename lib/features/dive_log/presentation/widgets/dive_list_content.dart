@@ -877,9 +877,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
   }
 
-  AppBar _buildAppBar(BuildContext context, DiveFilterState filter) {
+  AppBar _buildAppBar(
+    BuildContext context,
+    DiveFilterState filter, {
+    String? title,
+  }) {
     return AppBar(
-      title: Text(context.l10n.diveLog_listPage_title),
+      title: Text(title ?? context.l10n.diveLog_listPage_title),
       actions: [
         IconButton(
           icon: const Icon(Icons.map),
@@ -1203,7 +1207,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     return Scaffold(
       appBar: _isSelectionMode
           ? _buildSelectionAppBar(const [])
-          : _buildAppBar(context, filter),
+          : _buildAppBar(context, filter, title: context.l10n.nav_dives),
       body: content,
       floatingActionButton: _isSelectionMode
           ? null
