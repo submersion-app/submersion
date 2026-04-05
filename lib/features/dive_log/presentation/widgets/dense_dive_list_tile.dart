@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Single-row flat tile for the dive list (maximum density).
 ///
-/// Row: dive number | site name | abbreviated date | depth | duration | chevron
+/// Row: dive number | slot1 | slot2 | slot3 | slot4 | chevron
 class DenseDiveListTile extends ConsumerWidget {
   final String diveId;
   final int diveNumber;
@@ -29,6 +31,15 @@ class DenseDiveListTile extends ConsumerWidget {
   final Color? gradientStartColor;
   final Color? gradientEndColor;
 
+  // Optional full summary for configurable slot rendering
+  final DiveSummary? summary;
+
+  // Configurable slots
+  final DiveField slot1Field;
+  final DiveField slot2Field;
+  final DiveField slot3Field;
+  final DiveField slot4Field;
+
   const DenseDiveListTile({
     super.key,
     required this.diveId,
@@ -46,6 +57,11 @@ class DenseDiveListTile extends ConsumerWidget {
     this.maxValueInList,
     this.gradientStartColor,
     this.gradientEndColor,
+    this.summary,
+    this.slot1Field = DiveField.siteName,
+    this.slot2Field = DiveField.dateTime,
+    this.slot3Field = DiveField.maxDepth,
+    this.slot4Field = DiveField.bottomTime,
   });
 
   Color? _getAttributeBackgroundColor() {
@@ -71,6 +87,80 @@ class DenseDiveListTile extends ConsumerWidget {
     return DateFormat("MMM d ''yy").format(dt);
   }
 
+  /// Returns the display string for an expanded text slot (slot1 / slot2).
+  String _buildTextSlotValue(
+    DiveField field,
+    DiveField defaultField,
+    UnitFormatter units,
+    BuildContext context,
+  ) {
+    if (summary != null && field != defaultField) {
+      final value = field.extractFromSummary(summary!);
+      return field.formatValue(value, units);
+    }
+    if (field == DiveField.siteName) {
+      return siteName ?? context.l10n.diveLog_listPage_unknownSite;
+    }
+    if (field == DiveField.dateTime) {
+      return _formatShortDate(dateTime);
+    }
+    final value = summary != null ? field.extractFromSummary(summary!) : null;
+    return field.formatValue(value, units);
+  }
+
+  /// Returns the display string for a numeric stat slot (slot3 / slot4).
+  String _buildStatSlotValue(
+    DiveField field,
+    DiveField defaultField,
+    UnitFormatter units,
+  ) {
+    if (summary != null && field != defaultField) {
+      final value = field.extractFromSummary(summary!);
+      return field.formatValue(value, units);
+    }
+    if (field == DiveField.maxDepth) {
+      return units.formatDepth(maxDepth);
+    }
+    if (field == DiveField.bottomTime) {
+      return duration != null ? '${duration!.inMinutes} min' : '--';
+    }
+    final value = summary != null ? field.extractFromSummary(summary!) : null;
+    return field.formatValue(value, units);
+  }
+
+  /// Builds the icon+value or label:value widget for a stat slot.
+  Widget _buildStatSlot(
+    DiveField field,
+    String formatted,
+    TextStyle style,
+    Color iconColor,
+  ) {
+    final icon = field.icon;
+    if (icon != null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: iconColor),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              formatted,
+              style: style,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
+        ],
+      );
+    }
+    return Text(
+      '${field.shortLabel}: $formatted',
+      style: style,
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -94,6 +184,51 @@ class DenseDiveListTile extends ConsumerWidget {
     final accentColor = useLightText
         ? Colors.cyan.shade200
         : Colors.teal.shade800;
+
+    // Resolve slot text values
+    final slot1Text = _buildTextSlotValue(
+      slot1Field,
+      DiveField.siteName,
+      units,
+      context,
+    );
+    final slot2Text = _buildTextSlotValue(
+      slot2Field,
+      DiveField.dateTime,
+      units,
+      context,
+    );
+    final slot3Text = _buildStatSlotValue(
+      slot3Field,
+      DiveField.maxDepth,
+      units,
+    );
+    final slot4Text = _buildStatSlotValue(
+      slot4Field,
+      DiveField.bottomTime,
+      units,
+    );
+
+    // Determine if stat values are present
+    final slot3HasValue = summary != null
+        ? slot3Field.extractFromSummary(summary!) != null
+        : (slot3Field == DiveField.maxDepth
+              ? maxDepth != null
+              : duration != null);
+    final slot4HasValue = summary != null
+        ? slot4Field.extractFromSummary(summary!) != null
+        : (slot4Field == DiveField.bottomTime
+              ? duration != null
+              : maxDepth != null);
+
+    final statStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
+      fontWeight: FontWeight.w600,
+      color: accentColor,
+    );
+    final statStyleDim = Theme.of(context).textTheme.bodySmall?.copyWith(
+      fontWeight: FontWeight.w600,
+      color: secondaryTextColor,
+    );
 
     return Semantics(
       button: true,
@@ -146,10 +281,10 @@ class DenseDiveListTile extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Site name (expanded)
+                // Slot 1 (expanded)
                 Expanded(
                   child: Text(
-                    siteName ?? context.l10n.diveLog_listPage_unknownSite,
+                    slot1Text,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: primaryTextColor,
@@ -158,41 +293,33 @@ class DenseDiveListTile extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Abbreviated date
+                // Slot 2 (abbreviated date or configured field)
                 Text(
-                  _formatShortDate(dateTime),
+                  slot2Text,
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall?.copyWith(color: secondaryTextColor),
                 ),
                 const SizedBox(width: 12),
-                // Depth (fixed width for column alignment)
+                // Slot 3 (fixed width, stat with icon fallback)
                 SizedBox(
                   width: 56,
-                  child: Text(
-                    units.formatDepth(maxDepth),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: maxDepth != null
-                          ? accentColor
-                          : secondaryTextColor,
-                    ),
-                    textAlign: TextAlign.right,
+                  child: _buildStatSlot(
+                    slot3Field,
+                    slot3Text,
+                    slot3HasValue ? statStyle! : statStyleDim!,
+                    slot3HasValue ? accentColor : secondaryTextColor,
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Duration (fixed width for column alignment)
+                // Slot 4 (fixed width, stat with icon fallback)
                 SizedBox(
                   width: 50,
-                  child: Text(
-                    duration != null ? '${duration!.inMinutes} min' : '--',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: duration != null
-                          ? accentColor
-                          : secondaryTextColor,
-                    ),
-                    textAlign: TextAlign.right,
+                  child: _buildStatSlot(
+                    slot4Field,
+                    slot4Text,
+                    slot4HasValue ? statStyle! : statStyleDim!,
+                    slot4HasValue ? accentColor : secondaryTextColor,
                   ),
                 ),
                 ExcludeSemantics(

@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_dive_list_tile.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dense_dive_list_tile.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
@@ -764,6 +766,19 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
   }
 
+  /// Returns the [DiveField] for [slotId] from [slots], or [defaultField] if
+  /// no matching slot is found.
+  DiveField _slotField(
+    List<CardSlotConfig> slots,
+    String slotId,
+    DiveField defaultField,
+  ) {
+    for (final slot in slots) {
+      if (slot.slotId == slotId) return slot.field;
+    }
+    return defaultField;
+  }
+
   void _handleItemTap(DiveSummary dive) {
     if (_isSelectionMode) {
       _toggleSelection(dive.id);
@@ -1335,6 +1350,27 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     maxValueInList: maxValue,
                     gradientStartColor: gradientColors.start,
                     gradientEndColor: gradientColors.end,
+                    summary: dive,
+                    titleField: _slotField(
+                      ref.watch(compactCardConfigProvider).slots,
+                      'title',
+                      DiveField.siteName,
+                    ),
+                    dateField: _slotField(
+                      ref.watch(compactCardConfigProvider).slots,
+                      'date',
+                      DiveField.dateTime,
+                    ),
+                    stat1Field: _slotField(
+                      ref.watch(compactCardConfigProvider).slots,
+                      'stat1',
+                      DiveField.maxDepth,
+                    ),
+                    stat2Field: _slotField(
+                      ref.watch(compactCardConfigProvider).slots,
+                      'stat2',
+                      DiveField.bottomTime,
+                    ),
                     onTap: () => _handleItemTap(dive),
                     onLongPress: _isSelectionMode
                         ? null
@@ -1358,6 +1394,27 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     maxValueInList: maxValue,
                     gradientStartColor: gradientColors.start,
                     gradientEndColor: gradientColors.end,
+                    summary: dive,
+                    slot1Field: _slotField(
+                      ref.watch(denseCardConfigProvider).slots,
+                      'slot1',
+                      DiveField.siteName,
+                    ),
+                    slot2Field: _slotField(
+                      ref.watch(denseCardConfigProvider).slots,
+                      'slot2',
+                      DiveField.dateTime,
+                    ),
+                    slot3Field: _slotField(
+                      ref.watch(denseCardConfigProvider).slots,
+                      'slot3',
+                      DiveField.maxDepth,
+                    ),
+                    slot4Field: _slotField(
+                      ref.watch(denseCardConfigProvider).slots,
+                      'slot4',
+                      DiveField.bottomTime,
+                    ),
                     onTap: () => _handleItemTap(dive),
                     onLongPress: _isSelectionMode
                         ? null
