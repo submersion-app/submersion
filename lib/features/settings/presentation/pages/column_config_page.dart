@@ -319,7 +319,7 @@ class _DetailedCardConfigSection extends ConsumerWidget {
     final theme = Theme.of(context);
 
     final extraFieldSet = config.extraFields.toSet();
-    final available = DiveField.summaryFields
+    final available = DiveField.values
         .where((f) => !extraFieldSet.contains(f))
         .toList();
 
@@ -426,7 +426,7 @@ class _SlotCardConfigSection extends ConsumerWidget {
     final config = ref.watch(_provider);
     final notifier = ref.read(_provider.notifier);
     final theme = Theme.of(context);
-    final summaryFields = DiveField.summaryFields.toList();
+    const allFields = DiveField.values;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -448,7 +448,7 @@ class _SlotCardConfigSection extends ConsumerWidget {
                             notifier.updateSlot(slot.slotId, value);
                           }
                         },
-                        items: summaryFields.map((field) {
+                        items: allFields.map((field) {
                           return DropdownMenuItem(
                             value: field,
                             child: Text(field.shortLabel),
