@@ -8,8 +8,10 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_dive_list_tile.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/table_column_picker.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dense_dive_list_tile.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
@@ -92,7 +94,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   String? _lastScrolledToId;
   bool _selectionFromList =
       false; // Track if selection originated from list tap
-  String? _tableHighlightedId; // Last-tapped dive in table mode
 
   @override
   void initState() {
@@ -179,6 +180,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   }
 
   void _enterSelectionMode(String? initialId) {
+    ref.read(highlightedDiveIdProvider.notifier).state = null;
     setState(() {
       _isSelectionMode = true;
       _selectedIds.clear();
@@ -799,13 +801,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       return;
     }
 
+    // Highlight the dive only -- do NOT open detail pane on single tap.
+    // The detail pane is opened on double-tap via _handleItemDoubleTap.
+    ref.read(highlightedDiveIdProvider.notifier).state = dive.id;
+  }
+
+  void _handleItemDoubleTap(DiveSummary dive) {
+    if (_isSelectionMode) return;
+
     if (widget.onItemSelected != null) {
-      // Master-detail mode: notify parent
-      // Mark that selection came from list tap (don't scroll)
+      // Master-detail mode: notify parent to open detail pane
       _selectionFromList = true;
       widget.onItemSelected!(dive.id);
     } else {
-      // Standalone mode: navigate
+      // Standalone mode: navigate to detail page
       context.go('/dives/${dive.id}');
     }
   }
@@ -888,6 +897,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       title: Text(title ?? context.l10n.diveLog_listPage_title),
       actions: [
         ...extraActions,
+        IconButton(
+          icon: Icon(
+            Icons.show_chart,
+            color: ref.watch(showProfilePanelProvider)
+                ? Theme.of(context).colorScheme.primary
+                : null,
+          ),
+          tooltip: 'Toggle profile panel',
+          onPressed: () {
+            ref.read(showProfilePanelProvider.notifier).state = !ref.read(
+              showProfilePanelProvider,
+            );
+          },
+        ),
         IconButton(
           icon: const Icon(Icons.map),
           tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
@@ -991,6 +1014,21 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
+          IconButton(
+            icon: Icon(
+              Icons.show_chart,
+              size: 20,
+              color: ref.watch(showProfilePanelProvider)
+                  ? Theme.of(context).colorScheme.primary
+                  : null,
+            ),
+            tooltip: 'Toggle profile panel',
+            onPressed: () {
+              ref.read(showProfilePanelProvider.notifier).state = !ref.read(
+                showProfilePanelProvider,
+              );
+            },
+          ),
           if (widget.onMapViewToggle != null)
             MapViewToggleButton(
               isActive: widget.isMapViewActive,
@@ -1244,9 +1282,23 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         if (dives.isEmpty) {
           return _buildEmptyState(context, filter.hasActiveFilters);
         }
+        final showPanel = ref.watch(showProfilePanelProvider);
         return Column(
           children: [
             if (filter.hasActiveFilters) _buildActiveFiltersBar(context),
+            if (showPanel)
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final panelHeight = (constraints.maxHeight * 0.3).clamp(
+                    150.0,
+                    250.0,
+                  );
+                  return SizedBox(
+                    height: panelHeight,
+                    child: const DiveProfilePanel(),
+                  );
+                },
+              ),
             Expanded(
               child: DiveTableView(
                 dives: dives,
@@ -1255,20 +1307,23 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   if (_isSelectionMode) {
                     _toggleSelection(id);
                   } else {
-                    setState(() => _tableHighlightedId = id);
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => DiveDetailPage(diveId: id),
-                      ),
-                    );
+                    ref.read(highlightedDiveIdProvider.notifier).state = id;
                   }
+                },
+                onDiveDoubleTap: (id) {
+                  if (_isSelectionMode) return;
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => DiveDetailPage(diveId: id),
+                    ),
+                  );
                 },
                 onDiveLongPress: _isSelectionMode
                     ? null
                     : (id) => _enterSelectionMode(id),
                 selectedIds: _selectedIds,
                 isSelectionMode: _isSelectionMode,
-                highlightedId: _tableHighlightedId,
+                highlightedId: ref.watch(highlightedDiveIdProvider),
               ),
             ),
           ],
@@ -1330,6 +1385,19 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       child: Column(
         children: [
           if (hasActiveFilters) _buildActiveFiltersBar(context),
+          if (ref.watch(showProfilePanelProvider))
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final panelHeight = (constraints.maxHeight * 0.3).clamp(
+                  150.0,
+                  250.0,
+                );
+                return SizedBox(
+                  height: panelHeight,
+                  child: const DiveProfilePanel(),
+                );
+              },
+            ),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -1347,6 +1415,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 final dive = dives[index];
                 final isSelected = _selectedIds.contains(dive.id);
                 final isMasterSelected = widget.selectedId == dive.id;
+                final isHighlighted =
+                    !_isSelectionMode &&
+                    ref.watch(highlightedDiveIdProvider) == dive.id;
                 final viewMode = ref.watch(diveListViewModeProvider);
                 return switch (viewMode) {
                   ListViewMode.detailed => DiveListTile(
@@ -1373,6 +1444,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     siteLatitude: dive.siteLatitude,
                     siteLongitude: dive.siteLongitude,
                     onTap: () => _handleItemTap(dive),
+                    onDoubleTap: () => _handleItemDoubleTap(dive),
+                    isHighlighted: isHighlighted,
                     onLongPress: _isSelectionMode
                         ? null
                         : () => _enterSelectionMode(dive.id),
@@ -1417,6 +1490,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                       DiveField.bottomTime,
                     ),
                     onTap: () => _handleItemTap(dive),
+                    onDoubleTap: () => _handleItemDoubleTap(dive),
+                    isHighlighted: isHighlighted,
                     onLongPress: _isSelectionMode
                         ? null
                         : () => _enterSelectionMode(dive.id),
@@ -1461,6 +1536,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                       DiveField.bottomTime,
                     ),
                     onTap: () => _handleItemTap(dive),
+                    onDoubleTap: () => _handleItemDoubleTap(dive),
+                    isHighlighted: isHighlighted,
                     onLongPress: _isSelectionMode
                         ? null
                         : () => _enterSelectionMode(dive.id),
