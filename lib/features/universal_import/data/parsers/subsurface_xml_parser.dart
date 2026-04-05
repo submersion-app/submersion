@@ -209,9 +209,17 @@ class SubsurfaceXmlParser implements ImportParser {
       if (duration != null) 'runtime': duration,
     };
 
+    final cns = _parseDouble(dive.getAttribute('cns'));
+    if (cns != null) result['cnsEnd'] = cns;
+    final otu = _parseDouble(dive.getAttribute('otu'));
+    if (otu != null) result['otu'] = otu.round();
+
     // Extract depth and temperature from <divecomputer> child
     final divecomputer = dive.findElements('divecomputer').firstOrNull;
     if (divecomputer != null) {
+      final diveMode = _mapDiveMode(divecomputer.getAttribute('dctype'));
+      if (diveMode != null) result['diveMode'] = diveMode;
+
       final depthEl = divecomputer.findElements('depth').firstOrNull;
       if (depthEl != null) {
         final maxDepth = _parseDouble(depthEl.getAttribute('max'));
@@ -440,6 +448,21 @@ class SubsurfaceXmlParser implements ImportParser {
       final point = <String, dynamic>{'timestamp': timestamp, 'depth': depth};
       final temp = _parseDouble(sample.getAttribute('temp'));
       if (temp != null) point['temperature'] = temp;
+      final heartRate = _parseInt(sample.getAttribute('heartbeat'));
+      if (heartRate != null) point['heartRate'] = heartRate;
+      final ndl = _parseDurationSeconds(sample.getAttribute('ndl'));
+      if (ndl != null) point['ndl'] = ndl;
+      final tts = _parseDurationSeconds(sample.getAttribute('tts'));
+      if (tts != null) point['tts'] = tts;
+      final rbt = _parseDurationSeconds(sample.getAttribute('rbt'));
+      if (rbt != null) point['rbt'] = rbt;
+      final cns = _parseDouble(sample.getAttribute('cns'));
+      if (cns != null) point['cns'] = cns;
+      final ppo2 = _parseDouble(sample.getAttribute('po2'));
+      if (ppo2 != null) point['ppO2'] = ppo2;
+      if (_parseInt(sample.getAttribute('in_deco')) == 1) {
+        point['decoType'] = 2;
+      }
 
       // Read pressure0, pressure1, ... for each tank
       for (var tankIdx = 0; tankIdx < 10; tankIdx++) {
@@ -595,6 +618,8 @@ class SubsurfaceXmlParser implements ImportParser {
       if (description != null && description.isNotEmpty) {
         tank['name'] = description;
       }
+      final role = _mapTankRole(cyl.getAttribute('use'));
+      if (role != null) tank['role'] = role;
       tank['order'] = index;
       tank['uddfTankId'] = _subsurfaceTankRef(cylinderIndex, description);
       tanks.add(tank);
@@ -678,6 +703,33 @@ class SubsurfaceXmlParser implements ImportParser {
     _ => null,
   };
 
+  static DiveMode? _mapDiveMode(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    return switch (normalized) {
+      'ccr' => DiveMode.ccr,
+      'scr' => DiveMode.scr,
+      'oc' => DiveMode.oc,
+      _ => null,
+    };
+  }
+
+  static TankRole? _mapTankRole(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    return switch (normalized) {
+      'diluent' => TankRole.diluent,
+      'oxygen' => TankRole.oxygenSupply,
+      'bailout' => TankRole.bailout,
+      'stage' => TankRole.stage,
+      'deco' => TankRole.deco,
+      'sidemount' => TankRole.sidemountLeft,
+      'sidemount-left' => TankRole.sidemountLeft,
+      'sidemount-right' => TankRole.sidemountRight,
+      'pony' => TankRole.pony,
+      'backgas' || 'back-gas' || 'back_gas' => TankRole.backGas,
+      _ => null,
+    };
+  }
+
   /// Splits a comma-separated name string, trimming leading/trailing commas
   /// and whitespace from each name.
   ///
@@ -696,7 +748,8 @@ class SubsurfaceXmlParser implements ImportParser {
   static double? _parseDouble(String? value) {
     if (value == null || value.isEmpty) return null;
     final parts = value.trim().split(' ');
-    return double.tryParse(parts[0]);
+    final normalized = parts[0].replaceFirst(RegExp(r'%$'), '');
+    return double.tryParse(normalized);
   }
 
   /// Parses an integer value from a string that may have a unit suffix.

@@ -1418,6 +1418,8 @@ class UddfFullImportService {
       final profile = <Map<String, dynamic>>[];
       GasMix? currentMix;
       GasMix? pendingSwitchMix;
+      double? lastWaypointCns;
+      double? lastWaypointOtu;
 
       for (final waypoint in samplesElement.findElements('waypoint')) {
         final point = <String, dynamic>{};
@@ -1533,6 +1535,63 @@ class UddfFullImportService {
           point['heartRate'] = int.tryParse(heartRateText);
         }
 
+        final cnsText = UddfImportParsers.getElementText(waypoint, 'cns');
+        if (cnsText != null) {
+          final cns = double.tryParse(cnsText);
+          if (cns != null) {
+            point['cns'] = cns;
+            lastWaypointCns = cns;
+          }
+        }
+
+        final otuText = UddfImportParsers.getElementText(waypoint, 'otu');
+        if (otuText != null) {
+          final otu = double.tryParse(otuText);
+          if (otu != null) {
+            lastWaypointOtu = otu;
+          }
+        }
+
+        final ndlText = UddfImportParsers.getElementText(
+          waypoint,
+          'nodecotime',
+        );
+        if (ndlText != null) {
+          point['ndl'] = int.tryParse(ndlText);
+        }
+
+        final decoStop = waypoint.findElements('decostop').firstOrNull;
+        if (decoStop != null) {
+          final kind = decoStop.getAttribute('kind')?.trim().toLowerCase();
+          if (kind != null &&
+              kind.isNotEmpty &&
+              kind != 'safetystop' &&
+              kind != 'decostop') {
+            _logger.warning(
+              'UDDF import: unsupported decostop kind "$kind"; '
+              'mapping to decoType=2 because the sample still indicates a deco stop.',
+            );
+          }
+          point['decoType'] = kind == 'safetystop' ? 1 : 2;
+        }
+
+        // UDDF exposes both remainingbottomtime and remainingo2time.
+        // Prefer remainingbottomtime because it is the closest semantic match
+        // to the app's sample-level RBT field. Fall back to remainingo2time
+        // only when remainingbottomtime is absent.
+        final remainingBottomTimeText = UddfImportParsers.getElementText(
+          waypoint,
+          'remainingbottomtime',
+        );
+        final remainingO2TimeText = UddfImportParsers.getElementText(
+          waypoint,
+          'remainingo2time',
+        );
+        final rbtText = remainingBottomTimeText ?? remainingO2TimeText;
+        if (rbtText != null) {
+          point['rbt'] = int.tryParse(rbtText);
+        }
+
         if (point.containsKey('timestamp') && point.containsKey('depth')) {
           profile.add(point);
         }
@@ -1546,6 +1605,12 @@ class UddfFullImportService {
 
       if (profile.isNotEmpty) {
         diveData['profile'] = profile;
+      }
+      if (lastWaypointCns != null) {
+        diveData['cnsEnd'] = lastWaypointCns;
+      }
+      if (lastWaypointOtu != null) {
+        diveData['otu'] = lastWaypointOtu;
       }
       // Use gas mix from samples if no tank data was found
       if (currentMix != null && !diveData.containsKey('tanks')) {

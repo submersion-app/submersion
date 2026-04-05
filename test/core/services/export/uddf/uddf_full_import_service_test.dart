@@ -331,5 +331,104 @@ void main() {
         expect(gasMix.name, 'EAN50');
       },
     );
+
+    test(
+      'parses waypoint cns, otu, ndl, and rbt with remainingbottomtime precedence',
+      () async {
+        const uddfContent = '''
+<uddf version="3.2.3">
+  <profiledata>
+    <repetitiongroup>
+      <dive id="dive-1">
+        <informationbeforedive>
+          <datetime>2025-09-01T14:18:24Z</datetime>
+          <divenumber>235</divenumber>
+        </informationbeforedive>
+        <samples>
+          <waypoint>
+            <depth>5</depth>
+            <divetime>0</divetime>
+            <cns>3.5</cns>
+            <otu>1.5</otu>
+            <nodecotime>900</nodecotime>
+            <remainingbottomtime>1200</remainingbottomtime>
+            <remainingo2time>1500</remainingo2time>
+          </waypoint>
+          <waypoint>
+            <depth>10</depth>
+            <divetime>60</divetime>
+            <cns>8.0</cns>
+            <otu>4.0</otu>
+            <remainingo2time>600</remainingo2time>
+          </waypoint>
+        </samples>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>
+''';
+
+        final result = await service.importAllDataFromUddf(uddfContent);
+        final dive = result.dives.first;
+        final profile = dive['profile'] as List<Map<String, dynamic>>;
+
+        expect(profile[0]['cns'], 3.5);
+        expect(profile[0]['ndl'], 900);
+        expect(profile[0]['rbt'], 1200);
+        expect(profile[1]['rbt'], 600);
+        expect(dive['cnsEnd'], 8.0);
+        expect(dive['otu'], 4.0);
+      },
+    );
+
+    test(
+      'maps decostop kind to decoType and leaves missing decostop null',
+      () async {
+        const uddfContent = '''
+<uddf version="3.2.3">
+  <profiledata>
+    <repetitiongroup>
+      <dive id="dive-1">
+        <informationbeforedive>
+          <datetime>2025-09-01T14:18:24Z</datetime>
+          <divenumber>235</divenumber>
+        </informationbeforedive>
+        <samples>
+          <waypoint>
+            <depth>5</depth>
+            <divetime>0</divetime>
+          </waypoint>
+          <waypoint>
+            <depth>6</depth>
+            <divetime>60</divetime>
+            <decostop kind="safetystop" />
+          </waypoint>
+          <waypoint>
+            <depth>9</depth>
+            <divetime>120</divetime>
+            <decostop kind="decostop" />
+          </waypoint>
+          <waypoint>
+            <depth>12</depth>
+            <divetime>180</divetime>
+            <decostop kind="vendor-extension" />
+          </waypoint>
+        </samples>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>
+''';
+
+        final result = await service.importAllDataFromUddf(uddfContent);
+        final dive = result.dives.first;
+        final profile = dive['profile'] as List<Map<String, dynamic>>;
+
+        expect(profile[0]['decoType'], isNull);
+        expect(profile[1]['decoType'], 1);
+        expect(profile[2]['decoType'], 2);
+        expect(profile[3]['decoType'], 2);
+      },
+    );
   });
 }

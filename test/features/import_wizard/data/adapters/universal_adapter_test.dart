@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -60,6 +61,7 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
     as ui;
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
 @GenerateNiceMocks([
@@ -1910,6 +1912,67 @@ void main() {
         },
       );
     });
+
+    testWidgets(
+      'real SSRF-shaped payload imports without int-to-double cast failures',
+      (tester) async {
+        final parser = SubsurfaceXmlParser();
+        final payload = await parser.parse(
+          Uint8List.fromList(
+            utf8.encode('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='8164' otu='64' cns='24%' date='2023-01-04' time='10:10:39' duration='53:10 min'>
+  <cylinder size='11.094 l' workpressure='206.843 bar' description='AL80' o2='50.0%' end='154.58 bar' depth='21.856 m' />
+  <cylinder size='11.094 l' workpressure='206.843 bar' description='AL80' o2='16.0%' he='48.0%' end='183.952 bar' depth='89.814 m' />
+  <cylinder size='11.094 l' workpressure='206.843 bar' description='AL80' o2='16.0%' he='48.0%' use='diluent' depth='89.814 m' />
+  <divecomputer model='Shearwater Nerd 2' deviceid='64257c95' diveid='832b8abe' dctype='CCR' no_o2sensors='3'>
+  <depth max='40.8 m' mean='16.244 m' />
+  <temperature water='12.0 C' />
+  <surface pressure='0.996 bar' />
+  <extradata key='Deco model' value='GF 50/70' />
+  <event time='0:10 min' type='25' flags='3' name='gaschange' cylinder='2' o2='16.0%' he='48.0%' />
+  <sample time='0:10 min' depth='0.0 m' temp='20.0 C' pressure0='193.329 bar' pressure1='201.327 bar' sensor1='0.641 bar' sensor2='0.659 bar' sensor3='0.664 bar' po2='0.7 bar' />
+  <sample time='0:20 min' depth='2.6 m' pressure1='201.189 bar' ndl='99:00 min' sensor1='0.664 bar' sensor2='0.682 bar' sensor3='0.686 bar' />
+  <sample time='3:30 min' depth='9.7 m' cns='1%' sensor2='0.706 bar' sensor3='0.708 bar' />
+  <sample time='14:00 min' depth='40.4 m' pressure1='186.71 bar' ndl='0:00 min' cns='5%' sensor1='1.261 bar' sensor2='1.294 bar' sensor3='1.283 bar' />
+  <sample time='15:10 min' depth='40.8 m' pressure1='186.71 bar' in_deco='1' stoptime='1:00 min' stopdepth='3.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+          ),
+        );
+
+        final mockDiveRepo = MockDiveRepository();
+        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
+
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            mockDiveRepo: mockDiveRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+          ),
+          callback: (adapter) async {
+            final bundle = await adapter.buildBundle();
+            final result = await adapter.performImport(bundle, {
+              wizard.ImportEntityType.dives: {0},
+            }, {});
+
+            expect(result.errorMessage, isNull);
+            expect(result.importedCounts[ImportEntityType.dives], 1);
+          },
+        );
+      },
+    );
   });
 
   // -------------------------------------------------------------------------

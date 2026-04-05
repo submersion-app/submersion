@@ -470,6 +470,7 @@ class UniversalAdapter implements ImportSourceAdapter {
 
   static final _dateFormatter = DateFormat('MMM d, yyyy');
   static final _timeFormatter = DateFormat('h:mm a');
+  static double? _asDouble(Object? value) => (value as num?)?.toDouble();
 
   void _addGroupIfNotEmpty(
     Map<wizard.ImportEntityType, EntityGroup> groups,
@@ -483,7 +484,7 @@ class UniversalAdapter implements ImportSourceAdapter {
 
   EntityItem _diveToEntityItem(Map<String, dynamic> data) {
     final dateTime = data['dateTime'] as DateTime?;
-    final maxDepth = data['maxDepth'] as double?;
+    final maxDepth = _asDouble(data['maxDepth']);
     final runtime = data['runtime'] as Duration?;
     final duration = data['duration'] as Duration?;
     final effectiveDuration = runtime ?? duration;

@@ -442,6 +442,70 @@ void main() {
       },
     );
 
+    test(
+      'accepts numeric profile fields when doubles arrive as ints',
+      () async {
+        when(
+          mockRepository.consolidateComputer(
+            targetDiveId: anyNamed('targetDiveId'),
+            secondaryReading: anyNamed('secondaryReading'),
+            secondaryProfile: anyNamed('secondaryProfile'),
+          ),
+        ).thenAnswer((_) async {});
+
+        await performConsolidations(
+          indices: {0},
+          diveItems: [
+            {
+              'dateTime': DateTime(2024, 6, 15, 9, 0),
+              'maxDepth': 25,
+              'avgDepth': 18,
+              'waterTemp': 22,
+              'duration': const Duration(minutes: 45),
+              'profile': <Map<String, dynamic>>[
+                {
+                  'timestamp': 10,
+                  'depth': 5,
+                  'temperature': 22,
+                  'setpoint': 1,
+                  'ppO2': 1,
+                },
+              ],
+            },
+          ],
+          duplicateResult: const ImportDuplicateResult(
+            diveMatches: {
+              0: DiveMatchResult(
+                diveId: 'existing-dive-1',
+                score: 0.9,
+                timeDifferenceMs: 100,
+              ),
+            },
+          ),
+          diveRepository: mockRepository,
+        );
+
+        final captured = verify(
+          mockRepository.consolidateComputer(
+            targetDiveId: 'existing-dive-1',
+            secondaryReading: captureAnyNamed('secondaryReading'),
+            secondaryProfile: captureAnyNamed('secondaryProfile'),
+          ),
+        ).captured;
+
+        final reading = captured[0] as DiveDataSourcesCompanion;
+        final profile = captured[1] as List<DiveProfilesCompanion>;
+
+        expect(reading.maxDepth.value, 25.0);
+        expect(reading.avgDepth.value, 18.0);
+        expect(reading.waterTemp.value, 22.0);
+        expect(profile.single.depth.value, 5.0);
+        expect(profile.single.temperature.value, 22.0);
+        expect(profile.single.setpoint.value, 1.0);
+        expect(profile.single.ppO2.value, 1.0);
+      },
+    );
+
     test('computes exitTime from runtime when runtime is present', () async {
       when(
         mockRepository.consolidateComputer(

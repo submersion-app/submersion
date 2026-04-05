@@ -728,6 +728,191 @@ void main() {
       expect(dive.notes, contains('Weight used: 4.5 kg'));
     });
 
+    test('persists profile heart rate from imported UDDF samples', () async {
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 25.0,
+            'profile': [
+              {'timestamp': 0, 'depth': 0.0, 'heartRate': 72},
+              {'timestamp': 60, 'depth': 12.0},
+              {'timestamp': 120, 'depth': 5.0, 'heartRate': 84},
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final captured = verify(mockDiveRepo.createDive(captureAny)).captured;
+      final dive = captured[0] as Dive;
+      expect(dive.profile, hasLength(3));
+      expect(dive.profile[0].heartRate, 72);
+      expect(dive.profile[1].heartRate, isNull);
+      expect(dive.profile[2].heartRate, 84);
+    });
+
+    test(
+      'persists UDDF sample cns, ndl, rbt and stores dive-level cns and otu in the source snapshot',
+      () async {
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+        when(mockDiveRepo.saveComputerReading(any)).thenAnswer((_) async {});
+
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 25.0,
+              'cnsEnd': 18.5,
+              'otu': 7.0,
+              'profile': [
+                {
+                  'timestamp': 0,
+                  'depth': 0.0,
+                  'cns': 3.0,
+                  'ndl': 1200,
+                  'rbt': 1500,
+                },
+                {'timestamp': 60, 'depth': 12.0, 'cns': 8.5, 'rbt': 900},
+              ],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: const UddfImportSelections(dives: {0}),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        final capturedDives = verify(
+          mockDiveRepo.createDive(captureAny),
+        ).captured;
+        final dive = capturedDives.single as Dive;
+        expect(dive.profile, hasLength(2));
+        expect(dive.profile[0].cns, 3.0);
+        expect(dive.profile[0].ndl, 1200);
+        expect(dive.profile[0].rbt, 1500);
+        expect(dive.profile[1].cns, 8.5);
+        expect(dive.profile[1].ndl, isNull);
+        expect(dive.profile[1].rbt, 900);
+
+        final capturedReadings = verify(
+          mockDiveRepo.saveComputerReading(captureAny),
+        ).captured;
+        final reading = capturedReadings.single;
+        expect(reading.cns.value, 18.5);
+        expect(reading.otu.value, 7.0);
+      },
+    );
+
+    test('persists UDDF sample decoType from decostop kind mapping', () async {
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 25.0,
+            'profile': [
+              {'timestamp': 0, 'depth': 0.0},
+              {'timestamp': 60, 'depth': 5.0, 'decoType': 1},
+              {'timestamp': 120, 'depth': 9.0, 'decoType': 2},
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final captured = verify(mockDiveRepo.createDive(captureAny)).captured;
+      final dive = captured.single as Dive;
+      expect(dive.profile, hasLength(3));
+      expect(dive.profile[0].decoType, isNull);
+      expect(dive.profile[1].decoType, 1);
+      expect(dive.profile[2].decoType, 2);
+    });
+
+    test('accepts numeric import fields when doubles arrive as ints', () async {
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+      when(mockDiveRepo.saveComputerReading(any)).thenAnswer((_) async {});
+
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 25,
+            'avgDepth': 18,
+            'waterTemp': 22,
+            'cnsEnd': 24,
+            'otu': 64,
+            'profile': [
+              {
+                'timestamp': 10,
+                'depth': 0,
+                'temperature': 20,
+                'cns': 1,
+                'setpoint': 1,
+                'ppO2': 1,
+              },
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final capturedDives = verify(
+        mockDiveRepo.createDive(captureAny),
+      ).captured;
+      final dive = capturedDives.single as Dive;
+      expect(dive.maxDepth, 25.0);
+      expect(dive.avgDepth, 18.0);
+      expect(dive.waterTemp, 22.0);
+      expect(dive.profile.single.depth, 0.0);
+      expect(dive.profile.single.temperature, 20.0);
+      expect(dive.profile.single.cns, 1.0);
+      expect(dive.profile.single.setpoint, 1.0);
+      expect(dive.profile.single.ppO2, 1.0);
+
+      final capturedReadings = verify(
+        mockDiveRepo.saveComputerReading(captureAny),
+      ).captured;
+      final reading = capturedReadings.single;
+      expect(reading.maxDepth.value, 25.0);
+      expect(reading.avgDepth.value, 18.0);
+      expect(reading.waterTemp.value, 22.0);
+      expect(reading.cns.value, 24.0);
+      expect(reading.otu.value, 64.0);
+    });
+
     test(
       'imports dive with two tanks and stores pressure data for both',
       () async {

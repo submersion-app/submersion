@@ -193,6 +193,51 @@ void main() {
       final dive = result.entitiesOf(ImportEntityType.dives).first;
       expect(dive['waterType'], WaterType.salt);
     });
+
+    test('maps divecomputer dctype to diveMode', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test CCR' dctype='CCR'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+<dive number='2' date='2025-01-16' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test SCR' dctype='SCR'>
+  <depth max='18.0 m' mean='12.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives[0]['diveMode'], DiveMode.ccr);
+      expect(dives[1]['diveMode'], DiveMode.scr);
+    });
+
+    test('parses dive-level cns and otu', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' cns='42%' otu='17' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(dive['cnsEnd'], 42.0);
+      expect(dive['otu'], 17);
+    });
   });
 
   group('cylinders', () {
@@ -322,6 +367,28 @@ void main() {
       expect(gasMix.isTrimix, isTrue);
     });
 
+    test('maps cylinder use to tank role', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <cylinder size='3.0 l' description='Diluent' use='diluent' o2='10.0%' he='50.0%' />
+  <divecomputer model='Test CCR'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final tanks =
+          result.entitiesOf(ImportEntityType.dives).first['tanks']
+              as List<Map<String, dynamic>>;
+      expect(tanks.single['role'], TankRole.diluent);
+    });
+
     test(
       'falls back to sample pressures when cylinder lacks start/end',
       () async {
@@ -447,6 +514,78 @@ void main() {
       expect(tanks[0]['endPressure'], 100.0);
       expect(tanks[1]['startPressure'], 190.0);
       expect(tanks[1]['endPressure'], 90.0);
+    });
+
+    test('parses sample ndl, tts, rbt, cns, and heart rate', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='2:00 min'>
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  <sample time='1:00 min' depth='20.0 m' ndl='14:30 min' tts='3:45 min' rbt='25:00 min' cns='12%' heartbeat='84' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final profile = dive['profile'] as List<Map<String, dynamic>>;
+
+      expect(profile.single['ndl'], 870);
+      expect(profile.single['tts'], 225);
+      expect(profile.single['rbt'], 1500);
+      expect(profile.single['cns'], 12.0);
+      expect(profile.single['heartRate'], 84);
+    });
+
+    test('maps in_deco to decoType and leaves non-deco samples null', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='3:00 min'>
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  <sample time='1:00 min' depth='20.0 m' in_deco='0' />
+  <sample time='2:00 min' depth='15.0 m' in_deco='1' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final profile = dive['profile'] as List<Map<String, dynamic>>;
+
+      expect(profile[0]['decoType'], isNull);
+      expect(profile[1]['decoType'], 2);
+    });
+
+    test('maps sample po2 to ppO2', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='2:00 min'>
+  <divecomputer model='Test CCR'>
+  <depth max='20.0 m' mean='15.0 m' />
+  <sample time='1:00 min' depth='20.0 m' po2='1.21' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final profile = dive['profile'] as List<Map<String, dynamic>>;
+
+      expect(profile.single['ppO2'], 1.21);
     });
   });
 
