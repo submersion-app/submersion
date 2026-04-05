@@ -77,7 +77,7 @@ void main() {
     });
 
     test('summaryFields returns only fields available on DiveSummary', () {
-      final summaryFields = DiveField.summaryFields;
+      const summaryFields = DiveField.summaryFields;
       expect(summaryFields, contains(DiveField.diveNumber));
       expect(summaryFields, contains(DiveField.maxDepth));
       expect(summaryFields, isNot(contains(DiveField.buddy)));

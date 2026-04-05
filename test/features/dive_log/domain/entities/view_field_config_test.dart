@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
-import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/dive_log/domain/entities/view_field_config.dart';
 
 void main() {
