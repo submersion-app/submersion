@@ -212,7 +212,7 @@ class SubsurfaceXmlParser implements ImportParser {
     final cns = _parseDouble(dive.getAttribute('cns'));
     if (cns != null) result['cnsEnd'] = cns;
     final otu = _parseDouble(dive.getAttribute('otu'));
-    if (otu != null) result['otu'] = otu.round();
+    if (otu != null) result['otu'] = otu;
 
     // Extract depth and temperature from <divecomputer> child
     final divecomputer = dive.findElements('divecomputer').firstOrNull;

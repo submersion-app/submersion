@@ -49,6 +49,8 @@ Future<int> performConsolidations({
       waterTemp: Value(_asDouble(diveData['waterTemp'])),
       entryTime: Value(dateTime),
       exitTime: Value(exitTime),
+      cns: Value(_asDouble(diveData['cnsEnd'])),
+      otu: Value(_asDouble(diveData['otu'])),
       importedAt: now,
       createdAt: now,
     );
@@ -66,8 +68,14 @@ Future<int> performConsolidations({
             depth: _asDouble(p['depth']) ?? 0.0,
             temperature: Value(_asDouble(p['temperature'])),
             pressure: const Value(null),
+            heartRate: Value(p['heartRate'] as int?),
             setpoint: Value(_asDouble(p['setpoint'])),
             ppO2: Value(_asDouble(p['ppO2'])),
+            cns: Value(_asDouble(p['cns'])),
+            ndl: Value(p['ndl'] as int?),
+            rbt: Value(p['rbt'] as int?),
+            decoType: Value(p['decoType'] as int?),
+            tts: Value(p['tts'] as int?),
           ),
         )
         .toList();

@@ -369,78 +369,97 @@ void main() {
       expect(profile, isEmpty);
     });
 
-    test(
-      'maps profile data with all fields (temperature, pressure, setpoint, ppO2)',
-      () async {
-        when(
-          mockRepository.consolidateComputer(
-            targetDiveId: anyNamed('targetDiveId'),
-            secondaryReading: anyNamed('secondaryReading'),
-            secondaryProfile: anyNamed('secondaryProfile'),
-          ),
-        ).thenAnswer((_) async {});
+    test('maps profile data with parsed sample fidelity fields', () async {
+      when(
+        mockRepository.consolidateComputer(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryReading: anyNamed('secondaryReading'),
+          secondaryProfile: anyNamed('secondaryProfile'),
+        ),
+      ).thenAnswer((_) async {});
 
-        await performConsolidations(
-          indices: {0},
-          diveItems: [
-            {
-              'dateTime': DateTime(2024, 6, 15, 9, 0),
-              'maxDepth': 25.0,
-              'duration': const Duration(minutes: 45),
-              'profile': <Map<String, dynamic>>[
-                {
-                  'timestamp': 10,
-                  'depth': 5.0,
-                  'temperature': 22.5,
-                  'pressure': 195.0,
-                  'setpoint': 1.3,
-                  'ppO2': 1.1,
-                },
-                {
-                  'timestamp': 20,
-                  'depth': 15.0,
-                  'temperature': 21.0,
-                  'pressure': 190.0,
-                  'setpoint': 1.4,
-                  'ppO2': 1.2,
-                },
-              ],
-            },
-          ],
-          duplicateResult: const ImportDuplicateResult(
-            diveMatches: {
-              0: DiveMatchResult(
-                diveId: 'existing-dive-1',
-                score: 0.9,
-                timeDifferenceMs: 100,
-              ),
-            },
-          ),
-          diveRepository: mockRepository,
-        );
+      await performConsolidations(
+        indices: {0},
+        diveItems: [
+          {
+            'dateTime': DateTime(2024, 6, 15, 9, 0),
+            'maxDepth': 25.0,
+            'duration': const Duration(minutes: 45),
+            'profile': <Map<String, dynamic>>[
+              {
+                'timestamp': 10,
+                'depth': 5.0,
+                'temperature': 22.5,
+                'heartRate': 82,
+                'setpoint': 1.3,
+                'ppO2': 1.1,
+                'cns': 3.5,
+                'ndl': 1200,
+                'rbt': 1500,
+                'decoType': 2,
+                'tts': 240,
+              },
+              {
+                'timestamp': 20,
+                'depth': 15.0,
+                'temperature': 21.0,
+                'heartRate': 88,
+                'setpoint': 1.4,
+                'ppO2': 1.2,
+                'cns': 5.0,
+                'ndl': 900,
+                'rbt': 1200,
+                'decoType': 1,
+                'tts': 180,
+              },
+            ],
+          },
+        ],
+        duplicateResult: const ImportDuplicateResult(
+          diveMatches: {
+            0: DiveMatchResult(
+              diveId: 'existing-dive-1',
+              score: 0.9,
+              timeDifferenceMs: 100,
+            ),
+          },
+        ),
+        diveRepository: mockRepository,
+      );
 
-        final captured = verify(
-          mockRepository.consolidateComputer(
-            targetDiveId: 'existing-dive-1',
-            secondaryReading: anyNamed('secondaryReading'),
-            secondaryProfile: captureAnyNamed('secondaryProfile'),
-          ),
-        ).captured;
+      final captured = verify(
+        mockRepository.consolidateComputer(
+          targetDiveId: 'existing-dive-1',
+          secondaryReading: anyNamed('secondaryReading'),
+          secondaryProfile: captureAnyNamed('secondaryProfile'),
+        ),
+      ).captured;
 
-        final profile = captured.first as List<DiveProfilesCompanion>;
-        expect(profile, hasLength(2));
+      final profile = captured.first as List<DiveProfilesCompanion>;
+      expect(profile, hasLength(2));
 
-        expect(profile[0].timestamp.value, 10);
-        expect(profile[0].depth.value, 5.0);
-        expect(profile[0].temperature.value, 22.5);
-        expect(profile[0].pressure.value, isNull);
-        expect(profile[0].setpoint.value, 1.3);
-        expect(profile[0].ppO2.value, 1.1);
+      expect(profile[0].timestamp.value, 10);
+      expect(profile[0].depth.value, 5.0);
+      expect(profile[0].temperature.value, 22.5);
+      expect(profile[0].pressure.value, isNull);
+      expect(profile[0].heartRate.value, 82);
+      expect(profile[0].setpoint.value, 1.3);
+      expect(profile[0].ppO2.value, 1.1);
+      expect(profile[0].cns.value, 3.5);
+      expect(profile[0].ndl.value, 1200);
+      expect(profile[0].rbt.value, 1500);
+      expect(profile[0].decoType.value, 2);
+      expect(profile[0].tts.value, 240);
 
-        expect(profile[1].timestamp.value, 20);
-        expect(profile[1].depth.value, 15.0);
-      },
-    );
+      expect(profile[1].timestamp.value, 20);
+      expect(profile[1].depth.value, 15.0);
+      expect(profile[1].heartRate.value, 88);
+      expect(profile[1].cns.value, 5.0);
+      expect(profile[1].ndl.value, 900);
+      expect(profile[1].rbt.value, 1200);
+      expect(profile[1].decoType.value, 1);
+      expect(profile[1].tts.value, 180);
+    });
 
     test(
       'accepts numeric profile fields when doubles arrive as ints',
@@ -467,6 +486,7 @@ void main() {
                   'timestamp': 10,
                   'depth': 5,
                   'temperature': 22,
+                  'cns': 4,
                   'setpoint': 1,
                   'ppO2': 1,
                 },
@@ -499,6 +519,7 @@ void main() {
         expect(reading.maxDepth.value, 25.0);
         expect(reading.avgDepth.value, 18.0);
         expect(reading.waterTemp.value, 22.0);
+        expect(profile.single.cns.value, 4.0);
         expect(profile.single.depth.value, 5.0);
         expect(profile.single.temperature.value, 22.0);
         expect(profile.single.setpoint.value, 1.0);
@@ -916,6 +937,8 @@ void main() {
               'maxDepth': 30.5,
               'avgDepth': 22.1,
               'waterTemp': 19.5,
+              'cnsEnd': 27.5,
+              'otu': 64.25,
               'diveComputerModel': 'Shearwater Perdix',
               'diveComputerSerial': 'ABC123',
               'sourceFormat': 'UDDF',
@@ -951,6 +974,8 @@ void main() {
         expect(reading.maxDepth.value, 30.5);
         expect(reading.avgDepth.value, 22.1);
         expect(reading.waterTemp.value, 19.5);
+        expect(reading.cns.value, 27.5);
+        expect(reading.otu.value, 64.25);
         expect(reading.duration.value, 3600); // 60 min in seconds
         expect(reading.entryTime.value, DateTime(2024, 6, 15, 9, 0));
         expect(

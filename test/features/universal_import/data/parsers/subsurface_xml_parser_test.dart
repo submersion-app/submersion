@@ -219,12 +219,12 @@ void main() {
       expect(dives[1]['diveMode'], DiveMode.scr);
     });
 
-    test('parses dive-level cns and otu', () async {
+    test('parses dive-level cns and preserves fractional otu', () async {
       final result = await parser.parse(
         xmlBytes('''
 <divelog program='subsurface' version='3'>
 <dives>
-<dive number='1' cns='42%' otu='17' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+<dive number='1' cns='42%' otu='17.5' date='2025-01-15' time='10:00:00' duration='30:00 min'>
   <divecomputer model='Test'>
   <depth max='20.0 m' mean='15.0 m' />
   </divecomputer>
@@ -236,7 +236,7 @@ void main() {
 
       final dive = result.entitiesOf(ImportEntityType.dives).first;
       expect(dive['cnsEnd'], 42.0);
-      expect(dive['otu'], 17);
+      expect(dive['otu'], 17.5);
     });
   });
 
