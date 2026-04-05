@@ -39,7 +39,7 @@ class DiveProfilePanel extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.show_chart,
+              Icons.area_chart,
               size: 32,
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
             ),

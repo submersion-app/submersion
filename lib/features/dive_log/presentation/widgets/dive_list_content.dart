@@ -1209,6 +1209,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// Table mode uses the [allDivesForTableProvider] (full Dive objects with
   /// filters and sorting applied) instead of the paginated DiveSummary list.
   Widget _buildTableModeScaffold(BuildContext context, DiveFilterState filter) {
+    initProfilePanelFromSettings(ref);
     final content = _buildTableView(context, filter);
 
     if (!widget.showAppBar) {
@@ -1235,7 +1236,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               extraActions: [
                 IconButton(
                   icon: Icon(
-                    Icons.show_chart,
+                    Icons.area_chart,
                     color: ref.watch(showProfilePanelProvider)
                         ? Theme.of(context).colorScheme.primary
                         : null,
@@ -1253,6 +1254,16 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   ),
                   tooltip: 'Column settings',
                   onPressed: () => showTableColumnPicker(context),
+                ),
+                SizedBox(
+                  height: 24,
+                  child: VerticalDivider(
+                    width: 16,
+                    thickness: 1,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
                 ),
               ],
             ),

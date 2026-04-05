@@ -136,6 +136,7 @@ class DiverSettingsRepository {
               ),
               reminderTime: Value(_formatReminderTime(s.reminderTime)),
               showDataSourceBadges: Value(s.showDataSourceBadges),
+              showProfilePanelInTableView: Value(s.showProfilePanelInTableView),
               diveDetailSections: Value(
                 DiveDetailSectionConfig.sectionsToJson(s.diveDetailSections),
               ),
@@ -258,6 +259,9 @@ class DiverSettingsRepository {
           ),
           reminderTime: Value(_formatReminderTime(settings.reminderTime)),
           showDataSourceBadges: Value(settings.showDataSourceBadges),
+          showProfilePanelInTableView: Value(
+            settings.showProfilePanelInTableView,
+          ),
           diveDetailSections: Value(
             DiveDetailSectionConfig.sectionsToJson(settings.diveDetailSections),
           ),
@@ -403,6 +407,7 @@ class DiverSettingsRepository {
       serviceReminderDays: _parseReminderDays(row.serviceReminderDays),
       reminderTime: _parseReminderTime(row.reminderTime),
       showDataSourceBadges: row.showDataSourceBadges,
+      showProfilePanelInTableView: row.showProfilePanelInTableView,
       diveDetailSections: DiveDetailSectionConfig.sectionsFromJson(
         row.diveDetailSections,
       ),

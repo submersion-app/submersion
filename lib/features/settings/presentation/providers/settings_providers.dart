@@ -247,6 +247,9 @@ class AppSettings {
   /// Show field-level data source attribution badges on dive details
   final bool showDataSourceBadges;
 
+  /// Show profile panel in table view by default
+  final bool showProfilePanelInTableView;
+
   /// Ordered list of dive detail section visibility preferences
   final List<DiveDetailSectionConfig> diveDetailSections;
 
@@ -328,6 +331,7 @@ class AppSettings {
     this.serviceReminderDays = const [7, 14, 30],
     this.reminderTime = const TimeOfDay(hour: 9, minute: 0),
     this.showDataSourceBadges = true,
+    this.showProfilePanelInTableView = true,
     this.diveDetailSections = DiveDetailSectionConfig.defaultSections,
   });
 
@@ -440,6 +444,7 @@ class AppSettings {
     List<int>? serviceReminderDays,
     TimeOfDay? reminderTime,
     bool? showDataSourceBadges,
+    bool? showProfilePanelInTableView,
     List<DiveDetailSectionConfig>? diveDetailSections,
     bool clearDiveDetailSections = false,
   }) {
@@ -533,6 +538,8 @@ class AppSettings {
       serviceReminderDays: serviceReminderDays ?? this.serviceReminderDays,
       reminderTime: reminderTime ?? this.reminderTime,
       showDataSourceBadges: showDataSourceBadges ?? this.showDataSourceBadges,
+      showProfilePanelInTableView:
+          showProfilePanelInTableView ?? this.showProfilePanelInTableView,
       diveDetailSections: clearDiveDetailSections
           ? DiveDetailSectionConfig.defaultSections
           : (diveDetailSections ?? this.diveDetailSections),
@@ -1048,6 +1055,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setShowDataSourceBadges(bool value) async {
     state = state.copyWith(showDataSourceBadges: value);
+    await _saveSettings();
+  }
+
+  Future<void> setShowProfilePanelInTableView(bool value) async {
+    state = state.copyWith(showProfilePanelInTableView: value);
     await _saveSettings();
   }
 

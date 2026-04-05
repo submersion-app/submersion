@@ -272,6 +272,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setShowDataSourceBadges(bool value) async =>
       state = state.copyWith(showDataSourceBadges: value);
   @override
+  Future<void> setShowProfilePanelInTableView(bool value) async =>
+      state = state.copyWith(showProfilePanelInTableView: value);
+  @override
   Future<void> setShowMaxDepthMarker(bool value) async =>
       state = state.copyWith(showMaxDepthMarker: value);
   @override

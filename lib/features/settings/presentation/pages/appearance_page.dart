@@ -134,6 +134,19 @@ class AppearancePage extends ConsumerWidget {
                   .setShowMapBackgroundOnDiveCards(value);
             },
           ),
+          SwitchListTile(
+            title: const Text('Show Profile Panel in Table View'),
+            subtitle: const Text(
+              'Display dive profile chart above the table by default',
+            ),
+            secondary: const Icon(Icons.area_chart),
+            value: settings.showProfilePanelInTableView,
+            onChanged: (value) {
+              ref
+                  .read(settingsProvider.notifier)
+                  .setShowProfilePanelInTableView(value);
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.view_column),
             title: const Text('Dive Details List Fields'),

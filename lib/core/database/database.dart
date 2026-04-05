@@ -719,6 +719,9 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(true))();
   // Dive detail section order and visibility (v56) — JSON array
   TextColumn get diveDetailSections => text().nullable()();
+  // Table view profile panel default visibility (v61)
+  BoolColumn get showProfilePanelInTableView =>
+      boolean().withDefault(const Constant(true))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -1285,7 +1288,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 60;
+  static const int currentSchemaVersion = 61;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -2697,6 +2700,25 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'CREATE INDEX IF NOT EXISTS idx_field_presets_diver ON field_presets(diver_id, view_mode)',
           );
+        }
+
+        if (from < 61) {
+          // Add showProfilePanelInTableView column to diver_settings.
+          // Guard against table not existing in older migration test contexts.
+          final columns = await customSelect(
+            "PRAGMA table_info('diver_settings')",
+          ).get();
+          if (columns.isNotEmpty &&
+              !columns.any(
+                (c) =>
+                    c.read<String>('name') ==
+                    'show_profile_panel_in_table_view',
+              )) {
+            await customStatement('''
+              ALTER TABLE diver_settings
+              ADD COLUMN show_profile_panel_in_table_view INTEGER NOT NULL DEFAULT 1
+            ''');
+          }
         }
       },
       beforeOpen: (details) async {

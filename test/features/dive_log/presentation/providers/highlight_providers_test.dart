@@ -27,17 +27,17 @@ void main() {
   });
 
   group('showProfilePanelProvider', () {
-    test('defaults to false', () {
+    test('defaults to true', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
-      expect(container.read(showProfilePanelProvider), isFalse);
+      expect(container.read(showProfilePanelProvider), isTrue);
     });
 
-    test('can be toggled on', () {
+    test('can be toggled off', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
-      container.read(showProfilePanelProvider.notifier).state = true;
-      expect(container.read(showProfilePanelProvider), isTrue);
+      container.read(showProfilePanelProvider.notifier).state = false;
+      expect(container.read(showProfilePanelProvider), isFalse);
     });
   });
 }
