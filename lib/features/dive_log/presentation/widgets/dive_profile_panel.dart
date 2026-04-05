@@ -10,8 +10,8 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-/// Fixed-height panel that displays the dive profile chart for the currently
-/// highlighted dive. Shows an empty state when no dive is selected.
+/// Panel that displays the dive profile chart for the currently highlighted
+/// dive. Sizes to its content (header + chart + tooltip bar).
 class DiveProfilePanel extends ConsumerWidget {
   const DiveProfilePanel({super.key});
 
@@ -29,6 +29,7 @@ class DiveProfilePanel extends ConsumerWidget {
   Widget _buildEmptyState(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
+      height: 100,
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
@@ -69,13 +70,13 @@ class _DiveProfilePanelContent extends ConsumerStatefulWidget {
 
 class _DiveProfilePanelContentState
     extends ConsumerState<_DiveProfilePanelContent> {
-  List<TooltipRow>? _tooltipRows;
+  int? _selectedPointIndex;
 
   @override
   void didUpdateWidget(_DiveProfilePanelContent oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.diveId != oldWidget.diveId) {
-      _tooltipRows = null;
+      _selectedPointIndex = null;
     }
   }
 
@@ -85,20 +86,29 @@ class _DiveProfilePanelContentState
     final colorScheme = Theme.of(context).colorScheme;
 
     return diveAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(
-        child: Text(
-          'Error loading dive',
-          style: TextStyle(color: colorScheme.error),
+      loading: () => const SizedBox(
+        height: 100,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => SizedBox(
+        height: 100,
+        child: Center(
+          child: Text(
+            'Error loading dive',
+            style: TextStyle(color: colorScheme.error),
+          ),
         ),
       ),
       data: (dive) {
         if (dive == null || dive.profile.isEmpty) {
-          return Center(
-            child: Text(
-              'No profile data for this dive',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+          return SizedBox(
+            height: 100,
+            child: Center(
+              child: Text(
+                'No profile data for this dive',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                ),
               ),
             ),
           );
@@ -130,6 +140,13 @@ class _DiveProfilePanelContentState
         : '--';
     final dateText = units.formatDateTime(dive.dateTime, l10n: null);
 
+    // Get selected profile point for tooltip
+    final selectedPoint =
+        _selectedPointIndex != null &&
+            _selectedPointIndex! < dive.profile.length
+        ? dive.profile[_selectedPointIndex!]
+        : null;
+
     return Container(
       decoration: BoxDecoration(
         border: Border(
@@ -137,9 +154,10 @@ class _DiveProfilePanelContentState
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header bar with dive info
+          // Header bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Row(
@@ -185,58 +203,125 @@ class _DiveProfilePanelContentState
               ],
             ),
           ),
-          // Profile chart
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 4, right: 4),
-              child: DiveProfileChart(
-                profile: dive.profile,
-                diveDuration: dive.effectiveRuntime,
-                maxDepth: dive.maxDepth,
-                ceilingCurve: analysis?.ceilingCurve,
-                ascentRates: analysis?.ascentRates,
-                events: analysis?.events,
-                ndlCurve: analysis?.ndlCurve,
-                sacCurve: analysis?.smoothedSacCurve,
-                ppO2Curve: analysis?.ppO2Curve,
-                ppN2Curve: analysis?.ppN2Curve,
-                ppHeCurve: analysis?.ppHeCurve,
-                modCurve: analysis?.modCurve,
-                densityCurve: analysis?.densityCurve,
-                gfCurve: analysis?.gfCurve,
-                surfaceGfCurve: analysis?.surfaceGfCurve,
-                meanDepthCurve: analysis?.meanDepthCurve,
-                ttsCurve: analysis?.ttsCurve,
-                cnsCurve: analysis?.cnsCurve,
-                otuCurve: analysis?.otuCurve,
-                tanks: dive.tanks,
-                tankPressures: tankPressures,
-                gasSwitches: gasSwitches,
-                tooltipBelow: true,
-                onTooltipData: (rows) {
-                  setState(() => _tooltipRows = rows);
-                },
-              ),
+          // Profile chart (fixed height from DiveProfileChart internals)
+          Padding(
+            padding: const EdgeInsets.only(left: 4, right: 4),
+            child: DiveProfileChart(
+              profile: dive.profile,
+              diveDuration: dive.effectiveRuntime,
+              maxDepth: dive.maxDepth,
+              ceilingCurve: analysis?.ceilingCurve,
+              ascentRates: analysis?.ascentRates,
+              events: analysis?.events,
+              ndlCurve: analysis?.ndlCurve,
+              sacCurve: analysis?.smoothedSacCurve,
+              ppO2Curve: analysis?.ppO2Curve,
+              ppN2Curve: analysis?.ppN2Curve,
+              ppHeCurve: analysis?.ppHeCurve,
+              modCurve: analysis?.modCurve,
+              densityCurve: analysis?.densityCurve,
+              gfCurve: analysis?.gfCurve,
+              surfaceGfCurve: analysis?.surfaceGfCurve,
+              meanDepthCurve: analysis?.meanDepthCurve,
+              ttsCurve: analysis?.ttsCurve,
+              cnsCurve: analysis?.cnsCurve,
+              otuCurve: analysis?.otuCurve,
+              tanks: dive.tanks,
+              tankPressures: tankPressures,
+              gasSwitches: gasSwitches,
+              tooltipBelow: true,
+              onPointSelected: (index) {
+                setState(() => _selectedPointIndex = index);
+              },
             ),
           ),
-          // Tooltip below chart (matches dive detail tooltip style)
-          _buildTooltipBar(context, colorScheme),
+          // Tooltip bar below chart
+          _buildTooltipBar(
+            context,
+            selectedPoint,
+            _selectedPointIndex,
+            dive,
+            analysis,
+            units,
+            colorScheme,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTooltipBar(BuildContext context, ColorScheme colorScheme) {
-    if (_tooltipRows == null || _tooltipRows!.isEmpty) {
-      return const SizedBox(height: 24);
+  Widget _buildTooltipBar(
+    BuildContext context,
+    DiveProfilePoint? point,
+    int? pointIndex,
+    Dive dive,
+    dynamic analysis,
+    UnitFormatter units,
+    ColorScheme colorScheme,
+  ) {
+    if (point == null) {
+      return const SizedBox.shrink();
     }
 
+    final onSurface = colorScheme.onInverseSurface;
     final rowStyle = TextStyle(
       fontFamily: 'RobotoMono',
       fontSize: 14,
-      color: colorScheme.onInverseSurface,
+      color: onSurface,
       fontFeatures: const [FontFeature.tabularFigures()],
     );
+
+    final rows = <Widget>[];
+
+    void addRow(String label, String value, Color bulletColor) {
+      rows.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('\u25CF ', style: TextStyle(color: bulletColor, fontSize: 12)),
+            Text(label.padRight(8), style: rowStyle),
+            Text(value, style: rowStyle),
+          ],
+        ),
+      );
+    }
+
+    // Time
+    final minutes = point.timestamp ~/ 60;
+    final seconds = point.timestamp % 60;
+    addRow(
+      'Time',
+      '$minutes:${seconds.toString().padLeft(2, '0')}',
+      onSurface.withValues(alpha: 0.5),
+    );
+
+    // Depth
+    addRow('Depth', units.formatDepth(point.depth), const Color(0xFF2196F3));
+
+    // Temperature
+    if (point.temperature != null) {
+      addRow(
+        'Temp',
+        units.formatTemperature(point.temperature),
+        colorScheme.tertiary,
+      );
+    }
+
+    // Ceiling
+    if (analysis?.ceilingCurve != null &&
+        pointIndex != null &&
+        pointIndex < (analysis.ceilingCurve as List).length) {
+      final ceiling = (analysis.ceilingCurve as List<double>)[pointIndex];
+      if (ceiling > 0) {
+        addRow('Ceiling', units.formatDepth(ceiling), const Color(0xFFD32F2F));
+      }
+    }
+
+    // NDL
+    if (point.ndl != null) {
+      final ndlValue = point.ndl! < 0 ? 'DECO' : '${point.ndl! ~/ 60} min';
+      addRow('NDL', ndlValue, Colors.orange);
+    }
 
     return Container(
       width: double.infinity,
@@ -251,19 +336,7 @@ class _DiveProfilePanelContentState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
-        children: _tooltipRows!.map((row) {
-          return Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '\u25CF ',
-                style: TextStyle(color: row.bulletColor, fontSize: 12),
-              ),
-              Text(row.label.padRight(8), style: rowStyle),
-              Text(row.value, style: rowStyle),
-            ],
-          );
-        }).toList(),
+        children: rows,
       ),
     );
   }
