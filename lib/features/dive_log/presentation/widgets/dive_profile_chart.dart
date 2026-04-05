@@ -557,9 +557,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
             // The chart with gesture handling
             // Wrapped in RepaintBoundary for PNG export when exportKey is provided
-            Expanded(
-              child: RepaintBoundary(
-                key: widget.exportKey,
+            RepaintBoundary(
+              key: widget.exportKey,
+              child: SizedBox(
+                height: 200,
                 child: _buildInteractiveChart(
                   context,
                   units,
@@ -568,7 +569,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   hasHeartRateData: hasHeartRateData,
                 ),
               ),
-            ), // Expanded
+            ),
             // Zoom hint
             if (_zoomLevel > 1.0)
               Padding(

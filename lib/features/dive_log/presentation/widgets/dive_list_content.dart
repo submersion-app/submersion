@@ -1299,9 +1299,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             if (showPanel)
               LayoutBuilder(
                 builder: (context, constraints) {
-                  final panelHeight = (constraints.maxHeight * 0.3).clamp(
-                    150.0,
-                    250.0,
+                  final panelHeight = (constraints.maxHeight * 0.35).clamp(
+                    270.0,
+                    350.0,
                   );
                   return ClipRect(
                     child: SizedBox(
