@@ -242,6 +242,87 @@ void main() {
         greaterThanOrEqualTo(allAir.ndlCurve.last),
       );
     });
+
+    test('gas switches also affect ppO2 and CNS for OC dives', () {
+      final depths = <double>[];
+      final timestamps = <int>[];
+
+      for (int t = 0; t <= 15 * 60; t += 60) {
+        timestamps.add(t);
+        depths.add(30.0);
+      }
+      for (int t = 16 * 60; t <= 25 * 60; t += 60) {
+        timestamps.add(t);
+        depths.add(6.0);
+      }
+
+      final allAir = service.analyze(
+        diveId: 'all-air-o2',
+        depths: depths,
+        timestamps: timestamps,
+        o2Fraction: 0.21,
+      );
+
+      final switched = service.analyze(
+        diveId: 'air-to-ean32-o2',
+        depths: depths,
+        timestamps: timestamps,
+        gasSegments: const [
+          ProfileGasSegment(startTimestamp: 0, fN2: airN2Fraction, fHe: 0.0),
+          ProfileGasSegment(startTimestamp: 16 * 60, fN2: 0.68, fHe: 0.0),
+        ],
+      );
+
+      expect(
+        switched.ppO2Curve[10],
+        closeTo(allAir.ppO2Curve[10], 0.001),
+        reason: 'Pre-switch ppO2 should match',
+      );
+      expect(
+        switched.ppO2Curve.last,
+        greaterThan(allAir.ppO2Curve.last),
+        reason: 'EAN32 stop gas should raise ppO2 at 6m',
+      );
+      expect(
+        switched.cnsCurve!.last,
+        greaterThan(allAir.cnsCurve!.last),
+        reason: 'Higher-O2 stop gas should accumulate more CNS',
+      );
+    });
+
+    test(
+      'switch inside a sparse interval changes ppO2 and CNS at the correct timestamp',
+      () {
+        final sparse = service.analyze(
+          diveId: 'sparse-gas-switch',
+          depths: const [0.0, 30.0, 30.0],
+          timestamps: const [0, 120, 1320],
+          gasSegments: const [
+            ProfileGasSegment(startTimestamp: 0, fN2: airN2Fraction, fHe: 0.0),
+            ProfileGasSegment(startTimestamp: 720, fN2: 0.68, fHe: 0.0),
+          ],
+        );
+
+        final explicitBoundary = service.analyze(
+          diveId: 'explicit-gas-switch',
+          depths: const [0.0, 30.0, 30.0, 30.0],
+          timestamps: const [0, 120, 720, 1320],
+          gasSegments: const [
+            ProfileGasSegment(startTimestamp: 0, fN2: airN2Fraction, fHe: 0.0),
+            ProfileGasSegment(startTimestamp: 720, fN2: 0.68, fHe: 0.0),
+          ],
+        );
+
+        expect(
+          sparse.o2Exposure.cnsEnd,
+          closeTo(explicitBoundary.o2Exposure.cnsEnd, 0.001),
+        );
+        expect(
+          sparse.otuCurve!.last,
+          closeTo(explicitBoundary.otuCurve!.last, 0.001),
+        );
+      },
+    );
   });
 
   group('Safety stop detection', () {
