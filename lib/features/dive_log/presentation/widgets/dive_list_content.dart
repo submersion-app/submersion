@@ -105,6 +105,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         _scrollToSelectedItem();
       });
     }
+    // Initialize profile panel visibility from persisted setting
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final settings = ref.read(settingsProvider);
+      ref.read(showProfilePanelProvider.notifier).state =
+          settings.showProfilePanelInTableView;
+    });
   }
 
   @override
@@ -1209,7 +1216,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// Table mode uses the [allDivesForTableProvider] (full Dive objects with
   /// filters and sorting applied) instead of the paginated DiveSummary list.
   Widget _buildTableModeScaffold(BuildContext context, DiveFilterState filter) {
-    initProfilePanelFromSettings(ref);
     final content = _buildTableView(context, filter);
 
     if (!widget.showAppBar) {
