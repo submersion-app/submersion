@@ -26,6 +26,7 @@ import 'package:submersion/features/tags/presentation/providers/tag_providers.da
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
@@ -1231,11 +1232,15 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 onDiveTap: (id) {
                   if (_isSelectionMode) {
                     _toggleSelection(id);
-                  } else if (widget.onItemSelected != null) {
-                    _selectionFromList = true;
-                    widget.onItemSelected!(id);
                   } else {
-                    context.go('/dives/$id');
+                    // Use root navigator to push a full-screen overlay
+                    // that slides in from the right, bypassing the shell
+                    // route (which would otherwise show master-detail).
+                    Navigator.of(context, rootNavigator: true).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => DiveDetailPage(diveId: id),
+                      ),
+                    );
                   }
                 },
                 onDiveLongPress: _isSelectionMode
