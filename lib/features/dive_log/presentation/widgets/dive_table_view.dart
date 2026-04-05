@@ -12,6 +12,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 /// Row height for each dive row in the table.
 const double _kRowHeight = 38.0;
+const double _kCheckboxWidth = 48.0;
 
 /// Full-width data table for displaying dive lists with pinned columns
 /// and synchronized horizontal scrolling.
@@ -279,6 +280,10 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
               height: _kRowHeight,
               child: Row(
                 children: [
+                  // Checkbox header (empty cell, visible in selection mode)
+                  if (widget.isSelectionMode)
+                    const SizedBox(width: _kCheckboxWidth, height: _kRowHeight),
+
                   // Pinned header cells
                   ...pinned.map((col) {
                     return TableHeaderCell(
@@ -331,7 +336,9 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                 children: [
                   // Pinned body columns (fixed left)
                   SizedBox(
-                    width: pinnedWidth,
+                    width:
+                        pinnedWidth +
+                        (widget.isSelectionMode ? _kCheckboxWidth : 0),
                     child: NotificationListener<ScrollNotification>(
                       onNotification: (notification) {
                         _syncVerticalScroll(
@@ -363,18 +370,33 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                                 colorScheme: colorScheme,
                               ),
                               child: Row(
-                                children: pinned.asMap().entries.map((entry) {
-                                  return _buildCell(
-                                    dive: dive,
-                                    column: entry.value,
-                                    units: units,
-                                    theme: theme,
-                                    rowIndex: index,
-                                    isSelected: isSelected,
-                                    isLastPinned:
-                                        entry.key == pinned.length - 1,
-                                  );
-                                }).toList(),
+                                children: [
+                                  if (widget.isSelectionMode)
+                                    SizedBox(
+                                      width: _kCheckboxWidth,
+                                      height: _kRowHeight,
+                                      child: Checkbox(
+                                        value: isSelected,
+                                        onChanged: (_) =>
+                                            widget.onDiveTap(dive.id),
+                                        materialTapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                    ),
+                                  ...pinned.asMap().entries.map((entry) {
+                                    return _buildCell(
+                                      dive: dive,
+                                      column: entry.value,
+                                      units: units,
+                                      theme: theme,
+                                      rowIndex: index,
+                                      isSelected: isSelected,
+                                      isLastPinned:
+                                          entry.key == pinned.length - 1,
+                                    );
+                                  }),
+                                ],
                               ),
                             ),
                           );
