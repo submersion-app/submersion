@@ -1233,10 +1233,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   if (_isSelectionMode) {
                     _toggleSelection(id);
                   } else {
-                    // Use root navigator to push a full-screen overlay
-                    // that slides in from the right, bypassing the shell
-                    // route (which would otherwise show master-detail).
-                    Navigator.of(context, rootNavigator: true).push(
+                    // Push on the shell navigator so the detail page
+                    // slides in within the content area, keeping the
+                    // navigation rail visible on desktop.
+                    Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => DiveDetailPage(diveId: id),
                       ),
