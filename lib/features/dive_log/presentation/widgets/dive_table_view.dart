@@ -225,7 +225,9 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
         text,
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
-        style: theme.textTheme.bodySmall,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: isSelected ? theme.colorScheme.onPrimaryContainer : null,
+        ),
       ),
     );
   }
@@ -240,7 +242,7 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
     required ColorScheme colorScheme,
   }) {
     if (isSelected) {
-      return colorScheme.primaryContainer.withValues(alpha: 0.3);
+      return colorScheme.primaryContainer;
     }
     if (index.isOdd) {
       return colorScheme.surfaceContainerLowest;
