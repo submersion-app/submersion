@@ -405,6 +405,11 @@ class DiveListTile extends ConsumerWidget {
   /// an additional row of label:value pairs is rendered below the tags section.
   final DiveSummary? summary;
 
+  /// Full Dive object for fields not available on DiveSummary (tanks, buddy,
+  /// weights, SAC, etc.). When provided, extractFromDive is used for stat
+  /// slots and extra fields, giving access to all fields.
+  final Dive? fullDive;
+
   const DiveListTile({
     super.key,
     required this.diveId,
@@ -431,6 +436,7 @@ class DiveListTile extends ConsumerWidget {
     this.siteLongitude,
     this.margin,
     this.summary,
+    this.fullDive,
   });
 
   /// Calculate background color based on the active color attribute
@@ -493,9 +499,20 @@ class DiveListTile extends ConsumerWidget {
         ? Colors.cyan.shade200
         : Colors.teal.shade800;
 
-    // Extra fields from detailed card config
+    // Detailed card config: slots + extra fields
     final detailedConfig = ref.watch(detailedCardConfigProvider);
     final extraFields = detailedConfig.extraFields;
+
+    // Resolve slot fields (fallback to defaults if no slots configured)
+    DiveField slotField(String slotId, DiveField fallback) {
+      for (final slot in detailedConfig.slots) {
+        if (slot.slotId == slotId) return slot.field;
+      }
+      return fallback;
+    }
+
+    final stat1Field = slotField('stat1', DiveField.maxDepth);
+    final stat2Field = slotField('stat2', DiveField.bottomTime);
 
     // Build the content widget (used in both map and non-map variants)
     Widget buildContent() {
@@ -640,69 +657,28 @@ class DiveListTile extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                // Stats row: full-width below the top row so labels aren't truncated
+                // Stats row: configurable via slot assignments
                 Padding(
                   padding: const EdgeInsetsDirectional.only(start: 52),
                   child: Row(
                     children: [
-                      ExcludeSemantics(
-                        child: Icon(
-                          Icons.arrow_downward,
-                          size: 14,
-                          color: maxDepth != null
-                              ? accentColor
-                              : secondaryTextColor,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        units.formatDepth(maxDepth),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: maxDepth != null
-                              ? accentColor
-                              : secondaryTextColor,
-                        ),
+                      _buildStatWidget(
+                        stat1Field,
+                        summary,
+                        units,
+                        context,
+                        accentColor,
+                        secondaryTextColor,
                       ),
                       const SizedBox(width: 16),
-                      ExcludeSemantics(
-                        child: Icon(
-                          Icons.timer_outlined,
-                          size: 14,
-                          color: duration != null
-                              ? accentColor
-                              : secondaryTextColor,
-                        ),
+                      _buildStatWidget(
+                        stat2Field,
+                        summary,
+                        units,
+                        context,
+                        accentColor,
+                        secondaryTextColor,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        duration != null ? _formatDuration(duration!) : '--',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: duration != null
-                              ? accentColor
-                              : secondaryTextColor,
-                        ),
-                      ),
-                      if (waterTemp != null) ...[
-                        const SizedBox(width: 16),
-                        ExcludeSemantics(
-                          child: Icon(
-                            Icons.thermostat_outlined,
-                            size: 14,
-                            color: accentColor,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          units.formatTemperature(waterTemp),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: accentColor,
-                              ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
@@ -715,7 +691,8 @@ class DiveListTile extends ConsumerWidget {
                   ),
                 ],
                 // Extra configurable fields area
-                if (extraFields.isNotEmpty && summary != null) ...[
+                if (extraFields.isNotEmpty &&
+                    (fullDive != null || summary != null)) ...[
                   const SizedBox(height: 4),
                   Padding(
                     padding: const EdgeInsets.only(left: 52),
@@ -726,7 +703,10 @@ class DiveListTile extends ConsumerWidget {
                           spacing: 16,
                           runSpacing: 4,
                           children: extraFields.map((field) {
-                            final value = field.extractFromSummary(summary!);
+                            final value = fullDive != null
+                                ? field.extractFromDive(fullDive!)
+                                : (field.extractFromSummary(summary!) ??
+                                      _fallbackValue(field));
                             final formatted = field.formatValue(value, units);
                             return SizedBox(
                               width: useOneColumn
@@ -843,9 +823,56 @@ class DiveListTile extends ConsumerWidget {
     );
   }
 
-  String _formatDuration(Duration duration) {
-    final minutes = duration.inMinutes;
-    return '$minutes min';
+  Widget _buildStatWidget(
+    DiveField field,
+    DiveSummary? summary,
+    UnitFormatter units,
+    BuildContext context,
+    Color accentColor,
+    Color secondaryTextColor,
+  ) {
+    // Use full Dive when available (has all fields), otherwise try summary
+    dynamic value = fullDive != null
+        ? field.extractFromDive(fullDive!)
+        : summary != null
+        ? field.extractFromSummary(summary)
+        : null;
+    value ??= _fallbackValue(field);
+    final formatted = field.formatValue(value, units);
+    final hasValue = value != null;
+    final color = hasValue ? accentColor : secondaryTextColor;
+    final style = Theme.of(
+      context,
+    ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600, color: color);
+    final icon = field.icon;
+
+    if (icon != null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ExcludeSemantics(child: Icon(icon, size: 14, color: color)),
+          const SizedBox(width: 4),
+          Text(formatted, style: style),
+        ],
+      );
+    }
+    return Text('${field.shortLabel}: $formatted', style: style);
+  }
+
+  /// Returns the value from the tile's constructor params for known fields.
+  dynamic _fallbackValue(DiveField field) {
+    return switch (field) {
+      DiveField.maxDepth => maxDepth,
+      DiveField.bottomTime => duration,
+      DiveField.runtime => duration,
+      DiveField.waterTemp => waterTemp,
+      DiveField.ratingStars => rating,
+      DiveField.isFavorite => isFavorite,
+      DiveField.siteName => siteName,
+      DiveField.siteLocation => siteLocation,
+      DiveField.dateTime => dateTime,
+      _ => null,
+    };
   }
 }
 

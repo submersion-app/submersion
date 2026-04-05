@@ -26663,7 +26663,7 @@ abstract class AppLocalizations {
   /// No description provided for @columnConfig_title.
   ///
   /// In en, this message translates to:
-  /// **'Column Configuration'**
+  /// **'Dive Details List Fields'**
   String get columnConfig_title;
 
   /// No description provided for @columnConfig_viewMode.
@@ -26759,7 +26759,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_appearance_columnConfig.
   ///
   /// In en, this message translates to:
-  /// **'Column Configuration'**
+  /// **'Dive Details List Fields'**
   String get settings_appearance_columnConfig;
 
   /// No description provided for @settings_appearance_columnConfig_subtitle.

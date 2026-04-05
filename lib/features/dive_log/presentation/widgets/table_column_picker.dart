@@ -14,20 +14,22 @@ void showTableColumnPicker(BuildContext context) {
   );
 }
 
-/// Bottom sheet that lets users toggle column visibility in the table view.
+/// Bottom sheet that lets users toggle column visibility and reorder columns.
 ///
-/// Fields are grouped by [DiveFieldCategory]. Pinned columns have their
-/// checkbox disabled to prevent accidental removal.
+/// Top section: reorderable list of visible columns with pin/remove controls.
+/// Bottom section: available fields grouped by [DiveFieldCategory] with add buttons.
 class TableColumnPicker extends ConsumerWidget {
   const TableColumnPicker({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(tableViewConfigProvider);
+    final notifier = ref.read(tableViewConfigProvider.notifier);
     final theme = Theme.of(context);
+    final visibleFields = config.columns.map((c) => c.field).toSet();
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.6,
+      initialChildSize: 0.7,
       minChildSize: 0.4,
       maxChildSize: 0.95,
       expand: false,
@@ -69,19 +71,90 @@ class TableColumnPicker extends ConsumerWidget {
 
             const Divider(height: 1),
 
-            // Scrollable field list grouped by category
+            // Content
             Expanded(
               child: ListView(
                 controller: scrollController,
                 children: [
-                  for (final category in DiveFieldCategory.values)
-                    _CategorySection(
-                      category: category,
-                      config: config,
-                      onToggle: (field) => ref
-                          .read(tableViewConfigProvider.notifier)
-                          .toggleColumn(field),
+                  // -- Visible columns (reorderable) --
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    child: Text(
+                      'VISIBLE COLUMNS',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        letterSpacing: 0.8,
+                      ),
                     ),
+                  ),
+                  ReorderableListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    buildDefaultDragHandles: false,
+                    itemCount: config.columns.length,
+                    onReorder: notifier.reorderColumn,
+                    itemBuilder: (context, index) {
+                      final col = config.columns[index];
+                      return ListTile(
+                        key: ValueKey(col.field),
+                        dense: true,
+                        leading: ReorderableDragStartListener(
+                          index: index,
+                          child: const Icon(Icons.drag_handle),
+                        ),
+                        title: Text(col.field.shortLabel),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                col.isPinned
+                                    ? Icons.push_pin
+                                    : Icons.push_pin_outlined,
+                                size: 18,
+                              ),
+                              visualDensity: VisualDensity.compact,
+                              tooltip: col.isPinned ? 'Unpin' : 'Pin',
+                              onPressed: () => notifier.togglePin(col.field),
+                            ),
+                            if (!col.isPinned)
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.remove_circle_outline,
+                                  size: 18,
+                                ),
+                                visualDensity: VisualDensity.compact,
+                                tooltip: 'Remove',
+                                onPressed: () =>
+                                    notifier.toggleColumn(col.field),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+
+                  const Divider(height: 1),
+
+                  // -- Available fields (grouped by category) --
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    child: Text(
+                      'AVAILABLE FIELDS',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ),
+                  for (final category in DiveFieldCategory.values)
+                    _AvailableCategorySection(
+                      category: category,
+                      visibleFields: visibleFields,
+                      onAdd: notifier.toggleColumn,
+                    ),
+
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
@@ -92,22 +165,24 @@ class TableColumnPicker extends ConsumerWidget {
   }
 }
 
-/// Renders a category header followed by a [CheckboxListTile] for each field
-/// in that category. Skipped entirely when the category has no fields.
-class _CategorySection extends StatelessWidget {
-  const _CategorySection({
+/// Renders a category header followed by add-buttons for each hidden field
+/// in that category. Skipped entirely when all fields are already visible.
+class _AvailableCategorySection extends StatelessWidget {
+  const _AvailableCategorySection({
     required this.category,
-    required this.config,
-    required this.onToggle,
+    required this.visibleFields,
+    required this.onAdd,
   });
 
   final DiveFieldCategory category;
-  final TableViewConfig config;
-  final void Function(DiveField field) onToggle;
+  final Set<DiveField> visibleFields;
+  final void Function(DiveField field) onAdd;
 
   @override
   Widget build(BuildContext context) {
-    final fields = DiveField.fieldsForCategory(category);
+    final fields = DiveField.fieldsForCategory(
+      category,
+    ).where((f) => !visibleFields.contains(f)).toList();
     if (fields.isEmpty) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
@@ -126,37 +201,18 @@ class _CategorySection extends StatelessWidget {
           ),
         ),
         for (final field in fields)
-          _FieldTile(field: field, config: config, onToggle: onToggle),
+          ListTile(
+            dense: true,
+            leading: field.icon != null ? Icon(field.icon, size: 18) : null,
+            title: Text(field.shortLabel),
+            trailing: IconButton(
+              icon: const Icon(Icons.add_circle_outline, size: 18),
+              visualDensity: VisualDensity.compact,
+              tooltip: 'Add',
+              onPressed: () => onAdd(field),
+            ),
+          ),
       ],
-    );
-  }
-}
-
-/// A single [CheckboxListTile] row for one [DiveField].
-class _FieldTile extends StatelessWidget {
-  const _FieldTile({
-    required this.field,
-    required this.config,
-    required this.onToggle,
-  });
-
-  final DiveField field;
-  final TableViewConfig config;
-  final void Function(DiveField field) onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    final existing = config.columns.where((c) => c.field == field).firstOrNull;
-    final isVisible = existing != null;
-    final isPinned = existing?.isPinned ?? false;
-
-    return CheckboxListTile(
-      value: isVisible,
-      onChanged: isPinned ? null : (_) => onToggle(field),
-      title: Text(field.shortLabel),
-      secondary: field.icon != null ? Icon(field.icon, size: 18) : null,
-      controlAffinity: ListTileControlAffinity.leading,
-      dense: true,
     );
   }
 }

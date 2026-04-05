@@ -15660,7 +15660,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_precipitation_hail => 'Hail';
 
   @override
-  String get columnConfig_title => 'Column Configuration';
+  String get columnConfig_title => 'Dive Details List Fields';
 
   @override
   String get columnConfig_viewMode => 'View Mode';
@@ -15709,7 +15709,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get columnConfig_done => 'Done';
 
   @override
-  String get settings_appearance_columnConfig => 'Column Configuration';
+  String get settings_appearance_columnConfig => 'Dive Details List Fields';
 
   @override
   String get settings_appearance_columnConfig_subtitle =>

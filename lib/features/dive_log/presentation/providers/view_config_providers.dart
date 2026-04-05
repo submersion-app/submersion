@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/view_field_config.d
     as domain;
 
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 export 'package:submersion/features/dive_log/domain/entities/view_field_config.dart'
     show
@@ -154,10 +155,21 @@ class TableViewConfigNotifier extends StateNotifier<domain.TableViewConfig> {
 }
 
 /// Provider for [TableViewConfigNotifier].
+///
+/// Automatically loads the persisted config for the current diver and
+/// reloads when the active diver changes.
 final tableViewConfigProvider =
-    StateNotifierProvider<TableViewConfigNotifier, domain.TableViewConfig>(
-      (ref) => TableViewConfigNotifier(),
-    );
+    StateNotifierProvider<TableViewConfigNotifier, domain.TableViewConfig>((
+      ref,
+    ) {
+      final notifier = TableViewConfigNotifier();
+      final repo = ref.watch(viewConfigRepositoryProvider);
+      final diverId = ref.watch(currentDiverIdProvider);
+      if (diverId != null) {
+        notifier.init(repo, diverId);
+      }
+      return notifier;
+    });
 
 // ---------------------------------------------------------------------------
 // CardViewConfigNotifier
@@ -279,21 +291,39 @@ class CardViewConfigNotifier extends StateNotifier<domain.CardViewConfig> {
 
 /// Provider for compact card view config.
 final compactCardConfigProvider =
-    StateNotifierProvider<CardViewConfigNotifier, domain.CardViewConfig>(
-      (ref) => CardViewConfigNotifier.withMode(ListViewMode.compact),
-    );
+    StateNotifierProvider<CardViewConfigNotifier, domain.CardViewConfig>((ref) {
+      final notifier = CardViewConfigNotifier.withMode(ListViewMode.compact);
+      final repo = ref.watch(viewConfigRepositoryProvider);
+      final diverId = ref.watch(currentDiverIdProvider);
+      if (diverId != null) {
+        notifier.init(repo, diverId, ListViewMode.compact);
+      }
+      return notifier;
+    });
 
 /// Provider for dense card view config.
 final denseCardConfigProvider =
-    StateNotifierProvider<CardViewConfigNotifier, domain.CardViewConfig>(
-      (ref) => CardViewConfigNotifier.withMode(ListViewMode.dense),
-    );
+    StateNotifierProvider<CardViewConfigNotifier, domain.CardViewConfig>((ref) {
+      final notifier = CardViewConfigNotifier.withMode(ListViewMode.dense);
+      final repo = ref.watch(viewConfigRepositoryProvider);
+      final diverId = ref.watch(currentDiverIdProvider);
+      if (diverId != null) {
+        notifier.init(repo, diverId, ListViewMode.dense);
+      }
+      return notifier;
+    });
 
 /// Provider for detailed card view config.
 final detailedCardConfigProvider =
-    StateNotifierProvider<CardViewConfigNotifier, domain.CardViewConfig>(
-      (ref) => CardViewConfigNotifier.withMode(ListViewMode.detailed),
-    );
+    StateNotifierProvider<CardViewConfigNotifier, domain.CardViewConfig>((ref) {
+      final notifier = CardViewConfigNotifier.withMode(ListViewMode.detailed);
+      final repo = ref.watch(viewConfigRepositoryProvider);
+      final diverId = ref.watch(currentDiverIdProvider);
+      if (diverId != null) {
+        notifier.init(repo, diverId, ListViewMode.detailed);
+      }
+      return notifier;
+    });
 
 // ---------------------------------------------------------------------------
 // Table presets provider

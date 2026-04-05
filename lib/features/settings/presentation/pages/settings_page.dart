@@ -1235,7 +1235,7 @@ class _AppearanceSectionContentState
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.view_column),
-                  title: const Text('Column Configuration'),
+                  title: const Text('Dive Details List Fields'),
                   subtitle: const Text(
                     'Customize fields shown in dive list views',
                   ),

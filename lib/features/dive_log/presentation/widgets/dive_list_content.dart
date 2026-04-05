@@ -10,6 +10,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_dive_list_tile.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/table_column_picker.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dense_dive_list_tile.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
@@ -881,10 +882,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     BuildContext context,
     DiveFilterState filter, {
     String? title,
+    List<Widget> extraActions = const [],
   }) {
     return AppBar(
       title: Text(title ?? context.l10n.diveLog_listPage_title),
       actions: [
+        ...extraActions,
         IconButton(
           icon: const Icon(Icons.map),
           tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
@@ -1207,7 +1210,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     return Scaffold(
       appBar: _isSelectionMode
           ? _buildSelectionAppBar(const [])
-          : _buildAppBar(context, filter, title: context.l10n.nav_dives),
+          : _buildAppBar(
+              context,
+              filter,
+              title: context.l10n.nav_dives,
+              extraActions: [
+                IconButton(
+                  icon: Icon(Icons.view_column_outlined, color: Colors.orange),
+                  tooltip: 'Column settings',
+                  onPressed: () => showTableColumnPicker(context),
+                ),
+              ],
+            ),
       body: content,
       floatingActionButton: _isSelectionMode
           ? null
@@ -1285,6 +1299,24 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       customEnd: settings.cardColorGradientEnd,
     );
 
+    // Check if detailed mode needs full Dive objects for non-summary fields
+    final detailedConfig = ref.watch(detailedCardConfigProvider);
+    final needsFullDive =
+        detailedConfig.extraFields.any(
+          (f) => !DiveField.summaryFields.contains(f),
+        ) ||
+        detailedConfig.slots.any(
+          (s) => !DiveField.summaryFields.contains(s.field),
+        );
+    final Map<String, Dive> fullDiveLookup;
+    if (needsFullDive) {
+      final divesAsync = ref.watch(allDivesForTableProvider);
+      final fullDives = divesAsync.whenOrNull(data: (d) => d) ?? [];
+      fullDiveLookup = {for (final d in fullDives) d.id: d};
+    } else {
+      fullDiveLookup = {};
+    }
+
     // +1 for loading indicator when more pages are available
     final itemCount =
         dives.length +
@@ -1342,6 +1374,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                         ? null
                         : () => _enterSelectionMode(dive.id),
                     summary: dive,
+                    fullDive: fullDiveLookup[dive.id],
                   ),
                   ListViewMode.compact => CompactDiveListTile(
                     diveId: dive.id,

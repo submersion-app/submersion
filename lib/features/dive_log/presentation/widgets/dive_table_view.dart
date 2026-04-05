@@ -6,7 +6,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/table_column_picker.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/table_header_cell.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -54,12 +53,10 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
   late final ScrollController _headerHorizontalController;
   late final ScrollController _bodyHorizontalController;
 
-  // Vertical scroll controllers for pinned and scrollable body columns
+  // Vertical scroll sync between pinned and scrollable body columns
+  late final LinkedScrollControllerGroup _verticalGroup;
   late final ScrollController _pinnedVerticalController;
   late final ScrollController _scrollableVerticalController;
-
-  // Guard to prevent recursive scroll sync
-  bool _isSyncingVertical = false;
 
   @override
   void initState() {
@@ -68,8 +65,9 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
     _headerHorizontalController = _horizontalGroup.addAndGet();
     _bodyHorizontalController = _horizontalGroup.addAndGet();
 
-    _pinnedVerticalController = ScrollController();
-    _scrollableVerticalController = ScrollController();
+    _verticalGroup = LinkedScrollControllerGroup();
+    _pinnedVerticalController = _verticalGroup.addAndGet();
+    _scrollableVerticalController = _verticalGroup.addAndGet();
   }
 
   @override
@@ -142,15 +140,6 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
   // ---------------------------------------------------------------------------
   // Vertical scroll sync
   // ---------------------------------------------------------------------------
-
-  void _syncVerticalScroll(ScrollController source, ScrollController target) {
-    if (_isSyncingVertical) return;
-    _isSyncingVertical = true;
-    if (target.hasClients) {
-      target.jumpTo(source.offset);
-    }
-    _isSyncingVertical = false;
-  }
 
   // ---------------------------------------------------------------------------
   // Cell rendering
@@ -275,232 +264,187 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
     final pinnedWidth = _pinnedWidth(config);
     final scrollableWidth = _scrollableWidth(config);
 
-    return Stack(
+    return Column(
       children: [
-        Column(
-          children: [
-            // -----------------------------------------------------------------
-            // Header row
-            // -----------------------------------------------------------------
-            SizedBox(
-              height: _kRowHeight,
-              child: Row(
-                children: [
-                  // Checkbox header (empty cell, visible in selection mode)
-                  if (widget.isSelectionMode)
-                    const SizedBox(width: _kCheckboxWidth, height: _kRowHeight),
+        // -----------------------------------------------------------------
+        // Header row
+        // -----------------------------------------------------------------
+        SizedBox(
+          height: _kRowHeight,
+          child: Row(
+            children: [
+              // Checkbox header (empty cell, visible in selection mode)
+              if (widget.isSelectionMode)
+                const SizedBox(width: _kCheckboxWidth, height: _kRowHeight),
 
-                  // Pinned header cells
-                  ...pinned.map((col) {
-                    return TableHeaderCell(
-                      field: col.field,
-                      width: col.width,
-                      isSorted: config.sortField == col.field,
-                      sortAscending: config.sortAscending,
-                      onTap: () => ref
-                          .read(tableViewConfigProvider.notifier)
-                          .setSortField(col.field),
-                      onResize: (newWidth) => ref
-                          .read(tableViewConfigProvider.notifier)
-                          .resizeColumn(col.field, newWidth),
-                    );
-                  }),
+              // Pinned header cells
+              ...pinned.map((col) {
+                return TableHeaderCell(
+                  field: col.field,
+                  width: col.width,
+                  isSorted: config.sortField == col.field,
+                  sortAscending: config.sortAscending,
+                  onTap: () => ref
+                      .read(tableViewConfigProvider.notifier)
+                      .setSortField(col.field),
+                  onResize: (newWidth) => ref
+                      .read(tableViewConfigProvider.notifier)
+                      .resizeColumn(col.field, newWidth),
+                );
+              }),
 
-                  // Scrollable header cells
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      controller: _headerHorizontalController,
-                      physics: const ClampingScrollPhysics(),
-                      child: Row(
-                        children: scrollable.map((col) {
-                          return TableHeaderCell(
-                            field: col.field,
-                            width: col.width,
-                            isSorted: config.sortField == col.field,
-                            sortAscending: config.sortAscending,
-                            onTap: () => ref
-                                .read(tableViewConfigProvider.notifier)
-                                .setSortField(col.field),
-                            onResize: (newWidth) => ref
-                                .read(tableViewConfigProvider.notifier)
-                                .resizeColumn(col.field, newWidth),
-                          );
-                        }).toList(),
-                      ),
-                    ),
+              // Scrollable header cells
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  controller: _headerHorizontalController,
+                  physics: const ClampingScrollPhysics(),
+                  child: Row(
+                    children: scrollable.map((col) {
+                      return TableHeaderCell(
+                        field: col.field,
+                        width: col.width,
+                        isSorted: config.sortField == col.field,
+                        sortAscending: config.sortAscending,
+                        onTap: () => ref
+                            .read(tableViewConfigProvider.notifier)
+                            .setSortField(col.field),
+                        onResize: (newWidth) => ref
+                            .read(tableViewConfigProvider.notifier)
+                            .resizeColumn(col.field, newWidth),
+                      );
+                    }).toList(),
                   ),
-                ],
+                ),
               ),
-            ),
-
-            // -----------------------------------------------------------------
-            // Table body
-            // -----------------------------------------------------------------
-            Expanded(
-              child: Row(
-                children: [
-                  // Pinned body columns (fixed left)
-                  SizedBox(
-                    width:
-                        pinnedWidth +
-                        (widget.isSelectionMode ? _kCheckboxWidth : 0),
-                    child: NotificationListener<ScrollUpdateNotification>(
-                      onNotification: (notification) {
-                        _syncVerticalScroll(
-                          _pinnedVerticalController,
-                          _scrollableVerticalController,
-                        );
-                        return false;
-                      },
-                      child: ListView.builder(
-                        controller: _pinnedVerticalController,
-                        itemExtent: _kRowHeight,
-                        itemCount: sortedDives.length,
-                        itemBuilder: (context, index) {
-                          final dive = sortedDives[index];
-                          final isSelected =
-                              widget.isSelectionMode &&
-                              widget.selectedIds.contains(dive.id);
-                          final isHighlighted =
-                              !widget.isSelectionMode &&
-                              widget.highlightedId == dive.id;
-
-                          return GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => widget.onDiveTap(dive.id),
-                            onLongPress: widget.onDiveLongPress != null
-                                ? () => widget.onDiveLongPress!(dive.id)
-                                : null,
-                            child: ColoredBox(
-                              color: _rowBackground(
-                                index: index,
-                                isSelected: isSelected,
-                                isHighlighted: isHighlighted,
-                                colorScheme: colorScheme,
-                              ),
-                              child: Row(
-                                children: [
-                                  if (widget.isSelectionMode)
-                                    SizedBox(
-                                      width: _kCheckboxWidth,
-                                      height: _kRowHeight,
-                                      child: Checkbox(
-                                        value: isSelected,
-                                        onChanged: (_) =>
-                                            widget.onDiveTap(dive.id),
-                                        materialTapTargetSize:
-                                            MaterialTapTargetSize.shrinkWrap,
-                                        visualDensity: VisualDensity.compact,
-                                      ),
-                                    ),
-                                  ...pinned.asMap().entries.map((entry) {
-                                    return _buildCell(
-                                      dive: dive,
-                                      column: entry.value,
-                                      units: units,
-                                      theme: theme,
-                                      rowIndex: index,
-                                      isSelected: isSelected,
-                                      isLastPinned:
-                                          entry.key == pinned.length - 1,
-                                    );
-                                  }),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-
-                  // Scrollable body columns
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      controller: _bodyHorizontalController,
-                      physics: const ClampingScrollPhysics(),
-                      child: SizedBox(
-                        width: scrollableWidth,
-                        child: NotificationListener<ScrollUpdateNotification>(
-                          onNotification: (notification) {
-                            _syncVerticalScroll(
-                              _scrollableVerticalController,
-                              _pinnedVerticalController,
-                            );
-                            return false;
-                          },
-                          child: ListView.builder(
-                            controller: _scrollableVerticalController,
-                            physics: const ClampingScrollPhysics(),
-                            itemExtent: _kRowHeight,
-                            itemCount: sortedDives.length,
-                            itemBuilder: (context, index) {
-                              final dive = sortedDives[index];
-                              final isSelected =
-                                  widget.isSelectionMode &&
-                                  widget.selectedIds.contains(dive.id);
-                              final isHighlighted =
-                                  !widget.isSelectionMode &&
-                                  widget.highlightedId == dive.id;
-
-                              return GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () => widget.onDiveTap(dive.id),
-                                onLongPress: widget.onDiveLongPress != null
-                                    ? () => widget.onDiveLongPress!(dive.id)
-                                    : null,
-                                child: ColoredBox(
-                                  color: _rowBackground(
-                                    index: index,
-                                    isSelected: isSelected,
-                                    isHighlighted: isHighlighted,
-                                    colorScheme: colorScheme,
-                                  ),
-                                  child: Row(
-                                    children: scrollable.map((col) {
-                                      return _buildCell(
-                                        dive: dive,
-                                        column: col,
-                                        units: units,
-                                        theme: theme,
-                                        rowIndex: index,
-                                        isSelected: isSelected,
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
 
-        // Gear/settings icon overlay at top-right
-        Positioned(
-          top: 4,
-          right: 4,
-          child: SizedBox(
-            width: 30,
-            height: 30,
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              iconSize: 18,
-              icon: Icon(
-                Icons.settings,
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+        // -----------------------------------------------------------------
+        // Table body
+        // -----------------------------------------------------------------
+        Expanded(
+          child: Row(
+            children: [
+              // Pinned body columns (fixed left)
+              SizedBox(
+                width:
+                    pinnedWidth +
+                    (widget.isSelectionMode ? _kCheckboxWidth : 0),
+                child: ListView.builder(
+                  controller: _pinnedVerticalController,
+                  itemExtent: _kRowHeight,
+                  itemCount: sortedDives.length,
+                  itemBuilder: (context, index) {
+                    final dive = sortedDives[index];
+                    final isSelected =
+                        widget.isSelectionMode &&
+                        widget.selectedIds.contains(dive.id);
+                    final isHighlighted =
+                        !widget.isSelectionMode &&
+                        widget.highlightedId == dive.id;
+
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => widget.onDiveTap(dive.id),
+                      onLongPress: widget.onDiveLongPress != null
+                          ? () => widget.onDiveLongPress!(dive.id)
+                          : null,
+                      child: ColoredBox(
+                        color: _rowBackground(
+                          index: index,
+                          isSelected: isSelected,
+                          isHighlighted: isHighlighted,
+                          colorScheme: colorScheme,
+                        ),
+                        child: Row(
+                          children: [
+                            if (widget.isSelectionMode)
+                              SizedBox(
+                                width: _kCheckboxWidth,
+                                height: _kRowHeight,
+                                child: Checkbox(
+                                  value: isSelected,
+                                  onChanged: (_) => widget.onDiveTap(dive.id),
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ),
+                            ...pinned.asMap().entries.map((entry) {
+                              return _buildCell(
+                                dive: dive,
+                                column: entry.value,
+                                units: units,
+                                theme: theme,
+                                rowIndex: index,
+                                isSelected: isSelected,
+                                isLastPinned: entry.key == pinned.length - 1,
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-              tooltip: 'Column settings',
-              onPressed: () => showTableColumnPicker(context),
-            ),
+
+              // Scrollable body columns
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  controller: _bodyHorizontalController,
+                  physics: const ClampingScrollPhysics(),
+                  child: SizedBox(
+                    width: scrollableWidth,
+                    child: ListView.builder(
+                      controller: _scrollableVerticalController,
+                      itemExtent: _kRowHeight,
+                      itemCount: sortedDives.length,
+                      itemBuilder: (context, index) {
+                        final dive = sortedDives[index];
+                        final isSelected =
+                            widget.isSelectionMode &&
+                            widget.selectedIds.contains(dive.id);
+                        final isHighlighted =
+                            !widget.isSelectionMode &&
+                            widget.highlightedId == dive.id;
+
+                        return GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => widget.onDiveTap(dive.id),
+                          onLongPress: widget.onDiveLongPress != null
+                              ? () => widget.onDiveLongPress!(dive.id)
+                              : null,
+                          child: ColoredBox(
+                            color: _rowBackground(
+                              index: index,
+                              isSelected: isSelected,
+                              isHighlighted: isHighlighted,
+                              colorScheme: colorScheme,
+                            ),
+                            child: Row(
+                              children: scrollable.map((col) {
+                                return _buildCell(
+                                  dive: dive,
+                                  column: col,
+                                  units: units,
+                                  theme: theme,
+                                  rowIndex: index,
+                                  isSelected: isSelected,
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],

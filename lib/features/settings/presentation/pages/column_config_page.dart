@@ -56,7 +56,7 @@ class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
     if (widget.embedded) return body;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Column Configuration')),
+      appBar: AppBar(title: const Text('Dive Details List Fields')),
       body: body,
     );
   }
