@@ -1084,7 +1084,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ],
             ),
             lineTouchData: LineTouchData(
-              enabled: true,
+              enabled: !widget.tooltipBelow,
               touchSpotThreshold: 20,
               handleBuiltInTouches: true,
               touchCallback: (event, response) {
