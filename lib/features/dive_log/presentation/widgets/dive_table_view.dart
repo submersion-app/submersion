@@ -355,6 +355,7 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                       },
                       child: ListView.builder(
                         controller: _pinnedVerticalController,
+                        physics: const ClampingScrollPhysics(),
                         itemExtent: _kRowHeight,
                         itemCount: sortedDives.length,
                         itemBuilder: (context, index) {
