@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/table_column_picker.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/table_header_cell.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -459,8 +460,7 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                 color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
               ),
               tooltip: 'Column settings',
-              // Placeholder -- column picker will be wired in Task 11
-              onPressed: () {},
+              onPressed: () => showTableColumnPicker(context),
             ),
           ),
         ),
