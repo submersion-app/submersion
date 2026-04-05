@@ -752,6 +752,41 @@ final paginatedDiveListProvider =
       return PaginatedDiveListNotifier(repository, ref);
     });
 
+/// Loads all dives as full Dive objects for the table view.
+///
+/// Re-uses the already-filtered-and-sorted provider chain so that filters
+/// and sort order chosen in the list/filter UI are respected in table mode.
+final allDivesForTableProvider = Provider<AsyncValue<List<domain.Dive>>>((ref) {
+  return ref.watch(sortedFilteredDivesProvider);
+});
+
+/// Pre-computed surface intervals for the table view.
+///
+/// Sorts dives chronologically and computes the gap between consecutive
+/// dives (previous exit -> current entry). The first dive in the list
+/// gets a null interval.
+final surfaceIntervalsProvider = Provider<Map<String, Duration?>>((ref) {
+  final divesAsync = ref.watch(allDivesForTableProvider);
+  return divesAsync.whenOrNull(
+        data: (dives) {
+          final sorted = [...dives]
+            ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+          final intervals = <String, Duration?>{};
+          for (var i = 0; i < sorted.length; i++) {
+            if (i == 0) {
+              intervals[sorted[i].id] = null;
+            } else {
+              final prevExit = sorted[i - 1].exitTime ?? sorted[i - 1].dateTime;
+              final thisEntry = sorted[i].entryTime ?? sorted[i].dateTime;
+              intervals[sorted[i].id] = thisEntry.difference(prevExit);
+            }
+          }
+          return intervals;
+        },
+      ) ??
+      {};
+});
+
 /// Provider for getting the surface interval to the previous dive
 final surfaceIntervalProvider = FutureProvider.family<Duration?, String>((
   ref,

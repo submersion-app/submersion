@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -121,6 +122,17 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
       icon: const Icon(Icons.add),
       label: Text(context.l10n.diveLog_listPage_fab_logDive),
     );
+
+    // Table mode: full-width on all screen sizes, no master-detail split.
+    // The table needs the entire width for columns, so skip MasterDetailScaffold.
+    final viewMode = ref.watch(diveListViewModeProvider);
+    if (viewMode == ListViewMode.table && !_isMapView) {
+      return DiveListContent(
+        showAppBar: true,
+        floatingActionButton: fab,
+        isMapViewActive: false,
+      );
+    }
 
     if (showMasterDetail) {
       // Desktop: Use master-detail layout

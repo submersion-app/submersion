@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_table_view.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Content widget for the dive list, used in master-detail layout.
@@ -813,8 +814,16 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   @override
   Widget build(BuildContext context) {
-    final paginatedAsync = ref.watch(paginatedDiveListProvider);
+    final viewMode = ref.watch(diveListViewModeProvider);
     final filter = ref.watch(diveFilterProvider);
+
+    // Table mode uses a completely different data path (full Dive objects
+    // instead of DiveSummary) and renders a DiveTableView widget.
+    if (viewMode == ListViewMode.table) {
+      return _buildTableModeScaffold(context, filter);
+    }
+
+    final paginatedAsync = ref.watch(paginatedDiveListProvider);
 
     final content = paginatedAsync.when(
       data: (paginatedState) => paginatedState.dives.isEmpty
@@ -1153,6 +1162,80 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
   }
 
+  /// Build the full scaffold/layout for table mode.
+  ///
+  /// Table mode uses the [allDivesForTableProvider] (full Dive objects with
+  /// filters and sorting applied) instead of the paginated DiveSummary list.
+  Widget _buildTableModeScaffold(BuildContext context, DiveFilterState filter) {
+    final content = _buildTableView(context, filter);
+
+    if (!widget.showAppBar) {
+      // Inside MasterDetailScaffold (though table mode typically skips it)
+      return Column(
+        children: [
+          if (_isSelectionMode)
+            _buildSelectionBar(const [])
+          else
+            _buildCompactAppBar(context, filter),
+          Expanded(child: content),
+        ],
+      );
+    }
+
+    // Standalone mode with full Scaffold
+    return Scaffold(
+      appBar: _isSelectionMode
+          ? _buildSelectionAppBar(const [])
+          : _buildAppBar(context, filter),
+      body: content,
+      floatingActionButton: _isSelectionMode
+          ? null
+          : widget.floatingActionButton,
+    );
+  }
+
+  /// Build the DiveTableView widget from the full-Dive provider.
+  Widget _buildTableView(BuildContext context, DiveFilterState filter) {
+    final divesAsync = ref.watch(allDivesForTableProvider);
+    final surfaceIntervals = ref.watch(surfaceIntervalsProvider);
+
+    return divesAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, s) => _buildErrorState(context, e),
+      data: (dives) {
+        if (dives.isEmpty) {
+          return _buildEmptyState(context, filter.hasActiveFilters);
+        }
+        return Column(
+          children: [
+            if (filter.hasActiveFilters) _buildActiveFiltersBar(context),
+            Expanded(
+              child: DiveTableView(
+                dives: dives,
+                surfaceIntervals: surfaceIntervals,
+                onDiveTap: (id) {
+                  if (_isSelectionMode) {
+                    _toggleSelection(id);
+                  } else if (widget.onItemSelected != null) {
+                    _selectionFromList = true;
+                    widget.onItemSelected!(id);
+                  } else {
+                    context.go('/dives/$id');
+                  }
+                },
+                onDiveLongPress: _isSelectionMode
+                    ? null
+                    : (id) => _enterSelectionMode(id),
+                selectedIds: _selectedIds,
+                isSelectionMode: _isSelectionMode,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildDiveList(
     BuildContext context,
     PaginatedDiveListState paginatedState,
@@ -1256,6 +1339,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                         ? null
                         : () => _enterSelectionMode(dive.id),
                   ),
+                  // Table mode is handled separately in _buildTableModeScaffold
+                  // and should not reach this switch. Fallback to dense if it does.
                   ListViewMode.dense || ListViewMode.table => DenseDiveListTile(
                     diveId: dive.id,
                     diveNumber: dive.diveNumber ?? index + 1,
