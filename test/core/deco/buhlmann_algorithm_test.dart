@@ -684,7 +684,7 @@ void main() {
         'calculateInspiredN2 should match the alveolar gas benchmark at the surface',
         () {
           final inspiredN2 = calculateInspiredN2(1.0, airN2Fraction);
-          expect(inspiredN2, closeTo(0.74065446, 0.000001));
+          expect(inspiredN2, closeTo(inspiredSurfaceN2Bar, 0.000001));
         },
       );
 
