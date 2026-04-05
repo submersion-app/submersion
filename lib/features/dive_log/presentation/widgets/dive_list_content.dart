@@ -907,20 +907,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       actions: [
         ...extraActions,
         IconButton(
-          icon: Icon(
-            Icons.show_chart,
-            color: ref.watch(showProfilePanelProvider)
-                ? Theme.of(context).colorScheme.primary
-                : null,
-          ),
-          tooltip: 'Toggle profile panel',
-          onPressed: () {
-            ref.read(showProfilePanelProvider.notifier).state = !ref.read(
-              showProfilePanelProvider,
-            );
-          },
-        ),
-        IconButton(
           icon: const Icon(Icons.map),
           tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
           onPressed: () => context.push('/dives/activity'),
@@ -1023,21 +1009,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
-          IconButton(
-            icon: Icon(
-              Icons.show_chart,
-              size: 20,
-              color: ref.watch(showProfilePanelProvider)
-                  ? Theme.of(context).colorScheme.primary
-                  : null,
-            ),
-            tooltip: 'Toggle profile panel',
-            onPressed: () {
-              ref.read(showProfilePanelProvider.notifier).state = !ref.read(
-                showProfilePanelProvider,
-              );
-            },
-          ),
           if (widget.onMapViewToggle != null)
             MapViewToggleButton(
               isActive: widget.isMapViewActive,
@@ -1263,6 +1234,19 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               title: context.l10n.nav_dives,
               extraActions: [
                 IconButton(
+                  icon: Icon(
+                    Icons.show_chart,
+                    color: ref.watch(showProfilePanelProvider)
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+                  ),
+                  tooltip: 'Toggle profile panel',
+                  onPressed: () {
+                    ref.read(showProfilePanelProvider.notifier).state = !ref
+                        .read(showProfilePanelProvider);
+                  },
+                ),
+                IconButton(
                   icon: const Icon(
                     Icons.view_column_outlined,
                     color: Colors.orange,
@@ -1396,21 +1380,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       child: Column(
         children: [
           if (hasActiveFilters) _buildActiveFiltersBar(context),
-          if (ref.watch(showProfilePanelProvider))
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final panelHeight = (constraints.maxHeight * 0.3).clamp(
-                  150.0,
-                  250.0,
-                );
-                return ClipRect(
-                  child: SizedBox(
-                    height: panelHeight,
-                    child: const DiveProfilePanel(),
-                  ),
-                );
-              },
-            ),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,

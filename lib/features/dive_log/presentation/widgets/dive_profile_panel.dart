@@ -193,6 +193,7 @@ class _DiveProfilePanelContent extends ConsumerWidget {
                 tanks: dive.tanks,
                 tankPressures: tankPressures,
                 gasSwitches: gasSwitches,
+                tooltipBelow: true,
               ),
             ),
           ),

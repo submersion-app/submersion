@@ -146,6 +146,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Computers not in this set use a dashed line style.
   final Set<String>? primaryComputers;
 
+  /// When true, tooltip is shown below the touch point and clipped inside
+  /// the chart area. Used when the chart is embedded in a compact panel.
+  final bool tooltipBelow;
+
   /// Returns responsive left axis reserved size based on available chart width.
   /// Tick labels are plain numbers (e.g. "30", "60") so don't need much space.
   static double leftAxisSize(double availableWidth) =>
@@ -199,6 +203,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.visibleComputers,
     this.computerLineColors,
     this.primaryComputers,
+    this.tooltipBelow = false,
   });
 
   @override
@@ -1107,8 +1112,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               touchTooltipData: LineTouchTooltipData(
                 maxContentWidth: 220,
                 fitInsideHorizontally: true,
-                fitInsideVertically: false,
-                showOnTopOfTheChartBoxArea: true,
+                fitInsideVertically: widget.tooltipBelow,
+                showOnTopOfTheChartBoxArea: !widget.tooltipBelow,
                 tooltipMargin: 0,
                 getTooltipColor: (spot) => colorScheme.inverseSurface,
                 getTooltipItems: (touchedSpots) {
