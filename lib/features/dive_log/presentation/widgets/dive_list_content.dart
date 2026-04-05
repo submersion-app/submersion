@@ -1298,7 +1298,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             if (filter.hasActiveFilters) _buildActiveFiltersBar(context),
             if (showPanel)
               const ClipRect(
-                child: SizedBox(height: 300, child: DiveProfilePanel()),
+                child: SizedBox(height: 420, child: DiveProfilePanel()),
               ),
             Expanded(
               child: DiveTableView(

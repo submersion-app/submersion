@@ -22,6 +22,20 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_l
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Structured row emitted via [DiveProfileChart.onTooltipData] so callers
+/// can render the tooltip externally (e.g., below the chart).
+class TooltipRow {
+  final String label;
+  final String value;
+  final Color bulletColor;
+
+  const TooltipRow({
+    required this.label,
+    required this.value,
+    required this.bulletColor,
+  });
+}
+
 /// Interactive dive profile chart showing depth over time with zoom/pan support
 class DiveProfileChart extends ConsumerStatefulWidget {
   final List<DiveProfilePoint> profile;
@@ -146,9 +160,14 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Computers not in this set use a dashed line style.
   final Set<String>? primaryComputers;
 
-  /// When true, tooltip is shown below the touch point and clipped inside
-  /// the chart area. Used when the chart is embedded in a compact panel.
+  /// When true, the built-in tooltip is suppressed and tooltip data is
+  /// emitted via [onTooltipData] so callers can render it externally
+  /// (e.g., below the chart in the profile panel).
   final bool tooltipBelow;
+
+  /// Called with structured tooltip row data when a point is touched
+  /// and [tooltipBelow] is true. Null clears the tooltip.
+  final void Function(List<TooltipRow>? rows)? onTooltipData;
 
   /// Returns responsive left axis reserved size based on available chart width.
   /// Tick labels are plain numbers (e.g. "30", "60") so don't need much space.
@@ -204,6 +223,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.computerLineColors,
     this.primaryComputers,
     this.tooltipBelow = false,
+    this.onTooltipData,
   });
 
   @override
@@ -415,6 +435,116 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       _panOffsetX = 0.0;
       _panOffsetY = 0.0;
     });
+  }
+
+  /// Build and emit [TooltipRow] data for external rendering when
+  /// [DiveProfileChart.tooltipBelow] is true.
+  void _emitExternalTooltip(
+    List<LineBarSpot> touchedSpots,
+    UnitFormatter units,
+    ColorScheme colorScheme,
+  ) {
+    if (widget.onTooltipData == null) return;
+
+    final spot = touchedSpots.where((s) => s.barIndex == 0).firstOrNull;
+    if (spot == null || spot.spotIndex >= widget.profile.length) {
+      widget.onTooltipData!(null);
+      return;
+    }
+
+    final point = widget.profile[spot.spotIndex];
+    final rows = <TooltipRow>[];
+    final onSurface = colorScheme.onInverseSurface;
+
+    // Time
+    final minutes = point.timestamp ~/ 60;
+    final seconds = point.timestamp % 60;
+    rows.add(
+      TooltipRow(
+        label: 'Time',
+        value: '$minutes:${seconds.toString().padLeft(2, '0')}',
+        bulletColor: onSurface.withValues(alpha: 0.5),
+      ),
+    );
+
+    // Depth
+    rows.add(
+      TooltipRow(
+        label: 'Depth',
+        value: units.formatDepth(point.depth),
+        bulletColor: AppColors.chartDepth,
+      ),
+    );
+
+    // Temperature
+    if (_showTemperature) {
+      rows.add(
+        TooltipRow(
+          label: 'Temp',
+          value: point.temperature != null
+              ? units.formatTemperature(point.temperature)
+              : '-',
+          bulletColor: colorScheme.tertiary,
+        ),
+      );
+    }
+
+    // Ceiling
+    if (_showCeiling &&
+        widget.ceilingCurve != null &&
+        spot.spotIndex < widget.ceilingCurve!.length) {
+      final ceiling = widget.ceilingCurve![spot.spotIndex];
+      rows.add(
+        TooltipRow(
+          label: 'Ceiling',
+          value: ceiling > 0 ? units.formatDepth(ceiling) : '-',
+          bulletColor: const Color(0xFFD32F2F),
+        ),
+      );
+    }
+
+    // Ascent rate
+    if (_showAscentRateColors &&
+        widget.ascentRates != null &&
+        spot.spotIndex < widget.ascentRates!.length) {
+      final ascentRate = widget.ascentRates![spot.spotIndex];
+      final rate = ascentRate.rateMetersPerMin;
+      final convertedRate = units.convertDepth(rate.abs());
+      String arrow = '-';
+      Color rateColor = Colors.grey;
+      if (rate > 0.5) {
+        arrow = '\u2191';
+        rateColor = ascentRate.category == AscentRateCategory.safe
+            ? Colors.lime
+            : _getAscentRateColor(ascentRate.category);
+      } else if (rate < -0.5) {
+        arrow = '\u2193';
+        rateColor = Colors.cyan;
+      }
+      rows.add(
+        TooltipRow(
+          label: 'Rate',
+          value:
+              '$arrow ${convertedRate.toStringAsFixed(1)} ${units.depthSymbol}/min',
+          bulletColor: rateColor,
+        ),
+      );
+    }
+
+    // NDL
+    if (point.ndl != null) {
+      String ndlValue;
+      if (point.ndl! < 0) {
+        ndlValue = 'DECO';
+      } else {
+        ndlValue = '${point.ndl! ~/ 60} min';
+      }
+      rows.add(
+        TooltipRow(label: 'NDL', value: ndlValue, bulletColor: Colors.orange),
+      );
+    }
+
+    widget.onTooltipData!(rows);
   }
 
   void _zoomIn() {
@@ -1118,9 +1248,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     ? (_) => Colors.transparent
                     : (spot) => colorScheme.inverseSurface,
                 getTooltipItems: (touchedSpots) {
-                  // When tooltipBelow, suppress visual tooltip (info shown
-                  // externally via onPointSelected)
+                  // When tooltipBelow, build external tooltip data and suppress
+                  // the visual bubble. Touch events still fire for crosshair.
                   if (widget.tooltipBelow) {
+                    _emitExternalTooltip(touchedSpots, units, colorScheme);
                     return touchedSpots.map((_) => null).toList();
                   }
                   // Return cached result if the same spot index is touched again

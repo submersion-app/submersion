@@ -57,10 +57,6 @@ class DiveProfilePanel extends ConsumerWidget {
   }
 }
 
-/// Inner widget that loads and displays the profile for a specific dive.
-///
-/// Separated from [DiveProfilePanel] so that the providers are scoped to a
-/// non-null dive ID, avoiding null checks throughout the build.
 class _DiveProfilePanelContent extends ConsumerStatefulWidget {
   final String diveId;
 
@@ -73,13 +69,13 @@ class _DiveProfilePanelContent extends ConsumerStatefulWidget {
 
 class _DiveProfilePanelContentState
     extends ConsumerState<_DiveProfilePanelContent> {
-  int? _selectedPointIndex;
+  List<TooltipRow>? _tooltipRows;
 
   @override
   void didUpdateWidget(_DiveProfilePanelContent oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.diveId != oldWidget.diveId) {
-      _selectedPointIndex = null;
+      _tooltipRows = null;
     }
   }
 
@@ -133,13 +129,6 @@ class _DiveProfilePanelContentState
         ? '${dive.effectiveRuntime!.inMinutes} min'
         : '--';
     final dateText = units.formatDateTime(dive.dateTime, l10n: null);
-
-    // Build touch info bar content from selected point
-    final selectedPoint =
-        _selectedPointIndex != null &&
-            _selectedPointIndex! < dive.profile.length
-        ? dive.profile[_selectedPointIndex!]
-        : null;
 
     return Container(
       decoration: BoxDecoration(
@@ -224,88 +213,57 @@ class _DiveProfilePanelContentState
                 tankPressures: tankPressures,
                 gasSwitches: gasSwitches,
                 tooltipBelow: true,
-                onPointSelected: (index) {
-                  setState(() => _selectedPointIndex = index);
+                onTooltipData: (rows) {
+                  setState(() => _tooltipRows = rows);
                 },
               ),
             ),
           ),
-          // Touch info bar (below chart, replaces tooltip)
-          _buildTouchInfoBar(context, selectedPoint, units, colorScheme),
+          // Tooltip below chart (matches dive detail tooltip style)
+          _buildTooltipBar(context, colorScheme),
         ],
       ),
     );
   }
 
-  Widget _buildTouchInfoBar(
-    BuildContext context,
-    DiveProfilePoint? point,
-    UnitFormatter units,
-    ColorScheme colorScheme,
-  ) {
-    final style = Theme.of(
-      context,
-    ).textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant);
-    final valueStyle = Theme.of(
-      context,
-    ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600);
-
-    if (point == null) {
-      return SizedBox(
-        height: 22,
-        child: Center(
-          child: Text(
-            'Hover over chart for details',
-            style: style?.copyWith(
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-            ),
-          ),
-        ),
-      );
+  Widget _buildTooltipBar(BuildContext context, ColorScheme colorScheme) {
+    if (_tooltipRows == null || _tooltipRows!.isEmpty) {
+      return const SizedBox(height: 24);
     }
 
-    final time = Duration(seconds: point.timestamp);
-    final timeStr =
-        '${time.inMinutes}:${(time.inSeconds % 60).toString().padLeft(2, '0')}';
-    final depthStr = units.formatDepth(point.depth);
-    final tempStr = point.temperature != null
-        ? units.formatTemperature(point.temperature!)
-        : null;
-    final ndlStr = point.ndl != null
-        ? point.ndl! >= 0
-              ? '${point.ndl! ~/ 60} min'
-              : 'DECO'
-        : null;
+    final rowStyle = TextStyle(
+      fontFamily: 'RobotoMono',
+      fontSize: 14,
+      color: colorScheme.onInverseSurface,
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
 
-    return SizedBox(
-      height: 22,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Time: ', style: style),
-            Text(timeStr, style: valueStyle),
-            const SizedBox(width: 16),
-            Text('Depth: ', style: style),
-            Text(depthStr, style: valueStyle),
-            if (tempStr != null) ...[
-              const SizedBox(width: 16),
-              Text('Temp: ', style: style),
-              Text(tempStr, style: valueStyle),
-            ],
-            if (ndlStr != null) ...[
-              const SizedBox(width: 16),
-              Text('NDL: ', style: style),
-              Text(
-                ndlStr,
-                style: valueStyle?.copyWith(
-                  color: ndlStr == 'DECO' ? colorScheme.error : null,
-                ),
-              ),
-            ],
-          ],
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: colorScheme.inverseSurface,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(8),
+          bottomRight: Radius.circular(8),
         ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: _tooltipRows!.map((row) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '\u25CF ',
+                style: TextStyle(color: row.bulletColor, fontSize: 12),
+              ),
+              Text(row.label.padRight(8), style: rowStyle),
+              Text(row.value, style: rowStyle),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
