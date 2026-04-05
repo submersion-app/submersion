@@ -374,6 +374,8 @@ class DiveListTile extends ConsumerWidget {
   final List<Tag> tags;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
+  final VoidCallback? onDoubleTap;
+  final bool isHighlighted;
   final bool isSelectionMode;
   final bool isSelected;
 
@@ -425,6 +427,8 @@ class DiveListTile extends ConsumerWidget {
     this.tags = const [],
     this.onTap,
     this.onLongPress,
+    this.onDoubleTap,
+    this.isHighlighted = false,
     this.isSelectionMode = false,
     this.isSelected = false,
     this.colorValue,
@@ -484,6 +488,8 @@ class DiveListTile extends ConsumerWidget {
         : null;
     final cardColor = isSelected
         ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+        : isHighlighted
+        ? colorScheme.primaryContainer.withValues(alpha: 0.15)
         : attributeColor;
 
     // Determine text colors based on background luminance
@@ -761,6 +767,7 @@ class DiveListTile extends ConsumerWidget {
           label: 'Dive $diveNumber at ${siteName ?? 'Unknown Site'}',
           child: InkWell(
             onTap: onTap,
+            onDoubleTap: onDoubleTap,
             onLongPress: onLongPress,
             child: Stack(
               children: [
@@ -807,17 +814,29 @@ class DiveListTile extends ConsumerWidget {
     }
 
     // Standard card without map
-    return Card(
+    return Container(
       margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      color: cardColor,
-      child: Semantics(
-        button: true,
-        label: 'Dive $diveNumber at ${siteName ?? 'Unknown Site'}',
-        child: InkWell(
-          onTap: onTap,
-          onLongPress: onLongPress,
-          borderRadius: BorderRadius.circular(12),
-          child: buildContent(),
+      decoration: isHighlighted
+          ? BoxDecoration(
+              border: Border(
+                left: BorderSide(color: colorScheme.primary, width: 3),
+              ),
+              borderRadius: BorderRadius.circular(12),
+            )
+          : null,
+      child: Card(
+        margin: EdgeInsets.zero,
+        color: cardColor,
+        child: Semantics(
+          button: true,
+          label: 'Dive $diveNumber at ${siteName ?? 'Unknown Site'}',
+          child: InkWell(
+            onTap: onTap,
+            onDoubleTap: onDoubleTap,
+            onLongPress: onLongPress,
+            borderRadius: BorderRadius.circular(12),
+            child: buildContent(),
+          ),
         ),
       ),
     );
