@@ -1084,7 +1084,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ],
             ),
             lineTouchData: LineTouchData(
-              enabled: !widget.tooltipBelow,
+              enabled: true,
               touchSpotThreshold: 20,
               handleBuiltInTouches: true,
               touchCallback: (event, response) {
@@ -1111,11 +1111,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               touchTooltipData: LineTouchTooltipData(
                 maxContentWidth: 220,
                 fitInsideHorizontally: true,
-                fitInsideVertically: widget.tooltipBelow,
-                showOnTopOfTheChartBoxArea: !widget.tooltipBelow,
+                fitInsideVertically: false,
+                showOnTopOfTheChartBoxArea: true,
                 tooltipMargin: 0,
-                getTooltipColor: (spot) => colorScheme.inverseSurface,
+                getTooltipColor: widget.tooltipBelow
+                    ? (_) => Colors.transparent
+                    : (spot) => colorScheme.inverseSurface,
                 getTooltipItems: (touchedSpots) {
+                  // When tooltipBelow, suppress visual tooltip (info shown
+                  // externally via onPointSelected)
+                  if (widget.tooltipBelow) {
+                    return touchedSpots.map((_) => null).toList();
+                  }
                   // Return cached result if the same spot index is touched again
                   if (touchedSpots.isNotEmpty) {
                     final firstDepthSpot = touchedSpots

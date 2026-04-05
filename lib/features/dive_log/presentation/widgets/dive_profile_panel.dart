@@ -61,14 +61,31 @@ class DiveProfilePanel extends ConsumerWidget {
 ///
 /// Separated from [DiveProfilePanel] so that the providers are scoped to a
 /// non-null dive ID, avoiding null checks throughout the build.
-class _DiveProfilePanelContent extends ConsumerWidget {
+class _DiveProfilePanelContent extends ConsumerStatefulWidget {
   final String diveId;
 
   const _DiveProfilePanelContent({required this.diveId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final diveAsync = ref.watch(diveProvider(diveId));
+  ConsumerState<_DiveProfilePanelContent> createState() =>
+      _DiveProfilePanelContentState();
+}
+
+class _DiveProfilePanelContentState
+    extends ConsumerState<_DiveProfilePanelContent> {
+  int? _selectedPointIndex;
+
+  @override
+  void didUpdateWidget(_DiveProfilePanelContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.diveId != oldWidget.diveId) {
+      _selectedPointIndex = null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final diveAsync = ref.watch(diveProvider(widget.diveId));
     final colorScheme = Theme.of(context).colorScheme;
 
     return diveAsync.when(
@@ -90,15 +107,21 @@ class _DiveProfilePanelContent extends ConsumerWidget {
             ),
           );
         }
-        return _buildProfileContent(context, ref, dive);
+        return _buildProfileContent(context, dive);
       },
     );
   }
 
-  Widget _buildProfileContent(BuildContext context, WidgetRef ref, Dive dive) {
-    final analysis = ref.watch(profileAnalysisProvider(diveId)).valueOrNull;
-    final gasSwitches = ref.watch(gasSwitchesProvider(diveId)).valueOrNull;
-    final tankPressures = ref.watch(tankPressuresProvider(diveId)).valueOrNull;
+  Widget _buildProfileContent(BuildContext context, Dive dive) {
+    final analysis = ref
+        .watch(profileAnalysisProvider(widget.diveId))
+        .valueOrNull;
+    final gasSwitches = ref
+        .watch(gasSwitchesProvider(widget.diveId))
+        .valueOrNull;
+    final tankPressures = ref
+        .watch(tankPressuresProvider(widget.diveId))
+        .valueOrNull;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final colorScheme = Theme.of(context).colorScheme;
@@ -110,6 +133,13 @@ class _DiveProfilePanelContent extends ConsumerWidget {
         ? '${dive.effectiveRuntime!.inMinutes} min'
         : '--';
     final dateText = units.formatDateTime(dive.dateTime, l10n: null);
+
+    // Build touch info bar content from selected point
+    final selectedPoint =
+        _selectedPointIndex != null &&
+            _selectedPointIndex! < dive.profile.length
+        ? dive.profile[_selectedPointIndex!]
+        : null;
 
     return Container(
       decoration: BoxDecoration(
@@ -169,7 +199,7 @@ class _DiveProfilePanelContent extends ConsumerWidget {
           // Profile chart
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(left: 4, right: 4, bottom: 4),
+              padding: const EdgeInsets.only(left: 4, right: 4),
               child: DiveProfileChart(
                 profile: dive.profile,
                 diveDuration: dive.effectiveRuntime,
@@ -194,10 +224,88 @@ class _DiveProfilePanelContent extends ConsumerWidget {
                 tankPressures: tankPressures,
                 gasSwitches: gasSwitches,
                 tooltipBelow: true,
+                onPointSelected: (index) {
+                  setState(() => _selectedPointIndex = index);
+                },
               ),
             ),
           ),
+          // Touch info bar (below chart, replaces tooltip)
+          _buildTouchInfoBar(context, selectedPoint, units, colorScheme),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTouchInfoBar(
+    BuildContext context,
+    DiveProfilePoint? point,
+    UnitFormatter units,
+    ColorScheme colorScheme,
+  ) {
+    final style = Theme.of(
+      context,
+    ).textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant);
+    final valueStyle = Theme.of(
+      context,
+    ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600);
+
+    if (point == null) {
+      return SizedBox(
+        height: 22,
+        child: Center(
+          child: Text(
+            'Hover over chart for details',
+            style: style?.copyWith(
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final time = Duration(seconds: point.timestamp);
+    final timeStr =
+        '${time.inMinutes}:${(time.inSeconds % 60).toString().padLeft(2, '0')}';
+    final depthStr = units.formatDepth(point.depth);
+    final tempStr = point.temperature != null
+        ? units.formatTemperature(point.temperature!)
+        : null;
+    final ndlStr = point.ndl != null
+        ? point.ndl! >= 0
+              ? '${point.ndl! ~/ 60} min'
+              : 'DECO'
+        : null;
+
+    return SizedBox(
+      height: 22,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Time: ', style: style),
+            Text(timeStr, style: valueStyle),
+            const SizedBox(width: 16),
+            Text('Depth: ', style: style),
+            Text(depthStr, style: valueStyle),
+            if (tempStr != null) ...[
+              const SizedBox(width: 16),
+              Text('Temp: ', style: style),
+              Text(tempStr, style: valueStyle),
+            ],
+            if (ndlStr != null) ...[
+              const SizedBox(width: 16),
+              Text('NDL: ', style: style),
+              Text(
+                ndlStr,
+                style: valueStyle?.copyWith(
+                  color: ndlStr == 'DECO' ? colorScheme.error : null,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
