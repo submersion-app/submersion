@@ -26659,6 +26659,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hail'**
   String get enum_precipitation_hail;
+
+  /// No description provided for @columnConfig_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Column Configuration'**
+  String get columnConfig_title;
+
+  /// No description provided for @columnConfig_viewMode.
+  ///
+  /// In en, this message translates to:
+  /// **'View Mode'**
+  String get columnConfig_viewMode;
+
+  /// No description provided for @columnConfig_visibleColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible Columns'**
+  String get columnConfig_visibleColumns;
+
+  /// No description provided for @columnConfig_availableFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Fields'**
+  String get columnConfig_availableFields;
+
+  /// No description provided for @columnConfig_extraFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra Fields'**
+  String get columnConfig_extraFields;
+
+  /// No description provided for @columnConfig_extraFields_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown below main card content'**
+  String get columnConfig_extraFields_description;
+
+  /// No description provided for @columnConfig_slotAssignments.
+  ///
+  /// In en, this message translates to:
+  /// **'Slot Assignments'**
+  String get columnConfig_slotAssignments;
+
+  /// No description provided for @columnConfig_resetToDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to Default'**
+  String get columnConfig_resetToDefault;
+
+  /// No description provided for @columnConfig_preset.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset'**
+  String get columnConfig_preset;
+
+  /// No description provided for @columnConfig_presetSaveAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Save As'**
+  String get columnConfig_presetSaveAs;
+
+  /// No description provided for @columnConfig_presetName.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset Name'**
+  String get columnConfig_presetName;
+
+  /// No description provided for @columnConfig_presetNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Tech Diving'**
+  String get columnConfig_presetNameHint;
+
+  /// No description provided for @columnConfig_presetSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get columnConfig_presetSave;
+
+  /// No description provided for @columnConfig_presetCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get columnConfig_presetCancel;
+
+  /// No description provided for @columnConfig_columns.
+  ///
+  /// In en, this message translates to:
+  /// **'Columns'**
+  String get columnConfig_columns;
+
+  /// No description provided for @columnConfig_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get columnConfig_done;
+
+  /// No description provided for @settings_appearance_columnConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Column Configuration'**
+  String get settings_appearance_columnConfig;
+
+  /// No description provided for @settings_appearance_columnConfig_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize fields shown in dive list views'**
+  String get settings_appearance_columnConfig_subtitle;
+
+  /// No description provided for @diveField_category_core.
+  ///
+  /// In en, this message translates to:
+  /// **'Core'**
+  String get diveField_category_core;
+
+  /// No description provided for @diveField_category_environment.
+  ///
+  /// In en, this message translates to:
+  /// **'Environment'**
+  String get diveField_category_environment;
+
+  /// No description provided for @diveField_category_gas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas'**
+  String get diveField_category_gas;
+
+  /// No description provided for @diveField_category_tank.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank'**
+  String get diveField_category_tank;
+
+  /// No description provided for @diveField_category_weight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get diveField_category_weight;
+
+  /// No description provided for @diveField_category_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get diveField_category_equipment;
+
+  /// No description provided for @diveField_category_deco.
+  ///
+  /// In en, this message translates to:
+  /// **'Decompression'**
+  String get diveField_category_deco;
+
+  /// No description provided for @diveField_category_physiology.
+  ///
+  /// In en, this message translates to:
+  /// **'Physiology'**
+  String get diveField_category_physiology;
+
+  /// No description provided for @diveField_category_rebreather.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebreather'**
+  String get diveField_category_rebreather;
+
+  /// No description provided for @diveField_category_people.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get diveField_category_people;
+
+  /// No description provided for @diveField_category_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get diveField_category_location;
+
+  /// No description provided for @diveField_category_trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip'**
+  String get diveField_category_trip;
+
+  /// No description provided for @diveField_category_rating.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get diveField_category_rating;
+
+  /// No description provided for @diveField_category_metadata.
+  ///
+  /// In en, this message translates to:
+  /// **'Metadata'**
+  String get diveField_category_metadata;
+
+  /// No description provided for @listViewMode_table.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get listViewMode_table;
 }
 
 class _AppLocalizationsDelegate

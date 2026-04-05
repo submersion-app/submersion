@@ -15844,4 +15844,105 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_precipitation_hail => 'Hail';
+
+  @override
+  String get columnConfig_title => 'Column Configuration';
+
+  @override
+  String get columnConfig_viewMode => 'View Mode';
+
+  @override
+  String get columnConfig_visibleColumns => 'Visible Columns';
+
+  @override
+  String get columnConfig_availableFields => 'Available Fields';
+
+  @override
+  String get columnConfig_extraFields => 'Extra Fields';
+
+  @override
+  String get columnConfig_extraFields_description =>
+      'Shown below main card content';
+
+  @override
+  String get columnConfig_slotAssignments => 'Slot Assignments';
+
+  @override
+  String get columnConfig_resetToDefault => 'Reset to Default';
+
+  @override
+  String get columnConfig_preset => 'Preset';
+
+  @override
+  String get columnConfig_presetSaveAs => 'Save As';
+
+  @override
+  String get columnConfig_presetName => 'Preset Name';
+
+  @override
+  String get columnConfig_presetNameHint => 'e.g., Tech Diving';
+
+  @override
+  String get columnConfig_presetSave => 'Save';
+
+  @override
+  String get columnConfig_presetCancel => 'Cancel';
+
+  @override
+  String get columnConfig_columns => 'Columns';
+
+  @override
+  String get columnConfig_done => 'Done';
+
+  @override
+  String get settings_appearance_columnConfig => 'Column Configuration';
+
+  @override
+  String get settings_appearance_columnConfig_subtitle =>
+      'Customize fields shown in dive list views';
+
+  @override
+  String get diveField_category_core => 'Core';
+
+  @override
+  String get diveField_category_environment => 'Environment';
+
+  @override
+  String get diveField_category_gas => 'Gas';
+
+  @override
+  String get diveField_category_tank => 'Tank';
+
+  @override
+  String get diveField_category_weight => 'Weight';
+
+  @override
+  String get diveField_category_equipment => 'Equipment';
+
+  @override
+  String get diveField_category_deco => 'Decompression';
+
+  @override
+  String get diveField_category_physiology => 'Physiology';
+
+  @override
+  String get diveField_category_rebreather => 'Rebreather';
+
+  @override
+  String get diveField_category_people => 'People';
+
+  @override
+  String get diveField_category_location => 'Location';
+
+  @override
+  String get diveField_category_trip => 'Trip';
+
+  @override
+  String get diveField_category_rating => 'Rating';
+
+  @override
+  String get diveField_category_metadata => 'Metadata';
+
+  @override
+  String get listViewMode_table => 'Table';
 }

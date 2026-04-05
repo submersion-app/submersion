@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 class ColumnConfigPage extends ConsumerStatefulWidget {
   const ColumnConfigPage({super.key});
@@ -105,9 +107,65 @@ class _TableColumnConfigSection extends ConsumerWidget {
       grouped.putIfAbsent(field.category, () => []).add(field);
     }
 
+    final diverId = ref.watch(currentDiverIdProvider);
+    final presetsAsync = diverId != null
+        ? ref.watch(tablePresetsProvider(diverId))
+        : const AsyncValue<List<FieldPreset>>.data([]);
+    final presets = presetsAsync.valueOrNull ?? [];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Preset bar
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: DropdownButton<FieldPreset>(
+                  hint: const Text('Load Preset'),
+                  isExpanded: true,
+                  value: null,
+                  onChanged: (preset) {
+                    if (preset != null) {
+                      notifier.applyPreset(preset);
+                    }
+                  },
+                  items: presets.map((preset) {
+                    return DropdownMenuItem<FieldPreset>(
+                      value: preset,
+                      child: Row(
+                        children: [
+                          Expanded(child: Text(preset.name)),
+                          if (!preset.isBuiltIn)
+                            GestureDetector(
+                              onTap: () {
+                                if (diverId != null) {
+                                  ref
+                                      .read(viewConfigRepositoryProvider)
+                                      .deletePreset(preset.id);
+                                  ref.invalidate(
+                                    tablePresetsProvider(diverId),
+                                  );
+                                }
+                              },
+                              child: const Icon(Icons.delete_outline, size: 18),
+                            ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: () =>
+                    _showSavePresetDialog(context, ref, diverId),
+                child: const Text('Save As'),
+              ),
+            ],
+          ),
+        ),
         _SectionHeader(title: 'VISIBLE COLUMNS', theme: theme),
         Expanded(
           child: Column(
@@ -189,6 +247,58 @@ class _TableColumnConfigSection extends ConsumerWidget {
       ],
     );
   }
+}
+
+// ---------------------------------------------------------------------------
+// Save preset dialog helper
+// ---------------------------------------------------------------------------
+
+void _showSavePresetDialog(
+  BuildContext context,
+  WidgetRef ref,
+  String? diverId,
+) {
+  final controller = TextEditingController();
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Save Preset'),
+      content: TextField(
+        controller: controller,
+        decoration: const InputDecoration(
+          labelText: 'Preset Name',
+          hintText: 'e.g., Tech Diving',
+        ),
+        autofocus: true,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final name = controller.text.trim();
+            if (name.isNotEmpty && diverId != null) {
+              final config = ref.read(tableViewConfigProvider);
+              final preset = FieldPreset(
+                id: const Uuid().v4(),
+                name: name,
+                viewMode: ListViewMode.table,
+                configJson: config.toJson(),
+              );
+              ref
+                  .read(viewConfigRepositoryProvider)
+                  .savePreset(diverId, preset);
+              ref.invalidate(tablePresetsProvider(diverId));
+            }
+            Navigator.pop(context);
+          },
+          child: const Text('Save'),
+        ),
+      ],
+    ),
+  );
 }
 
 // ---------------------------------------------------------------------------
