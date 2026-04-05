@@ -8,7 +8,10 @@ import 'package:submersion/features/dive_log/presentation/providers/view_config_
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 class ColumnConfigPage extends ConsumerStatefulWidget {
-  const ColumnConfigPage({super.key});
+  /// When true, hides the Scaffold/AppBar for embedding in a detail pane.
+  final bool embedded;
+
+  const ColumnConfigPage({super.key, this.embedded = false});
 
   @override
   ConsumerState<ColumnConfigPage> createState() => _ColumnConfigPageState();
@@ -19,38 +22,42 @@ class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
 
   @override
   Widget build(BuildContext context) {
+    final body = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: Row(
+            children: [
+              const Text('View Mode'),
+              const SizedBox(width: 16),
+              DropdownButton<ListViewMode>(
+                value: _selectedMode,
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _selectedMode = value);
+                  }
+                },
+                items: ListViewMode.values.map((mode) {
+                  return DropdownMenuItem(
+                    value: mode,
+                    child: Text(_modeDisplayName(mode)),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+        const Divider(),
+        Expanded(child: _buildModeSection()),
+      ],
+    );
+
+    if (widget.embedded) return body;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Column Configuration')),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Row(
-              children: [
-                const Text('View Mode'),
-                const SizedBox(width: 16),
-                DropdownButton<ListViewMode>(
-                  value: _selectedMode,
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _selectedMode = value);
-                    }
-                  },
-                  items: ListViewMode.values.map((mode) {
-                    return DropdownMenuItem(
-                      value: mode,
-                      child: Text(_modeDisplayName(mode)),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-          const Divider(),
-          Expanded(child: _buildModeSection()),
-        ],
-      ),
+      body: body,
     );
   }
 
@@ -144,9 +151,7 @@ class _TableColumnConfigSection extends ConsumerWidget {
                                   ref
                                       .read(viewConfigRepositoryProvider)
                                       .deletePreset(preset.id);
-                                  ref.invalidate(
-                                    tablePresetsProvider(diverId),
-                                  );
+                                  ref.invalidate(tablePresetsProvider(diverId));
                                 }
                               },
                               child: const Icon(Icons.delete_outline, size: 18),
@@ -159,8 +164,7 @@ class _TableColumnConfigSection extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
               TextButton(
-                onPressed: () =>
-                    _showSavePresetDialog(context, ref, diverId),
+                onPressed: () => _showSavePresetDialog(context, ref, diverId),
                 child: const Text('Save As'),
               ),
             ],
