@@ -801,9 +801,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       return;
     }
 
-    // Highlight the dive only -- do NOT open detail pane on single tap.
-    // The detail pane is opened on double-tap via _handleItemDoubleTap.
+    // Highlight the dive in all modes.
     ref.read(highlightedDiveIdProvider.notifier).state = dive.id;
+
+    // In card/list modes, also navigate (table mode uses double-tap instead).
+    if (widget.onItemSelected != null) {
+      // Master-detail mode: notify parent to open detail pane
+      _selectionFromList = true;
+      widget.onItemSelected!(dive.id);
+    } else {
+      // Standalone mode: navigate to detail page
+      context.go('/dives/${dive.id}');
+    }
   }
 
   void _handleItemDoubleTap(DiveSummary dive) {
@@ -1293,9 +1302,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     150.0,
                     250.0,
                   );
-                  return SizedBox(
-                    height: panelHeight,
-                    child: const DiveProfilePanel(),
+                  return ClipRect(
+                    child: SizedBox(
+                      height: panelHeight,
+                      child: const DiveProfilePanel(),
+                    ),
                   );
                 },
               ),
@@ -1392,9 +1403,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   150.0,
                   250.0,
                 );
-                return SizedBox(
-                  height: panelHeight,
-                  child: const DiveProfilePanel(),
+                return ClipRect(
+                  child: SizedBox(
+                    height: panelHeight,
+                    child: const DiveProfilePanel(),
+                  ),
                 );
               },
             ),
