@@ -28,6 +28,7 @@ class DiveTableView extends ConsumerStatefulWidget {
   final Map<String, Duration?> surfaceIntervals;
   final void Function(String diveId) onDiveTap;
   final void Function(String diveId)? onDiveLongPress;
+  final void Function(String diveId)? onDiveDoubleTap;
   final Set<String> selectedIds;
   final bool isSelectionMode;
   final String? highlightedId;
@@ -38,6 +39,7 @@ class DiveTableView extends ConsumerStatefulWidget {
     required this.surfaceIntervals,
     required this.onDiveTap,
     this.onDiveLongPress,
+    this.onDiveDoubleTap,
     this.selectedIds = const {},
     this.isSelectionMode = false,
     this.highlightedId,
@@ -348,6 +350,9 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                     return GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () => widget.onDiveTap(dive.id),
+                      onDoubleTap: widget.onDiveDoubleTap != null
+                          ? () => widget.onDiveDoubleTap!(dive.id)
+                          : null,
                       onLongPress: widget.onDiveLongPress != null
                           ? () => widget.onDiveLongPress!(dive.id)
                           : null,
@@ -415,6 +420,9 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                         return GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () => widget.onDiveTap(dive.id),
+                          onDoubleTap: widget.onDiveDoubleTap != null
+                              ? () => widget.onDiveDoubleTap!(dive.id)
+                              : null,
                           onLongPress: widget.onDiveLongPress != null
                               ? () => widget.onDiveLongPress!(dive.id)
                               : null,

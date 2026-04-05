@@ -57,6 +57,7 @@ Widget _buildTable({
   Map<String, Duration?>? surfaceIntervals,
   void Function(String)? onDiveTap,
   void Function(String)? onDiveLongPress,
+  void Function(String)? onDiveDoubleTap,
   Set<String>? selectedIds,
   bool isSelectionMode = false,
   TableViewConfig? config,
@@ -73,6 +74,7 @@ Widget _buildTable({
       surfaceIntervals: surfaceIntervals ?? const {},
       onDiveTap: onDiveTap ?? (_) {},
       onDiveLongPress: onDiveLongPress,
+      onDiveDoubleTap: onDiveDoubleTap,
       selectedIds: selectedIds ?? const {},
       isSelectionMode: isSelectionMode,
     ),
@@ -129,6 +131,27 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tappedId, equals('dive-abc'));
+    });
+
+    testWidgets('fires onDiveDoubleTap on double-tap', (tester) async {
+      String? doubleTappedId;
+      await tester.pumpWidget(
+        _buildTable(
+          dives: [_makeDive(id: 'a', diveNumber: 1)],
+          onDiveTap: (_) {},
+          onDiveDoubleTap: (id) => doubleTappedId = id,
+        ),
+      );
+      await tester.pump();
+
+      // Double-tap on a row cell
+      final cell = find.text('#1');
+      await tester.tap(cell);
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(cell);
+      await tester.pumpAndSettle();
+
+      expect(doubleTappedId, 'a');
     });
   });
 }
