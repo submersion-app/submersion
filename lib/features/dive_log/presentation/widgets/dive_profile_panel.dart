@@ -11,7 +11,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Panel that displays the dive profile chart for the currently highlighted
-/// dive. Tooltip overlays on top of content below the chart.
+/// dive. Tooltip floats as an overlay below the chart, following the cursor.
 class DiveProfilePanel extends ConsumerWidget {
   const DiveProfilePanel({super.key});
 
@@ -70,17 +70,17 @@ class _DiveProfilePanelContent extends ConsumerStatefulWidget {
 
 class _DiveProfilePanelContentState
     extends ConsumerState<_DiveProfilePanelContent> {
-  int? _selectedPointIndex;
-  double _cursorLocalX = 0;
-  final LayerLink _tooltipLayerLink = LayerLink();
+  List<TooltipRow>? _tooltipRows;
+  Offset _cursorGlobalPos = Offset.zero;
   OverlayEntry? _tooltipOverlay;
+  final GlobalKey _chartKey = GlobalKey();
 
   @override
   void didUpdateWidget(_DiveProfilePanelContent oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.diveId != oldWidget.diveId) {
       _removeTooltipOverlay();
-      _selectedPointIndex = null;
+      _tooltipRows = null;
     }
   }
 
@@ -96,23 +96,88 @@ class _DiveProfilePanelContentState
   }
 
   void _onPointSelected(int? index) {
-    setState(() => _selectedPointIndex = index);
     if (index == null) {
       _removeTooltipOverlay();
-    } else {
-      _showTooltipOverlay();
+      _tooltipRows = null;
     }
   }
 
-  void _showTooltipOverlay() {
-    _removeTooltipOverlay();
+  void _onTooltipData(List<TooltipRow>? rows) {
+    _tooltipRows = rows;
+    if (rows == null || rows.isEmpty) {
+      _removeTooltipOverlay();
+      return;
+    }
+    _updateTooltipOverlay();
+  }
 
-    _tooltipOverlay = OverlayEntry(
-      builder: (context) =>
-          _TooltipOverlay(link: _tooltipLayerLink, panelState: this),
+  void _updateTooltipOverlay() {
+    if (_tooltipRows == null || _tooltipRows!.isEmpty) return;
+
+    // Get chart bottom Y in global coords
+    final chartBox = _chartKey.currentContext?.findRenderObject() as RenderBox?;
+    if (chartBox == null) return;
+    final chartBottomGlobal = chartBox.localToGlobal(
+      Offset(0, chartBox.size.height),
     );
 
-    Overlay.of(context).insert(_tooltipOverlay!);
+    if (_tooltipOverlay != null) {
+      _tooltipOverlay!.markNeedsBuild();
+    } else {
+      _tooltipOverlay = OverlayEntry(
+        builder: (_) => _buildTooltipWidget(chartBottomGlobal.dy),
+      );
+      Overlay.of(context).insert(_tooltipOverlay!);
+    }
+  }
+
+  Widget _buildTooltipWidget(double chartBottomY) {
+    final rows = _tooltipRows;
+    if (rows == null || rows.isEmpty) return const SizedBox.shrink();
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final onSurface = colorScheme.onInverseSurface;
+    final rowStyle = TextStyle(
+      fontFamily: 'RobotoMono',
+      fontSize: 14,
+      color: onSurface,
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
+
+    return Positioned(
+      left: _cursorGlobalPos.dx,
+      top: chartBottomY + 4,
+      child: FractionalTranslation(
+        translation: const Offset(-0.5, 0),
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: colorScheme.inverseSurface,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: rows.map((row) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '\u25CF ',
+                      style: TextStyle(color: row.bulletColor, fontSize: 12),
+                    ),
+                    Text(row.label.padRight(8), style: rowStyle),
+                    Text(row.value, style: rowStyle),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -231,163 +296,51 @@ class _DiveProfilePanelContentState
               ],
             ),
           ),
-          // Chart with tooltip anchor at bottom + cursor tracking
-          CompositedTransformTarget(
-            link: _tooltipLayerLink,
-            child: Listener(
-              onPointerHover: (event) {
-                _cursorLocalX = event.localPosition.dx;
-                _tooltipOverlay?.markNeedsBuild();
-              },
-              onPointerMove: (event) {
-                _cursorLocalX = event.localPosition.dx;
-                _tooltipOverlay?.markNeedsBuild();
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(left: 4, right: 4),
-                child: DiveProfileChart(
-                  profile: dive.profile,
-                  diveDuration: dive.effectiveRuntime,
-                  maxDepth: dive.maxDepth,
-                  ceilingCurve: analysis?.ceilingCurve,
-                  ascentRates: analysis?.ascentRates,
-                  events: analysis?.events,
-                  ndlCurve: analysis?.ndlCurve,
-                  sacCurve: analysis?.smoothedSacCurve,
-                  ppO2Curve: analysis?.ppO2Curve,
-                  ppN2Curve: analysis?.ppN2Curve,
-                  ppHeCurve: analysis?.ppHeCurve,
-                  modCurve: analysis?.modCurve,
-                  densityCurve: analysis?.densityCurve,
-                  gfCurve: analysis?.gfCurve,
-                  surfaceGfCurve: analysis?.surfaceGfCurve,
-                  meanDepthCurve: analysis?.meanDepthCurve,
-                  ttsCurve: analysis?.ttsCurve,
-                  cnsCurve: analysis?.cnsCurve,
-                  otuCurve: analysis?.otuCurve,
-                  tanks: dive.tanks,
-                  tankPressures: tankPressures,
-                  gasSwitches: gasSwitches,
-                  tooltipBelow: true,
-                  onPointSelected: _onPointSelected,
-                ),
+          // Chart with cursor tracking
+          Listener(
+            onPointerHover: (event) {
+              _cursorGlobalPos = event.position;
+              _tooltipOverlay?.markNeedsBuild();
+            },
+            onPointerMove: (event) {
+              _cursorGlobalPos = event.position;
+              _tooltipOverlay?.markNeedsBuild();
+            },
+            child: Padding(
+              key: _chartKey,
+              padding: const EdgeInsets.only(left: 4, right: 4),
+              child: DiveProfileChart(
+                profile: dive.profile,
+                diveDuration: dive.effectiveRuntime,
+                maxDepth: dive.maxDepth,
+                ceilingCurve: analysis?.ceilingCurve,
+                ascentRates: analysis?.ascentRates,
+                events: analysis?.events,
+                ndlCurve: analysis?.ndlCurve,
+                sacCurve: analysis?.smoothedSacCurve,
+                ppO2Curve: analysis?.ppO2Curve,
+                ppN2Curve: analysis?.ppN2Curve,
+                ppHeCurve: analysis?.ppHeCurve,
+                modCurve: analysis?.modCurve,
+                densityCurve: analysis?.densityCurve,
+                gfCurve: analysis?.gfCurve,
+                surfaceGfCurve: analysis?.surfaceGfCurve,
+                meanDepthCurve: analysis?.meanDepthCurve,
+                ttsCurve: analysis?.ttsCurve,
+                cnsCurve: analysis?.cnsCurve,
+                otuCurve: analysis?.otuCurve,
+                tanks: dive.tanks,
+                tankPressures: tankPressures,
+                gasSwitches: gasSwitches,
+                tooltipBelow: true,
+                onPointSelected: _onPointSelected,
+                onTooltipData: _onTooltipData,
               ),
             ),
           ),
+          // Tiny spacer between chart and table
+          const SizedBox(height: 4),
         ],
-      ),
-    );
-  }
-}
-
-/// Overlay widget that renders the tooltip floating below the chart,
-/// matching the dive detail tooltip visual style.
-class _TooltipOverlay extends StatelessWidget {
-  final LayerLink link;
-  final _DiveProfilePanelContentState panelState;
-
-  const _TooltipOverlay({required this.link, required this.panelState});
-
-  @override
-  Widget build(BuildContext context) {
-    final index = panelState._selectedPointIndex;
-    if (index == null) return const SizedBox.shrink();
-
-    final ref = panelState.ref;
-    final diveId = panelState.widget.diveId;
-    final diveAsync = ref.read(diveProvider(diveId));
-    final dive = diveAsync.valueOrNull;
-    if (dive == null || index >= dive.profile.length) {
-      return const SizedBox.shrink();
-    }
-
-    final point = dive.profile[index];
-    final analysis = ref.read(profileAnalysisProvider(diveId)).valueOrNull;
-    final settings = ref.read(settingsProvider);
-    final units = UnitFormatter(settings);
-    final colorScheme = Theme.of(context).colorScheme;
-    final onSurface = colorScheme.onInverseSurface;
-
-    final rowStyle = TextStyle(
-      fontFamily: 'RobotoMono',
-      fontSize: 14,
-      color: onSurface,
-      fontFeatures: const [FontFeature.tabularFigures()],
-    );
-
-    final rows = <Widget>[];
-
-    void addRow(String label, String value, Color bulletColor) {
-      rows.add(
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('\u25CF ', style: TextStyle(color: bulletColor, fontSize: 12)),
-            Text(label.padRight(8), style: rowStyle),
-            Text(value, style: rowStyle),
-          ],
-        ),
-      );
-    }
-
-    // Time
-    final minutes = point.timestamp ~/ 60;
-    final seconds = point.timestamp % 60;
-    addRow(
-      'Time',
-      '$minutes:${seconds.toString().padLeft(2, '0')}',
-      onSurface.withValues(alpha: 0.5),
-    );
-
-    // Depth
-    addRow('Depth', units.formatDepth(point.depth), const Color(0xFF2196F3));
-
-    // Temperature
-    if (point.temperature != null) {
-      addRow(
-        'Temp',
-        units.formatTemperature(point.temperature),
-        colorScheme.tertiary,
-      );
-    }
-
-    // Ceiling
-    final ceilingCurve = analysis?.ceilingCurve;
-    if (ceilingCurve != null && index < ceilingCurve.length) {
-      final ceiling = ceilingCurve[index];
-      if (ceiling > 0) {
-        addRow('Ceiling', units.formatDepth(ceiling), const Color(0xFFD32F2F));
-      }
-    }
-
-    // NDL
-    if (point.ndl != null) {
-      final ndlValue = point.ndl! < 0 ? 'DECO' : '${point.ndl! ~/ 60} min';
-      addRow('NDL', ndlValue, Colors.orange);
-    }
-
-    return CompositedTransformFollower(
-      link: link,
-      targetAnchor: Alignment.bottomLeft,
-      followerAnchor: Alignment.topCenter,
-      offset: Offset(panelState._cursorLocalX, 0),
-      child: Align(
-        alignment: Alignment.topLeft,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: colorScheme.inverseSurface,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: rows,
-            ),
-          ),
-        ),
       ),
     );
   }

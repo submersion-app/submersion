@@ -1219,21 +1219,29 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               handleBuiltInTouches: true,
               touchCallback: (event, response) {
                 if (widget.onPointSelected != null) {
-                  // Clear selection on any touch-end event (finger lift,
-                  // mouse exit, etc.) so data returns to end-of-dive values.
-                  // Check end events first — fl_chart may still report spot
-                  // data in the response for the last-touched position.
                   if (event is FlPointerExitEvent ||
                       event is FlLongPressEnd ||
                       event is FlTapUpEvent ||
                       event is FlPanEndEvent) {
                     widget.onPointSelected!(null);
+                    if (widget.tooltipBelow) {
+                      widget.onTooltipData?.call(null);
+                    }
                   } else if (response?.lineBarSpots != null &&
                       response!.lineBarSpots!.isNotEmpty) {
                     final spot = response.lineBarSpots!.first;
                     if (spot.barIndex == 0 &&
                         spot.spotIndex < widget.profile.length) {
                       widget.onPointSelected!(spot.spotIndex);
+                      if (widget.tooltipBelow) {
+                        final settings = ref.read(settingsProvider);
+                        final units = UnitFormatter(settings);
+                        _emitExternalTooltip(
+                          response.lineBarSpots!,
+                          units,
+                          Theme.of(context).colorScheme,
+                        );
+                      }
                     }
                   }
                 }
