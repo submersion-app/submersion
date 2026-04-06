@@ -87,25 +87,25 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     );
   }
 
-  /// Table mode + map view: split layout with table on top, map below.
+  /// Table mode + map view: side-by-side with table+chart on left, map on right.
   Widget _buildTableMapView(BuildContext context, Widget fab) {
     final highlightedId = ref.watch(highlightedDiveIdProvider);
 
     return Scaffold(
-      body: Column(
+      body: Row(
         children: [
-          // Table takes upper portion
+          // Table + chart on the left
           Expanded(
-            flex: 1,
+            flex: 3,
             child: DiveListContent(
               showAppBar: true,
               isMapViewActive: true,
               onMapViewToggle: _toggleMapView,
             ),
           ),
-          // Map takes lower portion
+          // Map on the right
           Expanded(
-            flex: 1,
+            flex: 2,
             child: DiveMapContent(
               selectedId: highlightedId,
               onItemSelected: (diveId) {
