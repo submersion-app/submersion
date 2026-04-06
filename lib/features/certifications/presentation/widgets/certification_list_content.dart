@@ -187,10 +187,7 @@ class _CertificationListContentState
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
-                  modes: const [
-                    ListViewMode.detailed,
-                    ListViewMode.table,
-                  ],
+                  modes: const [ListViewMode.detailed, ListViewMode.table],
                 ),
               ];
             },
@@ -235,7 +232,9 @@ class _CertificationListContentState
           tooltip: 'Column settings',
           onPressed: () {
             final config = ref.read(certificationTableConfigProvider);
-            final notifier = ref.read(certificationTableConfigProvider.notifier);
+            final notifier = ref.read(
+              certificationTableConfigProvider.notifier,
+            );
             showEntityTableColumnPicker<CertificationField>(
               context,
               config: config,
@@ -287,10 +286,7 @@ class _CertificationListContentState
               ...ListViewModeToggle.menuItems(
                 context,
                 currentMode: currentMode,
-                modes: const [
-                  ListViewMode.detailed,
-                  ListViewMode.table,
-                ],
+                modes: const [ListViewMode.detailed, ListViewMode.table],
               ),
             ];
           },
@@ -319,8 +315,9 @@ class _CertificationListContentState
         return EntityTableView<Certification>(
           entities: certifications,
           idExtractor: (c) => c.id,
-          adapter: CertificationFieldAdapter.instance
-              as EntityFieldAdapter<Certification, EntityField>,
+          adapter:
+              CertificationFieldAdapter.instance
+                  as EntityFieldAdapter<Certification, EntityField>,
           config: config as EntityTableViewConfig<EntityField>,
           units: units,
           onSortFieldChanged: (field) =>
@@ -370,8 +367,9 @@ class _CertificationListContentState
               tooltip: 'Column settings',
               onPressed: () {
                 final config = ref.read(certificationTableConfigProvider);
-                final notifier =
-                    ref.read(certificationTableConfigProvider.notifier);
+                final notifier = ref.read(
+                  certificationTableConfigProvider.notifier,
+                );
                 showEntityTableColumnPicker<CertificationField>(
                   context,
                   config: config,
@@ -430,10 +428,7 @@ class _CertificationListContentState
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
-                  modes: const [
-                    ListViewMode.detailed,
-                    ListViewMode.table,
-                  ],
+                  modes: const [ListViewMode.detailed, ListViewMode.table],
                 ),
               ];
             },

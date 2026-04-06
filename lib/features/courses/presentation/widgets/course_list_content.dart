@@ -122,10 +122,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
-                  modes: const [
-                    ListViewMode.detailed,
-                    ListViewMode.table,
-                  ],
+                  modes: const [ListViewMode.detailed, ListViewMode.table],
                 ),
               ];
             },
@@ -212,10 +209,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
               ...ListViewModeToggle.menuItems(
                 context,
                 currentMode: currentMode,
-                modes: const [
-                  ListViewMode.detailed,
-                  ListViewMode.table,
-                ],
+                modes: const [ListViewMode.detailed, ListViewMode.table],
               ),
             ];
           },
@@ -244,8 +238,9 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
         return EntityTableView<Course>(
           entities: courses,
           idExtractor: (c) => c.id,
-          adapter: CourseFieldAdapter.instance
-              as EntityFieldAdapter<Course, EntityField>,
+          adapter:
+              CourseFieldAdapter.instance
+                  as EntityFieldAdapter<Course, EntityField>,
           config: config as EntityTableViewConfig<EntityField>,
           units: units,
           onSortFieldChanged: (field) =>
@@ -339,10 +334,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
-                  modes: const [
-                    ListViewMode.detailed,
-                    ListViewMode.table,
-                  ],
+                  modes: const [ListViewMode.detailed, ListViewMode.table],
                 ),
               ];
             },
