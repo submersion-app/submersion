@@ -5,16 +5,22 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/compact_site_list_tile.dart';
@@ -350,6 +356,12 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   Widget build(BuildContext context) {
     final sitesAsync = ref.watch(sortedSitesWithCountsProvider);
     final filter = ref.watch(siteFilterProvider);
+    final viewMode = ref.watch(siteListViewModeProvider);
+
+    // Table mode uses a dedicated scaffold with column configuration support.
+    if (viewMode == ListViewMode.table) {
+      return _buildTableModeScaffold(context, sitesAsync, filter);
+    }
 
     final listContent = sitesAsync.when(
       data: (sites) => sites.isEmpty
@@ -441,6 +453,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                       ...ListViewModeToggle.menuItems(
                         context,
                         currentMode: currentMode,
+                        modes: const [
+                          ListViewMode.detailed,
+                          ListViewMode.compact,
+                          ListViewMode.table,
+                        ],
                       ),
                       const PopupMenuDivider(),
                       PopupMenuItem(
@@ -460,6 +477,210 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       floatingActionButton: _isSelectionMode
           ? null
           : widget.floatingActionButton,
+    );
+  }
+
+  /// Build the full scaffold/layout for table mode.
+  Widget _buildTableModeScaffold(
+    BuildContext context,
+    AsyncValue<List<SiteWithDiveCount>> sitesAsync,
+    SiteFilterState filter,
+  ) {
+    final tableContent = _buildTableView(context, sitesAsync, filter);
+
+    if (!widget.showAppBar) {
+      return Column(
+        children: [
+          _isSelectionMode
+              ? _buildCompactSelectionAppBar(
+                  context,
+                  sitesAsync.valueOrNull ?? [],
+                )
+              : _buildCompactAppBar(context),
+          Expanded(child: tableContent),
+        ],
+      );
+    }
+
+    return Scaffold(
+      appBar: _isSelectionMode
+          ? _buildSelectionAppBar(sitesAsync.valueOrNull ?? [])
+          : _buildTableAppBar(context, filter),
+      body: tableContent,
+      floatingActionButton: _isSelectionMode
+          ? null
+          : widget.floatingActionButton,
+    );
+  }
+
+  /// Build the AppBar for table mode, adding column picker button before the
+  /// standard actions.
+  AppBar _buildTableAppBar(BuildContext context, SiteFilterState filter) {
+    return AppBar(
+      title: Text(context.l10n.diveSites_list_appBar_title),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.view_column_outlined),
+          tooltip: 'Column settings',
+          onPressed: () {
+            final config = ref.read(siteTableConfigProvider);
+            final notifier = ref.read(siteTableConfigProvider.notifier);
+            showEntityTableColumnPicker<SiteField>(
+              context,
+              config: config,
+              adapter: SiteFieldAdapter.instance,
+              onToggleColumn: notifier.toggleColumn,
+              onReorderColumn: notifier.reorderColumn,
+              onTogglePin: notifier.togglePin,
+            );
+          },
+        ),
+        SizedBox(
+          height: 24,
+          child: VerticalDivider(
+            width: 16,
+            thickness: 1,
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.map),
+          tooltip: context.l10n.diveSites_list_tooltip_mapView,
+          onPressed: () => context.push('/sites/map'),
+        ),
+        IconButton(
+          icon: const Icon(Icons.search),
+          tooltip: context.l10n.diveSites_list_tooltip_searchSites,
+          onPressed: () {
+            showSearch(context: context, delegate: SiteSearchDelegate(ref));
+          },
+        ),
+        IconButton(
+          icon: Badge(
+            isLabelVisible: filter.hasActiveFilters,
+            child: const Icon(Icons.filter_list),
+          ),
+          tooltip: context.l10n.diveSites_list_tooltip_filterSites,
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => SiteFilterSheet(ref: ref),
+            );
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.sort),
+          tooltip: context.l10n.diveSites_list_tooltip_sort,
+          onPressed: () => _showSortSheet(context),
+        ),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: (value) {
+            if (value == 'import') {
+              context.push('/sites/import');
+            } else if (value.startsWith('view_')) {
+              final mode = ListViewMode.fromName(
+                value.replaceFirst('view_', ''),
+              );
+              ref.read(siteListViewModeProvider.notifier).state = mode;
+            }
+          },
+          itemBuilder: (context) {
+            final currentMode = ref.read(siteListViewModeProvider);
+            return [
+              ...ListViewModeToggle.menuItems(
+                context,
+                currentMode: currentMode,
+                modes: const [
+                  ListViewMode.detailed,
+                  ListViewMode.compact,
+                  ListViewMode.table,
+                ],
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'import',
+                child: ListTile(
+                  leading: const Icon(Icons.download),
+                  title: Text(context.l10n.diveSites_list_menu_import),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ];
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Build the [EntityTableView] for site table mode.
+  Widget _buildTableView(
+    BuildContext context,
+    AsyncValue<List<SiteWithDiveCount>> sitesAsync,
+    SiteFilterState filter,
+  ) {
+    return sitesAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, s) => _buildErrorState(context, e),
+      data: (sites) {
+        if (sites.isEmpty) {
+          return _buildEmptyState(context, filter.hasActiveFilters);
+        }
+        final config = ref.watch(siteTableConfigProvider);
+        final notifier = ref.read(siteTableConfigProvider.notifier);
+        final settings = ref.watch(settingsProvider);
+        final units = UnitFormatter(settings);
+
+        // Convert SiteWithDiveCount (class) to SiteWithCount (record) as
+        // required by SiteFieldAdapter.
+        final siteRecords = sites
+            .map((s) => (site: s.site, diveCount: s.diveCount))
+            .toList();
+
+        return Column(
+          children: [
+            if (filter.hasActiveFilters)
+              _buildActiveFiltersBar(context, filter),
+            Expanded(
+              child: EntityTableView<SiteWithCount>(
+                entities: siteRecords,
+                idExtractor: (s) => s.site.id,
+                adapter:
+                    SiteFieldAdapter.instance
+                        as EntityFieldAdapter<SiteWithCount, EntityField>,
+                config: config as EntityTableViewConfig<EntityField>,
+                units: units,
+                onSortFieldChanged: (field) =>
+                    notifier.setSortField(field as SiteField),
+                onResizeColumn: (field, width) =>
+                    notifier.resizeColumn(field as SiteField, width),
+                onEntityTap: (id) {
+                  if (_isSelectionMode) {
+                    _toggleSelection(id);
+                  } else {
+                    final match = sites.firstWhere((s) => s.site.id == id);
+                    _handleItemTap(match.site);
+                  }
+                },
+                onEntityDoubleTap: (id) {
+                  if (!_isSelectionMode) {
+                    context.go('/sites/$id');
+                  }
+                },
+                onEntityLongPress: _isSelectionMode
+                    ? null
+                    : (id) => _enterSelectionMode(id),
+                selectedIds: _selectedIds,
+                isSelectionMode: _isSelectionMode,
+                highlightedId: widget.selectedId,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -542,6 +763,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
+                  modes: const [
+                    ListViewMode.detailed,
+                    ListViewMode.compact,
+                    ListViewMode.table,
+                  ],
                 ),
                 const PopupMenuDivider(),
                 PopupMenuItem(

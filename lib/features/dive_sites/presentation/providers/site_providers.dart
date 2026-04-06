@@ -4,12 +4,17 @@ import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
+import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
 // ============================================================================
 // Site Filter State
@@ -632,4 +637,38 @@ final externalSiteSearchProvider =
         siteRepository,
         ref,
       );
+    });
+
+// ============================================================================
+// Site Table View Config
+// ============================================================================
+
+/// Provider for the site table view column configuration.
+///
+/// Persists column visibility, order, widths, and sort state per diver using
+/// [ViewConfigRepository] under the key 'table_sites'.
+final siteTableConfigProvider =
+    StateNotifierProvider<
+      EntityTableConfigNotifier<SiteField>,
+      EntityTableViewConfig<SiteField>
+    >((ref) {
+      final notifier = EntityTableConfigNotifier<SiteField>(
+        defaultConfig: EntityTableViewConfig<SiteField>(
+          columns: [
+            EntityTableColumnConfig(field: SiteField.siteName, isPinned: true),
+            EntityTableColumnConfig(field: SiteField.location),
+            EntityTableColumnConfig(field: SiteField.country),
+            EntityTableColumnConfig(field: SiteField.maxDepth),
+            EntityTableColumnConfig(field: SiteField.diveCount),
+            EntityTableColumnConfig(field: SiteField.waterType),
+          ],
+        ),
+        fieldFromName: SiteFieldAdapter.instance.fieldFromName,
+      );
+      final diverId = ref.watch(currentDiverIdProvider);
+      if (diverId != null) {
+        final repo = ref.watch(viewConfigRepositoryProvider);
+        notifier.init(repo, diverId, 'table_sites');
+      }
+      return notifier;
     });
