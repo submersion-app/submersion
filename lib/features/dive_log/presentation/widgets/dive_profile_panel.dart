@@ -146,16 +146,28 @@ class _DiveProfilePanelContentState
       fontFeatures: const [FontFeature.tabularFigures()],
     );
 
-    // Convert global cursor to overlay-local coordinates
+    // Convert global coords to overlay-local and clamp within chart bounds
     final overlay =
         Overlay.of(context).context.findRenderObject() as RenderBox?;
     final overlayOffset =
         overlay?.globalToLocal(_globalCursorPos) ?? _globalCursorPos;
     final overlayChartBottom =
         overlay?.globalToLocal(chartBottomLeft) ?? chartBottomLeft;
+    final overlayChartTopLeft =
+        overlay?.globalToLocal(chartBox.localToGlobal(Offset.zero)) ??
+        Offset.zero;
+    final chartRight = overlayChartTopLeft.dx + chartBox.size.width;
+
+    // Estimate tooltip width (~220px) and clamp so it stays in frame
+    const tooltipWidth = 220.0;
+    const halfTooltip = tooltipWidth / 2;
+    final clampedX = overlayOffset.dx.clamp(
+      overlayChartTopLeft.dx + halfTooltip,
+      chartRight - halfTooltip,
+    );
 
     return Positioned(
-      left: overlayOffset.dx,
+      left: clampedX,
       top: overlayChartBottom.dy + 4,
       child: FractionalTranslation(
         translation: const Offset(-0.5, 0),
