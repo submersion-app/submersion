@@ -16,7 +16,7 @@ const double _kCheckboxWidth = 48.0;
 /// This is the shared table widget used by all entity types (Dives, Sites,
 /// Trips, Equipment, etc.). Entity-specific behavior is provided via the
 /// [adapter] and callbacks.
-class EntityTableView<T> extends StatefulWidget {
+class EntityTableView<T, F extends EntityField> extends StatefulWidget {
   /// The entities to display as rows.
   final List<T> entities;
 
@@ -24,19 +24,19 @@ class EntityTableView<T> extends StatefulWidget {
   final String Function(T entity) idExtractor;
 
   /// Adapter for extracting and formatting field values from entities.
-  final EntityFieldAdapter<T, EntityField> adapter;
+  final EntityFieldAdapter<T, F> adapter;
 
   /// Current column configuration (columns, sort, widths).
-  final EntityTableViewConfig<EntityField> config;
+  final EntityTableViewConfig<F> config;
 
   /// Unit formatter for value formatting.
   final UnitFormatter units;
 
   /// Called when user taps a column header to change sort field.
-  final void Function(EntityField field) onSortFieldChanged;
+  final void Function(F field) onSortFieldChanged;
 
   /// Called when user resizes a column.
-  final void Function(EntityField field, double width) onResizeColumn;
+  final void Function(F field, double width) onResizeColumn;
 
   /// Called when user taps a row.
   final void Function(String entityId) onEntityTap;
@@ -74,10 +74,11 @@ class EntityTableView<T> extends StatefulWidget {
   });
 
   @override
-  State<EntityTableView<T>> createState() => _EntityTableViewState<T>();
+  State<EntityTableView<T, F>> createState() => _EntityTableViewState<T, F>();
 }
 
-class _EntityTableViewState<T> extends State<EntityTableView<T>> {
+class _EntityTableViewState<T, F extends EntityField>
+    extends State<EntityTableView<T, F>> {
   String? _hoveredEntityId;
 
   late final LinkedScrollControllerGroup _horizontalGroup;
@@ -101,7 +102,7 @@ class _EntityTableViewState<T> extends State<EntityTableView<T>> {
   }
 
   @override
-  void didUpdateWidget(EntityTableView<T> oldWidget) {
+  void didUpdateWidget(EntityTableView<T, F> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.highlightedId != null &&
         widget.highlightedId != oldWidget.highlightedId) {
@@ -190,11 +191,11 @@ class _EntityTableViewState<T> extends State<EntityTableView<T>> {
   // Column helpers
   // ---------------------------------------------------------------------------
 
-  List<EntityTableColumnConfig<EntityField>> _pinnedColumns() {
+  List<EntityTableColumnConfig<F>> _pinnedColumns() {
     return widget.config.columns.where((c) => c.isPinned).toList();
   }
 
-  List<EntityTableColumnConfig<EntityField>> _scrollableColumns() {
+  List<EntityTableColumnConfig<F>> _scrollableColumns() {
     return widget.config.columns.where((c) => !c.isPinned).toList();
   }
 
@@ -212,7 +213,7 @@ class _EntityTableViewState<T> extends State<EntityTableView<T>> {
 
   Widget _buildCell({
     required T entity,
-    required EntityTableColumnConfig<EntityField> column,
+    required EntityTableColumnConfig<F> column,
     required ThemeData theme,
     required int rowIndex,
     required bool isSelected,

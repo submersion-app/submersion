@@ -8,8 +8,6 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/shared/constants/entity_field.dart';
-import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
@@ -235,18 +233,14 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
         final settings = ref.watch(settingsProvider);
         final units = UnitFormatter(settings);
 
-        return EntityTableView<Course>(
+        return EntityTableView<Course, CourseField>(
           entities: courses,
           idExtractor: (c) => c.id,
-          adapter:
-              CourseFieldAdapter.instance
-                  as EntityFieldAdapter<Course, EntityField>,
-          config: config as EntityTableViewConfig<EntityField>,
+          adapter: CourseFieldAdapter.instance,
+          config: config,
           units: units,
-          onSortFieldChanged: (field) =>
-              notifier.setSortField(field as CourseField),
-          onResizeColumn: (field, width) =>
-              notifier.resizeColumn(field as CourseField, width),
+          onSortFieldChanged: notifier.setSortField,
+          onResizeColumn: notifier.resizeColumn,
           onEntityTap: (id) {
             final match = courses.firstWhere((c) => c.id == id);
             _handleItemTap(match);

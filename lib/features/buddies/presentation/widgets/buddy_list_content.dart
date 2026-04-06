@@ -12,8 +12,6 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/shared/constants/entity_field.dart';
-import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
@@ -608,18 +606,14 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
             .map((b) => (buddy: b.buddy, diveCount: b.diveCount))
             .toList();
 
-        return EntityTableView<BuddyWithCount>(
+        return EntityTableView<BuddyWithCount, BuddyField>(
           entities: buddyRecords,
           idExtractor: (b) => b.buddy.id,
-          adapter:
-              BuddyFieldAdapter.instance
-                  as EntityFieldAdapter<BuddyWithCount, EntityField>,
-          config: config as EntityTableViewConfig<EntityField>,
+          adapter: BuddyFieldAdapter.instance,
+          config: config,
           units: units,
-          onSortFieldChanged: (field) =>
-              notifier.setSortField(field as BuddyField),
-          onResizeColumn: (field, width) =>
-              notifier.resizeColumn(field as BuddyField, width),
+          onSortFieldChanged: notifier.setSortField,
+          onResizeColumn: notifier.resizeColumn,
           onEntityTap: (id) {
             if (_isSelectionMode) {
               _toggleSelection(id);

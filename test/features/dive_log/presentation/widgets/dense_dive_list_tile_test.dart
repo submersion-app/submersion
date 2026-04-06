@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dense_dive_list_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -137,6 +139,198 @@ void main() {
       );
       final decoration = decoratedBoxes.first.decoration as BoxDecoration;
       expect(decoration.border, isNotNull);
+    });
+
+    testWidgets('renders with null depth and duration shows dashes', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DenseDiveListTile(
+            diveId: 'null-id',
+            diveNumber: 3,
+            dateTime: DateTime(2026, 3, 15),
+            maxDepth: null,
+            duration: null,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      expect(find.text('#3'), findsOneWidget);
+    });
+
+    testWidgets('renders with gradient card coloring', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DenseDiveListTile(
+            diveId: 'color-id',
+            diveNumber: 10,
+            dateTime: DateTime(2026, 3, 15),
+            siteName: 'Coral Reef',
+            maxDepth: 25.0,
+            duration: const Duration(minutes: 40),
+            colorValue: 25.0,
+            minValueInList: 10.0,
+            maxValueInList: 40.0,
+            gradientStartColor: const Color(0xFF4DD0E1),
+            gradientEndColor: const Color(0xFF0D1B2A),
+            onTap: () {},
+          ),
+        ),
+      );
+
+      expect(find.text('#10'), findsOneWidget);
+      expect(find.text('Coral Reef'), findsOneWidget);
+    });
+
+    testWidgets('renders with selected state', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DenseDiveListTile(
+            diveId: 'sel-id',
+            diveNumber: 5,
+            dateTime: DateTime(2026, 3, 15),
+            siteName: 'Deep Wall',
+            isSelected: true,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      expect(find.text('#5'), findsOneWidget);
+      expect(find.text('Deep Wall'), findsOneWidget);
+    });
+
+    testWidgets('fires onLongPress callback', (tester) async {
+      bool longPressed = false;
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DenseDiveListTile(
+            diveId: 'lp-id',
+            diveNumber: 8,
+            dateTime: DateTime(2026, 3, 15),
+            siteName: 'Reef Point',
+            onTap: () {},
+            onLongPress: () => longPressed = true,
+          ),
+        ),
+      );
+
+      await tester.longPress(find.text('Reef Point'));
+      await tester.pumpAndSettle();
+
+      expect(longPressed, isTrue);
+    });
+
+    testWidgets('renders with configurable slot fields from summary', (
+      tester,
+    ) async {
+      final summary = DiveSummary(
+        id: 'ds-1',
+        dateTime: DateTime(2026, 3, 15),
+        diveNumber: 7,
+        maxDepth: 20.0,
+        bottomTime: const Duration(minutes: 30),
+        runtime: const Duration(minutes: 35),
+        siteName: 'Blue Hole',
+        waterTemp: 22.0,
+        sortTimestamp: 0,
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DenseDiveListTile(
+            diveId: 'ds-1',
+            diveNumber: 7,
+            dateTime: DateTime(2026, 3, 15),
+            siteName: 'Blue Hole',
+            maxDepth: 20.0,
+            duration: const Duration(minutes: 30),
+            summary: summary,
+            slot1Field: DiveField.siteName,
+            slot2Field: DiveField.dateTime,
+            slot3Field: DiveField.waterTemp,
+            slot4Field: DiveField.runtime,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      expect(find.text('#7'), findsOneWidget);
+    });
+
+    testWidgets('renders unknown site when siteName is null', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DenseDiveListTile(
+            diveId: 'unknown-id',
+            diveNumber: 1,
+            dateTime: DateTime(2026, 3, 15),
+            siteName: null,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      expect(find.text('#1'), findsOneWidget);
+    });
+
+    testWidgets('renders with non-default slot fields that have icons', (
+      tester,
+    ) async {
+      final summary = DiveSummary(
+        id: 'icon-1',
+        dateTime: DateTime(2026, 3, 15),
+        diveNumber: 20,
+        maxDepth: 15.0,
+        bottomTime: const Duration(minutes: 22),
+        waterTemp: 18.0,
+        rating: 5,
+        sortTimestamp: 0,
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DenseDiveListTile(
+            diveId: 'icon-1',
+            diveNumber: 20,
+            dateTime: DateTime(2026, 3, 15),
+            siteName: 'Test Reef',
+            maxDepth: 15.0,
+            duration: const Duration(minutes: 22),
+            summary: summary,
+            slot1Field: DiveField.maxDepth,
+            slot2Field: DiveField.bottomTime,
+            slot3Field: DiveField.waterTemp,
+            slot4Field: DiveField.ratingStars,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      expect(find.text('#20'), findsOneWidget);
     });
   });
 }

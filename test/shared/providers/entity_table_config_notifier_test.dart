@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -68,7 +70,19 @@ void main() {
     });
 
     tearDown(() {
+      notifier.dispose();
       container.dispose();
+    });
+
+    // ------------------------------------------------------------------
+    // default state
+    // ------------------------------------------------------------------
+
+    test('starts with default config', () {
+      expect(notifier.state.columns.length, equals(2));
+      expect(notifier.state.columns.first.field, equals(TestField.fieldA));
+      expect(notifier.state.sortField, isNull);
+      expect(notifier.state.sortAscending, isTrue);
     });
 
     // ------------------------------------------------------------------
@@ -222,6 +236,171 @@ void main() {
         );
         expect(col.isPinned, isFalse);
       });
+    });
+
+    // ------------------------------------------------------------------
+    // dispose
+    // ------------------------------------------------------------------
+
+    test('dispose cancels pending save timer', () {
+      // Trigger a mutation to start the save timer
+      notifier.toggleColumn(TestField.fieldC);
+      // Dispose should not throw
+      notifier.dispose();
+      // Recreate for tearDown
+      notifier = _makeNotifier();
+    });
+  });
+
+  // --------------------------------------------------------------------
+  // EntityTableViewConfig serialization
+  // --------------------------------------------------------------------
+
+  group('EntityTableViewConfig', () {
+    test('toJson and fromJson round-trip', () {
+      final config = EntityTableViewConfig<TestField>(
+        columns: [
+          EntityTableColumnConfig<TestField>(
+            field: TestField.fieldA,
+            isPinned: true,
+            width: 120,
+          ),
+          EntityTableColumnConfig<TestField>(
+            field: TestField.fieldB,
+            width: 200,
+          ),
+        ],
+        sortField: TestField.fieldA,
+        sortAscending: false,
+      );
+
+      final json = config.toJson();
+      final restored = EntityTableViewConfig.fromJson<TestField>(
+        json,
+        (name) => TestField.values.firstWhere((e) => e.name == name),
+      );
+
+      expect(restored.columns.length, equals(2));
+      expect(restored.columns.first.field, equals(TestField.fieldA));
+      expect(restored.columns.first.isPinned, isTrue);
+      expect(restored.columns.first.width, equals(120));
+      expect(restored.sortField, equals(TestField.fieldA));
+      expect(restored.sortAscending, isFalse);
+    });
+
+    test('fromJson with null sortField', () {
+      final json = {
+        'columns': [
+          {'field': 'fieldA', 'width': 100.0, 'isPinned': false},
+        ],
+        'sortField': null,
+        'sortAscending': true,
+      };
+      final config = EntityTableViewConfig.fromJson<TestField>(
+        json,
+        (name) => TestField.values.firstWhere((e) => e.name == name),
+      );
+      expect(config.sortField, isNull);
+    });
+
+    test('fromJson defaults sortAscending when missing', () {
+      final json = {
+        'columns': [
+          {'field': 'fieldA', 'width': 100.0, 'isPinned': false},
+        ],
+      };
+      final config = EntityTableViewConfig.fromJson<TestField>(
+        json,
+        (name) => TestField.values.firstWhere((e) => e.name == name),
+      );
+      expect(config.sortAscending, isTrue);
+    });
+
+    test('copyWith clearSortField', () {
+      final config = EntityTableViewConfig<TestField>(
+        columns: [EntityTableColumnConfig<TestField>(field: TestField.fieldA)],
+        sortField: TestField.fieldA,
+      );
+      final cleared = config.copyWith(clearSortField: true);
+      expect(cleared.sortField, isNull);
+    });
+
+    test('props includes all fields', () {
+      final config = EntityTableViewConfig<TestField>(
+        columns: [EntityTableColumnConfig<TestField>(field: TestField.fieldA)],
+        sortField: TestField.fieldA,
+        sortAscending: false,
+      );
+      expect(config.props.length, equals(3));
+    });
+
+    test('toJson serializes to valid JSON string', () {
+      final config = EntityTableViewConfig<TestField>(
+        columns: [EntityTableColumnConfig<TestField>(field: TestField.fieldA)],
+        sortField: TestField.fieldB,
+        sortAscending: false,
+      );
+      final jsonStr = jsonEncode(config.toJson());
+      final decoded = jsonDecode(jsonStr) as Map<String, dynamic>;
+      expect(decoded['sortField'], equals('fieldB'));
+      expect(decoded['sortAscending'], equals(false));
+    });
+  });
+
+  // --------------------------------------------------------------------
+  // EntityTableColumnConfig serialization
+  // --------------------------------------------------------------------
+
+  group('EntityTableColumnConfig', () {
+    test('fromJson deserializes correctly', () {
+      final json = {'field': 'fieldB', 'width': 150.0, 'isPinned': true};
+      final config = EntityTableColumnConfig.fromJson<TestField>(
+        json,
+        (name) => TestField.values.firstWhere((e) => e.name == name),
+      );
+      expect(config.field, equals(TestField.fieldB));
+      expect(config.width, equals(150.0));
+      expect(config.isPinned, isTrue);
+    });
+
+    test('toJson serializes correctly', () {
+      final config = EntityTableColumnConfig<TestField>(
+        field: TestField.fieldC,
+        width: 175,
+        isPinned: true,
+      );
+      final json = config.toJson();
+      expect(json['field'], equals('fieldC'));
+      expect(json['width'], equals(175.0));
+      expect(json['isPinned'], isTrue);
+    });
+
+    test('copyWith changes specific fields', () {
+      final original = EntityTableColumnConfig<TestField>(
+        field: TestField.fieldA,
+        width: 100,
+        isPinned: false,
+      );
+      final modified = original.copyWith(width: 200, isPinned: true);
+      expect(modified.field, equals(TestField.fieldA));
+      expect(modified.width, equals(200));
+      expect(modified.isPinned, isTrue);
+    });
+
+    test('default width comes from field', () {
+      final config = EntityTableColumnConfig<TestField>(
+        field: TestField.fieldA,
+      );
+      expect(config.width, equals(TestField.fieldA.defaultWidth));
+    });
+
+    test('props returns all fields', () {
+      final config = EntityTableColumnConfig<TestField>(
+        field: TestField.fieldA,
+        width: 100,
+        isPinned: true,
+      );
+      expect(config.props, equals([TestField.fieldA, 100.0, true]));
     });
   });
 }

@@ -10,8 +10,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/shared/constants/entity_field.dart';
-import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
@@ -645,18 +643,14 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             if (filter.hasActiveFilters)
               _buildActiveFiltersBar(context, filter),
             Expanded(
-              child: EntityTableView<SiteWithCount>(
+              child: EntityTableView<SiteWithCount, SiteField>(
                 entities: siteRecords,
                 idExtractor: (s) => s.site.id,
-                adapter:
-                    SiteFieldAdapter.instance
-                        as EntityFieldAdapter<SiteWithCount, EntityField>,
-                config: config as EntityTableViewConfig<EntityField>,
+                adapter: SiteFieldAdapter.instance,
+                config: config,
                 units: units,
-                onSortFieldChanged: (field) =>
-                    notifier.setSortField(field as SiteField),
-                onResizeColumn: (field, width) =>
-                    notifier.resizeColumn(field as SiteField, width),
+                onSortFieldChanged: notifier.setSortField,
+                onResizeColumn: notifier.resizeColumn,
                 onEntityTap: (id) {
                   if (_isSelectionMode) {
                     _toggleSelection(id);

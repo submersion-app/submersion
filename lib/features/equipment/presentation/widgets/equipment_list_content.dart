@@ -9,8 +9,6 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/constants/entity_field.dart';
-import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
@@ -330,18 +328,14 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         final settings = ref.watch(settingsProvider);
         final units = UnitFormatter(settings);
 
-        return EntityTableView<EquipmentItem>(
+        return EntityTableView<EquipmentItem, EquipmentField>(
           entities: equipment,
           idExtractor: (e) => e.id,
-          adapter:
-              EquipmentFieldAdapter.instance
-                  as EntityFieldAdapter<EquipmentItem, EntityField>,
-          config: config as EntityTableViewConfig<EntityField>,
+          adapter: EquipmentFieldAdapter.instance,
+          config: config,
           units: units,
-          onSortFieldChanged: (field) =>
-              notifier.setSortField(field as EquipmentField),
-          onResizeColumn: (field, width) =>
-              notifier.resizeColumn(field as EquipmentField, width),
+          onSortFieldChanged: notifier.setSortField,
+          onResizeColumn: notifier.resizeColumn,
           onEntityTap: (id) {
             final match = equipment.firstWhere((e) => e.id == id);
             _handleItemTap(match);

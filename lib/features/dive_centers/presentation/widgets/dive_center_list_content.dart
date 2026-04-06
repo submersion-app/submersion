@@ -8,8 +8,6 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/shared/constants/entity_field.dart';
-import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
@@ -393,18 +391,14 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           return (center: center, diveCount: diveCount);
         }).toList();
 
-        return EntityTableView<DiveCenterRow>(
+        return EntityTableView<DiveCenterRow, DiveCenterField>(
           entities: rows,
           idExtractor: (d) => d.center.id,
-          adapter:
-              DiveCenterFieldAdapter.instance
-                  as EntityFieldAdapter<DiveCenterRow, EntityField>,
-          config: config as EntityTableViewConfig<EntityField>,
+          adapter: DiveCenterFieldAdapter.instance,
+          config: config,
           units: units,
-          onSortFieldChanged: (field) =>
-              notifier.setSortField(field as DiveCenterField),
-          onResizeColumn: (field, width) =>
-              notifier.resizeColumn(field as DiveCenterField, width),
+          onSortFieldChanged: notifier.setSortField,
+          onResizeColumn: notifier.resizeColumn,
           onEntityTap: (id) {
             final match = centers.firstWhere((c) => c.id == id);
             _handleItemTap(match);

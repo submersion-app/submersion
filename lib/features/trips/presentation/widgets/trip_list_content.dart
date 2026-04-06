@@ -7,8 +7,6 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/shared/constants/entity_field.dart';
-import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
@@ -330,18 +328,14 @@ class _TripListContentState extends ConsumerState<TripListContent> {
           children: [
             if (filter.hasActiveFilters) _buildActiveFiltersBar(context, ref),
             Expanded(
-              child: EntityTableView<TripWithStats>(
+              child: EntityTableView<TripWithStats, TripField>(
                 entities: trips,
                 idExtractor: (t) => t.trip.id,
-                adapter:
-                    TripFieldAdapter.instance
-                        as EntityFieldAdapter<TripWithStats, EntityField>,
-                config: config as EntityTableViewConfig<EntityField>,
+                adapter: TripFieldAdapter.instance,
+                config: config,
                 units: units,
-                onSortFieldChanged: (field) =>
-                    notifier.setSortField(field as TripField),
-                onResizeColumn: (field, width) =>
-                    notifier.resizeColumn(field as TripField, width),
+                onSortFieldChanged: notifier.setSortField,
+                onResizeColumn: notifier.resizeColumn,
                 onEntityTap: (id) {
                   final match = trips.firstWhere((t) => t.trip.id == id);
                   _handleItemTap(match.trip);
