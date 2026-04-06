@@ -204,27 +204,22 @@ class _DiveProfilePanelContentState
 
   @override
   Widget build(BuildContext context) {
-    final diveAsync = ref.watch(diveProvider(widget.diveId));
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Cache loaded dive so previous chart stays visible while new loads
-    final freshDive = diveAsync.valueOrNull;
-    if (freshDive != null) {
-      _lastDive = freshDive;
-    }
-    final dive = _lastDive;
+    // Try the already-loaded table data first (synchronous, no delay)
+    final allDives = ref.watch(allDivesForTableProvider).valueOrNull;
+    final tableDive = allDives?.where((d) => d.id == widget.diveId).firstOrNull;
 
-    if (diveAsync.hasError && dive == null) {
-      return SizedBox(
-        height: 100,
-        child: Center(
-          child: Text(
-            'Error loading dive',
-            style: TextStyle(color: colorScheme.error),
-          ),
-        ),
-      );
+    // Fall back to individual provider if not in table data
+    final asyncDive = tableDive == null
+        ? ref.watch(diveProvider(widget.diveId)).valueOrNull
+        : null;
+    final dive = tableDive ?? asyncDive ?? _lastDive;
+
+    if (dive != null) {
+      _lastDive = dive;
     }
+
     if (dive == null) {
       return const SizedBox(
         height: 100,
