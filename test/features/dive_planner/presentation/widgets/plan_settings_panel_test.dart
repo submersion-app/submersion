@@ -406,20 +406,20 @@ void main() {
           child: const SingleChildScrollView(child: PlanSettingsPanel()),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       final altitudeField = find.widgetWithText(TextField, '0');
       await tester.enterText(altitudeField, '1000');
-      await tester.pumpAndSettle();
+      await tester.pump();
       expect(find.text('Altitude Group 2'), findsOneWidget);
 
       // Clear the field
       await tester.enterText(altitudeField, '');
-      await tester.pumpAndSettle();
+      await tester.pump();
       expect(find.text('Altitude Group 2'), findsNothing);
     });
 
-    testWidgets('compact layout shows group chip below label', (tester) async {
+    testWidgets('compact layout shows group chip', (tester) async {
       tester.view.physicalSize = const Size(375, 667);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -468,6 +468,7 @@ void main() {
             oldHandler?.call(details);
           }
         };
+        addTearDown(() => FlutterError.onError = oldHandler);
 
         await tester.pumpWidget(
           testApp(
@@ -481,6 +482,7 @@ void main() {
         // prevent settling and cause the 10-minute timeout.
         await tester.pump();
 
+        // Restore before expect so the framework doesn't see a pending override.
         FlutterError.onError = oldHandler;
 
         expect(overflows, isEmpty, reason: 'Overflow on ${entry.key}');
