@@ -531,16 +531,213 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
-    // NDL
-    if (point.ndl != null) {
-      String ndlValue;
-      if (point.ndl! < 0) {
-        ndlValue = 'DECO';
-      } else {
-        ndlValue = '${point.ndl! ~/ 60} min';
+    // Heart rate
+    if (_showHeartRate) {
+      rows.add(
+        TooltipRow(
+          label: 'HR',
+          value: point.heartRate != null ? '${point.heartRate} bpm' : '-',
+          bulletColor: Colors.red,
+        ),
+      );
+    }
+
+    // SAC
+    if (_showSac &&
+        widget.sacCurve != null &&
+        spot.spotIndex < widget.sacCurve!.length) {
+      final sacBarPerMin = widget.sacCurve![spot.spotIndex];
+      String sacValue = '-';
+      if (sacBarPerMin > 0) {
+        final normalizedSac = sacBarPerMin * widget.sacNormalizationFactor;
+        final sacUnit = ref.read(settingsProvider).sacUnit;
+        if (sacUnit == SacUnit.litersPerMin && widget.tankVolume != null) {
+          final sacLPerMin = normalizedSac * widget.tankVolume!;
+          sacValue =
+              '${units.convertVolume(sacLPerMin).toStringAsFixed(1)} ${units.volumeSymbol}/min';
+        } else {
+          sacValue =
+              '${units.convertPressure(normalizedSac).toStringAsFixed(1)} ${units.pressureSymbol}/min';
+        }
       }
       rows.add(
-        TooltipRow(label: 'NDL', value: ndlValue, bulletColor: Colors.orange),
+        TooltipRow(label: 'SAC', value: sacValue, bulletColor: Colors.teal),
+      );
+    }
+
+    // NDL
+    if (_showNdl &&
+        widget.ndlCurve != null &&
+        spot.spotIndex < widget.ndlCurve!.length) {
+      final ndl = widget.ndlCurve![spot.spotIndex];
+      String ndlValue;
+      if (ndl < 0) {
+        ndlValue = 'DECO';
+      } else if (ndl < 3600) {
+        final min = ndl ~/ 60;
+        final sec = ndl % 60;
+        ndlValue = '$min:${sec.toString().padLeft(2, '0')}';
+      } else {
+        ndlValue = '>60 min';
+      }
+      rows.add(
+        TooltipRow(
+          label: 'NDL',
+          value: ndlValue,
+          bulletColor: Colors.yellow.shade700,
+        ),
+      );
+    }
+
+    // ppO2
+    if (_showPpO2 &&
+        widget.ppO2Curve != null &&
+        spot.spotIndex < widget.ppO2Curve!.length) {
+      rows.add(
+        TooltipRow(
+          label: 'ppO2',
+          value: '${widget.ppO2Curve![spot.spotIndex].toStringAsFixed(2)} bar',
+          bulletColor: const Color(0xFF00ACC1),
+        ),
+      );
+    }
+
+    // ppN2
+    if (_showPpN2 &&
+        widget.ppN2Curve != null &&
+        spot.spotIndex < widget.ppN2Curve!.length) {
+      rows.add(
+        TooltipRow(
+          label: 'ppN2',
+          value: '${widget.ppN2Curve![spot.spotIndex].toStringAsFixed(2)} bar',
+          bulletColor: Colors.indigo,
+        ),
+      );
+    }
+
+    // ppHe
+    if (_showPpHe &&
+        widget.ppHeCurve != null &&
+        spot.spotIndex < widget.ppHeCurve!.length) {
+      final ppHe = widget.ppHeCurve![spot.spotIndex];
+      if (ppHe > 0.001) {
+        rows.add(
+          TooltipRow(
+            label: 'ppHe',
+            value: '${ppHe.toStringAsFixed(2)} bar',
+            bulletColor: Colors.pink.shade300,
+          ),
+        );
+      }
+    }
+
+    // MOD
+    if (_showMod &&
+        widget.modCurve != null &&
+        spot.spotIndex < widget.modCurve!.length) {
+      final mod = widget.modCurve![spot.spotIndex];
+      if (mod > 0 && mod < 200) {
+        rows.add(
+          TooltipRow(
+            label: 'MOD',
+            value: units.formatDepth(mod),
+            bulletColor: Colors.deepOrange,
+          ),
+        );
+      }
+    }
+
+    // Gas density
+    if (_showDensity &&
+        widget.densityCurve != null &&
+        spot.spotIndex < widget.densityCurve!.length) {
+      rows.add(
+        TooltipRow(
+          label: 'Density',
+          value:
+              '${widget.densityCurve![spot.spotIndex].toStringAsFixed(2)} g/L',
+          bulletColor: Colors.brown,
+        ),
+      );
+    }
+
+    // GF%
+    if (_showGf &&
+        widget.gfCurve != null &&
+        spot.spotIndex < widget.gfCurve!.length) {
+      rows.add(
+        TooltipRow(
+          label: 'GF',
+          value: '${widget.gfCurve![spot.spotIndex].toStringAsFixed(0)}%',
+          bulletColor: Colors.deepPurple,
+        ),
+      );
+    }
+
+    // Surface GF
+    if (_showSurfaceGf &&
+        widget.surfaceGfCurve != null &&
+        spot.spotIndex < widget.surfaceGfCurve!.length) {
+      rows.add(
+        TooltipRow(
+          label: 'Srf GF',
+          value:
+              '${widget.surfaceGfCurve![spot.spotIndex].toStringAsFixed(0)}%',
+          bulletColor: Colors.purple.shade300,
+        ),
+      );
+    }
+
+    // Mean depth
+    if (_showMeanDepth &&
+        widget.meanDepthCurve != null &&
+        spot.spotIndex < widget.meanDepthCurve!.length) {
+      rows.add(
+        TooltipRow(
+          label: 'Mean',
+          value: units.formatDepth(widget.meanDepthCurve![spot.spotIndex]),
+          bulletColor: Colors.blueGrey,
+        ),
+      );
+    }
+
+    // TTS
+    if (_showTts &&
+        widget.ttsCurve != null &&
+        spot.spotIndex < widget.ttsCurve!.length) {
+      final tts = widget.ttsCurve![spot.spotIndex];
+      rows.add(
+        TooltipRow(
+          label: 'TTS',
+          value: tts > 0 ? '${(tts / 60).ceil()} min' : '0 min',
+          bulletColor: const Color(0xFFAD1457),
+        ),
+      );
+    }
+
+    // CNS%
+    if (_showCns &&
+        widget.cnsCurve != null &&
+        spot.spotIndex < widget.cnsCurve!.length) {
+      rows.add(
+        TooltipRow(
+          label: 'CNS',
+          value: '${widget.cnsCurve![spot.spotIndex].toStringAsFixed(1)}%',
+          bulletColor: const Color(0xFFE65100),
+        ),
+      );
+    }
+
+    // OTU
+    if (_showOtu &&
+        widget.otuCurve != null &&
+        spot.spotIndex < widget.otuCurve!.length) {
+      rows.add(
+        TooltipRow(
+          label: 'OTU',
+          value: widget.otuCurve![spot.spotIndex].toStringAsFixed(0),
+          bulletColor: const Color(0xFF6D4C41),
+        ),
       );
     }
 
