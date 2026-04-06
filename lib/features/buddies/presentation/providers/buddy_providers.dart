@@ -6,9 +6,14 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
+import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
 /// Repository provider
 final buddyRepositoryProvider = Provider<BuddyRepository>((ref) {
@@ -383,4 +388,40 @@ final diveBuddiesNotifierProvider =
     >((ref, diveId) {
       final repository = ref.watch(buddyRepositoryProvider);
       return DiveBuddiesNotifier(repository, diveId);
+    });
+
+// ============================================================================
+// Buddy Table View Config
+// ============================================================================
+
+/// Provider for the buddy table view column configuration.
+///
+/// Persists column visibility, order, widths, and sort state per diver using
+/// [ViewConfigRepository] under the key 'table_buddies'.
+final buddyTableConfigProvider =
+    StateNotifierProvider<
+      EntityTableConfigNotifier<BuddyField>,
+      EntityTableViewConfig<BuddyField>
+    >((ref) {
+      final notifier = EntityTableConfigNotifier<BuddyField>(
+        defaultConfig: EntityTableViewConfig<BuddyField>(
+          columns: [
+            EntityTableColumnConfig(
+              field: BuddyField.buddyName,
+              isPinned: true,
+            ),
+            EntityTableColumnConfig(field: BuddyField.certificationLevel),
+            EntityTableColumnConfig(field: BuddyField.certificationAgency),
+            EntityTableColumnConfig(field: BuddyField.email),
+            EntityTableColumnConfig(field: BuddyField.diveCount),
+          ],
+        ),
+        fieldFromName: BuddyFieldAdapter.instance.fieldFromName,
+      );
+      final diverId = ref.watch(currentDiverIdProvider);
+      if (diverId != null) {
+        final repo = ref.watch(viewConfigRepositoryProvider);
+        notifier.init(repo, diverId, 'table_buddies');
+      }
+      return notifier;
     });

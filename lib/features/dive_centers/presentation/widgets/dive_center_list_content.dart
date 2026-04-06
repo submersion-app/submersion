@@ -7,11 +7,17 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_centers/domain/constants/dive_center_field.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/compact_dive_center_list_tile.dart';
@@ -145,9 +151,15 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
 
   @override
   Widget build(BuildContext context) {
-    final sort = ref.watch(diveCenterSortProvider);
+    final viewMode = ref.watch(diveCenterListViewModeProvider);
     final centersAsync = ref.watch(diveCenterListNotifierProvider);
 
+    // Table mode uses a dedicated scaffold with column configuration support.
+    if (viewMode == ListViewMode.table) {
+      return _buildTableModeScaffold(context, centersAsync);
+    }
+
+    final sort = ref.watch(diveCenterSortProvider);
     final content = centersAsync.when(
       data: (centers) {
         final sorted = applyDiveCenterSorting(centers, sort);
@@ -211,6 +223,11 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
+                  modes: const [
+                    ListViewMode.detailed,
+                    ListViewMode.compact,
+                    ListViewMode.table,
+                  ],
                 ),
                 const PopupMenuDivider(),
                 PopupMenuItem(
@@ -228,6 +245,174 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
       ),
       body: content,
       floatingActionButton: widget.floatingActionButton,
+    );
+  }
+
+  /// Build the full scaffold/layout for table mode.
+  Widget _buildTableModeScaffold(
+    BuildContext context,
+    AsyncValue<List<DiveCenter>> centersAsync,
+  ) {
+    final tableContent = _buildTableView(context, centersAsync);
+
+    if (!widget.showAppBar) {
+      return Column(
+        children: [
+          _buildCompactAppBar(context),
+          Expanded(child: tableContent),
+        ],
+      );
+    }
+
+    return Scaffold(
+      appBar: _buildTableAppBar(context),
+      body: tableContent,
+      floatingActionButton: widget.floatingActionButton,
+    );
+  }
+
+  /// Build the AppBar for table mode, adding column picker button before the
+  /// standard actions.
+  AppBar _buildTableAppBar(BuildContext context) {
+    return AppBar(
+      title: Text(context.l10n.diveCenters_title),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.view_column_outlined),
+          tooltip: 'Column settings',
+          onPressed: () {
+            final config = ref.read(diveCenterTableConfigProvider);
+            final notifier = ref.read(diveCenterTableConfigProvider.notifier);
+            showEntityTableColumnPicker<DiveCenterField>(
+              context,
+              config: config,
+              adapter: DiveCenterFieldAdapter.instance,
+              onToggleColumn: notifier.toggleColumn,
+              onReorderColumn: notifier.reorderColumn,
+              onTogglePin: notifier.togglePin,
+            );
+          },
+        ),
+        SizedBox(
+          height: 24,
+          child: VerticalDivider(
+            width: 16,
+            thickness: 1,
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.map),
+          tooltip: context.l10n.diveCenters_tooltip_mapView,
+          onPressed: () => context.go('/dive-centers/map'),
+        ),
+        IconButton(
+          icon: const Icon(Icons.search),
+          tooltip: context.l10n.diveCenters_tooltip_search,
+          onPressed: () {
+            showSearch(
+              context: context,
+              delegate: DiveCenterSearchDelegate(ref),
+            );
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.sort),
+          tooltip: context.l10n.diveCenters_tooltip_sort,
+          onPressed: () => _showSortSheet(context),
+        ),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          tooltip: context.l10n.diveCenters_tooltip_moreOptions,
+          onSelected: (value) {
+            if (value == 'import') {
+              context.push('/dive-centers/import');
+            } else if (value.startsWith('view_')) {
+              final mode = ListViewMode.fromName(
+                value.replaceFirst('view_', ''),
+              );
+              ref.read(diveCenterListViewModeProvider.notifier).state = mode;
+            }
+          },
+          itemBuilder: (context) {
+            final currentMode = ref.read(diveCenterListViewModeProvider);
+            return [
+              ...ListViewModeToggle.menuItems(
+                context,
+                currentMode: currentMode,
+                modes: const [
+                  ListViewMode.detailed,
+                  ListViewMode.compact,
+                  ListViewMode.table,
+                ],
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'import',
+                child: ListTile(
+                  leading: const Icon(Icons.download),
+                  title: Text(context.l10n.diveCenters_action_import),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ];
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Build the [EntityTableView] for dive center table mode.
+  ///
+  /// Each center's dive count is looked up via [diveCenterDiveCountProvider]
+  /// so the table data matches what the list tiles show.
+  Widget _buildTableView(
+    BuildContext context,
+    AsyncValue<List<DiveCenter>> centersAsync,
+  ) {
+    return centersAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, s) => _buildErrorState(context, e),
+      data: (centers) {
+        if (centers.isEmpty) {
+          return _buildEmptyState(context);
+        }
+        final config = ref.watch(diveCenterTableConfigProvider);
+        final notifier = ref.read(diveCenterTableConfigProvider.notifier);
+        final settings = ref.watch(settingsProvider);
+        final units = UnitFormatter(settings);
+
+        // Build DiveCenterRow records, resolving dive counts from per-center
+        // providers (same source the list tiles use).
+        final rows = centers.map((center) {
+          final diveCount =
+              ref.watch(diveCenterDiveCountProvider(center.id)).valueOrNull ??
+              0;
+          return (center: center, diveCount: diveCount);
+        }).toList();
+
+        return EntityTableView<DiveCenterRow>(
+          entities: rows,
+          idExtractor: (d) => d.center.id,
+          adapter:
+              DiveCenterFieldAdapter.instance
+                  as EntityFieldAdapter<DiveCenterRow, EntityField>,
+          config: config as EntityTableViewConfig<EntityField>,
+          units: units,
+          onSortFieldChanged: (field) =>
+              notifier.setSortField(field as DiveCenterField),
+          onResizeColumn: (field, width) =>
+              notifier.resizeColumn(field as DiveCenterField, width),
+          onEntityTap: (id) {
+            final match = centers.firstWhere((c) => c.id == id);
+            _handleItemTap(match);
+          },
+          onEntityDoubleTap: (id) => context.go('/dive-centers/$id'),
+          highlightedId: widget.selectedId,
+        );
+      },
     );
   }
 
@@ -298,6 +483,11 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
+                  modes: const [
+                    ListViewMode.detailed,
+                    ListViewMode.compact,
+                    ListViewMode.table,
+                  ],
                 ),
                 const PopupMenuDivider(),
                 PopupMenuItem(

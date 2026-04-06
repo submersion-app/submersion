@@ -4,8 +4,13 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/data/services/dive_center_api_service.dart';
+import 'package:submersion/features/dive_centers/domain/constants/dive_center_field.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
+import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
 /// Repository provider
 final diveCenterRepositoryProvider = Provider<DiveCenterRepository>((ref) {
@@ -331,4 +336,41 @@ final externalCenterSearchProvider =
       final apiService = ref.watch(diveCenterApiServiceProvider);
       final repository = ref.watch(diveCenterRepositoryProvider);
       return ExternalCenterSearchNotifier(apiService, repository, ref);
+    });
+
+// =============================================================================
+// Dive Center Table View Config
+// =============================================================================
+
+/// Provider for the dive center table view column configuration.
+///
+/// Persists column visibility, order, widths, and sort state per diver using
+/// [ViewConfigRepository] under the key 'table_dive_centers'.
+final diveCenterTableConfigProvider =
+    StateNotifierProvider<
+      EntityTableConfigNotifier<DiveCenterField>,
+      EntityTableViewConfig<DiveCenterField>
+    >((ref) {
+      final notifier = EntityTableConfigNotifier<DiveCenterField>(
+        defaultConfig: EntityTableViewConfig<DiveCenterField>(
+          columns: [
+            EntityTableColumnConfig(
+              field: DiveCenterField.centerName,
+              isPinned: true,
+            ),
+            EntityTableColumnConfig(field: DiveCenterField.city),
+            EntityTableColumnConfig(field: DiveCenterField.country),
+            EntityTableColumnConfig(field: DiveCenterField.phone),
+            EntityTableColumnConfig(field: DiveCenterField.diveCount),
+            EntityTableColumnConfig(field: DiveCenterField.rating),
+          ],
+        ),
+        fieldFromName: DiveCenterFieldAdapter.instance.fieldFromName,
+      );
+      final diverId = ref.watch(currentDiverIdProvider);
+      if (diverId != null) {
+        final repo = ref.watch(viewConfigRepositoryProvider);
+        notifier.init(repo, diverId, 'table_dive_centers');
+      }
+      return notifier;
     });

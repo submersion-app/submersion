@@ -11,10 +11,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/dense_buddy_list_tile.dart';
@@ -359,9 +365,15 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
 
   @override
   Widget build(BuildContext context) {
-    final sort = ref.watch(buddySortProvider);
+    final viewMode = ref.watch(buddyListViewModeProvider);
     final buddiesAsync = ref.watch(allBuddiesWithDiveCountProvider);
 
+    // Table mode uses a dedicated scaffold with column configuration support.
+    if (viewMode == ListViewMode.table) {
+      return _buildTableModeScaffold(context, buddiesAsync);
+    }
+
+    final sort = ref.watch(buddySortProvider);
     final content = buddiesAsync.when(
       data: (buddies) {
         final sorted = applyBuddyWithDiveCountSorting(buddies, sort);
@@ -429,7 +441,8 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
                         currentMode: currentMode,
                         modes: const [
                           ListViewMode.detailed,
-                          ListViewMode.dense,
+                          ListViewMode.compact,
+                          ListViewMode.table,
                         ],
                       ),
                       const PopupMenuDivider(),
@@ -452,6 +465,182 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
       floatingActionButton: _isSelectionMode
           ? null
           : widget.floatingActionButton,
+    );
+  }
+
+  /// Build the full scaffold/layout for table mode.
+  Widget _buildTableModeScaffold(
+    BuildContext context,
+    AsyncValue<List<BuddyWithDiveCount>> buddiesAsync,
+  ) {
+    final tableContent = _buildTableView(context, buddiesAsync);
+
+    if (!widget.showAppBar) {
+      return Column(
+        children: [
+          _isSelectionMode
+              ? _buildCompactSelectionAppBar(
+                  context,
+                  buddiesAsync.valueOrNull ?? [],
+                )
+              : _buildCompactAppBar(context),
+          Expanded(child: tableContent),
+        ],
+      );
+    }
+
+    return Scaffold(
+      appBar: _isSelectionMode
+          ? _buildSelectionAppBar(buddiesAsync.valueOrNull ?? [])
+          : _buildTableAppBar(context),
+      body: tableContent,
+      floatingActionButton: _isSelectionMode
+          ? null
+          : widget.floatingActionButton,
+    );
+  }
+
+  /// Build the AppBar for table mode, adding column picker button before the
+  /// standard actions.
+  AppBar _buildTableAppBar(BuildContext context) {
+    return AppBar(
+      title: Text(context.l10n.buddies_title),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.view_column_outlined),
+          tooltip: 'Column settings',
+          onPressed: () {
+            final config = ref.read(buddyTableConfigProvider);
+            final notifier = ref.read(buddyTableConfigProvider.notifier);
+            showEntityTableColumnPicker<BuddyField>(
+              context,
+              config: config,
+              adapter: BuddyFieldAdapter.instance,
+              onToggleColumn: notifier.toggleColumn,
+              onReorderColumn: notifier.reorderColumn,
+              onTogglePin: notifier.togglePin,
+            );
+          },
+        ),
+        SizedBox(
+          height: 24,
+          child: VerticalDivider(
+            width: 16,
+            thickness: 1,
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.sort),
+          tooltip: context.l10n.buddies_action_sort,
+          onPressed: () => _showSortSheet(context),
+        ),
+        IconButton(
+          icon: const Icon(Icons.search),
+          tooltip: context.l10n.buddies_action_search,
+          onPressed: () {
+            showSearch(context: context, delegate: BuddySearchDelegate(ref));
+          },
+        ),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          tooltip: context.l10n.buddies_action_moreOptions,
+          onSelected: (value) {
+            if (value == 'import') {
+              _importFromContacts(context);
+            } else if (value.startsWith('view_')) {
+              final mode = ListViewMode.fromName(
+                value.replaceFirst('view_', ''),
+              );
+              ref.read(buddyListViewModeProvider.notifier).state = mode;
+            }
+          },
+          itemBuilder: (context) {
+            final currentMode = ref.read(buddyListViewModeProvider);
+            return [
+              ...ListViewModeToggle.menuItems(
+                context,
+                currentMode: currentMode,
+                modes: const [
+                  ListViewMode.detailed,
+                  ListViewMode.compact,
+                  ListViewMode.table,
+                ],
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'import',
+                child: ListTile(
+                  leading: const Icon(Icons.contacts),
+                  title: Text(context.l10n.buddies_action_importFromContacts),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ];
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Build the [EntityTableView] for buddy table mode.
+  Widget _buildTableView(
+    BuildContext context,
+    AsyncValue<List<BuddyWithDiveCount>> buddiesAsync,
+  ) {
+    return buddiesAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, s) => _buildErrorState(context, e),
+      data: (buddies) {
+        if (buddies.isEmpty) {
+          return _buildEmptyState(context);
+        }
+        final config = ref.watch(buddyTableConfigProvider);
+        final notifier = ref.read(buddyTableConfigProvider.notifier);
+        final settings = ref.watch(settingsProvider);
+        final units = UnitFormatter(settings);
+
+        // Convert BuddyWithDiveCount (class) to BuddyWithCount (record) as
+        // required by BuddyFieldAdapter.
+        final buddyRecords = buddies
+            .map((b) => (buddy: b.buddy, diveCount: b.diveCount))
+            .toList();
+
+        return EntityTableView<BuddyWithCount>(
+          entities: buddyRecords,
+          idExtractor: (b) => b.buddy.id,
+          adapter:
+              BuddyFieldAdapter.instance
+                  as EntityFieldAdapter<BuddyWithCount, EntityField>,
+          config: config as EntityTableViewConfig<EntityField>,
+          units: units,
+          onSortFieldChanged: (field) =>
+              notifier.setSortField(field as BuddyField),
+          onResizeColumn: (field, width) =>
+              notifier.resizeColumn(field as BuddyField, width),
+          onEntityTap: (id) {
+            if (_isSelectionMode) {
+              _toggleSelection(id);
+            } else {
+              final match = buddies.firstWhere((b) => b.buddy.id == id);
+              _handleItemTap(match.buddy);
+            }
+          },
+          onEntityDoubleTap: (id) {
+            if (!_isSelectionMode) {
+              context.go('/buddies/$id');
+            }
+          },
+          onEntityLongPress: _isSelectionMode
+              ? null
+              : (id) => _enterSelectionMode(id),
+          selectedIds: _selectedIds,
+          isSelectionMode: _isSelectionMode,
+          highlightedId: widget.selectedId,
+        );
+      },
     );
   }
 
@@ -508,7 +697,11 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
-                  modes: const [ListViewMode.detailed, ListViewMode.dense],
+                  modes: const [
+                    ListViewMode.detailed,
+                    ListViewMode.compact,
+                    ListViewMode.table,
+                  ],
                 ),
                 const PopupMenuDivider(),
                 PopupMenuItem(
