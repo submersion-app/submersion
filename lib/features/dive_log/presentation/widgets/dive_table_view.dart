@@ -50,6 +50,8 @@ class DiveTableView extends ConsumerStatefulWidget {
 }
 
 class _DiveTableViewState extends ConsumerState<DiveTableView> {
+  String? _hoveredDiveId;
+
   // Horizontal scroll sync between header and body
   late final LinkedScrollControllerGroup _horizontalGroup;
   late final ScrollController _headerHorizontalController;
@@ -234,6 +236,7 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
     required int index,
     required bool isSelected,
     required bool isHighlighted,
+    required bool isHovered,
     required ColorScheme colorScheme,
   }) {
     if (isSelected) {
@@ -241,6 +244,9 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
     }
     if (isHighlighted) {
       return colorScheme.primaryContainer.withValues(alpha: 0.3);
+    }
+    if (isHovered) {
+      return colorScheme.onSurface.withValues(alpha: 0.04);
     }
     if (index.isOdd) {
       return colorScheme.surfaceContainerLowest;
@@ -347,48 +353,59 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                         !widget.isSelectionMode &&
                         widget.highlightedId == dive.id;
 
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => widget.onDiveTap(dive.id),
-                      onDoubleTap: widget.onDiveDoubleTap != null
-                          ? () => widget.onDiveDoubleTap!(dive.id)
-                          : null,
-                      onLongPress: widget.onDiveLongPress != null
-                          ? () => widget.onDiveLongPress!(dive.id)
-                          : null,
-                      child: ColoredBox(
-                        color: _rowBackground(
-                          index: index,
-                          isSelected: isSelected,
-                          isHighlighted: isHighlighted,
-                          colorScheme: colorScheme,
-                        ),
-                        child: Row(
-                          children: [
-                            if (widget.isSelectionMode)
-                              SizedBox(
-                                width: _kCheckboxWidth,
-                                height: _kRowHeight,
-                                child: Checkbox(
-                                  value: isSelected,
-                                  onChanged: (_) => widget.onDiveTap(dive.id),
-                                  materialTapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  visualDensity: VisualDensity.compact,
+                    final isHovered = _hoveredDiveId == dive.id;
+
+                    return MouseRegion(
+                      onEnter: (_) => setState(() => _hoveredDiveId = dive.id),
+                      onExit: (_) {
+                        if (_hoveredDiveId == dive.id) {
+                          setState(() => _hoveredDiveId = null);
+                        }
+                      },
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => widget.onDiveTap(dive.id),
+                        onDoubleTap: widget.onDiveDoubleTap != null
+                            ? () => widget.onDiveDoubleTap!(dive.id)
+                            : null,
+                        onLongPress: widget.onDiveLongPress != null
+                            ? () => widget.onDiveLongPress!(dive.id)
+                            : null,
+                        child: ColoredBox(
+                          color: _rowBackground(
+                            index: index,
+                            isSelected: isSelected,
+                            isHighlighted: isHighlighted,
+                            isHovered: isHovered,
+                            colorScheme: colorScheme,
+                          ),
+                          child: Row(
+                            children: [
+                              if (widget.isSelectionMode)
+                                SizedBox(
+                                  width: _kCheckboxWidth,
+                                  height: _kRowHeight,
+                                  child: Checkbox(
+                                    value: isSelected,
+                                    onChanged: (_) => widget.onDiveTap(dive.id),
+                                    materialTapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    visualDensity: VisualDensity.compact,
+                                  ),
                                 ),
-                              ),
-                            ...pinned.asMap().entries.map((entry) {
-                              return _buildCell(
-                                dive: dive,
-                                column: entry.value,
-                                units: units,
-                                theme: theme,
-                                rowIndex: index,
-                                isSelected: isSelected,
-                                isLastPinned: entry.key == pinned.length - 1,
-                              );
-                            }),
-                          ],
+                              ...pinned.asMap().entries.map((entry) {
+                                return _buildCell(
+                                  dive: dive,
+                                  column: entry.value,
+                                  units: units,
+                                  theme: theme,
+                                  rowIndex: index,
+                                  isSelected: isSelected,
+                                  isLastPinned: entry.key == pinned.length - 1,
+                                );
+                              }),
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -417,33 +434,45 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                             !widget.isSelectionMode &&
                             widget.highlightedId == dive.id;
 
-                        return GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => widget.onDiveTap(dive.id),
-                          onDoubleTap: widget.onDiveDoubleTap != null
-                              ? () => widget.onDiveDoubleTap!(dive.id)
-                              : null,
-                          onLongPress: widget.onDiveLongPress != null
-                              ? () => widget.onDiveLongPress!(dive.id)
-                              : null,
-                          child: ColoredBox(
-                            color: _rowBackground(
-                              index: index,
-                              isSelected: isSelected,
-                              isHighlighted: isHighlighted,
-                              colorScheme: colorScheme,
-                            ),
-                            child: Row(
-                              children: scrollable.map((col) {
-                                return _buildCell(
-                                  dive: dive,
-                                  column: col,
-                                  units: units,
-                                  theme: theme,
-                                  rowIndex: index,
-                                  isSelected: isSelected,
-                                );
-                              }).toList(),
+                        final isHovered = _hoveredDiveId == dive.id;
+
+                        return MouseRegion(
+                          onEnter: (_) =>
+                              setState(() => _hoveredDiveId = dive.id),
+                          onExit: (_) {
+                            if (_hoveredDiveId == dive.id) {
+                              setState(() => _hoveredDiveId = null);
+                            }
+                          },
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => widget.onDiveTap(dive.id),
+                            onDoubleTap: widget.onDiveDoubleTap != null
+                                ? () => widget.onDiveDoubleTap!(dive.id)
+                                : null,
+                            onLongPress: widget.onDiveLongPress != null
+                                ? () => widget.onDiveLongPress!(dive.id)
+                                : null,
+                            child: ColoredBox(
+                              color: _rowBackground(
+                                index: index,
+                                isSelected: isSelected,
+                                isHighlighted: isHighlighted,
+                                isHovered: isHovered,
+                                colorScheme: colorScheme,
+                              ),
+                              child: Row(
+                                children: scrollable.map((col) {
+                                  return _buildCell(
+                                    dive: dive,
+                                    column: col,
+                                    units: units,
+                                    theme: theme,
+                                    rowIndex: index,
+                                    isSelected: isSelected,
+                                  );
+                                }).toList(),
+                              ),
                             ),
                           ),
                         );
