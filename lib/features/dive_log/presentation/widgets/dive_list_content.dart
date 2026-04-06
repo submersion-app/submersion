@@ -1064,6 +1064,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
+                  modes: const [
+                    ListViewMode.detailed,
+                    ListViewMode.compact,
+                    ListViewMode.table,
+                  ],
                 ),
                 const PopupMenuDivider(),
                 PopupMenuItem(
