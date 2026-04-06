@@ -225,6 +225,126 @@ extension DiveFieldMetadata on DiveField {
     }
   }
 
+  /// Full human-readable name for use in settings and picker UIs.
+  String get displayName {
+    switch (this) {
+      case DiveField.diveNumber:
+        return 'Dive Number';
+      case DiveField.dateTime:
+        return 'Date & Time';
+      case DiveField.siteName:
+        return 'Site Name';
+      case DiveField.maxDepth:
+        return 'Max Depth';
+      case DiveField.avgDepth:
+        return 'Average Depth';
+      case DiveField.bottomTime:
+        return 'Bottom Time';
+      case DiveField.runtime:
+        return 'Runtime';
+      case DiveField.waterTemp:
+        return 'Water Temperature';
+      case DiveField.airTemp:
+        return 'Air Temperature';
+      case DiveField.visibility:
+        return 'Visibility';
+      case DiveField.currentDirection:
+        return 'Current Direction';
+      case DiveField.currentStrength:
+        return 'Current Strength';
+      case DiveField.swellHeight:
+        return 'Swell Height';
+      case DiveField.entryMethod:
+        return 'Entry Method';
+      case DiveField.exitMethod:
+        return 'Exit Method';
+      case DiveField.waterType:
+        return 'Water Type';
+      case DiveField.altitude:
+        return 'Altitude';
+      case DiveField.surfacePressure:
+        return 'Surface Pressure';
+      case DiveField.windSpeed:
+        return 'Wind Speed';
+      case DiveField.cloudCover:
+        return 'Cloud Cover';
+      case DiveField.precipitation:
+        return 'Precipitation';
+      case DiveField.humidity:
+        return 'Humidity';
+      case DiveField.weatherDescription:
+        return 'Weather';
+      case DiveField.primaryGas:
+        return 'Primary Gas';
+      case DiveField.diluentGas:
+        return 'Diluent Gas';
+      case DiveField.tankCount:
+        return 'Tank Count';
+      case DiveField.startPressure:
+        return 'Start Pressure';
+      case DiveField.endPressure:
+        return 'End Pressure';
+      case DiveField.sacRate:
+        return 'SAC Rate';
+      case DiveField.gasConsumed:
+        return 'Gas Consumed';
+      case DiveField.totalWeight:
+        return 'Total Weight';
+      case DiveField.diveComputerModel:
+        return 'Dive Computer';
+      case DiveField.gradientFactorLow:
+        return 'GF Low';
+      case DiveField.gradientFactorHigh:
+        return 'GF High';
+      case DiveField.decoAlgorithm:
+        return 'Deco Algorithm';
+      case DiveField.decoConservatism:
+        return 'Conservatism';
+      case DiveField.cnsStart:
+        return 'CNS Start';
+      case DiveField.cnsEnd:
+        return 'CNS End';
+      case DiveField.otu:
+        return 'OTU';
+      case DiveField.diveMode:
+        return 'Dive Mode';
+      case DiveField.setpointLow:
+        return 'Setpoint Low';
+      case DiveField.setpointHigh:
+        return 'Setpoint High';
+      case DiveField.setpointDeco:
+        return 'Setpoint Deco';
+      case DiveField.buddy:
+        return 'Buddy';
+      case DiveField.diveMaster:
+        return 'Dive Master';
+      case DiveField.siteLocation:
+        return 'Site Location';
+      case DiveField.diveCenterName:
+        return 'Dive Center';
+      case DiveField.siteLatitude:
+        return 'Latitude';
+      case DiveField.siteLongitude:
+        return 'Longitude';
+      case DiveField.tripName:
+        return 'Trip';
+      case DiveField.ratingStars:
+        return 'Rating';
+      case DiveField.isFavorite:
+        return 'Favorite';
+      case DiveField.notes:
+        return 'Notes';
+      case DiveField.tags:
+        return 'Tags';
+      case DiveField.importSource:
+        return 'Import Source';
+      case DiveField.diveTypeName:
+        return 'Dive Type';
+      case DiveField.surfaceInterval:
+        return 'Surface Interval';
+    }
+  }
+
   /// Short label for use in column headers and compact displays.
   String get shortLabel {
     switch (this) {

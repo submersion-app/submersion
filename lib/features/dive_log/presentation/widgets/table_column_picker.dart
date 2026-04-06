@@ -102,7 +102,7 @@ class TableColumnPicker extends ConsumerWidget {
                           index: index,
                           child: const Icon(Icons.drag_handle),
                         ),
-                        title: Text(col.field.shortLabel),
+                        title: Text(col.field.displayName),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -204,7 +204,7 @@ class _AvailableCategorySection extends StatelessWidget {
           ListTile(
             dense: true,
             leading: field.icon != null ? Icon(field.icon, size: 18) : null,
-            title: Text(field.shortLabel),
+            title: Text(field.displayName),
             trailing: IconButton(
               icon: const Icon(Icons.add_circle_outline, size: 18),
               visualDensity: VisualDensity.compact,

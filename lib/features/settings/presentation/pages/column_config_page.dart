@@ -192,7 +192,7 @@ class _TableColumnConfigSection extends ConsumerWidget {
                         index: index,
                         child: const Icon(Icons.drag_handle),
                       ),
-                      title: Text(col.field.shortLabel),
+                      title: Text(col.field.displayName),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -230,7 +230,7 @@ class _TableColumnConfigSection extends ConsumerWidget {
                         ),
                         for (final field in grouped[category]!)
                           ListTile(
-                            title: Text(field.shortLabel),
+                            title: Text(field.displayName),
                             trailing: IconButton(
                               icon: const Icon(Icons.add_circle_outline),
                               tooltip: 'Add',
@@ -353,7 +353,7 @@ class _DetailedCardConfigSection extends ConsumerWidget {
                 items: DiveField.values.map((field) {
                   return DropdownMenuItem(
                     value: field,
-                    child: Text(field.shortLabel),
+                    child: Text(field.displayName),
                   );
                 }).toList(),
               ),
@@ -378,7 +378,7 @@ class _DetailedCardConfigSection extends ConsumerWidget {
             return ListTile(
               key: ValueKey(field),
               leading: const Icon(Icons.drag_handle),
-              title: Text(field.shortLabel),
+              title: Text(field.displayName),
               trailing: IconButton(
                 icon: const Icon(Icons.remove_circle_outline),
                 tooltip: 'Remove',
@@ -406,7 +406,7 @@ class _DetailedCardConfigSection extends ConsumerWidget {
               _CategoryHeader(label: category.name.toUpperCase(), theme: theme),
               for (final field in grouped[category]!)
                 ListTile(
-                  title: Text(field.shortLabel),
+                  title: Text(field.displayName),
                   trailing: IconButton(
                     icon: const Icon(Icons.add_circle_outline),
                     tooltip: 'Add',
@@ -486,7 +486,7 @@ class _SlotCardConfigSection extends ConsumerWidget {
                         items: allFields.map((field) {
                           return DropdownMenuItem(
                             value: field,
-                            child: Text(field.shortLabel),
+                            child: Text(field.displayName),
                           );
                         }).toList(),
                       ),
