@@ -156,7 +156,7 @@ void main() {
 
         final presets = await repository.getPresetsForMode(
           testDiverId,
-          ListViewMode.detailed,
+          ListViewMode.table,
         );
 
         expect(presets.isNotEmpty, isTrue);
@@ -174,7 +174,7 @@ void main() {
 
           final presets = await repository.getPresetsForMode(
             testDiverId,
-            ListViewMode.detailed,
+            ListViewMode.table,
           );
 
           final standardPresets = presets
@@ -201,7 +201,7 @@ void main() {
         final preset = FieldPreset(
           id: 'user-preset-1',
           name: 'My Custom Preset',
-          viewMode: ListViewMode.detailed,
+          viewMode: ListViewMode.table,
           configJson: TableViewConfig.defaultConfig().toJson(),
           isBuiltIn: false,
         );
@@ -210,7 +210,7 @@ void main() {
 
         final presets = await repository.getPresetsForMode(
           testDiverId,
-          ListViewMode.detailed,
+          ListViewMode.table,
         );
 
         expect(presets.any((p) => p.id == 'user-preset-1'), isTrue);
@@ -228,7 +228,7 @@ void main() {
         final preset = FieldPreset(
           id: 'user-preset-1',
           name: 'My Preset',
-          viewMode: ListViewMode.detailed,
+          viewMode: ListViewMode.table,
           configJson: TableViewConfig.defaultConfig().toJson(),
         );
         await repository.savePreset(testDiverId, preset);
@@ -238,7 +238,7 @@ void main() {
 
         final presets = await repository.getPresetsForMode(
           testDiverId,
-          ListViewMode.detailed,
+          ListViewMode.table,
         );
         final found = presets.firstWhere((p) => p.id == 'user-preset-1');
         expect(found.name, equals('Renamed Preset'));
@@ -250,7 +250,7 @@ void main() {
         final preset = FieldPreset(
           id: 'user-preset-del',
           name: 'To Delete',
-          viewMode: ListViewMode.detailed,
+          viewMode: ListViewMode.table,
           configJson: TableViewConfig.defaultConfig().toJson(),
           isBuiltIn: false,
         );
@@ -260,7 +260,7 @@ void main() {
 
         final presets = await repository.getPresetsForMode(
           testDiverId,
-          ListViewMode.detailed,
+          ListViewMode.table,
         );
         expect(presets.any((p) => p.id == 'user-preset-del'), isFalse);
       });
@@ -272,7 +272,7 @@ void main() {
 
         final presets = await repository.getPresetsForMode(
           testDiverId,
-          ListViewMode.detailed,
+          ListViewMode.table,
         );
         expect(presets.any((p) => p.id == 'builtin_standard'), isTrue);
       });
