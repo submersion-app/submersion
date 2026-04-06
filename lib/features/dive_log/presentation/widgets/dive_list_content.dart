@@ -1262,10 +1262,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(
-                    Icons.view_column_outlined,
-                    color: Colors.orange,
-                  ),
+                  icon: const Icon(Icons.view_column_outlined),
                   tooltip: 'Column settings',
                   onPressed: () => showTableColumnPicker(context),
                 ),
