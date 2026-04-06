@@ -396,6 +396,51 @@ void main() {
 
       expect(find.text('Altitude Group 1'), findsOneWidget);
     });
+
+    testWidgets('clearing altitude text resets to null', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanSettingsPanel()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final altitudeField = find.widgetWithText(TextField, '0');
+      await tester.enterText(altitudeField, '1000');
+      await tester.pumpAndSettle();
+      expect(find.text('Altitude Group 2'), findsOneWidget);
+
+      // Clear the field
+      await tester.enterText(altitudeField, '');
+      await tester.pumpAndSettle();
+      expect(find.text('Altitude Group 2'), findsNothing);
+    });
+
+    testWidgets('compact layout shows group chip below label', (tester) async {
+      tester.view.physicalSize = const Size(375, 667);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanSettingsPanel()),
+        ),
+      );
+      await tester.pump();
+
+      final altitudeField = find.widgetWithText(TextField, '0');
+      await tester.enterText(altitudeField, '1000');
+      await tester.pump();
+
+      expect(find.text('Altitude Group 2'), findsOneWidget);
+    });
   });
 
   group('PlanSettingsPanel layout overflow', () {
