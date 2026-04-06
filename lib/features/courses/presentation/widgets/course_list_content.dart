@@ -3,10 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
+import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
+import 'package:submersion/features/courses/domain/constants/course_field.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_card.dart';
@@ -50,8 +59,15 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
 
   @override
   Widget build(BuildContext context) {
-    final sort = ref.watch(courseSortProvider);
+    final viewMode = ref.watch(courseListViewModeProvider);
     final coursesAsync = ref.watch(courseListNotifierProvider);
+
+    // Table mode uses a dedicated scaffold with column configuration support.
+    if (viewMode == ListViewMode.table) {
+      return _buildTableModeScaffold(context, coursesAsync);
+    }
+
+    final sort = ref.watch(courseSortProvider);
 
     final content = coursesAsync.when(
       data: (courses) {
@@ -90,6 +106,30 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
             tooltip: context.l10n.courses_action_sort,
             onPressed: () => _showSortSheet(context),
           ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              if (value.startsWith('view_')) {
+                final mode = ListViewMode.fromName(
+                  value.replaceFirst('view_', ''),
+                );
+                ref.read(courseListViewModeProvider.notifier).state = mode;
+              }
+            },
+            itemBuilder: (context) {
+              final currentMode = ref.read(courseListViewModeProvider);
+              return [
+                ...ListViewModeToggle.menuItems(
+                  context,
+                  currentMode: currentMode,
+                  modes: const [
+                    ListViewMode.detailed,
+                    ListViewMode.table,
+                  ],
+                ),
+              ];
+            },
+          ),
         ],
       ),
       body: Column(
@@ -102,7 +142,132 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
     );
   }
 
+  /// Build the full scaffold/layout for table mode.
+  Widget _buildTableModeScaffold(
+    BuildContext context,
+    AsyncValue<List<Course>> coursesAsync,
+  ) {
+    final tableContent = _buildTableView(context, coursesAsync);
+
+    if (!widget.showAppBar) {
+      return Column(
+        children: [
+          _buildCompactAppBar(context),
+          Expanded(child: tableContent),
+        ],
+      );
+    }
+
+    return Scaffold(
+      appBar: _buildTableAppBar(context),
+      body: tableContent,
+      floatingActionButton: widget.floatingActionButton,
+    );
+  }
+
+  /// Build the AppBar for table mode with column picker button.
+  AppBar _buildTableAppBar(BuildContext context) {
+    return AppBar(
+      title: Text(context.l10n.courses_title),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.view_column_outlined),
+          tooltip: 'Column settings',
+          onPressed: () {
+            final config = ref.read(courseTableConfigProvider);
+            final notifier = ref.read(courseTableConfigProvider.notifier);
+            showEntityTableColumnPicker<CourseField>(
+              context,
+              config: config,
+              adapter: CourseFieldAdapter.instance,
+              onToggleColumn: notifier.toggleColumn,
+              onReorderColumn: notifier.reorderColumn,
+              onTogglePin: notifier.togglePin,
+            );
+          },
+        ),
+        SizedBox(
+          height: 24,
+          child: VerticalDivider(
+            width: 16,
+            thickness: 1,
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+        ),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: (value) {
+            if (value.startsWith('view_')) {
+              final mode = ListViewMode.fromName(
+                value.replaceFirst('view_', ''),
+              );
+              ref.read(courseListViewModeProvider.notifier).state = mode;
+            }
+          },
+          itemBuilder: (context) {
+            final currentMode = ref.read(courseListViewModeProvider);
+            return [
+              ...ListViewModeToggle.menuItems(
+                context,
+                currentMode: currentMode,
+                modes: const [
+                  ListViewMode.detailed,
+                  ListViewMode.table,
+                ],
+              ),
+            ];
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Build the [EntityTableView] for course table mode.
+  Widget _buildTableView(
+    BuildContext context,
+    AsyncValue<List<Course>> coursesAsync,
+  ) {
+    return coursesAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, s) => _buildErrorState(context, e),
+      data: (courses) {
+        if (courses.isEmpty) {
+          return _buildEmptyState(context);
+        }
+        final config = ref.watch(courseTableConfigProvider);
+        final notifier = ref.read(courseTableConfigProvider.notifier);
+        final settings = ref.watch(settingsProvider);
+        final units = UnitFormatter(settings);
+
+        return EntityTableView<Course>(
+          entities: courses,
+          idExtractor: (c) => c.id,
+          adapter: CourseFieldAdapter.instance
+              as EntityFieldAdapter<Course, EntityField>,
+          config: config as EntityTableViewConfig<EntityField>,
+          units: units,
+          onSortFieldChanged: (field) =>
+              notifier.setSortField(field as CourseField),
+          onResizeColumn: (field, width) =>
+              notifier.resizeColumn(field as CourseField, width),
+          onEntityTap: (id) {
+            final match = courses.firstWhere((c) => c.id == id);
+            _handleItemTap(match);
+          },
+          onEntityDoubleTap: (id) => context.go('/courses/$id'),
+          selectedIds: const {},
+          isSelectionMode: false,
+          highlightedId: widget.selectedId,
+        );
+      },
+    );
+  }
+
   Widget _buildCompactAppBar(BuildContext context) {
+    final viewMode = ref.watch(courseListViewModeProvider);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -124,10 +289,63 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.sort, size: 20),
-            tooltip: context.l10n.courses_action_sort,
-            onPressed: () => _showSortSheet(context),
+          if (viewMode == ListViewMode.table)
+            IconButton(
+              icon: const Icon(Icons.view_column_outlined, size: 20),
+              tooltip: 'Column settings',
+              onPressed: () {
+                final config = ref.read(courseTableConfigProvider);
+                final notifier = ref.read(courseTableConfigProvider.notifier);
+                showEntityTableColumnPicker<CourseField>(
+                  context,
+                  config: config,
+                  adapter: CourseFieldAdapter.instance,
+                  onToggleColumn: notifier.toggleColumn,
+                  onReorderColumn: notifier.reorderColumn,
+                  onTogglePin: notifier.togglePin,
+                );
+              },
+            ),
+          if (viewMode == ListViewMode.table)
+            SizedBox(
+              height: 24,
+              child: VerticalDivider(
+                width: 16,
+                thickness: 1,
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+            ),
+          if (viewMode != ListViewMode.table)
+            IconButton(
+              icon: const Icon(Icons.sort, size: 20),
+              tooltip: context.l10n.courses_action_sort,
+              onPressed: () => _showSortSheet(context),
+            ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) {
+              if (value.startsWith('view_')) {
+                final mode = ListViewMode.fromName(
+                  value.replaceFirst('view_', ''),
+                );
+                ref.read(courseListViewModeProvider.notifier).state = mode;
+              }
+            },
+            itemBuilder: (context) {
+              final currentMode = ref.read(courseListViewModeProvider);
+              return [
+                ...ListViewModeToggle.menuItems(
+                  context,
+                  currentMode: currentMode,
+                  modes: const [
+                    ListViewMode.detailed,
+                    ListViewMode.table,
+                  ],
+                ),
+              ];
+            },
           ),
         ],
       ),

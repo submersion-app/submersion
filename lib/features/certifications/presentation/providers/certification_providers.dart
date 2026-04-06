@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -5,7 +6,11 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
+import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
 /// Repository provider
 final certificationRepositoryProvider = Provider<CertificationRepository>((
@@ -216,3 +221,50 @@ final expiringCertificationCountProvider = FutureProvider<int>((ref) async {
   final expired = await ref.watch(expiredCertificationsProvider.future);
   return expiring.length + expired.length;
 });
+
+// ============================================================================
+// Certification List View Mode
+// ============================================================================
+
+/// In-memory view mode for the certification list. Defaults to detailed.
+/// Not persisted in AppSettings — resets to detailed on app restart.
+final certificationListViewModeProvider = StateProvider<ListViewMode>((ref) {
+  return ListViewMode.detailed;
+});
+
+// ============================================================================
+// Certification Table View Config
+// ============================================================================
+
+/// Provider for the certification table view column configuration.
+///
+/// Persists column visibility, order, widths, and sort state per diver using
+/// [ViewConfigRepository] under the key 'table_certifications'.
+final certificationTableConfigProvider =
+    StateNotifierProvider<
+      EntityTableConfigNotifier<CertificationField>,
+      EntityTableViewConfig<CertificationField>
+    >((ref) {
+      final notifier = EntityTableConfigNotifier<CertificationField>(
+        defaultConfig: EntityTableViewConfig<CertificationField>(
+          columns: [
+            EntityTableColumnConfig(
+              field: CertificationField.certName,
+              isPinned: true,
+            ),
+            EntityTableColumnConfig(field: CertificationField.agency),
+            EntityTableColumnConfig(field: CertificationField.level),
+            EntityTableColumnConfig(field: CertificationField.issueDate),
+            EntityTableColumnConfig(field: CertificationField.expiryDate),
+            EntityTableColumnConfig(field: CertificationField.expiryStatus),
+          ],
+        ),
+        fieldFromName: CertificationFieldAdapter.instance.fieldFromName,
+      );
+      final diverId = ref.watch(currentDiverIdProvider);
+      if (diverId != null) {
+        final repo = ref.watch(viewConfigRepositoryProvider);
+        notifier.init(repo, diverId, 'table_certifications');
+      }
+      return notifier;
+    });

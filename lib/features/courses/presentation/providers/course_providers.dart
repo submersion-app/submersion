@@ -1,12 +1,17 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
+import 'package:submersion/features/courses/domain/constants/course_field.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
 /// Repository provider
 final courseRepositoryProvider = Provider<CourseRepository>((ref) {
@@ -278,3 +283,50 @@ final inProgressCourseCountProvider = FutureProvider<int>((ref) async {
   final courses = await ref.watch(inProgressCoursesProvider.future);
   return courses.length;
 });
+
+// ============================================================================
+// Course List View Mode
+// ============================================================================
+
+/// In-memory view mode for the course list. Defaults to detailed.
+/// Not persisted in AppSettings — resets to detailed on app restart.
+final courseListViewModeProvider = StateProvider<ListViewMode>((ref) {
+  return ListViewMode.detailed;
+});
+
+// ============================================================================
+// Course Table View Config
+// ============================================================================
+
+/// Provider for the course table view column configuration.
+///
+/// Persists column visibility, order, widths, and sort state per diver using
+/// [ViewConfigRepository] under the key 'table_courses'.
+final courseTableConfigProvider =
+    StateNotifierProvider<
+      EntityTableConfigNotifier<CourseField>,
+      EntityTableViewConfig<CourseField>
+    >((ref) {
+      final notifier = EntityTableConfigNotifier<CourseField>(
+        defaultConfig: EntityTableViewConfig<CourseField>(
+          columns: [
+            EntityTableColumnConfig(
+              field: CourseField.courseName,
+              isPinned: true,
+            ),
+            EntityTableColumnConfig(field: CourseField.agency),
+            EntityTableColumnConfig(field: CourseField.startDate),
+            EntityTableColumnConfig(field: CourseField.completionDate),
+            EntityTableColumnConfig(field: CourseField.isCompleted),
+            EntityTableColumnConfig(field: CourseField.location),
+          ],
+        ),
+        fieldFromName: CourseFieldAdapter.instance.fieldFromName,
+      );
+      final diverId = ref.watch(currentDiverIdProvider);
+      if (diverId != null) {
+        final repo = ref.watch(viewConfigRepositoryProvider);
+        notifier.init(repo, diverId, 'table_courses');
+      }
+      return notifier;
+    });

@@ -4,10 +4,19 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
+import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
+import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 
@@ -107,8 +116,15 @@ class _CertificationListContentState
 
   @override
   Widget build(BuildContext context) {
-    final sort = ref.watch(certificationSortProvider);
+    final viewMode = ref.watch(certificationListViewModeProvider);
     final certificationsAsync = ref.watch(certificationListNotifierProvider);
+
+    // Table mode uses a dedicated scaffold with column configuration support.
+    if (viewMode == ListViewMode.table) {
+      return _buildTableModeScaffold(context, certificationsAsync);
+    }
+
+    final sort = ref.watch(certificationSortProvider);
 
     final content = certificationsAsync.when(
       data: (certifications) {
@@ -154,6 +170,31 @@ class _CertificationListContentState
               );
             },
           ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              if (value.startsWith('view_')) {
+                final mode = ListViewMode.fromName(
+                  value.replaceFirst('view_', ''),
+                );
+                ref.read(certificationListViewModeProvider.notifier).state =
+                    mode;
+              }
+            },
+            itemBuilder: (context) {
+              final currentMode = ref.read(certificationListViewModeProvider);
+              return [
+                ...ListViewModeToggle.menuItems(
+                  context,
+                  currentMode: currentMode,
+                  modes: const [
+                    ListViewMode.detailed,
+                    ListViewMode.table,
+                  ],
+                ),
+              ];
+            },
+          ),
         ],
       ),
       body: content,
@@ -161,7 +202,147 @@ class _CertificationListContentState
     );
   }
 
+  /// Build the full scaffold/layout for table mode.
+  Widget _buildTableModeScaffold(
+    BuildContext context,
+    AsyncValue<List<Certification>> certificationsAsync,
+  ) {
+    final tableContent = _buildTableView(context, certificationsAsync);
+
+    if (!widget.showAppBar) {
+      return Column(
+        children: [
+          _buildCompactAppBar(context),
+          Expanded(child: tableContent),
+        ],
+      );
+    }
+
+    return Scaffold(
+      appBar: _buildTableAppBar(context),
+      body: tableContent,
+      floatingActionButton: widget.floatingActionButton,
+    );
+  }
+
+  /// Build the AppBar for table mode with column picker button.
+  AppBar _buildTableAppBar(BuildContext context) {
+    return AppBar(
+      title: Text(context.l10n.certifications_appBar_title),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.view_column_outlined),
+          tooltip: 'Column settings',
+          onPressed: () {
+            final config = ref.read(certificationTableConfigProvider);
+            final notifier = ref.read(certificationTableConfigProvider.notifier);
+            showEntityTableColumnPicker<CertificationField>(
+              context,
+              config: config,
+              adapter: CertificationFieldAdapter.instance,
+              onToggleColumn: notifier.toggleColumn,
+              onReorderColumn: notifier.reorderColumn,
+              onTogglePin: notifier.togglePin,
+            );
+          },
+        ),
+        SizedBox(
+          height: 24,
+          child: VerticalDivider(
+            width: 16,
+            thickness: 1,
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.wallet),
+          tooltip: context.l10n.certifications_list_tooltip_walletView,
+          onPressed: () => context.push('/certifications/wallet'),
+        ),
+        IconButton(
+          icon: const Icon(Icons.search),
+          tooltip: context.l10n.certifications_list_tooltip_search,
+          onPressed: () {
+            showSearch(
+              context: context,
+              delegate: CertificationSearchDelegate(ref),
+            );
+          },
+        ),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: (value) {
+            if (value.startsWith('view_')) {
+              final mode = ListViewMode.fromName(
+                value.replaceFirst('view_', ''),
+              );
+              ref.read(certificationListViewModeProvider.notifier).state = mode;
+            }
+          },
+          itemBuilder: (context) {
+            final currentMode = ref.read(certificationListViewModeProvider);
+            return [
+              ...ListViewModeToggle.menuItems(
+                context,
+                currentMode: currentMode,
+                modes: const [
+                  ListViewMode.detailed,
+                  ListViewMode.table,
+                ],
+              ),
+            ];
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Build the [EntityTableView] for certification table mode.
+  Widget _buildTableView(
+    BuildContext context,
+    AsyncValue<List<Certification>> certificationsAsync,
+  ) {
+    return certificationsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, s) => _buildErrorState(context, e),
+      data: (certifications) {
+        if (certifications.isEmpty) {
+          return _buildEmptyState(context);
+        }
+        final config = ref.watch(certificationTableConfigProvider);
+        final notifier = ref.read(certificationTableConfigProvider.notifier);
+        final settings = ref.watch(settingsProvider);
+        final units = UnitFormatter(settings);
+
+        return EntityTableView<Certification>(
+          entities: certifications,
+          idExtractor: (c) => c.id,
+          adapter: CertificationFieldAdapter.instance
+              as EntityFieldAdapter<Certification, EntityField>,
+          config: config as EntityTableViewConfig<EntityField>,
+          units: units,
+          onSortFieldChanged: (field) =>
+              notifier.setSortField(field as CertificationField),
+          onResizeColumn: (field, width) =>
+              notifier.resizeColumn(field as CertificationField, width),
+          onEntityTap: (id) {
+            final match = certifications.firstWhere((c) => c.id == id);
+            _handleItemTap(match);
+          },
+          onEntityDoubleTap: (id) => context.go('/certifications/$id'),
+          selectedIds: const {},
+          isSelectionMode: false,
+          highlightedId: widget.selectedId,
+        );
+      },
+    );
+  }
+
   Widget _buildCompactAppBar(BuildContext context) {
+    final viewMode = ref.watch(certificationListViewModeProvider);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -183,6 +364,35 @@ class _CertificationListContentState
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
+          if (viewMode == ListViewMode.table)
+            IconButton(
+              icon: const Icon(Icons.view_column_outlined, size: 20),
+              tooltip: 'Column settings',
+              onPressed: () {
+                final config = ref.read(certificationTableConfigProvider);
+                final notifier =
+                    ref.read(certificationTableConfigProvider.notifier);
+                showEntityTableColumnPicker<CertificationField>(
+                  context,
+                  config: config,
+                  adapter: CertificationFieldAdapter.instance,
+                  onToggleColumn: notifier.toggleColumn,
+                  onReorderColumn: notifier.reorderColumn,
+                  onTogglePin: notifier.togglePin,
+                );
+              },
+            ),
+          if (viewMode == ListViewMode.table)
+            SizedBox(
+              height: 24,
+              child: VerticalDivider(
+                width: 16,
+                thickness: 1,
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+            ),
           IconButton(
             icon: const Icon(Icons.wallet, size: 20),
             tooltip: context.l10n.certifications_list_tooltip_walletView,
@@ -201,6 +411,31 @@ class _CertificationListContentState
                 context: context,
                 delegate: CertificationSearchDelegate(ref),
               );
+            },
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) {
+              if (value.startsWith('view_')) {
+                final mode = ListViewMode.fromName(
+                  value.replaceFirst('view_', ''),
+                );
+                ref.read(certificationListViewModeProvider.notifier).state =
+                    mode;
+              }
+            },
+            itemBuilder: (context) {
+              final currentMode = ref.read(certificationListViewModeProvider);
+              return [
+                ...ListViewModeToggle.menuItems(
+                  context,
+                  currentMode: currentMode,
+                  modes: const [
+                    ListViewMode.detailed,
+                    ListViewMode.table,
+                  ],
+                ),
+              ];
             },
           ),
         ],
