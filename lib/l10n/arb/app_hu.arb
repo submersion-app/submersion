@@ -2994,7 +2994,7 @@
   "settings_about_header": "Rolunk",
   "settings_about_openSourceLicenses": "Nyilt forrasu licencek",
   "settings_about_reportIssue": "Hiba bejelentese",
-  "settings_about_reportIssue_snackbar": "Latogasson el: github.com/submersion/submersion",
+  "settings_about_reportIssue_snackbar": "Latogasson el: github.com/submersion-app/submersion",
   "settings_about_version": "Verzio {version}",
   "settings_appBar_title": "Beallitasok",
   "settings_appearance_appLanguage": "Alkalmazas nyelve",

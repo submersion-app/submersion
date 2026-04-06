@@ -2994,7 +2994,7 @@
   "settings_about_header": "אודות",
   "settings_about_openSourceLicenses": "רישיונות קוד פתוח",
   "settings_about_reportIssue": "דווח על בעיה",
-  "settings_about_reportIssue_snackbar": "בקר ב-github.com/submersion/submersion",
+  "settings_about_reportIssue_snackbar": "בקר ב-github.com/submersion-app/submersion",
   "settings_about_version": "גרסה {version}",
   "settings_appBar_title": "הגדרות",
   "settings_appearance_appLanguage": "שפת האפליקציה",

@@ -3178,7 +3178,7 @@
   "settings_about_header": "关于",
   "settings_about_openSourceLicenses": "开源许可证",
   "settings_about_reportIssue": "报告问题",
-  "settings_about_reportIssue_snackbar": "请访问 github.com/submersion/submersion",
+  "settings_about_reportIssue_snackbar": "请访问 github.com/submersion-app/submersion",
   "settings_about_version": "版本 {version}",
   "settings_appBar_title": "设置",
   "settings_appearance_appLanguage": "应用语言",

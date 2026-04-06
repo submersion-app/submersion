@@ -9515,7 +9515,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_about_reportIssue_snackbar =>
-      'Latogasson el: github.com/submersion/submersion';
+      'Latogasson el: github.com/submersion-app/submersion';
 
   @override
   String settings_about_version(String version) {

@@ -9533,7 +9533,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_about_reportIssue_snackbar =>
-      'Visita github.com/submersion/submersion';
+      'Visita github.com/submersion-app/submersion';
 
   @override
   String settings_about_version(String version) {

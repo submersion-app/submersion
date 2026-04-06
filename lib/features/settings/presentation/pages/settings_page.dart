@@ -32,6 +32,7 @@ import 'package:submersion/features/auto_update/domain/entities/update_status.da
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Main settings page with master-detail layout on desktop.
 ///
@@ -2362,14 +2363,24 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                 ListTile(
                   leading: const Icon(Icons.bug_report),
                   title: Text(context.l10n.settings_about_reportIssue),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          context.l10n.settings_about_reportIssue_snackbar,
-                        ),
-                      ),
+                  onTap: () async {
+                    final uri = Uri.parse(
+                      'https://github.com/submersion-app/submersion/issues',
                     );
+                    if (!await launchUrl(
+                      uri,
+                      mode: LaunchMode.externalApplication,
+                    )) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              context.l10n.settings_about_reportIssue_snackbar,
+                            ),
+                          ),
+                        );
+                      }
+                    }
                   },
                 ),
               ],

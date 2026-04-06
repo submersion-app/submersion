@@ -5209,7 +5209,7 @@
   "settings_about_header": "About",
   "settings_about_openSourceLicenses": "Open Source Licenses",
   "settings_about_reportIssue": "Report an Issue",
-  "settings_about_reportIssue_snackbar": "Visit github.com/submersion/submersion",
+  "settings_about_reportIssue_snackbar": "Visit github.com/submersion-app/submersion",
   "settings_about_version": "Version {version}",
   "@settings_about_version": {
     "placeholders": {

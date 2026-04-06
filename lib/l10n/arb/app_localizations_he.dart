@@ -9293,7 +9293,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_about_reportIssue_snackbar =>
-      'בקר ב-github.com/submersion/submersion';
+      'בקר ב-github.com/submersion-app/submersion';
 
   @override
   String settings_about_version(String version) {

@@ -9118,7 +9118,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_about_reportIssue_snackbar =>
-      '请访问 github.com/submersion/submersion';
+      '请访问 github.com/submersion-app/submersion';
 
   @override
   String settings_about_version(String version) {
