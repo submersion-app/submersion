@@ -100,5 +100,44 @@ void main() {
             null,
           );
     });
+    testWidgets('shows snackbar when launchUrl throws', (tester) async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('plugins.flutter.io/url_launcher'),
+            (MethodCall methodCall) async {
+              if (methodCall.method == 'canLaunch') return true;
+              if (methodCall.method == 'launch') {
+                throw PlatformException(code: 'ERROR');
+              }
+              return null;
+            },
+          );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: ElevatedButton(
+                onPressed: () => launchReportIssue(context),
+                child: const Text('Report'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Report'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SnackBar), findsOneWidget);
+
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('plugins.flutter.io/url_launcher'),
+            null,
+          );
+    });
   });
 }

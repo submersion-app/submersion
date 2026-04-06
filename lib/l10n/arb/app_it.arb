@@ -2994,7 +2994,7 @@
   "settings_about_header": "Informazioni",
   "settings_about_openSourceLicenses": "Licenze open source",
   "settings_about_reportIssue": "Segnala un problema",
-  "settings_about_reportIssue_snackbar": "Visita github.com/submersion-app/submersion",
+  "settings_about_reportIssue_snackbar": "Visita github.com/submersion-app/submersion/issues",
   "settings_about_version": "Versione {version}",
   "settings_appBar_title": "Impostazioni",
   "settings_appearance_appLanguage": "Lingua dell'app",

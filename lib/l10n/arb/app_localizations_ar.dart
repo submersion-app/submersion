@@ -9359,7 +9359,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_about_reportIssue_snackbar =>
-      'قم بزيارة github.com/submersion-app/submersion';
+      'قم بزيارة github.com/submersion-app/submersion/issues';
 
   @override
   String settings_about_version(String version) {

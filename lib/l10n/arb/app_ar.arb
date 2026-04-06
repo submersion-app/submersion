@@ -3028,7 +3028,7 @@
   "settings_about_header": "حول",
   "settings_about_openSourceLicenses": "تراخيص المصادر المفتوحة",
   "settings_about_reportIssue": "الإبلاغ عن مشكلة",
-  "settings_about_reportIssue_snackbar": "قم بزيارة github.com/submersion-app/submersion",
+  "settings_about_reportIssue_snackbar": "قم بزيارة github.com/submersion-app/submersion/issues",
   "settings_about_version": "الإصدار {version}",
   "settings_appBar_title": "الإعدادات",
   "settings_appearance_appLanguage": "لغة التطبيق",

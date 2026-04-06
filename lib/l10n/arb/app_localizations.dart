@@ -16369,7 +16369,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_about_reportIssue_snackbar.
   ///
   /// In en, this message translates to:
-  /// **'Visit github.com/submersion/submersion'**
+  /// **'Visit github.com/submersion-app/submersion/issues'**
   String get settings_about_reportIssue_snackbar;
 
   /// No description provided for @settings_about_version.

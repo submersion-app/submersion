@@ -3028,7 +3028,7 @@
   "settings_about_header": "Ueber",
   "settings_about_openSourceLicenses": "Open-Source-Lizenzen",
   "settings_about_reportIssue": "Problem melden",
-  "settings_about_reportIssue_snackbar": "Besuchen Sie github.com/submersion-app/submersion",
+  "settings_about_reportIssue_snackbar": "Besuchen Sie github.com/submersion-app/submersion/issues",
   "settings_about_version": "Version {version}",
   "settings_appBar_title": "Einstellungen",
   "settings_appearance_appLanguage": "App-Sprache",

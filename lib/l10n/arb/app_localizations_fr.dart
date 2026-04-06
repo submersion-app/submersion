@@ -9580,7 +9580,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_about_reportIssue_snackbar =>
-      'Rendez-vous sur github.com/submersion-app/submersion';
+      'Rendez-vous sur github.com/submersion-app/submersion/issues';
 
   @override
   String settings_about_version(String version) {

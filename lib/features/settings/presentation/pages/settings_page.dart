@@ -38,17 +38,23 @@ import 'package:url_launcher/url_launcher.dart';
 const reportIssueUrl = 'https://github.com/submersion-app/submersion/issues';
 
 /// Opens the GitHub issues page in an external browser. Falls back to a
-/// snackbar if the URL cannot be launched.
+/// snackbar if the URL cannot be launched or an error occurs.
 Future<void> launchReportIssue(BuildContext context) async {
   final uri = Uri.parse(reportIssueUrl);
-  if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.settings_about_reportIssue_snackbar),
-        ),
-      );
+  var didLaunch = false;
+
+  if (await canLaunchUrl(uri)) {
+    try {
+      didLaunch = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      didLaunch = false;
     }
+  }
+
+  if (!didLaunch && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.settings_about_reportIssue_snackbar)),
+    );
   }
 }
 

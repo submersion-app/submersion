@@ -9474,7 +9474,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_about_reportIssue_snackbar =>
-      'Ga naar github.com/submersion-app/submersion';
+      'Ga naar github.com/submersion-app/submersion/issues';
 
   @override
   String settings_about_version(String version) {
