@@ -31,6 +31,7 @@ DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
     ),
     durationSeconds: parsed.durationSeconds,
     maxDepth: parsed.maxDepthMeters,
+    // libdivecomputer zero-initializes this field; `0.0` means "not reported".
     avgDepth: parsed.avgDepthMeters != 0.0 ? parsed.avgDepthMeters : null,
     minTemperature: minTemp,
     maxTemperature: maxTemp,
