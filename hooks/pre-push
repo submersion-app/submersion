@@ -45,7 +45,7 @@ echo ""
 
 # Run tests
 echo "🧪 Running tests..."
-if ! flutter test --exclude-tags performance; then
+if ! flutter test --exclude-tags performance --concurrency=6; then
     echo ""
     echo "❌ Tests failed! Fix the failing tests before pushing."
     exit 1
