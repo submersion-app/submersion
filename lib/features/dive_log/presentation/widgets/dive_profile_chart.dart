@@ -741,6 +741,56 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
+    // Per-tank pressure
+    if (widget.tankPressures != null) {
+      final timestamp = point.timestamp;
+      final sortedTankIds = _sortedTankIds(widget.tankPressures!.keys);
+      for (var i = 0; i < sortedTankIds.length; i++) {
+        final tankId = sortedTankIds[i];
+        if (!(_showTankPressure[tankId] ?? true)) continue;
+        final pressurePoints = widget.tankPressures![tankId];
+        if (pressurePoints == null || pressurePoints.isEmpty) continue;
+        final pressure = _interpolateTankPressure(pressurePoints, timestamp);
+        final tank = _getTankById(tankId);
+        final color = tank != null
+            ? GasColors.forGasMix(tank.gasMix)
+            : _getTankColor(i);
+        final tankLabel = tank?.name ?? 'Tank ${i + 1}';
+        rows.add(
+          TooltipRow(
+            label: tankLabel,
+            value: pressure != null ? units.formatPressure(pressure) : '-',
+            bulletColor: color,
+          ),
+        );
+      }
+    }
+
+    // Marker info (if touching near a marker)
+    if (widget.markers != null && widget.markers!.isNotEmpty) {
+      final timestamp = point.timestamp;
+      const timestampThreshold = 3;
+      for (final marker in widget.markers!) {
+        if (marker.type == ProfileMarkerType.maxDepth) {
+          if (!widget.showMaxDepthMarker || !_showMaxDepthMarkerLocal) continue;
+        } else {
+          if (!widget.showPressureThresholdMarkers ||
+              !_showPressureMarkersLocal) {
+            continue;
+          }
+        }
+        if ((marker.timestamp - timestamp).abs() <= timestampThreshold) {
+          rows.add(
+            TooltipRow(
+              label: 'Marker',
+              value: marker.chartLabel,
+              bulletColor: marker.getColor(),
+            ),
+          );
+        }
+      }
+    }
+
     widget.onTooltipData!(rows);
   }
 
