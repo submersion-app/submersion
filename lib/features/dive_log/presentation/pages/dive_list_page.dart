@@ -30,6 +30,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Compute a single OSM tile URL for the given lat/lng at [zoom].
@@ -86,6 +87,46 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     );
   }
 
+  /// Table mode + map view: split layout with table on top, map below.
+  Widget _buildTableMapView(BuildContext context, Widget fab) {
+    final highlightedId = ref.watch(highlightedDiveIdProvider);
+
+    return Scaffold(
+      body: Column(
+        children: [
+          // Table takes upper portion
+          Expanded(
+            flex: 1,
+            child: DiveListContent(
+              showAppBar: true,
+              isMapViewActive: true,
+              onMapViewToggle: _toggleMapView,
+            ),
+          ),
+          // Map takes lower portion
+          Expanded(
+            flex: 1,
+            child: DiveMapContent(
+              selectedId: highlightedId,
+              onItemSelected: (diveId) {
+                ref.read(highlightedDiveIdProvider.notifier).state = diveId;
+              },
+              onDetailsTap: (diveId) {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        DiveDetailPage(diveId: diveId, pushedManually: true),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: fab,
+    );
+  }
+
   void _toggleMapView() {
     final router = GoRouter.of(context);
     final state = GoRouterState.of(context);
@@ -129,13 +170,16 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     );
 
     // Table mode: full-width on all screen sizes, no master-detail split.
-    // The table needs the entire width for columns, so skip MasterDetailScaffold.
     final viewMode = ref.watch(diveListViewModeProvider);
-    if (viewMode == ListViewMode.table && !_isMapView) {
+    if (viewMode == ListViewMode.table) {
+      if (_isMapView) {
+        return _buildTableMapView(context, fab);
+      }
       return DiveListContent(
         showAppBar: true,
         floatingActionButton: fab,
         isMapViewActive: false,
+        onMapViewToggle: _toggleMapView,
       );
     }
 

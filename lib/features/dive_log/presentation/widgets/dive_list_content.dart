@@ -899,11 +899,23 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       title: Text(title ?? context.l10n.diveLog_listPage_title),
       actions: [
         ...extraActions,
-        IconButton(
-          icon: const Icon(Icons.map),
-          tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
-          onPressed: () => context.push('/dives/activity'),
-        ),
+        if (widget.onMapViewToggle != null)
+          IconButton(
+            icon: Icon(
+              Icons.map,
+              color: widget.isMapViewActive
+                  ? Theme.of(context).colorScheme.primary
+                  : null,
+            ),
+            tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
+            onPressed: widget.onMapViewToggle,
+          )
+        else
+          IconButton(
+            icon: const Icon(Icons.map),
+            tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
+            onPressed: () => context.push('/dives/activity'),
+          ),
         IconButton(
           icon: const Icon(Icons.search),
           tooltip: context.l10n.diveLog_listPage_tooltip_searchDives,
