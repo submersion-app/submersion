@@ -1288,7 +1288,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 61;
+  static const int currentSchemaVersion = 62;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -2719,6 +2719,13 @@ class AppDatabase extends _$AppDatabase {
               ADD COLUMN show_profile_panel_in_table_view INTEGER NOT NULL DEFAULT 1
             ''');
           }
+        }
+
+        if (from < 62) {
+          await customStatement('''
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_view_configs_unique
+            ON view_configs(diver_id, view_mode)
+          ''');
         }
       },
       beforeOpen: (details) async {

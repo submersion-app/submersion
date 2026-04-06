@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shows the [TableColumnPicker] as a modal bottom sheet.
 void showTableColumnPicker(BuildContext context) {
@@ -59,11 +60,14 @@ class TableColumnPicker extends ConsumerWidget {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text('Columns', style: theme.textTheme.titleLarge),
+                    child: Text(
+                      context.l10n.columnConfig_columns,
+                      style: theme.textTheme.titleLarge,
+                    ),
                   ),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Done'),
+                    child: Text(context.l10n.columnConfig_done),
                   ),
                 ],
               ),
@@ -80,7 +84,7 @@ class TableColumnPicker extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                     child: Text(
-                      'VISIBLE COLUMNS',
+                      context.l10n.columnConfig_visibleColumns.toUpperCase(),
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                         letterSpacing: 0.8,
@@ -140,7 +144,7 @@ class TableColumnPicker extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                     child: Text(
-                      'AVAILABLE FIELDS',
+                      context.l10n.columnConfig_availableFields.toUpperCase(),
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                         letterSpacing: 0.8,

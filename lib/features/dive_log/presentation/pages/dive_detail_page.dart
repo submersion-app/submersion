@@ -8,11 +8,11 @@ import 'package:intl/intl.dart' show DateFormat;
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
@@ -107,10 +107,6 @@ class DiveDetailPage extends ConsumerStatefulWidget {
   /// When true, renders without Scaffold wrapper for use in master-detail layout.
   final bool embedded;
 
-  /// When true, this page was pushed via Navigator.push (e.g. from table view)
-  /// rather than go_router. Disables go_router-based redirects and navigation.
-  final bool pushedManually;
-
   /// Callback when the dive is deleted (used in embedded mode).
   final VoidCallback? onDeleted;
 
@@ -118,7 +114,6 @@ class DiveDetailPage extends ConsumerStatefulWidget {
     super.key,
     required this.diveId,
     this.embedded = false,
-    this.pushedManually = false,
     this.onDeleted,
   });
 
@@ -177,17 +172,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   @override
   Widget build(BuildContext context) {
     // On desktop, redirect standalone detail pages to master-detail view.
-    // Skip when opened via Navigator.push (table view) -- no shell to redirect into.
+    // Skip in table mode -- table view has no master-detail split to redirect into.
     if (!widget.embedded &&
-        !widget.pushedManually &&
         !_hasRedirected &&
         ResponsiveBreakpoints.isMasterDetail(context)) {
-      _hasRedirected = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          context.go('/dives?selected=$diveId');
-        }
-      });
+      final viewMode = ref.read(diveListViewModeProvider);
+      if (viewMode != ListViewMode.table) {
+        _hasRedirected = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            context.go('/dives?selected=$diveId');
+          }
+        });
+      }
     }
 
     final diveAsync = ref.watch(diveProvider(diveId));
@@ -502,17 +499,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: context.l10n.diveLog_detail_tooltip_editDive,
-            onPressed: () {
-              if (widget.pushedManually) {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => DiveEditPage(diveId: diveId),
-                  ),
-                );
-              } else {
-                context.go('/dives/$diveId/edit');
-              }
-            },
+            onPressed: () => context.push('/dives/$diveId/edit'),
           ),
           PopupMenuButton<String>(
             onSelected: (value) {

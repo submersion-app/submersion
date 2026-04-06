@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class ColumnConfigPage extends ConsumerStatefulWidget {
   /// When true, hides the Scaffold/AppBar for embedding in a detail pane.
@@ -29,7 +30,7 @@ class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           child: Row(
             children: [
-              const Text('View Mode'),
+              Text(context.l10n.columnConfig_viewMode),
               const SizedBox(width: 16),
               DropdownButton<ListViewMode>(
                 value: _selectedMode,
@@ -61,7 +62,7 @@ class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
     if (widget.embedded) return body;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Dive Details List Fields')),
+      appBar: AppBar(title: Text(context.l10n.columnConfig_title)),
       body: body,
     );
   }
@@ -175,7 +176,10 @@ class _TableColumnConfigSection extends ConsumerWidget {
             ],
           ),
         ),
-        _SectionHeader(title: 'VISIBLE COLUMNS', theme: theme),
+        _SectionHeader(
+          title: context.l10n.columnConfig_visibleColumns.toUpperCase(),
+          theme: theme,
+        ),
         Expanded(
           child: Column(
             children: [
@@ -218,7 +222,10 @@ class _TableColumnConfigSection extends ConsumerWidget {
                 ),
               ),
               const Divider(height: 1),
-              _SectionHeader(title: 'AVAILABLE FIELDS', theme: theme),
+              _SectionHeader(
+                title: context.l10n.columnConfig_availableFields.toUpperCase(),
+                theme: theme,
+              ),
               Expanded(
                 child: ListView(
                   children: [
@@ -247,7 +254,7 @@ class _TableColumnConfigSection extends ConsumerWidget {
                   onPressed: () {
                     notifier.replaceConfig(TableViewConfig.defaultConfig());
                   },
-                  child: const Text('Reset to Default'),
+                  child: Text(context.l10n.columnConfig_resetToDefault),
                 ),
               ),
             ],
@@ -398,7 +405,10 @@ class _DetailedCardConfigSection extends ConsumerWidget {
         const Divider(),
 
         // -- Available fields to add --
-        _SectionHeader(title: 'AVAILABLE FIELDS', theme: theme),
+        _SectionHeader(
+          title: context.l10n.columnConfig_availableFields.toUpperCase(),
+          theme: theme,
+        ),
         for (final category in DiveFieldCategory.values)
           if (grouped.containsKey(category)) ...[
             _CategoryHeader(label: category.name.toUpperCase(), theme: theme),
@@ -495,7 +505,7 @@ class _SlotCardConfigSection extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 child: OutlinedButton(
                   onPressed: notifier.resetToDefault,
-                  child: const Text('Reset to Default'),
+                  child: Text(context.l10n.columnConfig_resetToDefault),
                 ),
               ),
             ],

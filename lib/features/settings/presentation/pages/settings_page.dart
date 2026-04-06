@@ -1235,9 +1235,9 @@ class _AppearanceSectionContentState
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.view_column),
-                  title: const Text('Dive Details List Fields'),
-                  subtitle: const Text(
-                    'Customize fields shown in dive list views',
+                  title: Text(context.l10n.settings_appearance_columnConfig),
+                  subtitle: Text(
+                    context.l10n.settings_appearance_columnConfig_subtitle,
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => setState(() => _showColumnConfig = true),

@@ -117,12 +117,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
             setState(() => _mobileMapSelectedDiveId = diveId);
           },
           onDetailsTap: (diveId) {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) =>
-                    DiveDetailPage(diveId: diveId, pushedManually: true),
-              ),
-            );
+            context.push('/dives/$diveId');
           },
         ),
       );
@@ -150,12 +145,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                 ref.read(highlightedDiveIdProvider.notifier).state = diveId;
               },
               onDetailsTap: (diveId) {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) =>
-                        DiveDetailPage(diveId: diveId, pushedManually: true),
-                  ),
-                );
+                context.push('/dives/$diveId');
               },
             ),
           ),
