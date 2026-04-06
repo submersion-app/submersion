@@ -334,97 +334,95 @@ class _DetailedCardConfigSection extends ConsumerWidget {
       grouped.putIfAbsent(field.category, () => []).add(field);
     }
 
-    return Expanded(
-      child: ListView(
-        children: [
-          // -- Slot assignments (fixed card area) --
-          _SectionHeader(title: 'SLOT ASSIGNMENTS', theme: theme),
-          ...config.slots.map((slot) {
-            return ListTile(
-              title: Text(_slotDisplayName(slot.slotId)),
-              trailing: DropdownButton<DiveField>(
-                value: slot.field,
-                underline: const SizedBox(),
-                onChanged: (value) {
-                  if (value != null) {
-                    notifier.updateSlot(slot.slotId, value);
-                  }
-                },
-                items: DiveField.values.map((field) {
-                  return DropdownMenuItem(
-                    value: field,
-                    child: Text(field.displayName),
-                  );
-                }).toList(),
-              ),
-            );
-          }),
+    return ListView(
+      children: [
+        // -- Slot assignments (fixed card area) --
+        _SectionHeader(title: 'SLOT ASSIGNMENTS', theme: theme),
+        ...config.slots.map((slot) {
+          return ListTile(
+            title: Text(_slotDisplayName(slot.slotId)),
+            trailing: DropdownButton<DiveField>(
+              value: slot.field,
+              underline: const SizedBox(),
+              onChanged: (value) {
+                if (value != null) {
+                  notifier.updateSlot(slot.slotId, value);
+                }
+              },
+              items: DiveField.values.map((field) {
+                return DropdownMenuItem(
+                  value: field,
+                  child: Text(field.displayName),
+                );
+              }).toList(),
+            ),
+          );
+        }),
 
-          const Divider(),
+        const Divider(),
 
-          // -- Extra fields (flexible area below card) --
-          _SectionHeader(title: 'EXTRA FIELDS', theme: theme),
+        // -- Extra fields (flexible area below card) --
+        _SectionHeader(title: 'EXTRA FIELDS', theme: theme),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: Text(
+            'Additional fields shown below the standard card content.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        ...config.extraFields.asMap().entries.map((entry) {
+          final field = entry.value;
+          return ListTile(
+            key: ValueKey(field),
+            leading: const Icon(Icons.drag_handle),
+            title: Text(field.displayName),
+            trailing: IconButton(
+              icon: const Icon(Icons.remove_circle_outline),
+              tooltip: 'Remove',
+              onPressed: () => notifier.removeExtraField(field),
+            ),
+          );
+        }),
+        if (config.extraFields.isEmpty)
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
-              'Additional fields shown below the standard card content.',
+              'No extra fields configured. Add fields below.',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ),
-          ...config.extraFields.asMap().entries.map((entry) {
-            final field = entry.value;
-            return ListTile(
-              key: ValueKey(field),
-              leading: const Icon(Icons.drag_handle),
-              title: Text(field.displayName),
-              trailing: IconButton(
-                icon: const Icon(Icons.remove_circle_outline),
-                tooltip: 'Remove',
-                onPressed: () => notifier.removeExtraField(field),
-              ),
-            );
-          }),
-          if (config.extraFields.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                'No extra fields configured. Add fields below.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+
+        const Divider(),
+
+        // -- Available fields to add --
+        _SectionHeader(title: 'AVAILABLE FIELDS', theme: theme),
+        for (final category in DiveFieldCategory.values)
+          if (grouped.containsKey(category)) ...[
+            _CategoryHeader(label: category.name.toUpperCase(), theme: theme),
+            for (final field in grouped[category]!)
+              ListTile(
+                title: Text(field.displayName),
+                trailing: IconButton(
+                  icon: const Icon(Icons.add_circle_outline),
+                  tooltip: 'Add',
+                  onPressed: () => notifier.addExtraField(field),
                 ),
               ),
-            ),
+          ],
 
-          const Divider(),
-
-          // -- Available fields to add --
-          _SectionHeader(title: 'AVAILABLE FIELDS', theme: theme),
-          for (final category in DiveFieldCategory.values)
-            if (grouped.containsKey(category)) ...[
-              _CategoryHeader(label: category.name.toUpperCase(), theme: theme),
-              for (final field in grouped[category]!)
-                ListTile(
-                  title: Text(field.displayName),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.add_circle_outline),
-                    tooltip: 'Add',
-                    onPressed: () => notifier.addExtraField(field),
-                  ),
-                ),
-            ],
-
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: OutlinedButton(
-              onPressed: notifier.resetToDefault,
-              child: const Text('Reset to Default'),
-            ),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: OutlinedButton(
+            onPressed: notifier.resetToDefault,
+            child: const Text('Reset to Default'),
           ),
-          const SizedBox(height: 16),
-        ],
-      ),
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 

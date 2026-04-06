@@ -54,7 +54,6 @@ Dive _makeDive({
 
 Widget _buildTable({
   required List<Dive> dives,
-  Map<String, Duration?>? surfaceIntervals,
   void Function(String)? onDiveTap,
   void Function(String)? onDiveLongPress,
   void Function(String)? onDiveDoubleTap,
@@ -71,7 +70,6 @@ Widget _buildTable({
     ],
     child: DiveTableView(
       dives: dives,
-      surfaceIntervals: surfaceIntervals ?? const {},
       onDiveTap: onDiveTap ?? (_) {},
       onDiveLongPress: onDiveLongPress,
       onDiveDoubleTap: onDiveDoubleTap,

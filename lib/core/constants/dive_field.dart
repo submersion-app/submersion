@@ -985,7 +985,9 @@ extension DiveFieldMetadata on DiveField {
       case DiveField.isFavorite:
         return summary.isFavorite;
       case DiveField.diveTypeName:
-        return summary.diveTypeId;
+        final id = summary.diveTypeId;
+        if (id.isEmpty) return 'Recreational';
+        return id[0].toUpperCase() + id.substring(1).replaceAll('_', ' ');
       case DiveField.tags:
         return summary.tags.map((t) => t.name).toList();
       case DiveField.siteLocation:

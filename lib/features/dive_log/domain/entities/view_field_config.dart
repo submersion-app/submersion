@@ -32,6 +32,7 @@ class TableColumnConfig extends Equatable {
     return TableColumnConfig(
       field: DiveField.values.firstWhere(
         (e) => e.name == json['field'] as String,
+        orElse: () => DiveField.diveNumber,
       ),
       width: (json['width'] as num).toDouble(),
       isPinned: json['isPinned'] as bool,
@@ -91,13 +92,17 @@ class TableViewConfig extends Equatable {
 
   factory TableViewConfig.fromJson(Map<String, dynamic> json) {
     final sortFieldName = json['sortField'] as String?;
+    DiveField? sortField;
+    if (sortFieldName != null) {
+      sortField = DiveField.values
+          .where((e) => e.name == sortFieldName)
+          .firstOrNull;
+    }
     return TableViewConfig(
       columns: (json['columns'] as List<dynamic>)
           .map((c) => TableColumnConfig.fromJson(c as Map<String, dynamic>))
           .toList(),
-      sortField: sortFieldName != null
-          ? DiveField.values.firstWhere((e) => e.name == sortFieldName)
-          : null,
+      sortField: sortField,
       sortAscending: json['sortAscending'] as bool? ?? true,
     );
   }
@@ -129,6 +134,7 @@ class CardSlotConfig extends Equatable {
       slotId: json['slotId'] as String,
       field: DiveField.values.firstWhere(
         (e) => e.name == json['field'] as String,
+        orElse: () => DiveField.diveNumber,
       ),
     );
   }
@@ -218,9 +224,11 @@ class CardViewConfig extends Equatable {
       extraFields:
           (json['extraFields'] as List<dynamic>?)
               ?.map(
-                (f) =>
-                    DiveField.values.firstWhere((e) => e.name == f as String),
+                (f) => DiveField.values
+                    .where((e) => e.name == f as String)
+                    .firstOrNull,
               )
+              .whereType<DiveField>()
               .toList() ??
           [],
     );
@@ -289,21 +297,21 @@ class FieldPreset extends Equatable {
       FieldPreset(
         id: 'builtin_standard',
         name: 'Standard',
-        viewMode: ListViewMode.detailed,
+        viewMode: ListViewMode.table,
         configJson: standard.toJson(),
         isBuiltIn: true,
       ),
       FieldPreset(
         id: 'builtin_technical',
         name: 'Technical',
-        viewMode: ListViewMode.detailed,
+        viewMode: ListViewMode.table,
         configJson: technical.toJson(),
         isBuiltIn: true,
       ),
       FieldPreset(
         id: 'builtin_planning',
         name: 'Planning',
-        viewMode: ListViewMode.detailed,
+        viewMode: ListViewMode.table,
         configJson: planning.toJson(),
         isBuiltIn: true,
       ),

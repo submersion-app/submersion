@@ -25,7 +25,6 @@ const double _kCheckboxWidth = 48.0;
 ///   [NotificationListener]
 class DiveTableView extends ConsumerStatefulWidget {
   final List<Dive> dives;
-  final Map<String, Duration?> surfaceIntervals;
   final void Function(String diveId) onDiveTap;
   final void Function(String diveId)? onDiveLongPress;
   final void Function(String diveId)? onDiveDoubleTap;
@@ -36,7 +35,6 @@ class DiveTableView extends ConsumerStatefulWidget {
   const DiveTableView({
     super.key,
     required this.dives,
-    required this.surfaceIntervals,
     required this.onDiveTap,
     this.onDiveLongPress,
     this.onDiveDoubleTap,

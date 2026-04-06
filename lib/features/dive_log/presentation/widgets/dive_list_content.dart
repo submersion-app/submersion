@@ -1288,7 +1288,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// Build the DiveTableView widget from the full-Dive provider.
   Widget _buildTableView(BuildContext context, DiveFilterState filter) {
     final divesAsync = ref.watch(allDivesForTableProvider);
-    final surfaceIntervals = ref.watch(surfaceIntervalsProvider);
 
     return divesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -1305,7 +1304,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             Expanded(
               child: DiveTableView(
                 dives: dives,
-                surfaceIntervals: surfaceIntervals,
                 onDiveTap: (id) {
                   if (_isSelectionMode) {
                     _toggleSelection(id);

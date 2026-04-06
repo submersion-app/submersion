@@ -45,6 +45,7 @@ class TableViewConfigNotifier extends StateNotifier<domain.TableViewConfig> {
     _repository = repository;
     _diverId = diverId;
     final loaded = await repository.getTableConfig(diverId);
+    if (!mounted) return;
     state = loaded;
   }
 
@@ -200,6 +201,7 @@ class CardViewConfigNotifier extends StateNotifier<domain.CardViewConfig> {
     _diverId = diverId;
     _mode = mode;
     final loaded = await repository.getCardConfig(diverId, mode);
+    if (!mounted) return;
     state = loaded;
   }
 
