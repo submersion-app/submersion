@@ -8,6 +8,7 @@ import 'package:intl/intl.dart' show DateFormat;
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/constants/dive_detail_sections.dart';
@@ -495,7 +496,26 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: context.l10n.diveLog_detail_tooltip_editDive,
-            onPressed: () => context.go('/dives/$diveId/edit'),
+            onPressed: () {
+              // Use Navigator.push if opened outside go_router tree
+              // (e.g. from table view via Navigator.push).
+              bool inGoRouter = false;
+              try {
+                final state = GoRouterState.of(context);
+                inGoRouter = state.uri.path.contains(diveId);
+              } catch (_) {
+                // Not in go_router context
+              }
+              if (inGoRouter) {
+                context.go('/dives/$diveId/edit');
+              } else {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => DiveEditPage(diveId: diveId),
+                  ),
+                );
+              }
+            },
           ),
           PopupMenuButton<String>(
             onSelected: (value) {
