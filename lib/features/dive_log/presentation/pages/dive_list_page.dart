@@ -87,8 +87,48 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     );
   }
 
-  /// Table mode + map view: side-by-side with table+chart on left, map on right.
+  /// Table mode + map view.
+  /// Desktop: side-by-side with table on left, map on right (50/50).
+  /// Mobile: full-screen map (same as detailed mode).
   Widget _buildTableMapView(BuildContext context, Widget fab) {
+    final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
+
+    if (!isDesktop) {
+      // Mobile: full-screen map, same as detailed mode
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(context.l10n.diveLog_listPage_appBar_diveMap),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            tooltip: context.l10n.diveLog_listPage_tooltip_backToDiveList,
+            onPressed: _toggleMapView,
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.list),
+              tooltip: context.l10n.diveLog_listPage_tooltip_listView,
+              onPressed: _toggleMapView,
+            ),
+          ],
+        ),
+        body: DiveMapContent(
+          selectedId: _mobileMapSelectedDiveId,
+          onItemSelected: (diveId) {
+            setState(() => _mobileMapSelectedDiveId = diveId);
+          },
+          onDetailsTap: (diveId) {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) =>
+                    DiveDetailPage(diveId: diveId, pushedManually: true),
+              ),
+            );
+          },
+        ),
+      );
+    }
+
+    // Desktop: side-by-side
     final highlightedId = ref.watch(highlightedDiveIdProvider);
 
     return Scaffold(
@@ -96,16 +136,14 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
         children: [
           // Table + chart on the left
           Expanded(
-            flex: 3,
             child: DiveListContent(
               showAppBar: true,
               isMapViewActive: true,
               onMapViewToggle: _toggleMapView,
             ),
           ),
-          // Map on the right
+          // Map on the right (same width as table)
           Expanded(
-            flex: 2,
             child: DiveMapContent(
               selectedId: highlightedId,
               onItemSelected: (diveId) {
