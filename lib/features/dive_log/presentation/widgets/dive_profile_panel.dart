@@ -218,60 +218,59 @@ class _DiveProfilePanelContentState
               ],
             ),
           ),
-          // Chart in a Stack so tooltip can float below without pushing layout
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Listener(
-                onPointerHover: (event) {
-                  _cursorLocalX.value = event.localPosition.dx;
-                },
-                onPointerMove: (event) {
-                  _cursorLocalX.value = event.localPosition.dx;
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 4, right: 4),
-                  child: DiveProfileChart(
-                    profile: dive.profile,
-                    diveDuration: dive.effectiveRuntime,
-                    maxDepth: dive.maxDepth,
-                    ceilingCurve: analysis?.ceilingCurve,
-                    ascentRates: analysis?.ascentRates,
-                    events: analysis?.events,
-                    ndlCurve: analysis?.ndlCurve,
-                    sacCurve: analysis?.smoothedSacCurve,
-                    ppO2Curve: analysis?.ppO2Curve,
-                    ppN2Curve: analysis?.ppN2Curve,
-                    ppHeCurve: analysis?.ppHeCurve,
-                    modCurve: analysis?.modCurve,
-                    densityCurve: analysis?.densityCurve,
-                    gfCurve: analysis?.gfCurve,
-                    surfaceGfCurve: analysis?.surfaceGfCurve,
-                    meanDepthCurve: analysis?.meanDepthCurve,
-                    ttsCurve: analysis?.ttsCurve,
-                    cnsCurve: analysis?.cnsCurve,
-                    otuCurve: analysis?.otuCurve,
-                    tanks: dive.tanks,
-                    tankPressures: tankPressures,
-                    gasSwitches: gasSwitches,
-                    tooltipBelow: true,
-                    onPointSelected: (_) {},
-                    onTooltipData: _onTooltipData,
-                  ),
-                ),
+          // Chart with cursor tracking
+          Listener(
+            onPointerHover: (event) {
+              _cursorLocalX.value = event.localPosition.dx;
+            },
+            onPointerMove: (event) {
+              _cursorLocalX.value = event.localPosition.dx;
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(left: 4, right: 4),
+              child: DiveProfileChart(
+                profile: dive.profile,
+                diveDuration: dive.effectiveRuntime,
+                maxDepth: dive.maxDepth,
+                ceilingCurve: analysis?.ceilingCurve,
+                ascentRates: analysis?.ascentRates,
+                events: analysis?.events,
+                ndlCurve: analysis?.ndlCurve,
+                sacCurve: analysis?.smoothedSacCurve,
+                ppO2Curve: analysis?.ppO2Curve,
+                ppN2Curve: analysis?.ppN2Curve,
+                ppHeCurve: analysis?.ppHeCurve,
+                modCurve: analysis?.modCurve,
+                densityCurve: analysis?.densityCurve,
+                gfCurve: analysis?.gfCurve,
+                surfaceGfCurve: analysis?.surfaceGfCurve,
+                meanDepthCurve: analysis?.meanDepthCurve,
+                ttsCurve: analysis?.ttsCurve,
+                cnsCurve: analysis?.cnsCurve,
+                otuCurve: analysis?.otuCurve,
+                tanks: dive.tanks,
+                tankPressures: tankPressures,
+                gasSwitches: gasSwitches,
+                tooltipBelow: true,
+                onPointSelected: (_) {},
+                onTooltipData: _onTooltipData,
               ),
-              // Floating tooltip positioned below the chart
-              if (_tooltipRows != null && _tooltipRows!.isNotEmpty)
-                ValueListenableBuilder<double>(
-                  valueListenable: _cursorLocalX,
-                  builder: (context, cursorX, _) => Positioned(
-                    left: cursorX - 110,
-                    bottom: -4,
+            ),
+          ),
+          // Tooltip below chart -- IgnorePointer so it can't steal hover
+          if (_tooltipRows != null && _tooltipRows!.isNotEmpty)
+            IgnorePointer(
+              child: ValueListenableBuilder<double>(
+                valueListenable: _cursorLocalX,
+                builder: (context, cursorX, _) => Align(
+                  alignment: Alignment.topLeft,
+                  child: Transform.translate(
+                    offset: Offset(cursorX - 110, 0),
                     child: _buildTooltip(colorScheme),
                   ),
                 ),
-            ],
-          ),
+              ),
+            ),
           // Tiny spacer
           const SizedBox(height: 4),
         ],
