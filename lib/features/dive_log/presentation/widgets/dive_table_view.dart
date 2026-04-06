@@ -75,6 +75,47 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
   }
 
   @override
+  void didUpdateWidget(DiveTableView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Scroll to highlighted row when it changes (e.g. map marker tap)
+    if (widget.highlightedId != null &&
+        widget.highlightedId != oldWidget.highlightedId) {
+      _scrollToHighlightedRow();
+    }
+  }
+
+  void _scrollToHighlightedRow() {
+    if (widget.highlightedId == null) return;
+
+    final config = ref.read(tableViewConfigProvider);
+    final sorted = _sortedDives(config);
+    final index = sorted.indexWhere((d) => d.id == widget.highlightedId);
+    if (index < 0) return;
+
+    // Only scroll if the row is not already visible
+    if (!_pinnedVerticalController.hasClients) return;
+    final viewportHeight = _pinnedVerticalController.position.viewportDimension;
+    final currentOffset = _pinnedVerticalController.offset;
+    final rowTop = index * _kRowHeight;
+    final rowBottom = rowTop + _kRowHeight;
+
+    if (rowTop >= currentOffset &&
+        rowBottom <= currentOffset + viewportHeight) {
+      return; // Already visible
+    }
+
+    // Center the row in the viewport
+    final targetOffset = (rowTop - (viewportHeight / 2) + (_kRowHeight / 2))
+        .clamp(0.0, _pinnedVerticalController.position.maxScrollExtent);
+
+    _pinnedVerticalController.animateTo(
+      targetOffset,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
   void dispose() {
     _headerHorizontalController.dispose();
     _bodyHorizontalController.dispose();
