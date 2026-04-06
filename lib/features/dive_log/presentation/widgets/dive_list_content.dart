@@ -822,19 +822,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
   }
 
-  void _handleItemDoubleTap(DiveSummary dive) {
-    if (_isSelectionMode) return;
-
-    if (widget.onItemSelected != null) {
-      // Master-detail mode: notify parent to open detail pane
-      _selectionFromList = true;
-      widget.onItemSelected!(dive.id);
-    } else {
-      // Standalone mode: navigate to detail page
-      context.go('/dives/${dive.id}');
-    }
-  }
-
   void _showSortSheet(BuildContext context) {
     final sort = ref.read(diveSortProvider);
 
@@ -1400,9 +1387,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 final dive = dives[index];
                 final isSelected = _selectedIds.contains(dive.id);
                 final isMasterSelected = widget.selectedId == dive.id;
-                final isHighlighted =
-                    !_isSelectionMode &&
-                    ref.watch(highlightedDiveIdProvider) == dive.id;
                 final viewMode = ref.watch(diveListViewModeProvider);
                 return switch (viewMode) {
                   ListViewMode.detailed => DiveListTile(
@@ -1429,8 +1413,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     siteLatitude: dive.siteLatitude,
                     siteLongitude: dive.siteLongitude,
                     onTap: () => _handleItemTap(dive),
-                    onDoubleTap: () => _handleItemDoubleTap(dive),
-                    isHighlighted: isHighlighted,
                     onLongPress: _isSelectionMode
                         ? null
                         : () => _enterSelectionMode(dive.id),
@@ -1475,8 +1457,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                       DiveField.bottomTime,
                     ),
                     onTap: () => _handleItemTap(dive),
-                    onDoubleTap: () => _handleItemDoubleTap(dive),
-                    isHighlighted: isHighlighted,
                     onLongPress: _isSelectionMode
                         ? null
                         : () => _enterSelectionMode(dive.id),
@@ -1521,8 +1501,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                       DiveField.bottomTime,
                     ),
                     onTap: () => _handleItemTap(dive),
-                    onDoubleTap: () => _handleItemDoubleTap(dive),
-                    isHighlighted: isHighlighted,
                     onLongPress: _isSelectionMode
                         ? null
                         : () => _enterSelectionMode(dive.id),
