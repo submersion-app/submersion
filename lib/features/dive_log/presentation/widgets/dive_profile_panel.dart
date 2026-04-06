@@ -146,9 +146,17 @@ class _DiveProfilePanelContentState
       fontFeatures: const [FontFeature.tabularFigures()],
     );
 
+    // Convert global cursor to overlay-local coordinates
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox?;
+    final overlayOffset =
+        overlay?.globalToLocal(_globalCursorPos) ?? _globalCursorPos;
+    final overlayChartBottom =
+        overlay?.globalToLocal(chartBottomLeft) ?? chartBottomLeft;
+
     return Positioned(
-      left: _globalCursorPos.dx,
-      top: chartBottomLeft.dy + 4,
+      left: overlayOffset.dx,
+      top: overlayChartBottom.dy + 4,
       child: FractionalTranslation(
         translation: const Offset(-0.5, 0),
         child: IgnorePointer(
