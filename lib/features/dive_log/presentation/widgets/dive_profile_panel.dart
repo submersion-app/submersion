@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -11,7 +12,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Panel that displays the dive profile chart for the currently highlighted
-/// dive. Tooltip floats below the chart, following the cursor.
+/// dive. Tooltip floats as an Overlay on top of all content below.
 class DiveProfilePanel extends ConsumerWidget {
   const DiveProfilePanel({super.key});
 
@@ -70,29 +71,118 @@ class _DiveProfilePanelContent extends ConsumerStatefulWidget {
 
 class _DiveProfilePanelContentState
     extends ConsumerState<_DiveProfilePanelContent> {
-  List<TooltipRow>? _tooltipRows;
-  final ValueNotifier<double> _cursorLocalX = ValueNotifier(0);
   Dive? _lastDive;
+  List<TooltipRow>? _tooltipRows;
+  Offset _globalCursorPos = Offset.zero;
+  OverlayEntry? _overlayEntry;
+  final GlobalKey _chartAreaKey = GlobalKey();
 
   @override
   void didUpdateWidget(_DiveProfilePanelContent oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.diveId != oldWidget.diveId) {
+      _removeOverlay();
       _tooltipRows = null;
     }
   }
 
   @override
   void dispose() {
-    _cursorLocalX.dispose();
+    _removeOverlay();
     super.dispose();
   }
 
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
   void _onTooltipData(List<TooltipRow>? rows) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    _tooltipRows = rows;
+    if (rows == null || rows.isEmpty) {
+      _removeOverlay();
+      return;
+    }
+    // Schedule overlay update after current frame completes
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      setState(() => _tooltipRows = rows);
+      if (_tooltipRows == null || _tooltipRows!.isEmpty) {
+        _removeOverlay();
+        return;
+      }
+      if (_overlayEntry == null) {
+        _overlayEntry = OverlayEntry(builder: (_) => _buildOverlayTooltip());
+        Overlay.of(context).insert(_overlayEntry!);
+      } else {
+        _overlayEntry!.markNeedsBuild();
+      }
     });
+  }
+
+  void _onPointerUpdate(Offset globalPos) {
+    _globalCursorPos = globalPos;
+    _overlayEntry?.markNeedsBuild();
+  }
+
+  Widget _buildOverlayTooltip() {
+    final rows = _tooltipRows;
+    if (rows == null || rows.isEmpty) return const SizedBox.shrink();
+
+    // Get chart area bottom in global coordinates
+    final chartBox =
+        _chartAreaKey.currentContext?.findRenderObject() as RenderBox?;
+    if (chartBox == null || !chartBox.attached) return const SizedBox.shrink();
+
+    final chartBottomLeft = chartBox.localToGlobal(
+      Offset(0, chartBox.size.height),
+    );
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final onSurface = colorScheme.onInverseSurface;
+    final rowStyle = TextStyle(
+      fontFamily: 'RobotoMono',
+      fontSize: 14,
+      color: onSurface,
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
+
+    // Position: top edge at chart bottom, centered on cursor X
+    final tooltipLeft = (_globalCursorPos.dx - 110).clamp(
+      chartBottomLeft.dx,
+      double.infinity,
+    );
+
+    return Positioned(
+      left: tooltipLeft,
+      top: chartBottomLeft.dy + 4,
+      child: IgnorePointer(
+        child: Material(
+          elevation: 8,
+          borderRadius: BorderRadius.circular(8),
+          color: colorScheme.inverseSurface,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: rows.map((row) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '\u25CF ',
+                      style: TextStyle(color: row.bulletColor, fontSize: 12),
+                    ),
+                    Text(row.label.padRight(8), style: rowStyle),
+                    Text(row.value, style: rowStyle),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -100,13 +190,13 @@ class _DiveProfilePanelContentState
     final diveAsync = ref.watch(diveProvider(widget.diveId));
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Cache loaded dive so the previous chart stays visible while
-    // a newly selected dive loads (prevents blink).
+    // Cache loaded dive so previous chart stays visible while new loads
     final freshDive = diveAsync.valueOrNull;
     if (freshDive != null) {
       _lastDive = freshDive;
     }
     final dive = _lastDive;
+
     if (diveAsync.hasError && dive == null) {
       return SizedBox(
         height: 100,
@@ -220,12 +310,9 @@ class _DiveProfilePanelContentState
           ),
           // Chart with cursor tracking
           Listener(
-            onPointerHover: (event) {
-              _cursorLocalX.value = event.localPosition.dx;
-            },
-            onPointerMove: (event) {
-              _cursorLocalX.value = event.localPosition.dx;
-            },
+            key: _chartAreaKey,
+            onPointerHover: (e) => _onPointerUpdate(e.position),
+            onPointerMove: (e) => _onPointerUpdate(e.position),
             child: Padding(
               padding: const EdgeInsets.only(left: 4, right: 4),
               child: DiveProfileChart(
@@ -257,67 +344,9 @@ class _DiveProfilePanelContentState
               ),
             ),
           ),
-          // Tooltip: zero layout height so it overlays the table below
-          if (_tooltipRows != null && _tooltipRows!.isNotEmpty)
-            SizedBox(
-              height: 0,
-              child: OverflowBox(
-                alignment: Alignment.topLeft,
-                maxHeight: 300,
-                child: IgnorePointer(
-                  child: ValueListenableBuilder<double>(
-                    valueListenable: _cursorLocalX,
-                    builder: (context, cursorX, _) => Padding(
-                      padding: EdgeInsets.only(
-                        left: (cursorX - 110).clamp(0, double.infinity),
-                      ),
-                      child: _buildTooltip(colorScheme),
-                    ),
-                  ),
-                ),
-              ),
-            ),
           // Tiny spacer
           const SizedBox(height: 4),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTooltip(ColorScheme colorScheme) {
-    final onSurface = colorScheme.onInverseSurface;
-    final rowStyle = TextStyle(
-      fontFamily: 'RobotoMono',
-      fontSize: 14,
-      color: onSurface,
-      fontFeatures: const [FontFeature.tabularFigures()],
-    );
-
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: colorScheme.inverseSurface,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: _tooltipRows!.map((row) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '\u25CF ',
-                  style: TextStyle(color: row.bulletColor, fontSize: 12),
-                ),
-                Text(row.label.padRight(8), style: rowStyle),
-                Text(row.value, style: rowStyle),
-              ],
-            );
-          }).toList(),
-        ),
       ),
     );
   }
