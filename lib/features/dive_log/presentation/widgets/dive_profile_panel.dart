@@ -71,6 +71,7 @@ class _DiveProfilePanelContent extends ConsumerStatefulWidget {
 class _DiveProfilePanelContentState
     extends ConsumerState<_DiveProfilePanelContent> {
   int? _selectedPointIndex;
+  double _cursorLocalX = 0;
   final LayerLink _tooltipLayerLink = LayerLink();
   OverlayEntry? _tooltipOverlay;
 
@@ -230,36 +231,46 @@ class _DiveProfilePanelContentState
               ],
             ),
           ),
-          // Chart with tooltip anchor at bottom
+          // Chart with tooltip anchor at bottom + cursor tracking
           CompositedTransformTarget(
             link: _tooltipLayerLink,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 4, right: 4),
-              child: DiveProfileChart(
-                profile: dive.profile,
-                diveDuration: dive.effectiveRuntime,
-                maxDepth: dive.maxDepth,
-                ceilingCurve: analysis?.ceilingCurve,
-                ascentRates: analysis?.ascentRates,
-                events: analysis?.events,
-                ndlCurve: analysis?.ndlCurve,
-                sacCurve: analysis?.smoothedSacCurve,
-                ppO2Curve: analysis?.ppO2Curve,
-                ppN2Curve: analysis?.ppN2Curve,
-                ppHeCurve: analysis?.ppHeCurve,
-                modCurve: analysis?.modCurve,
-                densityCurve: analysis?.densityCurve,
-                gfCurve: analysis?.gfCurve,
-                surfaceGfCurve: analysis?.surfaceGfCurve,
-                meanDepthCurve: analysis?.meanDepthCurve,
-                ttsCurve: analysis?.ttsCurve,
-                cnsCurve: analysis?.cnsCurve,
-                otuCurve: analysis?.otuCurve,
-                tanks: dive.tanks,
-                tankPressures: tankPressures,
-                gasSwitches: gasSwitches,
-                tooltipBelow: true,
-                onPointSelected: _onPointSelected,
+            child: Listener(
+              onPointerHover: (event) {
+                _cursorLocalX = event.localPosition.dx;
+                _tooltipOverlay?.markNeedsBuild();
+              },
+              onPointerMove: (event) {
+                _cursorLocalX = event.localPosition.dx;
+                _tooltipOverlay?.markNeedsBuild();
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(left: 4, right: 4),
+                child: DiveProfileChart(
+                  profile: dive.profile,
+                  diveDuration: dive.effectiveRuntime,
+                  maxDepth: dive.maxDepth,
+                  ceilingCurve: analysis?.ceilingCurve,
+                  ascentRates: analysis?.ascentRates,
+                  events: analysis?.events,
+                  ndlCurve: analysis?.ndlCurve,
+                  sacCurve: analysis?.smoothedSacCurve,
+                  ppO2Curve: analysis?.ppO2Curve,
+                  ppN2Curve: analysis?.ppN2Curve,
+                  ppHeCurve: analysis?.ppHeCurve,
+                  modCurve: analysis?.modCurve,
+                  densityCurve: analysis?.densityCurve,
+                  gfCurve: analysis?.gfCurve,
+                  surfaceGfCurve: analysis?.surfaceGfCurve,
+                  meanDepthCurve: analysis?.meanDepthCurve,
+                  ttsCurve: analysis?.ttsCurve,
+                  cnsCurve: analysis?.cnsCurve,
+                  otuCurve: analysis?.otuCurve,
+                  tanks: dive.tanks,
+                  tankPressures: tankPressures,
+                  gasSwitches: gasSwitches,
+                  tooltipBelow: true,
+                  onPointSelected: _onPointSelected,
+                ),
               ),
             ),
           ),
@@ -358,8 +369,8 @@ class _TooltipOverlay extends StatelessWidget {
     return CompositedTransformFollower(
       link: link,
       targetAnchor: Alignment.bottomLeft,
-      followerAnchor: Alignment.topLeft,
-      offset: const Offset(12, 0),
+      followerAnchor: Alignment.topCenter,
+      offset: Offset(panelState._cursorLocalX, 0),
       child: Align(
         alignment: Alignment.topLeft,
         child: Material(
