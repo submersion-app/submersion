@@ -23,17 +23,17 @@ void main() {
       const channel = MethodChannel('plugins.flutter.io/url_launcher');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-        if (methodCall.method == 'launch') {
-          launchCalled = true;
-          final args = methodCall.arguments as Map<dynamic, dynamic>;
-          launchedUrl = args['url'] as String?;
-          useSafariVC = args['useSafariVC'] as bool?;
-          useWebView = args['useWebView'] as bool?;
-          return true;
-        }
-        if (methodCall.method == 'canLaunch') return true;
-        return null;
-      });
+            if (methodCall.method == 'launch') {
+              launchCalled = true;
+              final args = methodCall.arguments as Map<dynamic, dynamic>;
+              launchedUrl = args['url'] as String?;
+              useSafariVC = args['useSafariVC'] as bool?;
+              useWebView = args['useWebView'] as bool?;
+              return true;
+            }
+            if (methodCall.method == 'canLaunch') return true;
+            return null;
+          });
       addTearDown(
         () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, null),
@@ -68,10 +68,10 @@ void main() {
       const channel = MethodChannel('plugins.flutter.io/url_launcher');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-        if (methodCall.method == 'launch') return false;
-        if (methodCall.method == 'canLaunch') return false;
-        return null;
-      });
+            if (methodCall.method == 'launch') return false;
+            if (methodCall.method == 'canLaunch') return false;
+            return null;
+          });
       addTearDown(
         () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, null),
@@ -101,12 +101,12 @@ void main() {
       const channel = MethodChannel('plugins.flutter.io/url_launcher');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-        if (methodCall.method == 'canLaunch') return true;
-        if (methodCall.method == 'launch') {
-          throw PlatformException(code: 'ERROR');
-        }
-        return null;
-      });
+            if (methodCall.method == 'canLaunch') return true;
+            if (methodCall.method == 'launch') {
+              throw PlatformException(code: 'ERROR');
+            }
+            return null;
+          });
       addTearDown(
         () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, null),
