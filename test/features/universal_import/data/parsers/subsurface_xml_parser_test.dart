@@ -374,6 +374,8 @@ void main() {
 <dives>
 <dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
   <cylinder size='3.0 l' description='Diluent' use='diluent' o2='10.0%' he='50.0%' />
+  <cylinder size='11.1 l' description='Stage' use='stage' o2='50.0%' />
+  <cylinder size='11.1 l' description='Sidemount' use='sidemount' o2='32.0%' />
   <divecomputer model='Test CCR'>
   <depth max='20.0 m' mean='15.0 m' />
   </divecomputer>
@@ -386,7 +388,9 @@ void main() {
       final tanks =
           result.entitiesOf(ImportEntityType.dives).first['tanks']
               as List<Map<String, dynamic>>;
-      expect(tanks.single['role'], TankRole.diluent);
+      expect(tanks[0]['role'], TankRole.diluent);
+      expect(tanks[1]['role'], TankRole.stage);
+      expect(tanks[2]['role'], isNull);
     });
 
     test(

@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
@@ -185,8 +186,6 @@ class UddfEntityImporter {
   final TankPresetEntity? _defaultTankPreset;
   final int _defaultStartPressure;
   final bool _applyDefaultTankToImports;
-
-  static double? _asDouble(Object? value) => (value as num?)?.toDouble();
 
   UddfEntityImporter({
     TankPresetEntity? defaultTankPreset,
@@ -972,15 +971,15 @@ class UddfEntityImporter {
               ?.map(
                 (p) => DiveProfilePoint(
                   timestamp: p['timestamp'] as int? ?? 0,
-                  depth: _asDouble(p['depth']) ?? 0.0,
-                  temperature: _asDouble(p['temperature']),
+                  depth: asDoubleOrNull(p['depth']) ?? 0.0,
+                  temperature: asDoubleOrNull(p['temperature']),
                   heartRate: p['heartRate'] as int?,
-                  cns: _asDouble(p['cns']),
+                  cns: asDoubleOrNull(p['cns']),
                   ndl: p['ndl'] as int?,
                   rbt: p['rbt'] as int?,
                   decoType: p['decoType'] as int?,
-                  setpoint: _asDouble(p['setpoint']),
-                  ppO2: _asDouble(p['ppO2']),
+                  setpoint: asDoubleOrNull(p['setpoint']),
+                  ppO2: asDoubleOrNull(p['ppO2']),
                 ),
               )
               .toList() ??
@@ -1105,11 +1104,11 @@ class UddfEntityImporter {
         exitTime: exitTime,
         bottomTime: diveData['duration'] as Duration?,
         runtime: runtime,
-        maxDepth: _asDouble(diveData['maxDepth']),
-        avgDepth: _asDouble(diveData['avgDepth']),
-        waterTemp: _asDouble(diveData['waterTemp']),
-        airTemp: _asDouble(diveData['airTemp']),
-        surfacePressure: _asDouble(diveData['surfacePressure']),
+        maxDepth: asDoubleOrNull(diveData['maxDepth']),
+        avgDepth: asDoubleOrNull(diveData['avgDepth']),
+        waterTemp: asDoubleOrNull(diveData['waterTemp']),
+        airTemp: asDoubleOrNull(diveData['airTemp']),
+        surfacePressure: asDoubleOrNull(diveData['surfacePressure']),
         surfaceInterval: diveData['surfaceInterval'] as Duration?,
         gradientFactorLow: diveData['gradientFactorLow'] as int?,
         gradientFactorHigh: diveData['gradientFactorHigh'] as int?,
@@ -1138,29 +1137,29 @@ class UddfEntityImporter {
           diveData['currentStrength'],
           CurrentStrength.values,
         ),
-        swellHeight: _asDouble(diveData['swellHeight']),
+        swellHeight: asDoubleOrNull(diveData['swellHeight']),
         entryMethod: _parseEnum(diveData['entryMethod'], EntryMethod.values),
         exitMethod: _parseEnum(diveData['exitMethod'], EntryMethod.values),
         waterType: _parseEnum(diveData['waterType'], WaterType.values),
-        altitude: _asDouble(diveData['altitude']),
+        altitude: asDoubleOrNull(diveData['altitude']),
         // Dive mode and rebreather fields
         diveMode: diveMode,
         isPlanned: isPlanned,
         isFavorite: isFavorite,
         courseId: linkedCourseId,
-        setpointLow: _asDouble(diveData['setpointLow']),
-        setpointHigh: _asDouble(diveData['setpointHigh']),
-        setpointDeco: _asDouble(diveData['setpointDeco']),
+        setpointLow: asDoubleOrNull(diveData['setpointLow']),
+        setpointHigh: asDoubleOrNull(diveData['setpointHigh']),
+        setpointDeco: asDoubleOrNull(diveData['setpointDeco']),
         scrType: diveData['scrType'] as ScrType?,
-        scrInjectionRate: _asDouble(diveData['scrInjectionRate']),
-        scrAdditionRatio: _asDouble(diveData['scrAdditionRatio']),
+        scrInjectionRate: asDoubleOrNull(diveData['scrInjectionRate']),
+        scrAdditionRatio: asDoubleOrNull(diveData['scrAdditionRatio']),
         scrOrificeSize: diveData['scrOrificeSize'] as String?,
-        assumedVo2: _asDouble(diveData['assumedVo2']),
+        assumedVo2: asDoubleOrNull(diveData['assumedVo2']),
         diluentGas: diluentGas,
-        loopO2Min: _asDouble(diveData['loopO2Min']),
-        loopO2Max: _asDouble(diveData['loopO2Max']),
-        loopO2Avg: _asDouble(diveData['loopO2Avg']),
-        loopVolume: _asDouble(diveData['loopVolume']),
+        loopO2Min: asDoubleOrNull(diveData['loopO2Min']),
+        loopO2Max: asDoubleOrNull(diveData['loopO2Max']),
+        loopO2Avg: asDoubleOrNull(diveData['loopO2Avg']),
+        loopVolume: asDoubleOrNull(diveData['loopVolume']),
         scrubber: scrubber,
       );
 
@@ -1255,14 +1254,14 @@ class UddfEntityImporter {
           computerSerial: Value(diveData['diveComputerSerial'] as String?),
           sourceFileName: Value(sourceFileName),
           sourceFileFormat: const Value('uddf'),
-          maxDepth: Value(_asDouble(diveData['maxDepth'])),
-          avgDepth: Value(_asDouble(diveData['avgDepth'])),
+          maxDepth: Value(asDoubleOrNull(diveData['maxDepth'])),
+          avgDepth: Value(asDoubleOrNull(diveData['avgDepth'])),
           duration: Value(dive.bottomTime?.inSeconds),
-          waterTemp: Value(_asDouble(diveData['waterTemp'])),
+          waterTemp: Value(asDoubleOrNull(diveData['waterTemp'])),
           entryTime: Value(dive.entryTime),
           exitTime: Value(dive.exitTime),
-          cns: Value(_asDouble(diveData['cnsEnd'])),
-          otu: Value(_asDouble(diveData['otu'])),
+          cns: Value(asDoubleOrNull(diveData['cnsEnd'])),
+          otu: Value(asDoubleOrNull(diveData['otu'])),
           importedAt: Value(now),
           createdAt: Value(now),
         ),

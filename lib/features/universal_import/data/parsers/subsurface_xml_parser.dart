@@ -721,7 +721,7 @@ class SubsurfaceXmlParser implements ImportParser {
       'bailout' => TankRole.bailout,
       'stage' => TankRole.stage,
       'deco' => TankRole.deco,
-      'sidemount' => TankRole.sidemountLeft,
+      'sidemount' => null,
       'sidemount-left' => TankRole.sidemountLeft,
       'sidemount-right' => TankRole.sidemountRight,
       'pony' => TankRole.pony,

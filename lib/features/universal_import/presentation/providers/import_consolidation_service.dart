@@ -3,10 +3,9 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion, DiveProfilesCompanion;
+import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
-
-double? _asDouble(Object? value) => (value as num?)?.toDouble();
 
 /// Attaches consolidate-flagged imported dives as secondary computer
 /// readings on matched existing dives.
@@ -43,14 +42,14 @@ Future<int> performConsolidations({
       computerModel: Value(diveData['diveComputerModel'] as String?),
       computerSerial: Value(diveData['diveComputerSerial'] as String?),
       sourceFormat: Value(diveData['sourceFormat'] as String?),
-      maxDepth: Value(_asDouble(diveData['maxDepth'])),
-      avgDepth: Value(_asDouble(diveData['avgDepth'])),
+      maxDepth: Value(asDoubleOrNull(diveData['maxDepth'])),
+      avgDepth: Value(asDoubleOrNull(diveData['avgDepth'])),
       duration: Value(effectiveDuration?.inSeconds),
-      waterTemp: Value(_asDouble(diveData['waterTemp'])),
+      waterTemp: Value(asDoubleOrNull(diveData['waterTemp'])),
       entryTime: Value(dateTime),
       exitTime: Value(exitTime),
-      cns: Value(_asDouble(diveData['cnsEnd'])),
-      otu: Value(_asDouble(diveData['otu'])),
+      cns: Value(asDoubleOrNull(diveData['cnsEnd'])),
+      otu: Value(asDoubleOrNull(diveData['otu'])),
       importedAt: now,
       createdAt: now,
     );
@@ -65,13 +64,13 @@ Future<int> performConsolidations({
             diveId: matchResult.diveId,
             isPrimary: const Value(false),
             timestamp: p['timestamp'] as int? ?? 0,
-            depth: _asDouble(p['depth']) ?? 0.0,
-            temperature: Value(_asDouble(p['temperature'])),
+            depth: asDoubleOrNull(p['depth']) ?? 0.0,
+            temperature: Value(asDoubleOrNull(p['temperature'])),
             pressure: const Value(null),
             heartRate: Value(p['heartRate'] as int?),
-            setpoint: Value(_asDouble(p['setpoint'])),
-            ppO2: Value(_asDouble(p['ppO2'])),
-            cns: Value(_asDouble(p['cns'])),
+            setpoint: Value(asDoubleOrNull(p['setpoint'])),
+            ppO2: Value(asDoubleOrNull(p['ppO2'])),
+            cns: Value(asDoubleOrNull(p['cns'])),
             ndl: Value(p['ndl'] as int?),
             rbt: Value(p['rbt'] as int?),
             decoType: Value(p['decoType'] as int?),

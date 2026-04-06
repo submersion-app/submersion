@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -470,7 +471,6 @@ class UniversalAdapter implements ImportSourceAdapter {
 
   static final _dateFormatter = DateFormat('MMM d, yyyy');
   static final _timeFormatter = DateFormat('h:mm a');
-  static double? _asDouble(Object? value) => (value as num?)?.toDouble();
 
   void _addGroupIfNotEmpty(
     Map<wizard.ImportEntityType, EntityGroup> groups,
@@ -484,7 +484,7 @@ class UniversalAdapter implements ImportSourceAdapter {
 
   EntityItem _diveToEntityItem(Map<String, dynamic> data) {
     final dateTime = data['dateTime'] as DateTime?;
-    final maxDepth = _asDouble(data['maxDepth']);
+    final maxDepth = asDoubleOrNull(data['maxDepth']);
     final runtime = data['runtime'] as Duration?;
     final duration = data['duration'] as Duration?;
     final effectiveDuration = runtime ?? duration;
