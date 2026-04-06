@@ -72,6 +72,7 @@ class _DiveProfilePanelContentState
     extends ConsumerState<_DiveProfilePanelContent> {
   List<TooltipRow>? _tooltipRows;
   double _cursorLocalX = 0;
+  Dive? _lastDive;
 
   @override
   void didUpdateWidget(_DiveProfilePanelContent oldWidget) {
@@ -90,10 +91,14 @@ class _DiveProfilePanelContentState
     final diveAsync = ref.watch(diveProvider(widget.diveId));
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Use .whenData to avoid flashing a loading spinner when switching dives.
-    // The previous dive's chart stays visible until the new one is ready.
-    final dive = diveAsync.valueOrNull;
-    if (diveAsync.hasError) {
+    // Cache loaded dive so the previous chart stays visible while
+    // a newly selected dive loads (prevents blink).
+    final freshDive = diveAsync.valueOrNull;
+    if (freshDive != null) {
+      _lastDive = freshDive;
+    }
+    final dive = _lastDive;
+    if (diveAsync.hasError && dive == null) {
       return SizedBox(
         height: 100,
         child: Center(
@@ -241,6 +246,7 @@ class _DiveProfilePanelContentState
                     tankPressures: tankPressures,
                     gasSwitches: gasSwitches,
                     tooltipBelow: true,
+                    onPointSelected: (_) {},
                     onTooltipData: _onTooltipData,
                   ),
                 ),
