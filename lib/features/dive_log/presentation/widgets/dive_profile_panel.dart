@@ -71,7 +71,7 @@ class _DiveProfilePanelContent extends ConsumerStatefulWidget {
 class _DiveProfilePanelContentState
     extends ConsumerState<_DiveProfilePanelContent> {
   List<TooltipRow>? _tooltipRows;
-  double _cursorLocalX = 0;
+  final ValueNotifier<double> _cursorLocalX = ValueNotifier(0);
   Dive? _lastDive;
 
   @override
@@ -80,6 +80,12 @@ class _DiveProfilePanelContentState
     if (widget.diveId != oldWidget.diveId) {
       _tooltipRows = null;
     }
+  }
+
+  @override
+  void dispose() {
+    _cursorLocalX.dispose();
+    super.dispose();
   }
 
   void _onTooltipData(List<TooltipRow>? rows) {
@@ -215,10 +221,10 @@ class _DiveProfilePanelContentState
             children: [
               Listener(
                 onPointerHover: (event) {
-                  setState(() => _cursorLocalX = event.localPosition.dx);
+                  _cursorLocalX.value = event.localPosition.dx;
                 },
                 onPointerMove: (event) {
-                  setState(() => _cursorLocalX = event.localPosition.dx);
+                  _cursorLocalX.value = event.localPosition.dx;
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(left: 4, right: 4),
@@ -253,10 +259,13 @@ class _DiveProfilePanelContentState
               ),
               // Floating tooltip positioned below the chart
               if (_tooltipRows != null && _tooltipRows!.isNotEmpty)
-                Positioned(
-                  left: _cursorLocalX - 110,
-                  bottom: -4,
-                  child: _buildTooltip(colorScheme),
+                ValueListenableBuilder<double>(
+                  valueListenable: _cursorLocalX,
+                  builder: (context, cursorX, _) => Positioned(
+                    left: cursorX - 110,
+                    bottom: -4,
+                    child: _buildTooltip(colorScheme),
+                  ),
                 ),
             ],
           ),
