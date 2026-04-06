@@ -1256,10 +1256,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     ? (_) => Colors.transparent
                     : (spot) => colorScheme.inverseSurface,
                 getTooltipItems: (touchedSpots) {
-                  // When tooltipBelow, build external tooltip data and suppress
-                  // the visual bubble. Touch events still fire for crosshair.
+                  // When tooltipBelow, suppress the visual bubble.
+                  // Tooltip data is emitted via touchCallback instead.
                   if (widget.tooltipBelow) {
-                    _emitExternalTooltip(touchedSpots, units, colorScheme);
                     return touchedSpots.map((_) => null).toList();
                   }
                   // Return cached result if the same spot index is touched again

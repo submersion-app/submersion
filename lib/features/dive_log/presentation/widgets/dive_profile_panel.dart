@@ -89,7 +89,10 @@ class _DiveProfilePanelContentState
   }
 
   void _onTooltipData(List<TooltipRow>? rows) {
-    setState(() => _tooltipRows = rows);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _tooltipRows = rows);
+    });
   }
 
   @override
