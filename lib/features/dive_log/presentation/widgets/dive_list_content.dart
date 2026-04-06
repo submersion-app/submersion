@@ -1296,7 +1296,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 },
                 onDiveDoubleTap: (id) {
                   if (_isSelectionMode) return;
-                  context.push('/dives/$id');
+                  context.go('/dives/$id');
                 },
                 onDiveLongPress: _isSelectionMode
                     ? null
