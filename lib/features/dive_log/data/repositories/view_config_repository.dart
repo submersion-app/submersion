@@ -48,6 +48,35 @@ class ViewConfigRepository {
   }
 
   // ---------------------------------------------------------------------------
+  // Generic Config (entity-type-agnostic)
+  // ---------------------------------------------------------------------------
+
+  /// Returns the raw JSON config string for [diverId] and [viewModeKey], or
+  /// null if none is saved. Used by generic [EntityTableConfigNotifier] with
+  /// keys like `"table_sites"`, `"table_trips"`, etc.
+  Future<String?> getRawConfig(String diverId, String viewModeKey) async {
+    final row =
+        await (_db.select(_db.viewConfigs)..where(
+              (r) => r.diverId.equals(diverId) & r.viewMode.equals(viewModeKey),
+            ))
+            .getSingleOrNull();
+    return row?.configJson;
+  }
+
+  /// Persists a raw JSON config string for [diverId] and [viewModeKey].
+  Future<void> saveRawConfig(
+    String diverId,
+    String viewModeKey,
+    String configJson,
+  ) async {
+    await _upsertViewConfig(
+      diverId: diverId,
+      viewMode: viewModeKey,
+      configJson: configJson,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // Card Config
   // ---------------------------------------------------------------------------
 
