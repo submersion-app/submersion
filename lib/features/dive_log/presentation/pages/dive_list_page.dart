@@ -70,10 +70,12 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
 
   void _showAddDiveSheet(BuildContext context) {
     final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
+    final viewMode = ref.read(diveListViewModeProvider);
     showAddDiveBottomSheet(
       context: context,
       onLogManually: () {
-        if (isDesktop) {
+        // Table mode uses full-width layout (no detail pane), so always push
+        if (isDesktop && viewMode != ListViewMode.table) {
           final state = GoRouterState.of(context);
           final currentPath = state.uri.path;
           context.go('$currentPath?mode=new');
