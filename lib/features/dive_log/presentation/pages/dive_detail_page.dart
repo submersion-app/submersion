@@ -171,17 +171,25 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // On desktop, redirect standalone detail pages to master-detail view
-    // This ensures all dive detail navigation shows the split layout on desktop
+    // On desktop, redirect standalone detail pages to master-detail view.
+    // Skip redirect if opened via Navigator.push (e.g. from table view)
+    // since there's no master-detail shell to redirect into.
     if (!widget.embedded &&
         !_hasRedirected &&
         ResponsiveBreakpoints.isMasterDetail(context)) {
-      _hasRedirected = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          context.go('/dives?selected=$diveId');
-        }
-      });
+      bool inGoRouter = false;
+      try {
+        final state = GoRouterState.of(context);
+        inGoRouter = state.uri.path.contains(diveId);
+      } catch (_) {}
+      if (inGoRouter) {
+        _hasRedirected = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            context.go('/dives?selected=$diveId');
+          }
+        });
+      }
     }
 
     final diveAsync = ref.watch(diveProvider(diveId));
