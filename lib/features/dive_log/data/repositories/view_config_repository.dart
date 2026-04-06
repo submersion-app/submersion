@@ -132,19 +132,33 @@ class ViewConfigRepository {
   }
 
   /// Upserts [preset] for [diverId] into the field presets table.
+  ///
+  /// On conflict (same [preset.id]), updates all fields except [createdAt] so
+  /// the original creation timestamp is preserved across renames/edits.
   Future<void> savePreset(String diverId, domain.FieldPreset preset) async {
     final now = DateTime.now().millisecondsSinceEpoch;
+    final companion = FieldPresetsCompanion.insert(
+      id: preset.id,
+      diverId: diverId,
+      viewMode: preset.viewMode.name,
+      name: preset.name,
+      configJson: jsonEncode(preset.configJson),
+      isBuiltIn: Value(preset.isBuiltIn),
+      createdAt: now,
+    );
     await _db
         .into(_db.fieldPresets)
-        .insertOnConflictUpdate(
-          FieldPresetsCompanion(
-            id: Value(preset.id),
-            diverId: Value(diverId),
-            viewMode: Value(preset.viewMode.name),
-            name: Value(preset.name),
-            configJson: Value(jsonEncode(preset.configJson)),
-            isBuiltIn: Value(preset.isBuiltIn),
-            createdAt: Value(now),
+        .insert(
+          companion,
+          onConflict: DoUpdate(
+            (_) => FieldPresetsCompanion(
+              diverId: Value(diverId),
+              viewMode: Value(preset.viewMode.name),
+              name: Value(preset.name),
+              configJson: Value(jsonEncode(preset.configJson)),
+              isBuiltIn: Value(preset.isBuiltIn),
+              // createdAt intentionally omitted to preserve original timestamp
+            ),
           ),
         );
   }
@@ -156,29 +170,24 @@ class ViewConfigRepository {
     )..where((r) => r.id.equals(presetId) & r.isBuiltIn.equals(false))).go();
   }
 
-  /// Inserts built-in table presets for [diverId] if they do not already exist.
+  /// Upserts built-in table presets for [diverId]. Idempotent: safe to call
+  /// on every load. Uses insertOnConflictUpdate so presets are refreshed if
+  /// the built-in definitions change, but createdAt is preserved by using a
+  /// fixed stable timestamp per preset ID.
   Future<void> ensureBuiltInPresets(String diverId) async {
-    final existing =
-        await (_db.select(_db.fieldPresets)..where(
-              (r) => r.diverId.equals(diverId) & r.isBuiltIn.equals(true),
-            ))
-            .get();
-
-    if (existing.isNotEmpty) return;
-
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final preset in domain.FieldPreset.builtInTablePresets()) {
       await _db
           .into(_db.fieldPresets)
-          .insert(
-            FieldPresetsCompanion(
-              id: Value(preset.id),
-              diverId: Value(diverId),
-              viewMode: Value(preset.viewMode.name),
-              name: Value(preset.name),
-              configJson: Value(jsonEncode(preset.configJson)),
-              isBuiltIn: Value(preset.isBuiltIn),
-              createdAt: Value(now),
+          .insertOnConflictUpdate(
+            FieldPresetsCompanion.insert(
+              id: preset.id,
+              diverId: diverId,
+              viewMode: preset.viewMode.name,
+              name: preset.name,
+              configJson: jsonEncode(preset.configJson),
+              isBuiltIn: const Value(true),
+              createdAt: now,
             ),
           );
     }

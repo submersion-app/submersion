@@ -338,5 +338,6 @@ final tablePresetsProvider =
       diverId,
     ) async {
       final repo = ref.watch(viewConfigRepositoryProvider);
+      await repo.ensureBuiltInPresets(diverId);
       return repo.getPresetsForMode(diverId, ListViewMode.table);
     });

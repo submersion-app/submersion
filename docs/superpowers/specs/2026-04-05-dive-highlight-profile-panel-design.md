@@ -17,13 +17,24 @@ highlighted dive changes.
 
 ## Interaction Model
 
-### Gesture mapping (all view modes: detailed, compact, dense, table)
+### Gesture mapping
+
+Gestures differ by view mode:
+
+**Table mode:**
 
 | Gesture    | Action                                                      |
 | ---------- | ----------------------------------------------------------- |
 | Single tap | Highlights the dive. Updates `highlightedDiveIdProvider`.    |
 | Double tap | Opens dive details (route navigation or master-detail pane). |
 | Long press | Enters bulk selection mode (unchanged).                      |
+
+**Card modes (detailed, compact, dense):**
+
+| Gesture    | Action                                                                        |
+| ---------- | ----------------------------------------------------------------------------- |
+| Single tap | Highlights the dive AND navigates to dive details (existing behavior retained). |
+| Long press | Enters bulk selection mode (unchanged).                                        |
 
 ### Highlight visuals
 

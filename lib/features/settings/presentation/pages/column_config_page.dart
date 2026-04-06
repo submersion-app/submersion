@@ -376,7 +376,6 @@ class _DetailedCardConfigSection extends ConsumerWidget {
           final field = entry.value;
           return ListTile(
             key: ValueKey(field),
-            leading: const Icon(Icons.drag_handle),
             title: Text(field.displayName),
             trailing: IconButton(
               icon: const Icon(Icons.remove_circle_outline),

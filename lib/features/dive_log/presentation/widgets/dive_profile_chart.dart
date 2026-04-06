@@ -1465,12 +1465,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               touchSpotThreshold: 20,
               handleBuiltInTouches: true,
               touchCallback: (event, response) {
-                if (widget.onPointSelected != null) {
+                if (widget.onPointSelected != null ||
+                    widget.onTooltipData != null) {
                   if (event is FlPointerExitEvent ||
                       event is FlLongPressEnd ||
                       event is FlTapUpEvent ||
                       event is FlPanEndEvent) {
-                    widget.onPointSelected!(null);
+                    widget.onPointSelected?.call(null);
                     if (widget.tooltipBelow) {
                       widget.onTooltipData?.call(null);
                     }
@@ -1479,7 +1480,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     final spot = response.lineBarSpots!.first;
                     if (spot.barIndex == 0 &&
                         spot.spotIndex < widget.profile.length) {
-                      widget.onPointSelected!(spot.spotIndex);
+                      widget.onPointSelected?.call(spot.spotIndex);
                       if (widget.tooltipBelow) {
                         final settings = ref.read(settingsProvider);
                         final units = UnitFormatter(settings);
