@@ -146,38 +146,35 @@ class _DiveProfilePanelContentState
       fontFeatures: const [FontFeature.tabularFigures()],
     );
 
-    // Position: top edge at chart bottom, centered on cursor X
-    final tooltipLeft = (_globalCursorPos.dx - 110).clamp(
-      chartBottomLeft.dx,
-      double.infinity,
-    );
-
     return Positioned(
-      left: tooltipLeft,
+      left: _globalCursorPos.dx,
       top: chartBottomLeft.dy + 4,
-      child: IgnorePointer(
-        child: Material(
-          elevation: 8,
-          borderRadius: BorderRadius.circular(8),
-          color: colorScheme.inverseSurface,
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: rows.map((row) {
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '\u25CF ',
-                      style: TextStyle(color: row.bulletColor, fontSize: 12),
-                    ),
-                    Text(row.label.padRight(8), style: rowStyle),
-                    Text(row.value, style: rowStyle),
-                  ],
-                );
-              }).toList(),
+      child: FractionalTranslation(
+        translation: const Offset(-0.5, 0),
+        child: IgnorePointer(
+          child: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(8),
+            color: colorScheme.inverseSurface,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: rows.map((row) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '\u25CF ',
+                        style: TextStyle(color: row.bulletColor, fontSize: 12),
+                      ),
+                      Text(row.label.padRight(8), style: rowStyle),
+                      Text(row.value, style: rowStyle),
+                    ],
+                  );
+                }).toList(),
+              ),
             ),
           ),
         ),
