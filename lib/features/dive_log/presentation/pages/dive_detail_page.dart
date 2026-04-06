@@ -107,6 +107,10 @@ class DiveDetailPage extends ConsumerStatefulWidget {
   /// When true, renders without Scaffold wrapper for use in master-detail layout.
   final bool embedded;
 
+  /// When true, this page was pushed via Navigator.push (e.g. from table view)
+  /// rather than go_router. Disables go_router-based redirects and navigation.
+  final bool pushedManually;
+
   /// Callback when the dive is deleted (used in embedded mode).
   final VoidCallback? onDeleted;
 
@@ -114,6 +118,7 @@ class DiveDetailPage extends ConsumerStatefulWidget {
     super.key,
     required this.diveId,
     this.embedded = false,
+    this.pushedManually = false,
     this.onDeleted,
   });
 
@@ -172,24 +177,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   @override
   Widget build(BuildContext context) {
     // On desktop, redirect standalone detail pages to master-detail view.
-    // Skip redirect if opened via Navigator.push (e.g. from table view)
-    // since there's no master-detail shell to redirect into.
+    // Skip when opened via Navigator.push (table view) -- no shell to redirect into.
     if (!widget.embedded &&
+        !widget.pushedManually &&
         !_hasRedirected &&
         ResponsiveBreakpoints.isMasterDetail(context)) {
-      bool inGoRouter = false;
-      try {
-        final state = GoRouterState.of(context);
-        inGoRouter = state.uri.path.contains(diveId);
-      } catch (_) {}
-      if (inGoRouter) {
-        _hasRedirected = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            context.go('/dives?selected=$diveId');
-          }
-        });
-      }
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/dives?selected=$diveId');
+        }
+      });
     }
 
     final diveAsync = ref.watch(diveProvider(diveId));
@@ -505,23 +503,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             icon: const Icon(Icons.edit),
             tooltip: context.l10n.diveLog_detail_tooltip_editDive,
             onPressed: () {
-              // Use Navigator.push if opened outside go_router tree
-              // (e.g. from table view via Navigator.push).
-              bool inGoRouter = false;
-              try {
-                final state = GoRouterState.of(context);
-                inGoRouter = state.uri.path.contains(diveId);
-              } catch (_) {
-                // Not in go_router context
-              }
-              if (inGoRouter) {
-                context.go('/dives/$diveId/edit');
-              } else {
+              if (widget.pushedManually) {
                 Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => DiveEditPage(diveId: diveId),
                   ),
                 );
+              } else {
+                context.go('/dives/$diveId/edit');
               }
             },
           ),

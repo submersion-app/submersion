@@ -1300,7 +1300,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (_) =>
-                          DiveDetailPage(diveId: id, embedded: false),
+                          DiveDetailPage(diveId: id, pushedManually: true),
                     ),
                   );
                 },
