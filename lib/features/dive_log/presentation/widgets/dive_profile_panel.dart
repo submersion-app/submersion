@@ -11,7 +11,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Panel that displays the dive profile chart for the currently highlighted
-/// dive. Tooltip floats as an overlay below the chart, following the cursor.
+/// dive. Tooltip floats below the chart, following the cursor.
 class DiveProfilePanel extends ConsumerWidget {
   const DiveProfilePanel({super.key});
 
@@ -71,113 +71,18 @@ class _DiveProfilePanelContent extends ConsumerStatefulWidget {
 class _DiveProfilePanelContentState
     extends ConsumerState<_DiveProfilePanelContent> {
   List<TooltipRow>? _tooltipRows;
-  Offset _cursorGlobalPos = Offset.zero;
-  OverlayEntry? _tooltipOverlay;
-  final GlobalKey _chartKey = GlobalKey();
+  double _cursorLocalX = 0;
 
   @override
   void didUpdateWidget(_DiveProfilePanelContent oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.diveId != oldWidget.diveId) {
-      _removeTooltipOverlay();
-      _tooltipRows = null;
-    }
-  }
-
-  @override
-  void dispose() {
-    _removeTooltipOverlay();
-    super.dispose();
-  }
-
-  void _removeTooltipOverlay() {
-    _tooltipOverlay?.remove();
-    _tooltipOverlay = null;
-  }
-
-  void _onPointSelected(int? index) {
-    if (index == null) {
-      _removeTooltipOverlay();
       _tooltipRows = null;
     }
   }
 
   void _onTooltipData(List<TooltipRow>? rows) {
-    _tooltipRows = rows;
-    if (rows == null || rows.isEmpty) {
-      _removeTooltipOverlay();
-      return;
-    }
-    _updateTooltipOverlay();
-  }
-
-  void _updateTooltipOverlay() {
-    if (_tooltipRows == null || _tooltipRows!.isEmpty) return;
-
-    // Get chart bottom Y in global coords
-    final chartBox = _chartKey.currentContext?.findRenderObject() as RenderBox?;
-    if (chartBox == null) return;
-    final chartBottomGlobal = chartBox.localToGlobal(
-      Offset(0, chartBox.size.height),
-    );
-
-    if (_tooltipOverlay != null) {
-      _tooltipOverlay!.markNeedsBuild();
-    } else {
-      _tooltipOverlay = OverlayEntry(
-        builder: (_) => _buildTooltipWidget(chartBottomGlobal.dy),
-      );
-      Overlay.of(context).insert(_tooltipOverlay!);
-    }
-  }
-
-  Widget _buildTooltipWidget(double chartBottomY) {
-    final rows = _tooltipRows;
-    if (rows == null || rows.isEmpty) return const SizedBox.shrink();
-
-    final colorScheme = Theme.of(context).colorScheme;
-    final onSurface = colorScheme.onInverseSurface;
-    final rowStyle = TextStyle(
-      fontFamily: 'RobotoMono',
-      fontSize: 14,
-      color: onSurface,
-      fontFeatures: const [FontFeature.tabularFigures()],
-    );
-
-    return Positioned(
-      left: _cursorGlobalPos.dx,
-      top: chartBottomY + 4,
-      child: FractionalTranslation(
-        translation: const Offset(-0.5, 0),
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: colorScheme.inverseSurface,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: rows.map((row) {
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '\u25CF ',
-                      style: TextStyle(color: row.bulletColor, fontSize: 12),
-                    ),
-                    Text(row.label.padRight(8), style: rowStyle),
-                    Text(row.value, style: rowStyle),
-                  ],
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-      ),
-    );
+    setState(() => _tooltipRows = rows);
   }
 
   @override
@@ -185,12 +90,11 @@ class _DiveProfilePanelContentState
     final diveAsync = ref.watch(diveProvider(widget.diveId));
     final colorScheme = Theme.of(context).colorScheme;
 
-    return diveAsync.when(
-      loading: () => const SizedBox(
-        height: 100,
-        child: Center(child: CircularProgressIndicator()),
-      ),
-      error: (e, _) => SizedBox(
+    // Use .whenData to avoid flashing a loading spinner when switching dives.
+    // The previous dive's chart stays visible until the new one is ready.
+    final dive = diveAsync.valueOrNull;
+    if (diveAsync.hasError) {
+      return SizedBox(
         height: 100,
         child: Center(
           child: Text(
@@ -198,24 +102,28 @@ class _DiveProfilePanelContentState
             style: TextStyle(color: colorScheme.error),
           ),
         ),
-      ),
-      data: (dive) {
-        if (dive == null || dive.profile.isEmpty) {
-          return SizedBox(
-            height: 100,
-            child: Center(
-              child: Text(
-                'No profile data for this dive',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                ),
-              ),
+      );
+    }
+    if (dive == null) {
+      return const SizedBox(
+        height: 100,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (dive.profile.isEmpty) {
+      return SizedBox(
+        height: 100,
+        child: Center(
+          child: Text(
+            'No profile data for this dive',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
-          );
-        }
-        return _buildProfileContent(context, dive);
-      },
-    );
+          ),
+        ),
+      );
+    }
+    return _buildProfileContent(context, dive);
   }
 
   Widget _buildProfileContent(BuildContext context, Dive dive) {
@@ -296,51 +204,97 @@ class _DiveProfilePanelContentState
               ],
             ),
           ),
-          // Chart with cursor tracking
-          Listener(
-            onPointerHover: (event) {
-              _cursorGlobalPos = event.position;
-              _tooltipOverlay?.markNeedsBuild();
-            },
-            onPointerMove: (event) {
-              _cursorGlobalPos = event.position;
-              _tooltipOverlay?.markNeedsBuild();
-            },
-            child: Padding(
-              key: _chartKey,
-              padding: const EdgeInsets.only(left: 4, right: 4),
-              child: DiveProfileChart(
-                profile: dive.profile,
-                diveDuration: dive.effectiveRuntime,
-                maxDepth: dive.maxDepth,
-                ceilingCurve: analysis?.ceilingCurve,
-                ascentRates: analysis?.ascentRates,
-                events: analysis?.events,
-                ndlCurve: analysis?.ndlCurve,
-                sacCurve: analysis?.smoothedSacCurve,
-                ppO2Curve: analysis?.ppO2Curve,
-                ppN2Curve: analysis?.ppN2Curve,
-                ppHeCurve: analysis?.ppHeCurve,
-                modCurve: analysis?.modCurve,
-                densityCurve: analysis?.densityCurve,
-                gfCurve: analysis?.gfCurve,
-                surfaceGfCurve: analysis?.surfaceGfCurve,
-                meanDepthCurve: analysis?.meanDepthCurve,
-                ttsCurve: analysis?.ttsCurve,
-                cnsCurve: analysis?.cnsCurve,
-                otuCurve: analysis?.otuCurve,
-                tanks: dive.tanks,
-                tankPressures: tankPressures,
-                gasSwitches: gasSwitches,
-                tooltipBelow: true,
-                onPointSelected: _onPointSelected,
-                onTooltipData: _onTooltipData,
+          // Chart in a Stack so tooltip can float below without pushing layout
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Listener(
+                onPointerHover: (event) {
+                  setState(() => _cursorLocalX = event.localPosition.dx);
+                },
+                onPointerMove: (event) {
+                  setState(() => _cursorLocalX = event.localPosition.dx);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 4, right: 4),
+                  child: DiveProfileChart(
+                    profile: dive.profile,
+                    diveDuration: dive.effectiveRuntime,
+                    maxDepth: dive.maxDepth,
+                    ceilingCurve: analysis?.ceilingCurve,
+                    ascentRates: analysis?.ascentRates,
+                    events: analysis?.events,
+                    ndlCurve: analysis?.ndlCurve,
+                    sacCurve: analysis?.smoothedSacCurve,
+                    ppO2Curve: analysis?.ppO2Curve,
+                    ppN2Curve: analysis?.ppN2Curve,
+                    ppHeCurve: analysis?.ppHeCurve,
+                    modCurve: analysis?.modCurve,
+                    densityCurve: analysis?.densityCurve,
+                    gfCurve: analysis?.gfCurve,
+                    surfaceGfCurve: analysis?.surfaceGfCurve,
+                    meanDepthCurve: analysis?.meanDepthCurve,
+                    ttsCurve: analysis?.ttsCurve,
+                    cnsCurve: analysis?.cnsCurve,
+                    otuCurve: analysis?.otuCurve,
+                    tanks: dive.tanks,
+                    tankPressures: tankPressures,
+                    gasSwitches: gasSwitches,
+                    tooltipBelow: true,
+                    onTooltipData: _onTooltipData,
+                  ),
+                ),
               ),
-            ),
+              // Floating tooltip positioned below the chart
+              if (_tooltipRows != null && _tooltipRows!.isNotEmpty)
+                Positioned(
+                  left: _cursorLocalX - 110,
+                  bottom: -4,
+                  child: _buildTooltip(colorScheme),
+                ),
+            ],
           ),
-          // Tiny spacer between chart and table
+          // Tiny spacer
           const SizedBox(height: 4),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTooltip(ColorScheme colorScheme) {
+    final onSurface = colorScheme.onInverseSurface;
+    final rowStyle = TextStyle(
+      fontFamily: 'RobotoMono',
+      fontSize: 14,
+      color: onSurface,
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
+
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: colorScheme.inverseSurface,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: _tooltipRows!.map((row) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '\u25CF ',
+                  style: TextStyle(color: row.bulletColor, fontSize: 12),
+                ),
+                Text(row.label.padRight(8), style: rowStyle),
+                Text(row.value, style: rowStyle),
+              ],
+            );
+          }).toList(),
+        ),
       ),
     );
   }
