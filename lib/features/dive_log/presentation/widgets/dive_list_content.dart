@@ -13,7 +13,6 @@ import 'package:submersion/features/dive_log/presentation/providers/view_config_
 import 'package:submersion/features/dive_log/presentation/widgets/compact_dive_list_tile.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/table_column_picker.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dense_dive_list_tile.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -951,6 +950,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               ...ListViewModeToggle.menuItems(
                 context,
                 currentMode: currentMode,
+                modes: const [
+                  ListViewMode.detailed,
+                  ListViewMode.compact,
+                  ListViewMode.table,
+                ],
               ),
               const PopupMenuDivider(),
               PopupMenuItem(
@@ -1462,15 +1466,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                         ? null
                         : () => _enterSelectionMode(dive.id),
                   ),
-                  // Table mode is handled separately in _buildTableModeScaffold
-                  // and should not reach this switch. Fallback to dense if it does.
-                  ListViewMode.dense || ListViewMode.table => DenseDiveListTile(
+                  // Dense is no longer a dive view option; table is handled
+                  // in _buildTableModeScaffold. Fall through to detailed.
+                  ListViewMode.dense || ListViewMode.table => DiveListTile(
                     diveId: dive.id,
                     diveNumber: dive.diveNumber ?? index + 1,
                     dateTime: dive.dateTime,
                     siteName: dive.siteName,
+                    siteLocation: dive.siteLocation,
                     maxDepth: dive.maxDepth,
                     duration: dive.runtime ?? dive.bottomTime,
+                    waterTemp: dive.waterTemp,
+                    rating: dive.rating,
+                    isFavorite: dive.isFavorite,
+                    tags: dive.tags,
                     isSelectionMode: _isSelectionMode,
                     isSelected: _isSelectionMode
                         ? isSelected
@@ -1480,31 +1489,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     maxValueInList: maxValue,
                     gradientStartColor: gradientColors.start,
                     gradientEndColor: gradientColors.end,
-                    summary: dive,
-                    slot1Field: _slotField(
-                      ref.watch(denseCardConfigProvider).slots,
-                      'slot1',
-                      DiveField.siteName,
-                    ),
-                    slot2Field: _slotField(
-                      ref.watch(denseCardConfigProvider).slots,
-                      'slot2',
-                      DiveField.dateTime,
-                    ),
-                    slot3Field: _slotField(
-                      ref.watch(denseCardConfigProvider).slots,
-                      'slot3',
-                      DiveField.maxDepth,
-                    ),
-                    slot4Field: _slotField(
-                      ref.watch(denseCardConfigProvider).slots,
-                      'slot4',
-                      DiveField.bottomTime,
-                    ),
+                    siteLatitude: dive.siteLatitude,
+                    siteLongitude: dive.siteLongitude,
                     onTap: () => _handleItemTap(dive),
                     onLongPress: _isSelectionMode
                         ? null
                         : () => _enterSelectionMode(dive.id),
+                    summary: dive,
+                    fullDive: fullDiveLookup[dive.id],
                   ),
                 };
               },

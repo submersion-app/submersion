@@ -38,12 +38,17 @@ class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
                     setState(() => _selectedMode = value);
                   }
                 },
-                items: ListViewMode.values.map((mode) {
-                  return DropdownMenuItem(
-                    value: mode,
-                    child: Text(_modeDisplayName(mode)),
-                  );
-                }).toList(),
+                items:
+                    const [
+                      ListViewMode.table,
+                      ListViewMode.detailed,
+                      ListViewMode.compact,
+                    ].map((mode) {
+                      return DropdownMenuItem(
+                        value: mode,
+                        child: Text(_modeDisplayName(mode)),
+                      );
+                    }).toList(),
               ),
             ],
           ),
