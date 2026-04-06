@@ -7,15 +7,21 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Special filter value for computed "service due" items
 const String _serviceDueFilter = '_service_due_';
@@ -111,6 +117,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   @override
   Widget build(BuildContext context) {
     final sort = ref.watch(equipmentSortProvider);
+    final viewMode = ref.watch(equipmentListViewModeProvider);
 
     final AsyncValue<List<EquipmentItem>> equipmentAsync;
     if (_selectedFilter == _serviceDueFilter) {
@@ -118,6 +125,14 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     } else {
       final status = _selectedFilter as EquipmentStatus?;
       equipmentAsync = ref.watch(equipmentByStatusProvider(status));
+    }
+
+    // Table mode uses a dedicated scaffold with column configuration support.
+    if (viewMode == ListViewMode.table) {
+      final sortedAsync = equipmentAsync.whenData(
+        (equipment) => applyEquipmentSorting(equipment, sort),
+      );
+      return _buildTableModeScaffold(context, sortedAsync);
     }
 
     final content = equipmentAsync.when(
@@ -174,7 +189,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
-                  modes: const [ListViewMode.detailed, ListViewMode.dense],
+                  modes: const [
+                    ListViewMode.detailed,
+                    ListViewMode.compact,
+                    ListViewMode.table,
+                  ],
                 ),
               ];
             },
@@ -188,6 +207,151 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         ],
       ),
       floatingActionButton: widget.floatingActionButton,
+    );
+  }
+
+  /// Build the full scaffold/layout for table mode.
+  Widget _buildTableModeScaffold(
+    BuildContext context,
+    AsyncValue<List<EquipmentItem>> equipmentAsync,
+  ) {
+    final tableContent = _buildTableView(context, equipmentAsync);
+
+    if (!widget.showAppBar) {
+      return Column(
+        children: [
+          _buildCompactAppBar(context),
+          if (widget.headerExtension != null) widget.headerExtension!,
+          _buildFilterChips(context),
+          Expanded(child: tableContent),
+        ],
+      );
+    }
+
+    return Scaffold(
+      appBar: _buildTableAppBar(context),
+      body: Column(
+        children: [
+          _buildFilterChips(context),
+          Expanded(child: tableContent),
+        ],
+      ),
+      floatingActionButton: widget.floatingActionButton,
+    );
+  }
+
+  /// Build the AppBar for table mode, adding column picker button before the
+  /// standard actions.
+  AppBar _buildTableAppBar(BuildContext context) {
+    return AppBar(
+      title: Text(context.l10n.equipment_appBar_title),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.view_column_outlined),
+          tooltip: 'Column settings',
+          onPressed: () {
+            final config = ref.read(equipmentTableConfigProvider);
+            final notifier = ref.read(equipmentTableConfigProvider.notifier);
+            showEntityTableColumnPicker<EquipmentField>(
+              context,
+              config: config,
+              adapter: EquipmentFieldAdapter.instance,
+              onToggleColumn: notifier.toggleColumn,
+              onReorderColumn: notifier.reorderColumn,
+              onTogglePin: notifier.togglePin,
+            );
+          },
+        ),
+        SizedBox(
+          height: 24,
+          child: VerticalDivider(
+            width: 16,
+            thickness: 1,
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.sort),
+          tooltip: context.l10n.equipment_list_sortTooltip,
+          onPressed: () => _showSortSheet(context),
+        ),
+        IconButton(
+          icon: const Icon(Icons.search),
+          tooltip: context.l10n.equipment_list_searchTooltip,
+          onPressed: () {
+            showSearch(context: context, delegate: EquipmentSearchDelegate());
+          },
+        ),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: (value) {
+            if (value.startsWith('view_')) {
+              final mode = ListViewMode.fromName(
+                value.replaceFirst('view_', ''),
+              );
+              ref.read(equipmentListViewModeProvider.notifier).state = mode;
+            }
+          },
+          itemBuilder: (context) {
+            final currentMode = ref.read(equipmentListViewModeProvider);
+            return [
+              ...ListViewModeToggle.menuItems(
+                context,
+                currentMode: currentMode,
+                modes: const [
+                  ListViewMode.detailed,
+                  ListViewMode.compact,
+                  ListViewMode.table,
+                ],
+              ),
+            ];
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Build the [EntityTableView] for equipment table mode.
+  Widget _buildTableView(
+    BuildContext context,
+    AsyncValue<List<EquipmentItem>> equipmentAsync,
+  ) {
+    return equipmentAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, s) => _buildErrorState(context, e),
+      data: (equipment) {
+        if (equipment.isEmpty) {
+          return _buildEmptyState(context, ref);
+        }
+        final config = ref.watch(equipmentTableConfigProvider);
+        final notifier = ref.read(equipmentTableConfigProvider.notifier);
+        final settings = ref.watch(settingsProvider);
+        final units = UnitFormatter(settings);
+
+        return EntityTableView<EquipmentItem>(
+          entities: equipment,
+          idExtractor: (e) => e.id,
+          adapter:
+              EquipmentFieldAdapter.instance
+                  as EntityFieldAdapter<EquipmentItem, EntityField>,
+          config: config as EntityTableViewConfig<EntityField>,
+          units: units,
+          onSortFieldChanged: (field) =>
+              notifier.setSortField(field as EquipmentField),
+          onResizeColumn: (field, width) =>
+              notifier.resizeColumn(field as EquipmentField, width),
+          onEntityTap: (id) {
+            final match = equipment.firstWhere((e) => e.id == id);
+            _handleItemTap(match);
+          },
+          onEntityDoubleTap: (id) {
+            context.go('/equipment/$id');
+          },
+          highlightedId: widget.selectedId,
+        );
+      },
     );
   }
 
@@ -241,7 +405,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
-                  modes: const [ListViewMode.detailed, ListViewMode.dense],
+                  modes: const [
+                    ListViewMode.detailed,
+                    ListViewMode.compact,
+                    ListViewMode.table,
+                  ],
                 ),
               ];
             },

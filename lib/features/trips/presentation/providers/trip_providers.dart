@@ -5,12 +5,16 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
 /// Filter state for trip list
 class TripFilterState {
@@ -368,4 +372,38 @@ final tripSitesWithLocationsProvider =
       }
 
       return sitesWithLocation.values.toList();
+    });
+
+// ============================================================================
+// Trip Table View Config
+// ============================================================================
+
+/// Provider for the trip table view column configuration.
+///
+/// Persists column visibility, order, widths, and sort state per diver using
+/// [ViewConfigRepository] under the key 'table_trips'.
+final tripTableConfigProvider =
+    StateNotifierProvider<
+      EntityTableConfigNotifier<TripField>,
+      EntityTableViewConfig<TripField>
+    >((ref) {
+      final notifier = EntityTableConfigNotifier<TripField>(
+        defaultConfig: EntityTableViewConfig<TripField>(
+          columns: [
+            EntityTableColumnConfig(field: TripField.tripName, isPinned: true),
+            EntityTableColumnConfig(field: TripField.startDate),
+            EntityTableColumnConfig(field: TripField.endDate),
+            EntityTableColumnConfig(field: TripField.location),
+            EntityTableColumnConfig(field: TripField.diveCount),
+            EntityTableColumnConfig(field: TripField.maxDepth),
+          ],
+        ),
+        fieldFromName: TripFieldAdapter.instance.fieldFromName,
+      );
+      final diverId = ref.watch(currentDiverIdProvider);
+      if (diverId != null) {
+        final repo = ref.watch(viewConfigRepositoryProvider);
+        notifier.init(repo, diverId, 'table_trips');
+      }
+      return notifier;
     });

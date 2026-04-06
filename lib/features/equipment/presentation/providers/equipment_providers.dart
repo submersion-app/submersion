@@ -3,11 +3,15 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
 /// Repository provider
 final equipmentRepositoryProvider = Provider<EquipmentRepository>((ref) {
@@ -386,4 +390,41 @@ final serviceRecordNotifierProvider =
     >((ref, equipmentId) {
       final repository = ref.watch(serviceRecordRepositoryProvider);
       return ServiceRecordNotifier(repository, ref, equipmentId);
+    });
+
+// ============================================================================
+// Equipment Table View Config
+// ============================================================================
+
+/// Provider for the equipment table view column configuration.
+///
+/// Persists column visibility, order, widths, and sort state per diver using
+/// [ViewConfigRepository] under the key 'table_equipment'.
+final equipmentTableConfigProvider =
+    StateNotifierProvider<
+      EntityTableConfigNotifier<EquipmentField>,
+      EntityTableViewConfig<EquipmentField>
+    >((ref) {
+      final notifier = EntityTableConfigNotifier<EquipmentField>(
+        defaultConfig: EntityTableViewConfig<EquipmentField>(
+          columns: [
+            EntityTableColumnConfig(
+              field: EquipmentField.itemName,
+              isPinned: true,
+            ),
+            EntityTableColumnConfig(field: EquipmentField.type),
+            EntityTableColumnConfig(field: EquipmentField.brand),
+            EntityTableColumnConfig(field: EquipmentField.model),
+            EntityTableColumnConfig(field: EquipmentField.status),
+            EntityTableColumnConfig(field: EquipmentField.lastServiceDate),
+          ],
+        ),
+        fieldFromName: EquipmentFieldAdapter.instance.fieldFromName,
+      );
+      final diverId = ref.watch(currentDiverIdProvider);
+      if (diverId != null) {
+        final repo = ref.watch(viewConfigRepositoryProvider);
+        notifier.init(repo, diverId, 'table_equipment');
+      }
+      return notifier;
     });
