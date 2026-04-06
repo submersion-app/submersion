@@ -257,16 +257,22 @@ class _DiveProfilePanelContentState
               ),
             ),
           ),
-          // Tooltip below chart -- IgnorePointer so it can't steal hover
+          // Tooltip: zero layout height so it overlays the table below
           if (_tooltipRows != null && _tooltipRows!.isNotEmpty)
-            IgnorePointer(
-              child: ValueListenableBuilder<double>(
-                valueListenable: _cursorLocalX,
-                builder: (context, cursorX, _) => Align(
-                  alignment: Alignment.topLeft,
-                  child: Transform.translate(
-                    offset: Offset(cursorX - 110, 0),
-                    child: _buildTooltip(colorScheme),
+            SizedBox(
+              height: 0,
+              child: OverflowBox(
+                alignment: Alignment.topLeft,
+                maxHeight: 300,
+                child: IgnorePointer(
+                  child: ValueListenableBuilder<double>(
+                    valueListenable: _cursorLocalX,
+                    builder: (context, cursorX, _) => Padding(
+                      padding: EdgeInsets.only(
+                        left: (cursorX - 110).clamp(0, double.infinity),
+                      ),
+                      child: _buildTooltip(colorScheme),
+                    ),
                   ),
                 ),
               ),
