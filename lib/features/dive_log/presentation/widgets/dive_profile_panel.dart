@@ -206,19 +206,12 @@ class _DiveProfilePanelContentState
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Try the already-loaded table data first (synchronous, no delay)
-    final allDives = ref.watch(allDivesForTableProvider).valueOrNull;
-    final tableDive = allDives?.where((d) => d.id == widget.diveId).firstOrNull;
-
-    // Fall back to individual provider if not in table data
-    final asyncDive = tableDive == null
-        ? ref.watch(diveProvider(widget.diveId)).valueOrNull
-        : null;
-    final dive = tableDive ?? asyncDive ?? _lastDive;
-
-    if (dive != null) {
-      _lastDive = dive;
+    // diveProvider loads the full dive with profile data
+    final fullDive = ref.watch(diveProvider(widget.diveId)).valueOrNull;
+    if (fullDive != null) {
+      _lastDive = fullDive;
     }
+    final dive = _lastDive;
 
     if (dive == null) {
       return const SizedBox(
