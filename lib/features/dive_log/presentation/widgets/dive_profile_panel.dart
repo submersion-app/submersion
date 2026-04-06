@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -249,6 +250,32 @@ class _DiveProfilePanelContentState
     final units = UnitFormatter(settings);
     final colorScheme = Theme.of(context).colorScheme;
 
+    // Profile markers (same as dive detail page)
+    final showMaxDepthMarker = ref.watch(showMaxDepthMarkerProvider);
+    final showPressureThresholdMarkers = ref.watch(
+      showPressureThresholdMarkersProvider,
+    );
+    final markers = <ProfileMarker>[];
+    if (dive.profile.isNotEmpty) {
+      if (showMaxDepthMarker && analysis != null) {
+        final m = ProfileMarkersService.getMaxDepthMarker(
+          profile: dive.profile,
+          maxDepthTimestamp: analysis.maxDepthTimestamp,
+          maxDepth: analysis.maxDepth,
+        );
+        if (m != null) markers.add(m);
+      }
+      if (showPressureThresholdMarkers && dive.tanks.isNotEmpty) {
+        markers.addAll(
+          ProfileMarkersService.getPressureThresholdMarkers(
+            profile: dive.profile,
+            tanks: dive.tanks,
+            tankPressures: tankPressures,
+          ),
+        );
+      }
+    }
+
     final siteName = dive.site?.name ?? 'Unknown Site';
     final diveNumber = dive.diveNumber;
     final depthText = units.formatDepth(dive.maxDepth);
@@ -340,6 +367,9 @@ class _DiveProfilePanelContentState
                 ttsCurve: analysis?.ttsCurve,
                 cnsCurve: analysis?.cnsCurve,
                 otuCurve: analysis?.otuCurve,
+                markers: markers,
+                showMaxDepthMarker: showMaxDepthMarker,
+                showPressureThresholdMarkers: showPressureThresholdMarkers,
                 tanks: dive.tanks,
                 tankPressures: tankPressures,
                 gasSwitches: gasSwitches,
