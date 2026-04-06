@@ -9,6 +9,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 /// implements this interface. The generic [EntityTableView] widget uses this
 /// interface to render column headers, determine alignment, and check
 /// sortability without knowing the concrete entity type.
+///
 abstract interface class EntityField {
   /// Enum value name, used for JSON serialization of column configs.
   String get name;
