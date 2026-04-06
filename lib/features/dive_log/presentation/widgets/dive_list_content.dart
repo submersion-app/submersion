@@ -29,7 +29,6 @@ import 'package:submersion/features/tags/presentation/providers/tag_providers.da
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
@@ -1297,11 +1296,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 },
                 onDiveDoubleTap: (id) {
                   if (_isSelectionMode) return;
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => DiveDetailPage(diveId: id),
-                    ),
-                  );
+                  context.push('/dives/$id');
                 },
                 onDiveLongPress: _isSelectionMode
                     ? null
