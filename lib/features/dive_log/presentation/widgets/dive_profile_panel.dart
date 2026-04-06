@@ -11,7 +11,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Panel that displays the dive profile chart for the currently highlighted
-/// dive. Sizes to its content (header + chart + tooltip bar).
+/// dive. Tooltip overlays on top of content below the chart.
 class DiveProfilePanel extends ConsumerWidget {
   const DiveProfilePanel({super.key});
 
@@ -71,13 +71,47 @@ class _DiveProfilePanelContent extends ConsumerStatefulWidget {
 class _DiveProfilePanelContentState
     extends ConsumerState<_DiveProfilePanelContent> {
   int? _selectedPointIndex;
+  final LayerLink _tooltipLayerLink = LayerLink();
+  OverlayEntry? _tooltipOverlay;
 
   @override
   void didUpdateWidget(_DiveProfilePanelContent oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.diveId != oldWidget.diveId) {
+      _removeTooltipOverlay();
       _selectedPointIndex = null;
     }
+  }
+
+  @override
+  void dispose() {
+    _removeTooltipOverlay();
+    super.dispose();
+  }
+
+  void _removeTooltipOverlay() {
+    _tooltipOverlay?.remove();
+    _tooltipOverlay = null;
+  }
+
+  void _onPointSelected(int? index) {
+    setState(() => _selectedPointIndex = index);
+    if (index == null) {
+      _removeTooltipOverlay();
+    } else {
+      _showTooltipOverlay();
+    }
+  }
+
+  void _showTooltipOverlay() {
+    _removeTooltipOverlay();
+
+    _tooltipOverlay = OverlayEntry(
+      builder: (context) =>
+          _TooltipOverlay(link: _tooltipLayerLink, panelState: this),
+    );
+
+    Overlay.of(context).insert(_tooltipOverlay!);
   }
 
   @override
@@ -140,13 +174,6 @@ class _DiveProfilePanelContentState
         : '--';
     final dateText = units.formatDateTime(dive.dateTime, l10n: null);
 
-    // Get selected profile point for tooltip
-    final selectedPoint =
-        _selectedPointIndex != null &&
-            _selectedPointIndex! < dive.profile.length
-        ? dive.profile[_selectedPointIndex!]
-        : null;
-
     return Container(
       decoration: BoxDecoration(
         border: Border(
@@ -203,67 +230,73 @@ class _DiveProfilePanelContentState
               ],
             ),
           ),
-          // Profile chart (fixed height from DiveProfileChart internals)
-          Padding(
-            padding: const EdgeInsets.only(left: 4, right: 4),
-            child: DiveProfileChart(
-              profile: dive.profile,
-              diveDuration: dive.effectiveRuntime,
-              maxDepth: dive.maxDepth,
-              ceilingCurve: analysis?.ceilingCurve,
-              ascentRates: analysis?.ascentRates,
-              events: analysis?.events,
-              ndlCurve: analysis?.ndlCurve,
-              sacCurve: analysis?.smoothedSacCurve,
-              ppO2Curve: analysis?.ppO2Curve,
-              ppN2Curve: analysis?.ppN2Curve,
-              ppHeCurve: analysis?.ppHeCurve,
-              modCurve: analysis?.modCurve,
-              densityCurve: analysis?.densityCurve,
-              gfCurve: analysis?.gfCurve,
-              surfaceGfCurve: analysis?.surfaceGfCurve,
-              meanDepthCurve: analysis?.meanDepthCurve,
-              ttsCurve: analysis?.ttsCurve,
-              cnsCurve: analysis?.cnsCurve,
-              otuCurve: analysis?.otuCurve,
-              tanks: dive.tanks,
-              tankPressures: tankPressures,
-              gasSwitches: gasSwitches,
-              tooltipBelow: true,
-              onPointSelected: (index) {
-                setState(() => _selectedPointIndex = index);
-              },
+          // Chart with tooltip anchor at bottom
+          CompositedTransformTarget(
+            link: _tooltipLayerLink,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 4, right: 4),
+              child: DiveProfileChart(
+                profile: dive.profile,
+                diveDuration: dive.effectiveRuntime,
+                maxDepth: dive.maxDepth,
+                ceilingCurve: analysis?.ceilingCurve,
+                ascentRates: analysis?.ascentRates,
+                events: analysis?.events,
+                ndlCurve: analysis?.ndlCurve,
+                sacCurve: analysis?.smoothedSacCurve,
+                ppO2Curve: analysis?.ppO2Curve,
+                ppN2Curve: analysis?.ppN2Curve,
+                ppHeCurve: analysis?.ppHeCurve,
+                modCurve: analysis?.modCurve,
+                densityCurve: analysis?.densityCurve,
+                gfCurve: analysis?.gfCurve,
+                surfaceGfCurve: analysis?.surfaceGfCurve,
+                meanDepthCurve: analysis?.meanDepthCurve,
+                ttsCurve: analysis?.ttsCurve,
+                cnsCurve: analysis?.cnsCurve,
+                otuCurve: analysis?.otuCurve,
+                tanks: dive.tanks,
+                tankPressures: tankPressures,
+                gasSwitches: gasSwitches,
+                tooltipBelow: true,
+                onPointSelected: _onPointSelected,
+              ),
             ),
-          ),
-          // Tooltip bar below chart
-          _buildTooltipBar(
-            context,
-            selectedPoint,
-            _selectedPointIndex,
-            dive,
-            analysis,
-            units,
-            colorScheme,
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildTooltipBar(
-    BuildContext context,
-    DiveProfilePoint? point,
-    int? pointIndex,
-    Dive dive,
-    dynamic analysis,
-    UnitFormatter units,
-    ColorScheme colorScheme,
-  ) {
-    if (point == null) {
+/// Overlay widget that renders the tooltip floating below the chart,
+/// matching the dive detail tooltip visual style.
+class _TooltipOverlay extends StatelessWidget {
+  final LayerLink link;
+  final _DiveProfilePanelContentState panelState;
+
+  const _TooltipOverlay({required this.link, required this.panelState});
+
+  @override
+  Widget build(BuildContext context) {
+    final index = panelState._selectedPointIndex;
+    if (index == null) return const SizedBox.shrink();
+
+    final ref = panelState.ref;
+    final diveId = panelState.widget.diveId;
+    final diveAsync = ref.read(diveProvider(diveId));
+    final dive = diveAsync.valueOrNull;
+    if (dive == null || index >= dive.profile.length) {
       return const SizedBox.shrink();
     }
 
+    final point = dive.profile[index];
+    final analysis = ref.read(profileAnalysisProvider(diveId)).valueOrNull;
+    final settings = ref.read(settingsProvider);
+    final units = UnitFormatter(settings);
+    final colorScheme = Theme.of(context).colorScheme;
     final onSurface = colorScheme.onInverseSurface;
+
     final rowStyle = TextStyle(
       fontFamily: 'RobotoMono',
       fontSize: 14,
@@ -308,10 +341,9 @@ class _DiveProfilePanelContentState
     }
 
     // Ceiling
-    if (analysis?.ceilingCurve != null &&
-        pointIndex != null &&
-        pointIndex < (analysis.ceilingCurve as List).length) {
-      final ceiling = (analysis.ceilingCurve as List<double>)[pointIndex];
+    final ceilingCurve = analysis?.ceilingCurve;
+    if (ceilingCurve != null && index < ceilingCurve.length) {
+      final ceiling = ceilingCurve[index];
       if (ceiling > 0) {
         addRow('Ceiling', units.formatDepth(ceiling), const Color(0xFFD32F2F));
       }
@@ -323,20 +355,28 @@ class _DiveProfilePanelContentState
       addRow('NDL', ndlValue, Colors.orange);
     }
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: colorScheme.inverseSurface,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(8),
-          bottomRight: Radius.circular(8),
+    return CompositedTransformFollower(
+      link: link,
+      targetAnchor: Alignment.bottomLeft,
+      followerAnchor: Alignment.topLeft,
+      offset: const Offset(12, 0),
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: colorScheme.inverseSurface,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: rows,
+            ),
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: rows,
       ),
     );
   }
