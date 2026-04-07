@@ -27,10 +27,13 @@ import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/table_column_picker.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
+import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Compute a single OSM tile URL for the given lat/lng at [zoom].
@@ -87,74 +90,6 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     );
   }
 
-  /// Table mode + map view.
-  /// Desktop: side-by-side with table on left, map on right (50/50).
-  /// Mobile: full-screen map (same as detailed mode).
-  Widget _buildTableMapView(BuildContext context, Widget fab) {
-    final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
-
-    if (!isDesktop) {
-      // Mobile: full-screen map, same as detailed mode
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(context.l10n.diveLog_listPage_appBar_diveMap),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            tooltip: context.l10n.diveLog_listPage_tooltip_backToDiveList,
-            onPressed: _toggleMapView,
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.list),
-              tooltip: context.l10n.diveLog_listPage_tooltip_listView,
-              onPressed: _toggleMapView,
-            ),
-          ],
-        ),
-        body: DiveMapContent(
-          selectedId: _mobileMapSelectedDiveId,
-          onItemSelected: (diveId) {
-            setState(() => _mobileMapSelectedDiveId = diveId);
-          },
-          onDetailsTap: (diveId) {
-            context.push('/dives/$diveId');
-          },
-        ),
-      );
-    }
-
-    // Desktop: side-by-side
-    final highlightedId = ref.watch(highlightedDiveIdProvider);
-
-    return Scaffold(
-      body: Row(
-        children: [
-          // Table + chart on the left
-          Expanded(
-            child: DiveListContent(
-              showAppBar: true,
-              isMapViewActive: true,
-              onMapViewToggle: _toggleMapView,
-            ),
-          ),
-          // Map on the right (same width as table)
-          Expanded(
-            child: DiveMapContent(
-              selectedId: highlightedId,
-              onItemSelected: (diveId) {
-                ref.read(highlightedDiveIdProvider.notifier).state = diveId;
-              },
-              onDetailsTap: (diveId) {
-                context.push('/dives/$diveId');
-              },
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: fab,
-    );
-  }
-
   void _toggleMapView() {
     final router = GoRouter.of(context);
     final state = GoRouterState.of(context);
@@ -197,17 +132,60 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
       label: Text(context.l10n.diveLog_listPage_fab_logDive),
     );
 
-    // Table mode: full-width on all screen sizes, no master-detail split.
+    // Table mode: use shared TableModeLayout for full-width table with
+    // optional detail pane, map, and profile panel.
     final viewMode = ref.watch(diveListViewModeProvider);
     if (viewMode == ListViewMode.table) {
-      if (_isMapView) {
-        return _buildTableMapView(context, fab);
-      }
-      return DiveListContent(
-        showAppBar: true,
-        floatingActionButton: fab,
-        isMapViewActive: false,
+      final showProfile = ref.watch(showProfilePanelProvider);
+
+      return TableModeLayout(
+        sectionKey: 'dives',
+        appBarTitle: context.l10n.nav_dives,
+        tableContent: const DiveListContent(showAppBar: false),
+        detailBuilder: (context, id) => DiveDetailPage(
+          diveId: id,
+          embedded: true,
+          onDeleted: () {
+            final state = GoRouterState.of(context);
+            context.go(state.uri.path);
+          },
+        ),
+        summaryBuilder: (context) => const DiveSummaryWidget(),
+        editBuilder: (context, id, onSaved, onCancel) => DiveEditPage(
+          diveId: id,
+          embedded: true,
+          onSaved: onSaved,
+          onCancel: onCancel,
+        ),
+        createBuilder: (context, onSaved, onCancel) =>
+            DiveEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
+        mapContent: DiveMapContent(
+          selectedId: ref.watch(highlightedDiveIdProvider),
+          onItemSelected: (diveId) {
+            ref.read(highlightedDiveIdProvider.notifier).state = diveId;
+          },
+          onDetailsTap: (diveId) => context.push('/dives/$diveId'),
+        ),
+        profilePanelContent: const DiveProfilePanel(),
+        showProfilePanel: showProfile,
+        onProfileToggled: () {
+          final newValue = !ref.read(showProfilePanelProvider);
+          ref.read(showProfilePanelProvider.notifier).state = newValue;
+        },
+        selectedId: ref.watch(highlightedDiveIdProvider),
+        onEntitySelected: (id) {
+          ref.read(highlightedDiveIdProvider.notifier).state = id;
+        },
+        isMapViewActive: _isMapView,
         onMapViewToggle: _toggleMapView,
+        appBarActions: [
+          IconButton(
+            icon: const Icon(Icons.view_column_outlined),
+            tooltip: 'Column settings',
+            onPressed: () => showTableColumnPicker(context),
+          ),
+        ],
+        floatingActionButton: fab,
       );
     }
 

@@ -11,8 +11,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_dive_list_tile.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -1018,12 +1016,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
+          // Map toggle: shown in detailed/compact mode only.
+          // In table mode, TableModeLayout manages the map toggle.
           if (widget.onMapViewToggle != null)
             MapViewToggleButton(
               isActive: widget.isMapViewActive,
               onToggle: widget.onMapViewToggle!,
             )
-          else
+          else if (ref.read(diveListViewModeProvider) != ListViewMode.table)
             IconButton(
               icon: const Icon(Icons.map, size: 20),
               tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
@@ -1218,69 +1218,27 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
   }
 
-  /// Build the full scaffold/layout for table mode.
+  /// Build the layout for table mode content.
   ///
   /// Table mode uses the [allDivesForTableProvider] (full Dive objects with
   /// filters and sorting applied) instead of the paginated DiveSummary list.
+  ///
+  /// When used inside [TableModeLayout] (showAppBar: false), this provides
+  /// only the compact app bar (filter chips, sort controls) and the table.
+  /// The outer Scaffold, profile panel, map, and column settings are all
+  /// managed by [TableModeLayout].
   Widget _buildTableModeScaffold(BuildContext context, DiveFilterState filter) {
     final content = _buildTableView(context, filter);
 
-    if (!widget.showAppBar) {
-      // Inside MasterDetailScaffold (though table mode typically skips it)
-      return Column(
-        children: [
-          if (_isSelectionMode)
-            _buildSelectionBar(const [])
-          else
-            _buildCompactAppBar(context, filter),
-          Expanded(child: content),
-        ],
-      );
-    }
-
-    // Standalone mode with full Scaffold
-    return Scaffold(
-      appBar: _isSelectionMode
-          ? _buildSelectionAppBar(const [])
-          : _buildAppBar(
-              context,
-              filter,
-              title: context.l10n.nav_dives,
-              extraActions: [
-                IconButton(
-                  icon: Icon(
-                    Icons.area_chart,
-                    color: ref.watch(showProfilePanelProvider)
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
-                  ),
-                  tooltip: 'Toggle profile panel',
-                  onPressed: () {
-                    ref.read(showProfilePanelProvider.notifier).state = !ref
-                        .read(showProfilePanelProvider);
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.view_column_outlined),
-                  tooltip: 'Column settings',
-                  onPressed: () => showTableColumnPicker(context),
-                ),
-                SizedBox(
-                  height: 24,
-                  child: VerticalDivider(
-                    width: 16,
-                    thickness: 1,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outlineVariant.withValues(alpha: 0.5),
-                  ),
-                ),
-              ],
-            ),
-      body: content,
-      floatingActionButton: _isSelectionMode
-          ? null
-          : widget.floatingActionButton,
+    // Embedded inside TableModeLayout -- provide compact app bar + table only.
+    return Column(
+      children: [
+        if (_isSelectionMode)
+          _buildSelectionBar(const [])
+        else
+          _buildCompactAppBar(context, filter),
+        Expanded(child: content),
+      ],
     );
   }
 
@@ -1295,11 +1253,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         if (dives.isEmpty) {
           return _buildEmptyState(context, filter.hasActiveFilters);
         }
-        final showPanel = ref.watch(showProfilePanelProvider);
         return Column(
           children: [
             if (filter.hasActiveFilters) _buildActiveFiltersBar(context),
-            if (showPanel) const DiveProfilePanel(),
             Expanded(
               child: DiveTableView(
                 dives: dives,

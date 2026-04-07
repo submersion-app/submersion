@@ -538,10 +538,11 @@ void main() {
     });
 
     // -----------------------------------------------------------------------
-    // Table with profile panel visible
+    // Table renders normally when profile panel provider is enabled
+    // (Profile panel itself is rendered by TableModeLayout, not DiveTableView)
     // -----------------------------------------------------------------------
 
-    testWidgets('table with profile panel renders DiveProfilePanel', (
+    testWidgets('table renders rows when showProfilePanel provider is true', (
       tester,
     ) async {
       final dives = [
@@ -562,7 +563,8 @@ void main() {
       );
       await tester.pump();
 
-      // The DiveProfilePanel should be in the widget tree
+      // Table rows render regardless of profile panel state
+      // (profile panel is managed by TableModeLayout, not table content)
       expect(find.text('#1'), findsOneWidget);
     });
 
