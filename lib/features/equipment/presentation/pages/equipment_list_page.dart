@@ -3,10 +3,14 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
@@ -15,6 +19,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_sum
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 class EquipmentListPage extends ConsumerStatefulWidget {
   const EquipmentListPage({super.key});
@@ -67,6 +72,69 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
 
   @override
   Widget build(BuildContext context) {
+    // Table mode: intercept before the tab scaffold and use TableModeLayout
+    // for the Equipment tab (equipment items only, not equipment sets).
+    final viewMode = ref.watch(equipmentListViewModeProvider);
+    if (viewMode == ListViewMode.table) {
+      final fab = FloatingActionButton.extended(
+        onPressed: () => context.push('/equipment/new'),
+        icon: const Icon(Icons.add),
+        label: Text(context.l10n.equipment_fab_addEquipment),
+      );
+
+      return FocusTraversalGroup(
+        child: TableModeLayout(
+          sectionKey: 'equipment',
+          appBarTitle: context.l10n.nav_equipment,
+          tableContent: const EquipmentListContent(showAppBar: false),
+          detailBuilder: (context, id) => EquipmentDetailPage(
+            equipmentId: id,
+            embedded: true,
+            onDeleted: () {
+              context.go('/equipment');
+            },
+          ),
+          summaryBuilder: (context) => const EquipmentSummaryWidget(),
+          editBuilder: (context, id, onSaved, onCancel) => EquipmentEditPage(
+            equipmentId: id,
+            embedded: true,
+            onSaved: onSaved,
+            onCancel: onCancel,
+          ),
+          createBuilder: (context, onSaved, onCancel) => EquipmentEditPage(
+            embedded: true,
+            onSaved: onSaved,
+            onCancel: onCancel,
+          ),
+          selectedId: ref.watch(highlightedEquipmentIdProvider),
+          onEntitySelected: (id) {
+            ref.read(highlightedEquipmentIdProvider.notifier).state = id;
+          },
+          appBarActions: [
+            IconButton(
+              icon: const Icon(Icons.view_column_outlined),
+              tooltip: 'Column settings',
+              onPressed: () {
+                final config = ref.read(equipmentTableConfigProvider);
+                final notifier = ref.read(
+                  equipmentTableConfigProvider.notifier,
+                );
+                showEntityTableColumnPicker<EquipmentField>(
+                  context,
+                  config: config,
+                  adapter: EquipmentFieldAdapter.instance,
+                  onToggleColumn: notifier.toggleColumn,
+                  onReorderColumn: notifier.reorderColumn,
+                  onTogglePin: notifier.togglePin,
+                );
+              },
+            ),
+          ],
+          floatingActionButton: fab,
+        ),
+      );
+    }
+
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       // Auto-switch to Equipment tab when ?selected= is in URL but Sets
       // tab is active. This handles the EquipmentDetailPage desktop redirect,

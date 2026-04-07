@@ -393,6 +393,13 @@ final serviceRecordNotifierProvider =
     });
 
 // ============================================================================
+// Equipment Highlighted ID (for table mode detail pane)
+// ============================================================================
+
+/// Tracks the currently highlighted equipment item in table mode.
+final highlightedEquipmentIdProvider = StateProvider<String?>((ref) => null);
+
+// ============================================================================
 // Equipment Table View Config
 // ============================================================================
 

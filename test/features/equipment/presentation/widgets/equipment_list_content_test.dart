@@ -150,23 +150,8 @@ void main() {
       expect(find.byIcon(Icons.backpack), findsOneWidget);
     });
 
-    testWidgets('table app bar includes column settings button', (
-      tester,
-    ) async {
-      final overrides = await _buildOverrides(
-        equipment: [_makeEquipment(id: 'e1', name: 'Test Reg')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const EquipmentListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.view_column_outlined), findsOneWidget);
-    });
+    // Column settings are now provided by TableModeLayout, not the content
+    // widget. The compact bar provides sort, search, and view mode controls.
 
     testWidgets('renders with showAppBar false (compact bar)', (tester) async {
       final overrides = await _buildOverrides(
@@ -254,21 +239,8 @@ void main() {
       expect(find.text('Compact'), findsOneWidget);
     });
 
-    testWidgets('table app bar has vertical divider', (tester) async {
-      final overrides = await _buildOverrides(
-        equipment: [_makeEquipment(id: 'e1', name: 'Test Reg')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const EquipmentListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byType(VerticalDivider), findsOneWidget);
-    });
+    // Vertical divider was part of the standalone table app bar, now removed.
+    // Column settings and divider are in TableModeLayout.
 
     testWidgets('compact bar has sort button', (tester) async {
       final overrides = await _buildOverrides(
@@ -521,7 +493,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // View mode was changed from table
-      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+      // (column settings not in content widget; managed by TableModeLayout)
     });
 
     testWidgets('compact bar sort button opens sheet and selects option', (
@@ -570,7 +542,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // View mode was changed from table
-      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+      // (column settings not in content widget; managed by TableModeLayout)
     });
   });
 }
