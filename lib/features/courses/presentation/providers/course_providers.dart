@@ -295,6 +295,13 @@ final courseListViewModeProvider = StateProvider<ListViewMode>((ref) {
 });
 
 // ============================================================================
+// Course Highlighted ID (for table mode detail pane)
+// ============================================================================
+
+/// Tracks the currently highlighted course in table mode.
+final highlightedCourseIdProvider = StateProvider<String?>((ref) => null);
+
+// ============================================================================
 // Course Table View Config
 // ============================================================================
 

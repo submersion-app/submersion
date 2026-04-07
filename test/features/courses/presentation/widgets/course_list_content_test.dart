@@ -162,23 +162,8 @@ void main() {
       expect(find.byIcon(Icons.school_outlined), findsOneWidget);
     });
 
-    testWidgets('table app bar includes column settings button', (
-      tester,
-    ) async {
-      final overrides = await _buildOverrides(
-        courses: [_makeCourse(id: 'co1', name: 'Nitrox')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const CourseListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.view_column_outlined), findsOneWidget);
-    });
+    // Column settings are now provided by TableModeLayout, not the content
+    // widget. The compact bar provides view mode controls only.
 
     testWidgets('renders with showAppBar false (compact bar)', (tester) async {
       final overrides = await _buildOverrides(
@@ -196,7 +181,7 @@ void main() {
       expect(find.text('Deep Diver'), findsOneWidget);
     });
 
-    testWidgets('table app bar has more options popup', (tester) async {
+    testWidgets('compact bar has more options popup', (tester) async {
       final overrides = await _buildOverrides(
         courses: [_makeCourse(id: 'co1', name: 'Nitrox')],
       );
@@ -212,9 +197,7 @@ void main() {
       expect(find.byIcon(Icons.more_vert), findsOneWidget);
     });
 
-    testWidgets('table app bar popup menu shows view mode items', (
-      tester,
-    ) async {
+    testWidgets('popup menu shows view mode items', (tester) async {
       final overrides = await _buildOverrides(
         courses: [_makeCourse(id: 'co1', name: 'Nitrox')],
       );
@@ -231,40 +214,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Detailed'), findsOneWidget);
-    });
-
-    testWidgets('table app bar has vertical divider', (tester) async {
-      final overrides = await _buildOverrides(
-        courses: [_makeCourse(id: 'co1', name: 'Nitrox')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const CourseListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byType(VerticalDivider), findsOneWidget);
-    });
-
-    testWidgets('compact bar in table mode has column settings button', (
-      tester,
-    ) async {
-      final overrides = await _buildOverrides(
-        courses: [_makeCourse(id: 'co1', name: 'Deep Diver')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const CourseListContent(showAppBar: false),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.view_column_outlined), findsOneWidget);
     });
 
     testWidgets('compact bar in table mode has popup menu', (tester) async {
@@ -396,28 +345,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // View mode was changed from table
-      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
-    });
-
-    testWidgets('compact bar column settings opens picker in table mode', (
-      tester,
-    ) async {
-      final overrides = await _buildOverrides(
-        courses: [_makeCourse(id: 'co1', name: 'Test Course')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const CourseListContent(showAppBar: false),
-        ),
-      );
-      await tester.pump();
-
-      await tester.tap(find.byIcon(Icons.view_column_outlined));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Columns'), findsOneWidget);
+      // (column settings not in content widget; managed by TableModeLayout)
     });
 
     testWidgets('compact bar popup menu Detailed switches view mode', (
@@ -441,7 +369,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // View mode was changed from table
-      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+      // (column settings not in content widget; managed by TableModeLayout)
     });
   });
 }

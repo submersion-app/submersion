@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/features/courses/domain/constants/course_field.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_list_content.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_summary_widget.dart';
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
@@ -17,7 +22,9 @@ class CourseListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final fab = FloatingActionButton.extended(
       onPressed: () {
-        if (ResponsiveBreakpoints.isMasterDetail(context)) {
+        final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
+        final viewMode = ref.read(courseListViewModeProvider);
+        if (isDesktop && viewMode != ListViewMode.table) {
           final state = GoRouterState.of(context);
           final currentPath = state.uri.path;
           context.go('$currentPath?mode=new');
@@ -29,6 +36,62 @@ class CourseListPage extends ConsumerWidget {
       icon: const Icon(Icons.add),
       label: Text(context.l10n.courses_action_add),
     );
+
+    // Table mode: use shared TableModeLayout for full-width table with
+    // optional detail pane.
+    final viewMode = ref.watch(courseListViewModeProvider);
+    if (viewMode == ListViewMode.table) {
+      return FocusTraversalGroup(
+        child: TableModeLayout(
+          sectionKey: 'courses',
+          appBarTitle: context.l10n.nav_courses,
+          tableContent: const CourseListContent(showAppBar: false),
+          detailBuilder: (context, courseId) => CourseDetailPage(
+            courseId: courseId,
+            embedded: true,
+            onDeleted: () {
+              final state = GoRouterState.of(context);
+              context.go(state.uri.path);
+            },
+          ),
+          summaryBuilder: (context) => const CourseSummaryWidget(),
+          editBuilder: (context, courseId, onSaved, onCancel) => CourseEditPage(
+            courseId: courseId,
+            embedded: true,
+            onSaved: () => onSaved(courseId),
+            onCancel: onCancel,
+          ),
+          createBuilder: (context, onSaved, onCancel) => CourseEditPage(
+            embedded: true,
+            onSavedWithId: onSaved,
+            onCancel: onCancel,
+          ),
+          selectedId: ref.watch(highlightedCourseIdProvider),
+          onEntitySelected: (id) {
+            ref.read(highlightedCourseIdProvider.notifier).state = id;
+          },
+          appBarActions: [
+            IconButton(
+              icon: const Icon(Icons.view_column_outlined),
+              tooltip: 'Column settings',
+              onPressed: () {
+                final config = ref.read(courseTableConfigProvider);
+                final notifier = ref.read(courseTableConfigProvider.notifier);
+                showEntityTableColumnPicker<CourseField>(
+                  context,
+                  config: config,
+                  adapter: CourseFieldAdapter.instance,
+                  onToggleColumn: notifier.toggleColumn,
+                  onReorderColumn: notifier.reorderColumn,
+                  onTogglePin: notifier.togglePin,
+                );
+              },
+            ),
+          ],
+          floatingActionButton: fab,
+        ),
+      );
+    }
 
     // Desktop: Use master-detail layout
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
