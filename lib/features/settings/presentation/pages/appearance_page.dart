@@ -11,6 +11,7 @@ import 'package:submersion/features/settings/presentation/pages/language_setting
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/gradient_preset_picker.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/providers/table_details_pane_provider.dart';
 
 class AppearancePage extends ConsumerWidget {
   const AppearancePage({super.key});
@@ -156,6 +157,34 @@ class AppearancePage extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/settings/appearance/column-config'),
           ),
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: Text(
+              'Show details pane in table mode',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          for (final entry in const [
+            ('dives', 'Dives'),
+            ('sites', 'Sites'),
+            ('buddies', 'Buddies'),
+            ('trips', 'Trips'),
+            ('equipment', 'Equipment'),
+            ('diveCenters', 'Dive Centers'),
+            ('certifications', 'Certifications'),
+            ('courses', 'Courses'),
+          ])
+            SwitchListTile(
+              title: Text(entry.$2),
+              value: ref.watch(tableDetailsPaneProvider(entry.$1)),
+              onChanged: (value) {
+                ref.read(tableDetailsPaneProvider(entry.$1).notifier).state =
+                    value;
+              },
+            ),
           const Divider(),
           _buildSectionHeader(context, 'Dive Sites'),
           ListTile(

@@ -73,4 +73,45 @@ void main() {
       expect(find.byIcon(Icons.reorder), findsOneWidget);
     });
   });
+
+  group('AppearancePage details pane toggles', () {
+    testWidgets('shows details pane toggle header', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 6000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Show details pane in table mode'), findsOneWidget);
+    });
+
+    testWidgets('shows toggle tiles for all 8 entity sections', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 6000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget());
+      await tester.pumpAndSettle();
+
+      // All 8 section labels should be present as SwitchListTile titles
+      // Note: some of these labels may also appear elsewhere in the page
+      // (e.g., 'Dive Sites' as a section header) so we check for the
+      // specific toggle tiles by finding SwitchListTile widgets.
+      final switchTiles = find.byType(SwitchListTile);
+      expect(switchTiles, findsAtLeastNWidgets(8));
+
+      // Verify each section label is present somewhere on the page
+      for (final label in [
+        'Dives',
+        'Sites',
+        'Buddies',
+        'Trips',
+        'Equipment',
+        'Dive Centers',
+        'Certifications',
+        'Courses',
+      ]) {
+        expect(find.text(label), findsAtLeastNWidgets(1));
+      }
+    });
+  });
 }
