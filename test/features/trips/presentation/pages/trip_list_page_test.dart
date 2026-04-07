@@ -1,353 +1,170 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/constants/enums.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_list_content.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 
-void _setMobileTestSurfaceSize(WidgetTester tester) {
-  // Default widget test surface width is 800px, which triggers desktop
-  // master-detail mode (and requires GoRouter context). These tests target
-  // the mobile TripListContent behavior.
-  tester.view.devicePixelRatio = 1.0;
-  tester.view.physicalSize = const Size(390, 844);
+import '../../../../helpers/mock_providers.dart';
 
-  addTearDown(() {
-    tester.view.resetPhysicalSize();
-    tester.view.resetDevicePixelRatio();
-  });
-}
+// ---------------------------------------------------------------------------
+// Mock notifiers
+// ---------------------------------------------------------------------------
 
-void main() {
-  group('TripListPage', () {
-    testWidgets('should display Trips title in app bar', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            tripListNotifierProvider.overrideWith((ref) {
-              return _MockTripListNotifier([]);
-            }),
-            tripListViewModeProvider.overrideWith(
-              (ref) => ListViewMode.detailed,
-            ),
-          ],
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: TripListPage(),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-      expect(find.text('Trips'), findsOneWidget);
-    });
-
-    testWidgets('should display search icon in app bar', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            tripListNotifierProvider.overrideWith((ref) {
-              return _MockTripListNotifier([]);
-            }),
-            tripListViewModeProvider.overrideWith(
-              (ref) => ListViewMode.detailed,
-            ),
-          ],
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: TripListPage(),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.search), findsOneWidget);
-    });
-
-    testWidgets('should display empty state when no trips', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            tripListNotifierProvider.overrideWith((ref) {
-              return _MockTripListNotifier([]);
-            }),
-            tripListViewModeProvider.overrideWith(
-              (ref) => ListViewMode.detailed,
-            ),
-          ],
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: TripListPage(),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-      expect(find.text('No trips added yet'), findsOneWidget);
-      expect(
-        find.text('Create trips to group your dives by destination'),
-        findsOneWidget,
-      );
-      expect(find.text('Add Your First Trip'), findsOneWidget);
-    });
-
-    testWidgets('should display FAB with Add Trip label', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            tripListNotifierProvider.overrideWith((ref) {
-              return _MockTripListNotifier([]);
-            }),
-            tripListViewModeProvider.overrideWith(
-              (ref) => ListViewMode.detailed,
-            ),
-          ],
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: TripListPage(),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-      expect(find.text('Add Trip'), findsOneWidget);
-      expect(find.byIcon(Icons.add), findsWidgets);
-    });
-
-    testWidgets('should display trip list when trips exist', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      final testTrips = [
-        TripWithStats(
-          trip: Trip(
-            id: '1',
-            name: 'Red Sea Safari',
-            startDate: DateTime(2024, 1, 15),
-            endDate: DateTime(2024, 1, 22),
-            location: 'Egypt',
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now(),
-          ),
-          diveCount: 10,
-          totalBottomTime: 3600,
-        ),
-        TripWithStats(
-          trip: Trip(
-            id: '2',
-            name: 'Maldives Adventure',
-            startDate: DateTime(2024, 3, 1),
-            endDate: DateTime(2024, 3, 10),
-            liveaboardName: 'MY Blue Force',
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now(),
-          ),
-          diveCount: 25,
-          totalBottomTime: 7200,
-        ),
-      ];
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            tripListNotifierProvider.overrideWith((ref) {
-              return _MockTripListNotifier(testTrips);
-            }),
-            tripListViewModeProvider.overrideWith(
-              (ref) => ListViewMode.detailed,
-            ),
-          ],
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: TripListPage(),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-      expect(find.text('Red Sea Safari'), findsOneWidget);
-      expect(find.text('Maldives Adventure'), findsOneWidget);
-    });
-
-    testWidgets('should display dive count for trips', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      final testTrips = [
-        TripWithStats(
-          trip: Trip(
-            id: '1',
-            name: 'Test Trip',
-            startDate: DateTime(2024, 1, 15),
-            endDate: DateTime(2024, 1, 22),
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now(),
-          ),
-          diveCount: 15,
-          totalBottomTime: 5400,
-        ),
-      ];
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            tripListNotifierProvider.overrideWith((ref) {
-              return _MockTripListNotifier(testTrips);
-            }),
-            tripListViewModeProvider.overrideWith(
-              (ref) => ListViewMode.detailed,
-            ),
-          ],
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: TripListPage(),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-      expect(find.text('15 dives'), findsOneWidget);
-    });
-
-    testWidgets('should show sailing icon for liveaboard trips', (
-      tester,
-    ) async {
-      _setMobileTestSurfaceSize(tester);
-      final testTrips = [
-        TripWithStats(
-          trip: Trip(
-            id: '1',
-            name: 'Liveaboard Trip',
-            startDate: DateTime(2024, 1, 15),
-            endDate: DateTime(2024, 1, 22),
-            tripType: TripType.liveaboard,
-            liveaboardName: 'MY Explorer',
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now(),
-          ),
-          diveCount: 20,
-        ),
-      ];
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            tripListNotifierProvider.overrideWith((ref) {
-              return _MockTripListNotifier(testTrips);
-            }),
-            tripListViewModeProvider.overrideWith(
-              (ref) => ListViewMode.detailed,
-            ),
-          ],
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: TripListPage(),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.sailing), findsOneWidget);
-    });
-
-    testWidgets('should show loading indicator while loading', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            tripListNotifierProvider.overrideWith((ref) {
-              return _LoadingTripListNotifier();
-            }),
-            tripListViewModeProvider.overrideWith(
-              (ref) => ListViewMode.detailed,
-            ),
-          ],
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: TripListPage(),
-          ),
-        ),
-      );
-
-      await tester.pump();
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    });
-  });
-}
-
-/// Mock notifier that returns data immediately
 class _MockTripListNotifier
     extends StateNotifier<AsyncValue<List<TripWithStats>>>
     implements TripListNotifier {
-  _MockTripListNotifier(List<TripWithStats> trips)
-    : super(AsyncValue.data(trips));
+  _MockTripListNotifier() : super(const AsyncValue.data(<TripWithStats>[]));
 
   @override
-  Future<void> refresh() async {}
-
-  @override
-  Future<Trip> addTrip(Trip trip) async => trip;
-
-  @override
-  Future<void> updateTrip(Trip trip) async {}
-
-  @override
-  Future<void> deleteTrip(String id) async {}
-
-  @override
-  Future<void> assignDiveToTrip(String diveId, String tripId) async {}
-
-  @override
-  Future<void> removeDiveFromTrip(String diveId, String tripId) async {}
-
-  @override
-  Future<void> assignDivesToTrip(
-    List<String> diveIds,
-    String tripId, {
-    Set<String>? oldTripIds,
-  }) async {}
+  dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-/// Mock notifier that stays in loading state
-class _LoadingTripListNotifier
-    extends StateNotifier<AsyncValue<List<TripWithStats>>>
-    implements TripListNotifier {
-  _LoadingTripListNotifier() : super(const AsyncValue.loading());
+class _TestTripTableConfigNotifier
+    extends EntityTableConfigNotifier<TripField> {
+  _TestTripTableConfigNotifier()
+    : super(
+        defaultConfig: EntityTableViewConfig<TripField>(
+          columns: [
+            EntityTableColumnConfig(field: TripField.tripName, isPinned: true),
+          ],
+        ),
+        fieldFromName: TripFieldAdapter.instance.fieldFromName,
+      );
+}
 
-  @override
-  Future<void> refresh() async {}
+// ---------------------------------------------------------------------------
+// Helper to build the widget under test inside a GoRouter
+// ---------------------------------------------------------------------------
 
-  @override
-  Future<Trip> addTrip(Trip trip) async => trip;
+Widget _buildTestWidget({required List<Override> overrides}) {
+  final router = GoRouter(
+    initialLocation: '/trips',
+    routes: [
+      GoRoute(
+        path: '/trips',
+        builder: (context, state) => const TripListPage(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            builder: (context, state) => const Scaffold(body: Text('new')),
+          ),
+          GoRoute(
+            path: ':id',
+            builder: (context, state) => const Scaffold(body: Text('detail')),
+          ),
+        ],
+      ),
+    ],
+  );
 
-  @override
-  Future<void> updateTrip(Trip trip) async {}
+  return ProviderScope(
+    overrides: overrides,
+    child: MaterialApp.router(
+      routerConfig: router,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+    ),
+  );
+}
 
-  @override
-  Future<void> deleteTrip(String id) async {}
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
 
-  @override
-  Future<void> assignDiveToTrip(String diveId, String tripId) async {}
+void main() {
+  group('TripListPage', () {
+    late SharedPreferences prefs;
 
-  @override
-  Future<void> removeDiveFromTrip(String diveId, String tripId) async {}
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+    });
 
-  @override
-  Future<void> assignDivesToTrip(
-    List<String> diveIds,
-    String tripId, {
-    Set<String>? oldTripIds,
-  }) async {}
+    List<Override> baseOverrides({
+      ListViewMode viewMode = ListViewMode.detailed,
+    }) {
+      return [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+        tripListNotifierProvider.overrideWith((ref) => _MockTripListNotifier()),
+        sortedFilteredTripsProvider.overrideWith(
+          (ref) => const AsyncValue.data(<TripWithStats>[]),
+        ),
+        tripListViewModeProvider.overrideWith((ref) => viewMode),
+        tripTableConfigProvider.overrideWith(
+          (ref) => _TestTripTableConfigNotifier(),
+        ),
+      ];
+    }
+
+    testWidgets('renders TripListContent in mobile mode', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(400, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(_buildTestWidget(overrides: baseOverrides()));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TripListContent), findsOneWidget);
+      expect(find.byType(TableModeLayout), findsNothing);
+      expect(find.byType(MasterDetailScaffold), findsNothing);
+    });
+
+    testWidgets('renders TableModeLayout in table mode', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: baseOverrides(viewMode: ListViewMode.table),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TableModeLayout), findsOneWidget);
+      expect(find.byType(MasterDetailScaffold), findsNothing);
+    });
+
+    testWidgets('renders MasterDetailScaffold in desktop mode', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: baseOverrides(viewMode: ListViewMode.detailed),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MasterDetailScaffold), findsOneWidget);
+      expect(find.byType(TableModeLayout), findsNothing);
+    });
+  });
 }

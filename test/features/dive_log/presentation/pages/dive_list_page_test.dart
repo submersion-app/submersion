@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -122,4 +130,145 @@ void main() {
 
     // Dense view mode removed - causes widget test framework errors
   });
+
+  group('DiveListPage layout branches', () {
+    Widget buildBranchTestWidget({
+      required Widget child,
+      required List<Override> overrides,
+      String path = '/dives',
+    }) {
+      final router = GoRouter(
+        initialLocation: path,
+        routes: [
+          GoRoute(
+            path: path,
+            builder: (context, state) => child,
+            routes: [
+              GoRoute(
+                path: 'new',
+                builder: (_, _) => const Scaffold(body: Text('new')),
+              ),
+              GoRoute(
+                path: ':id',
+                builder: (_, _) => const Scaffold(body: Text('detail')),
+              ),
+            ],
+          ),
+        ],
+      );
+      return ProviderScope(
+        overrides: overrides,
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+    }
+
+    Future<List<Override>> buildBranchOverrides({
+      ListViewMode viewMode = ListViewMode.detailed,
+    }) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      return [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+        paginatedDiveListProvider.overrideWith(
+          (ref) => _MockPaginatedDiveListNotifier(),
+        ),
+        diveListNotifierProvider.overrideWith((ref) => _MockDiveListNotifier()),
+        diveListViewModeProvider.overrideWith((ref) => viewMode),
+        highlightedDiveIdProvider.overrideWith((ref) => null),
+        showProfilePanelProvider.overrideWith((ref) => false),
+        customTankPresetsProvider.overrideWith((ref) async => []),
+      ];
+    }
+
+    testWidgets('mobile mode renders DiveListContent', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(400, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await buildBranchOverrides();
+      await tester.pumpWidget(
+        buildBranchTestWidget(
+          child: const DiveListPage(),
+          overrides: overrides,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveListContent), findsOneWidget);
+      expect(find.byType(TableModeLayout), findsNothing);
+      expect(find.byType(MasterDetailScaffold), findsNothing);
+    });
+
+    testWidgets('table mode renders TableModeLayout', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await buildBranchOverrides(
+        viewMode: ListViewMode.table,
+      );
+      await tester.pumpWidget(
+        buildBranchTestWidget(
+          child: const DiveListPage(),
+          overrides: overrides,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TableModeLayout), findsOneWidget);
+    });
+
+    testWidgets('desktop mode renders MasterDetailScaffold', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await buildBranchOverrides();
+      await tester.pumpWidget(
+        buildBranchTestWidget(
+          child: const DiveListPage(),
+          overrides: overrides,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MasterDetailScaffold), findsOneWidget);
+    });
+  });
+}
+
+class _MockDiveListNotifier extends StateNotifier<AsyncValue<List<Dive>>>
+    implements DiveListNotifier {
+  _MockDiveListNotifier() : super(const AsyncValue.data(<Dive>[]));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _MockPaginatedDiveListNotifier
+    extends StateNotifier<AsyncValue<PaginatedDiveListState>>
+    implements PaginatedDiveListNotifier {
+  _MockPaginatedDiveListNotifier()
+    : super(const AsyncValue.data(PaginatedDiveListState()));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
 }

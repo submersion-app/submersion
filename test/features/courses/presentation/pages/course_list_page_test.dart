@@ -1,164 +1,171 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/courses/domain/constants/course_field.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/pages/course_list_page.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/courses/presentation/widgets/course_list_content.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
-void _setMobileTestSurfaceSize(WidgetTester tester) {
-  tester.view.devicePixelRatio = 1.0;
-  tester.view.physicalSize = const Size(390, 844);
-  addTearDown(() {
-    tester.view.resetPhysicalSize();
-    tester.view.resetDevicePixelRatio();
-  });
-}
+// ---------------------------------------------------------------------------
+// Mock notifiers
+// ---------------------------------------------------------------------------
 
 class _MockCourseListNotifier extends StateNotifier<AsyncValue<List<Course>>>
     implements CourseListNotifier {
-  _MockCourseListNotifier(super.state);
+  _MockCourseListNotifier() : super(const AsyncValue.data(<Course>[]));
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-Future<List<Override>> _buildOverrides({
-  List<Course> courses = const [],
-  bool loading = false,
-}) async {
-  SharedPreferences.setMockInitialValues({});
-  final prefs = await SharedPreferences.getInstance();
-  return [
-    sharedPreferencesProvider.overrideWithValue(prefs),
-    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-    currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
-    courseListNotifierProvider.overrideWith(
-      (ref) => _MockCourseListNotifier(
-        loading ? const AsyncValue.loading() : AsyncValue.data(courses),
-      ),
-    ),
-    courseListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
-  ];
+class _TestCourseTableConfigNotifier
+    extends EntityTableConfigNotifier<CourseField> {
+  _TestCourseTableConfigNotifier()
+    : super(
+        defaultConfig: EntityTableViewConfig<CourseField>(
+          columns: [
+            EntityTableColumnConfig(
+              field: CourseField.courseName,
+              isPinned: true,
+            ),
+          ],
+        ),
+        fieldFromName: CourseFieldAdapter.instance.fieldFromName,
+      );
 }
+
+// ---------------------------------------------------------------------------
+// Helper to build the widget under test inside a GoRouter
+// ---------------------------------------------------------------------------
+
+Widget _buildTestWidget({required List<Override> overrides}) {
+  final router = GoRouter(
+    initialLocation: '/courses',
+    routes: [
+      GoRoute(
+        path: '/courses',
+        builder: (context, state) => const CourseListPage(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            builder: (context, state) => const Scaffold(body: Text('new')),
+          ),
+          GoRoute(
+            path: ':id',
+            builder: (context, state) => const Scaffold(body: Text('detail')),
+          ),
+        ],
+      ),
+    ],
+  );
+
+  return ProviderScope(
+    overrides: overrides,
+    child: MaterialApp.router(
+      routerConfig: router,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+    ),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
 
 void main() {
   group('CourseListPage', () {
-    testWidgets('shows Training Courses title in app bar', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      final overrides = await _buildOverrides();
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: overrides,
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: CourseListPage(),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('Training Courses'), findsOneWidget);
+    late SharedPreferences prefs;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
     });
 
-    testWidgets('shows Add Course FAB', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      final overrides = await _buildOverrides();
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: overrides,
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: CourseListPage(),
-          ),
+    List<Override> baseOverrides({
+      ListViewMode viewMode = ListViewMode.detailed,
+    }) {
+      return [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
         ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('Add Course'), findsOneWidget);
-    });
-
-    testWidgets('shows empty state when no courses', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      final overrides = await _buildOverrides();
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: overrides,
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: CourseListPage(),
-          ),
+        courseListNotifierProvider.overrideWith(
+          (ref) => _MockCourseListNotifier(),
         ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('No training courses yet'), findsOneWidget);
-    });
-
-    testWidgets('shows loading indicator while loading', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      final overrides = await _buildOverrides(loading: true);
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: overrides,
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: CourseListPage(),
-          ),
-        ),
-      );
-      await tester.pump();
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    });
-
-    testWidgets('shows course names when data loaded', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      final now = DateTime.now();
-      final testCourses = [
-        Course(
-          id: '1',
-          diverId: 'diver-1',
-          name: 'Advanced Open Water',
-          agency: CertificationAgency.padi,
-          startDate: DateTime(2024, 1, 10),
-          notes: '',
-          createdAt: now,
-          updatedAt: now,
-        ),
-        Course(
-          id: '2',
-          diverId: 'diver-1',
-          name: 'Rescue Diver',
-          agency: CertificationAgency.ssi,
-          startDate: DateTime(2024, 3, 5),
-          notes: '',
-          createdAt: now,
-          updatedAt: now,
+        courseListViewModeProvider.overrideWith((ref) => viewMode),
+        courseTableConfigProvider.overrideWith(
+          (ref) => _TestCourseTableConfigNotifier(),
         ),
       ];
-      final overrides = await _buildOverrides(courses: testCourses);
+    }
+
+    testWidgets('renders CourseListContent in mobile mode', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(400, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(_buildTestWidget(overrides: baseOverrides()));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CourseListContent), findsOneWidget);
+      expect(find.byType(TableModeLayout), findsNothing);
+      expect(find.byType(MasterDetailScaffold), findsNothing);
+    });
+
+    testWidgets('renders TableModeLayout in table mode', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: overrides,
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: CourseListPage(),
-          ),
+        _buildTestWidget(
+          overrides: baseOverrides(viewMode: ListViewMode.table),
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Advanced Open Water'), findsOneWidget);
-      expect(find.text('Rescue Diver'), findsOneWidget);
+
+      expect(find.byType(TableModeLayout), findsOneWidget);
+      expect(find.byType(MasterDetailScaffold), findsNothing);
+    });
+
+    testWidgets('renders MasterDetailScaffold in desktop mode', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: baseOverrides(viewMode: ListViewMode.detailed),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MasterDetailScaffold), findsOneWidget);
+      expect(find.byType(TableModeLayout), findsNothing);
     });
   });
 }

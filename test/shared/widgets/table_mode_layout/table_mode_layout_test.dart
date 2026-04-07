@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/providers/table_details_pane_provider.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
+
+/// Mock SettingsNotifier that doesn't access the database
+class _MockSettingsNotifier extends StateNotifier<AppSettings>
+    implements SettingsNotifier {
+  _MockSettingsNotifier() : super(const AppSettings());
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 // ---------------------------------------------------------------------------
 // Helper: build a test app without GoRouter (for non-detail-pane tests).
@@ -16,7 +26,10 @@ Widget _buildTestWidget({
   List<dynamic>? overrides,
 }) {
   return ProviderScope(
-    overrides: overrides?.cast() ?? [],
+    overrides: [
+      settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+      ...?overrides?.cast(),
+    ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -52,7 +65,10 @@ Widget _buildRoutedTestWidget({
   );
 
   return ProviderScope(
-    overrides: overrides?.cast() ?? [],
+    overrides: [
+      settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+      ...?overrides?.cast(),
+    ],
     child: MaterialApp.router(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -161,23 +177,25 @@ void main() {
     // Profile toggle
     // ------------------------------------------------------------------
     group('profile toggle', () {
-      testWidgets('appears when profilePanelContent is provided', (
-        tester,
-      ) async {
-        await tester.pumpWidget(
-          _buildTestWidget(
-            child: _buildLayout(
-              profilePanelContent: const SizedBox(
-                height: 100,
-                child: Text('Profile Panel'),
+      testWidgets(
+        'appears when profilePanelContent and onProfileToggled are provided',
+        (tester) async {
+          await tester.pumpWidget(
+            _buildTestWidget(
+              child: _buildLayout(
+                profilePanelContent: const SizedBox(
+                  height: 100,
+                  child: Text('Profile Panel'),
+                ),
+                onProfileToggled: () {},
               ),
             ),
-          ),
-        );
-        await tester.pumpAndSettle();
+          );
+          await tester.pumpAndSettle();
 
-        expect(find.byKey(const ValueKey('profile_toggle')), findsOneWidget);
-      });
+          expect(find.byKey(const ValueKey('profile_toggle')), findsOneWidget);
+        },
+      );
 
       testWidgets('hidden when profilePanelContent is null', (tester) async {
         await tester.pumpWidget(_buildTestWidget(child: _buildLayout()));
@@ -366,6 +384,7 @@ void main() {
           await tester.pumpWidget(
             ProviderScope(
               overrides: [
+                settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
                 tableDetailsPaneProvider('dives').overrideWith((_) => false),
               ],
               child: Consumer(
