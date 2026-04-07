@@ -378,4 +378,215 @@ void main() {
       expect(preset.isBuiltIn, isFalse);
     });
   });
+
+  // -----------------------------------------------------------------------
+  // Additional edge-case tests to cover remaining lines
+  // -----------------------------------------------------------------------
+
+  group('TableColumnConfig edge cases', () {
+    test('fromJson with valid known field returns correct field', () {
+      final json = {'field': 'maxDepth', 'width': 100.0, 'isPinned': true};
+      final config = TableColumnConfig.fromJson(json);
+      expect(config.field, equals(DiveField.maxDepth));
+      expect(config.width, equals(100.0));
+      expect(config.isPinned, isTrue);
+    });
+
+    test('copyWith with only width', () {
+      final original = TableColumnConfig(
+        field: DiveField.maxDepth,
+        width: 100,
+        isPinned: false,
+      );
+      final modified = original.copyWith(width: 300);
+      expect(modified.field, equals(DiveField.maxDepth));
+      expect(modified.width, equals(300));
+      expect(modified.isPinned, isFalse);
+    });
+
+    test('copyWith with only isPinned', () {
+      final original = TableColumnConfig(
+        field: DiveField.siteName,
+        width: 200,
+        isPinned: false,
+      );
+      final modified = original.copyWith(isPinned: true);
+      expect(modified.field, equals(DiveField.siteName));
+      expect(modified.width, equals(200));
+      expect(modified.isPinned, isTrue);
+    });
+
+    test('equality between identical configs', () {
+      final a = TableColumnConfig(
+        field: DiveField.maxDepth,
+        width: 100,
+        isPinned: false,
+      );
+      final b = TableColumnConfig(
+        field: DiveField.maxDepth,
+        width: 100,
+        isPinned: false,
+      );
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+    });
+
+    test('inequality between different configs', () {
+      final a = TableColumnConfig(
+        field: DiveField.maxDepth,
+        width: 100,
+        isPinned: false,
+      );
+      final b = TableColumnConfig(
+        field: DiveField.maxDepth,
+        width: 200,
+        isPinned: false,
+      );
+      expect(a, isNot(equals(b)));
+    });
+  });
+
+  group('TableViewConfig edge cases', () {
+    test('copyWith with only columns', () {
+      final original = TableViewConfig.defaultConfig().copyWith(
+        sortField: DiveField.maxDepth,
+        sortAscending: false,
+      );
+      final modified = original.copyWith(
+        columns: [TableColumnConfig(field: DiveField.dateTime)],
+      );
+      expect(modified.columns.length, equals(1));
+      expect(modified.sortField, equals(DiveField.maxDepth));
+      expect(modified.sortAscending, isFalse);
+    });
+
+    test('copyWith with only sortAscending', () {
+      final config = TableViewConfig.defaultConfig();
+      final modified = config.copyWith(sortAscending: false);
+      expect(modified.sortAscending, isFalse);
+      expect(modified.columns.length, equals(config.columns.length));
+    });
+
+    test('equality between identical configs', () {
+      final a = TableViewConfig.defaultConfig();
+      final b = TableViewConfig.defaultConfig();
+      expect(a, equals(b));
+    });
+
+    test('toJson preserves null sortField', () {
+      final config = TableViewConfig.defaultConfig();
+      final json = config.toJson();
+      expect(json['sortField'], isNull);
+    });
+  });
+
+  group('CardSlotConfig edge cases', () {
+    test('copyWith preserving all fields', () {
+      const original = CardSlotConfig(
+        slotId: 'stat1',
+        field: DiveField.maxDepth,
+      );
+      final copy = original.copyWith();
+      expect(copy.slotId, equals('stat1'));
+      expect(copy.field, equals(DiveField.maxDepth));
+    });
+
+    test('equality between identical slots', () {
+      const a = CardSlotConfig(slotId: 'title', field: DiveField.siteName);
+      const b = CardSlotConfig(slotId: 'title', field: DiveField.siteName);
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+    });
+
+    test('inequality between different slots', () {
+      const a = CardSlotConfig(slotId: 'title', field: DiveField.siteName);
+      const b = CardSlotConfig(slotId: 'date', field: DiveField.siteName);
+      expect(a, isNot(equals(b)));
+    });
+  });
+
+  group('CardViewConfig edge cases', () {
+    test('copyWith with only slots', () {
+      final original = CardViewConfig.defaultCompact();
+      final modified = original.copyWith(
+        slots: [
+          const CardSlotConfig(slotId: 'title', field: DiveField.diveNumber),
+        ],
+      );
+      expect(modified.slots.length, equals(1));
+      expect(modified.mode, equals(ListViewMode.compact));
+      expect(modified.extraFields, isEmpty);
+    });
+
+    test('copyWith with only mode', () {
+      final original = CardViewConfig.defaultCompact();
+      final modified = original.copyWith(mode: ListViewMode.dense);
+      expect(modified.mode, equals(ListViewMode.dense));
+      expect(modified.slots.length, equals(original.slots.length));
+    });
+
+    test('equality between identical configs', () {
+      final a = CardViewConfig.defaultCompact();
+      final b = CardViewConfig.defaultCompact();
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+    });
+
+    test('fromJson with empty slots list', () {
+      final json = {
+        'mode': 'compact',
+        'slots': <Map<String, dynamic>>[],
+        'extraFields': <String>[],
+      };
+      final config = CardViewConfig.fromJson(json);
+      expect(config.slots, isEmpty);
+      expect(config.mode, equals(ListViewMode.compact));
+    });
+
+    test('toJson includes all fields', () {
+      final config = CardViewConfig.defaultCompact().copyWith(
+        extraFields: [DiveField.buddy],
+      );
+      final json = config.toJson();
+      expect(json['mode'], equals('compact'));
+      expect(json['slots'], isList);
+      expect(json['extraFields'], equals(['buddy']));
+    });
+  });
+
+  group('FieldPreset edge cases', () {
+    test('Technical preset has sacRate or startPressure column', () {
+      final presets = FieldPreset.builtInTablePresets();
+      final technical = presets.firstWhere((p) => p.name == 'Technical');
+      final config = TableViewConfig.fromJson(technical.configJson);
+      final fields = config.columns.map((c) => c.field).toList();
+      expect(
+        fields.contains(DiveField.sacRate) ||
+            fields.contains(DiveField.startPressure),
+        isTrue,
+      );
+    });
+
+    test('Planning preset has buddy and notes columns', () {
+      final presets = FieldPreset.builtInTablePresets();
+      final planning = presets.firstWhere((p) => p.name == 'Planning');
+      final config = TableViewConfig.fromJson(planning.configJson);
+      final fields = config.columns.map((c) => c.field).toList();
+      expect(fields, contains(DiveField.buddy));
+      expect(fields, contains(DiveField.notes));
+    });
+
+    test('Standard preset has waterTemp column', () {
+      final presets = FieldPreset.builtInTablePresets();
+      final standard = presets.firstWhere((p) => p.name == 'Standard');
+      final config = TableViewConfig.fromJson(standard.configJson);
+      final fields = config.columns.map((c) => c.field).toList();
+      expect(fields, contains(DiveField.waterTemp));
+    });
+
+    test('inequality between different presets', () {
+      final presets = FieldPreset.builtInTablePresets();
+      expect(presets[0], isNot(equals(presets[1])));
+    });
+  });
 }

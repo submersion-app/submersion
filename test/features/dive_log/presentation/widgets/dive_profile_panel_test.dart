@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/deco/ascent_rate_calculator.dart';
+import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
@@ -78,7 +81,11 @@ Dive _makeDiveNoProfile({String id = 'dive-no-profile'}) {
   );
 }
 
-Widget _buildPanel({String? highlightedDiveId, Dive? diveToReturn}) {
+Widget _buildPanel({
+  String? highlightedDiveId,
+  Dive? diveToReturn,
+  ProfileAnalysis? analysis,
+}) {
   return testApp(
     overrides: [
       settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
@@ -93,7 +100,7 @@ Widget _buildPanel({String? highlightedDiveId, Dive? diveToReturn}) {
       if (highlightedDiveId != null)
         profileAnalysisProvider(
           highlightedDiveId,
-        ).overrideWith((ref) => Future.value(null)),
+        ).overrideWith((ref) => Future.value(analysis)),
       if (highlightedDiveId != null)
         gasSwitchesProvider(
           highlightedDiveId,
@@ -104,6 +111,44 @@ Widget _buildPanel({String? highlightedDiveId, Dive? diveToReturn}) {
         ).overrideWith((ref) => Future.value({})),
     ],
     child: const SizedBox(height: 350, width: 600, child: DiveProfilePanel()),
+  );
+}
+
+ProfileAnalysis _makeAnalysis({int profileLength = 10}) {
+  return ProfileAnalysis(
+    ascentRates: const [],
+    ascentRateStats: const AscentRateStats(
+      maxAscentRate: 8.0,
+      maxDescentRate: 15.0,
+      averageAscentRate: 6.0,
+      averageDescentRate: 12.0,
+      violationCount: 0,
+      criticalViolationCount: 0,
+      timeInViolation: 0,
+    ),
+    ascentRateViolations: const [],
+    events: const [],
+    ceilingCurve: List.filled(profileLength, 0.0),
+    ndlCurve: List.filled(profileLength, 600),
+    decoStatuses: const [],
+    o2Exposure: const O2Exposure(),
+    ppO2Curve: List.filled(profileLength, 1.0),
+    ppN2Curve: List.filled(profileLength, 0.79),
+    ppHeCurve: List.filled(profileLength, 0.0),
+    modCurve: List.filled(profileLength, 56.0),
+    densityCurve: List.filled(profileLength, 4.5),
+    gfCurve: List.filled(profileLength, 30.0),
+    surfaceGfCurve: List.filled(profileLength, 20.0),
+    meanDepthCurve: List.filled(profileLength, 15.0),
+    ttsCurve: List.filled(profileLength, 0),
+    cnsCurve: List.filled(profileLength, 5.0),
+    otuCurve: List.filled(profileLength, 2.0),
+    sacCurve: List.filled(profileLength, 15.0),
+    smoothedSacCurve: List.filled(profileLength, 14.0),
+    maxDepth: 25.0,
+    averageDepth: 18.0,
+    maxDepthTimestamp: 120,
+    durationSeconds: 300,
   );
 }
 
@@ -535,6 +580,49 @@ void main() {
       await tester.pump();
 
       expect(find.text('#10'), findsOneWidget);
+    });
+
+    // -----------------------------------------------------------------------
+    // Panel renders with full analysis data (covers analysis curve params)
+    // -----------------------------------------------------------------------
+
+    testWidgets(
+      'renders chart with all analysis curves when analysis is non-null',
+      (tester) async {
+        final dive = _makeDiveWithProfile(id: 'full-analysis');
+        final analysis = _makeAnalysis(profileLength: 10);
+        await tester.pumpWidget(
+          _buildPanel(
+            highlightedDiveId: 'full-analysis',
+            diveToReturn: dive,
+            analysis: analysis,
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.byType(DiveProfileChart), findsOneWidget);
+        expect(find.text('#1'), findsOneWidget);
+      },
+    );
+
+    testWidgets('renders markers when analysis has maxDepthTimestamp', (
+      tester,
+    ) async {
+      final dive = _makeDiveWithProfile(id: 'markers-analysis');
+      final analysis = _makeAnalysis(profileLength: 10);
+      await tester.pumpWidget(
+        _buildPanel(
+          highlightedDiveId: 'markers-analysis',
+          diveToReturn: dive,
+          analysis: analysis,
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      // Chart renders with markers from analysis
+      expect(find.byType(DiveProfileChart), findsOneWidget);
     });
 
     // -----------------------------------------------------------------------

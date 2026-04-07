@@ -1,7 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 void main() {
   group('TableViewConfigNotifier', () {
@@ -493,6 +497,229 @@ void main() {
       addTearDown(dense.dispose);
       expect(dense.state.mode, equals(ListViewMode.dense));
       expect(dense.state.slots, isNotEmpty);
+    });
+  });
+
+  group('TableViewConfigNotifier dispose behavior', () {
+    test('dispose cancels pending save timer without errors', () {
+      final notifier = TableViewConfigNotifier();
+      // Perform a mutation which triggers _save (creates a timer)
+      notifier.toggleColumn(DiveField.buddy);
+      // Dispose before timer fires -- should cancel cleanly
+      notifier.dispose();
+    });
+
+    test('multiple rapid mutations do not throw', () {
+      final notifier = TableViewConfigNotifier();
+      notifier.toggleColumn(DiveField.buddy);
+      notifier.setSortField(DiveField.maxDepth);
+      notifier.resizeColumn(DiveField.siteName, 200);
+      notifier.togglePin(DiveField.dateTime);
+      notifier.reorderColumn(0, 2);
+      notifier.dispose();
+    });
+
+    test('applyPreset triggers save path', () {
+      final notifier = TableViewConfigNotifier();
+      final presets = FieldPreset.builtInTablePresets();
+      notifier.applyPreset(presets.first);
+      notifier.dispose();
+    });
+
+    test('replaceConfig triggers save path', () {
+      final notifier = TableViewConfigNotifier();
+      notifier.replaceConfig(
+        TableViewConfig(
+          columns: [
+            TableColumnConfig(field: DiveField.diveNumber, isPinned: true),
+          ],
+        ),
+      );
+      notifier.dispose();
+    });
+  });
+
+  group('CardViewConfigNotifier dispose behavior', () {
+    test('dispose cancels pending save timer without errors', () {
+      final notifier = CardViewConfigNotifier.withMode(ListViewMode.compact);
+      notifier.updateSlot('title', DiveField.tripName);
+      notifier.dispose();
+    });
+
+    test('multiple rapid mutations do not throw', () {
+      final notifier = CardViewConfigNotifier.withMode(ListViewMode.compact);
+      notifier.setExtraFields([DiveField.buddy, DiveField.airTemp]);
+      notifier.addExtraField(DiveField.waterTemp);
+      notifier.removeExtraField(DiveField.buddy);
+      notifier.reorderExtraFields(0, 1);
+      notifier.resetToDefault();
+      notifier.dispose();
+    });
+
+    test('withMode table falls through to detailed', () {
+      final notifier = CardViewConfigNotifier.withMode(ListViewMode.table);
+      expect(notifier.state.mode, equals(ListViewMode.detailed));
+      notifier.dispose();
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Provider factory tests -- exercises the provider bodies themselves
+  // -----------------------------------------------------------------------
+
+  group('Provider factories', () {
+    late ProviderContainer container;
+
+    setUp(() {
+      container = ProviderContainer(
+        overrides: [
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+        ],
+      );
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    test(
+      'tableViewConfigProvider creates notifier with default config when no diver',
+      () {
+        final config = container.read(tableViewConfigProvider);
+        expect(config.columns, isNotEmpty);
+        expect(config.columns.first.field, equals(DiveField.diveNumber));
+        expect(config.sortField, isNull);
+        expect(config.sortAscending, isTrue);
+      },
+    );
+
+    test('tableViewConfigProvider notifier is accessible for mutations', () {
+      final notifier = container.read(tableViewConfigProvider.notifier);
+      notifier.toggleColumn(DiveField.buddy);
+      final config = container.read(tableViewConfigProvider);
+      expect(config.columns.any((c) => c.field == DiveField.buddy), isTrue);
+    });
+
+    test(
+      'compactCardConfigProvider creates notifier with compact defaults',
+      () {
+        final config = container.read(compactCardConfigProvider);
+        expect(config.slots, isNotEmpty);
+        expect(config.mode, equals(ListViewMode.compact));
+        expect(config.slots.first.slotId, equals('title'));
+      },
+    );
+
+    test('compactCardConfigProvider notifier supports slot update', () {
+      final notifier = container.read(compactCardConfigProvider.notifier);
+      notifier.updateSlot('title', DiveField.maxDepth);
+      final config = container.read(compactCardConfigProvider);
+      final titleSlot = config.slots.firstWhere((s) => s.slotId == 'title');
+      expect(titleSlot.field, equals(DiveField.maxDepth));
+    });
+
+    test('denseCardConfigProvider creates notifier with dense defaults', () {
+      final config = container.read(denseCardConfigProvider);
+      expect(config.slots, isNotEmpty);
+      expect(config.mode, equals(ListViewMode.dense));
+      expect(config.slots.first.slotId, equals('slot1'));
+    });
+
+    test('denseCardConfigProvider notifier supports slot update', () {
+      final notifier = container.read(denseCardConfigProvider.notifier);
+      notifier.updateSlot('slot1', DiveField.waterTemp);
+      final config = container.read(denseCardConfigProvider);
+      final slot1 = config.slots.firstWhere((s) => s.slotId == 'slot1');
+      expect(slot1.field, equals(DiveField.waterTemp));
+    });
+
+    test(
+      'detailedCardConfigProvider creates notifier with detailed defaults',
+      () {
+        final config = container.read(detailedCardConfigProvider);
+        expect(config.slots, isNotEmpty);
+        expect(config.mode, equals(ListViewMode.detailed));
+      },
+    );
+
+    test('detailedCardConfigProvider notifier supports extra fields', () {
+      final notifier = container.read(detailedCardConfigProvider.notifier);
+      notifier.addExtraField(DiveField.buddy);
+      final config = container.read(detailedCardConfigProvider);
+      expect(config.extraFields, contains(DiveField.buddy));
+    });
+
+    test('detailedCardConfigProvider notifier resetToDefault works', () {
+      final notifier = container.read(detailedCardConfigProvider.notifier);
+      notifier.addExtraField(DiveField.buddy);
+      notifier.resetToDefault();
+      final config = container.read(detailedCardConfigProvider);
+      expect(config.extraFields, isEmpty);
+      expect(config.mode, equals(ListViewMode.detailed));
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // CardViewConfigNotifier save timer coverage
+  // -----------------------------------------------------------------------
+
+  group('CardViewConfigNotifier save timer', () {
+    test('save timer fires without crashing when no repo is set', () async {
+      final notifier = CardViewConfigNotifier.withMode(ListViewMode.compact);
+      addTearDown(notifier.dispose);
+      // Mutate to trigger _save
+      notifier.updateSlot('title', DiveField.maxDepth);
+      // Wait for the debounce timer to fire (500ms)
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      // No assertion needed -- just exercises the timer body with null repo
+    });
+
+    test('save timer fires for dense mode without crashing', () async {
+      final notifier = CardViewConfigNotifier.withMode(ListViewMode.dense);
+      addTearDown(notifier.dispose);
+      notifier.updateSlot('slot1', DiveField.waterTemp);
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+    });
+
+    test('TableViewConfigNotifier save timer fires without crashing', () async {
+      final notifier = TableViewConfigNotifier();
+      addTearDown(notifier.dispose);
+      notifier.toggleColumn(DiveField.buddy);
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // CardViewConfigNotifier._defaultForMode static coverage
+  // -----------------------------------------------------------------------
+
+  group('CardViewConfigNotifier _defaultForMode coverage', () {
+    test('compact mode returns compact defaults', () {
+      final notifier = CardViewConfigNotifier.withMode(ListViewMode.compact);
+      addTearDown(notifier.dispose);
+      expect(notifier.state.mode, equals(ListViewMode.compact));
+      expect(notifier.state.slots, hasLength(4));
+    });
+
+    test('dense mode returns dense defaults', () {
+      final notifier = CardViewConfigNotifier.withMode(ListViewMode.dense);
+      addTearDown(notifier.dispose);
+      expect(notifier.state.mode, equals(ListViewMode.dense));
+      expect(notifier.state.slots, hasLength(4));
+    });
+
+    test('detailed mode returns detailed defaults', () {
+      final notifier = CardViewConfigNotifier.withMode(ListViewMode.detailed);
+      addTearDown(notifier.dispose);
+      expect(notifier.state.mode, equals(ListViewMode.detailed));
+    });
+
+    test('table mode falls through to detailed defaults', () {
+      final notifier = CardViewConfigNotifier.withMode(ListViewMode.table);
+      addTearDown(notifier.dispose);
+      expect(notifier.state.mode, equals(ListViewMode.detailed));
     });
   });
 }

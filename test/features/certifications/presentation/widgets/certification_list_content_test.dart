@@ -506,5 +506,97 @@ void main() {
       expect(find.text('SSI Cert'), findsOneWidget);
       expect(find.text('NAUI Cert'), findsOneWidget);
     });
+
+    testWidgets('tapping popup menu Detailed switches from table mode', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        certs: [_makeCert(id: 'c1', name: 'Test Cert')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const CertificationListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Detailed'));
+      await tester.pumpAndSettle();
+
+      // View mode was changed from table
+      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+    });
+
+    testWidgets('compact bar sort button opens sheet and selects option', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        certs: [_makeCert(id: 'c1', name: 'Test Cert')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const CertificationListContent(showAppBar: false),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.sort));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sort Certifications'), findsOneWidget);
+
+      // Tap a sort option to invoke the onSortChanged callback
+      await tester.tap(find.text('Date Issued'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('compact bar column settings opens picker', (tester) async {
+      final overrides = await _buildOverrides(
+        certs: [_makeCert(id: 'c1', name: 'Test Cert')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const CertificationListContent(showAppBar: false),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.view_column_outlined));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Columns'), findsOneWidget);
+    });
+
+    testWidgets('compact bar popup menu Detailed switches view mode', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        certs: [_makeCert(id: 'c1', name: 'Test Cert')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const CertificationListContent(showAppBar: false),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Detailed'));
+      await tester.pumpAndSettle();
+
+      // View mode was changed from table
+      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+    });
   });
 }

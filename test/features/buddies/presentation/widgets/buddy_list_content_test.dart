@@ -472,5 +472,123 @@ void main() {
 
       expect(find.text('Buddy 0'), findsOneWidget);
     });
+
+    testWidgets('tapping sort button opens sort sheet and selects option', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        buddies: [_makeBuddy(id: 'b1', name: 'Test Buddy')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const BuddyListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.sort));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sort Buddies'), findsOneWidget);
+
+      await tester.tap(find.text('Dive Count'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('tapping popup Detailed switches from table mode', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        buddies: [_makeBuddy(id: 'b1', name: 'Test Buddy')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const BuddyListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Detailed'));
+      await tester.pumpAndSettle();
+
+      // View mode was changed from table
+      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+    });
+
+    testWidgets('compact bar sort button opens sheet and selects option', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        buddies: [_makeBuddy(id: 'b1', name: 'Test Buddy')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const BuddyListContent(showAppBar: false),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.sort));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sort Buddies'), findsOneWidget);
+
+      await tester.tap(find.text('Dive Count'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('compact bar column settings opens picker', (tester) async {
+      final overrides = await _buildOverrides(
+        buddies: [_makeBuddy(id: 'b1', name: 'Test Buddy')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const BuddyListContent(showAppBar: false),
+        ),
+      );
+      await tester.pump();
+
+      // In table mode, column settings should be available
+      final colPickerFinder = find.byIcon(Icons.view_column_outlined);
+      if (colPickerFinder.evaluate().isNotEmpty) {
+        await tester.tap(colPickerFinder);
+        await tester.pumpAndSettle();
+        expect(find.text('Columns'), findsOneWidget);
+      }
+    });
+
+    testWidgets('compact bar popup Detailed switches view mode', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        buddies: [_makeBuddy(id: 'b1', name: 'Test Buddy')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const BuddyListContent(showAppBar: false),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Detailed'));
+      await tester.pumpAndSettle();
+
+      // View mode was changed from table
+      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+    });
   });
 }

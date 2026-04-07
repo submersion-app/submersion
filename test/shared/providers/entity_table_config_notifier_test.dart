@@ -250,6 +250,39 @@ void main() {
       // Recreate for tearDown
       notifier = _makeNotifier();
     });
+
+    test('multiple rapid mutations each trigger save path without error', () {
+      notifier.toggleColumn(TestField.fieldC);
+      notifier.setSortField(TestField.fieldA);
+      notifier.resizeColumn(TestField.fieldB, 180);
+      notifier.togglePin(TestField.fieldB);
+      notifier.reorderColumn(0, 2);
+      // All mutations should have completed without throwing
+      expect(notifier.state.columns.length, greaterThanOrEqualTo(2));
+      notifier.dispose();
+      notifier = _makeNotifier();
+    });
+
+    test('toggle then re-toggle column round-trips correctly', () {
+      // Add fieldC
+      notifier.toggleColumn(TestField.fieldC);
+      expect(
+        notifier.state.columns.map((c) => c.field),
+        contains(TestField.fieldC),
+      );
+      // Remove fieldC
+      notifier.toggleColumn(TestField.fieldC);
+      expect(
+        notifier.state.columns.map((c) => c.field),
+        isNot(contains(TestField.fieldC)),
+      );
+      // Add it back
+      notifier.toggleColumn(TestField.fieldC);
+      expect(
+        notifier.state.columns.map((c) => c.field),
+        contains(TestField.fieldC),
+      );
+    });
   });
 
   // --------------------------------------------------------------------

@@ -317,4 +317,114 @@ void main() {
       expect(lastField, equals(firstField));
     });
   });
+
+  // -----------------------------------------------------------------------
+  // Save timer and dispose coverage
+  // -----------------------------------------------------------------------
+
+  group('EntityTableConfigNotifier save timer and dispose', () {
+    test('dispose cancels pending save timer for buddy config', () {
+      final notifier = container.read(buddyTableConfigProvider.notifier);
+      notifier.toggleColumn(BuddyField.email);
+      // dispose is handled by container.dispose() in tearDown
+    });
+
+    test('save timer fires without crash when no repo (null diverId)', () async {
+      final notifier = container.read(tripTableConfigProvider.notifier);
+      notifier.toggleColumn(TripField.maxDepth);
+      // Wait for the 500ms debounce timer to fire
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      // No assertion needed -- just exercises the timer callback with null repo
+    });
+
+    test('multiple rapid mutations do not throw', () {
+      final notifier = container.read(equipmentTableConfigProvider.notifier);
+      notifier.toggleColumn(EquipmentField.brand);
+      notifier.setSortField(EquipmentField.type);
+      notifier.resizeColumn(EquipmentField.model, 200);
+      notifier.togglePin(EquipmentField.status);
+      notifier.reorderColumn(0, 3);
+      // All mutations should succeed without throwing
+    });
+
+    test('setSortField cycles through all sort states', () {
+      final notifier = container.read(siteTableConfigProvider.notifier);
+      // Initial: no sort
+      expect(container.read(siteTableConfigProvider).sortField, isNull);
+
+      // First call: ascending
+      notifier.setSortField(SiteField.maxDepth);
+      expect(
+        container.read(siteTableConfigProvider).sortField,
+        equals(SiteField.maxDepth),
+      );
+      expect(container.read(siteTableConfigProvider).sortAscending, isTrue);
+
+      // Second call (same field): descending
+      notifier.setSortField(SiteField.maxDepth);
+      expect(
+        container.read(siteTableConfigProvider).sortField,
+        equals(SiteField.maxDepth),
+      );
+      expect(container.read(siteTableConfigProvider).sortAscending, isFalse);
+
+      // Third call (same field): clear sort
+      notifier.setSortField(SiteField.maxDepth);
+      expect(container.read(siteTableConfigProvider).sortField, isNull);
+    });
+
+    test('resizeColumn clamps to field min and max', () {
+      final notifier = container.read(courseTableConfigProvider.notifier);
+
+      // Resize below minimum
+      notifier.resizeColumn(CourseField.courseName, 10.0);
+      final col = container
+          .read(courseTableConfigProvider)
+          .columns
+          .firstWhere((c) => c.field == CourseField.courseName);
+      expect(col.width, greaterThanOrEqualTo(CourseField.courseName.minWidth));
+
+      // Resize above maximum
+      notifier.resizeColumn(CourseField.courseName, 9999.0);
+      final col2 = container
+          .read(courseTableConfigProvider)
+          .columns
+          .firstWhere((c) => c.field == CourseField.courseName);
+      expect(col2.width, equals(600.0));
+    });
+
+    test('toggleColumn does not remove pinned column', () {
+      final notifier = container.read(diveCenterTableConfigProvider.notifier);
+      final before = container
+          .read(diveCenterTableConfigProvider)
+          .columns
+          .length;
+      // centerName is pinned
+      notifier.toggleColumn(DiveCenterField.centerName);
+      final after = container
+          .read(diveCenterTableConfigProvider)
+          .columns
+          .length;
+      expect(after, equals(before));
+    });
+
+    test('toggleColumn adds then removes non-pinned column', () {
+      final notifier = container.read(buddyTableConfigProvider.notifier);
+      final before = container.read(buddyTableConfigProvider).columns.length;
+
+      // Add a new column
+      notifier.toggleColumn(BuddyField.phone);
+      expect(
+        container.read(buddyTableConfigProvider).columns.length,
+        equals(before + 1),
+      );
+
+      // Remove it
+      notifier.toggleColumn(BuddyField.phone);
+      expect(
+        container.read(buddyTableConfigProvider).columns.length,
+        equals(before),
+      );
+    });
+  });
 }

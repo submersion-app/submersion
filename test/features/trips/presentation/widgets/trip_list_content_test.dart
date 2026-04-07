@@ -460,5 +460,101 @@ void main() {
 
       expect(find.text('Stats Trip'), findsOneWidget);
     });
+
+    testWidgets('tapping sort button opens sort sheet and selects option', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Test Trip')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.sort));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sort Trips'), findsOneWidget);
+
+      await tester.tap(find.text('End Date'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('tapping popup Detailed switches from table mode', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Test Trip')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Detailed'));
+      await tester.pumpAndSettle();
+
+      // View mode was changed from table
+      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+    });
+
+    testWidgets('compact bar sort button opens sheet and selects option', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Test Trip')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: false),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.sort));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sort Trips'), findsOneWidget);
+
+      await tester.tap(find.text('End Date'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('compact bar popup Detailed switches view mode', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Test Trip')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: false),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Detailed'));
+      await tester.pumpAndSettle();
+
+      // View mode was changed from table
+      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+    });
   });
 }

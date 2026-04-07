@@ -374,5 +374,74 @@ void main() {
 
       expect(find.text('Course 0'), findsOneWidget);
     });
+
+    testWidgets('tapping popup menu Detailed switches from table mode', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        courses: [_makeCourse(id: 'co1', name: 'Test Course')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const CourseListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Detailed'));
+      await tester.pumpAndSettle();
+
+      // View mode was changed from table
+      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+    });
+
+    testWidgets('compact bar column settings opens picker in table mode', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        courses: [_makeCourse(id: 'co1', name: 'Test Course')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const CourseListContent(showAppBar: false),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.view_column_outlined));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Columns'), findsOneWidget);
+    });
+
+    testWidgets('compact bar popup menu Detailed switches view mode', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        courses: [_makeCourse(id: 'co1', name: 'Test Course')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const CourseListContent(showAppBar: false),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Detailed'));
+      await tester.pumpAndSettle();
+
+      // View mode was changed from table
+      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+    });
   });
 }

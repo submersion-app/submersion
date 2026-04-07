@@ -477,5 +477,101 @@ void main() {
 
       expect(find.text('Phone Center'), findsOneWidget);
     });
+
+    testWidgets('tapping sort button opens sort sheet and selects option', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        centers: [_makeCenter(id: 'dc1', name: 'Test Center')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const DiveCenterListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.sort));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sort Dive Centers'), findsOneWidget);
+
+      await tester.tap(find.text('Dive Count'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('tapping popup Detailed switches from table mode', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        centers: [_makeCenter(id: 'dc1', name: 'Test Center')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const DiveCenterListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Detailed'));
+      await tester.pumpAndSettle();
+
+      // View mode was changed from table
+      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+    });
+
+    testWidgets('compact bar sort button opens sheet and selects option', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        centers: [_makeCenter(id: 'dc1', name: 'Test Center')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const DiveCenterListContent(showAppBar: false),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.sort));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sort Dive Centers'), findsOneWidget);
+
+      await tester.tap(find.text('Dive Count'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('compact bar popup Detailed switches view mode', (
+      tester,
+    ) async {
+      final overrides = await _buildOverrides(
+        centers: [_makeCenter(id: 'dc1', name: 'Test Center')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const DiveCenterListContent(showAppBar: false),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Detailed'));
+      await tester.pumpAndSettle();
+
+      // View mode was changed from table
+      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+    });
   });
 }

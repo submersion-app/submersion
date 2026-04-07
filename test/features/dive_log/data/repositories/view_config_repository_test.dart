@@ -245,6 +245,57 @@ void main() {
       });
     });
 
+    group('getRawConfig and saveRawConfig', () {
+      test('returns null when no raw config is saved', () async {
+        final result = await repository.getRawConfig(
+          testDiverId,
+          'table_sites',
+        );
+        expect(result, isNull);
+      });
+
+      test('saves and retrieves raw config', () async {
+        const key = 'table_trips';
+        const configJson = '{"columns":[{"field":"tripName","width":150}]}';
+
+        await repository.saveRawConfig(testDiverId, key, configJson);
+        final result = await repository.getRawConfig(testDiverId, key);
+
+        expect(result, equals(configJson));
+      });
+
+      test('updates existing raw config on second save', () async {
+        const key = 'table_buddies';
+        const first = '{"columns":[]}';
+        const second = '{"columns":[{"field":"buddyName","width":120}]}';
+
+        await repository.saveRawConfig(testDiverId, key, first);
+        await repository.saveRawConfig(testDiverId, key, second);
+
+        final result = await repository.getRawConfig(testDiverId, key);
+        expect(result, equals(second));
+
+        // Verify only one row exists for this key
+        final rows = await db.select(db.viewConfigs).get();
+        expect(rows.where((r) => r.viewMode == key).length, equals(1));
+      });
+    });
+
+    group('getCardConfig table mode', () {
+      test(
+        'returns detailed defaults when table mode has no saved config',
+        () async {
+          final config = await repository.getCardConfig(
+            testDiverId,
+            ListViewMode.table,
+          );
+
+          // table mode falls through to detailed defaults
+          expect(config.mode, equals(ListViewMode.detailed));
+        },
+      );
+    });
+
     group('deletePreset', () {
       test('removes a user preset', () async {
         final preset = FieldPreset(

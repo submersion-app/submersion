@@ -332,5 +332,157 @@ void main() {
 
       expect(find.text('#20'), findsOneWidget);
     });
+
+    testWidgets('renders stat slot without icon using label:value format', (
+      tester,
+    ) async {
+      final summary = DiveSummary(
+        id: 'noicon-1',
+        dateTime: DateTime(2026, 3, 15),
+        diveNumber: 22,
+        maxDepth: 18.0,
+        bottomTime: const Duration(minutes: 28),
+        siteName: 'Label Site',
+        sortTimestamp: 0,
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DenseDiveListTile(
+            diveId: 'noicon-1',
+            diveNumber: 22,
+            dateTime: DateTime(2026, 3, 15),
+            siteName: 'Label Site',
+            maxDepth: 18.0,
+            duration: const Duration(minutes: 28),
+            summary: summary,
+            slot3Field: DiveField.notes,
+            slot4Field: DiveField.visibility,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      expect(find.text('#22'), findsOneWidget);
+    });
+
+    testWidgets(
+      'renders fallback when summary null and non-default stat field',
+      (tester) async {
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            ],
+            child: DenseDiveListTile(
+              diveId: 'fallback-1',
+              diveNumber: 25,
+              dateTime: DateTime(2026, 3, 15),
+              siteName: 'Fallback Reef',
+              maxDepth: 15.0,
+              duration: const Duration(minutes: 20),
+              slot3Field: DiveField.waterTemp,
+              slot4Field: DiveField.airTemp,
+              onTap: () {},
+            ),
+          ),
+        );
+
+        expect(find.text('#25'), findsOneWidget);
+      },
+    );
+
+    testWidgets('renders with swapped default fields', (tester) async {
+      // Exercises the bottomTime stat branch at slot3 and maxDepth at slot4
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DenseDiveListTile(
+            diveId: 'swap-1',
+            diveNumber: 30,
+            dateTime: DateTime(2026, 3, 15),
+            siteName: 'Swap Site',
+            maxDepth: 20.0,
+            duration: const Duration(minutes: 45),
+            slot3Field: DiveField.bottomTime,
+            slot4Field: DiveField.maxDepth,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      expect(find.text('#30'), findsOneWidget);
+      expect(find.textContaining('45'), findsWidgets);
+    });
+
+    testWidgets('renders text slots with non-default fields from summary', (
+      tester,
+    ) async {
+      final summary = DiveSummary(
+        id: 'txt-1',
+        dateTime: DateTime(2026, 3, 15),
+        diveNumber: 33,
+        maxDepth: 25.0,
+        bottomTime: const Duration(minutes: 40),
+        siteName: 'Text Slot Site',
+        waterTemp: 24.0,
+        sortTimestamp: 0,
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DenseDiveListTile(
+            diveId: 'txt-1',
+            diveNumber: 33,
+            dateTime: DateTime(2026, 3, 15),
+            siteName: 'Text Slot Site',
+            maxDepth: 25.0,
+            duration: const Duration(minutes: 40),
+            summary: summary,
+            slot1Field: DiveField.waterTemp,
+            slot2Field: DiveField.maxDepth,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      expect(find.text('#33'), findsOneWidget);
+    });
+
+    testWidgets(
+      'renders text slot fallback when summary null and non-default',
+      (tester) async {
+        // Exercises the _buildTextSlotValue fallback for non siteName/dateTime
+        // fields when summary is null
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            ],
+            child: DenseDiveListTile(
+              diveId: 'txtnull-1',
+              diveNumber: 35,
+              dateTime: DateTime(2026, 3, 15),
+              siteName: 'Fallback Text',
+              maxDepth: 12.0,
+              duration: const Duration(minutes: 15),
+              slot1Field: DiveField.waterTemp,
+              slot2Field: DiveField.maxDepth,
+              onTap: () {},
+            ),
+          ),
+        );
+
+        expect(find.text('#35'), findsOneWidget);
+      },
+    );
   });
 }

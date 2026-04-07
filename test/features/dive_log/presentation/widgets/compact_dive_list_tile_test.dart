@@ -343,5 +343,98 @@ void main() {
 
       expect(find.text('#15'), findsOneWidget);
     });
+
+    testWidgets('renders stat slot without icon using label:value format', (
+      tester,
+    ) async {
+      // Use a field that has no icon (e.g., notes) to exercise the
+      // label:value branch in _buildStatSlot.
+      final summary = DiveSummary(
+        id: 'noicon-1',
+        dateTime: DateTime(2026, 3, 15),
+        diveNumber: 20,
+        maxDepth: 22.0,
+        bottomTime: const Duration(minutes: 35),
+        siteName: 'Label Test',
+        sortTimestamp: 0,
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: CompactDiveListTile(
+            diveId: 'noicon-1',
+            diveNumber: 20,
+            dateTime: DateTime(2026, 3, 15),
+            siteName: 'Label Test',
+            maxDepth: 22.0,
+            duration: const Duration(minutes: 35),
+            summary: summary,
+            stat1Field: DiveField.notes,
+            stat2Field: DiveField.visibility,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      expect(find.text('#20'), findsOneWidget);
+    });
+
+    testWidgets(
+      'renders stat fallback when summary null and non-default field',
+      (tester) async {
+        // Exercise the fallback path in _buildStatText when summary is null
+        // and the field is neither maxDepth nor bottomTime.
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            ],
+            child: CompactDiveListTile(
+              diveId: 'fallback-1',
+              diveNumber: 25,
+              dateTime: DateTime(2026, 3, 15),
+              siteName: 'Fallback Reef',
+              maxDepth: 15.0,
+              duration: const Duration(minutes: 20),
+              stat1Field: DiveField.waterTemp,
+              stat2Field: DiveField.airTemp,
+              onTap: () {},
+            ),
+          ),
+        );
+
+        expect(find.text('#25'), findsOneWidget);
+      },
+    );
+
+    testWidgets('renders with bottomTime field when maxDepth is stat1', (
+      tester,
+    ) async {
+      // This covers the stat1Field == DiveField.bottomTime branch
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: CompactDiveListTile(
+            diveId: 'bt-1',
+            diveNumber: 30,
+            dateTime: DateTime(2026, 3, 15),
+            siteName: 'Duration Reef',
+            maxDepth: 20.0,
+            duration: const Duration(minutes: 45),
+            stat1Field: DiveField.bottomTime,
+            stat2Field: DiveField.maxDepth,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      expect(find.text('#30'), findsOneWidget);
+      expect(find.textContaining('45'), findsWidgets);
+    });
   });
 }
