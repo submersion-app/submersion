@@ -722,6 +722,23 @@ class DiverSettings extends Table {
   // Table view profile panel default visibility (v61)
   BoolColumn get showProfilePanelInTableView =>
       boolean().withDefault(const Constant(true))();
+  // Per-section details pane visibility in table view (v63)
+  BoolColumn get showDetailsPaneDives =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get showDetailsPaneSites =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get showDetailsPaneBuddies =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get showDetailsPaneTrips =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get showDetailsPaneEquipment =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get showDetailsPaneDiveCenters =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get showDetailsPaneCertifications =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get showDetailsPaneCourses =>
+      boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -1288,7 +1305,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 62;
+  static const int currentSchemaVersion = 63;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -2726,6 +2743,34 @@ class AppDatabase extends _$AppDatabase {
             CREATE UNIQUE INDEX IF NOT EXISTS idx_view_configs_unique
             ON view_configs(diver_id, view_mode)
           ''');
+        }
+
+        if (from < 63) {
+          // Add per-section details pane toggle columns to diver_settings.
+          final columns = await customSelect(
+            "PRAGMA table_info('diver_settings')",
+          ).get();
+          if (columns.isNotEmpty) {
+            final existing = columns.map((c) => c.read<String>('name')).toSet();
+            const newColumns = {
+              'show_details_pane_dives': 0,
+              'show_details_pane_sites': 0,
+              'show_details_pane_buddies': 0,
+              'show_details_pane_trips': 0,
+              'show_details_pane_equipment': 0,
+              'show_details_pane_dive_centers': 0,
+              'show_details_pane_certifications': 0,
+              'show_details_pane_courses': 0,
+            };
+            for (final entry in newColumns.entries) {
+              if (!existing.contains(entry.key)) {
+                await customStatement('''
+                  ALTER TABLE diver_settings
+                  ADD COLUMN ${entry.key} INTEGER NOT NULL DEFAULT ${entry.value}
+                ''');
+              }
+            }
+          }
         }
       },
       beforeOpen: (details) async {

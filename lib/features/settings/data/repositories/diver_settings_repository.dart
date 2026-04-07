@@ -137,6 +137,16 @@ class DiverSettingsRepository {
               reminderTime: Value(_formatReminderTime(s.reminderTime)),
               showDataSourceBadges: Value(s.showDataSourceBadges),
               showProfilePanelInTableView: Value(s.showProfilePanelInTableView),
+              showDetailsPaneDives: Value(s.showDetailsPaneDives),
+              showDetailsPaneSites: Value(s.showDetailsPaneSites),
+              showDetailsPaneBuddies: Value(s.showDetailsPaneBuddies),
+              showDetailsPaneTrips: Value(s.showDetailsPaneTrips),
+              showDetailsPaneEquipment: Value(s.showDetailsPaneEquipment),
+              showDetailsPaneDiveCenters: Value(s.showDetailsPaneDiveCenters),
+              showDetailsPaneCertifications: Value(
+                s.showDetailsPaneCertifications,
+              ),
+              showDetailsPaneCourses: Value(s.showDetailsPaneCourses),
               diveDetailSections: Value(
                 DiveDetailSectionConfig.sectionsToJson(s.diveDetailSections),
               ),
@@ -262,6 +272,18 @@ class DiverSettingsRepository {
           showProfilePanelInTableView: Value(
             settings.showProfilePanelInTableView,
           ),
+          showDetailsPaneDives: Value(settings.showDetailsPaneDives),
+          showDetailsPaneSites: Value(settings.showDetailsPaneSites),
+          showDetailsPaneBuddies: Value(settings.showDetailsPaneBuddies),
+          showDetailsPaneTrips: Value(settings.showDetailsPaneTrips),
+          showDetailsPaneEquipment: Value(settings.showDetailsPaneEquipment),
+          showDetailsPaneDiveCenters: Value(
+            settings.showDetailsPaneDiveCenters,
+          ),
+          showDetailsPaneCertifications: Value(
+            settings.showDetailsPaneCertifications,
+          ),
+          showDetailsPaneCourses: Value(settings.showDetailsPaneCourses),
           diveDetailSections: Value(
             DiveDetailSectionConfig.sectionsToJson(settings.diveDetailSections),
           ),
@@ -408,6 +430,14 @@ class DiverSettingsRepository {
       reminderTime: _parseReminderTime(row.reminderTime),
       showDataSourceBadges: row.showDataSourceBadges,
       showProfilePanelInTableView: row.showProfilePanelInTableView,
+      showDetailsPaneDives: row.showDetailsPaneDives,
+      showDetailsPaneSites: row.showDetailsPaneSites,
+      showDetailsPaneBuddies: row.showDetailsPaneBuddies,
+      showDetailsPaneTrips: row.showDetailsPaneTrips,
+      showDetailsPaneEquipment: row.showDetailsPaneEquipment,
+      showDetailsPaneDiveCenters: row.showDetailsPaneDiveCenters,
+      showDetailsPaneCertifications: row.showDetailsPaneCertifications,
+      showDetailsPaneCourses: row.showDetailsPaneCourses,
       diveDetailSections: DiveDetailSectionConfig.sectionsFromJson(
         row.diveDetailSections,
       ),

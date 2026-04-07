@@ -250,6 +250,16 @@ class AppSettings {
   /// Show profile panel in table view by default
   final bool showProfilePanelInTableView;
 
+  // Per-section details pane visibility in table view
+  final bool showDetailsPaneDives;
+  final bool showDetailsPaneSites;
+  final bool showDetailsPaneBuddies;
+  final bool showDetailsPaneTrips;
+  final bool showDetailsPaneEquipment;
+  final bool showDetailsPaneDiveCenters;
+  final bool showDetailsPaneCertifications;
+  final bool showDetailsPaneCourses;
+
   /// Ordered list of dive detail section visibility preferences
   final List<DiveDetailSectionConfig> diveDetailSections;
 
@@ -332,6 +342,14 @@ class AppSettings {
     this.reminderTime = const TimeOfDay(hour: 9, minute: 0),
     this.showDataSourceBadges = true,
     this.showProfilePanelInTableView = true,
+    this.showDetailsPaneDives = false,
+    this.showDetailsPaneSites = false,
+    this.showDetailsPaneBuddies = false,
+    this.showDetailsPaneTrips = false,
+    this.showDetailsPaneEquipment = false,
+    this.showDetailsPaneDiveCenters = false,
+    this.showDetailsPaneCertifications = false,
+    this.showDetailsPaneCourses = false,
     this.diveDetailSections = DiveDetailSectionConfig.defaultSections,
   });
 
@@ -445,6 +463,14 @@ class AppSettings {
     TimeOfDay? reminderTime,
     bool? showDataSourceBadges,
     bool? showProfilePanelInTableView,
+    bool? showDetailsPaneDives,
+    bool? showDetailsPaneSites,
+    bool? showDetailsPaneBuddies,
+    bool? showDetailsPaneTrips,
+    bool? showDetailsPaneEquipment,
+    bool? showDetailsPaneDiveCenters,
+    bool? showDetailsPaneCertifications,
+    bool? showDetailsPaneCourses,
     List<DiveDetailSectionConfig>? diveDetailSections,
     bool clearDiveDetailSections = false,
   }) {
@@ -540,6 +566,19 @@ class AppSettings {
       showDataSourceBadges: showDataSourceBadges ?? this.showDataSourceBadges,
       showProfilePanelInTableView:
           showProfilePanelInTableView ?? this.showProfilePanelInTableView,
+      showDetailsPaneDives: showDetailsPaneDives ?? this.showDetailsPaneDives,
+      showDetailsPaneSites: showDetailsPaneSites ?? this.showDetailsPaneSites,
+      showDetailsPaneBuddies:
+          showDetailsPaneBuddies ?? this.showDetailsPaneBuddies,
+      showDetailsPaneTrips: showDetailsPaneTrips ?? this.showDetailsPaneTrips,
+      showDetailsPaneEquipment:
+          showDetailsPaneEquipment ?? this.showDetailsPaneEquipment,
+      showDetailsPaneDiveCenters:
+          showDetailsPaneDiveCenters ?? this.showDetailsPaneDiveCenters,
+      showDetailsPaneCertifications:
+          showDetailsPaneCertifications ?? this.showDetailsPaneCertifications,
+      showDetailsPaneCourses:
+          showDetailsPaneCourses ?? this.showDetailsPaneCourses,
       diveDetailSections: clearDiveDetailSections
           ? DiveDetailSectionConfig.defaultSections
           : (diveDetailSections ?? this.diveDetailSections),
