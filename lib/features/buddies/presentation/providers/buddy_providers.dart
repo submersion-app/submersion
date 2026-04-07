@@ -391,6 +391,13 @@ final diveBuddiesNotifierProvider =
     });
 
 // ============================================================================
+// Buddy Highlighted ID (for table mode detail pane)
+// ============================================================================
+
+/// Tracks the currently highlighted buddy in table mode.
+final highlightedBuddyIdProvider = StateProvider<String?>((ref) => null);
+
+// ============================================================================
 // Buddy Table View Config
 // ============================================================================
 

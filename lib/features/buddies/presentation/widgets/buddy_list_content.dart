@@ -12,7 +12,6 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -467,118 +466,24 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
   }
 
   /// Build the full scaffold/layout for table mode.
+  ///
+  /// When embedded inside [TableModeLayout] (showAppBar: false), provides
+  /// only the compact app bar and the table content.
   Widget _buildTableModeScaffold(
     BuildContext context,
     AsyncValue<List<BuddyWithDiveCount>> buddiesAsync,
   ) {
     final tableContent = _buildTableView(context, buddiesAsync);
 
-    if (!widget.showAppBar) {
-      return Column(
-        children: [
-          _isSelectionMode
-              ? _buildCompactSelectionAppBar(
-                  context,
-                  buddiesAsync.valueOrNull ?? [],
-                )
-              : _buildCompactAppBar(context),
-          Expanded(child: tableContent),
-        ],
-      );
-    }
-
-    return Scaffold(
-      appBar: _isSelectionMode
-          ? _buildSelectionAppBar(buddiesAsync.valueOrNull ?? [])
-          : _buildTableAppBar(context),
-      body: tableContent,
-      floatingActionButton: _isSelectionMode
-          ? null
-          : widget.floatingActionButton,
-    );
-  }
-
-  /// Build the AppBar for table mode, adding column picker button before the
-  /// standard actions.
-  AppBar _buildTableAppBar(BuildContext context) {
-    return AppBar(
-      title: Text(context.l10n.buddies_title),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.view_column_outlined),
-          tooltip: 'Column settings',
-          onPressed: () {
-            final config = ref.read(buddyTableConfigProvider);
-            final notifier = ref.read(buddyTableConfigProvider.notifier);
-            showEntityTableColumnPicker<BuddyField>(
-              context,
-              config: config,
-              adapter: BuddyFieldAdapter.instance,
-              onToggleColumn: notifier.toggleColumn,
-              onReorderColumn: notifier.reorderColumn,
-              onTogglePin: notifier.togglePin,
-            );
-          },
-        ),
-        SizedBox(
-          height: 24,
-          child: VerticalDivider(
-            width: 16,
-            thickness: 1,
-            color: Theme.of(
-              context,
-            ).colorScheme.outlineVariant.withValues(alpha: 0.5),
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.sort),
-          tooltip: context.l10n.buddies_action_sort,
-          onPressed: () => _showSortSheet(context),
-        ),
-        IconButton(
-          icon: const Icon(Icons.search),
-          tooltip: context.l10n.buddies_action_search,
-          onPressed: () {
-            showSearch(context: context, delegate: BuddySearchDelegate(ref));
-          },
-        ),
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert),
-          tooltip: context.l10n.buddies_action_moreOptions,
-          onSelected: (value) {
-            if (value == 'import') {
-              _importFromContacts(context);
-            } else if (value.startsWith('view_')) {
-              final mode = ListViewMode.fromName(
-                value.replaceFirst('view_', ''),
-              );
-              ref.read(buddyListViewModeProvider.notifier).state = mode;
-            }
-          },
-          itemBuilder: (context) {
-            final currentMode = ref.read(buddyListViewModeProvider);
-            return [
-              ...ListViewModeToggle.menuItems(
+    return Column(
+      children: [
+        _isSelectionMode
+            ? _buildCompactSelectionAppBar(
                 context,
-                currentMode: currentMode,
-                modes: const [
-                  ListViewMode.detailed,
-                  ListViewMode.compact,
-                  ListViewMode.table,
-                ],
-              ),
-              const PopupMenuDivider(),
-              PopupMenuItem(
-                value: 'import',
-                child: ListTile(
-                  leading: const Icon(Icons.contacts),
-                  title: Text(context.l10n.buddies_action_importFromContacts),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ];
-          },
-        ),
+                buddiesAsync.valueOrNull ?? [],
+              )
+            : _buildCompactAppBar(context),
+        Expanded(child: tableContent),
       ],
     );
   }

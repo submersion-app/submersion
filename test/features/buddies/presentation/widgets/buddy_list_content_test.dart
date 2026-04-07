@@ -169,24 +169,8 @@ void main() {
       expect(find.byIcon(Icons.people_outline), findsOneWidget);
     });
 
-    testWidgets('table app bar includes column settings button', (
-      tester,
-    ) async {
-      final overrides = await _buildOverrides(
-        buddies: [_makeBuddy(id: 'b1', name: 'Test Buddy')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const BuddyListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      // Column settings icon should be in the app bar
-      expect(find.byIcon(Icons.view_column_outlined), findsOneWidget);
-    });
+    // Column settings are now provided by TableModeLayout, not the content
+    // widget. The compact bar provides sort, search, and view mode controls.
 
     testWidgets('renders with showAppBar false (compact bar)', (tester) async {
       final overrides = await _buildOverrides(
@@ -205,7 +189,7 @@ void main() {
       expect(find.text('Test Buddy'), findsOneWidget);
     });
 
-    testWidgets('table app bar has sort button', (tester) async {
+    testWidgets('compact bar has sort button', (tester) async {
       final overrides = await _buildOverrides(
         buddies: [_makeBuddy(id: 'b1', name: 'Test Buddy')],
       );
@@ -218,11 +202,11 @@ void main() {
       );
       await tester.pump();
 
-      // Sort button should be in the table app bar
+      // Sort button should be in the compact bar
       expect(find.byIcon(Icons.sort), findsOneWidget);
     });
 
-    testWidgets('table app bar has search button', (tester) async {
+    testWidgets('compact bar has search button', (tester) async {
       final overrides = await _buildOverrides(
         buddies: [_makeBuddy(id: 'b1', name: 'Test Buddy')],
       );
@@ -235,11 +219,11 @@ void main() {
       );
       await tester.pump();
 
-      // Search button should be in the table app bar
+      // Search button should be in the compact bar
       expect(find.byIcon(Icons.search), findsOneWidget);
     });
 
-    testWidgets('table app bar has more options button', (tester) async {
+    testWidgets('compact bar has more options button', (tester) async {
       final overrides = await _buildOverrides(
         buddies: [_makeBuddy(id: 'b1', name: 'Test Buddy')],
       );
@@ -256,9 +240,7 @@ void main() {
       expect(find.byIcon(Icons.more_vert), findsOneWidget);
     });
 
-    testWidgets('table app bar popup menu shows view mode items', (
-      tester,
-    ) async {
+    testWidgets('popup menu shows view mode items', (tester) async {
       final overrides = await _buildOverrides(
         buddies: [_makeBuddy(id: 'b1', name: 'Test Buddy')],
       );
@@ -277,23 +259,6 @@ void main() {
 
       // View mode items should appear in the popup
       expect(find.text('Detailed'), findsOneWidget);
-    });
-
-    testWidgets('table app bar has vertical divider', (tester) async {
-      final overrides = await _buildOverrides(
-        buddies: [_makeBuddy(id: 'b1', name: 'Test Buddy')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const BuddyListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      // Vertical divider should be present in the table app bar
-      expect(find.byType(VerticalDivider), findsOneWidget);
     });
 
     testWidgets('compact bar in table mode shows sort button', (tester) async {
@@ -518,8 +483,8 @@ void main() {
       await tester.tap(find.text('Detailed'));
       await tester.pumpAndSettle();
 
-      // View mode was changed from table
-      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+      // View mode was changed from table -- no longer shows table
+      // (column settings not in content widget; managed by TableModeLayout)
     });
 
     testWidgets('compact bar sort button opens sheet and selects option', (
@@ -547,28 +512,6 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('compact bar column settings opens picker', (tester) async {
-      final overrides = await _buildOverrides(
-        buddies: [_makeBuddy(id: 'b1', name: 'Test Buddy')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const BuddyListContent(showAppBar: false),
-        ),
-      );
-      await tester.pump();
-
-      // In table mode, column settings should be available
-      final colPickerFinder = find.byIcon(Icons.view_column_outlined);
-      if (colPickerFinder.evaluate().isNotEmpty) {
-        await tester.tap(colPickerFinder);
-        await tester.pumpAndSettle();
-        expect(find.text('Columns'), findsOneWidget);
-      }
-    });
-
     testWidgets('compact bar popup Detailed switches view mode', (
       tester,
     ) async {
@@ -590,7 +533,6 @@ void main() {
       await tester.pumpAndSettle();
 
       // View mode was changed from table
-      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
     });
   });
 }
