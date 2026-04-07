@@ -4,9 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -23,7 +25,7 @@ void _setMobileTestSurfaceSize(WidgetTester tester) {
 
 class _MockBuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>>
     implements BuddyListNotifier {
-  _MockBuddyListNotifier(AsyncValue<List<Buddy>> state) : super(state);
+  _MockBuddyListNotifier(super.state);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;

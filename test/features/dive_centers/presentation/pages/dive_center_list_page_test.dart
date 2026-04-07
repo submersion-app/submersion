@@ -8,6 +8,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_list_page.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -25,8 +26,7 @@ void _setMobileTestSurfaceSize(WidgetTester tester) {
 class _MockDiveCenterListNotifier
     extends StateNotifier<AsyncValue<List<DiveCenter>>>
     implements DiveCenterListNotifier {
-  _MockDiveCenterListNotifier(AsyncValue<List<DiveCenter>> state)
-    : super(state);
+  _MockDiveCenterListNotifier(super.state);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_list_page.dart';
@@ -26,8 +27,7 @@ void _setMobileTestSurfaceSize(WidgetTester tester) {
 class _MockEquipmentListNotifier
     extends StateNotifier<AsyncValue<List<EquipmentItem>>>
     implements EquipmentListNotifier {
-  _MockEquipmentListNotifier(AsyncValue<List<EquipmentItem>> state)
-    : super(state);
+  _MockEquipmentListNotifier(super.state);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -36,8 +36,7 @@ class _MockEquipmentListNotifier
 class _MockEquipmentSetListNotifier
     extends StateNotifier<AsyncValue<List<EquipmentSet>>>
     implements EquipmentSetListNotifier {
-  _MockEquipmentSetListNotifier(AsyncValue<List<EquipmentSet>> state)
-    : super(state);
+  _MockEquipmentSetListNotifier(super.state);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;

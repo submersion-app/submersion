@@ -8,6 +8,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_list_page.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -25,8 +26,7 @@ void _setMobileTestSurfaceSize(WidgetTester tester) {
 class _MockCertificationListNotifier
     extends StateNotifier<AsyncValue<List<Certification>>>
     implements CertificationListNotifier {
-  _MockCertificationListNotifier(AsyncValue<List<Certification>> state)
-    : super(state);
+  _MockCertificationListNotifier(super.state);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;

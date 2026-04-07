@@ -8,6 +8,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/pages/course_list_page.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -24,7 +25,7 @@ void _setMobileTestSurfaceSize(WidgetTester tester) {
 
 class _MockCourseListNotifier extends StateNotifier<AsyncValue<List<Course>>>
     implements CourseListNotifier {
-  _MockCourseListNotifier(AsyncValue<List<Course>> state) : super(state);
+  _MockCourseListNotifier(super.state);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
