@@ -502,9 +502,18 @@ class UddfAdapter implements ImportSourceAdapter {
   }
 
   EntityItem _certificationToEntityItem(Map<String, dynamic> data) {
-    final level = data['level'] as String?;
+    final levelValue = data['level'];
     final name = data['name'] as String?;
     final agencyValue = data['agency'];
+
+    final String? level;
+    if (levelValue is CertificationLevel) {
+      level = levelValue.displayName;
+    } else if (levelValue is String) {
+      level = levelValue;
+    } else {
+      level = null;
+    }
 
     final title = level ?? name ?? 'Unnamed';
 
