@@ -375,6 +375,13 @@ final tripSitesWithLocationsProvider =
     });
 
 // ============================================================================
+// Trip Highlighted ID (for table mode detail pane)
+// ============================================================================
+
+/// Tracks the currently highlighted trip in table mode.
+final highlightedTripIdProvider = StateProvider<String?>((ref) => null);
+
+// ============================================================================
 // Trip Table View Config
 // ============================================================================
 
