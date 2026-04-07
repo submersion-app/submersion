@@ -195,8 +195,8 @@ void main() {
 
     test('Equatable inequality when slots differ', () {
       final a = makeConfig();
-      final b = EntityCardViewConfig<_TestField>(
-        slots: const [
+      const b = EntityCardViewConfig<_TestField>(
+        slots: [
           EntityCardSlotConfig(slotId: 'title', field: _TestField.charlie),
         ],
       );
