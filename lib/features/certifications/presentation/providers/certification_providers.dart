@@ -233,6 +233,15 @@ final certificationListViewModeProvider = StateProvider<ListViewMode>((ref) {
 });
 
 // ============================================================================
+// Certification Highlighted ID (for table mode detail pane)
+// ============================================================================
+
+/// Tracks the currently highlighted certification in table mode.
+final highlightedCertificationIdProvider = StateProvider<String?>(
+  (ref) => null,
+);
+
+// ============================================================================
 // Certification Table View Config
 // ============================================================================
 

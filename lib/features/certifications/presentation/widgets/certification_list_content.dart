@@ -9,7 +9,6 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -198,97 +197,19 @@ class _CertificationListContentState
   }
 
   /// Build the full scaffold/layout for table mode.
+  ///
+  /// When embedded inside [TableModeLayout] (showAppBar: false), provides
+  /// only the compact app bar and the table content.
   Widget _buildTableModeScaffold(
     BuildContext context,
     AsyncValue<List<Certification>> certificationsAsync,
   ) {
     final tableContent = _buildTableView(context, certificationsAsync);
 
-    if (!widget.showAppBar) {
-      return Column(
-        children: [
-          _buildCompactAppBar(context),
-          Expanded(child: tableContent),
-        ],
-      );
-    }
-
-    return Scaffold(
-      appBar: _buildTableAppBar(context),
-      body: tableContent,
-      floatingActionButton: widget.floatingActionButton,
-    );
-  }
-
-  /// Build the AppBar for table mode with column picker button.
-  AppBar _buildTableAppBar(BuildContext context) {
-    return AppBar(
-      title: Text(context.l10n.certifications_appBar_title),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.view_column_outlined),
-          tooltip: 'Column settings',
-          onPressed: () {
-            final config = ref.read(certificationTableConfigProvider);
-            final notifier = ref.read(
-              certificationTableConfigProvider.notifier,
-            );
-            showEntityTableColumnPicker<CertificationField>(
-              context,
-              config: config,
-              adapter: CertificationFieldAdapter.instance,
-              onToggleColumn: notifier.toggleColumn,
-              onReorderColumn: notifier.reorderColumn,
-              onTogglePin: notifier.togglePin,
-            );
-          },
-        ),
-        SizedBox(
-          height: 24,
-          child: VerticalDivider(
-            width: 16,
-            thickness: 1,
-            color: Theme.of(
-              context,
-            ).colorScheme.outlineVariant.withValues(alpha: 0.5),
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.wallet),
-          tooltip: context.l10n.certifications_list_tooltip_walletView,
-          onPressed: () => context.push('/certifications/wallet'),
-        ),
-        IconButton(
-          icon: const Icon(Icons.search),
-          tooltip: context.l10n.certifications_list_tooltip_search,
-          onPressed: () {
-            showSearch(
-              context: context,
-              delegate: CertificationSearchDelegate(ref),
-            );
-          },
-        ),
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert),
-          onSelected: (value) {
-            if (value.startsWith('view_')) {
-              final mode = ListViewMode.fromName(
-                value.replaceFirst('view_', ''),
-              );
-              ref.read(certificationListViewModeProvider.notifier).state = mode;
-            }
-          },
-          itemBuilder: (context) {
-            final currentMode = ref.read(certificationListViewModeProvider);
-            return [
-              ...ListViewModeToggle.menuItems(
-                context,
-                currentMode: currentMode,
-                modes: const [ListViewMode.detailed, ListViewMode.table],
-              ),
-            ];
-          },
-        ),
+    return Column(
+      children: [
+        _buildCompactAppBar(context),
+        Expanded(child: tableContent),
       ],
     );
   }
@@ -332,8 +253,6 @@ class _CertificationListContentState
   }
 
   Widget _buildCompactAppBar(BuildContext context) {
-    final viewMode = ref.watch(certificationListViewModeProvider);
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -355,36 +274,6 @@ class _CertificationListContentState
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
-          if (viewMode == ListViewMode.table)
-            IconButton(
-              icon: const Icon(Icons.view_column_outlined, size: 20),
-              tooltip: 'Column settings',
-              onPressed: () {
-                final config = ref.read(certificationTableConfigProvider);
-                final notifier = ref.read(
-                  certificationTableConfigProvider.notifier,
-                );
-                showEntityTableColumnPicker<CertificationField>(
-                  context,
-                  config: config,
-                  adapter: CertificationFieldAdapter.instance,
-                  onToggleColumn: notifier.toggleColumn,
-                  onReorderColumn: notifier.reorderColumn,
-                  onTogglePin: notifier.togglePin,
-                );
-              },
-            ),
-          if (viewMode == ListViewMode.table)
-            SizedBox(
-              height: 24,
-              child: VerticalDivider(
-                width: 16,
-                thickness: 1,
-                color: Theme.of(
-                  context,
-                ).colorScheme.outlineVariant.withValues(alpha: 0.5),
-              ),
-            ),
           IconButton(
             icon: const Icon(Icons.wallet, size: 20),
             tooltip: context.l10n.certifications_list_tooltip_walletView,

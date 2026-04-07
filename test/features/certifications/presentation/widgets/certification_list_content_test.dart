@@ -167,23 +167,9 @@ void main() {
       expect(find.byIcon(Icons.card_membership_outlined), findsOneWidget);
     });
 
-    testWidgets('table app bar includes column settings button', (
-      tester,
-    ) async {
-      final overrides = await _buildOverrides(
-        certs: [_makeCert(id: 'c1', name: 'Open Water')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const CertificationListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.view_column_outlined), findsOneWidget);
-    });
+    // Column settings are now provided by TableModeLayout, not the content
+    // widget. The compact bar provides wallet, sort, search, and view mode
+    // controls.
 
     testWidgets('renders with showAppBar false (compact bar)', (tester) async {
       final overrides = await _buildOverrides(
@@ -201,7 +187,7 @@ void main() {
       expect(find.text('Nitrox Diver'), findsOneWidget);
     });
 
-    testWidgets('table app bar has wallet button', (tester) async {
+    testWidgets('compact bar has wallet button', (tester) async {
       final overrides = await _buildOverrides(
         certs: [_makeCert(id: 'c1', name: 'Open Water')],
       );
@@ -217,7 +203,7 @@ void main() {
       expect(find.byIcon(Icons.wallet), findsOneWidget);
     });
 
-    testWidgets('table app bar has search button', (tester) async {
+    testWidgets('compact bar has search button', (tester) async {
       final overrides = await _buildOverrides(
         certs: [_makeCert(id: 'c1', name: 'Open Water')],
       );
@@ -233,7 +219,7 @@ void main() {
       expect(find.byIcon(Icons.search), findsOneWidget);
     });
 
-    testWidgets('table app bar has more options popup', (tester) async {
+    testWidgets('compact bar has more options popup', (tester) async {
       final overrides = await _buildOverrides(
         certs: [_makeCert(id: 'c1', name: 'Open Water')],
       );
@@ -249,9 +235,7 @@ void main() {
       expect(find.byIcon(Icons.more_vert), findsOneWidget);
     });
 
-    testWidgets('table app bar popup menu shows view mode items', (
-      tester,
-    ) async {
+    testWidgets('popup menu shows view mode items', (tester) async {
       final overrides = await _buildOverrides(
         certs: [_makeCert(id: 'c1', name: 'Open Water')],
       );
@@ -268,41 +252,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Detailed'), findsOneWidget);
-    });
-
-    testWidgets('table app bar has vertical divider', (tester) async {
-      final overrides = await _buildOverrides(
-        certs: [_makeCert(id: 'c1', name: 'Open Water')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const CertificationListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byType(VerticalDivider), findsOneWidget);
-    });
-
-    testWidgets('compact bar in table mode shows column settings button', (
-      tester,
-    ) async {
-      final overrides = await _buildOverrides(
-        certs: [_makeCert(id: 'c1', name: 'Nitrox Diver')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const CertificationListContent(showAppBar: false),
-        ),
-      );
-      await tester.pump();
-
-      // Compact bar in table mode should also have column settings button
-      expect(find.byIcon(Icons.view_column_outlined), findsOneWidget);
     });
 
     testWidgets('compact bar in table mode shows wallet button', (
@@ -458,25 +407,6 @@ void main() {
       expect(find.text('Divemaster'), findsOneWidget);
     });
 
-    testWidgets('compact bar in table mode shows column settings icon', (
-      tester,
-    ) async {
-      final overrides = await _buildOverrides(
-        certs: [_makeCert(id: 'cb1', name: 'Nitrox')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const CertificationListContent(showAppBar: false),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.view_column_outlined), findsOneWidget);
-      expect(find.text('Nitrox'), findsOneWidget);
-    });
-
     testWidgets('renders with various agencies', (tester) async {
       final certs = [
         _makeCert(
@@ -528,7 +458,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // View mode was changed from table
-      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+      // (column settings not in content widget; managed by TableModeLayout)
     });
 
     testWidgets('compact bar sort button opens sheet and selects option', (
@@ -556,25 +486,6 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('compact bar column settings opens picker', (tester) async {
-      final overrides = await _buildOverrides(
-        certs: [_makeCert(id: 'c1', name: 'Test Cert')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const CertificationListContent(showAppBar: false),
-        ),
-      );
-      await tester.pump();
-
-      await tester.tap(find.byIcon(Icons.view_column_outlined));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Columns'), findsOneWidget);
-    });
-
     testWidgets('compact bar popup menu Detailed switches view mode', (
       tester,
     ) async {
@@ -596,7 +507,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // View mode was changed from table
-      expect(find.byIcon(Icons.view_column_outlined), findsNothing);
+      // (column settings not in content widget; managed by TableModeLayout)
     });
   });
 }
