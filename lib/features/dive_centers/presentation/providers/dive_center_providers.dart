@@ -339,6 +339,16 @@ final externalCenterSearchProvider =
     });
 
 // =============================================================================
+// Highlighted Dive Center (Table Mode)
+// =============================================================================
+
+/// Currently highlighted dive center ID in table mode.
+///
+/// Set on single-tap, used by [TableModeLayout] to drive the detail pane and
+/// map selection highlight.
+final highlightedDiveCenterIdProvider = StateProvider<String?>((ref) => null);
+
+// =============================================================================
 // Dive Center Table View Config
 // =============================================================================
 

@@ -8,7 +8,6 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
@@ -246,118 +245,23 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     );
   }
 
-  /// Build the full scaffold/layout for table mode.
+  /// Build the layout for table mode content.
+  ///
+  /// When used inside [TableModeLayout] (showAppBar: false), this provides
+  /// only the compact app bar (sort controls, etc.) and the table.
+  /// The outer Scaffold, map, and column settings are all managed by
+  /// [TableModeLayout].
   Widget _buildTableModeScaffold(
     BuildContext context,
     AsyncValue<List<DiveCenter>> centersAsync,
   ) {
     final tableContent = _buildTableView(context, centersAsync);
 
-    if (!widget.showAppBar) {
-      return Column(
-        children: [
-          _buildCompactAppBar(context),
-          Expanded(child: tableContent),
-        ],
-      );
-    }
-
-    return Scaffold(
-      appBar: _buildTableAppBar(context),
-      body: tableContent,
-      floatingActionButton: widget.floatingActionButton,
-    );
-  }
-
-  /// Build the AppBar for table mode, adding column picker button before the
-  /// standard actions.
-  AppBar _buildTableAppBar(BuildContext context) {
-    return AppBar(
-      title: Text(context.l10n.diveCenters_title),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.view_column_outlined),
-          tooltip: 'Column settings',
-          onPressed: () {
-            final config = ref.read(diveCenterTableConfigProvider);
-            final notifier = ref.read(diveCenterTableConfigProvider.notifier);
-            showEntityTableColumnPicker<DiveCenterField>(
-              context,
-              config: config,
-              adapter: DiveCenterFieldAdapter.instance,
-              onToggleColumn: notifier.toggleColumn,
-              onReorderColumn: notifier.reorderColumn,
-              onTogglePin: notifier.togglePin,
-            );
-          },
-        ),
-        SizedBox(
-          height: 24,
-          child: VerticalDivider(
-            width: 16,
-            thickness: 1,
-            color: Theme.of(
-              context,
-            ).colorScheme.outlineVariant.withValues(alpha: 0.5),
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.map),
-          tooltip: context.l10n.diveCenters_tooltip_mapView,
-          onPressed: () => context.go('/dive-centers/map'),
-        ),
-        IconButton(
-          icon: const Icon(Icons.search),
-          tooltip: context.l10n.diveCenters_tooltip_search,
-          onPressed: () {
-            showSearch(
-              context: context,
-              delegate: DiveCenterSearchDelegate(ref),
-            );
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.sort),
-          tooltip: context.l10n.diveCenters_tooltip_sort,
-          onPressed: () => _showSortSheet(context),
-        ),
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert),
-          tooltip: context.l10n.diveCenters_tooltip_moreOptions,
-          onSelected: (value) {
-            if (value == 'import') {
-              context.push('/dive-centers/import');
-            } else if (value.startsWith('view_')) {
-              final mode = ListViewMode.fromName(
-                value.replaceFirst('view_', ''),
-              );
-              ref.read(diveCenterListViewModeProvider.notifier).state = mode;
-            }
-          },
-          itemBuilder: (context) {
-            final currentMode = ref.read(diveCenterListViewModeProvider);
-            return [
-              ...ListViewModeToggle.menuItems(
-                context,
-                currentMode: currentMode,
-                modes: const [
-                  ListViewMode.detailed,
-                  ListViewMode.compact,
-                  ListViewMode.table,
-                ],
-              ),
-              const PopupMenuDivider(),
-              PopupMenuItem(
-                value: 'import',
-                child: ListTile(
-                  leading: const Icon(Icons.download),
-                  title: Text(context.l10n.diveCenters_action_import),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ];
-          },
-        ),
+    // Embedded inside TableModeLayout -- provide compact app bar + table only.
+    return Column(
+      children: [
+        _buildCompactAppBar(context),
+        Expanded(child: tableContent),
       ],
     );
   }
@@ -432,12 +336,15 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
+          // Map toggle: shown in detailed/compact mode only.
+          // In table mode, TableModeLayout manages the map toggle.
           if (widget.onMapViewToggle != null)
             MapViewToggleButton(
               isActive: widget.isMapViewActive,
               onToggle: widget.onMapViewToggle!,
             )
-          else
+          else if (ref.read(diveCenterListViewModeProvider) !=
+              ListViewMode.table)
             IconButton(
               icon: const Icon(Icons.map, size: 20),
               tooltip: context.l10n.diveCenters_tooltip_mapView,

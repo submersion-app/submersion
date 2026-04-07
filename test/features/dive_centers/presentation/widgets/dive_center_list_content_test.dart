@@ -164,24 +164,6 @@ void main() {
       expect(find.byIcon(Icons.store_outlined), findsOneWidget);
     });
 
-    testWidgets('table app bar includes column settings button', (
-      tester,
-    ) async {
-      final overrides = await _buildOverrides(
-        centers: [_makeCenter(id: 'dc1', name: 'Test Center')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const DiveCenterListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.view_column_outlined), findsOneWidget);
-    });
-
     testWidgets('renders with showAppBar false (compact bar)', (tester) async {
       final overrides = await _buildOverrides(
         centers: [_makeCenter(id: 'dc1', name: 'Coral Reef Center')],
@@ -198,123 +180,25 @@ void main() {
       expect(find.text('Coral Reef Center'), findsOneWidget);
     });
 
-    testWidgets('table app bar has map button', (tester) async {
-      final overrides = await _buildOverrides(
-        centers: [_makeCenter(id: 'dc1', name: 'Test Center')],
-      );
+    testWidgets(
+      'compact bar omits map button in table mode (managed by layout)',
+      (tester) async {
+        final overrides = await _buildOverrides(
+          centers: [_makeCenter(id: 'dc1', name: 'Coral Reef Center')],
+        );
 
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const DiveCenterListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: const DiveCenterListContent(showAppBar: false),
+          ),
+        );
+        await tester.pump();
 
-      expect(find.byIcon(Icons.map), findsOneWidget);
-    });
-
-    testWidgets('table app bar has search button', (tester) async {
-      final overrides = await _buildOverrides(
-        centers: [_makeCenter(id: 'dc1', name: 'Test Center')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const DiveCenterListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.search), findsOneWidget);
-    });
-
-    testWidgets('table app bar has sort button', (tester) async {
-      final overrides = await _buildOverrides(
-        centers: [_makeCenter(id: 'dc1', name: 'Test Center')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const DiveCenterListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.sort), findsOneWidget);
-    });
-
-    testWidgets('table app bar has more options popup', (tester) async {
-      final overrides = await _buildOverrides(
-        centers: [_makeCenter(id: 'dc1', name: 'Test Center')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const DiveCenterListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.more_vert), findsOneWidget);
-    });
-
-    testWidgets('table app bar popup menu shows view mode items', (
-      tester,
-    ) async {
-      final overrides = await _buildOverrides(
-        centers: [_makeCenter(id: 'dc1', name: 'Test Center')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const DiveCenterListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      await tester.tap(find.byIcon(Icons.more_vert));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Detailed'), findsOneWidget);
-      expect(find.text('Compact'), findsOneWidget);
-    });
-
-    testWidgets('table app bar has vertical divider', (tester) async {
-      final overrides = await _buildOverrides(
-        centers: [_makeCenter(id: 'dc1', name: 'Test Center')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const DiveCenterListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byType(VerticalDivider), findsOneWidget);
-    });
-
-    testWidgets('compact bar shows map button', (tester) async {
-      final overrides = await _buildOverrides(
-        centers: [_makeCenter(id: 'dc1', name: 'Coral Reef Center')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const DiveCenterListContent(showAppBar: false),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.map), findsOneWidget);
-    });
+        // Map toggle is managed by TableModeLayout, not the compact bar
+        expect(find.byIcon(Icons.map), findsNothing);
+      },
+    );
 
     testWidgets('compact bar shows search button', (tester) async {
       final overrides = await _buildOverrides(
