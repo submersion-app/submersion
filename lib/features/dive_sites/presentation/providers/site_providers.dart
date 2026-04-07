@@ -640,6 +640,16 @@ final externalSiteSearchProvider =
     });
 
 // ============================================================================
+// Highlighted Site (Table Mode)
+// ============================================================================
+
+/// Currently highlighted site ID in table mode.
+///
+/// Set on single-tap, used by [TableModeLayout] to drive the detail pane and
+/// map selection highlight.
+final highlightedSiteIdProvider = StateProvider<String?>((ref) => null);
+
+// ============================================================================
 // Site Table View Config
 // ============================================================================
 

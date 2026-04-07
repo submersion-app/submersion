@@ -2,14 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_map_content.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_summary_widget.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 class SiteListPage extends ConsumerStatefulWidget {
   const SiteListPage({super.key});
@@ -51,7 +57,9 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
   Widget build(BuildContext context) {
     final fab = FloatingActionButton.extended(
       onPressed: () {
-        if (ResponsiveBreakpoints.isMasterDetail(context)) {
+        final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
+        final viewMode = ref.read(siteListViewModeProvider);
+        if (isDesktop && viewMode != ListViewMode.table) {
           final state = GoRouterState.of(context);
           final currentPath = state.uri.path;
           context.go('$currentPath?mode=new');
@@ -63,6 +71,66 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
       icon: const Icon(Icons.add_location),
       label: Text(context.l10n.diveSites_fab_label),
     );
+
+    // Table mode: use shared TableModeLayout for full-width table with
+    // optional detail pane and map.
+    final viewMode = ref.watch(siteListViewModeProvider);
+    if (viewMode == ListViewMode.table) {
+      return TableModeLayout(
+        sectionKey: 'sites',
+        appBarTitle: context.l10n.nav_sites,
+        tableContent: const SiteListContent(showAppBar: false),
+        detailBuilder: (context, id) => SiteDetailPage(
+          siteId: id,
+          embedded: true,
+          onDeleted: () {
+            final state = GoRouterState.of(context);
+            context.go(state.uri.path);
+          },
+        ),
+        summaryBuilder: (context) => const SiteSummaryWidget(),
+        editBuilder: (context, id, onSaved, onCancel) => SiteEditPage(
+          siteId: id,
+          embedded: true,
+          onSaved: onSaved,
+          onCancel: onCancel,
+        ),
+        createBuilder: (context, onSaved, onCancel) =>
+            SiteEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
+        mapContent: SiteMapContent(
+          selectedId: ref.watch(highlightedSiteIdProvider),
+          onItemSelected: (siteId) {
+            ref.read(highlightedSiteIdProvider.notifier).state = siteId;
+          },
+          onDetailsTap: (siteId) => context.push('/sites/$siteId'),
+        ),
+        selectedId: ref.watch(highlightedSiteIdProvider),
+        onEntitySelected: (id) {
+          ref.read(highlightedSiteIdProvider.notifier).state = id;
+        },
+        isMapViewActive: _isMapView,
+        onMapViewToggle: _toggleMapView,
+        appBarActions: [
+          IconButton(
+            icon: const Icon(Icons.view_column_outlined),
+            tooltip: 'Column settings',
+            onPressed: () {
+              final config = ref.read(siteTableConfigProvider);
+              final notifier = ref.read(siteTableConfigProvider.notifier);
+              showEntityTableColumnPicker<SiteField>(
+                context,
+                config: config,
+                adapter: SiteFieldAdapter.instance,
+                onToggleColumn: notifier.toggleColumn,
+                onReorderColumn: notifier.reorderColumn,
+                onTogglePin: notifier.togglePin,
+              );
+            },
+          ),
+        ],
+        floatingActionButton: fab,
+      );
+    }
 
     // Desktop: Use master-detail layout
     if (ResponsiveBreakpoints.isMasterDetail(context)) {

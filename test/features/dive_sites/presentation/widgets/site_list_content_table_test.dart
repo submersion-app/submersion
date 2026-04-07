@@ -154,25 +154,6 @@ void main() {
       expect(find.byIcon(Icons.location_on), findsOneWidget);
     });
 
-    testWidgets('table app bar includes column settings button', (
-      tester,
-    ) async {
-      final overrides = await _buildOverrides(
-        sites: [_makeSite(id: 's1', name: 'Test Site')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const SiteListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      // Column settings icon should be in the app bar
-      expect(find.byIcon(Icons.view_column_outlined), findsOneWidget);
-    });
-
     testWidgets('renders with showAppBar false (compact bar)', (tester) async {
       final overrides = await _buildOverrides(
         sites: [_makeSite(id: 's1', name: 'Manta Point', country: 'Indonesia')],
@@ -213,108 +194,6 @@ void main() {
 
       expect(find.text('USS Liberty'), findsOneWidget);
       expect(find.text('Indonesia'), findsOneWidget);
-    });
-
-    testWidgets('table app bar has search button', (tester) async {
-      final overrides = await _buildOverrides(
-        sites: [_makeSite(id: 's1', name: 'Test Site')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const SiteListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.search), findsOneWidget);
-    });
-
-    testWidgets('table app bar has sort button', (tester) async {
-      final overrides = await _buildOverrides(
-        sites: [_makeSite(id: 's1', name: 'Test Site')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const SiteListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.sort), findsOneWidget);
-    });
-
-    testWidgets('table app bar has map button', (tester) async {
-      final overrides = await _buildOverrides(
-        sites: [_makeSite(id: 's1', name: 'Test Site')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const SiteListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.map), findsOneWidget);
-    });
-
-    testWidgets('table app bar has more options popup', (tester) async {
-      final overrides = await _buildOverrides(
-        sites: [_makeSite(id: 's1', name: 'Test Site')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const SiteListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.more_vert), findsOneWidget);
-    });
-
-    testWidgets('table app bar popup menu shows view mode items', (
-      tester,
-    ) async {
-      final overrides = await _buildOverrides(
-        sites: [_makeSite(id: 's1', name: 'Test Site')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const SiteListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      await tester.tap(find.byIcon(Icons.more_vert));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Detailed'), findsOneWidget);
-      expect(find.text('Compact'), findsOneWidget);
-    });
-
-    testWidgets('table app bar has vertical divider', (tester) async {
-      final overrides = await _buildOverrides(
-        sites: [_makeSite(id: 's1', name: 'Test Site')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const SiteListContent(showAppBar: true),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byType(VerticalDivider), findsOneWidget);
     });
 
     testWidgets('compact bar has search button', (tester) async {
@@ -365,20 +244,24 @@ void main() {
       expect(find.byIcon(Icons.more_vert), findsOneWidget);
     });
 
-    testWidgets('compact bar has map button', (tester) async {
-      final overrides = await _buildOverrides(
-        sites: [_makeSite(id: 's1', name: 'Manta Point')],
-      );
+    testWidgets(
+      'compact bar omits map button in table mode (managed by layout)',
+      (tester) async {
+        final overrides = await _buildOverrides(
+          sites: [_makeSite(id: 's1', name: 'Manta Point')],
+        );
 
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const SiteListContent(showAppBar: false),
-        ),
-      );
-      await tester.pump();
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: const SiteListContent(showAppBar: false),
+          ),
+        );
+        await tester.pump();
 
-      expect(find.byIcon(Icons.map), findsOneWidget);
-    });
+        // Map toggle is managed by TableModeLayout, not the compact bar
+        expect(find.byIcon(Icons.map), findsNothing);
+      },
+    );
   });
 }
