@@ -12,6 +12,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
@@ -432,3 +433,40 @@ final buddyTableConfigProvider =
       }
       return notifier;
     });
+
+// ============================================================================
+// Buddy Card View Config
+// ============================================================================
+
+/// Default card slot configuration for the detailed buddy card view.
+final buddyDetailedCardConfigProvider =
+    StateProvider<EntityCardViewConfig<BuddyField>>(
+      (ref) => const EntityCardViewConfig<BuddyField>(
+        slots: [
+          EntityCardSlotConfig(slotId: 'title', field: BuddyField.buddyName),
+          EntityCardSlotConfig(slotId: 'subtitle', field: BuddyField.email),
+          EntityCardSlotConfig(
+            slotId: 'stat1',
+            field: BuddyField.certificationLevel,
+          ),
+          EntityCardSlotConfig(slotId: 'stat2', field: BuddyField.diveCount),
+        ],
+        extraFields: [],
+      ),
+    );
+
+/// Default card slot configuration for the compact buddy card view.
+final buddyCompactCardConfigProvider =
+    StateProvider<EntityCardViewConfig<BuddyField>>(
+      (ref) => const EntityCardViewConfig<BuddyField>(
+        slots: [
+          EntityCardSlotConfig(slotId: 'title', field: BuddyField.buddyName),
+          EntityCardSlotConfig(slotId: 'subtitle', field: BuddyField.email),
+          EntityCardSlotConfig(
+            slotId: 'stat1',
+            field: BuddyField.certificationLevel,
+          ),
+          EntityCardSlotConfig(slotId: 'stat2', field: BuddyField.diveCount),
+        ],
+      ),
+    );

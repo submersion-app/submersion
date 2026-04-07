@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/data/repositories/service_record_r
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
@@ -435,3 +436,34 @@ final equipmentTableConfigProvider =
       }
       return notifier;
     });
+
+// ============================================================================
+// Equipment Card View Config
+// ============================================================================
+
+/// Default card slot configuration for the detailed equipment card view.
+final equipmentDetailedCardConfigProvider =
+    StateProvider<EntityCardViewConfig<EquipmentField>>(
+      (ref) => const EntityCardViewConfig<EquipmentField>(
+        slots: [
+          EntityCardSlotConfig(slotId: 'title', field: EquipmentField.itemName),
+          EntityCardSlotConfig(slotId: 'subtitle', field: EquipmentField.type),
+          EntityCardSlotConfig(slotId: 'stat1', field: EquipmentField.brand),
+          EntityCardSlotConfig(slotId: 'stat2', field: EquipmentField.status),
+        ],
+        extraFields: [],
+      ),
+    );
+
+/// Default card slot configuration for the compact equipment card view.
+final equipmentCompactCardConfigProvider =
+    StateProvider<EntityCardViewConfig<EquipmentField>>(
+      (ref) => const EntityCardViewConfig<EquipmentField>(
+        slots: [
+          EntityCardSlotConfig(slotId: 'title', field: EquipmentField.itemName),
+          EntityCardSlotConfig(slotId: 'subtitle', field: EquipmentField.type),
+          EntityCardSlotConfig(slotId: 'stat1', field: EquipmentField.brand),
+          EntityCardSlotConfig(slotId: 'stat2', field: EquipmentField.status),
+        ],
+      ),
+    );

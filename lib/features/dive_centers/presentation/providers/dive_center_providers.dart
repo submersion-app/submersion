@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
@@ -384,3 +385,46 @@ final diveCenterTableConfigProvider =
       }
       return notifier;
     });
+
+// =============================================================================
+// Dive Center Card View Config
+// =============================================================================
+
+/// Default card slot configuration for the detailed dive center card view.
+final diveCenterDetailedCardConfigProvider =
+    StateProvider<EntityCardViewConfig<DiveCenterField>>(
+      (ref) => const EntityCardViewConfig<DiveCenterField>(
+        slots: [
+          EntityCardSlotConfig(
+            slotId: 'title',
+            field: DiveCenterField.centerName,
+          ),
+          EntityCardSlotConfig(slotId: 'subtitle', field: DiveCenterField.city),
+          EntityCardSlotConfig(slotId: 'stat1', field: DiveCenterField.country),
+          EntityCardSlotConfig(
+            slotId: 'stat2',
+            field: DiveCenterField.diveCount,
+          ),
+        ],
+        extraFields: [],
+      ),
+    );
+
+/// Default card slot configuration for the compact dive center card view.
+final diveCenterCompactCardConfigProvider =
+    StateProvider<EntityCardViewConfig<DiveCenterField>>(
+      (ref) => const EntityCardViewConfig<DiveCenterField>(
+        slots: [
+          EntityCardSlotConfig(
+            slotId: 'title',
+            field: DiveCenterField.centerName,
+          ),
+          EntityCardSlotConfig(slotId: 'subtitle', field: DiveCenterField.city),
+          EntityCardSlotConfig(slotId: 'stat1', field: DiveCenterField.country),
+          EntityCardSlotConfig(
+            slotId: 'stat2',
+            field: DiveCenterField.diveCount,
+          ),
+        ],
+      ),
+    );

@@ -9,6 +9,7 @@ import 'package:submersion/features/certifications/data/repositories/certificati
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
+import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
@@ -277,3 +278,34 @@ final certificationTableConfigProvider =
       }
       return notifier;
     });
+
+// ============================================================================
+// Certification Card View Config
+// ============================================================================
+
+/// Default card slot configuration for the detailed certification card view.
+/// Certifications only support the detailed card layout (no compact variant).
+final certificationDetailedCardConfigProvider =
+    StateProvider<EntityCardViewConfig<CertificationField>>(
+      (ref) => const EntityCardViewConfig<CertificationField>(
+        slots: [
+          EntityCardSlotConfig(
+            slotId: 'title',
+            field: CertificationField.certName,
+          ),
+          EntityCardSlotConfig(
+            slotId: 'subtitle',
+            field: CertificationField.agency,
+          ),
+          EntityCardSlotConfig(
+            slotId: 'stat1',
+            field: CertificationField.level,
+          ),
+          EntityCardSlotConfig(
+            slotId: 'stat2',
+            field: CertificationField.issueDate,
+          ),
+        ],
+        extraFields: [],
+      ),
+    );

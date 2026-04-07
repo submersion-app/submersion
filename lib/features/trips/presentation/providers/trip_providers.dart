@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
@@ -414,3 +415,34 @@ final tripTableConfigProvider =
       }
       return notifier;
     });
+
+// ============================================================================
+// Trip Card View Config
+// ============================================================================
+
+/// Default card slot configuration for the detailed trip card view.
+final tripDetailedCardConfigProvider =
+    StateProvider<EntityCardViewConfig<TripField>>(
+      (ref) => const EntityCardViewConfig<TripField>(
+        slots: [
+          EntityCardSlotConfig(slotId: 'title', field: TripField.tripName),
+          EntityCardSlotConfig(slotId: 'subtitle', field: TripField.location),
+          EntityCardSlotConfig(slotId: 'stat1', field: TripField.startDate),
+          EntityCardSlotConfig(slotId: 'stat2', field: TripField.diveCount),
+        ],
+        extraFields: [],
+      ),
+    );
+
+/// Default card slot configuration for the compact trip card view.
+final tripCompactCardConfigProvider =
+    StateProvider<EntityCardViewConfig<TripField>>(
+      (ref) => const EntityCardViewConfig<TripField>(
+        slots: [
+          EntityCardSlotConfig(slotId: 'title', field: TripField.tripName),
+          EntityCardSlotConfig(slotId: 'subtitle', field: TripField.location),
+          EntityCardSlotConfig(slotId: 'stat1', field: TripField.startDate),
+          EntityCardSlotConfig(slotId: 'stat2', field: TripField.diveCount),
+        ],
+      ),
+    );

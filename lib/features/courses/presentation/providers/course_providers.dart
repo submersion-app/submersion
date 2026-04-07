@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
@@ -337,3 +338,22 @@ final courseTableConfigProvider =
       }
       return notifier;
     });
+
+// ============================================================================
+// Course Card View Config
+// ============================================================================
+
+/// Default card slot configuration for the detailed course card view.
+/// Courses only support the detailed card layout (no compact variant).
+final courseDetailedCardConfigProvider =
+    StateProvider<EntityCardViewConfig<CourseField>>(
+      (ref) => const EntityCardViewConfig<CourseField>(
+        slots: [
+          EntityCardSlotConfig(slotId: 'title', field: CourseField.courseName),
+          EntityCardSlotConfig(slotId: 'subtitle', field: CourseField.agency),
+          EntityCardSlotConfig(slotId: 'stat1', field: CourseField.startDate),
+          EntityCardSlotConfig(slotId: 'stat2', field: CourseField.isCompleted),
+        ],
+        extraFields: [],
+      ),
+    );
