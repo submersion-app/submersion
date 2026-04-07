@@ -1,10 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/courses/domain/constants/course_field.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/dive_centers/domain/constants/dive_center_field.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
+import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/domain/constants/trip_field.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -21,6 +38,16 @@ class _TestTableConfigNotifier extends TableViewConfigNotifier {
 
 class _TestCardConfigNotifier extends CardViewConfigNotifier {
   _TestCardConfigNotifier(CardViewConfig config) {
+    state = config;
+  }
+}
+
+class _TestEntityTableConfigNotifier<F extends EntityField>
+    extends EntityTableConfigNotifier<F> {
+  _TestEntityTableConfigNotifier(
+    EntityTableViewConfig<F> config, {
+    required super.fieldFromName,
+  }) : super(defaultConfig: config) {
     state = config;
   }
 }
@@ -55,6 +82,99 @@ Widget _buildColumnConfigPage({
       ),
       denseCardConfigProvider.overrideWith(
         (ref) => _TestCardConfigNotifier(CardViewConfig.defaultDense()),
+      ),
+      // Entity table config providers for non-Dives sections
+      siteTableConfigProvider.overrideWith(
+        (ref) => _TestEntityTableConfigNotifier<SiteField>(
+          EntityTableViewConfig<SiteField>(
+            columns: [
+              EntityTableColumnConfig(
+                field: SiteField.siteName,
+                isPinned: true,
+              ),
+              EntityTableColumnConfig(field: SiteField.country),
+            ],
+          ),
+          fieldFromName: SiteFieldAdapter.instance.fieldFromName,
+        ),
+      ),
+      buddyTableConfigProvider.overrideWith(
+        (ref) => _TestEntityTableConfigNotifier<BuddyField>(
+          EntityTableViewConfig<BuddyField>(
+            columns: [
+              EntityTableColumnConfig(
+                field: BuddyField.buddyName,
+                isPinned: true,
+              ),
+            ],
+          ),
+          fieldFromName: BuddyFieldAdapter.instance.fieldFromName,
+        ),
+      ),
+      tripTableConfigProvider.overrideWith(
+        (ref) => _TestEntityTableConfigNotifier<TripField>(
+          EntityTableViewConfig<TripField>(
+            columns: [
+              EntityTableColumnConfig(
+                field: TripField.tripName,
+                isPinned: true,
+              ),
+            ],
+          ),
+          fieldFromName: TripFieldAdapter.instance.fieldFromName,
+        ),
+      ),
+      equipmentTableConfigProvider.overrideWith(
+        (ref) => _TestEntityTableConfigNotifier<EquipmentField>(
+          EntityTableViewConfig<EquipmentField>(
+            columns: [
+              EntityTableColumnConfig(
+                field: EquipmentField.itemName,
+                isPinned: true,
+              ),
+            ],
+          ),
+          fieldFromName: EquipmentFieldAdapter.instance.fieldFromName,
+        ),
+      ),
+      diveCenterTableConfigProvider.overrideWith(
+        (ref) => _TestEntityTableConfigNotifier<DiveCenterField>(
+          EntityTableViewConfig<DiveCenterField>(
+            columns: [
+              EntityTableColumnConfig(
+                field: DiveCenterField.centerName,
+                isPinned: true,
+              ),
+            ],
+          ),
+          fieldFromName: DiveCenterFieldAdapter.instance.fieldFromName,
+        ),
+      ),
+      certificationTableConfigProvider.overrideWith(
+        (ref) => _TestEntityTableConfigNotifier<CertificationField>(
+          EntityTableViewConfig<CertificationField>(
+            columns: [
+              EntityTableColumnConfig(
+                field: CertificationField.certName,
+                isPinned: true,
+              ),
+            ],
+          ),
+          fieldFromName: CertificationFieldAdapter.instance.fieldFromName,
+        ),
+      ),
+      courseTableConfigProvider.overrideWith(
+        (ref) => _TestEntityTableConfigNotifier<CourseField>(
+          EntityTableViewConfig<CourseField>(
+            columns: [
+              EntityTableColumnConfig(
+                field: CourseField.courseName,
+                isPinned: true,
+              ),
+            ],
+          ),
+          fieldFromName: CourseFieldAdapter.instance.fieldFromName,
+        ),
       ),
     ],
     child: ColumnConfigPage(embedded: embedded),
@@ -179,6 +299,9 @@ void main() {
     });
 
     testWidgets('unpinned columns show outlined pin icon', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await tester.pumpWidget(_buildColumnConfigPage());
       await tester.pump();
 
@@ -187,6 +310,9 @@ void main() {
     });
 
     testWidgets('unpinned columns have remove button', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await tester.pumpWidget(_buildColumnConfigPage());
       await tester.pump();
 
@@ -255,6 +381,9 @@ void main() {
     });
 
     testWidgets('tapping pin icon toggles pin state', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await tester.pumpWidget(_buildColumnConfigPage());
       await tester.pump();
 
@@ -269,6 +398,9 @@ void main() {
     });
 
     testWidgets('tapping remove icon invokes toggleColumn', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await tester.pumpWidget(_buildColumnConfigPage());
       await tester.pump();
 
@@ -440,5 +572,121 @@ void main() {
       // (uppercased category names from DiveFieldCategory)
       expect(find.text('AVAILABLE FIELDS'), findsOneWidget);
     });
+
+    // -----------------------------------------------------------------
+    // Section selector tests (Task 13)
+    // -----------------------------------------------------------------
+
+    testWidgets('renders section selector with all 8 options', (tester) async {
+      await tester.pumpWidget(_buildColumnConfigPage());
+      await tester.pump();
+
+      // The section selector label
+      expect(find.text('Section'), findsOneWidget);
+      // Default selection is Dives
+      expect(find.text('Dives'), findsOneWidget);
+
+      // Open the section dropdown
+      await tester.tap(find.text('Dives'));
+      await tester.pumpAndSettle();
+
+      // All 8 section options should be visible in the dropdown
+      expect(find.text('Dives'), findsAtLeastNWidgets(2)); // selected + menu
+      expect(find.text('Sites'), findsOneWidget);
+      expect(find.text('Buddies'), findsOneWidget);
+      expect(find.text('Trips'), findsOneWidget);
+      expect(find.text('Equipment'), findsOneWidget);
+      expect(find.text('Dive Centers'), findsOneWidget);
+      expect(find.text('Certifications'), findsOneWidget);
+      expect(find.text('Courses'), findsOneWidget);
+    });
+
+    testWidgets('switching section changes displayed content', (tester) async {
+      await tester.pumpWidget(_buildColumnConfigPage());
+      await tester.pump();
+
+      // Initially shows Dives table content
+      expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
+      expect(find.text('Dive Number'), findsAtLeastNWidgets(1));
+
+      // Switch to Sites section
+      await tester.tap(find.text('Dives'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sites').last);
+      await tester.pumpAndSettle();
+
+      // Should now show Sites table content
+      expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
+      // The SiteField.siteName has displayName 'Name'
+      expect(find.text('Name'), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('certifications only shows table and detailed modes', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildColumnConfigPage());
+      await tester.pump();
+
+      // Switch to Certifications section
+      await tester.tap(find.text('Dives'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Certifications').last);
+      await tester.pumpAndSettle();
+
+      // Open the view mode dropdown
+      await tester.tap(find.text('Table'));
+      await tester.pumpAndSettle();
+
+      // Should see Table and Detailed but not Compact
+      expect(find.text('Table'), findsAtLeastNWidgets(1));
+      expect(find.text('Detailed'), findsOneWidget);
+      // Compact should NOT be available
+      expect(find.text('Compact'), findsNothing);
+    });
+
+    testWidgets('courses only shows table and detailed modes', (tester) async {
+      await tester.pumpWidget(_buildColumnConfigPage());
+      await tester.pump();
+
+      // Switch to Courses section
+      await tester.tap(find.text('Dives'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Courses').last);
+      await tester.pumpAndSettle();
+
+      // Open the view mode dropdown
+      await tester.tap(find.text('Table'));
+      await tester.pumpAndSettle();
+
+      // Should see Table and Detailed but not Compact
+      expect(find.text('Table'), findsAtLeastNWidgets(1));
+      expect(find.text('Detailed'), findsOneWidget);
+      expect(find.text('Compact'), findsNothing);
+    });
+
+    testWidgets(
+      'switching from compact mode section to certifications resets to table',
+      (tester) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        // Switch to Compact mode first (available for Dives)
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Compact').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Compact'), findsOneWidget);
+
+        // Now switch to Certifications section (no compact mode)
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Certifications').last);
+        await tester.pumpAndSettle();
+
+        // Mode should have reset to Table since Compact isn't available
+        expect(find.text('Table'), findsOneWidget);
+      },
+    );
   });
 }

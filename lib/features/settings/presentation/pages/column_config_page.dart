@@ -4,9 +4,43 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/courses/domain/constants/course_field.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/dive_centers/domain/constants/dive_center_field.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
+import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/trips/domain/constants/trip_field.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/shared/models/entity_card_view_config.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+
+// ---------------------------------------------------------------------------
+// Section metadata
+// ---------------------------------------------------------------------------
+
+/// All configurable entity sections with display names.
+const _sectionEntries = [
+  ('dives', 'Dives'),
+  ('sites', 'Sites'),
+  ('buddies', 'Buddies'),
+  ('trips', 'Trips'),
+  ('equipment', 'Equipment'),
+  ('diveCenters', 'Dive Centers'),
+  ('certifications', 'Certifications'),
+  ('courses', 'Courses'),
+];
 
 class ColumnConfigPage extends ConsumerStatefulWidget {
   /// When true, hides the Scaffold/AppBar for embedding in a detail pane.
@@ -19,15 +53,56 @@ class ColumnConfigPage extends ConsumerStatefulWidget {
 }
 
 class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
+  String _selectedSection = 'dives';
   ListViewMode _selectedMode = ListViewMode.table;
+
+  List<ListViewMode> _availableModes() {
+    return switch (_selectedSection) {
+      'certifications' ||
+      'courses' => [ListViewMode.table, ListViewMode.detailed],
+      _ => [ListViewMode.table, ListViewMode.detailed, ListViewMode.compact],
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Section selector
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: Row(
+            children: [
+              const Text('Section'),
+              const SizedBox(width: 16),
+              DropdownButton<String>(
+                value: _selectedSection,
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _selectedSection = value;
+                      // Reset mode if current isn't available for new section
+                      final available = _availableModes();
+                      if (!available.contains(_selectedMode)) {
+                        _selectedMode = ListViewMode.table;
+                      }
+                    });
+                  }
+                },
+                items: _sectionEntries.map((entry) {
+                  return DropdownMenuItem(
+                    value: entry.$1,
+                    child: Text(entry.$2),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+        // View mode selector
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: Row(
             children: [
               Text(context.l10n.columnConfig_viewMode),
@@ -39,17 +114,12 @@ class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
                     setState(() => _selectedMode = value);
                   }
                 },
-                items:
-                    const [
-                      ListViewMode.table,
-                      ListViewMode.detailed,
-                      ListViewMode.compact,
-                    ].map((mode) {
-                      return DropdownMenuItem(
-                        value: mode,
-                        child: Text(_modeDisplayName(mode)),
-                      );
-                    }).toList(),
+                items: _availableModes().map((mode) {
+                  return DropdownMenuItem(
+                    value: mode,
+                    child: Text(_modeDisplayName(mode)),
+                  );
+                }).toList(),
               ),
             ],
           ),
@@ -68,6 +138,14 @@ class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
   }
 
   Widget _buildModeSection() {
+    if (_selectedSection == 'dives') {
+      return _buildDivesModeSection();
+    }
+    return _buildEntityModeSection();
+  }
+
+  /// Dives use the original Dives-specific config widgets unchanged.
+  Widget _buildDivesModeSection() {
     switch (_selectedMode) {
       case ListViewMode.table:
         return const _TableColumnConfigSection();
@@ -84,6 +162,121 @@ class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
           key: ValueKey(ListViewMode.dense),
         );
     }
+  }
+
+  /// Other sections use the generic EntityTableViewConfig / EntityCardViewConfig
+  /// infrastructure.
+  Widget _buildEntityModeSection() {
+    switch (_selectedMode) {
+      case ListViewMode.table:
+        return _buildEntityTableSection();
+      case ListViewMode.detailed:
+        return _buildEntityCardSection(detailed: true);
+      case ListViewMode.compact:
+        return _buildEntityCardSection(detailed: false);
+      case ListViewMode.dense:
+        // Should not be reachable, but fall back to compact
+        return _buildEntityCardSection(detailed: false);
+    }
+  }
+
+  Widget _buildEntityTableSection() {
+    return switch (_selectedSection) {
+      'sites' => _EntityTableConfigSection<SiteField>(
+        configProvider: siteTableConfigProvider,
+        allFields: SiteField.values,
+        fieldsByCategory: SiteFieldAdapter.instance.fieldsByCategory,
+      ),
+      'buddies' => _EntityTableConfigSection<BuddyField>(
+        configProvider: buddyTableConfigProvider,
+        allFields: BuddyField.values,
+        fieldsByCategory: BuddyFieldAdapter.instance.fieldsByCategory,
+      ),
+      'trips' => _EntityTableConfigSection<TripField>(
+        configProvider: tripTableConfigProvider,
+        allFields: TripField.values,
+        fieldsByCategory: TripFieldAdapter.instance.fieldsByCategory,
+      ),
+      'equipment' => _EntityTableConfigSection<EquipmentField>(
+        configProvider: equipmentTableConfigProvider,
+        allFields: EquipmentField.values,
+        fieldsByCategory: EquipmentFieldAdapter.instance.fieldsByCategory,
+      ),
+      'diveCenters' => _EntityTableConfigSection<DiveCenterField>(
+        configProvider: diveCenterTableConfigProvider,
+        allFields: DiveCenterField.values,
+        fieldsByCategory: DiveCenterFieldAdapter.instance.fieldsByCategory,
+      ),
+      'certifications' => _EntityTableConfigSection<CertificationField>(
+        configProvider: certificationTableConfigProvider,
+        allFields: CertificationField.values,
+        fieldsByCategory: CertificationFieldAdapter.instance.fieldsByCategory,
+      ),
+      'courses' => _EntityTableConfigSection<CourseField>(
+        configProvider: courseTableConfigProvider,
+        allFields: CourseField.values,
+        fieldsByCategory: CourseFieldAdapter.instance.fieldsByCategory,
+      ),
+      _ => const SizedBox.shrink(),
+    };
+  }
+
+  Widget _buildEntityCardSection({required bool detailed}) {
+    return switch (_selectedSection) {
+      'sites' => _EntityCardConfigSection<SiteField>(
+        configProvider: detailed
+            ? siteDetailedCardConfigProvider
+            : siteCompactCardConfigProvider,
+        allFields: SiteField.values,
+        fieldsByCategory: SiteFieldAdapter.instance.fieldsByCategory,
+        showExtraFields: detailed,
+      ),
+      'buddies' => _EntityCardConfigSection<BuddyField>(
+        configProvider: detailed
+            ? buddyDetailedCardConfigProvider
+            : buddyCompactCardConfigProvider,
+        allFields: BuddyField.values,
+        fieldsByCategory: BuddyFieldAdapter.instance.fieldsByCategory,
+        showExtraFields: detailed,
+      ),
+      'trips' => _EntityCardConfigSection<TripField>(
+        configProvider: detailed
+            ? tripDetailedCardConfigProvider
+            : tripCompactCardConfigProvider,
+        allFields: TripField.values,
+        fieldsByCategory: TripFieldAdapter.instance.fieldsByCategory,
+        showExtraFields: detailed,
+      ),
+      'equipment' => _EntityCardConfigSection<EquipmentField>(
+        configProvider: detailed
+            ? equipmentDetailedCardConfigProvider
+            : equipmentCompactCardConfigProvider,
+        allFields: EquipmentField.values,
+        fieldsByCategory: EquipmentFieldAdapter.instance.fieldsByCategory,
+        showExtraFields: detailed,
+      ),
+      'diveCenters' => _EntityCardConfigSection<DiveCenterField>(
+        configProvider: detailed
+            ? diveCenterDetailedCardConfigProvider
+            : diveCenterCompactCardConfigProvider,
+        allFields: DiveCenterField.values,
+        fieldsByCategory: DiveCenterFieldAdapter.instance.fieldsByCategory,
+        showExtraFields: detailed,
+      ),
+      'certifications' => _EntityCardConfigSection<CertificationField>(
+        configProvider: certificationDetailedCardConfigProvider,
+        allFields: CertificationField.values,
+        fieldsByCategory: CertificationFieldAdapter.instance.fieldsByCategory,
+        showExtraFields: detailed,
+      ),
+      'courses' => _EntityCardConfigSection<CourseField>(
+        configProvider: courseDetailedCardConfigProvider,
+        allFields: CourseField.values,
+        fieldsByCategory: CourseFieldAdapter.instance.fieldsByCategory,
+        showExtraFields: detailed,
+      ),
+      _ => const SizedBox.shrink(),
+    };
   }
 
   String _modeDisplayName(ListViewMode mode) {
@@ -518,6 +711,272 @@ class _SlotCardConfigSection extends ConsumerWidget {
   String _slotDisplayName(String slotId) {
     return switch (slotId) {
       'title' => 'Title',
+      'date' => 'Date / Subtitle',
+      'stat1' => 'Stat 1',
+      'stat2' => 'Stat 2',
+      'slot1' => 'Slot 1',
+      'slot2' => 'Slot 2',
+      'slot3' => 'Slot 3',
+      'slot4' => 'Slot 4',
+      _ => slotId,
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Generic entity table config section
+// ---------------------------------------------------------------------------
+
+class _EntityTableConfigSection<F extends EntityField> extends ConsumerWidget {
+  final StateNotifierProvider<
+    EntityTableConfigNotifier<F>,
+    EntityTableViewConfig<F>
+  >
+  configProvider;
+  final List<F> allFields;
+  final Map<String, List<F>> fieldsByCategory;
+
+  const _EntityTableConfigSection({
+    required this.configProvider,
+    required this.allFields,
+    required this.fieldsByCategory,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(configProvider);
+    final notifier = ref.read(configProvider.notifier);
+    final theme = Theme.of(context);
+    final visibleFields = config.columns.map((c) => c.field).toSet();
+    final availableFields = allFields
+        .where((f) => !visibleFields.contains(f))
+        .toList();
+
+    // Group available fields by category
+    final Map<String, List<F>> grouped = {};
+    for (final field in availableFields) {
+      grouped.putIfAbsent(field.categoryName, () => []).add(field);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionHeader(
+          title: context.l10n.columnConfig_visibleColumns.toUpperCase(),
+          theme: theme,
+        ),
+        Expanded(
+          child: Column(
+            children: [
+              Expanded(
+                child: ReorderableListView.builder(
+                  buildDefaultDragHandles: false,
+                  itemCount: config.columns.length,
+                  onReorder: notifier.reorderColumn,
+                  itemBuilder: (context, index) {
+                    final col = config.columns[index];
+                    return ListTile(
+                      key: ValueKey(col.field.name),
+                      leading: ReorderableDragStartListener(
+                        index: index,
+                        child: const Icon(Icons.drag_handle),
+                      ),
+                      title: Text(col.field.displayName),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              col.isPinned
+                                  ? Icons.push_pin
+                                  : Icons.push_pin_outlined,
+                            ),
+                            tooltip: col.isPinned ? 'Unpin' : 'Pin',
+                            onPressed: () => notifier.togglePin(col.field),
+                          ),
+                          if (!col.isPinned)
+                            IconButton(
+                              icon: const Icon(Icons.remove_circle_outline),
+                              tooltip: 'Remove',
+                              onPressed: () => notifier.toggleColumn(col.field),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const Divider(height: 1),
+              _SectionHeader(
+                title: context.l10n.columnConfig_availableFields.toUpperCase(),
+                theme: theme,
+              ),
+              Expanded(
+                child: ListView(
+                  children: [
+                    for (final category in fieldsByCategory.keys)
+                      if (grouped.containsKey(category)) ...[
+                        _CategoryHeader(
+                          label: category.toUpperCase(),
+                          theme: theme,
+                        ),
+                        for (final field in grouped[category]!)
+                          ListTile(
+                            title: Text(field.displayName),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.add_circle_outline),
+                              tooltip: 'Add',
+                              onPressed: () => notifier.toggleColumn(field),
+                            ),
+                          ),
+                      ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Generic entity card config section
+// ---------------------------------------------------------------------------
+
+class _EntityCardConfigSection<F extends EntityField> extends ConsumerWidget {
+  final StateProvider<EntityCardViewConfig<F>> configProvider;
+  final List<F> allFields;
+  final Map<String, List<F>> fieldsByCategory;
+  final bool showExtraFields;
+
+  const _EntityCardConfigSection({
+    required this.configProvider,
+    required this.allFields,
+    required this.fieldsByCategory,
+    required this.showExtraFields,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(configProvider);
+    final theme = Theme.of(context);
+
+    return ListView(
+      children: [
+        _SectionHeader(title: 'SLOT ASSIGNMENTS', theme: theme),
+        ...config.slots.map((slot) {
+          return ListTile(
+            title: Text(_slotDisplayName(slot.slotId)),
+            trailing: DropdownButton<F>(
+              value: slot.field,
+              underline: const SizedBox(),
+              onChanged: (value) {
+                if (value != null) {
+                  ref.read(configProvider.notifier).state = config.copyWith(
+                    slots: config.slots
+                        .map(
+                          (s) => s.slotId == slot.slotId
+                              ? s.copyWith(field: value)
+                              : s,
+                        )
+                        .toList(),
+                  );
+                }
+              },
+              items: allFields.map((field) {
+                return DropdownMenuItem(
+                  value: field,
+                  child: Text(field.displayName),
+                );
+              }).toList(),
+            ),
+          );
+        }),
+
+        if (showExtraFields) ...[
+          const Divider(),
+          _SectionHeader(title: 'EXTRA FIELDS', theme: theme),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(
+              'Additional fields shown below the standard card content.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          ...config.extraFields.map((field) {
+            return ListTile(
+              key: ValueKey(field.name),
+              title: Text(field.displayName),
+              trailing: IconButton(
+                icon: const Icon(Icons.remove_circle_outline),
+                tooltip: 'Remove',
+                onPressed: () {
+                  ref.read(configProvider.notifier).state = config.copyWith(
+                    extraFields: config.extraFields
+                        .where((f) => f != field)
+                        .toList(),
+                  );
+                },
+              ),
+            );
+          }),
+          if (config.extraFields.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                'No extra fields configured. Add fields below.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          const Divider(),
+          _SectionHeader(
+            title: context.l10n.columnConfig_availableFields.toUpperCase(),
+            theme: theme,
+          ),
+          for (final category in fieldsByCategory.keys)
+            if (_availableInCategory(config, category).isNotEmpty) ...[
+              _CategoryHeader(label: category.toUpperCase(), theme: theme),
+              for (final field in _availableInCategory(config, category))
+                ListTile(
+                  title: Text(field.displayName),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.add_circle_outline),
+                    tooltip: 'Add',
+                    onPressed: () {
+                      ref.read(configProvider.notifier).state = config.copyWith(
+                        extraFields: [...config.extraFields, field],
+                      );
+                    },
+                  ),
+                ),
+            ],
+        ],
+
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  List<F> _availableInCategory(
+    EntityCardViewConfig<F> config,
+    String category,
+  ) {
+    final extraSet = config.extraFields.toSet();
+    return (fieldsByCategory[category] ?? [])
+        .where((f) => !extraSet.contains(f))
+        .toList();
+  }
+
+  String _slotDisplayName(String slotId) {
+    return switch (slotId) {
+      'title' => 'Title',
+      'subtitle' => 'Subtitle',
       'date' => 'Date / Subtitle',
       'stat1' => 'Stat 1',
       'stat2' => 'Stat 2',
