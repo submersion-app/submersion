@@ -75,7 +75,10 @@ class DatabaseService {
   }
 
   /// Initialize the database with optional location service for custom paths
-  Future<void> initialize({DatabaseLocationService? locationService}) async {
+  Future<void> initialize({
+    DatabaseLocationService? locationService,
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  }) async {
     if (_database != null) return;
 
     _locationService = locationService;
@@ -95,7 +98,10 @@ class DatabaseService {
     // Use synchronous NativeDatabase instead of createInBackground
     // Background isolates can cause close() to hang indefinitely during migration
     // For a dive log app, synchronous DB operations are fast enough
-    _database = AppDatabase(NativeDatabase(file));
+    _database = AppDatabase(
+      NativeDatabase(file),
+      onMigrationProgress: onMigrationProgress,
+    );
   }
 
   /// Reinitialize the database at a specific path (used during migration)
@@ -180,6 +186,23 @@ class DatabaseService {
           appVersion: AppDatabase.currentSchemaVersion,
         );
       }
+    } finally {
+      db.dispose();
+    }
+  }
+
+  /// Reads the stored schema version from a database file without opening it
+  /// through Drift. Returns null if the file does not exist, or the integer
+  /// PRAGMA user_version value otherwise.
+  static int? getStoredSchemaVersion(String dbPath) {
+    final file = File(dbPath);
+    if (!file.existsSync()) return null;
+
+    final db = sqlite3.sqlite3.open(dbPath);
+    try {
+      final result = db.select('PRAGMA user_version');
+      if (result.isEmpty) return null;
+      return result.first.values.first as int;
     } finally {
       db.dispose();
     }
