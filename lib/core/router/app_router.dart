@@ -86,6 +86,7 @@ import 'package:submersion/features/settings/presentation/pages/medical_info_edi
 import 'package:submersion/features/settings/presentation/pages/insurance_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/notes_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
+import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/transfer/presentation/pages/transfer_page.dart';
 import 'package:submersion/features/dive_types/presentation/pages/dive_types_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_presets_page.dart';
@@ -743,6 +744,55 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => ColumnConfigPage(
                       initialSection: state.uri.queryParameters['section'],
                     ),
+                  ),
+                  GoRoute(
+                    path: 'dives',
+                    name: 'appearanceDives',
+                    builder: (context, state) =>
+                        const SectionAppearancePage(sectionKey: 'dives'),
+                  ),
+                  GoRoute(
+                    path: 'sites',
+                    name: 'appearanceSites',
+                    builder: (context, state) =>
+                        const SectionAppearancePage(sectionKey: 'sites'),
+                  ),
+                  GoRoute(
+                    path: 'buddies',
+                    name: 'appearanceBuddies',
+                    builder: (context, state) =>
+                        const SectionAppearancePage(sectionKey: 'buddies'),
+                  ),
+                  GoRoute(
+                    path: 'trips',
+                    name: 'appearanceTrips',
+                    builder: (context, state) =>
+                        const SectionAppearancePage(sectionKey: 'trips'),
+                  ),
+                  GoRoute(
+                    path: 'equipment',
+                    name: 'appearanceEquipment',
+                    builder: (context, state) =>
+                        const SectionAppearancePage(sectionKey: 'equipment'),
+                  ),
+                  GoRoute(
+                    path: 'dive-centers',
+                    name: 'appearanceDiveCenters',
+                    builder: (context, state) =>
+                        const SectionAppearancePage(sectionKey: 'diveCenters'),
+                  ),
+                  GoRoute(
+                    path: 'certifications',
+                    name: 'appearanceCertifications',
+                    builder: (context, state) => const SectionAppearancePage(
+                      sectionKey: 'certifications',
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'courses',
+                    name: 'appearanceCourses',
+                    builder: (context, state) =>
+                        const SectionAppearancePage(sectionKey: 'courses'),
                   ),
                 ],
               ),
