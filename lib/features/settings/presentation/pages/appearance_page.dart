@@ -1,17 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:submersion/core/providers/provider.dart';
-
-import 'package:submersion/core/constants/card_color.dart';
-import 'package:submersion/core/constants/list_view_mode.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/settings/presentation/widgets/gradient_preset_picker.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/providers/table_details_pane_provider.dart';
+
+class _SectionEntry {
+  final String displayName;
+  final String routeSegment;
+
+  const _SectionEntry({required this.displayName, required this.routeSegment});
+}
+
+const _sections = [
+  _SectionEntry(displayName: 'Dives', routeSegment: 'dives'),
+  _SectionEntry(displayName: 'Dive Sites', routeSegment: 'sites'),
+  _SectionEntry(displayName: 'Buddies', routeSegment: 'buddies'),
+  _SectionEntry(displayName: 'Trips', routeSegment: 'trips'),
+  _SectionEntry(displayName: 'Equipment', routeSegment: 'equipment'),
+  _SectionEntry(displayName: 'Dive Centers', routeSegment: 'dive-centers'),
+  _SectionEntry(displayName: 'Certifications', routeSegment: 'certifications'),
+  _SectionEntry(displayName: 'Courses', routeSegment: 'courses'),
+];
 
 class AppearancePage extends ConsumerWidget {
   const AppearancePage({super.key});
@@ -26,10 +37,8 @@ class AppearancePage extends ConsumerWidget {
       ),
       body: ListView(
         children: [
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_appearance_header_theme,
-          ),
+          // -- General --
+          _buildSectionHeader(context, 'General'),
           ListTile(
             leading: const Icon(Icons.palette_outlined),
             title: Text(context.l10n.settings_themes_current),
@@ -38,423 +47,8 @@ class AppearancePage extends ConsumerWidget {
             onTap: () => context.push('/settings/themes'),
           ),
           const Divider(),
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_appearance_header_mode,
-          ),
           _buildThemeSelector(context, ref, settings.themeMode),
           const Divider(),
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_appearance_header_diveLog,
-          ),
-          // Card coloring attribute selector
-          ListTile(
-            leading: const Icon(Icons.palette),
-            title: Text(context.l10n.settings_appearance_cardColorAttribute),
-            subtitle: Text(
-              context.l10n.settings_appearance_cardColorAttribute_subtitle,
-            ),
-            trailing: DropdownButton<CardColorAttribute>(
-              value: settings.cardColorAttribute,
-              underline: const SizedBox(),
-              onChanged: (value) {
-                if (value != null) {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setCardColorAttribute(value);
-                }
-              },
-              items: CardColorAttribute.values.map((attr) {
-                return DropdownMenuItem(
-                  value: attr,
-                  child: Text(_getAttributeDisplayName(context, attr)),
-                );
-              }).toList(),
-            ),
-          ),
-          // Gradient picker (visible when coloring is active)
-          if (settings.cardColorAttribute != CardColorAttribute.none)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: GradientPresetPicker(
-                selectedPreset: settings.cardColorGradientPreset,
-                customStart: settings.cardColorGradientStart,
-                customEnd: settings.cardColorGradientEnd,
-                onPresetSelected: (preset) {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setCardColorGradientPreset(preset);
-                },
-                onCustomSelected: (start, end) {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setCardColorGradientCustom(start, end);
-                },
-              ),
-            ),
-          // Dive list view mode selector
-          ListTile(
-            leading: const Icon(Icons.view_list),
-            title: const Text('Dive List View'),
-            subtitle: const Text('Default layout for the dive list'),
-            trailing: DropdownButton<ListViewMode>(
-              value: settings.diveListViewMode,
-              underline: const SizedBox(),
-              onChanged: (value) {
-                if (value != null) {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setDiveListViewMode(value);
-                  // Also update the runtime provider
-                  ref.read(diveListViewModeProvider.notifier).state = value;
-                }
-              },
-              items: ListViewMode.values.map((mode) {
-                return DropdownMenuItem(
-                  value: mode,
-                  child: Text(_getViewModeDisplayName(mode)),
-                );
-              }).toList(),
-            ),
-          ),
-          SwitchListTile(
-            title: Text(
-              context.l10n.settings_appearance_mapBackgroundDiveCards,
-            ),
-            subtitle: Text(
-              context
-                  .l10n
-                  .settings_appearance_mapBackgroundDiveCards_subtitleWithNote,
-            ),
-            secondary: const Icon(Icons.map),
-            value: settings.showMapBackgroundOnDiveCards,
-            onChanged: (value) {
-              ref
-                  .read(settingsProvider.notifier)
-                  .setShowMapBackgroundOnDiveCards(value);
-            },
-          ),
-          SwitchListTile(
-            title: const Text('Show Profile Panel in Table View'),
-            subtitle: const Text(
-              'Display dive profile chart above the table by default',
-            ),
-            secondary: const Icon(Icons.area_chart),
-            value: settings.showProfilePanelInTableView,
-            onChanged: (value) {
-              ref
-                  .read(settingsProvider.notifier)
-                  .setShowProfilePanelInTableView(value);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.view_column),
-            title: Text(context.l10n.settings_appearance_columnConfig),
-            subtitle: Text(
-              context.l10n.settings_appearance_columnConfig_subtitle,
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/settings/appearance/column-config'),
-          ),
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: Text(
-              'Show details pane in table mode',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          for (final entry in const [
-            ('dives', 'Dives'),
-            ('sites', 'Sites'),
-            ('buddies', 'Buddies'),
-            ('trips', 'Trips'),
-            ('equipment', 'Equipment'),
-            ('diveCenters', 'Dive Centers'),
-            ('certifications', 'Certifications'),
-            ('courses', 'Courses'),
-          ])
-            SwitchListTile(
-              title: Text(entry.$2),
-              value: ref.watch(tableDetailsPaneProvider(entry.$1)),
-              onChanged: (value) {
-                ref.read(tableDetailsPaneProvider(entry.$1).notifier).state =
-                    value;
-              },
-            ),
-          const Divider(),
-          _buildSectionHeader(context, 'Dive Sites'),
-          ListTile(
-            leading: const Icon(Icons.view_list),
-            title: const Text('Site List View'),
-            subtitle: const Text('Default layout for the site list'),
-            trailing: DropdownButton<ListViewMode>(
-              value: settings.siteListViewMode,
-              underline: const SizedBox(),
-              onChanged: (value) {
-                if (value != null) {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setSiteListViewMode(value);
-                  ref.read(siteListViewModeProvider.notifier).state = value;
-                }
-              },
-              items: ListViewMode.values.map((mode) {
-                return DropdownMenuItem(
-                  value: mode,
-                  child: Text(_getViewModeDisplayName(mode)),
-                );
-              }).toList(),
-            ),
-          ),
-          const Divider(),
-          _buildSectionHeader(context, 'Trips'),
-          ListTile(
-            leading: const Icon(Icons.view_list),
-            title: const Text('Trip List View'),
-            subtitle: const Text('Default layout for the trip list'),
-            trailing: DropdownButton<ListViewMode>(
-              value: settings.tripListViewMode,
-              underline: const SizedBox(),
-              onChanged: (value) {
-                if (value != null) {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setTripListViewMode(value);
-                  ref.read(tripListViewModeProvider.notifier).state = value;
-                }
-              },
-              items: ListViewMode.values.map((mode) {
-                return DropdownMenuItem(
-                  value: mode,
-                  child: Text(_getViewModeDisplayName(mode)),
-                );
-              }).toList(),
-            ),
-          ),
-          const Divider(),
-          _buildSectionHeader(context, 'Equipment'),
-          ListTile(
-            leading: const Icon(Icons.view_list),
-            title: const Text('Equipment List View'),
-            subtitle: const Text('Default layout for the equipment list'),
-            trailing: DropdownButton<ListViewMode>(
-              value: settings.equipmentListViewMode,
-              underline: const SizedBox(),
-              onChanged: (value) {
-                if (value != null) {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setEquipmentListViewMode(value);
-                  ref.read(equipmentListViewModeProvider.notifier).state =
-                      value;
-                }
-              },
-              items: [ListViewMode.detailed, ListViewMode.dense].map((mode) {
-                return DropdownMenuItem(
-                  value: mode,
-                  child: Text(_getViewModeDisplayName(mode)),
-                );
-              }).toList(),
-            ),
-          ),
-          const Divider(),
-          _buildSectionHeader(context, 'Buddies'),
-          ListTile(
-            leading: const Icon(Icons.view_list),
-            title: const Text('Buddy List View'),
-            subtitle: const Text('Default layout for the buddy list'),
-            trailing: DropdownButton<ListViewMode>(
-              value: settings.buddyListViewMode,
-              underline: const SizedBox(),
-              onChanged: (value) {
-                if (value != null) {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setBuddyListViewMode(value);
-                  ref.read(buddyListViewModeProvider.notifier).state = value;
-                }
-              },
-              items: [ListViewMode.detailed, ListViewMode.dense].map((mode) {
-                return DropdownMenuItem(
-                  value: mode,
-                  child: Text(_getViewModeDisplayName(mode)),
-                );
-              }).toList(),
-            ),
-          ),
-          const Divider(),
-          _buildSectionHeader(context, 'Dive Centers'),
-          ListTile(
-            leading: const Icon(Icons.view_list),
-            title: const Text('Dive Center List View'),
-            subtitle: const Text('Default layout for the dive center list'),
-            trailing: DropdownButton<ListViewMode>(
-              value: settings.diveCenterListViewMode,
-              underline: const SizedBox(),
-              onChanged: (value) {
-                if (value != null) {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setDiveCenterListViewMode(value);
-                  ref.read(diveCenterListViewModeProvider.notifier).state =
-                      value;
-                }
-              },
-              items: ListViewMode.values.map((mode) {
-                return DropdownMenuItem(
-                  value: mode,
-                  child: Text(_getViewModeDisplayName(mode)),
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 8),
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_appearance_header_diveProfile,
-          ),
-          // Right Y-Axis Metric Selector
-          ListTile(
-            leading: const Icon(Icons.show_chart),
-            title: Text(context.l10n.settings_appearance_rightYAxisMetric),
-            subtitle: Text(
-              context.l10n.settings_appearance_rightYAxisMetric_subtitle,
-            ),
-            trailing: DropdownButton<ProfileRightAxisMetric>(
-              value: settings.defaultRightAxisMetric,
-              underline: const SizedBox(),
-              onChanged: (value) {
-                if (value != null) {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setDefaultRightAxisMetric(value);
-                }
-              },
-              items: ProfileRightAxisMetric.values.map((metric) {
-                return DropdownMenuItem(
-                  value: metric,
-                  child: Text(metric.displayName),
-                );
-              }).toList(),
-            ),
-          ),
-          SwitchListTile(
-            title: Text(context.l10n.settings_appearance_maxDepthMarker),
-            subtitle: Text(
-              context.l10n.settings_appearance_maxDepthMarker_subtitleFull,
-            ),
-            secondary: const Icon(Icons.vertical_align_bottom),
-            value: settings.showMaxDepthMarker,
-            onChanged: (value) {
-              ref.read(settingsProvider.notifier).setShowMaxDepthMarker(value);
-            },
-          ),
-          SwitchListTile(
-            title: Text(
-              context.l10n.settings_appearance_pressureThresholdMarkers,
-            ),
-            subtitle: Text(
-              context
-                  .l10n
-                  .settings_appearance_pressureThresholdMarkers_subtitleFull,
-            ),
-            secondary: Icon(MdiIcons.divingScubaTank),
-            value: settings.showPressureThresholdMarkers,
-            onChanged: (value) {
-              ref
-                  .read(settingsProvider.notifier)
-                  .setShowPressureThresholdMarkers(value);
-            },
-          ),
-          SwitchListTile(
-            title: Text(context.l10n.settings_appearance_gasSwitchMarkers),
-            subtitle: Text(
-              context.l10n.settings_appearance_gasSwitchMarkers_subtitle,
-            ),
-            secondary: const Icon(Icons.swap_horiz),
-            value: settings.defaultShowGasSwitchMarkers,
-            onChanged: (value) {
-              ref
-                  .read(settingsProvider.notifier)
-                  .setDefaultShowGasSwitchMarkers(value);
-            },
-          ),
-          SwitchListTile(
-            title: const Text('Show data source badges'),
-            subtitle: const Text('Display source attribution on dive metrics'),
-            secondary: const Icon(Icons.label_outline),
-            value: settings.showDataSourceBadges,
-            onChanged: (value) {
-              ref
-                  .read(settingsProvider.notifier)
-                  .setShowDataSourceBadges(value);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.visibility),
-            title: Text(
-              context.l10n.settings_appearance_subsection_defaultVisibleMetrics,
-            ),
-            subtitle: Text(
-              context.l10n.settings_appearance_metricsEnabledCount(
-                _countEnabledMetrics(settings),
-                18,
-              ),
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/settings/default-metrics'),
-          ),
-          const Divider(),
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_appearance_header_diveDetails,
-          ),
-          ListTile(
-            leading: const Icon(Icons.reorder),
-            title: Text(
-              context
-                  .l10n
-                  .settings_appearance_diveDetails_sectionOrderVisibility,
-            ),
-            subtitle: Text(
-              context
-                  .l10n
-                  .settings_appearance_diveDetails_sectionOrderVisibility_subtitle,
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/settings/dive-detail-sections'),
-          ),
-          const SizedBox(height: 8),
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_appearance_header_diveSites,
-          ),
-          SwitchListTile(
-            title: Text(
-              context.l10n.settings_appearance_mapBackgroundSiteCards,
-            ),
-            subtitle: Text(
-              context
-                  .l10n
-                  .settings_appearance_mapBackgroundSiteCards_subtitleWithNote,
-            ),
-            secondary: const Icon(Icons.map),
-            value: settings.showMapBackgroundOnSiteCards,
-            onChanged: (value) {
-              ref
-                  .read(settingsProvider.notifier)
-                  .setShowMapBackgroundOnSiteCards(value);
-            },
-          ),
-          const Divider(),
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_appearance_header_language,
-          ),
           ListTile(
             leading: const Icon(Icons.language),
             title: Text(context.l10n.settings_appearance_appLanguage),
@@ -464,6 +58,17 @@ class AppearancePage extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go('/settings/language'),
           ),
+          const Divider(),
+
+          // -- Sections --
+          _buildSectionHeader(context, 'Sections'),
+          for (final entry in _sections)
+            ListTile(
+              title: Text(entry.displayName),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  context.push('/settings/appearance/${entry.routeSegment}'),
+            ),
           const SizedBox(height: 32),
         ],
       ),
@@ -481,30 +86,6 @@ class AppearancePage extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  int _countEnabledMetrics(AppSettings settings) {
-    final values = [
-      settings.defaultShowTemperature,
-      settings.defaultShowPressure,
-      settings.defaultShowHeartRate,
-      settings.defaultShowSac,
-      settings.defaultShowEvents,
-      settings.showCeilingOnProfile,
-      settings.showAscentRateColors,
-      settings.showNdlOnProfile,
-      settings.defaultShowTts,
-      settings.defaultShowCns,
-      settings.defaultShowOtu,
-      settings.defaultShowPpO2,
-      settings.defaultShowPpN2,
-      settings.defaultShowPpHe,
-      settings.defaultShowGasDensity,
-      settings.defaultShowGf,
-      settings.defaultShowSurfaceGf,
-      settings.defaultShowMeanDepth,
-    ];
-    return values.where((v) => v).length;
   }
 
   Widget _buildThemeSelector(
@@ -576,30 +157,5 @@ class AppearancePage extends ConsumerWidget {
       default:
         return preset.nameKey;
     }
-  }
-
-  String _getViewModeDisplayName(ListViewMode mode) {
-    return switch (mode) {
-      ListViewMode.detailed => 'Detailed',
-      ListViewMode.compact => 'Compact',
-      ListViewMode.dense => 'Dense',
-      ListViewMode.table => 'Table',
-    };
-  }
-
-  String _getAttributeDisplayName(
-    BuildContext context,
-    CardColorAttribute attr,
-  ) {
-    return switch (attr) {
-      CardColorAttribute.none =>
-        context.l10n.settings_appearance_cardColorAttribute_none,
-      CardColorAttribute.depth =>
-        context.l10n.settings_appearance_cardColorAttribute_depth,
-      CardColorAttribute.duration =>
-        context.l10n.settings_appearance_cardColorAttribute_duration,
-      CardColorAttribute.temperature =>
-        context.l10n.settings_appearance_cardColorAttribute_temperature,
-    };
   }
 }
