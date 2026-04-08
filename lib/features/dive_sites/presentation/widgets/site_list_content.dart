@@ -490,16 +490,15 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   ) {
     final tableContent = _buildTableView(context, sitesAsync, filter);
 
-    // Embedded inside TableModeLayout -- provide compact app bar + table only.
-    return Column(
-      children: [
-        if (_isSelectionMode)
-          _buildCompactSelectionAppBar(context, sitesAsync.valueOrNull ?? [])
-        else
-          _buildCompactAppBar(context),
-        Expanded(child: tableContent),
-      ],
-    );
+    if (_isSelectionMode) {
+      return Column(
+        children: [
+          _buildCompactSelectionAppBar(context, sitesAsync.valueOrNull ?? []),
+          Expanded(child: tableContent),
+        ],
+      );
+    }
+    return tableContent;
   }
 
   /// Build the [EntityTableView] for site table mode.
@@ -543,21 +542,19 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                   if (_isSelectionMode) {
                     _toggleSelection(id);
                   } else {
-                    final match = sites.firstWhere((s) => s.site.id == id);
-                    _handleItemTap(match.site);
+                    ref.read(highlightedSiteIdProvider.notifier).state = id;
                   }
                 },
                 onEntityDoubleTap: (id) {
-                  if (!_isSelectionMode) {
-                    context.go('/sites/$id');
-                  }
+                  if (_isSelectionMode) return;
+                  context.push('/sites/$id');
                 },
                 onEntityLongPress: _isSelectionMode
                     ? null
                     : (id) => _enterSelectionMode(id),
                 selectedIds: _selectedIds,
                 isSelectionMode: _isSelectionMode,
-                highlightedId: widget.selectedId,
+                highlightedId: ref.watch(highlightedSiteIdProvider),
               ),
             ),
           ],

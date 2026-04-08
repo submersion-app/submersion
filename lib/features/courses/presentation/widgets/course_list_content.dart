@@ -146,12 +146,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
   ) {
     final tableContent = _buildTableView(context, coursesAsync);
 
-    return Column(
-      children: [
-        _buildCompactAppBar(context),
-        Expanded(child: tableContent),
-      ],
-    );
+    return tableContent;
   }
 
   /// Build the [EntityTableView] for course table mode.
@@ -180,13 +175,14 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
           onSortFieldChanged: notifier.setSortField,
           onResizeColumn: notifier.resizeColumn,
           onEntityTap: (id) {
-            final match = courses.firstWhere((c) => c.id == id);
-            _handleItemTap(match);
+            ref.read(highlightedCourseIdProvider.notifier).state = id;
           },
-          onEntityDoubleTap: (id) => context.go('/courses/$id'),
+          onEntityDoubleTap: (id) {
+            context.push('/courses/$id');
+          },
           selectedIds: const {},
           isSelectionMode: false,
-          highlightedId: widget.selectedId,
+          highlightedId: ref.watch(highlightedCourseIdProvider),
         );
       },
     );

@@ -356,72 +356,64 @@ void main() {
     // Mutual exclusion
     // ------------------------------------------------------------------
     group('mutual exclusion', () {
-      testWidgets(
-        'toggling details ON calls onProfileToggled when profile was active',
-        (tester) async {
-          // Start with details OFF and profile ON. Tapping details should call
-          // onProfileToggled so the caller can turn off the profile provider.
-          // GoRouter is required because tapping details switches to MasterDetailScaffold.
-          var profileToggleCalled = false;
+      testWidgets('toggling details ON does not turn off profile', (
+        tester,
+      ) async {
+        var profileToggleCalled = false;
 
-          final router = GoRouter(
-            initialLocation: '/test',
-            routes: [
-              GoRoute(
-                path: '/test',
-                builder: (context, state) => MediaQuery(
-                  data: const MediaQueryData(size: Size(1200, 800)),
-                  child: _buildLayout(
-                    showProfilePanel: true,
-                    onProfileToggled: () => profileToggleCalled = true,
-                    profilePanelContent: const SizedBox(
-                      height: 100,
-                      child: Text('Profile Panel'),
-                    ),
+        final router = GoRouter(
+          initialLocation: '/test',
+          routes: [
+            GoRoute(
+              path: '/test',
+              builder: (context, state) => MediaQuery(
+                data: const MediaQueryData(size: Size(1200, 800)),
+                child: _buildLayout(
+                  showProfilePanel: true,
+                  onProfileToggled: () => profileToggleCalled = true,
+                  profilePanelContent: const SizedBox(
+                    height: 100,
+                    child: Text('Profile Panel'),
                   ),
                 ),
               ),
-            ],
-          );
-
-          late ProviderContainer container;
-          await tester.pumpWidget(
-            ProviderScope(
-              overrides: [
-                settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
-                tableDetailsPaneProvider('dives').overrideWith((_) => false),
-              ],
-              child: Consumer(
-                builder: (context, ref, _) {
-                  container = ProviderScope.containerOf(context);
-                  return MaterialApp.router(
-                    localizationsDelegates:
-                        AppLocalizations.localizationsDelegates,
-                    supportedLocales: AppLocalizations.supportedLocales,
-                    routerConfig: router,
-                  );
-                },
-              ),
             ),
-          );
-          await tester.pumpAndSettle();
+          ],
+        );
 
-          // Tap the details toggle
-          await tester.tap(find.byKey(const ValueKey('details_toggle')));
-          await tester.pumpAndSettle();
+        late ProviderContainer container;
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+              tableDetailsPaneProvider('dives').overrideWith((_) => false),
+            ],
+            child: Consumer(
+              builder: (context, ref, _) {
+                container = ProviderScope.containerOf(context);
+                return MaterialApp.router(
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
+                  supportedLocales: AppLocalizations.supportedLocales,
+                  routerConfig: router,
+                );
+              },
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
 
-          // Details ON (via provider), and onProfileToggled was called to signal
-          // the caller to turn off the profile panel
-          expect(container.read(tableDetailsPaneProvider('dives')), isTrue);
-          expect(profileToggleCalled, isTrue);
-        },
-      );
+        await tester.tap(find.byKey(const ValueKey('details_toggle')));
+        await tester.pumpAndSettle();
 
-      testWidgets('toggling profile ON disables details via provider', (
+        // Details ON, profile NOT toggled off
+        expect(container.read(tableDetailsPaneProvider('dives')), isTrue);
+        expect(profileToggleCalled, isFalse);
+      });
+
+      testWidgets('toggling profile ON does not turn off details', (
         tester,
       ) async {
-        // Start with details ON and profile OFF. Tapping profile toggle should
-        // call onProfileToggled AND turn off tableDetailsPaneProvider directly.
         var profileToggleCalled = false;
 
         final router = GoRouter(
@@ -465,14 +457,12 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // The profile toggle should be visible inside the MasterDetailScaffold
-        // master pane
         await tester.tap(find.byKey(const ValueKey('profile_toggle')));
         await tester.pumpAndSettle();
 
-        // onProfileToggled called, and details turned OFF by widget directly
+        // Profile toggled, details stays ON
         expect(profileToggleCalled, isTrue);
-        expect(container.read(tableDetailsPaneProvider('dives')), isFalse);
+        expect(container.read(tableDetailsPaneProvider('dives')), isTrue);
       });
     });
 

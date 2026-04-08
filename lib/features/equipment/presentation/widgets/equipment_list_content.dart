@@ -219,7 +219,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
     return Column(
       children: [
-        _buildCompactAppBar(context),
         if (widget.headerExtension != null) widget.headerExtension!,
         _buildFilterChips(context),
         Expanded(child: tableContent),
@@ -253,13 +252,12 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           onSortFieldChanged: notifier.setSortField,
           onResizeColumn: notifier.resizeColumn,
           onEntityTap: (id) {
-            final match = equipment.firstWhere((e) => e.id == id);
-            _handleItemTap(match);
+            ref.read(highlightedEquipmentIdProvider.notifier).state = id;
           },
           onEntityDoubleTap: (id) {
-            context.go('/equipment/$id');
+            context.push('/equipment/$id');
           },
-          highlightedId: widget.selectedId,
+          highlightedId: ref.watch(highlightedEquipmentIdProvider),
         );
       },
     );

@@ -467,25 +467,24 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
 
   /// Build the full scaffold/layout for table mode.
   ///
-  /// When embedded inside [TableModeLayout] (showAppBar: false), provides
-  /// only the compact app bar and the table content.
+  /// When embedded inside [TableModeLayout] (showAppBar: false), the outer
+  /// TableModeLayout already provides the AppBar, so we only show the table
+  /// content (plus selection bar when in selection mode).
   Widget _buildTableModeScaffold(
     BuildContext context,
     AsyncValue<List<BuddyWithDiveCount>> buddiesAsync,
   ) {
     final tableContent = _buildTableView(context, buddiesAsync);
 
-    return Column(
-      children: [
-        _isSelectionMode
-            ? _buildCompactSelectionAppBar(
-                context,
-                buddiesAsync.valueOrNull ?? [],
-              )
-            : _buildCompactAppBar(context),
-        Expanded(child: tableContent),
-      ],
-    );
+    if (_isSelectionMode) {
+      return Column(
+        children: [
+          _buildCompactSelectionAppBar(context, buddiesAsync.valueOrNull ?? []),
+          Expanded(child: tableContent),
+        ],
+      );
+    }
+    return tableContent;
   }
 
   /// Build the [EntityTableView] for buddy table mode.
@@ -523,21 +522,19 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
             if (_isSelectionMode) {
               _toggleSelection(id);
             } else {
-              final match = buddies.firstWhere((b) => b.buddy.id == id);
-              _handleItemTap(match.buddy);
+              ref.read(highlightedBuddyIdProvider.notifier).state = id;
             }
           },
           onEntityDoubleTap: (id) {
-            if (!_isSelectionMode) {
-              context.go('/buddies/$id');
-            }
+            if (_isSelectionMode) return;
+            context.push('/buddies/$id');
           },
           onEntityLongPress: _isSelectionMode
               ? null
               : (id) => _enterSelectionMode(id),
           selectedIds: _selectedIds,
           isSelectionMode: _isSelectionMode,
-          highlightedId: widget.selectedId,
+          highlightedId: ref.watch(highlightedBuddyIdProvider),
         );
       },
     );

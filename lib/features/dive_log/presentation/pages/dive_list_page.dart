@@ -29,7 +29,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_map_conte
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/table_column_picker.dart';
+import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
@@ -171,6 +173,9 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
         onProfileToggled: () {
           final newValue = !ref.read(showProfilePanelProvider);
           ref.read(showProfilePanelProvider.notifier).state = newValue;
+          ref
+              .read(settingsProvider.notifier)
+              .setShowProfilePanelInTableView(newValue);
         },
         selectedId: ref.watch(highlightedDiveIdProvider),
         onEntitySelected: (id) {
@@ -178,11 +183,82 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
         },
         isMapViewActive: _isMapView,
         onMapViewToggle: _toggleMapView,
+        columnSettingsAction: IconButton(
+          icon: const Icon(Icons.view_column_outlined),
+          tooltip: 'Column settings',
+          onPressed: () => showTableColumnPicker(context),
+        ),
         appBarActions: [
           IconButton(
-            icon: const Icon(Icons.view_column_outlined),
-            tooltip: 'Column settings',
-            onPressed: () => showTableColumnPicker(context),
+            icon: const Icon(Icons.search, size: 20),
+            tooltip: 'Search dives',
+            onPressed: () {
+              showSearch(context: context, delegate: DiveSearchDelegate(ref));
+            },
+          ),
+          IconButton(
+            icon: Badge(
+              isLabelVisible: ref.watch(diveFilterProvider).hasActiveFilters,
+              child: const Icon(Icons.filter_list, size: 20),
+            ),
+            tooltip: 'Filter dives',
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => DiveFilterSheet(ref: ref),
+              );
+            },
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) {
+              if (value == 'advanced_search') {
+                context.push('/dives/search');
+              } else if (value == 'numbering') {
+                showDiveNumberingDialog(context);
+              } else if (value.startsWith('view_')) {
+                final mode = ListViewMode.fromName(
+                  value.replaceFirst('view_', ''),
+                );
+                ref.read(diveListViewModeProvider.notifier).state = mode;
+              }
+            },
+            itemBuilder: (context) {
+              final currentMode = ref.read(diveListViewModeProvider);
+              return [
+                ...ListViewModeToggle.menuItems(
+                  context,
+                  currentMode: currentMode,
+                  modes: const [
+                    ListViewMode.detailed,
+                    ListViewMode.compact,
+                    ListViewMode.table,
+                  ],
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'advanced_search',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.manage_search, size: 20),
+                      const SizedBox(width: 12),
+                      Text(context.l10n.diveLog_listPage_menuAdvancedSearch),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'numbering',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.format_list_numbered, size: 20),
+                      const SizedBox(width: 12),
+                      Text(context.l10n.diveLog_listPage_menuDiveNumbering),
+                    ],
+                  ),
+                ),
+              ];
+            },
           ),
         ],
         floatingActionButton: fab,

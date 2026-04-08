@@ -206,12 +206,7 @@ class _CertificationListContentState
   ) {
     final tableContent = _buildTableView(context, certificationsAsync);
 
-    return Column(
-      children: [
-        _buildCompactAppBar(context),
-        Expanded(child: tableContent),
-      ],
-    );
+    return tableContent;
   }
 
   /// Build the [EntityTableView] for certification table mode.
@@ -240,13 +235,14 @@ class _CertificationListContentState
           onSortFieldChanged: notifier.setSortField,
           onResizeColumn: notifier.resizeColumn,
           onEntityTap: (id) {
-            final match = certifications.firstWhere((c) => c.id == id);
-            _handleItemTap(match);
+            ref.read(highlightedCertificationIdProvider.notifier).state = id;
           },
-          onEntityDoubleTap: (id) => context.go('/certifications/$id'),
+          onEntityDoubleTap: (id) {
+            context.push('/certifications/$id');
+          },
           selectedIds: const {},
           isSelectionMode: false,
-          highlightedId: widget.selectedId,
+          highlightedId: ref.watch(highlightedCertificationIdProvider),
         );
       },
     );

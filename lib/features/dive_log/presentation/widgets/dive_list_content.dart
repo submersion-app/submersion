@@ -1230,16 +1230,15 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   Widget _buildTableModeScaffold(BuildContext context, DiveFilterState filter) {
     final content = _buildTableView(context, filter);
 
-    // Embedded inside TableModeLayout -- provide compact app bar + table only.
-    return Column(
-      children: [
-        if (_isSelectionMode)
-          _buildSelectionBar(const [])
-        else
-          _buildCompactAppBar(context, filter),
-        Expanded(child: content),
-      ],
-    );
+    if (_isSelectionMode) {
+      return Column(
+        children: [
+          _buildSelectionBar(const []),
+          Expanded(child: content),
+        ],
+      );
+    }
+    return content;
   }
 
   /// Build the DiveTableView widget from the full-Dive provider.

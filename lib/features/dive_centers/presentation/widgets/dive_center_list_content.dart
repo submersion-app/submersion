@@ -257,13 +257,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
   ) {
     final tableContent = _buildTableView(context, centersAsync);
 
-    // Embedded inside TableModeLayout -- provide compact app bar + table only.
-    return Column(
-      children: [
-        _buildCompactAppBar(context),
-        Expanded(child: tableContent),
-      ],
-    );
+    return tableContent;
   }
 
   /// Build the [EntityTableView] for dive center table mode.
@@ -304,11 +298,12 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           onSortFieldChanged: notifier.setSortField,
           onResizeColumn: notifier.resizeColumn,
           onEntityTap: (id) {
-            final match = centers.firstWhere((c) => c.id == id);
-            _handleItemTap(match);
+            ref.read(highlightedDiveCenterIdProvider.notifier).state = id;
           },
-          onEntityDoubleTap: (id) => context.go('/dive-centers/$id'),
-          highlightedId: widget.selectedId,
+          onEntityDoubleTap: (id) {
+            context.push('/dive-centers/$id');
+          },
+          highlightedId: ref.watch(highlightedDiveCenterIdProvider),
         );
       },
     );

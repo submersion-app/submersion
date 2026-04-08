@@ -196,54 +196,6 @@ void main() {
       expect(find.text('Indonesia'), findsOneWidget);
     });
 
-    testWidgets('compact bar has search button', (tester) async {
-      final overrides = await _buildOverrides(
-        sites: [_makeSite(id: 's1', name: 'Manta Point')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const SiteListContent(showAppBar: false),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.search), findsOneWidget);
-    });
-
-    testWidgets('compact bar has sort button', (tester) async {
-      final overrides = await _buildOverrides(
-        sites: [_makeSite(id: 's1', name: 'Manta Point')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const SiteListContent(showAppBar: false),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.sort), findsOneWidget);
-    });
-
-    testWidgets('compact bar has popup menu', (tester) async {
-      final overrides = await _buildOverrides(
-        sites: [_makeSite(id: 's1', name: 'Manta Point')],
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const SiteListContent(showAppBar: false),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.byIcon(Icons.more_vert), findsOneWidget);
-    });
-
     testWidgets(
       'compact bar omits map button in table mode (managed by layout)',
       (tester) async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -59,7 +61,10 @@ class TableModeLayout extends ConsumerWidget {
   /// toggle button appears.
   final Widget? profilePanelContent;
 
-  /// Additional app bar actions (e.g., column settings button).
+  /// Column settings action rendered with the view toggles (left of divider).
+  final Widget? columnSettingsAction;
+
+  /// Additional app bar actions (search, sort, overflow menu, etc.).
   final List<Widget>? appBarActions;
 
   /// Currently selected entity ID for the detail pane.
@@ -118,6 +123,7 @@ class TableModeLayout extends ConsumerWidget {
     this.createBuilder,
     this.mapContent,
     this.profilePanelContent,
+    this.columnSettingsAction,
     this.appBarActions,
     this.selectedId,
     this.onEntityDoubleTap,
@@ -138,8 +144,7 @@ class TableModeLayout extends ConsumerWidget {
     final showDetails =
         isDesktop && ref.watch(tableDetailsPaneProvider(sectionKey));
     final showMap = isMapViewActive && mapContent != null;
-    final showProfile =
-        profilePanelContent != null && showProfilePanel && !showDetails;
+    final showProfile = profilePanelContent != null && showProfilePanel;
 
     // Pre-compute toggle actions so the closures capture the correct context
     // and ref without relying on closures inside builder callbacks.
@@ -151,7 +156,14 @@ class TableModeLayout extends ConsumerWidget {
     );
 
     if (showDetails) {
-      return _buildWithDetailPane(context, ref, showMap, toggleActions);
+      // When details pane is active, profile and map are mutually exclusive.
+      return _buildWithDetailPane(
+        context,
+        ref,
+        showMap: showMap && !showProfile,
+        showProfile: showProfile && !showMap,
+        toggleActions: toggleActions,
+      );
     }
 
     // No detail pane -- full-width layouts
@@ -161,20 +173,24 @@ class TableModeLayout extends ConsumerWidget {
   /// Build the layout with the detail pane active via MasterDetailScaffold.
   Widget _buildWithDetailPane(
     BuildContext context,
-    WidgetRef ref,
-    bool showMap,
-    List<Widget> toggleActions,
-  ) {
+    WidgetRef ref, {
+    required bool showMap,
+    required bool showProfile,
+    required List<Widget> toggleActions,
+  }) {
     return MasterDetailScaffold(
       sectionId: sectionKey,
-      masterBuilder: (context, onItemSelected, selectedId) {
+      masterBuilder: (context, onItemSelected, mdsSelectedId) {
         return _TableModeMaster(
           appBarTitle: appBarTitle,
           tableContent: tableContent,
           mapContent: showMap ? mapContent : null,
+          profilePanelContent: showProfile ? profilePanelContent : null,
           toggleActions: toggleActions,
           selectionAppBar: isSelectionMode ? selectionAppBar : null,
           isSelectionMode: isSelectionMode,
+          selectedId: selectedId,
+          onItemSelected: onItemSelected,
         );
       },
       detailBuilder: detailBuilder,
@@ -261,10 +277,10 @@ class TableModeLayout extends ConsumerWidget {
           tooltip: 'Toggle profile panel',
           onPressed: () {
             onProfileToggled?.call();
-            if (!showProfilePanel) {
-              // Mutual exclusion: profile ON -> details OFF
-              ref.read(tableDetailsPaneProvider(sectionKey).notifier).state =
-                  false;
+            // When details pane is active, profile and map are mutually
+            // exclusive: turning profile ON turns map OFF.
+            if (!showProfilePanel && showDetails && isMapViewActive) {
+              onMapViewToggle?.call();
             }
           },
         ),
@@ -286,10 +302,6 @@ class TableModeLayout extends ConsumerWidget {
             final newValue = !ref.read(tableDetailsPaneProvider(sectionKey));
             ref.read(tableDetailsPaneProvider(sectionKey).notifier).state =
                 newValue;
-            if (newValue && profilePanelContent != null && showProfilePanel) {
-              // Mutual exclusion: details ON -> profile OFF
-              onProfileToggled?.call();
-            }
           },
         ),
       );
@@ -305,12 +317,40 @@ class TableModeLayout extends ConsumerWidget {
             color: isMapViewActive ? colorScheme.primary : null,
           ),
           tooltip: isMapViewActive ? 'Hide map' : 'Show map',
-          onPressed: onMapViewToggle,
+          onPressed: () {
+            onMapViewToggle?.call();
+            // When details pane is active, map and profile are mutually
+            // exclusive: turning map ON turns profile OFF.
+            if (!isMapViewActive && showDetails && showProfilePanel) {
+              onProfileToggled?.call();
+            }
+          },
         ),
       );
     }
 
-    // Additional actions (column settings, etc.)
+    // Column settings (grouped with view toggles, left of divider)
+    if (columnSettingsAction != null) {
+      actions.add(columnSettingsAction!);
+    }
+
+    // Vertical divider between view toggles and table-specific actions
+    if (appBarActions != null &&
+        appBarActions!.isNotEmpty &&
+        actions.isNotEmpty) {
+      actions.add(
+        SizedBox(
+          height: 24,
+          child: VerticalDivider(
+            width: 16,
+            thickness: 1,
+            color: colorScheme.outlineVariant,
+          ),
+        ),
+      );
+    }
+
+    // Table-specific actions (search, sort, column settings, overflow, etc.)
     if (appBarActions != null) {
       actions.addAll(appBarActions!);
     }
@@ -323,33 +363,79 @@ class TableModeLayout extends ConsumerWidget {
 ///
 /// Renders the app bar as a regular widget (not a Scaffold app bar) since
 /// MasterDetailScaffold already provides the outer Scaffold.
-class _TableModeMaster extends StatelessWidget {
+///
+/// Bridges provider-driven [selectedId] changes to MasterDetailScaffold's
+/// URL-based selection via [onItemSelected] using a debounced timer. The
+/// delay (500ms) is longer than [kDoubleTapTimeout] (~300ms) so that a
+/// double-tap's [context.push] fires before the bridge can call
+/// [router.go], preventing the pushed page from being clobbered.
+class _TableModeMaster extends StatefulWidget {
   final String appBarTitle;
   final Widget tableContent;
   final Widget? mapContent;
+  final Widget? profilePanelContent;
   final List<Widget> toggleActions;
   final PreferredSizeWidget? selectionAppBar;
   final bool isSelectionMode;
+  final String? selectedId;
+  final void Function(String?)? onItemSelected;
 
   const _TableModeMaster({
     required this.appBarTitle,
     required this.tableContent,
     required this.toggleActions,
     this.mapContent,
+    this.profilePanelContent,
     this.selectionAppBar,
     this.isSelectionMode = false,
+    this.selectedId,
+    this.onItemSelected,
   });
 
   @override
+  State<_TableModeMaster> createState() => _TableModeMasterState();
+}
+
+class _TableModeMasterState extends State<_TableModeMaster> {
+  Timer? _syncTimer;
+
+  @override
+  void didUpdateWidget(_TableModeMaster oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedId != oldWidget.selectedId) {
+      // Debounce: wait longer than kDoubleTapTimeout so that a double-tap's
+      // context.push fires first. If the widget is disposed (e.g. by the
+      // push navigation), the timer is cancelled in dispose().
+      _syncTimer?.cancel();
+      _syncTimer = Timer(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
+        widget.onItemSelected?.call(widget.selectedId);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _syncTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final hasOverlay =
+        widget.mapContent != null || widget.profilePanelContent != null;
     return Column(
       children: [
-        if (isSelectionMode && selectionAppBar != null)
-          selectionAppBar!
+        if (widget.isSelectionMode && widget.selectionAppBar != null)
+          widget.selectionAppBar!
         else
-          AppBar(title: Text(appBarTitle), actions: toggleActions),
-        if (mapContent != null) Expanded(child: mapContent!),
-        Expanded(flex: mapContent != null ? 2 : 1, child: tableContent),
+          AppBar(
+            title: Text(widget.appBarTitle),
+            actions: widget.toggleActions,
+          ),
+        if (widget.profilePanelContent != null) widget.profilePanelContent!,
+        if (widget.mapContent != null) Expanded(child: widget.mapContent!),
+        Expanded(flex: hasOverlay ? 2 : 1, child: widget.tableContent),
       ],
     );
   }

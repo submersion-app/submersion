@@ -219,12 +219,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
   ) {
     final tableContent = _buildTableView(context, tripsAsync, filter);
 
-    return Column(
-      children: [
-        _buildCompactAppBar(context),
-        Expanded(child: tableContent),
-      ],
-    );
+    return tableContent;
   }
 
   /// Build the [EntityTableView] for trip table mode.
@@ -258,13 +253,12 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                 onSortFieldChanged: notifier.setSortField,
                 onResizeColumn: notifier.resizeColumn,
                 onEntityTap: (id) {
-                  final match = trips.firstWhere((t) => t.trip.id == id);
-                  _handleItemTap(match.trip);
+                  ref.read(highlightedTripIdProvider.notifier).state = id;
                 },
                 onEntityDoubleTap: (id) {
-                  context.go('/trips/$id');
+                  context.push('/trips/$id');
                 },
-                highlightedId: widget.selectedId,
+                highlightedId: ref.watch(highlightedTripIdProvider),
               ),
             ),
           ],
@@ -323,6 +317,11 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
+                  modes: const [
+                    ListViewMode.detailed,
+                    ListViewMode.compact,
+                    ListViewMode.table,
+                  ],
                 ),
               ];
             },
