@@ -1301,11 +1301,86 @@ class FieldPresets extends Table {
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase(super.e);
+  final void Function(int currentStep, int totalSteps)? onMigrationProgress;
+
+  AppDatabase(super.e, {this.onMigrationProgress});
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
   static const int currentSchemaVersion = 63;
+
+  /// Every schema version that has a migration block in onUpgrade.
+  /// Used to calculate progress step counts. When adding a new migration,
+  /// append the new version number here.
+  static const List<int> migrationVersions = [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+  ];
+
+  /// Returns the number of migration steps that will execute when upgrading
+  /// from [fromVersion] to [currentSchemaVersion].
+  static int migrationStepCount(int fromVersion) {
+    return migrationVersions.where((v) => v > fromVersion).length;
+  }
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -1343,18 +1418,28 @@ class AppDatabase extends _$AppDatabase {
         }
       },
       onUpgrade: (Migrator m, int from, int to) async {
+        int completedSteps = 0;
+        final totalSteps = migrationStepCount(from);
+
+        void reportProgress() {
+          completedSteps++;
+          onMigrationProgress?.call(completedSteps, totalSteps);
+        }
+
         if (from < 2) {
           // Add sacUnit column to diver_settings
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN sac_unit TEXT NOT NULL DEFAULT 'litersPerMin'",
           );
         }
+        if (from < 2) reportProgress();
         if (from < 3) {
           // Add presetName column to dive_tanks
           await customStatement(
             'ALTER TABLE dive_tanks ADD COLUMN preset_name TEXT',
           );
         }
+        if (from < 3) reportProgress();
         if (from < 4) {
           // Add sync tables for cloud sync feature
           await customStatement('''
@@ -1391,24 +1476,28 @@ class AppDatabase extends _$AppDatabase {
             )
           ''');
         }
+        if (from < 4) reportProgress();
         if (from < 5) {
           // Add showMapBackgroundOnDiveCards column to diver_settings
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN show_map_background_on_dive_cards INTEGER NOT NULL DEFAULT 0',
           );
         }
+        if (from < 5) reportProgress();
         if (from < 6) {
           // Add showMapBackgroundOnSiteCards column to diver_settings
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN show_map_background_on_site_cards INTEGER NOT NULL DEFAULT 0',
           );
         }
+        if (from < 6) reportProgress();
         if (from < 7) {
           // Add showDepthColoredDiveCards column to diver_settings (was missing migration)
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN show_depth_colored_dive_cards INTEGER NOT NULL DEFAULT 0',
           );
         }
+        if (from < 7) reportProgress();
         if (from < 8) {
           // Add dive profile marker settings
           await customStatement(
@@ -1418,6 +1507,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE diver_settings ADD COLUMN show_pressure_threshold_markers INTEGER NOT NULL DEFAULT 0',
           );
         }
+        if (from < 8) reportProgress();
         if (from < 9) {
           // Add per-tank pressure profiles for multi-tank visualization
           await customStatement('''
@@ -1435,6 +1525,7 @@ class AppDatabase extends _$AppDatabase {
             ON tank_pressure_profiles(dive_id, tank_id, timestamp)
           ''');
         }
+        if (from < 9) reportProgress();
         if (from < 10) {
           // Add time/date format columns to diver_settings
           await customStatement(
@@ -1444,6 +1535,7 @@ class AppDatabase extends _$AppDatabase {
             "ALTER TABLE diver_settings ADD COLUMN date_format TEXT NOT NULL DEFAULT 'mmmDYYYY'",
           );
         }
+        if (from < 10) reportProgress();
         if (from < 11) {
           // CCR/SCR Rebreather Support (v1.5)
 
@@ -1510,12 +1602,14 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE dive_profiles ADD COLUMN pp_o2 REAL',
           );
         }
+        if (from < 11) reportProgress();
         if (from < 12) {
           // Add isPlanned column for dive planner feature
           await customStatement(
             'ALTER TABLE dives ADD COLUMN is_planned INTEGER NOT NULL DEFAULT 0',
           );
         }
+        if (from < 12) reportProgress();
         if (from < 13) {
           // Add custom tank presets table
           await customStatement('''
@@ -1534,6 +1628,7 @@ class AppDatabase extends _$AppDatabase {
             )
           ''');
         }
+        if (from < 13) reportProgress();
         if (from < 14) {
           // Add tide records table for storing tide data with dives
           await customStatement('''
@@ -1556,6 +1651,7 @@ class AppDatabase extends _$AppDatabase {
             ON tide_records(dive_id)
           ''');
         }
+        if (from < 14) reportProgress();
         if (from < 15) {
           // Add index on dive_profiles.dive_id for faster profile loading
           // This table has 160K+ rows and is queried frequently by dive_id
@@ -1569,12 +1665,14 @@ class AppDatabase extends _$AppDatabase {
             ON sync_records(entity_type, record_id)
           ''');
         }
+        if (from < 15) reportProgress();
         if (from < 16) {
           // Add altitude column to dive_sites for altitude diving support
           await customStatement(
             'ALTER TABLE dive_sites ADD COLUMN altitude REAL',
           );
         }
+        if (from < 16) reportProgress();
         if (from < 17) {
           // Add personal & medical data fields to divers table
           await customStatement(
@@ -1594,6 +1692,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE divers ADD COLUMN emergency_contact2_relation TEXT',
           );
         }
+        if (from < 17) reportProgress();
         if (from < 18) {
           // Add site_species junction table for expected marine life at sites
           await customStatement('''
@@ -1611,6 +1710,7 @@ class AppDatabase extends _$AppDatabase {
             ON site_species(site_id)
           ''');
         }
+        if (from < 18) reportProgress();
         if (from < 19) {
           // Training courses feature (v1.5)
           // Create courses table
@@ -1656,6 +1756,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE media ADD COLUMN signer_name TEXT',
           );
         }
+        if (from < 19) reportProgress();
         if (from < 20) {
           // Underwater photography feature (v2.0)
           final now = DateTime.now().millisecondsSinceEpoch;
@@ -1765,6 +1866,7 @@ class AppDatabase extends _$AppDatabase {
             ON pending_photo_suggestions(dive_id)
           ''');
         }
+        if (from < 20) reportProgress();
         if (from < 21) {
           // Cached map regions for offline maps feature
           await customStatement('''
@@ -1784,12 +1886,14 @@ class AppDatabase extends _$AppDatabase {
             )
           ''');
         }
+        if (from < 21) reportProgress();
         if (from < 22) {
           // Buddy signatures feature - add signature type column
           await customStatement(
             'ALTER TABLE media ADD COLUMN signature_type TEXT',
           );
         }
+        if (from < 22) reportProgress();
         if (from < 23) {
           // Store photos as BLOBs instead of file paths for backup/export
           // Add BLOB columns to certifications table
@@ -1802,6 +1906,7 @@ class AppDatabase extends _$AppDatabase {
           // Add BLOB column to media table for signatures
           await customStatement('ALTER TABLE media ADD COLUMN image_data BLOB');
         }
+        if (from < 23) reportProgress();
         if (from < 24) {
           // Add structured address fields to dive_centers
           // The original table had 'location' but not 'city', so we add all new columns
@@ -1842,12 +1947,14 @@ class AppDatabase extends _$AppDatabase {
             ''');
           }
         }
+        if (from < 24) reportProgress();
         if (from < 25) {
           // Add altitudeUnit column to diver_settings
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN altitude_unit TEXT NOT NULL DEFAULT 'meters'",
           );
         }
+        if (from < 25) reportProgress();
         if (from < 26) {
           // Notification settings for service reminders
           await customStatement(
@@ -1860,6 +1967,7 @@ class AppDatabase extends _$AppDatabase {
             "ALTER TABLE diver_settings ADD COLUMN reminder_time TEXT NOT NULL DEFAULT '09:00'",
           );
         }
+        if (from < 26) reportProgress();
         if (from < 27) {
           // Per-equipment notification overrides
           await customStatement(
@@ -1869,6 +1977,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE equipment ADD COLUMN custom_reminder_days TEXT',
           );
         }
+        if (from < 27) reportProgress();
         if (from < 28) {
           // Scheduled notifications tracking table
           await customStatement('''
@@ -1887,6 +1996,7 @@ class AppDatabase extends _$AppDatabase {
             ON scheduled_notifications(equipment_id)
           ''');
         }
+        if (from < 28) reportProgress();
         if (from < 29) {
           // Add dive profile chart default visibility settings to diver_settings
           await customStatement(
@@ -1935,6 +2045,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE diver_settings ADD COLUMN default_show_gas_switch_markers INTEGER NOT NULL DEFAULT 1',
           );
         }
+        if (from < 29) reportProgress();
         if (from < 30) {
           // Wearable integration (v2.0) - Apple Watch, Garmin, Suunto import
           // Add wearable source tracking to dives table
@@ -1949,6 +2060,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE dive_profiles ADD COLUMN heart_rate_source TEXT',
           );
         }
+        if (from < 30) reportProgress();
         if (from < 31) {
           // Performance indexes for 5000+ dives
           // Primary query: dives by diver, ordered by date
@@ -2008,6 +2120,7 @@ class AppDatabase extends _$AppDatabase {
             ON dive_buddies(dive_id)
           ''');
         }
+        if (from < 31) reportProgress();
         if (from < 32) {
           // Add taxonomy class and built-in flag to species table
           await customStatement(
@@ -2017,6 +2130,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE species ADD COLUMN is_built_in INTEGER NOT NULL DEFAULT 0',
           );
         }
+        if (from < 32) reportProgress();
         if (from < 33) {
           // Add locale column for i18n language preference
           final cols = await customSelect(
@@ -2031,6 +2145,7 @@ class AppDatabase extends _$AppDatabase {
             );
           }
         }
+        if (from < 33) reportProgress();
         if (from < 34) {
           // User-defined key:value custom fields per dive
           await customStatement('''
@@ -2052,6 +2167,7 @@ class AppDatabase extends _$AppDatabase {
             ON dive_custom_fields(field_key)
           ''');
         }
+        if (from < 34) reportProgress();
         if (from < 35) {
           // Card coloring: attribute selector + gradient settings
           await customStatement(
@@ -2071,6 +2187,7 @@ class AppDatabase extends _$AppDatabase {
             "UPDATE diver_settings SET card_color_attribute = 'depth' WHERE show_depth_colored_dive_cards = 1",
           );
         }
+        if (from < 35) reportProgress();
         if (from < 36) {
           // Backfill water_temp from profile temperature data for dives
           // where water_temp is NULL but profile points have temperature.
@@ -2086,6 +2203,7 @@ class AppDatabase extends _$AppDatabase {
             ) WHERE water_temp IS NULL
           ''');
         }
+        if (from < 36) reportProgress();
         if (from < 37) {
           await customStatement(
             'ALTER TABLE dive_computers ADD COLUMN firmware_version TEXT',
@@ -2094,6 +2212,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE dives ADD COLUMN dive_computer_firmware TEXT',
           );
         }
+        if (from < 37) reportProgress();
 
         if (from < 38) {
           // Remove any existing duplicate media (same gallery photo linked
@@ -2121,6 +2240,7 @@ class AppDatabase extends _$AppDatabase {
             WHERE platform_asset_id IS NOT NULL AND dive_id IS NOT NULL
           ''');
         }
+        if (from < 38) reportProgress();
         if (from < 39) {
           // Backfill avg_depth from profile data for dives that have
           // profile points but no avg_depth recorded.
@@ -2157,6 +2277,7 @@ class AppDatabase extends _$AppDatabase {
             );
           }
         }
+        if (from < 39) reportProgress();
         if (from < 40) {
           // Add per-sample decompression data columns to dive_profiles
           await customStatement(
@@ -2179,11 +2300,13 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE dives ADD COLUMN deco_conservatism INTEGER',
           );
         }
+        if (from < 40) reportProgress();
         if (from < 41) {
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN use_dive_computer_cns_data INTEGER NOT NULL DEFAULT 0',
           );
         }
+        if (from < 41) reportProgress();
         if (from < 42) {
           // Add per-metric data source columns
           await customStatement(
@@ -2203,11 +2326,13 @@ class AppDatabase extends _$AppDatabase {
             'UPDATE diver_settings SET default_cns_source = 0 WHERE use_dive_computer_cns_data = 1',
           );
         }
+        if (from < 42) reportProgress();
         if (from < 43) {
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN theme_preset TEXT NOT NULL DEFAULT 'submersion'",
           );
         }
+        if (from < 43) reportProgress();
         if (from < 45) {
           // Migrations 44-45 add columns to diver_settings.
           // Guard with PRAGMA table_info to handle partial migrations
@@ -2239,6 +2364,7 @@ class AppDatabase extends _$AppDatabase {
             );
           }
         }
+        if (from < 45) reportProgress();
 
         if (from < 46) {
           // Add trip type column to trips
@@ -2324,6 +2450,7 @@ class AppDatabase extends _$AppDatabase {
               AND id NOT IN (SELECT trip_id FROM liveaboard_detail_records)
           ''');
         }
+        if (from < 46) reportProgress();
         if (from < 47) {
           // Add lastDiveFingerprint column for incremental dive download
           final dcInfo = await customSelect(
@@ -2336,6 +2463,7 @@ class AppDatabase extends _$AppDatabase {
             );
           }
         }
+        if (from < 47) reportProgress();
         if (from < 48) {
           // Add weather columns to dives table.
           // Guard with PRAGMA table_info to handle partial migrations
@@ -2385,6 +2513,7 @@ class AppDatabase extends _$AppDatabase {
             );
           }
         }
+        if (from < 48) reportProgress();
         if (from < 49) {
           // Add importVersion column.
           final divesInfo = await customSelect(
@@ -2434,6 +2563,7 @@ class AppDatabase extends _$AppDatabase {
             WHERE import_version IS NULL
           ''');
         }
+        if (from < 49) reportProgress();
         if (from < 50) {
           final settingsInfo = await customSelect(
             'PRAGMA table_info(diver_settings)',
@@ -2452,11 +2582,13 @@ class AppDatabase extends _$AppDatabase {
             );
           }
         }
+        if (from < 50) reportProgress();
         if (from < 51) {
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN dive_list_view_mode TEXT NOT NULL DEFAULT 'detailed'",
           );
         }
+        if (from < 51) reportProgress();
         if (from < 52) {
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN site_list_view_mode TEXT NOT NULL DEFAULT 'detailed'",
@@ -2474,6 +2606,7 @@ class AppDatabase extends _$AppDatabase {
             "ALTER TABLE diver_settings ADD COLUMN dive_center_list_view_mode TEXT NOT NULL DEFAULT 'detailed'",
           );
         }
+        if (from < 52) reportProgress();
         if (from < 53) {
           await customStatement('''
             CREATE TABLE IF NOT EXISTS dive_computer_data (
@@ -2507,6 +2640,7 @@ class AppDatabase extends _$AppDatabase {
             ON dive_computer_data(dive_id)
           ''');
         }
+        if (from < 53) reportProgress();
         if (from < 54) {
           await customStatement(
             'ALTER TABLE dive_computer_data RENAME TO dive_data_sources',
@@ -2531,23 +2665,27 @@ class AppDatabase extends _$AppDatabase {
             ON dive_data_sources(dive_id)
           ''');
         }
+        if (from < 54) reportProgress();
         if (from < 55) {
           // Add data source badge visibility setting to diver_settings
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN show_data_source_badges INTEGER NOT NULL DEFAULT 1',
           );
         }
+        if (from < 55) reportProgress();
         if (from < 56) {
           await m.database.customStatement(
             'ALTER TABLE dives RENAME COLUMN duration TO bottom_time',
           );
         }
+        if (from < 56) reportProgress();
         if (from < 57) {
           // Add dive detail section configuration column to diver_settings
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN dive_detail_sections TEXT',
           );
         }
+        if (from < 57) reportProgress();
         if (from < 58) {
           // Add csv_presets table for user-saved CSV import presets
           await customStatement('''
@@ -2632,6 +2770,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE tank_presets_new RENAME TO tank_presets',
           );
         }
+        if (from < 58) reportProgress();
         if (from < 59) {
           // Migrate legacy dive_profiles.pressure data into tank_pressure_profiles.
           // For each dive that has pressure data in dive_profiles but NO existing
@@ -2689,6 +2828,7 @@ class AppDatabase extends _$AppDatabase {
             );
           }
         }
+        if (from < 59) reportProgress();
 
         if (from < 60) {
           await customStatement('''
@@ -2718,6 +2858,7 @@ class AppDatabase extends _$AppDatabase {
             'CREATE INDEX IF NOT EXISTS idx_field_presets_diver ON field_presets(diver_id, view_mode)',
           );
         }
+        if (from < 60) reportProgress();
 
         if (from < 61) {
           // Add showProfilePanelInTableView column to diver_settings.
@@ -2737,6 +2878,7 @@ class AppDatabase extends _$AppDatabase {
             ''');
           }
         }
+        if (from < 61) reportProgress();
 
         if (from < 62) {
           await customStatement('''
@@ -2744,6 +2886,7 @@ class AppDatabase extends _$AppDatabase {
             ON view_configs(diver_id, view_mode)
           ''');
         }
+        if (from < 62) reportProgress();
 
         if (from < 63) {
           // Add per-section details pane toggle columns to diver_settings.
@@ -2772,6 +2915,7 @@ class AppDatabase extends _$AppDatabase {
             }
           }
         }
+        if (from < 63) reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
