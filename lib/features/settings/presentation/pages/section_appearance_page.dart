@@ -53,7 +53,7 @@ const _sectionConfigs = <String, _SectionConfig>{
   ),
   'sites': _SectionConfig(
     key: 'sites',
-    displayName: 'Sites',
+    displayName: 'Dive Sites',
     viewModes: ListViewMode.values,
     listFieldsLabel: 'Site List Fields',
     hasCardsSection: true,
