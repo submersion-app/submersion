@@ -66,7 +66,7 @@ class _StartupWrapperState extends State<StartupWrapper> {
           ? AppDatabase.migrationStepCount(storedVersion)
           : 0;
 
-      if (needsMigration) {
+      if (needsMigration && mounted) {
         setState(() {
           _state = _StartupState.migrating;
           _progress = MigrationProgress(currentStep: 0, totalSteps: totalSteps);
@@ -147,27 +147,31 @@ class _StartupWrapperState extends State<StartupWrapper> {
     final textColor = isDark ? Colors.white : Colors.black87;
     final subtitleColor = isDark ? Colors.white70 : Colors.black54;
 
+    // Return SubmersionRestart directly when ready to avoid nesting
+    // MaterialApp inside MaterialApp (SubmersionRestart contains its own
+    // MaterialApp.router via SubmersionApp).
+    if (_state == _StartupState.ready) {
+      return SubmersionRestart(
+        prefs: widget.prefs,
+        logFileService: widget.logFileService,
+      );
+    }
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: _state == _StartupState.ready
-            ? SubmersionRestart(
-                key: const ValueKey('app'),
-                prefs: widget.prefs,
-                logFileService: widget.logFileService,
-              )
-            : Scaffold(
-                key: ValueKey(_state),
-                backgroundColor: backgroundColor,
-                body: SafeArea(
-                  child: Center(
-                    child: _state == _StartupState.error
-                        ? _buildErrorContent(textColor, subtitleColor)
-                        : _buildSplashContent(textColor, subtitleColor, isDark),
-                  ),
-                ),
-              ),
+      home: Scaffold(
+        // Use 'splash' key for both initializing and migrating so
+        // AnimatedSize handles the progress bar transition instead of
+        // AnimatedSwitcher triggering a full Scaffold crossfade.
+        key: ValueKey(_state == _StartupState.error ? 'error' : 'splash'),
+        backgroundColor: backgroundColor,
+        body: SafeArea(
+          child: Center(
+            child: _state == _StartupState.error
+                ? _buildErrorContent(textColor, subtitleColor)
+                : _buildSplashContent(textColor, subtitleColor, isDark),
+          ),
+        ),
       ),
     );
   }
