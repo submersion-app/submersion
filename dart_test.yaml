@@ -1,5 +1,6 @@
 tags:
   performance:
     # Performance tests use large datasets and may take minutes to run.
-    # Run explicitly: flutter test --tags performance
-    # Or: flutter test test/performance/
+    # Run explicitly: flutter test --run-skipped --tags performance
+    # Or: flutter test --run-skipped test/performance/
+    skip: "Slow performance tests; run with --run-skipped --tags performance"

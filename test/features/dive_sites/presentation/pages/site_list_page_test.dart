@@ -100,7 +100,6 @@ Future<List<Override>> _buildOverrides({
     siteTableConfigProvider.overrideWith(
       (ref) => _TestSiteTableConfigNotifier(),
     ),
-    highlightedSiteIdProvider.overrideWith((ref) => null),
   ];
 }
 
@@ -285,12 +284,6 @@ void main() {
         tester.view.resetPhysicalSize();
         tester.view.resetDevicePixelRatio();
       });
-
-      // Suppress errors from detail page child widgets missing providers
-      final errors = <FlutterErrorDetails>[];
-      final originalOnError = FlutterError.onError;
-      FlutterError.onError = (details) => errors.add(details);
-      addTearDown(() => FlutterError.onError = originalOnError);
 
       final overrides = await _buildOverrides(viewMode: ListViewMode.table);
       await tester.pumpWidget(

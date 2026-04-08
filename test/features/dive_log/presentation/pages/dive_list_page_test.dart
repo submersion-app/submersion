@@ -185,7 +185,6 @@ void main() {
         ),
         diveListNotifierProvider.overrideWith((ref) => _MockDiveListNotifier()),
         diveListViewModeProvider.overrideWith((ref) => viewMode),
-        highlightedDiveIdProvider.overrideWith((ref) => null),
         showProfilePanelProvider.overrideWith((ref) => false),
         customTankPresetsProvider.overrideWith((ref) async => []),
       ];
@@ -407,12 +406,6 @@ void main() {
         tester.view.resetPhysicalSize();
         tester.view.resetDevicePixelRatio();
       });
-
-      // Suppress errors from detail page child widgets missing providers
-      final errors = <FlutterErrorDetails>[];
-      final originalOnError = FlutterError.onError;
-      FlutterError.onError = (details) => errors.add(details);
-      addTearDown(() => FlutterError.onError = originalOnError);
 
       final overrides = await buildBranchOverrides(
         viewMode: ListViewMode.table,
