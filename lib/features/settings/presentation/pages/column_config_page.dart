@@ -46,14 +46,21 @@ class ColumnConfigPage extends ConsumerStatefulWidget {
   /// When true, hides the Scaffold/AppBar for embedding in a detail pane.
   final bool embedded;
 
-  const ColumnConfigPage({super.key, this.embedded = false});
+  /// When set, pre-selects this section and hides the section dropdown.
+  final String? initialSection;
+
+  const ColumnConfigPage({
+    super.key,
+    this.embedded = false,
+    this.initialSection,
+  });
 
   @override
   ConsumerState<ColumnConfigPage> createState() => _ColumnConfigPageState();
 }
 
 class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
-  String _selectedSection = 'dives';
+  late String _selectedSection = widget.initialSection ?? 'dives';
   ListViewMode _selectedMode = ListViewMode.table;
 
   List<ListViewMode> _availableModes() {
@@ -69,37 +76,38 @@ class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section selector
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: Row(
-            children: [
-              const Text('Section'),
-              const SizedBox(width: 16),
-              DropdownButton<String>(
-                value: _selectedSection,
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedSection = value;
-                      // Reset mode if current isn't available for new section
-                      final available = _availableModes();
-                      if (!available.contains(_selectedMode)) {
-                        _selectedMode = ListViewMode.table;
-                      }
-                    });
-                  }
-                },
-                items: _sectionEntries.map((entry) {
-                  return DropdownMenuItem(
-                    value: entry.$1,
-                    child: Text(entry.$2),
-                  );
-                }).toList(),
-              ),
-            ],
+        // Section selector — hidden when a specific section is pre-selected
+        if (widget.initialSection == null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Row(
+              children: [
+                const Text('Section'),
+                const SizedBox(width: 16),
+                DropdownButton<String>(
+                  value: _selectedSection,
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedSection = value;
+                        // Reset mode if current isn't available for new section
+                        final available = _availableModes();
+                        if (!available.contains(_selectedMode)) {
+                          _selectedMode = ListViewMode.table;
+                        }
+                      });
+                    }
+                  },
+                  items: _sectionEntries.map((entry) {
+                    return DropdownMenuItem(
+                      value: entry.$1,
+                      child: Text(entry.$2),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
           ),
-        ),
         // View mode selector
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),

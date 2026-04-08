@@ -740,7 +740,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'column-config',
                     name: 'columnConfig',
-                    builder: (context, state) => const ColumnConfigPage(),
+                    builder: (context, state) => ColumnConfigPage(
+                      initialSection: state.uri.queryParameters['section'],
+                    ),
                   ),
                 ],
               ),
