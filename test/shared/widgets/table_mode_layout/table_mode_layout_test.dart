@@ -13,6 +13,12 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   _MockSettingsNotifier() : super(const AppSettings());
 
   @override
+  Future<void> setShowDetailsPaneForSection(
+    String sectionKey,
+    bool value,
+  ) async {}
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -92,6 +98,8 @@ Widget _buildLayout({
   Widget? floatingActionButton,
   bool showProfilePanel = false,
   VoidCallback? onProfileToggled,
+  bool isSelectionMode = false,
+  PreferredSizeWidget? selectionAppBar,
 }) {
   return TableModeLayout(
     sectionKey: sectionKey,
@@ -108,6 +116,8 @@ Widget _buildLayout({
     floatingActionButton: floatingActionButton,
     showProfilePanel: showProfilePanel,
     onProfileToggled: onProfileToggled,
+    isSelectionMode: isSelectionMode,
+    selectionAppBar: selectionAppBar,
   );
 }
 
@@ -571,6 +581,154 @@ void main() {
         final primaryColor = Theme.of(context).colorScheme.primary;
         expect(icon.color, equals(primaryColor));
       });
+    });
+
+    // ------------------------------------------------------------------
+    // Selection mode app bar
+    // ------------------------------------------------------------------
+    group('selection mode app bar', () {
+      testWidgets(
+        'shows selection app bar in full-width mode when isSelectionMode is true',
+        (tester) async {
+          await tester.pumpWidget(
+            _buildTestWidget(
+              child: _buildLayout(
+                isSelectionMode: true,
+                selectionAppBar: AppBar(title: const Text('2 selected')),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          expect(find.text('2 selected'), findsOneWidget);
+          // The default app bar title should not be shown
+          expect(find.text('Dives'), findsNothing);
+        },
+      );
+
+      testWidgets(
+        'shows selection app bar in detail pane mode when isSelectionMode is true',
+        (tester) async {
+          await tester.pumpWidget(
+            _buildRoutedTestWidget(
+              width: 1200,
+              overrides: [
+                tableDetailsPaneProvider('dives').overrideWith((_) => true),
+              ],
+              child: _buildLayout(
+                isSelectionMode: true,
+                selectionAppBar: AppBar(title: const Text('3 selected')),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          expect(find.text('3 selected'), findsOneWidget);
+          // The default app bar title should not be shown
+          expect(find.text('Dives'), findsNothing);
+        },
+      );
+    });
+
+    // ------------------------------------------------------------------
+    // Details pane with map active
+    // ------------------------------------------------------------------
+    group('details pane with map', () {
+      testWidgets(
+        'map content is visible when details pane and map are both active',
+        (tester) async {
+          await tester.pumpWidget(
+            _buildRoutedTestWidget(
+              width: 1200,
+              overrides: [
+                tableDetailsPaneProvider('dives').overrideWith((_) => true),
+              ],
+              child: _buildLayout(
+                mapContent: Container(
+                  color: Colors.blue,
+                  child: const Text('Map'),
+                ),
+                isMapViewActive: true,
+                onMapViewToggle: () {},
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Map, table, and summary (detail pane) should all be visible
+          expect(find.text('Map'), findsOneWidget);
+          expect(find.text('Table Content'), findsOneWidget);
+          expect(find.text('Summary'), findsOneWidget);
+        },
+      );
+    });
+
+    // ------------------------------------------------------------------
+    // Profile panel in _buildBody
+    // ------------------------------------------------------------------
+    group('profile panel in body', () {
+      testWidgets(
+        'profile panel content appears above table in full-width mode',
+        (tester) async {
+          await tester.pumpWidget(
+            _buildTestWidget(
+              child: _buildLayout(
+                profilePanelContent: const SizedBox(
+                  height: 100,
+                  child: Text('Profile Panel'),
+                ),
+                showProfilePanel: true,
+                onProfileToggled: () {},
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Both profile panel and table should be visible
+          expect(find.text('Profile Panel'), findsOneWidget);
+          expect(find.text('Table Content'), findsOneWidget);
+
+          // Profile panel should appear above the table (Column layout)
+          final profileOffset = tester.getTopLeft(find.text('Profile Panel'));
+          final tableOffset = tester.getTopLeft(find.text('Table Content'));
+          expect(profileOffset.dy, lessThan(tableOffset.dy));
+        },
+      );
+
+      testWidgets(
+        'profile panel and map active together shows profile above table with map beside',
+        (tester) async {
+          await tester.pumpWidget(
+            _buildTestWidget(
+              child: _buildLayout(
+                profilePanelContent: const SizedBox(
+                  height: 100,
+                  child: Text('Profile Panel'),
+                ),
+                showProfilePanel: true,
+                onProfileToggled: () {},
+                mapContent: Container(
+                  color: Colors.blue,
+                  child: const Text('Map'),
+                ),
+                isMapViewActive: true,
+                onMapViewToggle: () {},
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // All three should be visible
+          expect(find.text('Profile Panel'), findsOneWidget);
+          expect(find.text('Table Content'), findsOneWidget);
+          expect(find.text('Map'), findsOneWidget);
+
+          // Profile panel should be above the table
+          final profileOffset = tester.getTopLeft(find.text('Profile Panel'));
+          final tableOffset = tester.getTopLeft(find.text('Table Content'));
+          expect(profileOffset.dy, lessThan(tableOffset.dy));
+        },
+      );
     });
   });
 }

@@ -55,6 +55,12 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(cardColorAttribute: attribute);
 
   @override
+  Future<void> setShowDetailsPaneForSection(
+    String sectionKey,
+    bool value,
+  ) async {}
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

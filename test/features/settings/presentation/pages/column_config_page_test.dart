@@ -20,6 +20,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
@@ -64,6 +65,7 @@ final _testTableConfig = TableViewConfig(
 Widget _buildColumnConfigPage({
   TableViewConfig? tableConfig,
   bool embedded = false,
+  EntityCardViewConfig<BuddyField>? buddyDetailedConfig,
 }) {
   return testApp(
     overrides: [
@@ -174,6 +176,144 @@ Widget _buildColumnConfigPage({
             ],
           ),
           fieldFromName: CourseFieldAdapter.instance.fieldFromName,
+        ),
+      ),
+      // Entity card config providers for detailed / compact card sections
+      buddyDetailedCardConfigProvider.overrideWith(
+        (ref) =>
+            buddyDetailedConfig ??
+            const EntityCardViewConfig<BuddyField>(
+              slots: [
+                EntityCardSlotConfig(
+                  slotId: 'title',
+                  field: BuddyField.buddyName,
+                ),
+                EntityCardSlotConfig(
+                  slotId: 'subtitle',
+                  field: BuddyField.email,
+                ),
+              ],
+            ),
+      ),
+      buddyCompactCardConfigProvider.overrideWith(
+        (ref) => const EntityCardViewConfig<BuddyField>(
+          slots: [
+            EntityCardSlotConfig(slotId: 'title', field: BuddyField.buddyName),
+            EntityCardSlotConfig(slotId: 'subtitle', field: BuddyField.email),
+          ],
+        ),
+      ),
+      siteDetailedCardConfigProvider.overrideWith(
+        (ref) => const EntityCardViewConfig<SiteField>(
+          slots: [
+            EntityCardSlotConfig(slotId: 'title', field: SiteField.siteName),
+            EntityCardSlotConfig(slotId: 'subtitle', field: SiteField.country),
+          ],
+        ),
+      ),
+      siteCompactCardConfigProvider.overrideWith(
+        (ref) => const EntityCardViewConfig<SiteField>(
+          slots: [
+            EntityCardSlotConfig(slotId: 'title', field: SiteField.siteName),
+            EntityCardSlotConfig(slotId: 'subtitle', field: SiteField.country),
+          ],
+        ),
+      ),
+      tripDetailedCardConfigProvider.overrideWith(
+        (ref) => const EntityCardViewConfig<TripField>(
+          slots: [
+            EntityCardSlotConfig(slotId: 'title', field: TripField.tripName),
+            EntityCardSlotConfig(slotId: 'subtitle', field: TripField.location),
+          ],
+        ),
+      ),
+      tripCompactCardConfigProvider.overrideWith(
+        (ref) => const EntityCardViewConfig<TripField>(
+          slots: [
+            EntityCardSlotConfig(slotId: 'title', field: TripField.tripName),
+            EntityCardSlotConfig(slotId: 'subtitle', field: TripField.location),
+          ],
+        ),
+      ),
+      equipmentDetailedCardConfigProvider.overrideWith(
+        (ref) => const EntityCardViewConfig<EquipmentField>(
+          slots: [
+            EntityCardSlotConfig(
+              slotId: 'title',
+              field: EquipmentField.itemName,
+            ),
+            EntityCardSlotConfig(
+              slotId: 'subtitle',
+              field: EquipmentField.type,
+            ),
+          ],
+        ),
+      ),
+      equipmentCompactCardConfigProvider.overrideWith(
+        (ref) => const EntityCardViewConfig<EquipmentField>(
+          slots: [
+            EntityCardSlotConfig(
+              slotId: 'title',
+              field: EquipmentField.itemName,
+            ),
+            EntityCardSlotConfig(
+              slotId: 'subtitle',
+              field: EquipmentField.type,
+            ),
+          ],
+        ),
+      ),
+      diveCenterDetailedCardConfigProvider.overrideWith(
+        (ref) => const EntityCardViewConfig<DiveCenterField>(
+          slots: [
+            EntityCardSlotConfig(
+              slotId: 'title',
+              field: DiveCenterField.centerName,
+            ),
+            EntityCardSlotConfig(
+              slotId: 'subtitle',
+              field: DiveCenterField.city,
+            ),
+          ],
+        ),
+      ),
+      diveCenterCompactCardConfigProvider.overrideWith(
+        (ref) => const EntityCardViewConfig<DiveCenterField>(
+          slots: [
+            EntityCardSlotConfig(
+              slotId: 'title',
+              field: DiveCenterField.centerName,
+            ),
+            EntityCardSlotConfig(
+              slotId: 'subtitle',
+              field: DiveCenterField.city,
+            ),
+          ],
+        ),
+      ),
+      certificationDetailedCardConfigProvider.overrideWith(
+        (ref) => const EntityCardViewConfig<CertificationField>(
+          slots: [
+            EntityCardSlotConfig(
+              slotId: 'title',
+              field: CertificationField.certName,
+            ),
+            EntityCardSlotConfig(
+              slotId: 'subtitle',
+              field: CertificationField.agency,
+            ),
+          ],
+        ),
+      ),
+      courseDetailedCardConfigProvider.overrideWith(
+        (ref) => const EntityCardViewConfig<CourseField>(
+          slots: [
+            EntityCardSlotConfig(
+              slotId: 'title',
+              field: CourseField.courseName,
+            ),
+            EntityCardSlotConfig(slotId: 'subtitle', field: CourseField.agency),
+          ],
         ),
       ),
     ],
@@ -688,5 +828,729 @@ void main() {
         expect(find.text('Table'), findsOneWidget);
       },
     );
+
+    // -----------------------------------------------------------------
+    // Entity table section tests
+    // -----------------------------------------------------------------
+
+    group('entity table sections', () {
+      testWidgets('sites section in table mode shows site columns', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        // Switch to Sites
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Sites').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
+        // SiteField.siteName displayName is 'Name'
+        expect(find.text('Name'), findsAtLeastNWidgets(1));
+      });
+
+      testWidgets('buddies section in table mode shows buddy columns', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Buddies').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
+        // BuddyField.buddyName displayName is 'Name'
+        expect(find.text('Name'), findsAtLeastNWidgets(1));
+      });
+
+      testWidgets('trips section in table mode shows trip columns', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Trips').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
+        // TripField.tripName displayName is 'Name'
+        expect(find.text('Name'), findsAtLeastNWidgets(1));
+      });
+
+      testWidgets('equipment section in table mode shows equipment columns', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Equipment').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
+        // EquipmentField.itemName displayName is 'Name'
+        expect(find.text('Name'), findsAtLeastNWidgets(1));
+      });
+
+      testWidgets(
+        'dive centers section in table mode shows dive center columns',
+        (tester) async {
+          await tester.pumpWidget(_buildColumnConfigPage());
+          await tester.pump();
+
+          await tester.tap(find.text('Dives'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Dive Centers').last);
+          await tester.pumpAndSettle();
+
+          expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
+          // DiveCenterField.centerName displayName is 'Name'
+          expect(find.text('Name'), findsAtLeastNWidgets(1));
+        },
+      );
+
+      testWidgets(
+        'certifications section in table mode shows certification columns',
+        (tester) async {
+          await tester.pumpWidget(_buildColumnConfigPage());
+          await tester.pump();
+
+          await tester.tap(find.text('Dives'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Certifications').last);
+          await tester.pumpAndSettle();
+
+          expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
+          // CertificationField.certName displayName is 'Name'
+          expect(find.text('Name'), findsAtLeastNWidgets(1));
+        },
+      );
+
+      testWidgets('courses section in table mode shows course columns', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Courses').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
+        // CourseField.courseName displayName is 'Name'
+        expect(find.text('Name'), findsAtLeastNWidgets(1));
+      });
+
+      testWidgets('tapping pin icon in entity table section toggles pin', (
+        tester,
+      ) async {
+        await tester.binding.setSurfaceSize(const Size(800, 900));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        // Switch to Sites section (has 2 columns: siteName pinned, country)
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Sites').last);
+        await tester.pumpAndSettle();
+
+        // Find the pin icons - there should be at least one
+        // SiteField.country is unpinned so it has push_pin_outlined
+        final outlinedPins = find.byIcon(Icons.push_pin_outlined);
+        expect(outlinedPins, findsAtLeastNWidgets(1));
+
+        await tester.tap(outlinedPins.first);
+        await tester.pump();
+
+        // Widget tree should remain intact after toggle
+        expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
+      });
+
+      testWidgets(
+        'tapping remove icon in entity table section removes column',
+        (tester) async {
+          await tester.binding.setSurfaceSize(const Size(800, 900));
+          addTearDown(() => tester.binding.setSurfaceSize(null));
+
+          await tester.pumpWidget(_buildColumnConfigPage());
+          await tester.pump();
+
+          // Switch to Sites section (has 2 columns: siteName pinned, country)
+          await tester.tap(find.text('Dives'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Sites').last);
+          await tester.pumpAndSettle();
+
+          // The unpinned column (country) should have a remove button
+          final removeButtons = find.byIcon(Icons.remove_circle_outline);
+          expect(removeButtons, findsAtLeastNWidgets(1));
+
+          await tester.tap(removeButtons.first);
+          await tester.pump();
+
+          // Widget tree should remain intact after removal
+          expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
+        },
+      );
+
+      testWidgets('tapping add icon in entity table section adds column', (
+        tester,
+      ) async {
+        await tester.binding.setSurfaceSize(const Size(800, 900));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        // Switch to Sites section
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Sites').last);
+        await tester.pumpAndSettle();
+
+        // Available fields should have add buttons
+        final addButtons = find.byIcon(Icons.add_circle_outline);
+        expect(addButtons, findsAtLeastNWidgets(1));
+
+        await tester.tap(addButtons.first);
+        await tester.pump();
+
+        // Widget tree should remain intact after adding
+        expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
+      });
+
+      testWidgets('entity table section shows available fields section', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Sites').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('AVAILABLE FIELDS'), findsOneWidget);
+      });
+
+      testWidgets(
+        'entity table section shows drag handles for visible columns',
+        (tester) async {
+          await tester.pumpWidget(_buildColumnConfigPage());
+          await tester.pump();
+
+          await tester.tap(find.text('Dives'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Buddies').last);
+          await tester.pumpAndSettle();
+
+          expect(find.byIcon(Icons.drag_handle), findsAtLeastNWidgets(1));
+        },
+      );
+    });
+
+    // -----------------------------------------------------------------
+    // Entity card section tests
+    // -----------------------------------------------------------------
+
+    group('entity card sections', () {
+      testWidgets('buddies in detailed mode shows card slot assignments', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        // Switch to Buddies section
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Buddies').last);
+        await tester.pumpAndSettle();
+
+        // Switch to Detailed mode
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Detailed').last);
+        await tester.pumpAndSettle();
+
+        // Card config UI should appear with slot assignments
+        expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+        expect(find.text('Title'), findsOneWidget);
+      });
+
+      testWidgets('buddies in detailed mode shows extra fields section', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Buddies').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Detailed').last);
+        await tester.pumpAndSettle();
+
+        // Detailed mode shows extra fields section
+        expect(find.text('EXTRA FIELDS'), findsOneWidget);
+        expect(
+          find.textContaining('Additional fields shown below'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('sites in detailed mode shows card slot assignments', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Sites').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Detailed').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+        expect(find.text('Title'), findsOneWidget);
+      });
+
+      testWidgets('trips in detailed mode shows card slot assignments', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Trips').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Detailed').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+        expect(find.text('Title'), findsOneWidget);
+      });
+
+      testWidgets('equipment in compact mode shows card slot assignments', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Equipment').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Compact').last);
+        await tester.pumpAndSettle();
+
+        // Compact mode shows slot assignments but not extra fields
+        expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+        expect(find.text('EXTRA FIELDS'), findsNothing);
+      });
+
+      testWidgets('equipment in detailed mode shows extra fields section', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Equipment').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Detailed').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+        expect(find.text('EXTRA FIELDS'), findsOneWidget);
+      });
+
+      testWidgets('dive centers in detailed mode shows card config', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Dive Centers').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Detailed').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+        expect(find.text('Title'), findsOneWidget);
+      });
+
+      testWidgets(
+        'dive centers in compact mode shows card config without extra fields',
+        (tester) async {
+          await tester.pumpWidget(_buildColumnConfigPage());
+          await tester.pump();
+
+          await tester.tap(find.text('Dives'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Dive Centers').last);
+          await tester.pumpAndSettle();
+
+          await tester.tap(find.text('Table'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Compact').last);
+          await tester.pumpAndSettle();
+
+          expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+          expect(find.text('EXTRA FIELDS'), findsNothing);
+        },
+      );
+
+      testWidgets('certifications in detailed mode shows card config', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Certifications').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Detailed').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+        expect(find.text('EXTRA FIELDS'), findsOneWidget);
+      });
+
+      testWidgets('courses in detailed mode shows card config', (tester) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Courses').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Detailed').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+        expect(find.text('EXTRA FIELDS'), findsOneWidget);
+      });
+
+      testWidgets(
+        'detailed entity card shows no extra fields message when empty',
+        (tester) async {
+          await tester.pumpWidget(_buildColumnConfigPage());
+          await tester.pump();
+
+          await tester.tap(find.text('Dives'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Sites').last);
+          await tester.pumpAndSettle();
+
+          await tester.tap(find.text('Table'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Detailed').last);
+          await tester.pumpAndSettle();
+
+          expect(
+            find.textContaining('No extra fields configured'),
+            findsOneWidget,
+          );
+        },
+      );
+
+      testWidgets('detailed entity card shows available fields section', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Buddies').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Detailed').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('AVAILABLE FIELDS'), findsOneWidget);
+      });
+
+      // ---------------------------------------------------------------
+      // Compact mode tests (cover compact card config providers)
+      // ---------------------------------------------------------------
+
+      testWidgets('sites in compact mode uses compact card config', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        // Switch to Sites section
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Sites').last);
+        await tester.pumpAndSettle();
+
+        // Switch to Compact mode
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Compact').last);
+        await tester.pumpAndSettle();
+
+        // Compact mode shows slot assignments but no extra fields
+        expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+        expect(find.text('Title'), findsOneWidget);
+        expect(find.text('EXTRA FIELDS'), findsNothing);
+      });
+
+      testWidgets('buddies in compact mode uses compact card config', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        // Switch to Buddies section
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Buddies').last);
+        await tester.pumpAndSettle();
+
+        // Switch to Compact mode
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Compact').last);
+        await tester.pumpAndSettle();
+
+        // Compact mode shows slot assignments but no extra fields
+        expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+        expect(find.text('Title'), findsOneWidget);
+        expect(find.text('EXTRA FIELDS'), findsNothing);
+      });
+
+      testWidgets('trips in compact mode uses compact card config', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        // Switch to Trips section
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Trips').last);
+        await tester.pumpAndSettle();
+
+        // Switch to Compact mode
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Compact').last);
+        await tester.pumpAndSettle();
+
+        // Compact mode shows slot assignments but no extra fields
+        expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+        expect(find.text('Title'), findsOneWidget);
+        expect(find.text('EXTRA FIELDS'), findsNothing);
+      });
+
+      // ---------------------------------------------------------------
+      // Entity card interaction tests
+      // ---------------------------------------------------------------
+
+      testWidgets('changing entity card slot field updates config', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        // Switch to Buddies section
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Buddies').last);
+        await tester.pumpAndSettle();
+
+        // Switch to Detailed mode
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Detailed').last);
+        await tester.pumpAndSettle();
+
+        // Find the slot dropdown for the title slot (currently shows 'Name')
+        // The slot displays BuddyField.buddyName which has displayName 'Name'
+        // Open the dropdown by tapping the current value
+        final nameTexts = find.text('Name');
+        expect(nameTexts, findsAtLeastNWidgets(1));
+
+        // Tap the first 'Name' text which is in the slot dropdown
+        await tester.tap(nameTexts.first);
+        await tester.pumpAndSettle();
+
+        // Select a different field - 'Phone'
+        await tester.tap(find.text('Phone').last);
+        await tester.pumpAndSettle();
+
+        // After changing, the slot should now show Phone
+        expect(find.text('Phone'), findsAtLeastNWidgets(1));
+        // The widget tree should remain intact
+        expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+      });
+
+      testWidgets('adding extra field in entity detailed card config', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        // Switch to Buddies section
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Buddies').last);
+        await tester.pumpAndSettle();
+
+        // Switch to Detailed mode (shows extra fields + available fields)
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Detailed').last);
+        await tester.pumpAndSettle();
+
+        // Initially no extra fields configured
+        expect(
+          find.textContaining('No extra fields configured'),
+          findsOneWidget,
+        );
+
+        // Find an add button in the available fields section
+        final addButtons = find.byIcon(Icons.add_circle_outline);
+        expect(addButtons, findsAtLeastNWidgets(1));
+
+        // Tap the first add button to add an extra field
+        await tester.tap(addButtons.first);
+        await tester.pumpAndSettle();
+
+        // After adding, the 'No extra fields' message should be gone
+        expect(find.textContaining('No extra fields configured'), findsNothing);
+
+        // A remove button should now appear for the added field
+        expect(
+          find.byIcon(Icons.remove_circle_outline),
+          findsAtLeastNWidgets(1),
+        );
+      });
+
+      testWidgets('removing extra field in entity detailed card config', (
+        tester,
+      ) async {
+        // Build with pre-populated extra fields on the buddy detailed config
+        await tester.pumpWidget(
+          _buildColumnConfigPage(
+            buddyDetailedConfig: const EntityCardViewConfig<BuddyField>(
+              slots: [
+                EntityCardSlotConfig(
+                  slotId: 'title',
+                  field: BuddyField.buddyName,
+                ),
+                EntityCardSlotConfig(
+                  slotId: 'subtitle',
+                  field: BuddyField.email,
+                ),
+              ],
+              extraFields: [BuddyField.phone],
+            ),
+          ),
+        );
+        await tester.pump();
+
+        // Switch to Buddies section
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Buddies').last);
+        await tester.pumpAndSettle();
+
+        // Switch to Detailed mode
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Detailed').last);
+        await tester.pumpAndSettle();
+
+        // The extra field 'Phone' should be shown
+        expect(find.text('Phone'), findsAtLeastNWidgets(1));
+
+        // Should not show the empty message
+        expect(find.textContaining('No extra fields configured'), findsNothing);
+
+        // Find the remove button for the extra field
+        final removeButtons = find.byIcon(Icons.remove_circle_outline);
+        expect(removeButtons, findsAtLeastNWidgets(1));
+
+        // Tap the remove button to remove the extra field
+        await tester.tap(removeButtons.first);
+        await tester.pumpAndSettle();
+
+        // After removal, the empty message should reappear
+        expect(
+          find.textContaining('No extra fields configured'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('switching section preserves view mode when valid', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildColumnConfigPage());
+        await tester.pump();
+
+        // Switch to Detailed mode on Dives
+        await tester.tap(find.text('Table'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Detailed').last);
+        await tester.pumpAndSettle();
+
+        // Switch to Buddies - detailed mode should be preserved
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Buddies').last);
+        await tester.pumpAndSettle();
+
+        // Should still be in Detailed mode with entity card config
+        expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+        expect(find.text('Detailed'), findsOneWidget);
+      });
+    });
   });
 }

@@ -285,6 +285,11 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setShowProfilePanelInTableView(bool value) async =>
       state = state.copyWith(showProfilePanelInTableView: value);
   @override
+  Future<void> setShowDetailsPaneForSection(
+    String sectionKey,
+    bool value,
+  ) async {}
+  @override
   Future<void> setDiveDetailSections(
     List<DiveDetailSectionConfig> sections,
   ) async => state = state.copyWith(diveDetailSections: sections);

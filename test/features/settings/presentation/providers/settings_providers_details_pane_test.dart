@@ -108,6 +108,90 @@ void main() {
     });
   });
 
+  group('AppSettings copyWith for view mode fields', () {
+    test('copyWith sets diveListViewMode', () {
+      const s = AppSettings();
+      final updated = s.copyWith(diveListViewMode: ListViewMode.table);
+      expect(updated.diveListViewMode, ListViewMode.table);
+      expect(updated.siteListViewMode, ListViewMode.detailed);
+    });
+
+    test('copyWith sets siteListViewMode', () {
+      const s = AppSettings();
+      final updated = s.copyWith(siteListViewMode: ListViewMode.compact);
+      expect(updated.siteListViewMode, ListViewMode.compact);
+      expect(updated.diveListViewMode, ListViewMode.detailed);
+    });
+
+    test('copyWith sets tripListViewMode', () {
+      const s = AppSettings();
+      final updated = s.copyWith(tripListViewMode: ListViewMode.dense);
+      expect(updated.tripListViewMode, ListViewMode.dense);
+      expect(updated.diveListViewMode, ListViewMode.detailed);
+    });
+
+    test('copyWith sets equipmentListViewMode', () {
+      const s = AppSettings();
+      final updated = s.copyWith(equipmentListViewMode: ListViewMode.table);
+      expect(updated.equipmentListViewMode, ListViewMode.table);
+      expect(updated.diveListViewMode, ListViewMode.detailed);
+    });
+
+    test('copyWith sets buddyListViewMode', () {
+      const s = AppSettings();
+      final updated = s.copyWith(buddyListViewMode: ListViewMode.compact);
+      expect(updated.buddyListViewMode, ListViewMode.compact);
+      expect(updated.diveListViewMode, ListViewMode.detailed);
+    });
+
+    test('copyWith sets diveCenterListViewMode', () {
+      const s = AppSettings();
+      final updated = s.copyWith(diveCenterListViewMode: ListViewMode.table);
+      expect(updated.diveCenterListViewMode, ListViewMode.table);
+      expect(updated.diveListViewMode, ListViewMode.detailed);
+    });
+
+    test('copyWith preserves view modes when not specified', () {
+      const s = AppSettings(
+        diveListViewMode: ListViewMode.table,
+        siteListViewMode: ListViewMode.compact,
+        tripListViewMode: ListViewMode.dense,
+        equipmentListViewMode: ListViewMode.table,
+        buddyListViewMode: ListViewMode.compact,
+        diveCenterListViewMode: ListViewMode.table,
+      );
+      final updated = s.copyWith();
+      expect(updated.diveListViewMode, ListViewMode.table);
+      expect(updated.siteListViewMode, ListViewMode.compact);
+      expect(updated.tripListViewMode, ListViewMode.dense);
+      expect(updated.equipmentListViewMode, ListViewMode.table);
+      expect(updated.buddyListViewMode, ListViewMode.compact);
+      expect(updated.diveCenterListViewMode, ListViewMode.table);
+    });
+  });
+
+  group('AppSettings copyWith for showProfilePanelInTableView', () {
+    test('default is true', () {
+      const s = AppSettings();
+      expect(s.showProfilePanelInTableView, isTrue);
+    });
+
+    test('copyWith sets showProfilePanelInTableView to false', () {
+      const s = AppSettings();
+      final updated = s.copyWith(showProfilePanelInTableView: false);
+      expect(updated.showProfilePanelInTableView, isFalse);
+    });
+
+    test(
+      'copyWith preserves showProfilePanelInTableView when not specified',
+      () {
+        const s = AppSettings(showProfilePanelInTableView: false);
+        final updated = s.copyWith();
+        expect(updated.showProfilePanelInTableView, isFalse);
+      },
+    );
+  });
+
   group('Runtime view mode providers', () {
     late ProviderContainer container;
 
