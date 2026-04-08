@@ -309,9 +309,7 @@ void main() {
           child: const DiveCenterListPage(),
           overrides: [
             ...overrides,
-            tableDetailsPaneProvider('diveCenters').overrideWith(
-              (ref) => true,
-            ),
+            tableDetailsPaneProvider('diveCenters').overrideWith((ref) => true),
           ],
         ),
       );
@@ -346,12 +344,8 @@ void main() {
           child: const DiveCenterListPage(),
           overrides: [
             ...overrides,
-            tableDetailsPaneProvider('diveCenters').overrideWith(
-              (ref) => true,
-            ),
-            highlightedDiveCenterIdProvider.overrideWith(
-              (ref) => 'test-dc-id',
-            ),
+            tableDetailsPaneProvider('diveCenters').overrideWith((ref) => true),
+            highlightedDiveCenterIdProvider.overrideWith((ref) => 'test-dc-id'),
           ],
         ),
       );

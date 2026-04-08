@@ -281,9 +281,7 @@ void main() {
 
       final overrides = [
         ...baseOverrides(viewMode: ListViewMode.table),
-        tableDetailsPaneProvider('certifications').overrideWith(
-          (ref) => true,
-        ),
+        tableDetailsPaneProvider('certifications').overrideWith((ref) => true),
         highlightedCertificationIdProvider.overrideWith((ref) => null),
       ];
 
@@ -309,9 +307,7 @@ void main() {
 
       final overrides = [
         ...baseOverrides(viewMode: ListViewMode.table),
-        tableDetailsPaneProvider('certifications').overrideWith(
-          (ref) => true,
-        ),
+        tableDetailsPaneProvider('certifications').overrideWith((ref) => true),
         highlightedCertificationIdProvider.overrideWith(
           (ref) => 'test-cert-id',
         ),

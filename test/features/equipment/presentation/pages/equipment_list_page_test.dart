@@ -291,9 +291,7 @@ void main() {
           child: const EquipmentListPage(),
           overrides: [
             ...overrides,
-            tableDetailsPaneProvider('equipment').overrideWith(
-              (ref) => true,
-            ),
+            tableDetailsPaneProvider('equipment').overrideWith((ref) => true),
             highlightedEquipmentIdProvider.overrideWith((ref) => null),
           ],
         ),
@@ -323,9 +321,7 @@ void main() {
           child: const EquipmentListPage(),
           overrides: [
             ...overrides,
-            tableDetailsPaneProvider('equipment').overrideWith(
-              (ref) => true,
-            ),
+            tableDetailsPaneProvider('equipment').overrideWith((ref) => true),
             highlightedEquipmentIdProvider.overrideWith(
               (ref) => 'test-equip-id',
             ),
