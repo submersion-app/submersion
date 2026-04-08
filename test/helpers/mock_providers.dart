@@ -280,11 +280,6 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setShowPressureThresholdMarkers(bool value) async =>
       state = state.copyWith(showPressureThresholdMarkers: value);
-  @override
-  Future<void> setShowDetailsPaneForSection(
-    String sectionKey,
-    bool value,
-  ) async {}
 }
 
 /// Mock CurrentDiverIdNotifier that doesn't access the database

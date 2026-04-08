@@ -13,12 +13,6 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   _MockSettingsNotifier() : super(const AppSettings());
 
   @override
-  Future<void> setShowDetailsPaneForSection(
-    String sectionKey,
-    bool value,
-  ) async {}
-
-  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
