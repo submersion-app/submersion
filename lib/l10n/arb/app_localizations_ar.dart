@@ -15583,23 +15583,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get listViewMode_table => 'جدول';
 
   @override
-  String get settings_appearance_general => 'General';
+  String get settings_appearance_general => 'عام';
 
   @override
-  String get settings_appearance_sections => 'Sections';
+  String get settings_appearance_sections => 'الأقسام';
 
   @override
-  String get settings_appearance_showDetailsPane => 'Show Details Pane';
+  String get settings_appearance_showDetailsPane => 'إظهار لوحة التفاصيل';
 
   @override
   String get settings_appearance_showDetailsPane_subtitle =>
-      'Display details pane alongside table';
+      'عرض لوحة التفاصيل بجانب الجدول';
 
   @override
   String get settings_appearance_showProfilePanel =>
-      'Show Profile Panel in Table View';
+      'إظهار لوحة الملف الشخصي في عرض الجدول';
 
   @override
   String get settings_appearance_showProfilePanel_subtitle =>
-      'Display dive profile chart above the table by default';
+      'عرض مخطط ملف الغوصة فوق الجدول بشكل افتراضي';
 }

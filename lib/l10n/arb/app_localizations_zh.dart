@@ -15125,23 +15125,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get listViewMode_table => '表格';
 
   @override
-  String get settings_appearance_general => 'General';
+  String get settings_appearance_general => '常规';
 
   @override
-  String get settings_appearance_sections => 'Sections';
+  String get settings_appearance_sections => '部分';
 
   @override
-  String get settings_appearance_showDetailsPane => 'Show Details Pane';
+  String get settings_appearance_showDetailsPane => '显示详情面板';
 
   @override
-  String get settings_appearance_showDetailsPane_subtitle =>
-      'Display details pane alongside table';
+  String get settings_appearance_showDetailsPane_subtitle => '在表格旁边显示详情面板';
 
   @override
-  String get settings_appearance_showProfilePanel =>
-      'Show Profile Panel in Table View';
+  String get settings_appearance_showProfilePanel => '在表格视图中显示配置文件面板';
 
   @override
-  String get settings_appearance_showProfilePanel_subtitle =>
-      'Display dive profile chart above the table by default';
+  String get settings_appearance_showProfilePanel_subtitle => '默认在表格上方显示潜水剖面图';
 }

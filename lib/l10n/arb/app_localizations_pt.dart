@@ -15893,23 +15893,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get listViewMode_table => 'Tabela';
 
   @override
-  String get settings_appearance_general => 'General';
+  String get settings_appearance_general => 'Geral';
 
   @override
-  String get settings_appearance_sections => 'Sections';
+  String get settings_appearance_sections => 'Seções';
 
   @override
-  String get settings_appearance_showDetailsPane => 'Show Details Pane';
+  String get settings_appearance_showDetailsPane =>
+      'Mostrar painel de detalhes';
 
   @override
   String get settings_appearance_showDetailsPane_subtitle =>
-      'Display details pane alongside table';
+      'Exibir painel de detalhes ao lado da tabela';
 
   @override
   String get settings_appearance_showProfilePanel =>
-      'Show Profile Panel in Table View';
+      'Mostrar painel de perfil na visualização de tabela';
 
   @override
   String get settings_appearance_showProfilePanel_subtitle =>
-      'Display dive profile chart above the table by default';
+      'Exibir gráfico de perfil de mergulho acima da tabela por padrão';
 }
