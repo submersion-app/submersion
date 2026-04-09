@@ -208,7 +208,7 @@ class TableModeLayout extends ConsumerWidget {
     bool showMap,
     bool showProfile,
   ) {
-    final body = _buildBody(showMap, showProfile);
+    final body = _buildBody(context, showMap, showProfile);
 
     return Scaffold(
       appBar: isSelectionMode && selectionAppBar != null
@@ -220,9 +220,13 @@ class TableModeLayout extends ConsumerWidget {
   }
 
   /// Compose the body widget based on map and profile state.
-  Widget _buildBody(bool showMap, bool showProfile) {
-    // Map ON: Row with table on left, map on right
+  Widget _buildBody(BuildContext context, bool showMap, bool showProfile) {
+    // Map ON: full-page on mobile, side-by-side split on desktop
     if (showMap) {
+      if (ResponsiveBreakpoints.isMobile(context)) {
+        return mapContent!;
+      }
+
       final leftColumn = showProfile
           ? Column(
               children: [
