@@ -5,5 +5,6 @@ import 'package:submersion/core/providers/provider.dart';
 /// with; read by all charts to show a synchronized highlight cursor.
 ///
 /// Keyed by dive ID so that each dive has independent tracking state.
-final profileTrackingIndexProvider =
-    StateProvider.family<int?, String>((ref, diveId) => null);
+final profileTrackingIndexProvider = StateProvider.family<int?, String>(
+  (ref, diveId) => null,
+);
