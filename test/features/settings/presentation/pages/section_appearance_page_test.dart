@@ -9,7 +9,6 @@ import 'package:submersion/features/settings/presentation/pages/section_appearan
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-
 import '../../../../helpers/mock_providers.dart';
 
 Widget _buildTestWidget(
