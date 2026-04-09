@@ -9619,5 +9619,11 @@
   "diveField_category_trip": "Trip",
   "diveField_category_rating": "Rating",
   "diveField_category_metadata": "Metadata",
-  "listViewMode_table": "Table"
+  "listViewMode_table": "Table",
+  "settings_appearance_general": "General",
+  "settings_appearance_sections": "Sections",
+  "settings_appearance_showDetailsPane": "Show Details Pane",
+  "settings_appearance_showDetailsPane_subtitle": "Display details pane alongside table",
+  "settings_appearance_showProfilePanel": "Show Profile Panel in Table View",
+  "settings_appearance_showProfilePanel_subtitle": "Display dive profile chart above the table by default"
 }

@@ -477,12 +477,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     );
   }
 
-  /// Build the layout for table mode content.
+  /// Build the table content for table mode.
   ///
-  /// When used inside [TableModeLayout] (showAppBar: false), this provides
-  /// only the compact app bar (filter chips, sort controls) and the table.
-  /// The outer Scaffold, map, and column settings are all managed by
-  /// [TableModeLayout].
+  /// When used inside [TableModeLayout], this provides only the table content
+  /// (or selection app bar + table during multi-selection). The outer Scaffold,
+  /// app bar, map, and column settings are all managed by [TableModeLayout].
   Widget _buildTableModeScaffold(
     BuildContext context,
     AsyncValue<List<SiteWithDiveCount>> sitesAsync,
@@ -594,7 +593,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               isActive: widget.isMapViewActive,
               onToggle: widget.onMapViewToggle!,
             )
-          else if (ref.read(siteListViewModeProvider) != ListViewMode.table)
+          else if (ref.watch(siteListViewModeProvider) != ListViewMode.table)
             IconButton(
               icon: const Icon(Icons.map, size: 20),
               tooltip: context.l10n.diveSites_list_tooltip_mapView,

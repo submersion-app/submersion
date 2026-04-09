@@ -365,12 +365,15 @@ class SectionAppearancePage extends ConsumerWidget {
     final showDetailsPane = ref.watch(tableDetailsPaneProvider(config.key));
 
     return SwitchListTile(
-      title: const Text('Show Details Pane'),
-      subtitle: const Text('Display details pane alongside table'),
+      title: Text(context.l10n.settings_appearance_showDetailsPane),
+      subtitle: Text(context.l10n.settings_appearance_showDetailsPane_subtitle),
       secondary: const Icon(Icons.vertical_split),
       value: showDetailsPane,
       onChanged: (value) {
         ref.read(tableDetailsPaneProvider(config.key).notifier).state = value;
+        ref
+            .read(settingsProvider.notifier)
+            .setShowDetailsPaneForSection(config.key, value);
       },
     );
   }
@@ -380,9 +383,9 @@ class SectionAppearancePage extends ConsumerWidget {
 
     return [
       SwitchListTile(
-        title: const Text('Show Profile Panel in Table View'),
-        subtitle: const Text(
-          'Display dive profile chart above the table by default',
+        title: Text(context.l10n.settings_appearance_showProfilePanel),
+        subtitle: Text(
+          context.l10n.settings_appearance_showProfilePanel_subtitle,
         ),
         secondary: const Icon(Icons.area_chart),
         value: settings.showProfilePanelInTableView,

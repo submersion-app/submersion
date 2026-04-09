@@ -132,7 +132,16 @@ class _StartupWrapperState extends State<StartupWrapper> {
     await speciesRepository.seedBuiltInSpecies();
   }
 
-  void _closeApp() {
+  Future<void> _closeApp() async {
+    // Best-effort: close any databases that may have been partially initialized
+    // before exiting, to avoid FFI/isolate teardown crashes.
+    try {
+      await DatabaseService.instance.close();
+    } catch (_) {}
+    try {
+      await LocalCacheDatabaseService.instance.close();
+    } catch (_) {}
+
     if (Platform.isIOS || Platform.isAndroid) {
       SystemNavigator.pop();
     } else {

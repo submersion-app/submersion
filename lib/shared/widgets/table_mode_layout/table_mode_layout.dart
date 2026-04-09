@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/providers/table_details_pane_provider.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -269,8 +270,8 @@ class TableModeLayout extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final actions = <Widget>[];
 
-    // Profile toggle (Dives only, appears when profilePanelContent is provided)
-    if (profilePanelContent != null) {
+    // Profile toggle (Dives only, appears when both content and callback exist)
+    if (profilePanelContent != null && onProfileToggled != null) {
       actions.add(
         IconButton(
           key: const ValueKey('profile_toggle'),
@@ -306,6 +307,9 @@ class TableModeLayout extends ConsumerWidget {
             final newValue = !ref.read(tableDetailsPaneProvider(sectionKey));
             ref.read(tableDetailsPaneProvider(sectionKey).notifier).state =
                 newValue;
+            ref
+                .read(settingsProvider.notifier)
+                .setShowDetailsPaneForSection(sectionKey, newValue);
           },
         ),
       );

@@ -208,10 +208,10 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     );
   }
 
-  /// Build the full scaffold/layout for table mode.
+  /// Build the table content for table mode.
   ///
-  /// When embedded inside [TableModeLayout] (showAppBar: false), provides
-  /// only the compact app bar and the table content.
+  /// When embedded inside [TableModeLayout], provides only the table content.
+  /// The app bar, map, and column settings are managed by [TableModeLayout].
   Widget _buildTableModeScaffold(
     BuildContext context,
     AsyncValue<List<TripWithStats>> tripsAsync,

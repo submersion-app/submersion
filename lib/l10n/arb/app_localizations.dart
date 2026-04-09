@@ -26857,6 +26857,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Table'**
   String get listViewMode_table;
+
+  /// No description provided for @settings_appearance_general.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get settings_appearance_general;
+
+  /// No description provided for @settings_appearance_sections.
+  ///
+  /// In en, this message translates to:
+  /// **'Sections'**
+  String get settings_appearance_sections;
+
+  /// No description provided for @settings_appearance_showDetailsPane.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Details Pane'**
+  String get settings_appearance_showDetailsPane;
+
+  /// No description provided for @settings_appearance_showDetailsPane_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Display details pane alongside table'**
+  String get settings_appearance_showDetailsPane_subtitle;
+
+  /// No description provided for @settings_appearance_showProfilePanel.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Profile Panel in Table View'**
+  String get settings_appearance_showProfilePanel;
+
+  /// No description provided for @settings_appearance_showProfilePanel_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Display dive profile chart above the table by default'**
+  String get settings_appearance_showProfilePanel_subtitle;
 }
 
 class _AppLocalizationsDelegate

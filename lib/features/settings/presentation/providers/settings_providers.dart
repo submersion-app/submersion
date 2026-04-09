@@ -1152,6 +1152,24 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     );
     await _saveSettings();
   }
+
+  Future<void> setShowDetailsPaneForSection(
+    String sectionKey,
+    bool value,
+  ) async {
+    state = switch (sectionKey) {
+      'dives' => state.copyWith(showDetailsPaneDives: value),
+      'sites' => state.copyWith(showDetailsPaneSites: value),
+      'buddies' => state.copyWith(showDetailsPaneBuddies: value),
+      'trips' => state.copyWith(showDetailsPaneTrips: value),
+      'equipment' => state.copyWith(showDetailsPaneEquipment: value),
+      'diveCenters' => state.copyWith(showDetailsPaneDiveCenters: value),
+      'certifications' => state.copyWith(showDetailsPaneCertifications: value),
+      'courses' => state.copyWith(showDetailsPaneCourses: value),
+      _ => state,
+    };
+    await _saveSettings();
+  }
 }
 
 /// Settings provider

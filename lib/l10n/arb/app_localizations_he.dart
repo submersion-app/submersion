@@ -15472,4 +15472,25 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get listViewMode_table => 'טבלה';
+
+  @override
+  String get settings_appearance_general => 'General';
+
+  @override
+  String get settings_appearance_sections => 'Sections';
+
+  @override
+  String get settings_appearance_showDetailsPane => 'Show Details Pane';
+
+  @override
+  String get settings_appearance_showDetailsPane_subtitle =>
+      'Display details pane alongside table';
+
+  @override
+  String get settings_appearance_showProfilePanel =>
+      'Show Profile Panel in Table View';
+
+  @override
+  String get settings_appearance_showProfilePanel_subtitle =>
+      'Display dive profile chart above the table by default';
 }

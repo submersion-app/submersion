@@ -6,23 +6,31 @@ import 'package:submersion/features/settings/presentation/pages/language_setting
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-class _SectionEntry {
-  final String displayName;
-  final String routeSegment;
-
-  const _SectionEntry({required this.displayName, required this.routeSegment});
-}
-
-const _sections = [
-  _SectionEntry(displayName: 'Dives', routeSegment: 'dives'),
-  _SectionEntry(displayName: 'Dive Sites', routeSegment: 'sites'),
-  _SectionEntry(displayName: 'Buddies', routeSegment: 'buddies'),
-  _SectionEntry(displayName: 'Trips', routeSegment: 'trips'),
-  _SectionEntry(displayName: 'Equipment', routeSegment: 'equipment'),
-  _SectionEntry(displayName: 'Dive Centers', routeSegment: 'dive-centers'),
-  _SectionEntry(displayName: 'Certifications', routeSegment: 'certifications'),
-  _SectionEntry(displayName: 'Courses', routeSegment: 'courses'),
+const _sectionRoutes = [
+  'dives',
+  'sites',
+  'buddies',
+  'trips',
+  'equipment',
+  'dive-centers',
+  'certifications',
+  'courses',
 ];
+
+String _sectionDisplayName(BuildContext context, String routeSegment) {
+  final l10n = context.l10n;
+  return switch (routeSegment) {
+    'dives' => l10n.nav_dives,
+    'sites' => l10n.nav_sites,
+    'buddies' => l10n.nav_buddies,
+    'trips' => l10n.nav_trips,
+    'equipment' => l10n.nav_equipment,
+    'dive-centers' => l10n.nav_diveCenters,
+    'certifications' => l10n.nav_certifications,
+    'courses' => l10n.nav_courses,
+    _ => routeSegment,
+  };
+}
 
 class AppearancePage extends ConsumerWidget {
   const AppearancePage({super.key});
@@ -38,7 +46,10 @@ class AppearancePage extends ConsumerWidget {
       body: ListView(
         children: [
           // -- General --
-          _buildSectionHeader(context, 'General'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_general,
+          ),
           ListTile(
             leading: const Icon(Icons.palette_outlined),
             title: Text(context.l10n.settings_themes_current),
@@ -61,13 +72,15 @@ class AppearancePage extends ConsumerWidget {
           const Divider(),
 
           // -- Sections --
-          _buildSectionHeader(context, 'Sections'),
-          for (final entry in _sections)
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_sections,
+          ),
+          for (final route in _sectionRoutes)
             ListTile(
-              title: Text(entry.displayName),
+              title: Text(_sectionDisplayName(context, route)),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () =>
-                  context.push('/settings/appearance/${entry.routeSegment}'),
+              onTap: () => context.push('/settings/appearance/$route'),
             ),
           const SizedBox(height: 32),
         ],

@@ -185,6 +185,11 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setShowPressureThresholdMarkers(bool value) async =>
       state = state.copyWith(showPressureThresholdMarkers: value);
   @override
+  Future<void> setShowDetailsPaneForSection(
+    String sectionKey,
+    bool value,
+  ) async {}
+  @override
   Future<void> setMetric() async => state = state.copyWith(
     depthUnit: DepthUnit.meters,
     temperatureUnit: TemperatureUnit.celsius,
