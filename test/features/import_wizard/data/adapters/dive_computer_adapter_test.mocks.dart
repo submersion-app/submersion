@@ -3,22 +3,22 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i8;
+import 'dart:async' as _i7;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i10;
+import 'package:mockito/src/dummies.dart' as _i9;
 import 'package:submersion/core/constants/sort_options.dart' as _i15;
 import 'package:submersion/core/database/database.dart' as _i11;
 import 'package:submersion/core/models/sort_state.dart' as _i14;
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart'
     as _i2;
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart'
-    as _i9;
+    as _i8;
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart'
-    as _i4;
+    as _i10;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart'
-    as _i6;
-import 'package:submersion/features/dive_log/domain/entities/dive.dart' as _i5;
+    as _i5;
+import 'package:submersion/features/dive_log/domain/entities/dive.dart' as _i4;
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as _i3;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart'
@@ -26,7 +26,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart'
     as _i12;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart'
-    as _i7;
+    as _i6;
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart'
     as _i13;
 
@@ -61,36 +61,30 @@ class _FakeDiveComputer_2 extends _i1.SmartFake implements _i3.DiveComputer {
     : super(parent, parentInvocation);
 }
 
-class _FakeDiveComputerStats_3 extends _i1.SmartFake
-    implements _i4.DiveComputerStats {
-  _FakeDiveComputerStats_3(Object parent, Invocation parentInvocation)
+class _FakeDive_3 extends _i1.SmartFake implements _i4.Dive {
+  _FakeDive_3(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeDive_4 extends _i1.SmartFake implements _i5.Dive {
-  _FakeDive_4(Object parent, Invocation parentInvocation)
+class _FakeDiveStatistics_4 extends _i1.SmartFake
+    implements _i5.DiveStatistics {
+  _FakeDiveStatistics_4(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeDiveStatistics_5 extends _i1.SmartFake
-    implements _i6.DiveStatistics {
-  _FakeDiveStatistics_5(Object parent, Invocation parentInvocation)
+class _FakeDiveRecords_5 extends _i1.SmartFake implements _i5.DiveRecords {
+  _FakeDiveRecords_5(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeDiveRecords_6 extends _i1.SmartFake implements _i6.DiveRecords {
-  _FakeDiveRecords_6(Object parent, Invocation parentInvocation)
+class _FakeGasSwitch_6 extends _i1.SmartFake implements _i6.GasSwitch {
+  _FakeGasSwitch_6(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeGasSwitch_7 extends _i1.SmartFake implements _i7.GasSwitch {
-  _FakeGasSwitch_7(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-class _FakeDiveNumberingInfo_8 extends _i1.SmartFake
-    implements _i6.DiveNumberingInfo {
-  _FakeDiveNumberingInfo_8(Object parent, Invocation parentInvocation)
+class _FakeDiveNumberingInfo_7 extends _i1.SmartFake
+    implements _i5.DiveNumberingInfo {
+  _FakeDiveNumberingInfo_7(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
@@ -99,8 +93,8 @@ class _FakeDiveNumberingInfo_8 extends _i1.SmartFake
 /// See the documentation for Mockito's code generation for more information.
 class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
   @override
-  _i8.Future<_i2.ImportResult> importDives({
-    required List<_i9.DownloadedDive>? dives,
+  _i7.Future<_i2.ImportResult> importDives({
+    required List<_i8.DownloadedDive>? dives,
     required _i3.DiveComputer? computer,
     _i2.ImportMode? mode = _i2.ImportMode.newOnly,
     _i2.ConflictResolution? defaultResolution = _i2.ConflictResolution.skip,
@@ -114,7 +108,7 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
               #defaultResolution: defaultResolution,
               #diverId: diverId,
             }),
-            returnValue: _i8.Future<_i2.ImportResult>.value(
+            returnValue: _i7.Future<_i2.ImportResult>.value(
               _FakeImportResult_0(
                 this,
                 Invocation.method(#importDives, [], {
@@ -126,7 +120,7 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
                 }),
               ),
             ),
-            returnValueForMissingStub: _i8.Future<_i2.ImportResult>.value(
+            returnValueForMissingStub: _i7.Future<_i2.ImportResult>.value(
               _FakeImportResult_0(
                 this,
                 Invocation.method(#importDives, [], {
@@ -139,11 +133,11 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
               ),
             ),
           )
-          as _i8.Future<_i2.ImportResult>);
+          as _i7.Future<_i2.ImportResult>);
 
   @override
-  _i8.Future<_i2.DuplicateResult> detectDuplicate(
-    _i9.DownloadedDive? dive, {
+  _i7.Future<_i2.DuplicateResult> detectDuplicate(
+    _i8.DownloadedDive? dive, {
     double? timeTolerance = 5.0,
     double? depthTolerance = 0.5,
   }) =>
@@ -153,7 +147,7 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
               [dive],
               {#timeTolerance: timeTolerance, #depthTolerance: depthTolerance},
             ),
-            returnValue: _i8.Future<_i2.DuplicateResult>.value(
+            returnValue: _i7.Future<_i2.DuplicateResult>.value(
               _FakeDuplicateResult_1(
                 this,
                 Invocation.method(
@@ -166,7 +160,7 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
                 ),
               ),
             ),
-            returnValueForMissingStub: _i8.Future<_i2.DuplicateResult>.value(
+            returnValueForMissingStub: _i7.Future<_i2.DuplicateResult>.value(
               _FakeDuplicateResult_1(
                 this,
                 Invocation.method(
@@ -180,11 +174,11 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
               ),
             ),
           )
-          as _i8.Future<_i2.DuplicateResult>);
+          as _i7.Future<_i2.DuplicateResult>);
 
   @override
-  _i8.Future<String> importSingleDiveAsNew(
-    _i9.DownloadedDive? dive, {
+  _i7.Future<String> importSingleDiveAsNew(
+    _i8.DownloadedDive? dive, {
     required String? computerId,
     String? diverId,
   }) =>
@@ -194,8 +188,8 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
               [dive],
               {#computerId: computerId, #diverId: diverId},
             ),
-            returnValue: _i8.Future<String>.value(
-              _i10.dummyValue<String>(
+            returnValue: _i7.Future<String>.value(
+              _i9.dummyValue<String>(
                 this,
                 Invocation.method(
                   #importSingleDiveAsNew,
@@ -204,8 +198,8 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
                 ),
               ),
             ),
-            returnValueForMissingStub: _i8.Future<String>.value(
-              _i10.dummyValue<String>(
+            returnValueForMissingStub: _i7.Future<String>.value(
+              _i9.dummyValue<String>(
                 this,
                 Invocation.method(
                   #importSingleDiveAsNew,
@@ -215,10 +209,10 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
               ),
             ),
           )
-          as _i8.Future<String>);
+          as _i7.Future<String>);
 
   @override
-  _i8.Future<String?> resolveConflict(
+  _i7.Future<String?> resolveConflict(
     _i2.ImportConflict? conflict,
     _i2.ConflictResolution? resolution,
     String? computerId, {
@@ -230,132 +224,132 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
               [conflict, resolution, computerId],
               {#diverId: diverId},
             ),
-            returnValue: _i8.Future<String?>.value(),
-            returnValueForMissingStub: _i8.Future<String?>.value(),
+            returnValue: _i7.Future<String?>.value(),
+            returnValueForMissingStub: _i7.Future<String?>.value(),
           )
-          as _i8.Future<String?>);
+          as _i7.Future<String?>);
 }
 
 /// A class which mocks [DiveComputerRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockDiveComputerRepository extends _i1.Mock
-    implements _i4.DiveComputerRepository {
+    implements _i10.DiveComputerRepository {
   @override
-  _i8.Future<List<_i3.DiveComputer>> getAllComputers({String? diverId}) =>
+  _i7.Future<List<_i3.DiveComputer>> getAllComputers({String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#getAllComputers, [], {#diverId: diverId}),
-            returnValue: _i8.Future<List<_i3.DiveComputer>>.value(
+            returnValue: _i7.Future<List<_i3.DiveComputer>>.value(
               <_i3.DiveComputer>[],
             ),
-            returnValueForMissingStub: _i8.Future<List<_i3.DiveComputer>>.value(
+            returnValueForMissingStub: _i7.Future<List<_i3.DiveComputer>>.value(
               <_i3.DiveComputer>[],
             ),
           )
-          as _i8.Future<List<_i3.DiveComputer>>);
+          as _i7.Future<List<_i3.DiveComputer>>);
 
   @override
-  _i8.Future<_i3.DiveComputer?> getComputerById(String? id) =>
+  _i7.Future<_i3.DiveComputer?> getComputerById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#getComputerById, [id]),
-            returnValue: _i8.Future<_i3.DiveComputer?>.value(),
-            returnValueForMissingStub: _i8.Future<_i3.DiveComputer?>.value(),
+            returnValue: _i7.Future<_i3.DiveComputer?>.value(),
+            returnValueForMissingStub: _i7.Future<_i3.DiveComputer?>.value(),
           )
-          as _i8.Future<_i3.DiveComputer?>);
+          as _i7.Future<_i3.DiveComputer?>);
 
   @override
-  _i8.Future<_i3.DiveComputer?> getFavoriteComputer({String? diverId}) =>
+  _i7.Future<_i3.DiveComputer?> getFavoriteComputer({String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#getFavoriteComputer, [], {#diverId: diverId}),
-            returnValue: _i8.Future<_i3.DiveComputer?>.value(),
-            returnValueForMissingStub: _i8.Future<_i3.DiveComputer?>.value(),
+            returnValue: _i7.Future<_i3.DiveComputer?>.value(),
+            returnValueForMissingStub: _i7.Future<_i3.DiveComputer?>.value(),
           )
-          as _i8.Future<_i3.DiveComputer?>);
+          as _i7.Future<_i3.DiveComputer?>);
 
   @override
-  _i8.Future<_i3.DiveComputer?> findByBluetoothAddress(String? address) =>
+  _i7.Future<_i3.DiveComputer?> findByBluetoothAddress(String? address) =>
       (super.noSuchMethod(
             Invocation.method(#findByBluetoothAddress, [address]),
-            returnValue: _i8.Future<_i3.DiveComputer?>.value(),
-            returnValueForMissingStub: _i8.Future<_i3.DiveComputer?>.value(),
+            returnValue: _i7.Future<_i3.DiveComputer?>.value(),
+            returnValueForMissingStub: _i7.Future<_i3.DiveComputer?>.value(),
           )
-          as _i8.Future<_i3.DiveComputer?>);
+          as _i7.Future<_i3.DiveComputer?>);
 
   @override
-  _i8.Future<_i3.DiveComputer> createComputer(_i3.DiveComputer? computer) =>
+  _i7.Future<_i3.DiveComputer> createComputer(_i3.DiveComputer? computer) =>
       (super.noSuchMethod(
             Invocation.method(#createComputer, [computer]),
-            returnValue: _i8.Future<_i3.DiveComputer>.value(
+            returnValue: _i7.Future<_i3.DiveComputer>.value(
               _FakeDiveComputer_2(
                 this,
                 Invocation.method(#createComputer, [computer]),
               ),
             ),
-            returnValueForMissingStub: _i8.Future<_i3.DiveComputer>.value(
+            returnValueForMissingStub: _i7.Future<_i3.DiveComputer>.value(
               _FakeDiveComputer_2(
                 this,
                 Invocation.method(#createComputer, [computer]),
               ),
             ),
           )
-          as _i8.Future<_i3.DiveComputer>);
+          as _i7.Future<_i3.DiveComputer>);
 
   @override
-  _i8.Future<void> updateComputer(_i3.DiveComputer? computer) =>
+  _i7.Future<void> updateComputer(_i3.DiveComputer? computer) =>
       (super.noSuchMethod(
             Invocation.method(#updateComputer, [computer]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> deleteComputer(String? id) =>
+  _i7.Future<void> deleteComputer(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteComputer, [id]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> setFavoriteComputer(String? id, {String? diverId}) =>
+  _i7.Future<void> setFavoriteComputer(String? id, {String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#setFavoriteComputer, [id], {#diverId: diverId}),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> incrementDiveCount(String? id, {int? by = 1}) =>
+  _i7.Future<void> incrementDiveCount(String? id, {int? by = 1}) =>
       (super.noSuchMethod(
             Invocation.method(#incrementDiveCount, [id], {#by: by}),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> updateLastDownload(String? id) =>
+  _i7.Future<void> updateLastDownload(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#updateLastDownload, [id]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> updateLastFingerprint(String? id, String? fingerprint) =>
+  _i7.Future<void> updateLastFingerprint(String? id, String? fingerprint) =>
       (super.noSuchMethod(
             Invocation.method(#updateLastFingerprint, [id, fingerprint]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<List<_i11.DiveProfile>> getProfilesForDive(
+  _i7.Future<List<_i11.DiveProfile>> getProfilesForDive(
     String? diveId, {
     String? computerId,
   }) =>
@@ -365,59 +359,59 @@ class MockDiveComputerRepository extends _i1.Mock
               [diveId],
               {#computerId: computerId},
             ),
-            returnValue: _i8.Future<List<_i11.DiveProfile>>.value(
+            returnValue: _i7.Future<List<_i11.DiveProfile>>.value(
               <_i11.DiveProfile>[],
             ),
-            returnValueForMissingStub: _i8.Future<List<_i11.DiveProfile>>.value(
+            returnValueForMissingStub: _i7.Future<List<_i11.DiveProfile>>.value(
               <_i11.DiveProfile>[],
             ),
           )
-          as _i8.Future<List<_i11.DiveProfile>>);
+          as _i7.Future<List<_i11.DiveProfile>>);
 
   @override
-  _i8.Future<List<String>> getComputerIdsForDive(String? diveId) =>
+  _i7.Future<List<String>> getComputerIdsForDive(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#getComputerIdsForDive, [diveId]),
-            returnValue: _i8.Future<List<String>>.value(<String>[]),
-            returnValueForMissingStub: _i8.Future<List<String>>.value(
+            returnValue: _i7.Future<List<String>>.value(<String>[]),
+            returnValueForMissingStub: _i7.Future<List<String>>.value(
               <String>[],
             ),
           )
-          as _i8.Future<List<String>>);
+          as _i7.Future<List<String>>);
 
   @override
-  _i8.Future<List<_i3.DiveComputer>> getComputersForDive(String? diveId) =>
+  _i7.Future<List<_i3.DiveComputer>> getComputersForDive(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#getComputersForDive, [diveId]),
-            returnValue: _i8.Future<List<_i3.DiveComputer>>.value(
+            returnValue: _i7.Future<List<_i3.DiveComputer>>.value(
               <_i3.DiveComputer>[],
             ),
-            returnValueForMissingStub: _i8.Future<List<_i3.DiveComputer>>.value(
+            returnValueForMissingStub: _i7.Future<List<_i3.DiveComputer>>.value(
               <_i3.DiveComputer>[],
             ),
           )
-          as _i8.Future<List<_i3.DiveComputer>>);
+          as _i7.Future<List<_i3.DiveComputer>>);
 
   @override
-  _i8.Future<String?> getPrimaryComputerId(String? diveId) =>
+  _i7.Future<String?> getPrimaryComputerId(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#getPrimaryComputerId, [diveId]),
-            returnValue: _i8.Future<String?>.value(),
-            returnValueForMissingStub: _i8.Future<String?>.value(),
+            returnValue: _i7.Future<String?>.value(),
+            returnValueForMissingStub: _i7.Future<String?>.value(),
           )
-          as _i8.Future<String?>);
+          as _i7.Future<String?>);
 
   @override
-  _i8.Future<void> setPrimaryProfile(String? diveId, String? computerId) =>
+  _i7.Future<void> setPrimaryProfile(String? diveId, String? computerId) =>
       (super.noSuchMethod(
             Invocation.method(#setPrimaryProfile, [diveId, computerId]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<String?> findMatchingDive({
+  _i7.Future<String?> findMatchingDive({
     required DateTime? profileStartTime,
     int? toleranceMinutes = 5,
     int? durationSeconds,
@@ -430,13 +424,13 @@ class MockDiveComputerRepository extends _i1.Mock
               #durationSeconds: durationSeconds,
               #maxDepth: maxDepth,
             }),
-            returnValue: _i8.Future<String?>.value(),
-            returnValueForMissingStub: _i8.Future<String?>.value(),
+            returnValue: _i7.Future<String?>.value(),
+            returnValueForMissingStub: _i7.Future<String?>.value(),
           )
-          as _i8.Future<String?>);
+          as _i7.Future<String?>);
 
   @override
-  _i8.Future<_i4.DiveMatchResult?> findMatchingDiveWithScore({
+  _i7.Future<_i10.DiveMatchResult?> findMatchingDiveWithScore({
     required DateTime? profileStartTime,
     int? toleranceMinutes = 5,
     int? durationSeconds,
@@ -451,32 +445,14 @@ class MockDiveComputerRepository extends _i1.Mock
               #maxDepth: maxDepth,
               #fingerprint: fingerprint,
             }),
-            returnValue: _i8.Future<_i4.DiveMatchResult?>.value(),
-            returnValueForMissingStub: _i8.Future<_i4.DiveMatchResult?>.value(),
+            returnValue: _i7.Future<_i10.DiveMatchResult?>.value(),
+            returnValueForMissingStub:
+                _i7.Future<_i10.DiveMatchResult?>.value(),
           )
-          as _i8.Future<_i4.DiveMatchResult?>);
+          as _i7.Future<_i10.DiveMatchResult?>);
 
   @override
-  _i8.Future<_i4.DiveComputerStats> getComputerStats(String? computerId) =>
-      (super.noSuchMethod(
-            Invocation.method(#getComputerStats, [computerId]),
-            returnValue: _i8.Future<_i4.DiveComputerStats>.value(
-              _FakeDiveComputerStats_3(
-                this,
-                Invocation.method(#getComputerStats, [computerId]),
-              ),
-            ),
-            returnValueForMissingStub: _i8.Future<_i4.DiveComputerStats>.value(
-              _FakeDiveComputerStats_3(
-                this,
-                Invocation.method(#getComputerStats, [computerId]),
-              ),
-            ),
-          )
-          as _i8.Future<_i4.DiveComputerStats>);
-
-  @override
-  _i8.Future<List<String>> getDiveIdsForComputer(
+  _i7.Future<List<String>> getDiveIdsForComputer(
     String? computerId, {
     int? limit,
   }) =>
@@ -486,29 +462,29 @@ class MockDiveComputerRepository extends _i1.Mock
               [computerId],
               {#limit: limit},
             ),
-            returnValue: _i8.Future<List<String>>.value(<String>[]),
-            returnValueForMissingStub: _i8.Future<List<String>>.value(
+            returnValue: _i7.Future<List<String>>.value(<String>[]),
+            returnValueForMissingStub: _i7.Future<List<String>>.value(
               <String>[],
             ),
           )
-          as _i8.Future<List<String>>);
+          as _i7.Future<List<String>>);
 
   @override
-  _i8.Future<String> importProfile({
+  _i7.Future<String> importProfile({
     required String? computerId,
     required DateTime? profileStartTime,
-    required List<_i4.ProfilePointData>? points,
+    required List<_i10.ProfilePointData>? points,
     required int? durationSeconds,
     double? maxDepth,
     double? avgDepth,
     bool? isPrimary = false,
     String? diverId,
-    List<_i4.TankData>? tanks,
+    List<_i10.TankData>? tanks,
     String? decoAlgorithm,
     int? gfLow,
     int? gfHigh,
     int? decoConservatism,
-    List<_i4.EventData>? events,
+    List<_i10.EventData>? events,
     int? diveNumber,
     bool? forceNew = false,
   }) =>
@@ -531,8 +507,8 @@ class MockDiveComputerRepository extends _i1.Mock
               #diveNumber: diveNumber,
               #forceNew: forceNew,
             }),
-            returnValue: _i8.Future<String>.value(
-              _i10.dummyValue<String>(
+            returnValue: _i7.Future<String>.value(
+              _i9.dummyValue<String>(
                 this,
                 Invocation.method(#importProfile, [], {
                   #computerId: computerId,
@@ -554,8 +530,8 @@ class MockDiveComputerRepository extends _i1.Mock
                 }),
               ),
             ),
-            returnValueForMissingStub: _i8.Future<String>.value(
-              _i10.dummyValue<String>(
+            returnValueForMissingStub: _i7.Future<String>.value(
+              _i9.dummyValue<String>(
                 this,
                 Invocation.method(#importProfile, [], {
                   #computerId: computerId,
@@ -578,10 +554,10 @@ class MockDiveComputerRepository extends _i1.Mock
               ),
             ),
           )
-          as _i8.Future<String>);
+          as _i7.Future<String>);
 
   @override
-  _i8.Future<_i3.DiveComputer> findOrCreateComputer({
+  _i7.Future<_i3.DiveComputer> findOrCreateComputer({
     required String? serialNumber,
     String? diverId,
     String? manufacturer,
@@ -596,7 +572,7 @@ class MockDiveComputerRepository extends _i1.Mock
               #model: model,
               #connectionType: connectionType,
             }),
-            returnValue: _i8.Future<_i3.DiveComputer>.value(
+            returnValue: _i7.Future<_i3.DiveComputer>.value(
               _FakeDiveComputer_2(
                 this,
                 Invocation.method(#findOrCreateComputer, [], {
@@ -608,7 +584,7 @@ class MockDiveComputerRepository extends _i1.Mock
                 }),
               ),
             ),
-            returnValueForMissingStub: _i8.Future<_i3.DiveComputer>.value(
+            returnValueForMissingStub: _i7.Future<_i3.DiveComputer>.value(
               _FakeDiveComputer_2(
                 this,
                 Invocation.method(#findOrCreateComputer, [], {
@@ -621,24 +597,24 @@ class MockDiveComputerRepository extends _i1.Mock
               ),
             ),
           )
-          as _i8.Future<_i3.DiveComputer>);
+          as _i7.Future<_i3.DiveComputer>);
 
   @override
-  _i8.Future<List<_i11.DiveProfileEvent>> getEventsForDive(String? diveId) =>
+  _i7.Future<List<_i11.DiveProfileEvent>> getEventsForDive(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#getEventsForDive, [diveId]),
-            returnValue: _i8.Future<List<_i11.DiveProfileEvent>>.value(
+            returnValue: _i7.Future<List<_i11.DiveProfileEvent>>.value(
               <_i11.DiveProfileEvent>[],
             ),
             returnValueForMissingStub:
-                _i8.Future<List<_i11.DiveProfileEvent>>.value(
+                _i7.Future<List<_i11.DiveProfileEvent>>.value(
                   <_i11.DiveProfileEvent>[],
                 ),
           )
-          as _i8.Future<List<_i11.DiveProfileEvent>>);
+          as _i7.Future<List<_i11.DiveProfileEvent>>);
 
   @override
-  _i8.Future<void> addProfileEvent({
+  _i7.Future<void> addProfileEvent({
     required String? diveId,
     required int? timestamp,
     required String? eventType,
@@ -659,99 +635,99 @@ class MockDiveComputerRepository extends _i1.Mock
               #value: value,
               #tankId: tankId,
             }),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> clearEventsForDive(String? diveId) =>
+  _i7.Future<void> clearEventsForDive(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#clearEventsForDive, [diveId]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 }
 
 /// A class which mocks [DiveRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
+class MockDiveRepository extends _i1.Mock implements _i5.DiveRepository {
   @override
-  _i8.Future<List<_i5.Dive>> getAllDives({String? diverId}) =>
+  _i7.Future<List<_i4.Dive>> getAllDives({String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#getAllDives, [], {#diverId: diverId}),
-            returnValue: _i8.Future<List<_i5.Dive>>.value(<_i5.Dive>[]),
-            returnValueForMissingStub: _i8.Future<List<_i5.Dive>>.value(
-              <_i5.Dive>[],
+            returnValue: _i7.Future<List<_i4.Dive>>.value(<_i4.Dive>[]),
+            returnValueForMissingStub: _i7.Future<List<_i4.Dive>>.value(
+              <_i4.Dive>[],
             ),
           )
-          as _i8.Future<List<_i5.Dive>>);
+          as _i7.Future<List<_i4.Dive>>);
 
   @override
-  _i8.Future<_i5.Dive?> getDiveById(String? id) =>
+  _i7.Future<_i4.Dive?> getDiveById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#getDiveById, [id]),
-            returnValue: _i8.Future<_i5.Dive?>.value(),
-            returnValueForMissingStub: _i8.Future<_i5.Dive?>.value(),
+            returnValue: _i7.Future<_i4.Dive?>.value(),
+            returnValueForMissingStub: _i7.Future<_i4.Dive?>.value(),
           )
-          as _i8.Future<_i5.Dive?>);
+          as _i7.Future<_i4.Dive?>);
 
   @override
-  _i8.Future<List<_i5.DiveProfilePoint>> getDiveProfile(String? diveId) =>
+  _i7.Future<List<_i4.DiveProfilePoint>> getDiveProfile(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#getDiveProfile, [diveId]),
-            returnValue: _i8.Future<List<_i5.DiveProfilePoint>>.value(
-              <_i5.DiveProfilePoint>[],
+            returnValue: _i7.Future<List<_i4.DiveProfilePoint>>.value(
+              <_i4.DiveProfilePoint>[],
             ),
             returnValueForMissingStub:
-                _i8.Future<List<_i5.DiveProfilePoint>>.value(
-                  <_i5.DiveProfilePoint>[],
+                _i7.Future<List<_i4.DiveProfilePoint>>.value(
+                  <_i4.DiveProfilePoint>[],
                 ),
           )
-          as _i8.Future<List<_i5.DiveProfilePoint>>);
+          as _i7.Future<List<_i4.DiveProfilePoint>>);
 
   @override
-  _i8.Future<void> saveEditedProfile(
+  _i7.Future<void> saveEditedProfile(
     String? diveId,
-    List<_i5.DiveProfilePoint>? editedPoints,
+    List<_i4.DiveProfilePoint>? editedPoints,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#saveEditedProfile, [diveId, editedPoints]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<Map<String?, List<_i5.DiveProfilePoint>>> getProfilesBySource(
+  _i7.Future<Map<String?, List<_i4.DiveProfilePoint>>> getProfilesBySource(
     String? diveId,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#getProfilesBySource, [diveId]),
             returnValue:
-                _i8.Future<Map<String?, List<_i5.DiveProfilePoint>>>.value(
-                  <String?, List<_i5.DiveProfilePoint>>{},
+                _i7.Future<Map<String?, List<_i4.DiveProfilePoint>>>.value(
+                  <String?, List<_i4.DiveProfilePoint>>{},
                 ),
             returnValueForMissingStub:
-                _i8.Future<Map<String?, List<_i5.DiveProfilePoint>>>.value(
-                  <String?, List<_i5.DiveProfilePoint>>{},
+                _i7.Future<Map<String?, List<_i4.DiveProfilePoint>>>.value(
+                  <String?, List<_i4.DiveProfilePoint>>{},
                 ),
           )
-          as _i8.Future<Map<String?, List<_i5.DiveProfilePoint>>>);
+          as _i7.Future<Map<String?, List<_i4.DiveProfilePoint>>>);
 
   @override
-  _i8.Future<void> restoreOriginalProfile(String? diveId) =>
+  _i7.Future<void> restoreOriginalProfile(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#restoreOriginalProfile, [diveId]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<Map<String, List<_i5.DiveProfilePoint>>> getBatchProfileSummaries(
+  _i7.Future<Map<String, List<_i4.DiveProfilePoint>>> getBatchProfileSummaries(
     List<String>? diveIds, {
     int? maxSamples = 20,
   }) =>
@@ -762,71 +738,71 @@ class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
               {#maxSamples: maxSamples},
             ),
             returnValue:
-                _i8.Future<Map<String, List<_i5.DiveProfilePoint>>>.value(
-                  <String, List<_i5.DiveProfilePoint>>{},
+                _i7.Future<Map<String, List<_i4.DiveProfilePoint>>>.value(
+                  <String, List<_i4.DiveProfilePoint>>{},
                 ),
             returnValueForMissingStub:
-                _i8.Future<Map<String, List<_i5.DiveProfilePoint>>>.value(
-                  <String, List<_i5.DiveProfilePoint>>{},
+                _i7.Future<Map<String, List<_i4.DiveProfilePoint>>>.value(
+                  <String, List<_i4.DiveProfilePoint>>{},
                 ),
           )
-          as _i8.Future<Map<String, List<_i5.DiveProfilePoint>>>);
+          as _i7.Future<Map<String, List<_i4.DiveProfilePoint>>>);
 
   @override
-  _i8.Future<_i5.Dive> createDive(_i5.Dive? dive) =>
+  _i7.Future<_i4.Dive> createDive(_i4.Dive? dive) =>
       (super.noSuchMethod(
             Invocation.method(#createDive, [dive]),
-            returnValue: _i8.Future<_i5.Dive>.value(
-              _FakeDive_4(this, Invocation.method(#createDive, [dive])),
+            returnValue: _i7.Future<_i4.Dive>.value(
+              _FakeDive_3(this, Invocation.method(#createDive, [dive])),
             ),
-            returnValueForMissingStub: _i8.Future<_i5.Dive>.value(
-              _FakeDive_4(this, Invocation.method(#createDive, [dive])),
+            returnValueForMissingStub: _i7.Future<_i4.Dive>.value(
+              _FakeDive_3(this, Invocation.method(#createDive, [dive])),
             ),
           )
-          as _i8.Future<_i5.Dive>);
+          as _i7.Future<_i4.Dive>);
 
   @override
-  _i8.Future<void> updateDive(_i5.Dive? dive) =>
+  _i7.Future<void> updateDive(_i4.Dive? dive) =>
       (super.noSuchMethod(
             Invocation.method(#updateDive, [dive]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> deleteDive(String? id) =>
+  _i7.Future<void> deleteDive(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteDive, [id]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<List<String>> bulkDeleteDives(List<String>? ids) =>
+  _i7.Future<List<String>> bulkDeleteDives(List<String>? ids) =>
       (super.noSuchMethod(
             Invocation.method(#bulkDeleteDives, [ids]),
-            returnValue: _i8.Future<List<String>>.value(<String>[]),
-            returnValueForMissingStub: _i8.Future<List<String>>.value(
+            returnValue: _i7.Future<List<String>>.value(<String>[]),
+            returnValueForMissingStub: _i7.Future<List<String>>.value(
               <String>[],
             ),
           )
-          as _i8.Future<List<String>>);
+          as _i7.Future<List<String>>);
 
   @override
-  _i8.Future<List<_i5.Dive>> getDivesByIds(List<String>? ids) =>
+  _i7.Future<List<_i4.Dive>> getDivesByIds(List<String>? ids) =>
       (super.noSuchMethod(
             Invocation.method(#getDivesByIds, [ids]),
-            returnValue: _i8.Future<List<_i5.Dive>>.value(<_i5.Dive>[]),
-            returnValueForMissingStub: _i8.Future<List<_i5.Dive>>.value(
-              <_i5.Dive>[],
+            returnValue: _i7.Future<List<_i4.Dive>>.value(<_i4.Dive>[]),
+            returnValueForMissingStub: _i7.Future<List<_i4.Dive>>.value(
+              <_i4.Dive>[],
             ),
           )
-          as _i8.Future<List<_i5.Dive>>);
+          as _i7.Future<List<_i4.Dive>>);
 
   @override
-  _i8.Future<List<_i12.DiveSummary>> getDiveSummaries({
+  _i7.Future<List<_i12.DiveSummary>> getDiveSummaries({
     String? diverId,
     _i13.DiveFilterState? filter = const _i13.DiveFilterState(),
     _i12.DiveSummaryCursor? cursor,
@@ -843,17 +819,17 @@ class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
               #limit: limit,
               #sort: sort,
             }),
-            returnValue: _i8.Future<List<_i12.DiveSummary>>.value(
+            returnValue: _i7.Future<List<_i12.DiveSummary>>.value(
               <_i12.DiveSummary>[],
             ),
-            returnValueForMissingStub: _i8.Future<List<_i12.DiveSummary>>.value(
+            returnValueForMissingStub: _i7.Future<List<_i12.DiveSummary>>.value(
               <_i12.DiveSummary>[],
             ),
           )
-          as _i8.Future<List<_i12.DiveSummary>>);
+          as _i7.Future<List<_i12.DiveSummary>>);
 
   @override
-  _i8.Future<int> getDiveCount({
+  _i7.Future<int> getDiveCount({
     String? diverId,
     _i13.DiveFilterState? filter = const _i13.DiveFilterState(),
   }) =>
@@ -862,35 +838,35 @@ class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
               #diverId: diverId,
               #filter: filter,
             }),
-            returnValue: _i8.Future<int>.value(0),
-            returnValueForMissingStub: _i8.Future<int>.value(0),
+            returnValue: _i7.Future<int>.value(0),
+            returnValueForMissingStub: _i7.Future<int>.value(0),
           )
-          as _i8.Future<int>);
+          as _i7.Future<int>);
 
   @override
-  _i8.Future<List<_i5.Dive>> getDivesForSite(String? siteId) =>
+  _i7.Future<List<_i4.Dive>> getDivesForSite(String? siteId) =>
       (super.noSuchMethod(
             Invocation.method(#getDivesForSite, [siteId]),
-            returnValue: _i8.Future<List<_i5.Dive>>.value(<_i5.Dive>[]),
-            returnValueForMissingStub: _i8.Future<List<_i5.Dive>>.value(
-              <_i5.Dive>[],
+            returnValue: _i7.Future<List<_i4.Dive>>.value(<_i4.Dive>[]),
+            returnValueForMissingStub: _i7.Future<List<_i4.Dive>>.value(
+              <_i4.Dive>[],
             ),
           )
-          as _i8.Future<List<_i5.Dive>>);
+          as _i7.Future<List<_i4.Dive>>);
 
   @override
-  _i8.Future<List<_i5.Dive>> getDivesForCourse(String? courseId) =>
+  _i7.Future<List<_i4.Dive>> getDivesForCourse(String? courseId) =>
       (super.noSuchMethod(
             Invocation.method(#getDivesForCourse, [courseId]),
-            returnValue: _i8.Future<List<_i5.Dive>>.value(<_i5.Dive>[]),
-            returnValueForMissingStub: _i8.Future<List<_i5.Dive>>.value(
-              <_i5.Dive>[],
+            returnValue: _i7.Future<List<_i4.Dive>>.value(<_i4.Dive>[]),
+            returnValueForMissingStub: _i7.Future<List<_i4.Dive>>.value(
+              <_i4.Dive>[],
             ),
           )
-          as _i8.Future<List<_i5.Dive>>);
+          as _i7.Future<List<_i4.Dive>>);
 
   @override
-  _i8.Future<List<_i5.Dive>> getDivesInRange(
+  _i7.Future<List<_i4.Dive>> getDivesInRange(
     DateTime? start,
     DateTime? end, {
     String? diverId,
@@ -901,24 +877,24 @@ class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
               [start, end],
               {#diverId: diverId},
             ),
-            returnValue: _i8.Future<List<_i5.Dive>>.value(<_i5.Dive>[]),
-            returnValueForMissingStub: _i8.Future<List<_i5.Dive>>.value(
-              <_i5.Dive>[],
+            returnValue: _i7.Future<List<_i4.Dive>>.value(<_i4.Dive>[]),
+            returnValueForMissingStub: _i7.Future<List<_i4.Dive>>.value(
+              <_i4.Dive>[],
             ),
           )
-          as _i8.Future<List<_i5.Dive>>);
+          as _i7.Future<List<_i4.Dive>>);
 
   @override
-  _i8.Future<int> getNextDiveNumber({String? diverId}) =>
+  _i7.Future<int> getNextDiveNumber({String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#getNextDiveNumber, [], {#diverId: diverId}),
-            returnValue: _i8.Future<int>.value(0),
-            returnValueForMissingStub: _i8.Future<int>.value(0),
+            returnValue: _i7.Future<int>.value(0),
+            returnValueForMissingStub: _i7.Future<int>.value(0),
           )
-          as _i8.Future<int>);
+          as _i7.Future<int>);
 
   @override
-  _i8.Future<int> getDiveNumberForDate(
+  _i7.Future<int> getDiveNumberForDate(
     DateTime? dateTime, {
     String? diverId,
     int? startFrom = 1,
@@ -929,126 +905,126 @@ class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
               [dateTime],
               {#diverId: diverId, #startFrom: startFrom},
             ),
-            returnValue: _i8.Future<int>.value(0),
-            returnValueForMissingStub: _i8.Future<int>.value(0),
+            returnValue: _i7.Future<int>.value(0),
+            returnValueForMissingStub: _i7.Future<int>.value(0),
           )
-          as _i8.Future<int>);
+          as _i7.Future<int>);
 
   @override
-  _i8.Future<List<_i5.Dive>> searchDives(String? query, {String? diverId}) =>
+  _i7.Future<List<_i4.Dive>> searchDives(String? query, {String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#searchDives, [query], {#diverId: diverId}),
-            returnValue: _i8.Future<List<_i5.Dive>>.value(<_i5.Dive>[]),
-            returnValueForMissingStub: _i8.Future<List<_i5.Dive>>.value(
-              <_i5.Dive>[],
+            returnValue: _i7.Future<List<_i4.Dive>>.value(<_i4.Dive>[]),
+            returnValueForMissingStub: _i7.Future<List<_i4.Dive>>.value(
+              <_i4.Dive>[],
             ),
           )
-          as _i8.Future<List<_i5.Dive>>);
+          as _i7.Future<List<_i4.Dive>>);
 
   @override
-  _i8.Future<_i6.DiveStatistics> getStatistics({String? diverId}) =>
+  _i7.Future<_i5.DiveStatistics> getStatistics({String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#getStatistics, [], {#diverId: diverId}),
-            returnValue: _i8.Future<_i6.DiveStatistics>.value(
-              _FakeDiveStatistics_5(
+            returnValue: _i7.Future<_i5.DiveStatistics>.value(
+              _FakeDiveStatistics_4(
                 this,
                 Invocation.method(#getStatistics, [], {#diverId: diverId}),
               ),
             ),
-            returnValueForMissingStub: _i8.Future<_i6.DiveStatistics>.value(
-              _FakeDiveStatistics_5(
+            returnValueForMissingStub: _i7.Future<_i5.DiveStatistics>.value(
+              _FakeDiveStatistics_4(
                 this,
                 Invocation.method(#getStatistics, [], {#diverId: diverId}),
               ),
             ),
           )
-          as _i8.Future<_i6.DiveStatistics>);
+          as _i7.Future<_i5.DiveStatistics>);
 
   @override
-  _i8.Future<_i6.DiveRecords> getRecords({String? diverId}) =>
+  _i7.Future<_i5.DiveRecords> getRecords({String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#getRecords, [], {#diverId: diverId}),
-            returnValue: _i8.Future<_i6.DiveRecords>.value(
-              _FakeDiveRecords_6(
+            returnValue: _i7.Future<_i5.DiveRecords>.value(
+              _FakeDiveRecords_5(
                 this,
                 Invocation.method(#getRecords, [], {#diverId: diverId}),
               ),
             ),
-            returnValueForMissingStub: _i8.Future<_i6.DiveRecords>.value(
-              _FakeDiveRecords_6(
+            returnValueForMissingStub: _i7.Future<_i5.DiveRecords>.value(
+              _FakeDiveRecords_5(
                 this,
                 Invocation.method(#getRecords, [], {#diverId: diverId}),
               ),
             ),
           )
-          as _i8.Future<_i6.DiveRecords>);
+          as _i7.Future<_i5.DiveRecords>);
 
   @override
-  _i8.Future<Set<String>> getImportIds({String? diverId}) =>
+  _i7.Future<Set<String>> getImportIds({String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#getImportIds, [], {#diverId: diverId}),
-            returnValue: _i8.Future<Set<String>>.value(<String>{}),
-            returnValueForMissingStub: _i8.Future<Set<String>>.value(
+            returnValue: _i7.Future<Set<String>>.value(<String>{}),
+            returnValueForMissingStub: _i7.Future<Set<String>>.value(
               <String>{},
             ),
           )
-          as _i8.Future<Set<String>>);
+          as _i7.Future<Set<String>>);
 
   @override
-  _i8.Future<void> toggleFavorite(String? diveId) =>
+  _i7.Future<void> toggleFavorite(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#toggleFavorite, [diveId]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> setFavorite(String? diveId, bool? isFavorite) =>
+  _i7.Future<void> setFavorite(String? diveId, bool? isFavorite) =>
       (super.noSuchMethod(
             Invocation.method(#setFavorite, [diveId, isFavorite]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<List<_i5.Dive>> getFavoriteDives({String? diverId}) =>
+  _i7.Future<List<_i4.Dive>> getFavoriteDives({String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#getFavoriteDives, [], {#diverId: diverId}),
-            returnValue: _i8.Future<List<_i5.Dive>>.value(<_i5.Dive>[]),
-            returnValueForMissingStub: _i8.Future<List<_i5.Dive>>.value(
-              <_i5.Dive>[],
+            returnValue: _i7.Future<List<_i4.Dive>>.value(<_i4.Dive>[]),
+            returnValueForMissingStub: _i7.Future<List<_i4.Dive>>.value(
+              <_i4.Dive>[],
             ),
           )
-          as _i8.Future<List<_i5.Dive>>);
+          as _i7.Future<List<_i4.Dive>>);
 
   @override
-  _i8.Future<List<_i5.Dive>> getPlannedDives({String? diverId}) =>
+  _i7.Future<List<_i4.Dive>> getPlannedDives({String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#getPlannedDives, [], {#diverId: diverId}),
-            returnValue: _i8.Future<List<_i5.Dive>>.value(<_i5.Dive>[]),
-            returnValueForMissingStub: _i8.Future<List<_i5.Dive>>.value(
-              <_i5.Dive>[],
+            returnValue: _i7.Future<List<_i4.Dive>>.value(<_i4.Dive>[]),
+            returnValueForMissingStub: _i7.Future<List<_i4.Dive>>.value(
+              <_i4.Dive>[],
             ),
           )
-          as _i8.Future<List<_i5.Dive>>);
+          as _i7.Future<List<_i4.Dive>>);
 
   @override
-  _i8.Future<_i5.Dive> createPlannedDive(_i5.Dive? plan) =>
+  _i7.Future<_i4.Dive> createPlannedDive(_i4.Dive? plan) =>
       (super.noSuchMethod(
             Invocation.method(#createPlannedDive, [plan]),
-            returnValue: _i8.Future<_i5.Dive>.value(
-              _FakeDive_4(this, Invocation.method(#createPlannedDive, [plan])),
+            returnValue: _i7.Future<_i4.Dive>.value(
+              _FakeDive_3(this, Invocation.method(#createPlannedDive, [plan])),
             ),
-            returnValueForMissingStub: _i8.Future<_i5.Dive>.value(
-              _FakeDive_4(this, Invocation.method(#createPlannedDive, [plan])),
+            returnValueForMissingStub: _i7.Future<_i4.Dive>.value(
+              _FakeDive_3(this, Invocation.method(#createPlannedDive, [plan])),
             ),
           )
-          as _i8.Future<_i5.Dive>);
+          as _i7.Future<_i4.Dive>);
 
   @override
-  _i8.Future<String> convertPlanToActualDive(
+  _i7.Future<String> convertPlanToActualDive(
     String? planId, {
     DateTime? actualDateTime,
   }) =>
@@ -1058,8 +1034,8 @@ class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
               [planId],
               {#actualDateTime: actualDateTime},
             ),
-            returnValue: _i8.Future<String>.value(
-              _i10.dummyValue<String>(
+            returnValue: _i7.Future<String>.value(
+              _i9.dummyValue<String>(
                 this,
                 Invocation.method(
                   #convertPlanToActualDive,
@@ -1068,8 +1044,8 @@ class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
                 ),
               ),
             ),
-            returnValueForMissingStub: _i8.Future<String>.value(
-              _i10.dummyValue<String>(
+            returnValueForMissingStub: _i7.Future<String>.value(
+              _i9.dummyValue<String>(
                 this,
                 Invocation.method(
                   #convertPlanToActualDive,
@@ -1079,111 +1055,111 @@ class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
               ),
             ),
           )
-          as _i8.Future<String>);
+          as _i7.Future<String>);
 
   @override
-  _i8.Future<void> deletePlannedDive(String? planId) =>
+  _i7.Future<void> deletePlannedDive(String? planId) =>
       (super.noSuchMethod(
             Invocation.method(#deletePlannedDive, [planId]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<List<_i7.GasSwitchWithTank>> getGasSwitchesForDive(
+  _i7.Future<List<_i6.GasSwitchWithTank>> getGasSwitchesForDive(
     String? diveId,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#getGasSwitchesForDive, [diveId]),
-            returnValue: _i8.Future<List<_i7.GasSwitchWithTank>>.value(
-              <_i7.GasSwitchWithTank>[],
+            returnValue: _i7.Future<List<_i6.GasSwitchWithTank>>.value(
+              <_i6.GasSwitchWithTank>[],
             ),
             returnValueForMissingStub:
-                _i8.Future<List<_i7.GasSwitchWithTank>>.value(
-                  <_i7.GasSwitchWithTank>[],
+                _i7.Future<List<_i6.GasSwitchWithTank>>.value(
+                  <_i6.GasSwitchWithTank>[],
                 ),
           )
-          as _i8.Future<List<_i7.GasSwitchWithTank>>);
+          as _i7.Future<List<_i6.GasSwitchWithTank>>);
 
   @override
-  _i8.Future<_i7.GasSwitch> createGasSwitch(_i7.GasSwitch? gasSwitch) =>
+  _i7.Future<_i6.GasSwitch> createGasSwitch(_i6.GasSwitch? gasSwitch) =>
       (super.noSuchMethod(
             Invocation.method(#createGasSwitch, [gasSwitch]),
-            returnValue: _i8.Future<_i7.GasSwitch>.value(
-              _FakeGasSwitch_7(
+            returnValue: _i7.Future<_i6.GasSwitch>.value(
+              _FakeGasSwitch_6(
                 this,
                 Invocation.method(#createGasSwitch, [gasSwitch]),
               ),
             ),
-            returnValueForMissingStub: _i8.Future<_i7.GasSwitch>.value(
-              _FakeGasSwitch_7(
+            returnValueForMissingStub: _i7.Future<_i6.GasSwitch>.value(
+              _FakeGasSwitch_6(
                 this,
                 Invocation.method(#createGasSwitch, [gasSwitch]),
               ),
             ),
           )
-          as _i8.Future<_i7.GasSwitch>);
+          as _i7.Future<_i6.GasSwitch>);
 
   @override
-  _i8.Future<void> deleteGasSwitch(String? id) =>
+  _i7.Future<void> deleteGasSwitch(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteGasSwitch, [id]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> deleteGasSwitchesForDive(String? diveId) =>
+  _i7.Future<void> deleteGasSwitchesForDive(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#deleteGasSwitchesForDive, [diveId]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> insertGasSwitches(List<_i7.GasSwitch>? switches) =>
+  _i7.Future<void> insertGasSwitches(List<_i6.GasSwitch>? switches) =>
       (super.noSuchMethod(
             Invocation.method(#insertGasSwitches, [switches]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<_i5.Dive?> getPreviousDive(String? diveId) =>
+  _i7.Future<_i4.Dive?> getPreviousDive(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#getPreviousDive, [diveId]),
-            returnValue: _i8.Future<_i5.Dive?>.value(),
-            returnValueForMissingStub: _i8.Future<_i5.Dive?>.value(),
+            returnValue: _i7.Future<_i4.Dive?>.value(),
+            returnValueForMissingStub: _i7.Future<_i4.Dive?>.value(),
           )
-          as _i8.Future<_i5.Dive?>);
+          as _i7.Future<_i4.Dive?>);
 
   @override
-  _i8.Future<Duration?> getSurfaceInterval(String? diveId) =>
+  _i7.Future<Duration?> getSurfaceInterval(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#getSurfaceInterval, [diveId]),
-            returnValue: _i8.Future<Duration?>.value(),
-            returnValueForMissingStub: _i8.Future<Duration?>.value(),
+            returnValue: _i7.Future<Duration?>.value(),
+            returnValueForMissingStub: _i7.Future<Duration?>.value(),
           )
-          as _i8.Future<Duration?>);
+          as _i7.Future<Duration?>);
 
   @override
-  _i8.Future<_i6.DiveNumberingInfo> getDiveNumberingInfo({String? diverId}) =>
+  _i7.Future<_i5.DiveNumberingInfo> getDiveNumberingInfo({String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#getDiveNumberingInfo, [], {#diverId: diverId}),
-            returnValue: _i8.Future<_i6.DiveNumberingInfo>.value(
-              _FakeDiveNumberingInfo_8(
+            returnValue: _i7.Future<_i5.DiveNumberingInfo>.value(
+              _FakeDiveNumberingInfo_7(
                 this,
                 Invocation.method(#getDiveNumberingInfo, [], {
                   #diverId: diverId,
                 }),
               ),
             ),
-            returnValueForMissingStub: _i8.Future<_i6.DiveNumberingInfo>.value(
-              _FakeDiveNumberingInfo_8(
+            returnValueForMissingStub: _i7.Future<_i5.DiveNumberingInfo>.value(
+              _FakeDiveNumberingInfo_7(
                 this,
                 Invocation.method(#getDiveNumberingInfo, [], {
                   #diverId: diverId,
@@ -1191,110 +1167,110 @@ class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
               ),
             ),
           )
-          as _i8.Future<_i6.DiveNumberingInfo>);
+          as _i7.Future<_i5.DiveNumberingInfo>);
 
   @override
-  _i8.Future<void> renumberAllDives({int? startFrom = 1}) =>
+  _i7.Future<void> renumberAllDives({int? startFrom = 1}) =>
       (super.noSuchMethod(
             Invocation.method(#renumberAllDives, [], {#startFrom: startFrom}),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> assignMissingDiveNumbers() =>
+  _i7.Future<void> assignMissingDiveNumbers() =>
       (super.noSuchMethod(
             Invocation.method(#assignMissingDiveNumbers, []),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> bulkUpdateTrip(List<String>? diveIds, String? tripId) =>
+  _i7.Future<void> bulkUpdateTrip(List<String>? diveIds, String? tripId) =>
       (super.noSuchMethod(
             Invocation.method(#bulkUpdateTrip, [diveIds, tripId]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> bulkAddTags(List<String>? diveIds, List<String>? tagIds) =>
+  _i7.Future<void> bulkAddTags(List<String>? diveIds, List<String>? tagIds) =>
       (super.noSuchMethod(
             Invocation.method(#bulkAddTags, [diveIds, tagIds]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> bulkRemoveTags(
+  _i7.Future<void> bulkRemoveTags(
     List<String>? diveIds,
     List<String>? tagIds,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#bulkRemoveTags, [diveIds, tagIds]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<List<_i16.DiveDataSource>> getDataSources(String? diveId) =>
+  _i7.Future<List<_i16.DiveDataSource>> getDataSources(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#getDataSources, [diveId]),
-            returnValue: _i8.Future<List<_i16.DiveDataSource>>.value(
+            returnValue: _i7.Future<List<_i16.DiveDataSource>>.value(
               <_i16.DiveDataSource>[],
             ),
             returnValueForMissingStub:
-                _i8.Future<List<_i16.DiveDataSource>>.value(
+                _i7.Future<List<_i16.DiveDataSource>>.value(
                   <_i16.DiveDataSource>[],
                 ),
           )
-          as _i8.Future<List<_i16.DiveDataSource>>);
+          as _i7.Future<List<_i16.DiveDataSource>>);
 
   @override
-  _i8.Future<bool> hasMultipleDataSources(String? diveId) =>
+  _i7.Future<bool> hasMultipleDataSources(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#hasMultipleDataSources, [diveId]),
-            returnValue: _i8.Future<bool>.value(false),
-            returnValueForMissingStub: _i8.Future<bool>.value(false),
+            returnValue: _i7.Future<bool>.value(false),
+            returnValueForMissingStub: _i7.Future<bool>.value(false),
           )
-          as _i8.Future<bool>);
+          as _i7.Future<bool>);
 
   @override
-  _i8.Future<void> saveComputerReading(
+  _i7.Future<void> saveComputerReading(
     _i11.DiveDataSourcesCompanion? reading,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#saveComputerReading, [reading]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> deleteComputerReading(String? id) =>
+  _i7.Future<void> deleteComputerReading(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteComputerReading, [id]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> backfillPrimaryDataSource(String? diveId) =>
+  _i7.Future<void> backfillPrimaryDataSource(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#backfillPrimaryDataSource, [diveId]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> consolidateComputer({
+  _i7.Future<void> consolidateComputer({
     required String? targetDiveId,
     required _i11.DiveDataSourcesCompanion? secondaryReading,
     required List<_i11.DiveProfilesCompanion>? secondaryProfile,
@@ -1305,13 +1281,13 @@ class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
               #secondaryReading: secondaryReading,
               #secondaryProfile: secondaryProfile,
             }),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<void> mergeDives({
+  _i7.Future<void> mergeDives({
     required String? primaryDiveId,
     required String? secondaryDiveId,
   }) =>
@@ -1320,13 +1296,13 @@ class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
               #primaryDiveId: primaryDiveId,
               #secondaryDiveId: secondaryDiveId,
             }),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i8.Future<String> unlinkComputer({
+  _i7.Future<String> unlinkComputer({
     required String? diveId,
     required String? computerReadingId,
   }) =>
@@ -1335,8 +1311,8 @@ class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
               #diveId: diveId,
               #computerReadingId: computerReadingId,
             }),
-            returnValue: _i8.Future<String>.value(
-              _i10.dummyValue<String>(
+            returnValue: _i7.Future<String>.value(
+              _i9.dummyValue<String>(
                 this,
                 Invocation.method(#unlinkComputer, [], {
                   #diveId: diveId,
@@ -1344,8 +1320,8 @@ class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
                 }),
               ),
             ),
-            returnValueForMissingStub: _i8.Future<String>.value(
-              _i10.dummyValue<String>(
+            returnValueForMissingStub: _i7.Future<String>.value(
+              _i9.dummyValue<String>(
                 this,
                 Invocation.method(#unlinkComputer, [], {
                   #diveId: diveId,
@@ -1354,10 +1330,10 @@ class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
               ),
             ),
           )
-          as _i8.Future<String>);
+          as _i7.Future<String>);
 
   @override
-  _i8.Future<void> setPrimaryDataSource({
+  _i7.Future<void> setPrimaryDataSource({
     required String? diveId,
     required String? computerReadingId,
   }) =>
@@ -1366,8 +1342,8 @@ class MockDiveRepository extends _i1.Mock implements _i6.DiveRepository {
               #diveId: diveId,
               #computerReadingId: computerReadingId,
             }),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i7.Future<void>);
 }

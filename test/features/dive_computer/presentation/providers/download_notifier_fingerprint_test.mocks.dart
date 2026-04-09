@@ -36,12 +36,6 @@ class _FakeDiveComputer_0 extends _i1.SmartFake implements _i2.DiveComputer {
     : super(parent, parentInvocation);
 }
 
-class _FakeDiveComputerStats_1 extends _i1.SmartFake
-    implements _i3.DiveComputerStats {
-  _FakeDiveComputerStats_1(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
 /// A class which mocks [DiveComputerRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -241,19 +235,6 @@ class MockDiveComputerRepository extends _i1.Mock
             returnValue: _i4.Future<_i3.DiveMatchResult?>.value(),
           )
           as _i4.Future<_i3.DiveMatchResult?>);
-
-  @override
-  _i4.Future<_i3.DiveComputerStats> getComputerStats(String? computerId) =>
-      (super.noSuchMethod(
-            Invocation.method(#getComputerStats, [computerId]),
-            returnValue: _i4.Future<_i3.DiveComputerStats>.value(
-              _FakeDiveComputerStats_1(
-                this,
-                Invocation.method(#getComputerStats, [computerId]),
-              ),
-            ),
-          )
-          as _i4.Future<_i3.DiveComputerStats>);
 
   @override
   _i4.Future<List<String>> getDiveIdsForComputer(

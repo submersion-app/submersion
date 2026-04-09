@@ -145,10 +145,6 @@ void main() {
           isNull,
         );
 
-        // Methods that return empty objects/defaults
-        final stats = await repository.getComputerStats('test-id');
-        expect(stats.diveCount, equals(0));
-
         // Methods that return empty list
         expect(await repository.getDiveIdsForComputer('test-id'), isEmpty);
       },

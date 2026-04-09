@@ -61,9 +61,22 @@ class FitParserService {
     final startTimeMs = session.startTime;
     if (startTimeMs == null) return null;
 
-    final startTime = DateTime.fromMillisecondsSinceEpoch(startTimeMs);
+    // FIT timestamps are UTC. Convert to local wall-clock time, then
+    // re-interpret as UTC (wall-time-as-UTC convention) so the displayed
+    // dive time reflects the local time at the dive site.
+    final localStart = DateTime.fromMillisecondsSinceEpoch(startTimeMs);
+    final startTime = DateTime.utc(
+      localStart.year,
+      localStart.month,
+      localStart.day,
+      localStart.hour,
+      localStart.minute,
+      localStart.second,
+    );
 
-    final profile = _buildProfile(records, startTime);
+    // Use raw UTC epoch for profile offset calculations (both record
+    // timestamps and startTimeMs are in the same UTC time base).
+    final profile = _buildProfile(records, startTimeMs);
 
     // Compute summary stats from records
     final depths = records.map((r) => r.depth).whereType<double>().toList();
@@ -105,17 +118,22 @@ class FitParserService {
 
     // End time from session
     final totalElapsed = session.totalElapsedTime;
-    final endTime = totalElapsed != null
-        ? startTime.add(Duration(seconds: totalElapsed.round()))
-        : DateTime.fromMillisecondsSinceEpoch(session.timestamp ?? startTimeMs);
+    final Duration elapsed;
+    if (totalElapsed != null) {
+      elapsed = Duration(seconds: totalElapsed.round());
+    } else {
+      final endMs = session.timestamp ?? startTimeMs;
+      elapsed = Duration(milliseconds: endMs - startTimeMs);
+    }
+    final endTime = startTime.add(elapsed);
 
     // GPS from session
     final latitude = session.startPositionLat;
     final longitude = session.startPositionLong;
 
-    // Source ID for deduplication
+    // Source ID for deduplication (use raw UTC epoch for stability)
     final serialNumber = fileId?.serialNumber ?? 0;
-    final sourceId = 'garmin-$serialNumber-${startTime.millisecondsSinceEpoch}';
+    final sourceId = 'garmin-$serialNumber-$startTimeMs';
 
     return ImportedDive(
       sourceId: sourceId,
@@ -183,9 +201,8 @@ class FitParserService {
 
   List<ImportedProfileSample> _buildProfile(
     List<RecordMessage> records,
-    DateTime startTime,
+    int startTimeMs,
   ) {
-    final startMs = startTime.millisecondsSinceEpoch;
     final samples = <ImportedProfileSample>[];
 
     for (final record in records) {
@@ -194,7 +211,7 @@ class FitParserService {
 
       final timestampMs = record.timestamp;
       final timeSeconds = timestampMs != null
-          ? ((timestampMs - startMs) / 1000).round()
+          ? ((timestampMs - startTimeMs) / 1000).round()
           : 0;
 
       samples.add(

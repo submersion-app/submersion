@@ -196,11 +196,13 @@ void main() {
 
       final result = await service.parseFitFile(bytes);
 
+      // Parser stores local wall-clock time as UTC (wall-time-as-UTC convention)
+      final expectedStart = DateTime.utc(2024, 3, 20, 14, 0, 0);
       expect(result, isNotNull);
-      expect(result!.startTime, startTime);
+      expect(result!.startTime, expectedStart);
       expect(
         result.endTime,
-        startTime.add(const Duration(seconds: durationSeconds)),
+        expectedStart.add(const Duration(seconds: durationSeconds)),
       );
     });
 

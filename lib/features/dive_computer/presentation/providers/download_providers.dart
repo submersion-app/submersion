@@ -284,15 +284,6 @@ final downloadPercentageProvider = Provider<double>((ref) {
   return state.progress?.percentage ?? 0.0;
 });
 
-/// Provider for dive computer statistics.
-final computerStatsProvider = FutureProvider.family<DiveComputerStats, String>((
-  ref,
-  computerId,
-) async {
-  final repository = ref.watch(diveComputerRepositoryProvider);
-  return repository.getComputerStats(computerId);
-});
-
 /// Provider for dive IDs imported from a specific computer.
 final computerDiveIdsProvider = FutureProvider.family<List<String>, String>((
   ref,
