@@ -198,7 +198,7 @@ class DatabaseService {
     final file = File(dbPath);
     if (!file.existsSync()) return null;
 
-    final db = sqlite3.sqlite3.open(dbPath);
+    final db = sqlite3.sqlite3.open(dbPath, mode: sqlite3.OpenMode.readOnly);
     try {
       final result = db.select('PRAGMA user_version');
       if (result.isEmpty) return null;
