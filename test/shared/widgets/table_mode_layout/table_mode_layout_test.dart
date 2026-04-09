@@ -86,6 +86,7 @@ Widget _buildLayout({
   String appBarTitle = 'Dives',
   Widget? mapContent,
   Widget? profilePanelContent,
+  Widget? columnSettingsAction,
   List<Widget>? appBarActions,
   bool isMapViewActive = false,
   VoidCallback? onMapViewToggle,
@@ -104,6 +105,7 @@ Widget _buildLayout({
     onEntitySelected: (_) {},
     mapContent: mapContent,
     profilePanelContent: profilePanelContent,
+    columnSettingsAction: columnSettingsAction,
     appBarActions: appBarActions,
     isMapViewActive: isMapViewActive,
     onMapViewToggle: onMapViewToggle,
@@ -645,6 +647,34 @@ void main() {
           expect(find.text('Summary'), findsOneWidget);
         },
       );
+
+      testWidgets(
+        'profile panel is visible when details pane and profile are both active',
+        (tester) async {
+          await tester.pumpWidget(
+            _buildRoutedTestWidget(
+              width: 1200,
+              overrides: [
+                tableDetailsPaneProvider('dives').overrideWith((_) => true),
+              ],
+              child: _buildLayout(
+                profilePanelContent: const SizedBox(
+                  height: 100,
+                  child: Text('Profile Panel'),
+                ),
+                showProfilePanel: true,
+                onProfileToggled: () {},
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Profile, table, and summary should all be visible
+          expect(find.text('Profile Panel'), findsOneWidget);
+          expect(find.text('Table Content'), findsOneWidget);
+          expect(find.text('Summary'), findsOneWidget);
+        },
+      );
     });
 
     // ------------------------------------------------------------------
@@ -713,6 +743,182 @@ void main() {
           expect(profileOffset.dy, lessThan(tableOffset.dy));
         },
       );
+    });
+
+    // ------------------------------------------------------------------
+    // Mobile map: full-page
+    // ------------------------------------------------------------------
+    group('mobile map layout', () {
+      testWidgets('shows full-page map on mobile when map is active', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          _buildTestWidget(
+            width: 500, // mobile width
+            child: _buildLayout(
+              mapContent: Container(
+                color: Colors.blue,
+                child: const Text('Map'),
+              ),
+              isMapViewActive: true,
+              onMapViewToggle: () {},
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Map should be visible
+        expect(find.text('Map'), findsOneWidget);
+        // Table should NOT be visible on mobile when map is full-page
+        expect(find.text('Table Content'), findsNothing);
+      });
+    });
+
+    // ------------------------------------------------------------------
+    // Column settings action
+    // ------------------------------------------------------------------
+    group('column settings action', () {
+      testWidgets('renders columnSettingsAction in app bar', (tester) async {
+        await tester.pumpWidget(
+          _buildTestWidget(
+            child: _buildLayout(
+              columnSettingsAction: IconButton(
+                key: const ValueKey('col_settings'),
+                icon: const Icon(Icons.view_column),
+                onPressed: () {},
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(const ValueKey('col_settings')), findsOneWidget);
+      });
+    });
+
+    // ------------------------------------------------------------------
+    // Vertical divider between toggle actions and appBarActions
+    // ------------------------------------------------------------------
+    group('vertical divider', () {
+      testWidgets(
+        'renders VerticalDivider when both toggle actions and appBarActions exist',
+        (tester) async {
+          await tester.pumpWidget(
+            _buildTestWidget(
+              child: _buildLayout(
+                mapContent: Container(
+                  color: Colors.blue,
+                  child: const Text('Map'),
+                ),
+                onMapViewToggle: () {},
+                appBarActions: [
+                  IconButton(
+                    key: const ValueKey('search'),
+                    icon: const Icon(Icons.search),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Both the map toggle and the search action exist, so a
+          // VerticalDivider should be rendered between them
+          expect(find.byType(VerticalDivider), findsOneWidget);
+        },
+      );
+
+      testWidgets('no VerticalDivider when only appBarActions and no toggles', (
+        tester,
+      ) async {
+        // No map/profile/details toggles, just appBarActions
+        await tester.pumpWidget(
+          _buildTestWidget(
+            width: 500, // mobile, no details toggle
+            child: _buildLayout(
+              appBarActions: [
+                IconButton(
+                  key: const ValueKey('search'),
+                  icon: const Icon(Icons.search),
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // No toggle buttons, so no divider should appear
+        expect(find.byType(VerticalDivider), findsNothing);
+      });
+    });
+
+    // ------------------------------------------------------------------
+    // Different sections
+    // ------------------------------------------------------------------
+    group('different section keys', () {
+      testWidgets('works with sites section key', (tester) async {
+        await tester.pumpWidget(
+          _buildTestWidget(
+            child: _buildLayout(sectionKey: 'sites', appBarTitle: 'Dive Sites'),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Dive Sites'), findsOneWidget);
+        expect(find.text('Table Content'), findsOneWidget);
+      });
+    });
+
+    // ------------------------------------------------------------------
+    // Profile panel only (no map)
+    // ------------------------------------------------------------------
+    group('profile only without map', () {
+      testWidgets('shows profile column layout without map', (tester) async {
+        await tester.pumpWidget(
+          _buildTestWidget(
+            child: _buildLayout(
+              profilePanelContent: const SizedBox(
+                height: 100,
+                child: Text('Profile Panel'),
+              ),
+              showProfilePanel: true,
+              onProfileToggled: () {},
+              // No map
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Profile Panel'), findsOneWidget);
+        expect(find.text('Table Content'), findsOneWidget);
+        // No map - profile is in Column above table
+      });
+    });
+
+    // ------------------------------------------------------------------
+    // Profile toggle callback
+    // ------------------------------------------------------------------
+    group('profile toggle callback', () {
+      testWidgets('calls onProfileToggled when tapped', (tester) async {
+        var toggled = false;
+        await tester.pumpWidget(
+          _buildTestWidget(
+            child: _buildLayout(
+              profilePanelContent: const SizedBox(
+                height: 100,
+                child: Text('Profile Panel'),
+              ),
+              onProfileToggled: () => toggled = true,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const ValueKey('profile_toggle')));
+        expect(toggled, isTrue);
+      });
     });
   });
 }

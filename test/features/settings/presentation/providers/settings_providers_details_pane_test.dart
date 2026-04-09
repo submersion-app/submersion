@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -190,6 +192,96 @@ void main() {
         expect(updated.showProfilePanelInTableView, isFalse);
       },
     );
+  });
+
+  group('AppSettings computed getters', () {
+    test('unitPreset returns metric for default settings', () {
+      const settings = AppSettings();
+      expect(settings.unitPreset, UnitPreset.metric);
+    });
+
+    test('unitPreset returns imperial when all units are imperial', () {
+      const settings = AppSettings(
+        depthUnit: DepthUnit.feet,
+        temperatureUnit: TemperatureUnit.fahrenheit,
+        pressureUnit: PressureUnit.psi,
+        volumeUnit: VolumeUnit.cubicFeet,
+        weightUnit: WeightUnit.pounds,
+        altitudeUnit: AltitudeUnit.feet,
+      );
+      expect(settings.unitPreset, UnitPreset.imperial);
+    });
+
+    test('unitPreset returns custom when units are mixed', () {
+      const settings = AppSettings(
+        depthUnit: DepthUnit.meters,
+        temperatureUnit: TemperatureUnit.fahrenheit,
+      );
+      expect(settings.unitPreset, UnitPreset.custom);
+    });
+
+    test('isMetric returns true for default metric settings', () {
+      const settings = AppSettings();
+      expect(settings.isMetric, isTrue);
+    });
+
+    test('isMetric returns false for imperial settings', () {
+      const settings = AppSettings(
+        depthUnit: DepthUnit.feet,
+        temperatureUnit: TemperatureUnit.fahrenheit,
+        pressureUnit: PressureUnit.psi,
+        volumeUnit: VolumeUnit.cubicFeet,
+        weightUnit: WeightUnit.pounds,
+        altitudeUnit: AltitudeUnit.feet,
+      );
+      expect(settings.isMetric, isFalse);
+    });
+
+    test('gfLowDecimal converts to 0.0-1.0 range', () {
+      const settings = AppSettings(gfLow: 30);
+      expect(settings.gfLowDecimal, closeTo(0.3, 0.001));
+    });
+
+    test('gfHighDecimal converts to 0.0-1.0 range', () {
+      const settings = AppSettings(gfHigh: 70);
+      expect(settings.gfHighDecimal, closeTo(0.7, 0.001));
+    });
+
+    test('gfDisplay returns formatted string', () {
+      const settings = AppSettings(gfLow: 30, gfHigh: 70);
+      expect(settings.gfDisplay, '30/70');
+    });
+
+    test('gfDisplay uses default values', () {
+      const settings = AppSettings();
+      expect(settings.gfDisplay, '50/85');
+    });
+
+    test('showDepthColoredDiveCards is false when none', () {
+      const settings = AppSettings(cardColorAttribute: CardColorAttribute.none);
+      expect(settings.showDepthColoredDiveCards, isFalse);
+    });
+
+    test('showDepthColoredDiveCards is true when depth', () {
+      const settings = AppSettings(
+        cardColorAttribute: CardColorAttribute.depth,
+      );
+      expect(settings.showDepthColoredDiveCards, isTrue);
+    });
+
+    test('showDepthColoredDiveCards is true when duration', () {
+      const settings = AppSettings(
+        cardColorAttribute: CardColorAttribute.duration,
+      );
+      expect(settings.showDepthColoredDiveCards, isTrue);
+    });
+
+    test('showDepthColoredDiveCards is true when temperature', () {
+      const settings = AppSettings(
+        cardColorAttribute: CardColorAttribute.temperature,
+      );
+      expect(settings.showDepthColoredDiveCards, isTrue);
+    });
   });
 
   group('Runtime view mode providers', () {

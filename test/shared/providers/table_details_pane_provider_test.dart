@@ -53,5 +53,75 @@ void main() {
       container.read(tableDetailsPaneProvider('sites').notifier).state = true;
       expect(container.read(tableDetailsPaneProvider('buddies')), isFalse);
     });
+
+    test('can toggle from true back to false', () {
+      final container = _createContainer();
+      addTearDown(container.dispose);
+      container.read(tableDetailsPaneProvider('sites').notifier).state = true;
+      expect(container.read(tableDetailsPaneProvider('sites')), isTrue);
+      container.read(tableDetailsPaneProvider('sites').notifier).state = false;
+      expect(container.read(tableDetailsPaneProvider('sites')), isFalse);
+    });
+
+    test('reads persisted dives setting', () {
+      final mockNotifier = _MockSettingsNotifier();
+      mockNotifier.state = const AppSettings(showDetailsPaneDives: true);
+      final container = _createContainer(notifier: mockNotifier);
+      addTearDown(container.dispose);
+      expect(container.read(tableDetailsPaneProvider('dives')), isTrue);
+    });
+
+    test('reads persisted buddies setting', () {
+      final mockNotifier = _MockSettingsNotifier();
+      mockNotifier.state = const AppSettings(showDetailsPaneBuddies: true);
+      final container = _createContainer(notifier: mockNotifier);
+      addTearDown(container.dispose);
+      expect(container.read(tableDetailsPaneProvider('buddies')), isTrue);
+    });
+
+    test('reads persisted trips setting', () {
+      final mockNotifier = _MockSettingsNotifier();
+      mockNotifier.state = const AppSettings(showDetailsPaneTrips: true);
+      final container = _createContainer(notifier: mockNotifier);
+      addTearDown(container.dispose);
+      expect(container.read(tableDetailsPaneProvider('trips')), isTrue);
+    });
+
+    test('reads persisted equipment setting', () {
+      final mockNotifier = _MockSettingsNotifier();
+      mockNotifier.state = const AppSettings(showDetailsPaneEquipment: true);
+      final container = _createContainer(notifier: mockNotifier);
+      addTearDown(container.dispose);
+      expect(container.read(tableDetailsPaneProvider('equipment')), isTrue);
+    });
+
+    test('reads persisted diveCenters setting', () {
+      final mockNotifier = _MockSettingsNotifier();
+      mockNotifier.state = const AppSettings(showDetailsPaneDiveCenters: true);
+      final container = _createContainer(notifier: mockNotifier);
+      addTearDown(container.dispose);
+      expect(container.read(tableDetailsPaneProvider('diveCenters')), isTrue);
+    });
+
+    test('reads persisted certifications setting', () {
+      final mockNotifier = _MockSettingsNotifier();
+      mockNotifier.state = const AppSettings(
+        showDetailsPaneCertifications: true,
+      );
+      final container = _createContainer(notifier: mockNotifier);
+      addTearDown(container.dispose);
+      expect(
+        container.read(tableDetailsPaneProvider('certifications')),
+        isTrue,
+      );
+    });
+
+    test('reads persisted courses setting', () {
+      final mockNotifier = _MockSettingsNotifier();
+      mockNotifier.state = const AppSettings(showDetailsPaneCourses: true);
+      final container = _createContainer(notifier: mockNotifier);
+      addTearDown(container.dispose);
+      expect(container.read(tableDetailsPaneProvider('courses')), isTrue);
+    });
   });
 }

@@ -210,5 +210,53 @@ void main() {
 
       expect(a, isNot(equals(b)));
     });
+
+    test('toJson / fromJson roundtrip with empty slots', () {
+      const config = EntityCardViewConfig<_TestField>(slots: []);
+
+      final json = config.toJson();
+      final restored = EntityCardViewConfig.fromJson<_TestField>(
+        json,
+        _fieldFromName,
+      );
+
+      expect(restored.slots, isEmpty);
+      expect(restored.extraFields, isEmpty);
+    });
+
+    test('toJson / fromJson roundtrip with empty extraFields', () {
+      const config = EntityCardViewConfig<_TestField>(
+        slots: [EntityCardSlotConfig(slotId: 'title', field: _TestField.alpha)],
+        extraFields: [],
+      );
+
+      final json = config.toJson();
+      final restored = EntityCardViewConfig.fromJson<_TestField>(
+        json,
+        _fieldFromName,
+      );
+
+      expect(restored.slots.length, 1);
+      expect(restored.extraFields, isEmpty);
+    });
+
+    test('fromJson with null extraFields key defaults to empty', () {
+      final json = {'slots': <Map<String, dynamic>>[], 'extraFields': null};
+
+      final config = EntityCardViewConfig.fromJson<_TestField>(
+        json,
+        _fieldFromName,
+      );
+
+      expect(config.extraFields, isEmpty);
+    });
+
+    test('copyWith preserves slots when only extraFields changed', () {
+      final config = makeConfig();
+      final updated = config.copyWith(extraFields: [_TestField.charlie]);
+
+      expect(updated.slots, equals(config.slots));
+      expect(updated.extraFields, [_TestField.charlie]);
+    });
   });
 }
