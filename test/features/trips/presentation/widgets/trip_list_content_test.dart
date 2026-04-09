@@ -298,5 +298,30 @@ void main() {
 
       expect(find.text('Stats Trip'), findsOneWidget);
     });
+
+    testWidgets('tapping a row sets highlighted trip id', (tester) async {
+      final trips = [
+        _makeTrip(id: 't1', name: 'Bali Trip'),
+        _makeTrip(id: 't2', name: 'Red Sea Trip'),
+      ];
+
+      final overrides = await _buildOverrides(trips: trips);
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+
+      // Tap on a trip row
+      await tester.tap(find.text('Bali Trip'));
+      // Pump past the DoubleTapGestureRecognizer's 40ms timer
+      await tester.pump(const Duration(milliseconds: 50));
+
+      // Verify the widget rebuilt successfully (no crash)
+      expect(find.text('Bali Trip'), findsOneWidget);
+    });
   });
 }

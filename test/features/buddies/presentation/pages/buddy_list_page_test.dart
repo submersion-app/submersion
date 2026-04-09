@@ -7,6 +7,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_list_content.dart';
@@ -53,9 +55,12 @@ class _TestBuddyTableConfigNotifier
 // Helper to build the widget under test inside a GoRouter
 // ---------------------------------------------------------------------------
 
-Widget _buildTestWidget({required List<Override> overrides}) {
+Widget _buildTestWidget({
+  required List<Override> overrides,
+  String initialLocation = '/buddies',
+}) {
   final router = GoRouter(
-    initialLocation: '/buddies',
+    initialLocation: initialLocation,
     routes: [
       GoRoute(
         path: '/buddies',
@@ -239,6 +244,61 @@ void main() {
       expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
     });
 
+    testWidgets('table mode sort button opens sort bottom sheet', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      // Suppress overflow errors from the bottom sheet layout
+      final originalOnError = FlutterError.onError;
+      FlutterError.onError = (details) {
+        if (details.toString().contains('overflowed')) return;
+        originalOnError?.call(details);
+      };
+      addTearDown(() => FlutterError.onError = originalOnError);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: baseOverrides(viewMode: ListViewMode.table),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.sort));
+      await tester.pumpAndSettle();
+
+      // The sort bottom sheet should appear with sort field options
+      expect(find.text('Name'), findsOneWidget);
+      expect(find.text('Dive Count'), findsOneWidget);
+    });
+
+    testWidgets('table mode search button opens search', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: baseOverrides(viewMode: ListViewMode.table),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+
+      // The search delegate should open, showing a search bar
+      expect(find.byType(TextField), findsOneWidget);
+    });
+
     testWidgets('tapping FAB in table mode navigates', (tester) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(1200, 800);
@@ -259,6 +319,97 @@ void main() {
 
       // Verify navigation occurred (page rendered without error)
       expect(find.text('new'), findsOneWidget);
+    });
+
+    testWidgets('table mode popup menu shows view mode options', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: baseOverrides(viewMode: ListViewMode.table),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+
+      // The popup menu should show view mode options
+      expect(find.text('Detailed'), findsOneWidget);
+      expect(find.text('Compact'), findsOneWidget);
+      expect(find.text('Table'), findsOneWidget);
+    });
+
+    testWidgets('table mode popup menu changes view mode', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: baseOverrides(viewMode: ListViewMode.table),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+
+      // Tap the "Detailed" menu item to trigger onSelected
+      await tester.tap(find.text('Detailed'));
+      await tester.pumpAndSettle();
+
+      // The view mode provider should have been updated, causing a rebuild.
+      // Since we use an override, the widget rebuilds with the new mode.
+      // Verify the popup menu dismissed (no more menu items visible).
+      expect(find.text('Compact'), findsNothing);
+    });
+
+    testWidgets('selecting sort option triggers onSortChanged callback', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      // Suppress overflow errors from the bottom sheet layout
+      final originalOnError = FlutterError.onError;
+      FlutterError.onError = (details) {
+        if (details.toString().contains('overflowed')) return;
+        originalOnError?.call(details);
+      };
+      addTearDown(() => FlutterError.onError = originalOnError);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: baseOverrides(viewMode: ListViewMode.table),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Open the sort bottom sheet
+      await tester.tap(find.byIcon(Icons.sort));
+      await tester.pumpAndSettle();
+
+      // Tap a sort field option to trigger onSortChanged
+      await tester.tap(find.text('Dive Count'));
+      await tester.pumpAndSettle();
+
+      // The sort bottom sheet should have closed after selection
+      expect(find.text('Dive Count'), findsNothing);
     });
 
     testWidgets('table mode with details pane shows summary builder', (
@@ -311,6 +462,99 @@ void main() {
 
       // The detail builder is invoked when a selected ID is present
       expect(find.byType(MasterDetailScaffold), findsOneWidget);
+    });
+
+    testWidgets('table mode detail builder invoked via selected query param', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = [
+        ...baseOverrides(viewMode: ListViewMode.table),
+        tableDetailsPaneProvider('buddies').overrideWith((ref) => true),
+        highlightedBuddyIdProvider.overrideWith((ref) => 'test-buddy-id'),
+      ];
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: overrides,
+          initialLocation: '/buddies?selected=test-buddy-id',
+        ),
+      );
+      await tester.pump();
+      tester.takeException();
+      await tester.pump();
+      tester.takeException();
+
+      // The detail builder closure body was invoked, creating BuddyDetailPage
+      expect(find.byType(BuddyDetailPage), findsOneWidget);
+    });
+
+    testWidgets('table mode create builder invoked via mode=new query param', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = [
+        ...baseOverrides(viewMode: ListViewMode.table),
+        tableDetailsPaneProvider('buddies').overrideWith((ref) => true),
+        highlightedBuddyIdProvider.overrideWith((ref) => null),
+      ];
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: overrides,
+          initialLocation: '/buddies?mode=new',
+        ),
+      );
+      await tester.pump();
+      tester.takeException();
+      await tester.pump();
+      tester.takeException();
+
+      // The create builder closure body was invoked, creating BuddyEditPage
+      expect(find.byType(BuddyEditPage), findsOneWidget);
+    });
+
+    testWidgets('table mode edit builder invoked via edit query param', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = [
+        ...baseOverrides(viewMode: ListViewMode.table),
+        tableDetailsPaneProvider('buddies').overrideWith((ref) => true),
+        highlightedBuddyIdProvider.overrideWith((ref) => 'test-buddy-id'),
+      ];
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: overrides,
+          initialLocation: '/buddies?selected=test-buddy-id&mode=edit',
+        ),
+      );
+      await tester.pump();
+      tester.takeException();
+      await tester.pump();
+      tester.takeException();
+
+      // The edit builder closure body was invoked, creating BuddyEditPage
+      expect(find.byType(BuddyEditPage), findsOneWidget);
     });
   });
 }

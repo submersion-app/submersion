@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_list_content.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
@@ -296,6 +298,94 @@ void main() {
       await tester.pump();
 
       expect(find.text('Phone Center'), findsOneWidget);
+    });
+
+    testWidgets('tapping a row sets highlighted dive center id', (
+      tester,
+    ) async {
+      final centers = [
+        _makeCenter(id: 'dc1', name: 'Reef Explorers'),
+        _makeCenter(id: 'dc2', name: 'Blue Planet'),
+      ];
+
+      final overrides = await _buildOverrides(centers: centers);
+
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides.cast(),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Consumer(
+              builder: (context, ref, _) {
+                container = ProviderScope.containerOf(context);
+                return const Scaffold(
+                  body: DiveCenterListContent(showAppBar: true),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Tap on a dive center row
+      await tester.tap(find.text('Reef Explorers'));
+      // Pump past the DoubleTapGestureRecognizer's 300ms timeout
+      await tester.pump(const Duration(milliseconds: 350));
+
+      // The tap should have set the highlighted dive center ID
+      expect(container.read(highlightedDiveCenterIdProvider), 'dc1');
+    });
+
+    testWidgets('double-tapping a row navigates to dive center detail', (
+      tester,
+    ) async {
+      final centers = [_makeCenter(id: 'dc1', name: 'Reef Explorers')];
+
+      final overrides = await _buildOverrides(centers: centers);
+
+      String? pushedPath;
+      final router = GoRouter(
+        initialLocation: '/dive-centers',
+        routes: [
+          GoRoute(
+            path: '/dive-centers',
+            builder: (context, state) =>
+                const Scaffold(body: DiveCenterListContent(showAppBar: true)),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                  pushedPath = state.uri.toString();
+                  return const Scaffold(body: SizedBox());
+                },
+              ),
+            ],
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides.cast(),
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Double-tap on a dive center row
+      await tester.tap(find.text('Reef Explorers'));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(find.text('Reef Explorers'));
+      await tester.pumpAndSettle();
+
+      expect(pushedPath, '/dive-centers/dc1');
     });
   });
 }

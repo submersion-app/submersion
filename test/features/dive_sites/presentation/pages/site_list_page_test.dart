@@ -7,6 +7,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_list_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
@@ -52,9 +54,10 @@ Widget _buildTestWidget({
   required Widget child,
   required List<Override> overrides,
   String path = '/sites',
+  String? initialLocation,
 }) {
   final router = GoRouter(
-    initialLocation: path,
+    initialLocation: initialLocation ?? path,
     routes: [
       GoRoute(
         path: path,
@@ -225,6 +228,60 @@ void main() {
       expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
     });
 
+    testWidgets('table mode sort button opens sort bottom sheet', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      // Suppress overflow errors from the bottom sheet layout
+      final originalOnError = FlutterError.onError;
+      FlutterError.onError = (details) {
+        if (details.toString().contains('overflowed')) return;
+        originalOnError?.call(details);
+      };
+      addTearDown(() => FlutterError.onError = originalOnError);
+
+      final overrides = await _buildOverrides(viewMode: ListViewMode.table);
+      await tester.pumpWidget(
+        _buildTestWidget(child: const SiteListPage(), overrides: overrides),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.sort));
+      await tester.pumpAndSettle();
+
+      // The sort bottom sheet should appear with sort field options
+      expect(find.text('Name'), findsOneWidget);
+      expect(find.text('Rating'), findsOneWidget);
+      expect(find.text('Difficulty'), findsOneWidget);
+    });
+
+    testWidgets('table mode search button opens search', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await _buildOverrides(viewMode: ListViewMode.table);
+      await tester.pumpWidget(
+        _buildTestWidget(child: const SiteListPage(), overrides: overrides),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+
+      // The search delegate should open, showing a search bar
+      expect(find.byType(TextField), findsOneWidget);
+    });
+
     testWidgets('tapping FAB in table mode navigates', (tester) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(1200, 800);
@@ -244,6 +301,92 @@ void main() {
 
       // Verify navigation occurred (page rendered without error)
       expect(find.text('new'), findsOneWidget);
+    });
+
+    testWidgets('table mode popup menu shows view mode options', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await _buildOverrides(viewMode: ListViewMode.table);
+      await tester.pumpWidget(
+        _buildTestWidget(child: const SiteListPage(), overrides: overrides),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+
+      // The popup menu should show view mode options
+      expect(find.text('Detailed'), findsOneWidget);
+      expect(find.text('Compact'), findsOneWidget);
+      expect(find.text('Table'), findsOneWidget);
+    });
+
+    testWidgets('table mode popup menu changes view mode', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await _buildOverrides(viewMode: ListViewMode.table);
+      await tester.pumpWidget(
+        _buildTestWidget(child: const SiteListPage(), overrides: overrides),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+
+      // Tap the "Detailed" menu item to trigger onSelected
+      await tester.tap(find.text('Detailed'));
+      await tester.pumpAndSettle();
+
+      // Verify the popup menu dismissed
+      expect(find.text('Compact'), findsNothing);
+    });
+
+    testWidgets('selecting sort option triggers onSortChanged callback', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      // Suppress overflow errors from the bottom sheet layout
+      final originalOnError = FlutterError.onError;
+      FlutterError.onError = (details) {
+        if (details.toString().contains('overflowed')) return;
+        originalOnError?.call(details);
+      };
+      addTearDown(() => FlutterError.onError = originalOnError);
+
+      final overrides = await _buildOverrides(viewMode: ListViewMode.table);
+      await tester.pumpWidget(
+        _buildTestWidget(child: const SiteListPage(), overrides: overrides),
+      );
+      await tester.pumpAndSettle();
+
+      // Open the sort bottom sheet
+      await tester.tap(find.byIcon(Icons.sort));
+      await tester.pumpAndSettle();
+
+      // Tap a sort field option to trigger onSortChanged
+      await tester.tap(find.text('Difficulty'));
+      await tester.pumpAndSettle();
+
+      // The sort bottom sheet should have closed after selection
+      expect(find.text('Difficulty'), findsNothing);
     });
 
     testWidgets('table mode with details pane shows summary builder', (
@@ -304,6 +447,125 @@ void main() {
       // The detail builder is invoked when a selected ID is present.
       // The MasterDetailScaffold renders within the table mode layout.
       expect(find.byType(MasterDetailScaffold), findsOneWidget);
+    });
+
+    testWidgets('table mode detail builder invoked via selected query param', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await _buildOverrides(viewMode: ListViewMode.table);
+      await tester.pumpWidget(
+        _buildTestWidget(
+          child: const SiteListPage(),
+          overrides: [
+            ...overrides,
+            tableDetailsPaneProvider('sites').overrideWith((ref) => true),
+            highlightedSiteIdProvider.overrideWith((ref) => 'test-site-id'),
+          ],
+          initialLocation: '/sites?selected=test-site-id',
+        ),
+      );
+      await tester.pump();
+      tester.takeException();
+      await tester.pump();
+      tester.takeException();
+
+      expect(find.byType(SiteDetailPage), findsOneWidget);
+    });
+
+    testWidgets('table mode create builder invoked via mode=new query param', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await _buildOverrides(viewMode: ListViewMode.table);
+      await tester.pumpWidget(
+        _buildTestWidget(
+          child: const SiteListPage(),
+          overrides: [
+            ...overrides,
+            tableDetailsPaneProvider('sites').overrideWith((ref) => true),
+          ],
+          initialLocation: '/sites?mode=new',
+        ),
+      );
+      await tester.pump();
+      tester.takeException();
+      await tester.pump();
+      tester.takeException();
+
+      expect(find.byType(SiteEditPage), findsOneWidget);
+    });
+
+    testWidgets('table mode edit builder invoked via edit query param', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await _buildOverrides(viewMode: ListViewMode.table);
+      await tester.pumpWidget(
+        _buildTestWidget(
+          child: const SiteListPage(),
+          overrides: [
+            ...overrides,
+            tableDetailsPaneProvider('sites').overrideWith((ref) => true),
+            highlightedSiteIdProvider.overrideWith((ref) => 'test-site-id'),
+          ],
+          initialLocation: '/sites?selected=test-site-id&mode=edit',
+        ),
+      );
+      await tester.pump();
+      tester.takeException();
+      await tester.pump();
+      tester.takeException();
+
+      expect(find.byType(SiteEditPage), findsOneWidget);
+    });
+
+    testWidgets('table mode filter button opens filter sheet', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      // Suppress overflow errors from the bottom sheet layout
+      final originalOnError = FlutterError.onError;
+      FlutterError.onError = (details) {
+        if (details.toString().contains('overflowed')) return;
+        originalOnError?.call(details);
+      };
+      addTearDown(() => FlutterError.onError = originalOnError);
+
+      final overrides = await _buildOverrides(viewMode: ListViewMode.table);
+      await tester.pumpWidget(
+        _buildTestWidget(child: const SiteListPage(), overrides: overrides),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap the filter icon
+      await tester.tap(find.byIcon(Icons.filter_list));
+      await tester.pumpAndSettle();
+
+      // The SiteFilterSheet should appear with its title
+      expect(find.text('Filter Sites'), findsOneWidget);
     });
   });
 }

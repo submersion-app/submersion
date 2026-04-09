@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
@@ -8,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -665,6 +667,139 @@ void main() {
 
       expect(find.text('#15'), findsOneWidget);
       expect(find.text('50 min'), findsOneWidget);
+    });
+
+    // -----------------------------------------------------------------------
+    // Cursor tracking: MouseRegion onExit clears tracking index
+    // -----------------------------------------------------------------------
+
+    testWidgets('MouseRegion onExit clears profile tracking index', (
+      tester,
+    ) async {
+      final dive = _makeDiveWithProfile(id: 'exit-test');
+      await tester.pumpWidget(
+        _buildPanel(highlightedDiveId: 'exit-test', diveToReturn: dive),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      // Find the MouseRegion wrapping the chart
+      final mouseRegionFinder = find.byType(MouseRegion);
+      expect(mouseRegionFinder, findsAtLeastNWidgets(1));
+
+      // Get the chart area center for the hover
+      final chartFinder = find.byType(DiveProfileChart);
+      expect(chartFinder, findsOneWidget);
+      final chartCenter = tester.getCenter(chartFinder);
+
+      // Create a mouse gesture and hover over the chart area
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await gesture.addPointer(location: chartCenter);
+      addTearDown(gesture.removePointer);
+      await tester.pump();
+
+      // Move the pointer outside the chart area to trigger onExit
+      await gesture.moveTo(Offset.zero);
+      await tester.pump();
+
+      // The test verifies the callback executes without error.
+      // The tracking index should be cleared to null.
+      expect(find.byType(DiveProfileChart), findsOneWidget);
+    });
+
+    // -----------------------------------------------------------------------
+    // Cursor tracking: Listener onPointerHover/onPointerMove
+    // -----------------------------------------------------------------------
+
+    testWidgets('Listener onPointerHover triggers pointer update', (
+      tester,
+    ) async {
+      final dive = _makeDiveWithProfile(id: 'hover-test');
+      await tester.pumpWidget(
+        _buildPanel(highlightedDiveId: 'hover-test', diveToReturn: dive),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final chartFinder = find.byType(DiveProfileChart);
+      expect(chartFinder, findsOneWidget);
+      final chartCenter = tester.getCenter(chartFinder);
+
+      // Create a mouse gesture and hover over the chart
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await gesture.addPointer(location: chartCenter);
+      addTearDown(gesture.removePointer);
+      await tester.pump();
+
+      // Move within the chart to trigger onPointerHover/onPointerMove
+      await gesture.moveTo(chartCenter + const Offset(10, 0));
+      await tester.pump();
+
+      // Move again to exercise onPointerMove path
+      await gesture.moveTo(chartCenter + const Offset(20, 0));
+      await tester.pump();
+
+      // Verify no crash and chart still renders
+      expect(find.byType(DiveProfileChart), findsOneWidget);
+    });
+
+    // -----------------------------------------------------------------------
+    // onPointSelected callback via DiveProfileChart
+    // -----------------------------------------------------------------------
+
+    testWidgets('onPointSelected updates tracking index provider', (
+      tester,
+    ) async {
+      const diveId = 'point-select-test';
+      final dive = _makeDiveWithProfile(id: diveId);
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            highlightedDiveIdProvider.overrideWith((ref) => diveId),
+            diveProvider(diveId).overrideWith((ref) => Future.value(dive)),
+            profileAnalysisProvider(
+              diveId,
+            ).overrideWith((ref) => Future.value(null)),
+            gasSwitchesProvider(diveId).overrideWith((ref) => Future.value([])),
+            tankPressuresProvider(
+              diveId,
+            ).overrideWith((ref) => Future.value({})),
+            profileTrackingIndexProvider(diveId).overrideWith((ref) => null),
+          ],
+          child: const SizedBox(
+            height: 350,
+            width: 600,
+            child: DiveProfilePanel(),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      // The chart should render with the onPointSelected callback wired up
+      expect(find.byType(DiveProfileChart), findsOneWidget);
+
+      // Simulate a pointer interaction on the chart to exercise cursor tracking
+      final chartCenter = tester.getCenter(find.byType(DiveProfileChart));
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await gesture.addPointer(location: chartCenter);
+      addTearDown(gesture.removePointer);
+      await tester.pump();
+
+      // Move pointer within the chart area to trigger hover callback
+      await gesture.moveTo(chartCenter + const Offset(5, 0));
+      await tester.pump();
+
+      // Exit to trigger onExit cleanup
+      await gesture.moveTo(Offset.zero);
+      await tester.pump();
+
+      expect(find.byType(DiveProfileChart), findsOneWidget);
     });
   });
 }

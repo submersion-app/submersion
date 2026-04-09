@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
@@ -9,6 +10,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
@@ -599,6 +601,155 @@ void main() {
 
       expect(tapPrefs.getBool('debug_mode_enabled'), isTrue);
       expect(container.read(debugModeNotifierProvider), isTrue);
+    });
+  });
+
+  group('AppearanceSectionContent navigation', () {
+    /// Build a widget that renders the SettingsPage via GoRouter with
+    /// ?selected=appearance, which renders the _SettingsSectionDetailPage
+    /// containing _AppearanceSectionContent (mobile detail page path).
+    Widget buildAppearanceWidget(List<Override> overrides) {
+      final router = GoRouter(
+        initialLocation: '/settings?selected=appearance',
+        routes: [
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
+          // Stub routes that sub-pages may try to push to
+          GoRoute(
+            path: '/settings/themes',
+            builder: (context, state) => const Text('Themes'),
+          ),
+          GoRoute(
+            path: '/settings/appearance/column-config',
+            builder: (context, state) => const Text('Column Config'),
+          ),
+        ],
+      );
+
+      return ProviderScope(
+        overrides: overrides,
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+    }
+
+    testWidgets('tapping a section entry shows section appearance sub-page', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      // The hub view should show Sections with entries like "Dives"
+      expect(find.text('Dives'), findsOneWidget);
+      expect(find.text('Dive Sites'), findsOneWidget);
+
+      // Tap on "Dives" section entry
+      await tester.tap(find.text('Dives'));
+      await tester.pumpAndSettle();
+
+      // Should now show the SectionAppearancePage embedded for dives
+      expect(find.byType(SectionAppearancePage), findsOneWidget);
+      // Back button should show "Appearance" label
+      expect(find.text('Appearance'), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('navigating back from section appearance returns to hub', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      // Navigate into Dives section
+      await tester.tap(find.text('Dives'));
+      await tester.pumpAndSettle();
+
+      // Verify we're in section appearance page
+      expect(find.byType(SectionAppearancePage), findsOneWidget);
+
+      // Tap the back button (TextButton.icon with "Appearance" label)
+      await tester.tap(
+        find.ancestor(
+          of: find.text('Appearance'),
+          matching: find.byType(TextButton),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Should be back to the hub showing section entries
+      expect(find.byType(SectionAppearancePage), findsNothing);
+      expect(find.text('Dives'), findsOneWidget);
+      expect(find.text('Dive Sites'), findsOneWidget);
+    });
+
+    testWidgets(
+      'tapping column config from section shows column config sub-page',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(400, 4000));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+        await tester.pumpAndSettle();
+
+        // Navigate into Dives section
+        await tester.tap(find.text('Dives'));
+        await tester.pumpAndSettle();
+
+        // Tap "Dive List Fields" which triggers onColumnConfigTap
+        await tester.tap(find.text('Dive List Fields'));
+        await tester.pumpAndSettle();
+
+        // Should show column config - the back button shows "Dives"
+        // (the section display name)
+        expect(find.text('Dives'), findsAtLeastNWidgets(1));
+      },
+    );
+
+    testWidgets('navigating back from column config returns to section', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      // Navigate into Dives section
+      await tester.tap(find.text('Dives'));
+      await tester.pumpAndSettle();
+
+      // Navigate into column config
+      await tester.tap(find.text('Dive List Fields'));
+      await tester.pumpAndSettle();
+
+      // Tap the back button (TextButton.icon with "Dives" label)
+      final backButton = find.ancestor(
+        of: find.text('Dives'),
+        matching: find.byType(TextButton),
+      );
+      await tester.tap(backButton.first);
+      await tester.pumpAndSettle();
+
+      // Should be back to the dives section appearance page
+      expect(find.byType(SectionAppearancePage), findsOneWidget);
+    });
+
+    testWidgets('_getSectionDisplayName returns display name for known keys', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      // Navigate into "Dive Sites" to exercise _getSectionDisplayName('sites')
+      await tester.tap(find.text('Dive Sites'));
+      await tester.pumpAndSettle();
+
+      // The section appearance page is shown for sites
+      expect(find.byType(SectionAppearancePage), findsOneWidget);
     });
   });
 }

@@ -284,6 +284,76 @@ void main() {
     });
   });
 
+  group('MockSettingsNotifier setShowDetailsPaneForSection', () {
+    late MockSettingsNotifier notifier;
+
+    setUp(() {
+      notifier = MockSettingsNotifier();
+    });
+
+    test('sets showDetailsPaneDives to true', () async {
+      expect(notifier.state.showDetailsPaneDives, isFalse);
+      await notifier.setShowDetailsPaneForSection('dives', true);
+      expect(notifier.state.showDetailsPaneDives, isTrue);
+    });
+
+    test('sets showDetailsPaneSites to true', () async {
+      expect(notifier.state.showDetailsPaneSites, isFalse);
+      await notifier.setShowDetailsPaneForSection('sites', true);
+      expect(notifier.state.showDetailsPaneSites, isTrue);
+    });
+
+    test('sets showDetailsPaneBuddies to true', () async {
+      expect(notifier.state.showDetailsPaneBuddies, isFalse);
+      await notifier.setShowDetailsPaneForSection('buddies', true);
+      expect(notifier.state.showDetailsPaneBuddies, isTrue);
+    });
+
+    test('sets showDetailsPaneTrips to true', () async {
+      expect(notifier.state.showDetailsPaneTrips, isFalse);
+      await notifier.setShowDetailsPaneForSection('trips', true);
+      expect(notifier.state.showDetailsPaneTrips, isTrue);
+    });
+
+    test('sets showDetailsPaneEquipment to true', () async {
+      expect(notifier.state.showDetailsPaneEquipment, isFalse);
+      await notifier.setShowDetailsPaneForSection('equipment', true);
+      expect(notifier.state.showDetailsPaneEquipment, isTrue);
+    });
+
+    test('sets showDetailsPaneDiveCenters to true', () async {
+      expect(notifier.state.showDetailsPaneDiveCenters, isFalse);
+      await notifier.setShowDetailsPaneForSection('diveCenters', true);
+      expect(notifier.state.showDetailsPaneDiveCenters, isTrue);
+    });
+
+    test('sets showDetailsPaneCertifications to true', () async {
+      expect(notifier.state.showDetailsPaneCertifications, isFalse);
+      await notifier.setShowDetailsPaneForSection('certifications', true);
+      expect(notifier.state.showDetailsPaneCertifications, isTrue);
+    });
+
+    test('sets showDetailsPaneCourses to true', () async {
+      expect(notifier.state.showDetailsPaneCourses, isFalse);
+      await notifier.setShowDetailsPaneForSection('courses', true);
+      expect(notifier.state.showDetailsPaneCourses, isTrue);
+    });
+
+    test('unknown key leaves state unchanged', () async {
+      final before = notifier.state;
+      await notifier.setShowDetailsPaneForSection('nonexistent', true);
+      expect(notifier.state, before);
+    });
+
+    test('can set back to false after setting to true', () async {
+      await notifier.setShowDetailsPaneForSection('dives', true);
+      expect(notifier.state.showDetailsPaneDives, isTrue);
+
+      await notifier.setShowDetailsPaneForSection('dives', false);
+      expect(notifier.state.showDetailsPaneDives, isFalse);
+    });
+  });
+
   group('Runtime view mode providers', () {
     late ProviderContainer container;
 

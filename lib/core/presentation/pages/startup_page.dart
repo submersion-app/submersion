@@ -18,6 +18,20 @@ import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/main.dart' show SubmersionRestart;
 
+/// Callback signature for the service initializer used by [StartupWrapper].
+///
+/// Receives a migration-progress callback so the initializer can report
+/// step-by-step progress to the UI.
+typedef ServiceInitializer =
+    Future<void> Function(
+      void Function(int currentStep, int totalSteps) onMigrationProgress,
+    );
+
+/// Callback signature for the schema-version probe used by [StartupWrapper]
+/// to decide whether to show a migration progress bar before opening the DB.
+typedef SchemaVersionProbe =
+    ({bool needsMigration, int totalSteps}) Function(String dbPath);
+
 enum _StartupState { initializing, migrating, ready, error }
 
 class StartupWrapper extends StatefulWidget {
@@ -25,11 +39,26 @@ class StartupWrapper extends StatefulWidget {
   final LogFileService logFileService;
   final DatabaseLocationService locationService;
 
+  /// Optional override for the service initializer (used in tests).
+  @visibleForTesting
+  final ServiceInitializer? initializerOverride;
+
+  /// Optional override for the schema-version probe (used in tests).
+  @visibleForTesting
+  final SchemaVersionProbe? schemaVersionProbeOverride;
+
+  /// Optional override for the app-close callback (used in tests).
+  @visibleForTesting
+  final VoidCallback? closeAppOverride;
+
   const StartupWrapper({
     super.key,
     required this.prefs,
     required this.logFileService,
     required this.locationService,
+    this.initializerOverride,
+    this.schemaVersionProbeOverride,
+    this.closeAppOverride,
   });
 
   @override
@@ -57,15 +86,24 @@ class _StartupWrapperState extends State<StartupWrapper> {
     try {
       // Determine if migration is needed before opening the database
       final dbPath = await widget.locationService.getDatabasePath();
-      final storedVersion = DatabaseService.getStoredSchemaVersion(dbPath);
-      final needsMigration =
-          storedVersion != null &&
-          storedVersion > 0 &&
-          storedVersion < AppDatabase.currentSchemaVersion;
 
-      final totalSteps = needsMigration
-          ? AppDatabase.migrationStepCount(storedVersion)
-          : 0;
+      final bool needsMigration;
+      final int totalSteps;
+
+      if (widget.schemaVersionProbeOverride != null) {
+        final probe = widget.schemaVersionProbeOverride!(dbPath);
+        needsMigration = probe.needsMigration;
+        totalSteps = probe.totalSteps;
+      } else {
+        final storedVersion = DatabaseService.getStoredSchemaVersion(dbPath);
+        needsMigration =
+            storedVersion != null &&
+            storedVersion > 0 &&
+            storedVersion < AppDatabase.currentSchemaVersion;
+        totalSteps = needsMigration
+            ? AppDatabase.migrationStepCount(storedVersion)
+            : 0;
+      }
 
       if (needsMigration && mounted) {
         setState(() {
@@ -104,18 +142,25 @@ class _StartupWrapperState extends State<StartupWrapper> {
   }
 
   Future<void> _initializeServices() async {
+    void onProgress(int currentStep, int totalSteps) {
+      if (mounted) {
+        setState(() {
+          _progress = MigrationProgress(
+            currentStep: currentStep,
+            totalSteps: totalSteps,
+          );
+        });
+      }
+    }
+
+    if (widget.initializerOverride != null) {
+      await widget.initializerOverride!(onProgress);
+      return;
+    }
+
     await DatabaseService.instance.initialize(
       locationService: widget.locationService,
-      onMigrationProgress: (currentStep, totalSteps) {
-        if (mounted) {
-          setState(() {
-            _progress = MigrationProgress(
-              currentStep: currentStep,
-              totalSteps: totalSteps,
-            );
-          });
-        }
-      },
+      onMigrationProgress: onProgress,
     );
 
     await LocalCacheDatabaseService.instance.initialize();
@@ -133,6 +178,11 @@ class _StartupWrapperState extends State<StartupWrapper> {
   }
 
   Future<void> _closeApp() async {
+    if (widget.closeAppOverride != null) {
+      widget.closeAppOverride!();
+      return;
+    }
+
     // Best-effort: close any databases that may have been partially initialized
     // before exiting, to avoid FFI/isolate teardown crashes.
     try {

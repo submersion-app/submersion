@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -8,6 +10,8 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 void _setMobileTestSurfaceSize(WidgetTester tester) {
   // The default widget test surface width is 800px, which trips the app's
@@ -691,6 +695,133 @@ void main() {
 
       // Should show bottomTime formatted as minutes
       expect(find.text('45min'), findsOneWidget);
+    });
+  });
+
+  group('TripDetailPage desktop redirect', () {
+    final redirectTrip = Trip(
+      id: 'redirect-trip',
+      name: 'Redirect Test Trip',
+      startDate: DateTime(2024, 1, 15),
+      endDate: DateTime(2024, 1, 22),
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    final redirectTripWithStats = TripWithStats(
+      trip: redirectTrip,
+      diveCount: 0,
+    );
+
+    testWidgets(
+      'redirects to master-detail on desktop when not in table mode',
+      (tester) async {
+        tester.view.devicePixelRatio = 1.0;
+        tester.view.physicalSize = const Size(1200, 800);
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        final overrides = await getBaseOverrides();
+
+        final router = GoRouter(
+          initialLocation: '/trips/redirect-trip',
+          routes: [
+            GoRoute(
+              path: '/trips',
+              builder: (context, state) =>
+                  const Scaffold(body: Text('TRIP_LIST_PAGE')),
+            ),
+            GoRoute(
+              path: '/trips/:id',
+              builder: (context, state) =>
+                  TripDetailPage(tripId: state.pathParameters['id']!),
+            ),
+          ],
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              tripListViewModeProvider.overrideWith(
+                (ref) => ListViewMode.detailed,
+              ),
+              tripWithStatsProvider(
+                redirectTrip.id,
+              ).overrideWith((ref) async => redirectTripWithStats),
+              diveIdsForTripProvider(
+                redirectTrip.id,
+              ).overrideWith((ref) async => <String>[]),
+              tripListNotifierProvider.overrideWith(
+                (ref) => _MockTripListNotifier([]),
+              ),
+            ].cast(),
+            child: MaterialApp.router(
+              routerConfig: router,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+        expect(find.text('TRIP_LIST_PAGE'), findsOneWidget);
+      },
+    );
+
+    testWidgets('does not redirect on desktop in table mode', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await getBaseOverrides();
+
+      final router = GoRouter(
+        initialLocation: '/trips/redirect-trip',
+        routes: [
+          GoRoute(
+            path: '/trips',
+            builder: (context, state) =>
+                const Scaffold(body: Text('TRIP_LIST_PAGE')),
+          ),
+          GoRoute(
+            path: '/trips/:id',
+            builder: (context, state) =>
+                TripDetailPage(tripId: state.pathParameters['id']!),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            tripListViewModeProvider.overrideWith((ref) => ListViewMode.table),
+            tripWithStatsProvider(
+              redirectTrip.id,
+            ).overrideWith((ref) async => redirectTripWithStats),
+            diveIdsForTripProvider(
+              redirectTrip.id,
+            ).overrideWith((ref) async => <String>[]),
+            tripListNotifierProvider.overrideWith(
+              (ref) => _MockTripListNotifier([]),
+            ),
+          ].cast(),
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('TRIP_LIST_PAGE'), findsNothing);
     });
   });
 }

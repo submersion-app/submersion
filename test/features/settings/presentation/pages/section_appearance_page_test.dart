@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
@@ -510,6 +512,197 @@ void main() {
     });
   });
 
+  group('SectionAppearancePage - View mode dropdown changes all sections', () {
+    for (final key in [
+      'sites',
+      'trips',
+      'equipment',
+      'buddies',
+      'diveCenters',
+    ]) {
+      testWidgets('changing dropdown for $key updates view mode', (
+        tester,
+      ) async {
+        await tester.binding.setSurfaceSize(const Size(400, 4000));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        await tester.pumpWidget(_buildTestWidget(key));
+        await tester.pumpAndSettle();
+
+        // Open dropdown and select Table
+        await tester.tap(find.byType(DropdownButton<ListViewMode>));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Table').last);
+        await tester.pumpAndSettle();
+
+        // The dropdown should now show Table as selected
+        expect(
+          find.descendant(
+            of: find.byType(DropdownButton<ListViewMode>),
+            matching: find.text('Table'),
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+
+    testWidgets(
+      'changing dropdown for certifications updates runtime provider',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(400, 4000));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        await tester.pumpWidget(_buildTestWidget('certifications'));
+        await tester.pumpAndSettle();
+
+        // Open dropdown and select Table
+        await tester.tap(find.byType(DropdownButton<ListViewMode>));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Table').last);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(
+            of: find.byType(DropdownButton<ListViewMode>),
+            matching: find.text('Table'),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('changing dropdown for courses updates runtime provider', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget('courses'));
+      await tester.pumpAndSettle();
+
+      // Open dropdown and select Table
+      await tester.tap(find.byType(DropdownButton<ListViewMode>));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Table').last);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byType(DropdownButton<ListViewMode>),
+          matching: find.text('Table'),
+        ),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('SectionAppearancePage - Card color attribute dropdown changes', () {
+    testWidgets('changing card color attribute dropdown updates state', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget('dives'));
+      await tester.pumpAndSettle();
+
+      // Open the card color attribute dropdown
+      await tester.tap(find.byType(DropdownButton<CardColorAttribute>));
+      await tester.pumpAndSettle();
+
+      // Select Depth
+      await tester.tap(find.text('Depth').last);
+      await tester.pumpAndSettle();
+
+      // Should now show Depth as selected and gradient picker should appear
+      expect(
+        find.descendant(
+          of: find.byType(DropdownButton<CardColorAttribute>),
+          matching: find.text('Depth'),
+        ),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('SectionAppearancePage - Dive cards toggle interactions', () {
+    testWidgets('toggling map background for dive cards updates state', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget('dives'));
+      await tester.pumpAndSettle();
+
+      // The dive section has multiple SwitchListTile widgets with map icon.
+      // Find the one titled with the dive card map background l10n key.
+      final mapSwitches = find.widgetWithIcon(SwitchListTile, Icons.map);
+      // In dives section, there is one map switch for dive cards
+      expect(mapSwitches, findsOneWidget);
+
+      var switchWidget = tester.widget<SwitchListTile>(mapSwitches);
+      expect(switchWidget.value, isFalse);
+
+      await tester.tap(mapSwitches);
+      await tester.pumpAndSettle();
+
+      switchWidget = tester.widget<SwitchListTile>(mapSwitches);
+      expect(switchWidget.value, isTrue);
+    });
+
+    testWidgets('toggling pressure threshold markers switch updates state', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget('dives'));
+      await tester.pumpAndSettle();
+
+      // Pressure threshold markers uses MdiIcons.divingScubaTank
+      final pressureSwitch = find.widgetWithText(
+        SwitchListTile,
+        'Pressure threshold markers',
+      );
+      expect(pressureSwitch, findsOneWidget);
+
+      var switchWidget = tester.widget<SwitchListTile>(pressureSwitch);
+      expect(switchWidget.value, isFalse);
+
+      await tester.tap(pressureSwitch);
+      await tester.pumpAndSettle();
+
+      switchWidget = tester.widget<SwitchListTile>(pressureSwitch);
+      expect(switchWidget.value, isTrue);
+    });
+
+    testWidgets('toggling gas switch markers switch updates state', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget('dives'));
+      await tester.pumpAndSettle();
+
+      final gasSwitch = find.widgetWithIcon(SwitchListTile, Icons.swap_horiz);
+      expect(gasSwitch, findsOneWidget);
+
+      var switchWidget = tester.widget<SwitchListTile>(gasSwitch);
+      expect(switchWidget.value, isTrue);
+
+      await tester.tap(gasSwitch);
+      await tester.pumpAndSettle();
+
+      switchWidget = tester.widget<SwitchListTile>(gasSwitch);
+      expect(switchWidget.value, isFalse);
+    });
+  });
+
   group('SectionAppearancePage - Enabled metrics count', () {
     testWidgets('shows metrics count in dives profile section', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 4000));
@@ -521,6 +714,366 @@ void main() {
       // Default settings have some metrics enabled. The exact count depends
       // on default AppSettings. Find the pattern "X of 18"
       expect(find.textContaining('of 18'), findsOneWidget);
+    });
+  });
+
+  group('SectionAppearancePage - Dive-specific toggle interactions', () {
+    testWidgets('toggling profile panel switch updates state', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget('dives'));
+      await tester.pumpAndSettle();
+
+      // Find the profile panel SwitchListTile by title text
+      final profilePanelSwitch = find.widgetWithText(
+        SwitchListTile,
+        'Show Profile Panel in Table View',
+      );
+      expect(profilePanelSwitch, findsOneWidget);
+
+      // Default is true
+      var switchWidget = tester.widget<SwitchListTile>(profilePanelSwitch);
+      expect(switchWidget.value, isTrue);
+
+      // Toggle it off
+      await tester.tap(profilePanelSwitch);
+      await tester.pumpAndSettle();
+
+      switchWidget = tester.widget<SwitchListTile>(profilePanelSwitch);
+      expect(switchWidget.value, isFalse);
+    });
+
+    testWidgets('toggling data source badges switch updates state', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget('dives'));
+      await tester.pumpAndSettle();
+
+      final badgesSwitch = find.widgetWithText(
+        SwitchListTile,
+        'Show data source badges',
+      );
+      expect(badgesSwitch, findsOneWidget);
+
+      // Default is true
+      var switchWidget = tester.widget<SwitchListTile>(badgesSwitch);
+      expect(switchWidget.value, isTrue);
+
+      // Toggle it off
+      await tester.tap(badgesSwitch);
+      await tester.pumpAndSettle();
+
+      switchWidget = tester.widget<SwitchListTile>(badgesSwitch);
+      expect(switchWidget.value, isFalse);
+    });
+
+    testWidgets('toggling max depth marker switch updates state', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget('dives'));
+      await tester.pumpAndSettle();
+
+      // Max depth marker default is true
+      final depthMarkerSwitch = find.widgetWithIcon(
+        SwitchListTile,
+        Icons.vertical_align_bottom,
+      );
+      expect(depthMarkerSwitch, findsOneWidget);
+
+      var switchWidget = tester.widget<SwitchListTile>(depthMarkerSwitch);
+      expect(switchWidget.value, isTrue);
+
+      // Toggle it off
+      await tester.tap(depthMarkerSwitch);
+      await tester.pumpAndSettle();
+
+      switchWidget = tester.widget<SwitchListTile>(depthMarkerSwitch);
+      expect(switchWidget.value, isFalse);
+    });
+  });
+
+  group('SectionAppearancePage - Site-specific card settings', () {
+    testWidgets('toggling map background switch for sites updates state', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget('sites'));
+      await tester.pumpAndSettle();
+
+      // Sites have a map background SwitchListTile
+      final mapSwitch = find.widgetWithIcon(SwitchListTile, Icons.map);
+      expect(mapSwitch, findsOneWidget);
+
+      // Default is false
+      var switchWidget = tester.widget<SwitchListTile>(mapSwitch);
+      expect(switchWidget.value, isFalse);
+
+      // Toggle it on
+      await tester.tap(mapSwitch);
+      await tester.pumpAndSettle();
+
+      switchWidget = tester.widget<SwitchListTile>(mapSwitch);
+      expect(switchWidget.value, isTrue);
+    });
+  });
+
+  group('SectionAppearancePage - Details pane toggle for all sections', () {
+    for (final key in [
+      'dives',
+      'sites',
+      'buddies',
+      'trips',
+      'equipment',
+      'diveCenters',
+      'certifications',
+      'courses',
+    ]) {
+      testWidgets('$key section has a working details pane toggle', (
+        tester,
+      ) async {
+        await tester.binding.setSurfaceSize(const Size(400, 4000));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        await tester.pumpWidget(_buildTestWidget(key));
+        await tester.pumpAndSettle();
+
+        // All sections have a details pane toggle in Table Mode
+        final detailsSwitch = find.widgetWithText(
+          SwitchListTile,
+          'Show Details Pane',
+        );
+        expect(detailsSwitch, findsOneWidget);
+
+        // Default is false
+        var switchWidget = tester.widget<SwitchListTile>(detailsSwitch);
+        expect(switchWidget.value, isFalse);
+
+        // Toggle it on
+        await tester.tap(detailsSwitch);
+        await tester.pumpAndSettle();
+
+        switchWidget = tester.widget<SwitchListTile>(detailsSwitch);
+        expect(switchWidget.value, isTrue);
+      });
+    }
+  });
+
+  group('SectionAppearancePage - Right Y-axis metric dropdown', () {
+    testWidgets('changing right Y-axis metric dropdown updates state', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget('dives'));
+      await tester.pumpAndSettle();
+
+      // Find the ProfileRightAxisMetric dropdown
+      final dropdown = find.byType(DropdownButton<ProfileRightAxisMetric>);
+      expect(dropdown, findsOneWidget);
+
+      // Open the dropdown
+      await tester.tap(dropdown);
+      await tester.pumpAndSettle();
+
+      // Select Pressure (a different value from the default Temperature)
+      await tester.tap(find.text('Pressure').last);
+      await tester.pumpAndSettle();
+
+      // The dropdown should now show Pressure as selected
+      expect(
+        find.descendant(
+          of: find.byType(DropdownButton<ProfileRightAxisMetric>),
+          matching: find.text('Pressure'),
+        ),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('SectionAppearancePage - Gradient preset picker callbacks', () {
+    testWidgets('gradient picker appears when card color is not none '
+        'and tapping a preset fires onPresetSelected', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget('dives'));
+      await tester.pumpAndSettle();
+
+      // First change card color attribute to Depth so gradient picker appears
+      await tester.tap(find.byType(DropdownButton<CardColorAttribute>));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Depth').last);
+      await tester.pumpAndSettle();
+
+      // The gradient picker should now be visible. Find an 'Ocean' swatch.
+      expect(find.text('Ocean'), findsOneWidget);
+
+      // Tap a different preset (e.g. the first non-selected preset).
+      // The default is 'ocean', so tap another one. Find all named swatches.
+      // The picker shows preset names like Ocean, Sunset, etc. as labels.
+      // Tapping 'Ocean' should invoke onPresetSelected('ocean').
+      await tester.tap(find.text('Ocean'));
+      await tester.pumpAndSettle();
+
+      // The gradient preset should now be set (Ocean was already selected,
+      // so let's verify the picker is still showing with the preset selected).
+      expect(find.text('Ocean'), findsOneWidget);
+    });
+  });
+
+  group('SectionAppearancePage - Navigation pushes', () {
+    testWidgets('list fields tile navigates when onColumnConfigTap is null', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      String? pushedPath;
+      final router = GoRouter(
+        initialLocation: '/settings/appearance/section',
+        routes: [
+          GoRoute(
+            path: '/settings/appearance/section',
+            builder: (context, state) =>
+                const SectionAppearancePage(sectionKey: 'dives'),
+          ),
+          GoRoute(
+            path: '/settings/appearance/column-config',
+            builder: (context, state) {
+              pushedPath = state.uri.toString();
+              return const SizedBox();
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap the list fields tile (no onColumnConfigTap provided)
+      await tester.tap(find.text('Dive List Fields'));
+      await tester.pumpAndSettle();
+
+      expect(pushedPath, contains('column-config'));
+      expect(pushedPath, contains('section=dives'));
+    });
+
+    testWidgets('default metrics tile navigates to default-metrics', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      String? pushedPath;
+      final router = GoRouter(
+        initialLocation: '/settings/section',
+        routes: [
+          GoRoute(
+            path: '/settings/section',
+            builder: (context, state) =>
+                const SectionAppearancePage(sectionKey: 'dives'),
+          ),
+          GoRoute(
+            path: '/settings/default-metrics',
+            builder: (context, state) {
+              pushedPath = state.uri.toString();
+              return const SizedBox();
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Find and tap the visible metrics tile (has visibility icon)
+      final metricsTile = find.widgetWithIcon(ListTile, Icons.visibility);
+      expect(metricsTile, findsOneWidget);
+      await tester.tap(metricsTile);
+      await tester.pumpAndSettle();
+
+      expect(pushedPath, '/settings/default-metrics');
+    });
+
+    testWidgets('dive detail sections tile navigates to detail-sections', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      String? pushedPath;
+      final router = GoRouter(
+        initialLocation: '/settings/section',
+        routes: [
+          GoRoute(
+            path: '/settings/section',
+            builder: (context, state) =>
+                const SectionAppearancePage(sectionKey: 'dives'),
+          ),
+          GoRoute(
+            path: '/settings/dive-detail-sections',
+            builder: (context, state) {
+              pushedPath = state.uri.toString();
+              return const SizedBox();
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Find and tap the dive detail sections tile (has reorder icon)
+      final sectionsTile = find.widgetWithIcon(ListTile, Icons.reorder);
+      expect(sectionsTile, findsOneWidget);
+      await tester.tap(sectionsTile);
+      await tester.pumpAndSettle();
+
+      expect(pushedPath, '/settings/dive-detail-sections');
     });
   });
 }

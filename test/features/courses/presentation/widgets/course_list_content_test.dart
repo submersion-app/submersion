@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/courses/presentation/widgets/course_list_content.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
@@ -271,6 +273,92 @@ void main() {
       await tester.pump();
 
       expect(find.text('Course 0'), findsOneWidget);
+    });
+
+    testWidgets('tapping a row sets highlighted course id', (tester) async {
+      final courses = [
+        _makeCourse(id: 'c1', name: 'Rescue Diver'),
+        _makeCourse(id: 'c2', name: 'Nitrox'),
+      ];
+
+      final overrides = await _buildOverrides(courses: courses);
+
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides.cast(),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Consumer(
+              builder: (context, ref, _) {
+                container = ProviderScope.containerOf(context);
+                return const Scaffold(
+                  body: CourseListContent(showAppBar: true),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Tap on a course row
+      await tester.tap(find.text('Rescue Diver'));
+      // Pump past the DoubleTapGestureRecognizer's 300ms timeout
+      await tester.pump(const Duration(milliseconds: 350));
+
+      // The tap should have set the highlighted course ID
+      expect(container.read(highlightedCourseIdProvider), 'c1');
+    });
+
+    testWidgets('double-tapping a row navigates to course detail', (
+      tester,
+    ) async {
+      final courses = [_makeCourse(id: 'c1', name: 'Rescue Diver')];
+
+      final overrides = await _buildOverrides(courses: courses);
+
+      String? pushedPath;
+      final router = GoRouter(
+        initialLocation: '/courses',
+        routes: [
+          GoRoute(
+            path: '/courses',
+            builder: (context, state) =>
+                const Scaffold(body: CourseListContent(showAppBar: true)),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                  pushedPath = state.uri.toString();
+                  return const Scaffold(body: SizedBox());
+                },
+              ),
+            ],
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides.cast(),
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Double-tap on a course row
+      await tester.tap(find.text('Rescue Diver'));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(find.text('Rescue Diver'));
+      await tester.pumpAndSettle();
+
+      expect(pushedPath, '/courses/c1');
     });
   });
 }

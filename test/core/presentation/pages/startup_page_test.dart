@@ -1,7 +1,46 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/domain/entities/migration_progress.dart';
+import 'package:submersion/core/presentation/pages/startup_page.dart';
+import 'package:submersion/core/services/database_location_service.dart';
+import 'package:submersion/core/services/log_file_service.dart';
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/// A fake [DatabaseLocationService] that returns a fixed path.
+class _FakeLocationService extends DatabaseLocationService {
+  final String _path;
+  _FakeLocationService(super.prefs) : _path = '/tmp/test.db';
+
+  @override
+  Future<String> getDatabasePath() async => _path;
+}
+
+/// Builds a [StartupWrapper] for widget testing with injectable overrides.
+Widget _buildStartupWrapper({
+  required SharedPreferences prefs,
+  required LogFileService logFileService,
+  required DatabaseLocationService locationService,
+  ServiceInitializer? initializerOverride,
+  SchemaVersionProbe? schemaVersionProbeOverride,
+  VoidCallback? closeAppOverride,
+}) {
+  return StartupWrapper(
+    prefs: prefs,
+    logFileService: logFileService,
+    locationService: locationService,
+    initializerOverride: initializerOverride,
+    schemaVersionProbeOverride: schemaVersionProbeOverride,
+    closeAppOverride: closeAppOverride,
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Reusable builders that mirror the actual StartupWrapper build logic
@@ -176,6 +215,10 @@ Widget _buildGenericError({
 }
 
 void main() {
+  // ===========================================================================
+  // Isolated UI builder tests (no real services needed)
+  // ===========================================================================
+
   group('Splash UI - initializing state', () {
     testWidgets('shows Submersion text and no progress bar', (tester) async {
       await tester.pumpWidget(_buildSplashContent());
@@ -189,7 +232,6 @@ void main() {
       await tester.pumpWidget(_buildSplashContent(isMigrating: false));
       await tester.pumpAndSettle();
 
-      // The AnimatedSize child should be SizedBox.shrink
       expect(find.byType(LinearProgressIndicator), findsNothing);
       expect(find.textContaining('Upgrading'), findsNothing);
     });
@@ -409,6 +451,422 @@ void main() {
         find.byType(LinearProgressIndicator),
       );
       expect(indicator.value, 0.0);
+    });
+  });
+
+  // ===========================================================================
+  // StartupWrapper lifecycle tests (using injectable overrides)
+  //
+  // NOTE: Tests that let initialization *succeed* would cause the widget to
+  // render SubmersionRestart (the full app with router, database, etc.),
+  // which cannot be rendered in unit tests. Instead, we keep the initializer
+  // pending via a Completer that is never completed for splash/migration
+  // tests, and only let the initializer throw for error tests.
+  //
+  // The splash screen renders Image.asset('assets/icon/icon.png'), which is
+  // available only through the real asset bundle. We suppress image-loading
+  // errors to avoid test failures from missing image decode support.
+  // ===========================================================================
+
+  group('StartupWrapper lifecycle', () {
+    late SharedPreferences prefs;
+    late LogFileService logFileService;
+    late DatabaseLocationService locationService;
+    void Function(FlutterErrorDetails)? originalOnError;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+      logFileService = LogFileService(logDirectory: '/tmp/test-logs');
+      locationService = _FakeLocationService(prefs);
+      // Suppress image-loading errors from Image.asset in the splash screen.
+      // The splash screen uses Image.asset('assets/icon/icon.png') which
+      // the test framework cannot decode, but this does not affect the test
+      // assertions (the widget tree still builds correctly).
+      originalOnError = FlutterError.onError;
+      FlutterError.onError = (details) {
+        final message = details.toString();
+        if (message.contains('IMAGE RESOURCE SERVICE') ||
+            message.contains('resolving an image') ||
+            message.contains('Message corrupted')) {
+          return; // Suppress image errors
+        }
+        originalOnError?.call(details);
+      };
+    });
+
+    tearDown(() {
+      FlutterError.onError = originalOnError;
+    });
+
+    testWidgets('shows splash screen during initialization', (tester) async {
+      // Keep the initializer pending so we stay on the splash screen
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) => Completer<void>().future,
+        ),
+      );
+
+      await tester.pump();
+
+      // Should show splash with Submersion text
+      expect(find.text('Submersion'), findsOneWidget);
+      expect(find.byKey(const ValueKey('splash')), findsOneWidget);
+      expect(find.byKey(const ValueKey('error')), findsNothing);
+      // No migration progress shown
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      expect(find.textContaining('Upgrading'), findsNothing);
+
+      // Drain the 1-second splash delay timer to avoid pending timer errors
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('shows migration progress when migration is needed', (
+      tester,
+    ) async {
+      late void Function(int, int) capturedCallback;
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: true, totalSteps: 5),
+          initializerOverride: (onProgress) {
+            capturedCallback = onProgress;
+            // Never completes -- we stay on the migration screen
+            return Completer<void>().future;
+          },
+        ),
+      );
+
+      // After first pump the widget should show migrating state
+      await tester.pump();
+
+      // Verify migration UI is shown
+      expect(find.textContaining('Upgrading database'), findsOneWidget);
+      expect(find.text('Upgrading database... step 0 of 5'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.byKey(const ValueKey('splash')), findsOneWidget);
+
+      // Simulate migration progress
+      capturedCallback(3, 5);
+      await tester.pump();
+
+      expect(find.text('Upgrading database... step 3 of 5'), findsOneWidget);
+      final indicator = tester.widget<LinearProgressIndicator>(
+        find.byType(LinearProgressIndicator),
+      );
+      expect(indicator.value, closeTo(0.6, 0.001));
+
+      // Drain the 1-second splash delay timer
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('shows version mismatch error on DatabaseVersionMismatch', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) async {
+            throw const DatabaseVersionMismatchException(
+              databaseVersion: 99,
+              appVersion: 63,
+            );
+          },
+        ),
+      );
+
+      // Let the initialization error propagate
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      // Should show version mismatch error UI
+      expect(find.text('Update Required'), findsOneWidget);
+      expect(find.byIcon(Icons.update), findsOneWidget);
+      expect(find.textContaining('schema v99'), findsOneWidget);
+      expect(find.textContaining('schema v63'), findsOneWidget);
+      expect(find.byKey(const ValueKey('error')), findsOneWidget);
+    });
+
+    testWidgets('shows generic error on initialization failure', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) async {
+            throw Exception('Disk is full');
+          },
+        ),
+      );
+
+      // Let the initialization error propagate
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      // Should show generic error UI
+      expect(find.text('Database upgrade failed'), findsOneWidget);
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(find.textContaining('Disk is full'), findsOneWidget);
+      expect(find.byKey(const ValueKey('error')), findsOneWidget);
+    });
+
+    testWidgets('close button on error screen invokes closeAppOverride', (
+      tester,
+    ) async {
+      var closeCalled = false;
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) async {
+            throw Exception('Something broke');
+          },
+          closeAppOverride: () => closeCalled = true,
+        ),
+      );
+
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      // Tap the Close button
+      await tester.tap(find.text('Close'));
+      await tester.pump();
+
+      expect(closeCalled, isTrue);
+    });
+
+    testWidgets(
+      'close button on version mismatch screen invokes closeAppOverride',
+      (tester) async {
+        var closeCalled = false;
+
+        await tester.pumpWidget(
+          _buildStartupWrapper(
+            prefs: prefs,
+            logFileService: logFileService,
+            locationService: locationService,
+            schemaVersionProbeOverride: (_) =>
+                (needsMigration: false, totalSteps: 0),
+            initializerOverride: (_) async {
+              throw const DatabaseVersionMismatchException(
+                databaseVersion: 70,
+                appVersion: 63,
+              );
+            },
+            closeAppOverride: () => closeCalled = true,
+          ),
+        );
+
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Close'));
+        await tester.pump();
+
+        expect(closeCalled, isTrue);
+      },
+    );
+
+    testWidgets('no migration progress shown when probe says not needed', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) => Completer<void>().future,
+        ),
+      );
+
+      await tester.pump();
+      expect(find.text('Submersion'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      expect(find.textContaining('Upgrading'), findsNothing);
+
+      // Drain the 1-second splash delay timer
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('migration progress callbacks update UI in real time', (
+      tester,
+    ) async {
+      late void Function(int, int) progressCallback;
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: true, totalSteps: 10),
+          initializerOverride: (onProgress) {
+            progressCallback = onProgress;
+            return Completer<void>().future;
+          },
+        ),
+      );
+
+      await tester.pump();
+
+      // Initial: step 0 of 10
+      expect(find.text('Upgrading database... step 0 of 10'), findsOneWidget);
+
+      // Simulate progress steps
+      progressCallback(1, 10);
+      await tester.pump();
+      expect(find.text('Upgrading database... step 1 of 10'), findsOneWidget);
+
+      progressCallback(5, 10);
+      await tester.pump();
+      expect(find.text('Upgrading database... step 5 of 10'), findsOneWidget);
+
+      progressCallback(10, 10);
+      await tester.pump();
+      expect(find.text('Upgrading database... step 10 of 10'), findsOneWidget);
+
+      final indicator = tester.widget<LinearProgressIndicator>(
+        find.byType(LinearProgressIndicator),
+      );
+      expect(indicator.value, 1.0);
+
+      // Drain the 1-second splash delay timer
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('splash scaffold key is used during init', (tester) async {
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) => Completer<void>().future,
+        ),
+      );
+
+      await tester.pump();
+
+      expect(find.byKey(const ValueKey('splash')), findsOneWidget);
+      expect(find.byKey(const ValueKey('error')), findsNothing);
+
+      // Drain the 1-second splash delay timer
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('splash scaffold key is also used during migration', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: true, totalSteps: 3),
+          initializerOverride: (_) => Completer<void>().future,
+        ),
+      );
+
+      await tester.pump();
+
+      expect(find.byKey(const ValueKey('splash')), findsOneWidget);
+
+      // Drain the 1-second splash delay timer
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('error state renders error scaffold key', (tester) async {
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) async {
+            throw Exception('Test error');
+          },
+        ),
+      );
+
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('error')), findsOneWidget);
+      expect(find.byKey(const ValueKey('splash')), findsNothing);
+    });
+
+    testWidgets('generic error shows error message text', (tester) async {
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) async {
+            throw Exception('Corrupt database header');
+          },
+        ),
+      );
+
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Corrupt database header'), findsOneWidget);
+      expect(find.textContaining('Try restarting the app'), findsOneWidget);
+    });
+
+    testWidgets('version mismatch error shows correct version numbers', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) async {
+            throw const DatabaseVersionMismatchException(
+              databaseVersion: 100,
+              appVersion: 50,
+            );
+          },
+        ),
+      );
+
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('schema v100'), findsOneWidget);
+      expect(find.textContaining('schema v50'), findsOneWidget);
+      expect(find.textContaining('Your data is safe'), findsOneWidget);
     });
   });
 }

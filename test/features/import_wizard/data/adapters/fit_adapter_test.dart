@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
@@ -1298,6 +1302,346 @@ void main() {
       expect(capturedRef.read(fitAdapterCanAdvanceProvider), isFalse);
     });
   });
+
+  // -------------------------------------------------------------------------
+  // _FitFilePickerStep FilePicker interaction tests
+  // -------------------------------------------------------------------------
+
+  group('_FitFilePickerStep file picker interactions', () {
+    late _MockFilePicker mockFilePicker;
+    late _FakeFitParserService fakeFitParser;
+    late FitAdapter pickerAdapter;
+
+    setUp(() {
+      mockFilePicker = _MockFilePicker();
+      FilePicker.platform = mockFilePicker;
+      fakeFitParser = const _FakeFitParserService();
+      fakeFitParser.resultToReturn = null;
+      fakeFitParser.exceptionToThrow = null;
+
+      pickerAdapter = FitAdapter(
+        fitParser: fakeFitParser,
+        diveMatcher: mockMatcher,
+        converter: mockConverter,
+        diveRepository: mockRepo,
+        diverId: diverId,
+      );
+    });
+
+    Widget buildPickerStep(WizardStepDef step) {
+      return testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+        child: SizedBox(
+          height: 600,
+          child: Builder(builder: (context) => step.builder(context)),
+        ),
+      );
+    }
+
+    /// Tap the Select Files button and allow async file I/O to complete.
+    Future<void> tapAndSettle(WidgetTester tester) async {
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Select Files'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      });
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets('shows empty state when file picker is cancelled', (
+      tester,
+    ) async {
+      mockFilePicker.mockResult = null;
+      final step = pickerAdapter.acquisitionSteps.first;
+
+      await tester.pumpWidget(buildPickerStep(step));
+      await tester.pumpAndSettle();
+
+      await tapAndSettle(tester);
+
+      expect(find.text('No dives loaded'), findsOneWidget);
+      expect(find.text('Select Files'), findsOneWidget);
+    });
+
+    testWidgets('shows empty state when file picker returns empty list', (
+      tester,
+    ) async {
+      mockFilePicker.mockResult = const FilePickerResult([]);
+      final step = pickerAdapter.acquisitionSteps.first;
+
+      await tester.pumpWidget(buildPickerStep(step));
+      await tester.pumpAndSettle();
+
+      await tapAndSettle(tester);
+
+      expect(find.text('No dives loaded'), findsOneWidget);
+    });
+
+    testWidgets('filters non-FIT files and shows skipped count', (
+      tester,
+    ) async {
+      // All non-FIT files: should result in 0 dives parsed, all skipped
+      mockFilePicker.mockResult = FilePickerResult([
+        PlatformFile(name: 'photo.jpg', size: 100),
+        PlatformFile(name: 'notes.txt', size: 50),
+      ]);
+
+      final pickerAdapterWithCallback = FitAdapter(
+        fitParser: fakeFitParser,
+        diveMatcher: mockMatcher,
+        converter: mockConverter,
+        diveRepository: mockRepo,
+        diverId: diverId,
+      );
+
+      // Build the step from the adapter
+      final stepDef = pickerAdapterWithCallback.acquisitionSteps.first;
+      // Access onDivesParsed through the step builder
+      await tester.pumpWidget(buildPickerStep(stepDef));
+      await tester.pumpAndSettle();
+
+      await tapAndSettle(tester);
+
+      // Should show file count with all skipped
+      expect(
+        find.textContaining('Parsed 0 dive(s) from 2 file(s) (2 skipped)'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('successfully parses FIT file and shows dive list', (
+      tester,
+    ) async {
+      final tempDir = Directory.systemTemp.createTempSync('fit_test_');
+      final tempFile = File('${tempDir.path}/dive.fit');
+      tempFile.writeAsBytesSync([0x00, 0x01, 0x02]);
+
+      addTearDown(() {
+        tempDir.deleteSync(recursive: true);
+      });
+
+      mockFilePicker.mockResult = FilePickerResult([
+        PlatformFile(
+          name: 'dive.fit',
+          size: tempFile.lengthSync(),
+          path: tempFile.path,
+        ),
+      ]);
+
+      final parsedDive = makeDive(
+        startTime: DateTime(2026, 3, 15, 10, 32),
+        endTime: DateTime(2026, 3, 15, 11, 19),
+        maxDepth: 32.4,
+      );
+      fakeFitParser.resultToReturn = [parsedDive];
+
+      final step = pickerAdapter.acquisitionSteps.first;
+      await tester.pumpWidget(buildPickerStep(step));
+      await tester.pumpAndSettle();
+
+      await tapAndSettle(tester);
+
+      // Should show parsed dive count
+      expect(
+        find.textContaining('Parsed 1 dive(s) from 1 file(s)'),
+        findsOneWidget,
+      );
+      // Should not show "No dives loaded"
+      expect(find.text('No dives loaded'), findsNothing);
+    });
+
+    testWidgets('parses multiple FIT files and shows dive count', (
+      tester,
+    ) async {
+      final tempDir = Directory.systemTemp.createTempSync('fit_test_');
+      final tempFile1 = File('${tempDir.path}/dive1.fit');
+      final tempFile2 = File('${tempDir.path}/dive2.fit');
+      tempFile1.writeAsBytesSync([0x00, 0x01]);
+      tempFile2.writeAsBytesSync([0x03, 0x04]);
+
+      addTearDown(() {
+        tempDir.deleteSync(recursive: true);
+      });
+
+      mockFilePicker.mockResult = FilePickerResult([
+        PlatformFile(
+          name: 'dive1.fit',
+          size: tempFile1.lengthSync(),
+          path: tempFile1.path,
+        ),
+        PlatformFile(
+          name: 'dive2.fit',
+          size: tempFile2.lengthSync(),
+          path: tempFile2.path,
+        ),
+      ]);
+
+      final dives = [
+        makeDive(sourceId: 'g1', startTime: DateTime(2026, 3, 15, 10, 0)),
+        makeDive(sourceId: 'g2', startTime: DateTime(2026, 3, 15, 14, 0)),
+      ];
+      fakeFitParser.resultToReturn = dives;
+
+      final step = pickerAdapter.acquisitionSteps.first;
+      await tester.pumpWidget(buildPickerStep(step));
+      await tester.pumpAndSettle();
+
+      await tapAndSettle(tester);
+
+      expect(
+        find.textContaining('Parsed 2 dive(s) from 2 file(s)'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('skips files with null path gracefully', (tester) async {
+      // One FIT file with null path (e.g. web environment)
+      mockFilePicker.mockResult = FilePickerResult([
+        PlatformFile(name: 'dive.fit', size: 100),
+      ]);
+
+      // With no readable bytes (null path skipped), parser returns empty
+      fakeFitParser.resultToReturn = [];
+
+      final step = pickerAdapter.acquisitionSteps.first;
+      await tester.pumpWidget(buildPickerStep(step));
+      await tester.pumpAndSettle();
+
+      await tapAndSettle(tester);
+
+      // _totalFileCount = 1 (fitFiles.length), _skippedFileCount = 1 - 0 = 1
+      expect(
+        find.textContaining('Parsed 0 dive(s) from 1 file(s) (1 skipped)'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('shows empty state when parser throws an exception', (
+      tester,
+    ) async {
+      final tempDir = Directory.systemTemp.createTempSync('fit_test_');
+      final tempFile = File('${tempDir.path}/crash.fit');
+      tempFile.writeAsBytesSync([0xFF, 0xFE]);
+
+      addTearDown(() {
+        tempDir.deleteSync(recursive: true);
+      });
+
+      mockFilePicker.mockResult = FilePickerResult([
+        PlatformFile(
+          name: 'crash.fit',
+          size: tempFile.lengthSync(),
+          path: tempFile.path,
+        ),
+      ]);
+
+      fakeFitParser.exceptionToThrow = Exception('corrupt FIT data');
+
+      final step = pickerAdapter.acquisitionSteps.first;
+      await tester.pumpWidget(buildPickerStep(step));
+      await tester.pumpAndSettle();
+
+      await tapAndSettle(tester);
+
+      // On exception, widget resets to empty state
+      expect(find.text('No dives loaded'), findsOneWidget);
+    });
+
+    testWidgets('sets fitAdapterCanAdvanceProvider to true when dives parsed', (
+      tester,
+    ) async {
+      final tempDir = Directory.systemTemp.createTempSync('fit_test_');
+      final tempFile = File('${tempDir.path}/advance.fit');
+      tempFile.writeAsBytesSync([0x01]);
+
+      addTearDown(() {
+        tempDir.deleteSync(recursive: true);
+      });
+
+      mockFilePicker.mockResult = FilePickerResult([
+        PlatformFile(
+          name: 'advance.fit',
+          size: tempFile.lengthSync(),
+          path: tempFile.path,
+        ),
+      ]);
+
+      fakeFitParser.resultToReturn = [makeDive()];
+
+      late WidgetRef capturedRef;
+      final step = pickerAdapter.acquisitionSteps.first;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                height: 600,
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    capturedRef = ref;
+                    return Builder(builder: (ctx) => step.builder(ctx));
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(capturedRef.read(fitAdapterCanAdvanceProvider), isFalse);
+
+      await tapAndSettle(tester);
+
+      expect(capturedRef.read(fitAdapterCanAdvanceProvider), isTrue);
+    });
+
+    testWidgets('non-FIT files are silently filtered from file count', (
+      tester,
+    ) async {
+      final tempDir = Directory.systemTemp.createTempSync('fit_test_');
+      final tempFile = File('${tempDir.path}/dive.fit');
+      tempFile.writeAsBytesSync([0x01, 0x02]);
+
+      addTearDown(() {
+        tempDir.deleteSync(recursive: true);
+      });
+
+      mockFilePicker.mockResult = FilePickerResult([
+        PlatformFile(
+          name: 'dive.fit',
+          size: tempFile.lengthSync(),
+          path: tempFile.path,
+        ),
+        PlatformFile(name: 'photo.jpg', size: 500),
+        PlatformFile(name: 'notes.txt', size: 200),
+      ]);
+
+      fakeFitParser.resultToReturn = [makeDive()];
+
+      final step = pickerAdapter.acquisitionSteps.first;
+      await tester.pumpWidget(buildPickerStep(step));
+      await tester.pumpAndSettle();
+
+      await tapAndSettle(tester);
+
+      // Only the .fit file is counted in _totalFileCount; non-.fit files
+      // are filtered out before counting. So _totalFileCount = 1, not 3.
+      expect(
+        find.textContaining('Parsed 1 dive(s) from 1 file(s)'),
+        findsOneWidget,
+      );
+      // Verify no "skipped" text since all FIT files produced dives
+      expect(find.textContaining('skipped'), findsNothing);
+    });
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -1310,4 +1654,54 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+// ---------------------------------------------------------------------------
+// Mock FilePicker for FIT file picker tests
+// ---------------------------------------------------------------------------
+
+class _MockFilePicker extends FilePicker {
+  FilePickerResult? mockResult;
+
+  @override
+  Future<FilePickerResult?> pickFiles({
+    String? dialogTitle,
+    String? initialDirectory,
+    FileType type = FileType.any,
+    List<String>? allowedExtensions,
+    Function(FilePickerStatus)? onFileLoading,
+    bool allowCompression = true,
+    int compressionQuality = 30,
+    bool allowMultiple = false,
+    bool withData = false,
+    bool withReadStream = false,
+    bool lockParentWindow = false,
+    bool readSequential = false,
+  }) async {
+    return mockResult;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Fake FitParserService
+// ---------------------------------------------------------------------------
+
+class _FakeFitParserService extends FitParserService {
+  const _FakeFitParserService();
+
+  // Non-const fields must be accessed via a static to keep const constructor.
+  static List<ImportedDive>? _resultToReturn;
+  static Exception? _exceptionToThrow;
+
+  set resultToReturn(List<ImportedDive>? value) => _resultToReturn = value;
+  set exceptionToThrow(Exception? value) => _exceptionToThrow = value;
+
+  @override
+  Future<List<ImportedDive>> parseFitFiles(
+    List<Uint8List> fileBytes, {
+    List<String>? fileNames,
+  }) async {
+    if (_exceptionToThrow != null) throw _exceptionToThrow!;
+    return _resultToReturn ?? [];
+  }
 }

@@ -1,9 +1,28 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
+import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
+
+/// Finds a [GoRoute] by name in a route tree recursively.
+GoRoute? _findRouteByName(List<RouteBase> routes, String name) {
+  for (final route in routes) {
+    if (route is GoRoute && route.name == name) return route;
+    if (route is GoRoute) {
+      final found = _findRouteByName(route.routes, name);
+      if (found != null) return found;
+    }
+    if (route is ShellRoute) {
+      final found = _findRouteByName(route.routes, name);
+      if (found != null) return found;
+    }
+  }
+  return null;
+}
 
 /// Collects all named [GoRoute]s from a route tree recursively.
 Set<String> _collectRouteNames(List<RouteBase> routes) {
@@ -174,6 +193,117 @@ void main() {
               )
               as GoRoute;
       expect(downloadRoute.path, equals('download'));
+    });
+  });
+
+  group('appearance section routes', () {
+    test('all 8 appearance section routes exist', () {
+      final names = _collectRouteNames(router.configuration.routes);
+      expect(names, contains('appearanceDives'));
+      expect(names, contains('appearanceSites'));
+      expect(names, contains('appearanceBuddies'));
+      expect(names, contains('appearanceTrips'));
+      expect(names, contains('appearanceEquipment'));
+      expect(names, contains('appearanceDiveCenters'));
+      expect(names, contains('appearanceCertifications'));
+      expect(names, contains('appearanceCourses'));
+    });
+
+    test('columnConfig route exists under appearance', () {
+      final names = _collectRouteNames(router.configuration.routes);
+      expect(names, contains('columnConfig'));
+    });
+
+    test('appearance section routes have correct paths', () {
+      final paths = _collectRoutePaths(router.configuration.routes);
+      expect(paths, contains('dives'));
+      expect(paths, contains('sites'));
+      expect(paths, contains('buddies'));
+      expect(paths, contains('trips'));
+      expect(paths, contains('equipment'));
+      expect(paths, contains('dive-centers'));
+      expect(paths, contains('certifications'));
+      expect(paths, contains('courses'));
+      expect(paths, contains('column-config'));
+    });
+
+    test('appearance section routes have non-null builders', () {
+      for (final name in [
+        'appearanceDives',
+        'appearanceSites',
+        'appearanceBuddies',
+        'appearanceTrips',
+        'appearanceEquipment',
+        'appearanceDiveCenters',
+        'appearanceCertifications',
+        'appearanceCourses',
+        'columnConfig',
+      ]) {
+        final route = _findRouteByName(router.configuration.routes, name);
+        expect(route, isNotNull, reason: 'Route "$name" should exist');
+        expect(
+          route!.builder,
+          isNotNull,
+          reason: 'Route "$name" should have a builder',
+        );
+      }
+    });
+
+    testWidgets('appearance section builders return correct widget types', (
+      tester,
+    ) async {
+      // Build a minimal widget tree to get a valid BuildContext,
+      // then invoke each route builder to verify it returns the expected
+      // widget type. This covers the builder lambdas in app_router.dart.
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+
+      final context = tester.element(find.byType(SizedBox));
+      final config = router.configuration;
+
+      // Section appearance routes
+      for (final entry in <String, String>{
+        'appearanceDives': 'dives',
+        'appearanceSites': 'sites',
+        'appearanceBuddies': 'buddies',
+        'appearanceTrips': 'trips',
+        'appearanceEquipment': 'equipment',
+        'appearanceDiveCenters': 'diveCenters',
+        'appearanceCertifications': 'certifications',
+        'appearanceCourses': 'courses',
+      }.entries) {
+        final route = _findRouteByName(config.routes, entry.key);
+        expect(route, isNotNull, reason: '${entry.key} should exist');
+
+        final state = GoRouterState(
+          config,
+          uri: Uri.parse('/settings/appearance/${entry.value}'),
+          matchedLocation: '/settings/appearance/${entry.value}',
+          fullPath: '/settings/appearance/${entry.value}',
+          pathParameters: const {},
+          pageKey: ValueKey('/settings/appearance/${entry.value}'),
+        );
+
+        final widget = route!.builder!(context, state);
+        expect(
+          widget,
+          isA<SectionAppearancePage>(),
+          reason: '${entry.key} builder should return SectionAppearancePage',
+        );
+      }
+
+      // Column config route
+      final columnRoute = _findRouteByName(config.routes, 'columnConfig');
+      expect(columnRoute, isNotNull);
+      final columnState = GoRouterState(
+        config,
+        uri: Uri.parse('/settings/appearance/column-config?section=dives'),
+        matchedLocation: '/settings/appearance/column-config',
+        fullPath: '/settings/appearance/column-config',
+        pathParameters: const {},
+        pageKey: const ValueKey('/settings/appearance/column-config'),
+      );
+      final columnWidget = columnRoute!.builder!(context, columnState);
+      expect(columnWidget, isA<ColumnConfigPage>());
     });
   });
 

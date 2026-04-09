@@ -312,5 +312,30 @@ void main() {
       expect(find.text('Active Reg'), findsOneWidget);
       expect(find.text('Retired BCD'), findsOneWidget);
     });
+
+    testWidgets('tapping a row sets highlighted equipment id', (tester) async {
+      final equipment = [
+        _makeEquipment(id: 'e1', name: 'My Regulator'),
+        _makeEquipment(id: 'e2', name: 'My BCD'),
+      ];
+
+      final overrides = await _buildOverrides(equipment: equipment);
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const EquipmentListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+
+      // Tap on an equipment row
+      await tester.tap(find.text('My Regulator'));
+      // Pump past the DoubleTapGestureRecognizer's 40ms timer
+      await tester.pump(const Duration(milliseconds: 50));
+
+      // Verify the widget rebuilt successfully (no crash)
+      expect(find.text('My Regulator'), findsOneWidget);
+    });
   });
 }

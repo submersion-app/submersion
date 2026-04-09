@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
@@ -215,5 +217,89 @@ void main() {
         expect(find.byIcon(Icons.map), findsNothing);
       },
     );
+
+    testWidgets('tapping a row sets highlighted site id', (tester) async {
+      final sites = [
+        _makeSite(id: 's1', name: 'Blue Hole'),
+        _makeSite(id: 's2', name: 'Coral Garden'),
+      ];
+
+      final overrides = await _buildOverrides(sites: sites);
+
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides.cast(),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Consumer(
+              builder: (context, ref, _) {
+                container = ProviderScope.containerOf(context);
+                return const Scaffold(body: SiteListContent(showAppBar: true));
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Tap on a site row
+      await tester.tap(find.text('Blue Hole'));
+      // Pump past the DoubleTapGestureRecognizer's 300ms timeout
+      await tester.pump(const Duration(milliseconds: 350));
+
+      // The tap should have set the highlighted site ID
+      expect(container.read(highlightedSiteIdProvider), 's1');
+    });
+
+    testWidgets('double-tapping a row navigates to site detail', (
+      tester,
+    ) async {
+      final sites = [_makeSite(id: 's1', name: 'Blue Hole')];
+
+      final overrides = await _buildOverrides(sites: sites);
+
+      String? pushedPath;
+      final router = GoRouter(
+        initialLocation: '/sites',
+        routes: [
+          GoRoute(
+            path: '/sites',
+            builder: (context, state) =>
+                const Scaffold(body: SiteListContent(showAppBar: true)),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                  pushedPath = state.uri.toString();
+                  return const Scaffold(body: SizedBox());
+                },
+              ),
+            ],
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides.cast(),
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Double-tap on a site row
+      await tester.tap(find.text('Blue Hole'));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(find.text('Blue Hole'));
+      await tester.pumpAndSettle();
+
+      expect(pushedPath, '/sites/s1');
+    });
   });
 }
