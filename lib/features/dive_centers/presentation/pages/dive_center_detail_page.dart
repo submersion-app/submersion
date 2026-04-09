@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -35,16 +37,20 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Desktop redirect: If accessed directly (not embedded), redirect to master-detail view
+    // Desktop redirect: If accessed directly (not embedded), redirect to master-detail view.
+    // Skip in table mode -- table view has no master-detail split to redirect into.
     if (!widget.embedded &&
         !_hasRedirected &&
         ResponsiveBreakpoints.isMasterDetail(context)) {
-      _hasRedirected = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          context.go('/dive-centers?selected=${widget.centerId}');
-        }
-      });
+      final viewMode = ref.read(diveCenterListViewModeProvider);
+      if (viewMode != ListViewMode.table) {
+        _hasRedirected = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            context.go('/dive-centers?selected=${widget.centerId}');
+          }
+        });
+      }
     }
 
     final centerAsync = ref.watch(diveCenterByIdProvider(widget.centerId));

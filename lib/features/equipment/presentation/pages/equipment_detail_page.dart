@@ -3,6 +3,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -37,16 +38,20 @@ class _EquipmentDetailPageState extends ConsumerState<EquipmentDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Desktop redirect: if viewing detail page directly on desktop, redirect to master-detail
+    // Desktop redirect: if viewing detail page directly on desktop, redirect to master-detail.
+    // Skip in table mode -- table view has no master-detail split to redirect into.
     if (!widget.embedded &&
         !_hasRedirected &&
         ResponsiveBreakpoints.isMasterDetail(context)) {
-      _hasRedirected = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          context.go('/equipment?selected=${widget.equipmentId}');
-        }
-      });
+      final viewMode = ref.read(equipmentListViewModeProvider);
+      if (viewMode != ListViewMode.table) {
+        _hasRedirected = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            context.go('/equipment?selected=${widget.equipmentId}');
+          }
+        });
+      }
     }
 
     final equipmentAsync = ref.watch(equipmentItemProvider(widget.equipmentId));

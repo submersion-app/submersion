@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -38,16 +40,20 @@ class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Desktop redirect: if not embedded and on desktop, redirect to master-detail view
+    // Desktop redirect: if not embedded and on desktop, redirect to master-detail view.
+    // Skip in table mode -- table view has no master-detail split to redirect into.
     if (!widget.embedded &&
         !_hasRedirected &&
         ResponsiveBreakpoints.isMasterDetail(context)) {
-      _hasRedirected = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          context.go('/buddies?selected=${widget.buddyId}');
-        }
-      });
+      final viewMode = ref.read(buddyListViewModeProvider);
+      if (viewMode != ListViewMode.table) {
+        _hasRedirected = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            context.go('/buddies?selected=${widget.buddyId}');
+          }
+        });
+      }
     }
 
     final buddyAsync = ref.watch(buddyByIdProvider(widget.buddyId));

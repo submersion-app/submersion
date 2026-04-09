@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
@@ -39,16 +40,20 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Desktop redirect: if viewing detail page directly on desktop, redirect to master-detail
+    // Desktop redirect: if viewing detail page directly on desktop, redirect to master-detail.
+    // Skip in table mode -- table view has no master-detail split to redirect into.
     if (!widget.embedded &&
         !_hasRedirected &&
         ResponsiveBreakpoints.isMasterDetail(context)) {
-      _hasRedirected = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          context.go('/sites?selected=${widget.siteId}');
-        }
-      });
+      final viewMode = ref.read(siteListViewModeProvider);
+      if (viewMode != ListViewMode.table) {
+        _hasRedirected = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            context.go('/sites?selected=${widget.siteId}');
+          }
+        });
+      }
     }
 
     final siteAsync = ref.watch(siteProvider(widget.siteId));
