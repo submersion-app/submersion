@@ -1125,6 +1125,7 @@ class _AppearanceSectionContentState
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
+              key: const Key('columnConfigBackButton'),
               onPressed: () => setState(() => _showColumnConfig = false),
               icon: const Icon(Icons.arrow_back, size: 18),
               label: Text(backLabel),
@@ -1152,6 +1153,7 @@ class _AppearanceSectionContentState
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
+              key: const Key('sectionBackButton'),
               onPressed: () => setState(() => _activeSectionKey = null),
               icon: const Icon(Icons.arrow_back, size: 18),
               label: const Text('Appearance'),

@@ -672,12 +672,7 @@ void main() {
       expect(find.byType(SectionAppearancePage), findsOneWidget);
 
       // Tap the back button (TextButton.icon with "Appearance" label)
-      await tester.tap(
-        find.ancestor(
-          of: find.text('Appearance'),
-          matching: find.byType(TextButton),
-        ),
-      );
+      await tester.tap(find.byKey(const Key('sectionBackButton')));
       await tester.pumpAndSettle();
 
       // Should be back to the hub showing section entries
@@ -727,11 +722,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap the back button (TextButton.icon with "Dives" label)
-      final backButton = find.ancestor(
-        of: find.text('Dives'),
-        matching: find.byType(TextButton),
-      );
-      await tester.tap(backButton.first);
+      await tester.tap(find.byKey(const Key('columnConfigBackButton')));
       await tester.pumpAndSettle();
 
       // Should be back to the dives section appearance page
