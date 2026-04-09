@@ -46,8 +46,7 @@ DiveComputer _makeComputer({
 class _MockDiveComputerNotifier
     extends StateNotifier<AsyncValue<List<DiveComputer>>>
     implements DiveComputerNotifier {
-  _MockDiveComputerNotifier()
-    : super(const AsyncValue.data(<DiveComputer>[]));
+  _MockDiveComputerNotifier() : super(const AsyncValue.data(<DiveComputer>[]));
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -203,9 +202,7 @@ void main() {
 
     testWidgets('shows info rows', (tester) async {
       await tester.pumpWidget(
-        _buildTestWidget(
-          computer: _makeComputer(serialNumber: 'SN-12345'),
-        ),
+        _buildTestWidget(computer: _makeComputer(serialNumber: 'SN-12345')),
       );
       await tester.pumpAndSettle();
 
@@ -259,9 +256,7 @@ void main() {
     }.entries) {
       testWidgets('shows correct icon for ${entry.key}', (tester) async {
         await tester.pumpWidget(
-          _buildTestWidget(
-            computer: _makeComputer(connectionType: entry.key),
-          ),
+          _buildTestWidget(computer: _makeComputer(connectionType: entry.key)),
         );
         await tester.pumpAndSettle();
 
@@ -271,9 +266,7 @@ void main() {
 
     testWidgets('shows default icon for unknown connection', (tester) async {
       await tester.pumpWidget(
-        _buildTestWidget(
-          computer: _makeComputer(connectionType: 'unknown'),
-        ),
+        _buildTestWidget(computer: _makeComputer(connectionType: 'unknown')),
       );
       await tester.pumpAndSettle();
 
@@ -282,9 +275,7 @@ void main() {
 
     testWidgets('shows default icon for null connection', (tester) async {
       await tester.pumpWidget(
-        _buildTestWidget(
-          computer: _makeComputer(connectionType: null),
-        ),
+        _buildTestWidget(computer: _makeComputer(connectionType: null)),
       );
       await tester.pumpAndSettle();
 
@@ -316,9 +307,7 @@ void main() {
 
   group('DeviceDetailPage - popup menu', () {
     testWidgets('shows edit and delete menu items', (tester) async {
-      await tester.pumpWidget(
-        _buildTestWidget(computer: _makeComputer()),
-      );
+      await tester.pumpWidget(_buildTestWidget(computer: _makeComputer()));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byType(PopupMenuButton<String>));
@@ -348,9 +337,7 @@ void main() {
     });
 
     testWidgets('cancel closes edit dialog', (tester) async {
-      await tester.pumpWidget(
-        _buildTestWidget(computer: _makeComputer()),
-      );
+      await tester.pumpWidget(_buildTestWidget(computer: _makeComputer()));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byType(PopupMenuButton<String>));
@@ -365,9 +352,7 @@ void main() {
     });
 
     testWidgets('delete opens confirmation dialog', (tester) async {
-      await tester.pumpWidget(
-        _buildTestWidget(computer: _makeComputer()),
-      );
+      await tester.pumpWidget(_buildTestWidget(computer: _makeComputer()));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byType(PopupMenuButton<String>));
@@ -380,9 +365,7 @@ void main() {
     });
 
     testWidgets('cancel closes delete dialog', (tester) async {
-      await tester.pumpWidget(
-        _buildTestWidget(computer: _makeComputer()),
-      );
+      await tester.pumpWidget(_buildTestWidget(computer: _makeComputer()));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byType(PopupMenuButton<String>));
@@ -399,15 +382,10 @@ void main() {
 
   group('DeviceDetailPage - actions', () {
     testWidgets('download button navigates to download page', (tester) async {
-      await tester.pumpWidget(
-        _buildTestWidget(computer: _makeComputer()),
-      );
+      await tester.pumpWidget(_buildTestWidget(computer: _makeComputer()));
       await tester.pumpAndSettle();
 
-      await tester.scrollUntilVisible(
-        find.text('Download Dives'),
-        200,
-      );
+      await tester.scrollUntilVisible(find.text('Download Dives'), 200);
       await tester.tap(find.text('Download Dives'));
       await tester.pumpAndSettle();
 
@@ -416,9 +394,7 @@ void main() {
 
     testWidgets('view dives shows snackbar for null serial', (tester) async {
       await tester.pumpWidget(
-        _buildTestWidget(
-          computer: _makeComputer(serialNumber: null),
-        ),
+        _buildTestWidget(computer: _makeComputer(serialNumber: null)),
       );
       await tester.pumpAndSettle();
 
@@ -434,9 +410,7 @@ void main() {
 
     testWidgets('view dives shows snackbar for empty serial', (tester) async {
       await tester.pumpWidget(
-        _buildTestWidget(
-          computer: _makeComputer(serialNumber: ''),
-        ),
+        _buildTestWidget(computer: _makeComputer(serialNumber: '')),
       );
       await tester.pumpAndSettle();
 
@@ -452,9 +426,7 @@ void main() {
 
     testWidgets('view dives navigates when serial exists', (tester) async {
       await tester.pumpWidget(
-        _buildTestWidget(
-          computer: _makeComputer(serialNumber: 'SN-12345'),
-        ),
+        _buildTestWidget(computer: _makeComputer(serialNumber: 'SN-12345')),
       );
       await tester.pumpAndSettle();
 
