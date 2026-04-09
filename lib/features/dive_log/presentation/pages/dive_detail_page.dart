@@ -41,6 +41,7 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
@@ -122,16 +123,10 @@ class DiveDetailPage extends ConsumerStatefulWidget {
 }
 
 class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
-  /// Currently selected point index on the profile timeline
-  final ValueNotifier<int?> _selectedPointNotifier = ValueNotifier<int?>(null);
-
   /// Currently viewed data source ID (tap-to-view interaction)
   final ValueNotifier<String?> _viewedSourceIdNotifier = ValueNotifier<String?>(
     null,
   );
-
-  /// Non-null when the selection came from heat map hover (drives chart cursor)
-  int? _heatMapHoverIndex;
 
   /// Track if we've already initiated a redirect to prevent multiple calls
   bool _hasRedirected = false;
@@ -164,7 +159,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   @override
   void dispose() {
-    _selectedPointNotifier.dispose();
     _viewedSourceIdNotifier.dispose();
     super.dispose();
   }
@@ -248,9 +242,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         if (dive.profile.isEmpty) return [];
         return [
           const SizedBox(height: 24),
-          ValueListenableBuilder<int?>(
-            valueListenable: _selectedPointNotifier,
-            builder: (context, selectedPointIndex, _) {
+          Consumer(
+            builder: (context, ref, _) {
+              final selectedPointIndex = ref.watch(
+                profileTrackingIndexProvider(diveId),
+              );
               return _buildDecoO2Panel(context, ref, dive, selectedPointIndex);
             },
           ),
@@ -260,9 +256,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         if (dive.profile.isEmpty) return [];
         return [
           const SizedBox(height: 24),
-          ValueListenableBuilder<int?>(
-            valueListenable: _selectedPointNotifier,
-            builder: (context, selectedPointIndex, _) {
+          Consumer(
+            builder: (context, ref, _) {
+              final selectedPointIndex = ref.watch(
+                profileTrackingIndexProvider(diveId),
+              );
               return _buildSacSegmentsSection(
                 context,
                 ref,
@@ -1201,16 +1199,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             // Chart with optional range selection overlay
             LayoutBuilder(
               builder: (context, constraints) {
+                final trackingIndex = ref.watch(
+                  profileTrackingIndexProvider(diveId),
+                );
                 return Stack(
                   children: [
                     MouseRegion(
                       onExit: (_) {
-                        _selectedPointNotifier.value = null;
-                        if (_heatMapHoverIndex != null) {
-                          setState(() {
-                            _heatMapHoverIndex = null;
-                          });
-                        }
+                        ref
+                                .read(
+                                  profileTrackingIndexProvider(diveId).notifier,
+                                )
+                                .state =
+                            null;
                       },
                       child: DiveProfileChart(
                         exportKey: _profileChartExportKey,
@@ -1256,21 +1257,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                             ? playbackState.currentTimestamp
                             : null,
                         highlightedTimestamp:
-                            _heatMapHoverIndex != null &&
-                                _heatMapHoverIndex! < dive.profile.length
-                            ? dive.profile[_heatMapHoverIndex!].timestamp
+                            trackingIndex != null &&
+                                trackingIndex < dive.profile.length
+                            ? dive.profile[trackingIndex].timestamp
                             : null,
                         onPointSelected: (index) {
-                          if (index == null) {
-                            _selectedPointNotifier.value = null;
-                            return;
-                          }
-                          _selectedPointNotifier.value = index;
-                          if (_heatMapHoverIndex != null) {
-                            setState(() {
-                              _heatMapHoverIndex = null;
-                            });
-                          }
+                          ref
+                                  .read(
+                                    profileTrackingIndexProvider(
+                                      diveId,
+                                    ).notifier,
+                                  )
+                                  .state =
+                              index;
                         },
                       ),
                     ),
@@ -1422,10 +1421,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         subtitle: timeSubtitle,
         expandVisualization: expandVisualization,
         onHeatMapHover: (index) {
-          _selectedPointNotifier.value = index;
-          setState(() {
-            _heatMapHoverIndex = index;
-          });
+          ref.read(profileTrackingIndexProvider(diveId).notifier).state = index;
         },
       );
     }
