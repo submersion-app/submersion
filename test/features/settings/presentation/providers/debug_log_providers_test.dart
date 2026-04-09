@@ -486,8 +486,10 @@ void main() {
       const logger = LoggerService('test');
       logger.info('live entry', category: LogCategory.bluetooth);
 
-      // Allow the stream event to propagate through the provider.
-      await Future<void>.delayed(Duration.zero);
+      // Wait for the file write to flush, then let the provider
+      // invalidation + async re-read cycle complete.
+      await LoggerService.flushPendingWrites();
+      await container.read(logEntriesProvider.future);
       final updated = await container.read(logEntriesProvider.future);
       expect(updated.length, 2);
       expect(updated.last.message, 'live entry');
