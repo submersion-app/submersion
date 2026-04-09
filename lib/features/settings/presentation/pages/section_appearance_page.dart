@@ -43,7 +43,11 @@ const _sectionConfigs = <String, _SectionConfig>{
   'dives': _SectionConfig(
     key: 'dives',
     displayName: 'Dives',
-    viewModes: ListViewMode.values,
+    viewModes: [
+      ListViewMode.detailed,
+      ListViewMode.compact,
+      ListViewMode.table,
+    ],
     listFieldsLabel: 'Dive List Fields',
     hasCardsSection: true,
     hasDiveCards: true,
@@ -54,7 +58,11 @@ const _sectionConfigs = <String, _SectionConfig>{
   'sites': _SectionConfig(
     key: 'sites',
     displayName: 'Dive Sites',
-    viewModes: ListViewMode.values,
+    viewModes: [
+      ListViewMode.detailed,
+      ListViewMode.compact,
+      ListViewMode.table,
+    ],
     listFieldsLabel: 'Site List Fields',
     hasCardsSection: true,
     hasSiteCards: true,
@@ -62,25 +70,41 @@ const _sectionConfigs = <String, _SectionConfig>{
   'buddies': _SectionConfig(
     key: 'buddies',
     displayName: 'Buddies',
-    viewModes: [ListViewMode.detailed, ListViewMode.dense],
+    viewModes: [
+      ListViewMode.detailed,
+      ListViewMode.compact,
+      ListViewMode.table,
+    ],
     listFieldsLabel: 'Buddy List Fields',
   ),
   'trips': _SectionConfig(
     key: 'trips',
     displayName: 'Trips',
-    viewModes: ListViewMode.values,
+    viewModes: [
+      ListViewMode.detailed,
+      ListViewMode.compact,
+      ListViewMode.table,
+    ],
     listFieldsLabel: 'Trip List Fields',
   ),
   'equipment': _SectionConfig(
     key: 'equipment',
     displayName: 'Equipment',
-    viewModes: [ListViewMode.detailed, ListViewMode.dense],
+    viewModes: [
+      ListViewMode.detailed,
+      ListViewMode.compact,
+      ListViewMode.table,
+    ],
     listFieldsLabel: 'Equipment List Fields',
   ),
   'diveCenters': _SectionConfig(
     key: 'diveCenters',
     displayName: 'Dive Centers',
-    viewModes: ListViewMode.values,
+    viewModes: [
+      ListViewMode.detailed,
+      ListViewMode.compact,
+      ListViewMode.table,
+    ],
     listFieldsLabel: 'Dive Center List Fields',
   ),
   'certifications': _SectionConfig(
