@@ -95,11 +95,11 @@ class DatabaseService {
     _assertSchemaVersionCompatible(dbPath);
 
     final file = File(dbPath);
-    // Use synchronous NativeDatabase instead of createInBackground
-    // Background isolates can cause close() to hang indefinitely during migration
-    // For a dive log app, synchronous DB operations are fast enough
+    // Use createInBackground so migrations run in a separate isolate and
+    // do not block the main-isolate event loop. This keeps animations and
+    // progress-bar updates rendering smoothly while heavy DDL runs.
     _database = AppDatabase(
-      NativeDatabase(file),
+      NativeDatabase.createInBackground(file),
       onMigrationProgress: onMigrationProgress,
     );
   }

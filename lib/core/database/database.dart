@@ -1421,9 +1421,14 @@ class AppDatabase extends _$AppDatabase {
         int completedSteps = 0;
         final totalSteps = migrationStepCount(from);
 
-        void reportProgress() {
+        Future<void> reportProgress() async {
           completedSteps++;
           onMigrationProgress?.call(completedSteps, totalSteps);
+          // Yield to the event loop so the UI can repaint (update the progress
+          // bar and keep bubble animations running). With createInBackground
+          // the SQL itself yields naturally, but this extra yield ensures the
+          // framework has a chance to schedule a frame after setState.
+          await Future<void>.delayed(Duration.zero);
         }
 
         if (from < 2) {
@@ -1432,14 +1437,14 @@ class AppDatabase extends _$AppDatabase {
             "ALTER TABLE diver_settings ADD COLUMN sac_unit TEXT NOT NULL DEFAULT 'litersPerMin'",
           );
         }
-        if (from < 2) reportProgress();
+        if (from < 2) await reportProgress();
         if (from < 3) {
           // Add presetName column to dive_tanks
           await customStatement(
             'ALTER TABLE dive_tanks ADD COLUMN preset_name TEXT',
           );
         }
-        if (from < 3) reportProgress();
+        if (from < 3) await reportProgress();
         if (from < 4) {
           // Add sync tables for cloud sync feature
           await customStatement('''
@@ -1476,28 +1481,28 @@ class AppDatabase extends _$AppDatabase {
             )
           ''');
         }
-        if (from < 4) reportProgress();
+        if (from < 4) await reportProgress();
         if (from < 5) {
           // Add showMapBackgroundOnDiveCards column to diver_settings
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN show_map_background_on_dive_cards INTEGER NOT NULL DEFAULT 0',
           );
         }
-        if (from < 5) reportProgress();
+        if (from < 5) await reportProgress();
         if (from < 6) {
           // Add showMapBackgroundOnSiteCards column to diver_settings
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN show_map_background_on_site_cards INTEGER NOT NULL DEFAULT 0',
           );
         }
-        if (from < 6) reportProgress();
+        if (from < 6) await reportProgress();
         if (from < 7) {
           // Add showDepthColoredDiveCards column to diver_settings (was missing migration)
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN show_depth_colored_dive_cards INTEGER NOT NULL DEFAULT 0',
           );
         }
-        if (from < 7) reportProgress();
+        if (from < 7) await reportProgress();
         if (from < 8) {
           // Add dive profile marker settings
           await customStatement(
@@ -1507,7 +1512,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE diver_settings ADD COLUMN show_pressure_threshold_markers INTEGER NOT NULL DEFAULT 0',
           );
         }
-        if (from < 8) reportProgress();
+        if (from < 8) await reportProgress();
         if (from < 9) {
           // Add per-tank pressure profiles for multi-tank visualization
           await customStatement('''
@@ -1525,7 +1530,7 @@ class AppDatabase extends _$AppDatabase {
             ON tank_pressure_profiles(dive_id, tank_id, timestamp)
           ''');
         }
-        if (from < 9) reportProgress();
+        if (from < 9) await reportProgress();
         if (from < 10) {
           // Add time/date format columns to diver_settings
           await customStatement(
@@ -1535,7 +1540,7 @@ class AppDatabase extends _$AppDatabase {
             "ALTER TABLE diver_settings ADD COLUMN date_format TEXT NOT NULL DEFAULT 'mmmDYYYY'",
           );
         }
-        if (from < 10) reportProgress();
+        if (from < 10) await reportProgress();
         if (from < 11) {
           // CCR/SCR Rebreather Support (v1.5)
 
@@ -1602,14 +1607,14 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE dive_profiles ADD COLUMN pp_o2 REAL',
           );
         }
-        if (from < 11) reportProgress();
+        if (from < 11) await reportProgress();
         if (from < 12) {
           // Add isPlanned column for dive planner feature
           await customStatement(
             'ALTER TABLE dives ADD COLUMN is_planned INTEGER NOT NULL DEFAULT 0',
           );
         }
-        if (from < 12) reportProgress();
+        if (from < 12) await reportProgress();
         if (from < 13) {
           // Add custom tank presets table
           await customStatement('''
@@ -1628,7 +1633,7 @@ class AppDatabase extends _$AppDatabase {
             )
           ''');
         }
-        if (from < 13) reportProgress();
+        if (from < 13) await reportProgress();
         if (from < 14) {
           // Add tide records table for storing tide data with dives
           await customStatement('''
@@ -1651,7 +1656,7 @@ class AppDatabase extends _$AppDatabase {
             ON tide_records(dive_id)
           ''');
         }
-        if (from < 14) reportProgress();
+        if (from < 14) await reportProgress();
         if (from < 15) {
           // Add index on dive_profiles.dive_id for faster profile loading
           // This table has 160K+ rows and is queried frequently by dive_id
@@ -1665,14 +1670,14 @@ class AppDatabase extends _$AppDatabase {
             ON sync_records(entity_type, record_id)
           ''');
         }
-        if (from < 15) reportProgress();
+        if (from < 15) await reportProgress();
         if (from < 16) {
           // Add altitude column to dive_sites for altitude diving support
           await customStatement(
             'ALTER TABLE dive_sites ADD COLUMN altitude REAL',
           );
         }
-        if (from < 16) reportProgress();
+        if (from < 16) await reportProgress();
         if (from < 17) {
           // Add personal & medical data fields to divers table
           await customStatement(
@@ -1692,7 +1697,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE divers ADD COLUMN emergency_contact2_relation TEXT',
           );
         }
-        if (from < 17) reportProgress();
+        if (from < 17) await reportProgress();
         if (from < 18) {
           // Add site_species junction table for expected marine life at sites
           await customStatement('''
@@ -1710,7 +1715,7 @@ class AppDatabase extends _$AppDatabase {
             ON site_species(site_id)
           ''');
         }
-        if (from < 18) reportProgress();
+        if (from < 18) await reportProgress();
         if (from < 19) {
           // Training courses feature (v1.5)
           // Create courses table
@@ -1756,7 +1761,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE media ADD COLUMN signer_name TEXT',
           );
         }
-        if (from < 19) reportProgress();
+        if (from < 19) await reportProgress();
         if (from < 20) {
           // Underwater photography feature (v2.0)
           final now = DateTime.now().millisecondsSinceEpoch;
@@ -1866,7 +1871,7 @@ class AppDatabase extends _$AppDatabase {
             ON pending_photo_suggestions(dive_id)
           ''');
         }
-        if (from < 20) reportProgress();
+        if (from < 20) await reportProgress();
         if (from < 21) {
           // Cached map regions for offline maps feature
           await customStatement('''
@@ -1886,14 +1891,14 @@ class AppDatabase extends _$AppDatabase {
             )
           ''');
         }
-        if (from < 21) reportProgress();
+        if (from < 21) await reportProgress();
         if (from < 22) {
           // Buddy signatures feature - add signature type column
           await customStatement(
             'ALTER TABLE media ADD COLUMN signature_type TEXT',
           );
         }
-        if (from < 22) reportProgress();
+        if (from < 22) await reportProgress();
         if (from < 23) {
           // Store photos as BLOBs instead of file paths for backup/export
           // Add BLOB columns to certifications table
@@ -1906,7 +1911,7 @@ class AppDatabase extends _$AppDatabase {
           // Add BLOB column to media table for signatures
           await customStatement('ALTER TABLE media ADD COLUMN image_data BLOB');
         }
-        if (from < 23) reportProgress();
+        if (from < 23) await reportProgress();
         if (from < 24) {
           // Add structured address fields to dive_centers
           // The original table had 'location' but not 'city', so we add all new columns
@@ -1947,14 +1952,14 @@ class AppDatabase extends _$AppDatabase {
             ''');
           }
         }
-        if (from < 24) reportProgress();
+        if (from < 24) await reportProgress();
         if (from < 25) {
           // Add altitudeUnit column to diver_settings
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN altitude_unit TEXT NOT NULL DEFAULT 'meters'",
           );
         }
-        if (from < 25) reportProgress();
+        if (from < 25) await reportProgress();
         if (from < 26) {
           // Notification settings for service reminders
           await customStatement(
@@ -1967,7 +1972,7 @@ class AppDatabase extends _$AppDatabase {
             "ALTER TABLE diver_settings ADD COLUMN reminder_time TEXT NOT NULL DEFAULT '09:00'",
           );
         }
-        if (from < 26) reportProgress();
+        if (from < 26) await reportProgress();
         if (from < 27) {
           // Per-equipment notification overrides
           await customStatement(
@@ -1977,7 +1982,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE equipment ADD COLUMN custom_reminder_days TEXT',
           );
         }
-        if (from < 27) reportProgress();
+        if (from < 27) await reportProgress();
         if (from < 28) {
           // Scheduled notifications tracking table
           await customStatement('''
@@ -1996,7 +2001,7 @@ class AppDatabase extends _$AppDatabase {
             ON scheduled_notifications(equipment_id)
           ''');
         }
-        if (from < 28) reportProgress();
+        if (from < 28) await reportProgress();
         if (from < 29) {
           // Add dive profile chart default visibility settings to diver_settings
           await customStatement(
@@ -2045,7 +2050,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE diver_settings ADD COLUMN default_show_gas_switch_markers INTEGER NOT NULL DEFAULT 1',
           );
         }
-        if (from < 29) reportProgress();
+        if (from < 29) await reportProgress();
         if (from < 30) {
           // Wearable integration (v2.0) - Apple Watch, Garmin, Suunto import
           // Add wearable source tracking to dives table
@@ -2060,7 +2065,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE dive_profiles ADD COLUMN heart_rate_source TEXT',
           );
         }
-        if (from < 30) reportProgress();
+        if (from < 30) await reportProgress();
         if (from < 31) {
           // Performance indexes for 5000+ dives
           // Primary query: dives by diver, ordered by date
@@ -2120,7 +2125,7 @@ class AppDatabase extends _$AppDatabase {
             ON dive_buddies(dive_id)
           ''');
         }
-        if (from < 31) reportProgress();
+        if (from < 31) await reportProgress();
         if (from < 32) {
           // Add taxonomy class and built-in flag to species table
           await customStatement(
@@ -2130,7 +2135,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE species ADD COLUMN is_built_in INTEGER NOT NULL DEFAULT 0',
           );
         }
-        if (from < 32) reportProgress();
+        if (from < 32) await reportProgress();
         if (from < 33) {
           // Add locale column for i18n language preference
           final cols = await customSelect(
@@ -2145,7 +2150,7 @@ class AppDatabase extends _$AppDatabase {
             );
           }
         }
-        if (from < 33) reportProgress();
+        if (from < 33) await reportProgress();
         if (from < 34) {
           // User-defined key:value custom fields per dive
           await customStatement('''
@@ -2167,7 +2172,7 @@ class AppDatabase extends _$AppDatabase {
             ON dive_custom_fields(field_key)
           ''');
         }
-        if (from < 34) reportProgress();
+        if (from < 34) await reportProgress();
         if (from < 35) {
           // Card coloring: attribute selector + gradient settings
           await customStatement(
@@ -2187,7 +2192,7 @@ class AppDatabase extends _$AppDatabase {
             "UPDATE diver_settings SET card_color_attribute = 'depth' WHERE show_depth_colored_dive_cards = 1",
           );
         }
-        if (from < 35) reportProgress();
+        if (from < 35) await reportProgress();
         if (from < 36) {
           // Backfill water_temp from profile temperature data for dives
           // where water_temp is NULL but profile points have temperature.
@@ -2203,7 +2208,7 @@ class AppDatabase extends _$AppDatabase {
             ) WHERE water_temp IS NULL
           ''');
         }
-        if (from < 36) reportProgress();
+        if (from < 36) await reportProgress();
         if (from < 37) {
           await customStatement(
             'ALTER TABLE dive_computers ADD COLUMN firmware_version TEXT',
@@ -2212,7 +2217,7 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE dives ADD COLUMN dive_computer_firmware TEXT',
           );
         }
-        if (from < 37) reportProgress();
+        if (from < 37) await reportProgress();
 
         if (from < 38) {
           // Remove any existing duplicate media (same gallery photo linked
@@ -2240,7 +2245,7 @@ class AppDatabase extends _$AppDatabase {
             WHERE platform_asset_id IS NOT NULL AND dive_id IS NOT NULL
           ''');
         }
-        if (from < 38) reportProgress();
+        if (from < 38) await reportProgress();
         if (from < 39) {
           // Backfill avg_depth from profile data for dives that have
           // profile points but no avg_depth recorded.
@@ -2277,7 +2282,7 @@ class AppDatabase extends _$AppDatabase {
             );
           }
         }
-        if (from < 39) reportProgress();
+        if (from < 39) await reportProgress();
         if (from < 40) {
           // Add per-sample decompression data columns to dive_profiles
           await customStatement(
@@ -2300,13 +2305,13 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE dives ADD COLUMN deco_conservatism INTEGER',
           );
         }
-        if (from < 40) reportProgress();
+        if (from < 40) await reportProgress();
         if (from < 41) {
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN use_dive_computer_cns_data INTEGER NOT NULL DEFAULT 0',
           );
         }
-        if (from < 41) reportProgress();
+        if (from < 41) await reportProgress();
         if (from < 42) {
           // Add per-metric data source columns
           await customStatement(
@@ -2326,13 +2331,13 @@ class AppDatabase extends _$AppDatabase {
             'UPDATE diver_settings SET default_cns_source = 0 WHERE use_dive_computer_cns_data = 1',
           );
         }
-        if (from < 42) reportProgress();
+        if (from < 42) await reportProgress();
         if (from < 43) {
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN theme_preset TEXT NOT NULL DEFAULT 'submersion'",
           );
         }
-        if (from < 43) reportProgress();
+        if (from < 43) await reportProgress();
         if (from < 45) {
           // Migrations 44-45 add columns to diver_settings.
           // Guard with PRAGMA table_info to handle partial migrations
@@ -2364,7 +2369,7 @@ class AppDatabase extends _$AppDatabase {
             );
           }
         }
-        if (from < 45) reportProgress();
+        if (from < 45) await reportProgress();
 
         if (from < 46) {
           // Add trip type column to trips
@@ -2450,7 +2455,7 @@ class AppDatabase extends _$AppDatabase {
               AND id NOT IN (SELECT trip_id FROM liveaboard_detail_records)
           ''');
         }
-        if (from < 46) reportProgress();
+        if (from < 46) await reportProgress();
         if (from < 47) {
           // Add lastDiveFingerprint column for incremental dive download
           final dcInfo = await customSelect(
@@ -2463,7 +2468,7 @@ class AppDatabase extends _$AppDatabase {
             );
           }
         }
-        if (from < 47) reportProgress();
+        if (from < 47) await reportProgress();
         if (from < 48) {
           // Add weather columns to dives table.
           // Guard with PRAGMA table_info to handle partial migrations
@@ -2513,7 +2518,7 @@ class AppDatabase extends _$AppDatabase {
             );
           }
         }
-        if (from < 48) reportProgress();
+        if (from < 48) await reportProgress();
         if (from < 49) {
           // Add importVersion column.
           final divesInfo = await customSelect(
@@ -2563,7 +2568,7 @@ class AppDatabase extends _$AppDatabase {
             WHERE import_version IS NULL
           ''');
         }
-        if (from < 49) reportProgress();
+        if (from < 49) await reportProgress();
         if (from < 50) {
           final settingsInfo = await customSelect(
             'PRAGMA table_info(diver_settings)',
@@ -2582,13 +2587,13 @@ class AppDatabase extends _$AppDatabase {
             );
           }
         }
-        if (from < 50) reportProgress();
+        if (from < 50) await reportProgress();
         if (from < 51) {
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN dive_list_view_mode TEXT NOT NULL DEFAULT 'detailed'",
           );
         }
-        if (from < 51) reportProgress();
+        if (from < 51) await reportProgress();
         if (from < 52) {
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN site_list_view_mode TEXT NOT NULL DEFAULT 'detailed'",
@@ -2606,7 +2611,7 @@ class AppDatabase extends _$AppDatabase {
             "ALTER TABLE diver_settings ADD COLUMN dive_center_list_view_mode TEXT NOT NULL DEFAULT 'detailed'",
           );
         }
-        if (from < 52) reportProgress();
+        if (from < 52) await reportProgress();
         if (from < 53) {
           await customStatement('''
             CREATE TABLE IF NOT EXISTS dive_computer_data (
@@ -2640,7 +2645,7 @@ class AppDatabase extends _$AppDatabase {
             ON dive_computer_data(dive_id)
           ''');
         }
-        if (from < 53) reportProgress();
+        if (from < 53) await reportProgress();
         if (from < 54) {
           await customStatement(
             'ALTER TABLE dive_computer_data RENAME TO dive_data_sources',
@@ -2665,27 +2670,27 @@ class AppDatabase extends _$AppDatabase {
             ON dive_data_sources(dive_id)
           ''');
         }
-        if (from < 54) reportProgress();
+        if (from < 54) await reportProgress();
         if (from < 55) {
           // Add data source badge visibility setting to diver_settings
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN show_data_source_badges INTEGER NOT NULL DEFAULT 1',
           );
         }
-        if (from < 55) reportProgress();
+        if (from < 55) await reportProgress();
         if (from < 56) {
           await m.database.customStatement(
             'ALTER TABLE dives RENAME COLUMN duration TO bottom_time',
           );
         }
-        if (from < 56) reportProgress();
+        if (from < 56) await reportProgress();
         if (from < 57) {
           // Add dive detail section configuration column to diver_settings
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN dive_detail_sections TEXT',
           );
         }
-        if (from < 57) reportProgress();
+        if (from < 57) await reportProgress();
         if (from < 58) {
           // Add csv_presets table for user-saved CSV import presets
           await customStatement('''
@@ -2770,65 +2775,102 @@ class AppDatabase extends _$AppDatabase {
             'ALTER TABLE tank_presets_new RENAME TO tank_presets',
           );
         }
-        if (from < 58) reportProgress();
+        if (from < 58) await reportProgress();
         if (from < 59) {
-          // Migrate legacy dive_profiles.pressure data into tank_pressure_profiles.
-          // For each dive that has pressure data in dive_profiles but NO existing
-          // rows in tank_pressure_profiles, copy the pressure points into
-          // tank_pressure_profiles associated with the dive's first tank.
-          final divesWithLegacyPressure = await customSelect('''
+          // Migrate legacy dive_profiles.pressure data into
+          // tank_pressure_profiles in a single bulk INSERT.
+          // For each dive that has pressure data in dive_profiles but NO
+          // existing rows in tank_pressure_profiles, copy the pressure
+          // points associated with the dive's first tank (by rowid).
+          //
+          // Performance: use EXCEPT on small dive_id sets instead of
+          // per-row NOT EXISTS (which triggers full table scans on
+          // large tables). Reuse dp.id instead of generating UUIDs.
+          // Temp tables with PKs give SQLite indexed join paths.
+
+          // Build an indexed lookup of first tank per dive (~500 rows).
+          await customStatement('''
+            CREATE TEMP TABLE _migration_first_tanks (
+              dive_id TEXT PRIMARY KEY,
+              tank_id TEXT NOT NULL
+            )
+          ''');
+          await customStatement('''
+            INSERT INTO _migration_first_tanks (dive_id, tank_id)
+            SELECT dive_id, id
+            FROM (
+              SELECT dive_id, id,
+                     ROW_NUMBER() OVER (PARTITION BY dive_id ORDER BY rowid) AS rn
+              FROM dive_tanks
+            )
+            WHERE rn = 1
+          ''');
+
+          // Ensure index exists so NOT EXISTS can use it
+          // (may be missing depending on migration history).
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_tank_pressure_dive_tank
+            ON tank_pressure_profiles(dive_id, tank_id, timestamp)
+          ''');
+
+          // Find dive_ids needing migration: have legacy pressure data
+          // but no rows in tank_pressure_profiles yet. Uses set
+          // difference on small distinct-dive_id sets (~hundreds) rather
+          // than per-row NOT EXISTS on ~100k profile rows.
+          final divesToMigrate = await customSelect('''
             SELECT DISTINCT dp.dive_id
             FROM dive_profiles dp
-            WHERE dp.pressure IS NOT NULL
-              AND dp.is_primary = 1
-              AND NOT EXISTS (
-                SELECT 1 FROM tank_pressure_profiles tpp
-                WHERE tpp.dive_id = dp.dive_id
-              )
+            WHERE dp.pressure IS NOT NULL AND dp.is_primary = 1
+            EXCEPT
+            SELECT DISTINCT dive_id FROM tank_pressure_profiles
           ''').get();
 
-          for (final row in divesWithLegacyPressure) {
-            final diveId = row.read<String>('dive_id');
+          if (divesToMigrate.isNotEmpty) {
+            // Stash the dive_ids that need migration.
+            await customStatement('''
+              CREATE TEMP TABLE _migration_dive_ids (
+                dive_id TEXT PRIMARY KEY
+              )
+            ''');
+            for (final row in divesToMigrate) {
+              await customStatement(
+                "INSERT INTO _migration_dive_ids VALUES (?)",
+                [row.read<String>('dive_id')],
+              );
+            }
 
-            // Get the first tank for this dive (lowest rowid)
-            final tankRows = await customSelect(
-              '''
-              SELECT id FROM dive_tanks
-              WHERE dive_id = ?
-              ORDER BY rowid ASC
-              LIMIT 1
-            ''',
-              variables: [Variable(diveId)],
-            ).get();
-
-            if (tankRows.isEmpty) continue;
-            final tankId = tankRows.first.read<String>('id');
-
-            // Copy pressure points into tank_pressure_profiles
-            // Use hex(randomblob(16)) for UUID generation in SQLite
+            // Drop secondary index for faster bulk insert.
             await customStatement(
-              '''
+              'DROP INDEX IF EXISTS idx_tank_pressure_dive_tank',
+            );
+            final cacheResult = await customSelect('PRAGMA cache_size').get();
+            final previousCacheSize = cacheResult.first.read<int>('cache_size');
+            await customStatement('PRAGMA cache_size = -65536');
+            await customStatement('''
               INSERT INTO tank_pressure_profiles (id, dive_id, tank_id, timestamp, pressure)
               SELECT
-                lower(hex(randomblob(4)) || '-' || hex(randomblob(2)) || '-4' ||
-                  substr(hex(randomblob(2)),2) || '-' ||
-                  substr('89ab', abs(random()) % 4 + 1, 1) ||
-                  substr(hex(randomblob(2)),2) || '-' ||
-                  hex(randomblob(6))),
-                ?,
-                ?,
+                dp.id,
+                dp.dive_id,
+                ft.tank_id,
                 dp.timestamp,
                 dp.pressure
               FROM dive_profiles dp
-              WHERE dp.dive_id = ?
-                AND dp.pressure IS NOT NULL
+              JOIN _migration_first_tanks ft ON ft.dive_id = dp.dive_id
+              JOIN _migration_dive_ids md ON md.dive_id = dp.dive_id
+              WHERE dp.pressure IS NOT NULL
                 AND dp.is_primary = 1
-              ''',
-              [diveId, tankId, diveId],
-            );
+            ''');
+            await customStatement('PRAGMA cache_size = $previousCacheSize');
+            await customStatement('''
+              CREATE INDEX IF NOT EXISTS idx_tank_pressure_dive_tank
+              ON tank_pressure_profiles(dive_id, tank_id, timestamp)
+            ''');
+            await customStatement('DROP TABLE IF EXISTS _migration_dive_ids');
           }
+
+          await customStatement('DROP TABLE IF EXISTS _migration_first_tanks');
         }
-        if (from < 59) reportProgress();
+        if (from < 59) await reportProgress();
 
         if (from < 60) {
           await customStatement('''
@@ -2858,7 +2900,7 @@ class AppDatabase extends _$AppDatabase {
             'CREATE INDEX IF NOT EXISTS idx_field_presets_diver ON field_presets(diver_id, view_mode)',
           );
         }
-        if (from < 60) reportProgress();
+        if (from < 60) await reportProgress();
 
         if (from < 61) {
           // Add showProfilePanelInTableView column to diver_settings.
@@ -2878,7 +2920,7 @@ class AppDatabase extends _$AppDatabase {
             ''');
           }
         }
-        if (from < 61) reportProgress();
+        if (from < 61) await reportProgress();
 
         if (from < 62) {
           await customStatement('''
@@ -2886,7 +2928,7 @@ class AppDatabase extends _$AppDatabase {
             ON view_configs(diver_id, view_mode)
           ''');
         }
-        if (from < 62) reportProgress();
+        if (from < 62) await reportProgress();
 
         if (from < 63) {
           // Add per-section details pane toggle columns to diver_settings.
@@ -2915,7 +2957,7 @@ class AppDatabase extends _$AppDatabase {
             }
           }
         }
-        if (from < 63) reportProgress();
+        if (from < 63) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys

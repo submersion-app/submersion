@@ -115,11 +115,15 @@ void main() {
             .get();
 
         expect(rows.length, 3); // Only 3 rows had non-null pressure
+        // Migrated rows reuse the dive_profile id for efficiency
+        expect(rows[0].read<String>('id'), 'p1');
         expect(rows[0].read<String>('tank_id'), 't1');
         expect(rows[0].read<int>('timestamp'), 0);
         expect(rows[0].read<double>('pressure'), 200.0);
+        expect(rows[1].read<String>('id'), 'p2');
         expect(rows[1].read<int>('timestamp'), 60);
         expect(rows[1].read<double>('pressure'), 190.0);
+        expect(rows[2].read<String>('id'), 'p3');
         expect(rows[2].read<int>('timestamp'), 120);
         expect(rows[2].read<double>('pressure'), 180.0);
       },

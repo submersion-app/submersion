@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/domain/entities/migration_progress.dart';
+import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/services/background_service.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -141,8 +142,7 @@ class _StartupWrapperState extends State<StartupWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = MediaQuery.platformBrightnessOf(context);
-    final isDark = brightness == Brightness.dark;
+    final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
     final backgroundColor = isDark ? const Color(0xFF121212) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black87;
     final subtitleColor = isDark ? Colors.white70 : Colors.black54;
@@ -159,71 +159,82 @@ class _StartupWrapperState extends State<StartupWrapper> {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        // Use 'splash' key for both initializing and migrating so
-        // AnimatedSize handles the progress bar transition instead of
-        // AnimatedSwitcher triggering a full Scaffold crossfade.
-        key: ValueKey(_state == _StartupState.error ? 'error' : 'splash'),
-        backgroundColor: backgroundColor,
-        body: SafeArea(
-          child: Center(
-            child: _state == _StartupState.error
-                ? _buildErrorContent(textColor, subtitleColor)
-                : _buildSplashContent(textColor, subtitleColor, isDark),
-          ),
-        ),
-      ),
+      home: _state == _StartupState.error
+          ? Scaffold(
+              key: const ValueKey('error'),
+              backgroundColor: backgroundColor,
+              body: SafeArea(
+                child: Center(
+                  child: _buildErrorContent(textColor, subtitleColor),
+                ),
+              ),
+            )
+          : Scaffold(
+              // Use 'splash' key for both initializing and migrating so
+              // AnimatedSize handles the progress bar transition instead of
+              // AnimatedSwitcher triggering a full Scaffold crossfade.
+              key: const ValueKey('splash'),
+              body: OceanBackground(
+                child: SafeArea(
+                  child: Center(child: _buildSplashContent(isDark)),
+                ),
+              ),
+            ),
     );
   }
 
-  Widget _buildSplashContent(
-    Color textColor,
-    Color subtitleColor,
-    bool isDark,
-  ) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Image.asset('assets/icon/icon.png', width: 96, height: 96),
-        const SizedBox(height: 16),
-        Text(
-          'Submersion',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: textColor,
+  Widget _buildSplashContent(bool isDark) {
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Image.asset('assets/icon/icon.png', width: 120, height: 120),
           ),
-        ),
-        AnimatedSize(
-          duration: const Duration(milliseconds: 200),
-          child: _state == _StartupState.migrating
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 32),
-                  child: SizedBox(
-                    width: 240,
-                    child: Column(
+          const SizedBox(height: 24),
+          const Text(
+            'Submersion',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              decoration: TextDecoration.none,
+            ),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: 240,
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              child: _state == _StartupState.migrating
+                  ? Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         LinearProgressIndicator(
                           value: _progress.fraction,
-                          backgroundColor: isDark
-                              ? Colors.white24
-                              : Colors.black12,
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Text(
                           'Upgrading database... '
                           'step ${_progress.currentStep} of ${_progress.totalSteps}',
-                          style: TextStyle(fontSize: 13, color: subtitleColor),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.8),
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ],
-                    ),
-                  ),
-                )
-              : const SizedBox.shrink(),
-        ),
-      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
