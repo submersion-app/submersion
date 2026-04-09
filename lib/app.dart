@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -66,11 +67,13 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     with WidgetsBindingObserver {
   final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
   late final FileShareHandler _fileShareHandler;
+  late final AppLifecycleListener _lifecycleListener;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _lifecycleListener = AppLifecycleListener(onExitRequested: _closeDatabases);
     registerUpdateMenuChannel(ref);
     _fileShareHandler = FileShareHandler(
       onFileReceived: _handleIncomingFile,
@@ -96,20 +99,28 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   @override
   void dispose() {
     _fileShareHandler.dispose();
+    _lifecycleListener.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  /// Close databases before the app exits. Uses onExitRequested (mapped from
+  /// NSApplicationDelegate.applicationShouldTerminate: on macOS) which is
+  /// async and fires before the Dart VM begins isolate/FFI teardown. Without
+  /// this, the Drift background isolate can outlive the FFI subsystem and
+  /// crash in sqlite3_close_v2 → functionDestroy.
+  Future<AppExitResponse> _closeDatabases() async {
+    await Future.wait([
+      DatabaseService.instance.close(),
+      LocalCacheDatabaseService.instance.close(),
+    ]);
+    return AppExitResponse.exit;
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _maybeSyncOnResume();
-    } else if (state == AppLifecycleState.detached) {
-      // Close databases before the Dart VM tears down isolates.
-      // Without this, the Drift background isolate can outlive the FFI
-      // subsystem and crash in sqlite3_close_v2 → functionDestroy.
-      DatabaseService.instance.close();
-      LocalCacheDatabaseService.instance.close();
     }
   }
 
