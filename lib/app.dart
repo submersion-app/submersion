@@ -13,6 +13,8 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/shared/services/file_share_handler.dart';
 import 'package:submersion/shared/services/incoming_file_handler.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/local_cache_database_service.dart';
 
 const Locale _defaultFallbackLocale = Locale('en');
 const Set<String> _invalidSystemLocaleLanguageCodes = {'c', 'posix'};
@@ -102,6 +104,12 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _maybeSyncOnResume();
+    } else if (state == AppLifecycleState.detached) {
+      // Close databases before the Dart VM tears down isolates.
+      // Without this, the Drift background isolate can outlive the FFI
+      // subsystem and crash in sqlite3_close_v2 → functionDestroy.
+      DatabaseService.instance.close();
+      LocalCacheDatabaseService.instance.close();
     }
   }
 
