@@ -90,7 +90,7 @@ void main() {
 
       for (final label in [
         'Dives',
-        'Dive Sites',
+        'Sites',
         'Buddies',
         'Trips',
         'Equipment',
