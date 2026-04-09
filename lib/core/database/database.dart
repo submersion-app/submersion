@@ -1425,9 +1425,9 @@ class AppDatabase extends _$AppDatabase {
           completedSteps++;
           onMigrationProgress?.call(completedSteps, totalSteps);
           // Yield to the event loop so the UI can repaint (update the progress
-          // bar and keep bubble animations running). With createInBackground
-          // the SQL itself yields naturally, but this extra yield ensures the
-          // framework has a chance to schedule a frame after setState.
+          // bar). With synchronous NativeDatabase, DDL blocks the main thread
+          // during each step, but this yield between steps gives the framework
+          // a chance to schedule a frame after setState.
           await Future<void>.delayed(Duration.zero);
         }
 

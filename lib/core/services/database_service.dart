@@ -95,11 +95,13 @@ class DatabaseService {
     _assertSchemaVersionCompatible(dbPath);
 
     final file = File(dbPath);
-    // Use createInBackground so migrations run in a separate isolate and
-    // do not block the main-isolate event loop. This keeps animations and
-    // progress-bar updates rendering smoothly while heavy DDL runs.
+    // Use synchronous NativeDatabase instead of createInBackground to avoid
+    // isolate communication issues during migration. Background isolates can
+    // cause close() to hang indefinitely if called mid-migration.
+    // Progress bar updates still render between migration steps via the
+    // Future.delayed(Duration.zero) yield in reportProgress().
     _database = AppDatabase(
-      NativeDatabase.createInBackground(file),
+      NativeDatabase(file),
       onMigrationProgress: onMigrationProgress,
     );
   }
