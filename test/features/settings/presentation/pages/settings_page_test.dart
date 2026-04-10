@@ -646,7 +646,7 @@ void main() {
 
       // The hub view should show Sections with entries like "Dives"
       expect(find.text('Dives'), findsOneWidget);
-      expect(find.text('Dive Sites'), findsOneWidget);
+      expect(find.text('Sites'), findsOneWidget);
 
       // Tap on "Dives" section entry
       await tester.tap(find.text('Dives'));
@@ -678,7 +678,7 @@ void main() {
       // Should be back to the hub showing section entries
       expect(find.byType(SectionAppearancePage), findsNothing);
       expect(find.text('Dives'), findsOneWidget);
-      expect(find.text('Dive Sites'), findsOneWidget);
+      expect(find.text('Sites'), findsOneWidget);
     });
 
     testWidgets(
@@ -735,8 +735,8 @@ void main() {
       await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      // Navigate into "Dive Sites" to exercise _getSectionDisplayName('sites')
-      await tester.tap(find.text('Dive Sites'));
+      // Navigate into "Sites" to exercise _getSectionDisplayName('sites')
+      await tester.tap(find.text('Sites'));
       await tester.pumpAndSettle();
 
       // The section appearance page is shown for sites

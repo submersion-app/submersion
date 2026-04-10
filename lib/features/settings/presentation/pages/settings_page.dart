@@ -1080,7 +1080,7 @@ class _DecompressionSectionContent extends ConsumerWidget {
 /// Appearance section content
 const _sectionHubEntries = [
   ('dives', 'Dives'),
-  ('sites', 'Dive Sites'),
+  ('sites', 'Sites'),
   ('buddies', 'Buddies'),
   ('trips', 'Trips'),
   ('equipment', 'Equipment'),

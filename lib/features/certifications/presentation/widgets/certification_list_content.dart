@@ -234,9 +234,10 @@ class _CertificationListContentState
           units: units,
           onSortFieldChanged: notifier.setSortField,
           onResizeColumn: notifier.resizeColumn,
-          onEntityTap: (id) {
+          onEntityTapDown: (id) {
             ref.read(highlightedCertificationIdProvider.notifier).state = id;
           },
+          onEntityTap: (id) {},
           onEntityDoubleTap: (id) {
             context.push('/certifications/$id');
           },

@@ -29,10 +29,10 @@ void main() {
 
     test('toggleColumn adds a new column', () {
       final before = notifier.state.columns.length;
-      notifier.toggleColumn(DiveField.buddy);
+      notifier.toggleColumn(DiveField.bottomTime);
       expect(notifier.state.columns.length, equals(before + 1));
       expect(
-        notifier.state.columns.any((c) => c.field == DiveField.buddy),
+        notifier.state.columns.any((c) => c.field == DiveField.bottomTime),
         isTrue,
       );
     });
@@ -160,30 +160,19 @@ void main() {
       );
     });
 
-    test('applyPreset replaces config with Technical preset', () {
+    test('applyPreset replaces config with Standard preset', () {
       final presets = FieldPreset.builtInTablePresets();
-      final technical = presets.firstWhere((p) => p.name == 'Technical');
+      final standard = presets.firstWhere((p) => p.name == 'Standard');
 
-      notifier.applyPreset(technical);
+      // First mutate the notifier so state differs from preset
+      notifier.toggleColumn(DiveField.waterTemp);
+
+      notifier.applyPreset(standard);
 
       final config = notifier.state;
-      // Technical preset includes gradientFactorLow as a GF field
-      expect(
-        config.columns.any((c) => c.field == DiveField.gradientFactorLow) ||
-            config.columns.any((c) => c.field == DiveField.sacRate),
-        isTrue,
-      );
-    });
-
-    test('applyPreset replaces config with Planning preset', () {
-      final presets = FieldPreset.builtInTablePresets();
-      final planning = presets.firstWhere((p) => p.name == 'Planning');
-
-      notifier.applyPreset(planning);
-
-      final config = notifier.state;
-      expect(config.columns.any((c) => c.field == DiveField.buddy), isTrue);
-      expect(config.columns.any((c) => c.field == DiveField.notes), isTrue);
+      expect(config.columns.length, equals(22));
+      expect(config.columns.any((c) => c.field == DiveField.sacRate), isTrue);
+      expect(config.columns.any((c) => c.field == DiveField.waterTemp), isTrue);
     });
 
     test('replaceConfig replaces config directly', () {
@@ -417,16 +406,16 @@ void main() {
       expect(col2.width, equals(100));
     });
 
-    test('toggleColumn adds buddy then removes it', () {
-      notifier.toggleColumn(DiveField.buddy);
+    test('toggleColumn adds bottomTime then removes it', () {
+      notifier.toggleColumn(DiveField.bottomTime);
       expect(
-        notifier.state.columns.any((c) => c.field == DiveField.buddy),
+        notifier.state.columns.any((c) => c.field == DiveField.bottomTime),
         isTrue,
       );
 
-      notifier.toggleColumn(DiveField.buddy);
+      notifier.toggleColumn(DiveField.bottomTime);
       expect(
-        notifier.state.columns.any((c) => c.field == DiveField.buddy),
+        notifier.state.columns.any((c) => c.field == DiveField.bottomTime),
         isFalse,
       );
     });
@@ -597,9 +586,12 @@ void main() {
 
     test('tableViewConfigProvider notifier is accessible for mutations', () {
       final notifier = container.read(tableViewConfigProvider.notifier);
-      notifier.toggleColumn(DiveField.buddy);
+      notifier.toggleColumn(DiveField.bottomTime);
       final config = container.read(tableViewConfigProvider);
-      expect(config.columns.any((c) => c.field == DiveField.buddy), isTrue);
+      expect(
+        config.columns.any((c) => c.field == DiveField.bottomTime),
+        isTrue,
+      );
     });
 
     test(

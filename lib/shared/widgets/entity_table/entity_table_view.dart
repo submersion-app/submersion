@@ -41,6 +41,9 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
   /// Called when user taps a row.
   final void Function(String entityId) onEntityTap;
 
+  /// Called immediately on touch down (before tap/double-tap disambiguation).
+  final void Function(String entityId)? onEntityTapDown;
+
   /// Called when user double-taps a row.
   final void Function(String entityId)? onEntityDoubleTap;
 
@@ -66,6 +69,7 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
     required this.onSortFieldChanged,
     required this.onResizeColumn,
     required this.onEntityTap,
+    this.onEntityTapDown,
     this.onEntityDoubleTap,
     this.onEntityLongPress,
     this.selectedIds = const {},
@@ -264,7 +268,7 @@ class _EntityTableViewState<T, F extends EntityField>
   }) {
     if (isSelected) return colorScheme.primaryContainer;
     if (isHighlighted) {
-      return colorScheme.primaryContainer.withValues(alpha: 0.3);
+      return colorScheme.primaryContainer.withValues(alpha: 0.8);
     }
     if (isHovered) return colorScheme.onSurface.withValues(alpha: 0.04);
     if (index.isOdd) return colorScheme.surfaceContainerLowest;
@@ -363,49 +367,55 @@ class _EntityTableViewState<T, F extends EntityField>
                           setState(() => _hoveredEntityId = null);
                         }
                       },
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => widget.onEntityTap(entityId),
-                        onDoubleTap: widget.onEntityDoubleTap != null
-                            ? () => widget.onEntityDoubleTap!(entityId)
+                      child: Listener(
+                        onPointerDown: widget.onEntityTapDown != null
+                            ? (_) => widget.onEntityTapDown!(entityId)
                             : null,
-                        onLongPress: widget.onEntityLongPress != null
-                            ? () => widget.onEntityLongPress!(entityId)
-                            : null,
-                        child: ColoredBox(
-                          color: _rowBackground(
-                            index: index,
-                            isSelected: isSelected,
-                            isHighlighted: isHighlighted,
-                            isHovered: isHovered,
-                            colorScheme: colorScheme,
-                          ),
-                          child: Row(
-                            children: [
-                              if (widget.isSelectionMode)
-                                SizedBox(
-                                  width: _kCheckboxWidth,
-                                  height: kEntityTableRowHeight,
-                                  child: Checkbox(
-                                    value: isSelected,
-                                    onChanged: (_) =>
-                                        widget.onEntityTap(entityId),
-                                    materialTapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                    visualDensity: VisualDensity.compact,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => widget.onEntityTap(entityId),
+                          onDoubleTap: widget.onEntityDoubleTap != null
+                              ? () => widget.onEntityDoubleTap!(entityId)
+                              : null,
+                          onLongPress: widget.onEntityLongPress != null
+                              ? () => widget.onEntityLongPress!(entityId)
+                              : null,
+                          child: ColoredBox(
+                            color: _rowBackground(
+                              index: index,
+                              isSelected: isSelected,
+                              isHighlighted: isHighlighted,
+                              isHovered: isHovered,
+                              colorScheme: colorScheme,
+                            ),
+                            child: Row(
+                              children: [
+                                if (widget.isSelectionMode)
+                                  SizedBox(
+                                    width: _kCheckboxWidth,
+                                    height: kEntityTableRowHeight,
+                                    child: Checkbox(
+                                      value: isSelected,
+                                      onChanged: (_) =>
+                                          widget.onEntityTap(entityId),
+                                      materialTapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                      visualDensity: VisualDensity.compact,
+                                    ),
                                   ),
-                                ),
-                              ...pinned.asMap().entries.map((entry) {
-                                return _buildCell(
-                                  entity: entity,
-                                  column: entry.value,
-                                  theme: theme,
-                                  rowIndex: index,
-                                  isSelected: isSelected,
-                                  isLastPinned: entry.key == pinned.length - 1,
-                                );
-                              }),
-                            ],
+                                ...pinned.asMap().entries.map((entry) {
+                                  return _buildCell(
+                                    entity: entity,
+                                    column: entry.value,
+                                    theme: theme,
+                                    rowIndex: index,
+                                    isSelected: isSelected,
+                                    isLastPinned:
+                                        entry.key == pinned.length - 1,
+                                  );
+                                }),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -445,33 +455,38 @@ class _EntityTableViewState<T, F extends EntityField>
                               setState(() => _hoveredEntityId = null);
                             }
                           },
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => widget.onEntityTap(entityId),
-                            onDoubleTap: widget.onEntityDoubleTap != null
-                                ? () => widget.onEntityDoubleTap!(entityId)
+                          child: Listener(
+                            onPointerDown: widget.onEntityTapDown != null
+                                ? (_) => widget.onEntityTapDown!(entityId)
                                 : null,
-                            onLongPress: widget.onEntityLongPress != null
-                                ? () => widget.onEntityLongPress!(entityId)
-                                : null,
-                            child: ColoredBox(
-                              color: _rowBackground(
-                                index: index,
-                                isSelected: isSelected,
-                                isHighlighted: isHighlighted,
-                                isHovered: isHovered,
-                                colorScheme: colorScheme,
-                              ),
-                              child: Row(
-                                children: scrollable.map((col) {
-                                  return _buildCell(
-                                    entity: entity,
-                                    column: col,
-                                    theme: theme,
-                                    rowIndex: index,
-                                    isSelected: isSelected,
-                                  );
-                                }).toList(),
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => widget.onEntityTap(entityId),
+                              onDoubleTap: widget.onEntityDoubleTap != null
+                                  ? () => widget.onEntityDoubleTap!(entityId)
+                                  : null,
+                              onLongPress: widget.onEntityLongPress != null
+                                  ? () => widget.onEntityLongPress!(entityId)
+                                  : null,
+                              child: ColoredBox(
+                                color: _rowBackground(
+                                  index: index,
+                                  isSelected: isSelected,
+                                  isHighlighted: isHighlighted,
+                                  isHovered: isHovered,
+                                  colorScheme: colorScheme,
+                                ),
+                                child: Row(
+                                  children: scrollable.map((col) {
+                                    return _buildCell(
+                                      entity: entity,
+                                      column: col,
+                                      theme: theme,
+                                      rowIndex: index,
+                                      isSelected: isSelected,
+                                    );
+                                  }).toList(),
+                                ),
                               ),
                             ),
                           ),

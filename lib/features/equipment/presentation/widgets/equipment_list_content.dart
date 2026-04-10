@@ -252,9 +252,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           units: units,
           onSortFieldChanged: notifier.setSortField,
           onResizeColumn: notifier.resizeColumn,
-          onEntityTap: (id) {
+          onEntityTapDown: (id) {
             ref.read(highlightedEquipmentIdProvider.notifier).state = id;
           },
+          onEntityTap: (id) {},
           onEntityDoubleTap: (id) {
             context.push('/equipment/$id');
           },

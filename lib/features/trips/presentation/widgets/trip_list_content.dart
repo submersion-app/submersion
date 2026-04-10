@@ -252,9 +252,10 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                 units: units,
                 onSortFieldChanged: notifier.setSortField,
                 onResizeColumn: notifier.resizeColumn,
-                onEntityTap: (id) {
+                onEntityTapDown: (id) {
                   ref.read(highlightedTripIdProvider.notifier).state = id;
                 },
+                onEntityTap: (id) {},
                 onEntityDoubleTap: (id) {
                   context.push('/trips/$id');
                 },

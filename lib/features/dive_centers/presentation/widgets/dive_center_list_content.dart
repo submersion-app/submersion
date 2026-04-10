@@ -297,9 +297,10 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           units: units,
           onSortFieldChanged: notifier.setSortField,
           onResizeColumn: notifier.resizeColumn,
-          onEntityTap: (id) {
+          onEntityTapDown: (id) {
             ref.read(highlightedDiveCenterIdProvider.notifier).state = id;
           },
+          onEntityTap: (id) {},
           onEntityDoubleTap: (id) {
             context.push('/dive-centers/$id');
           },

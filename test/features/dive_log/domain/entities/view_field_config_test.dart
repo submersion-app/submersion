@@ -320,11 +320,8 @@ void main() {
   group('FieldPreset', () {
     test('built-in presets exist', () {
       final presets = FieldPreset.builtInTablePresets();
-      expect(presets.length, equals(3));
-      expect(
-        presets.map((p) => p.name),
-        containsAll(['Standard', 'Technical', 'Planning']),
-      );
+      expect(presets.length, equals(1));
+      expect(presets.first.name, equals('Standard'));
       expect(presets.every((p) => p.isBuiltIn), isTrue);
     });
 
@@ -570,27 +567,6 @@ void main() {
   });
 
   group('FieldPreset edge cases', () {
-    test('Technical preset has sacRate or startPressure column', () {
-      final presets = FieldPreset.builtInTablePresets();
-      final technical = presets.firstWhere((p) => p.name == 'Technical');
-      final config = TableViewConfig.fromJson(technical.configJson);
-      final fields = config.columns.map((c) => c.field).toList();
-      expect(
-        fields.contains(DiveField.sacRate) ||
-            fields.contains(DiveField.startPressure),
-        isTrue,
-      );
-    });
-
-    test('Planning preset has buddy and notes columns', () {
-      final presets = FieldPreset.builtInTablePresets();
-      final planning = presets.firstWhere((p) => p.name == 'Planning');
-      final config = TableViewConfig.fromJson(planning.configJson);
-      final fields = config.columns.map((c) => c.field).toList();
-      expect(fields, contains(DiveField.buddy));
-      expect(fields, contains(DiveField.notes));
-    });
-
     test('Standard preset has 22 columns with category grouping', () {
       final presets = FieldPreset.builtInTablePresets();
       final standard = presets.firstWhere((p) => p.name == 'Standard');
@@ -607,9 +583,5 @@ void main() {
       expect(fields, isNot(contains(DiveField.bottomTime)));
     });
 
-    test('inequality between different presets', () {
-      final presets = FieldPreset.builtInTablePresets();
-      expect(presets[0], isNot(equals(presets[1])));
-    });
   });
 }

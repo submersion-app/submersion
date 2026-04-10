@@ -17,7 +17,11 @@ from generate_uddf_test_data import (
     generate_dive_profile,
     THERMOCLINE_PROFILES,
     GAS_MIXES,
+    PADI_COURSES,
+    PADI_CERTIFICATIONS,
+    generate_training_dives,
 )
+from datetime import timedelta, datetime
 
 
 class TestPerlinNoise(unittest.TestCase):
@@ -293,6 +297,57 @@ class TestProfileRealism(unittest.TestCase):
             diffs = [abs(depths1[i] - depths2[i]) for i in range(min_len)]
             avg_diff = sum(diffs) / len(diffs)
             self.assertGreater(avg_diff, 0.5, f"Dives too similar: avg diff = {avg_diff:.2f}m")
+
+
+class TestCourseGeneration(unittest.TestCase):
+    """Test PADI course data and training dive generation."""
+
+    def test_every_cert_has_course(self):
+        """Each cert referenced by a course should exist."""
+        cert_ids = {c["id"] for c in PADI_CERTIFICATIONS}
+        for course in PADI_COURSES:
+            self.assertIn(course["certification_id"], cert_ids,
+                          f"Course references missing cert: {course['certification_id']}")
+
+    def test_course_dates_before_cert(self):
+        """Course start should be before cert date."""
+        cert_dates = {c["id"]: c["date"] for c in PADI_CERTIFICATIONS}
+        for course in PADI_COURSES:
+            cert_date = cert_dates.get(course["certification_id"])
+            if cert_date:
+                c_date = datetime.strptime(cert_date, "%Y-%m-%d")
+                s_date = c_date - timedelta(days=course["course_duration_days"])
+                self.assertLess(s_date, c_date)
+
+    def test_training_dives_count(self):
+        """generate_training_dives should return correct number."""
+        import random as rng
+        rng.seed(42)
+        course = PADI_COURSES[0]
+        dives = generate_training_dives(course, dive_start_index=0)
+        self.assertEqual(len(dives), course["num_training_dives"])
+
+    def test_training_dives_in_date_range(self):
+        """Training dives should fall within course dates."""
+        import random as rng
+        rng.seed(42)
+        course = PADI_COURSES[0]
+        cert = next(c for c in PADI_CERTIFICATIONS if c["id"] == course["certification_id"])
+        completion = datetime.strptime(cert["date"], "%Y-%m-%d")
+        start = completion - timedelta(days=course["course_duration_days"])
+        dives = generate_training_dives(course, dive_start_index=0)
+        for dive in dives:
+            self.assertGreaterEqual(dive["datetime"], start)
+            self.assertLessEqual(dive["datetime"], completion)
+
+    def test_training_dive_depth_appropriate(self):
+        """Training dives should not exceed course max depth."""
+        import random as rng
+        rng.seed(42)
+        course = PADI_COURSES[0]
+        dives = generate_training_dives(course, dive_start_index=0)
+        for dive in dives:
+            self.assertLessEqual(dive["max_depth"], course["max_depth"] + 2)
 
 
 if __name__ == "__main__":

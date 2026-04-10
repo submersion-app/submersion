@@ -57,7 +57,7 @@ const _sectionConfigs = <String, _SectionConfig>{
   ),
   'sites': _SectionConfig(
     key: 'sites',
-    displayName: 'Dive Sites',
+    displayName: 'Sites',
     viewModes: [
       ListViewMode.detailed,
       ListViewMode.compact,

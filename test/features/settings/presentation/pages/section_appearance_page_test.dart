@@ -165,7 +165,7 @@ void main() {
       await tester.pumpWidget(_buildTestWidget('sites'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Dive Sites Appearance'), findsOneWidget);
+      expect(find.text('Sites Appearance'), findsOneWidget);
     });
   });
 

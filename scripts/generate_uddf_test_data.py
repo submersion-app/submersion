@@ -1434,6 +1434,249 @@ PADI_CERTIFICATIONS = [
     },
 ]
 
+# PADI Courses linked to certifications
+# Each course generates training dives and links to a certification
+PADI_COURSES = [
+    {
+        "id": "course_ow",
+        "name": "Open Water Diver",
+        "agency": "padi",
+        "certification_id": "cert_ow",
+        "instructor": "John Smith",
+        "instructor_number": "S-12345",
+        "location": "Blue Water Divers",
+        "num_training_dives": 4,
+        "course_duration_days": 4,
+        "max_depth": 12,
+        "min_depth": 6,
+        "dive_duration_range": (30, 45),
+        "site_type": "shallow",
+        "skill_level_range": (0.15, 0.35),
+    },
+    {
+        "id": "course_aow",
+        "name": "Advanced Open Water Diver",
+        "agency": "padi",
+        "certification_id": "cert_aow",
+        "instructor": "Maria Garcia",
+        "instructor_number": "S-12345",
+        "location": "Blue Water Divers",
+        "num_training_dives": 5,
+        "course_duration_days": 3,
+        "max_depth": 30,
+        "min_depth": 10,
+        "dive_duration_range": (35, 50),
+        "site_type": "reef",
+        "skill_level_range": (0.3, 0.5),
+        "adventure_dives": [
+            {"name": "Deep", "max_depth": 30, "min_depth": 25, "site_type": "reef", "duration_range": (30, 40)},
+            {"name": "Navigation", "max_depth": 15, "min_depth": 12, "site_type": "shallow", "duration_range": (30, 40)},
+            {"name": "Night", "max_depth": 15, "min_depth": 12, "site_type": "reef", "duration_range": (35, 45)},
+            {"name": "PPB", "max_depth": 15, "min_depth": 12, "site_type": "shallow", "duration_range": (35, 45)},
+            {"name": "Naturalist", "max_depth": 18, "min_depth": 10, "site_type": "reef", "duration_range": (40, 50)},
+        ],
+    },
+    {
+        "id": "course_rescue",
+        "name": "Rescue Diver",
+        "agency": "padi",
+        "certification_id": "cert_rescue",
+        "instructor": "David Chen",
+        "instructor_number": "S-23456",
+        "location": "Aqua Adventures",
+        "num_training_dives": 2,
+        "course_duration_days": 3,
+        "max_depth": 15,
+        "min_depth": 8,
+        "dive_duration_range": (20, 35),
+        "site_type": "shallow",
+        "skill_level_range": (0.4, 0.55),
+    },
+    {
+        "id": "course_ean",
+        "name": "Enriched Air Diver",
+        "agency": "padi",
+        "certification_id": "cert_ean",
+        "instructor": "Maria Garcia",
+        "instructor_number": "S-12345",
+        "location": "Blue Water Divers",
+        "num_training_dives": 2,
+        "course_duration_days": 1,
+        "max_depth": 25,
+        "min_depth": 15,
+        "dive_duration_range": (40, 55),
+        "site_type": "reef",
+        "skill_level_range": (0.45, 0.55),
+    },
+    {
+        "id": "course_deep",
+        "name": "Deep Diver",
+        "agency": "padi",
+        "certification_id": "cert_deep",
+        "instructor": "James Wilson",
+        "instructor_number": "S-34567",
+        "location": "Deep Blue Diving",
+        "num_training_dives": 4,
+        "course_duration_days": 2,
+        "max_depth": 35,
+        "min_depth": 25,
+        "dive_duration_range": (25, 40),
+        "site_type": "wall",
+        "skill_level_range": (0.45, 0.6),
+    },
+    {
+        "id": "course_wreck",
+        "name": "Wreck Diver",
+        "agency": "padi",
+        "certification_id": "cert_wreck",
+        "instructor": "Robert Taylor",
+        "instructor_number": "S-45678",
+        "location": "Wreck Diving Specialists",
+        "num_training_dives": 4,
+        "course_duration_days": 2,
+        "max_depth": 25,
+        "min_depth": 15,
+        "dive_duration_range": (30, 45),
+        "site_type": "wreck",
+        "skill_level_range": (0.45, 0.6),
+    },
+    {
+        "id": "course_msd",
+        "name": "Master Scuba Diver",
+        "agency": "padi",
+        "certification_id": "cert_msd",
+        "instructor": "David Chen",
+        "instructor_number": "S-23456",
+        "location": "Aqua Adventures",
+        "num_training_dives": 0,
+        "course_duration_days": 1,
+        "max_depth": 30,
+        "min_depth": 15,
+        "dive_duration_range": (40, 55),
+        "site_type": "reef",
+        "skill_level_range": (0.6, 0.75),
+    },
+    {
+        "id": "course_tec40",
+        "name": "Tec 40",
+        "agency": "padi",
+        "certification_id": "cert_tec40",
+        "instructor": "Michael Brown",
+        "instructor_number": "S-56789",
+        "location": "Technical Diving Center",
+        "num_training_dives": 4,
+        "course_duration_days": 5,
+        "max_depth": 40,
+        "min_depth": 30,
+        "dive_duration_range": (35, 55),
+        "site_type": "wall",
+        "skill_level_range": (0.75, 0.9),
+    },
+    {
+        "id": "course_tec45",
+        "name": "Tec 45",
+        "agency": "padi",
+        "certification_id": "cert_tec45",
+        "instructor": "Michael Brown",
+        "instructor_number": "S-56789",
+        "location": "Technical Diving Center",
+        "num_training_dives": 4,
+        "course_duration_days": 5,
+        "max_depth": 45,
+        "min_depth": 35,
+        "dive_duration_range": (35, 55),
+        "site_type": "wall",
+        "skill_level_range": (0.8, 0.95),
+    },
+    {
+        "id": "course_drysuit",
+        "name": "Dry Suit Diver",
+        "agency": "padi",
+        "certification_id": "cert_drysuit",
+        "instructor": "Sarah Johnson",
+        "instructor_number": "S-67890",
+        "location": "Cold Water Diving",
+        "num_training_dives": 2,
+        "course_duration_days": 1,
+        "max_depth": 18,
+        "min_depth": 10,
+        "dive_duration_range": (30, 45),
+        "site_type": "reef",
+        "skill_level_range": (0.5, 0.6),
+    },
+    {
+        "id": "course_sidemount",
+        "name": "Sidemount Diver",
+        "agency": "padi",
+        "certification_id": "cert_sidemount",
+        "instructor": "Michael Brown",
+        "instructor_number": "S-56789",
+        "location": "Technical Diving Center",
+        "num_training_dives": 3,
+        "course_duration_days": 3,
+        "max_depth": 25,
+        "min_depth": 12,
+        "dive_duration_range": (35, 50),
+        "site_type": "reef",
+        "skill_level_range": (0.55, 0.7),
+    },
+]
+
+
+def generate_training_dives(course: Dict, dive_start_index: int) -> List[Dict]:
+    """Generate training dive metadata for a course.
+
+    Args:
+        course: Course dict from PADI_COURSES.
+        dive_start_index: Starting index for dive numbering.
+
+    Returns:
+        List of training dive dicts with datetime, max_depth, duration,
+        site_type, skill_level, course_id.
+    """
+    cert = next(c for c in PADI_CERTIFICATIONS if c["id"] == course["certification_id"])
+    completion_date = datetime.strptime(cert["date"], "%Y-%m-%d")
+    start_date = completion_date - timedelta(days=course["course_duration_days"])
+
+    num_dives = course["num_training_dives"]
+    if num_dives == 0:
+        return []
+
+    dives = []
+    adventure_dives = course.get("adventure_dives")
+
+    for i in range(num_dives):
+        day_offset = int(i * course["course_duration_days"] / max(1, num_dives))
+        dive_date = start_date + timedelta(days=day_offset)
+        hour = 8 + (i % 3) * 3
+        dive_datetime = dive_date.replace(hour=hour, minute=0, second=0)
+
+        if adventure_dives and i < len(adventure_dives):
+            adv = adventure_dives[i]
+            max_depth = random.uniform(adv["min_depth"], adv["max_depth"])
+            duration = random.randint(*adv["duration_range"])
+            site_type = adv["site_type"]
+        else:
+            max_depth = random.uniform(course["min_depth"], course["max_depth"])
+            duration = random.randint(*course["dive_duration_range"])
+            site_type = course["site_type"]
+
+        skill = random.uniform(*course["skill_level_range"])
+
+        dives.append({
+            "datetime": dive_datetime,
+            "max_depth": max_depth,
+            "duration": duration,
+            "site_type": site_type,
+            "skill_level": skill,
+            "course_id": course["id"],
+            "course_name": course["name"],
+            "instructor": course["instructor"],
+        })
+
+    return dives
+
+
 # Trip destinations with associated dive centers and nearby sites
 # Each destination maps to dive center indices and site indices for consistency
 TRIP_DESTINATIONS = [
@@ -2644,6 +2887,18 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf", sam
     # Initialize dive session for repetitive diving tracking
     dive_session = DiveSession()
 
+    # Generate training dives from courses
+    training_dives = []
+    for course in PADI_COURSES:
+        course_dives = generate_training_dives(course, dive_start_index=len(training_dives))
+        training_dives.extend(course_dives)
+
+    # Sort training dives by date for chronological insertion
+    training_dives.sort(key=lambda d: d["datetime"])
+
+    # Track which dives are training dives
+    training_dive_indices = {}
+
     for dive_idx in range(num_dives):
         # Stop if we've exceeded the end date
         if current_date >= end_date:
@@ -2804,8 +3059,27 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf", sam
             duration = int(min(max_safe_duration, target_duration))
             duration = max(20, duration)
 
+        # Check if there's a training dive that should be inserted at this point
+        course_ref = None
+        is_training_dive = False
+        while training_dives and training_dives[0]["datetime"] <= dive_datetime:
+            td = training_dives.pop(0)
+            training_dive_indices[dive_idx] = td
+            is_training_dive = True
+            course_ref = td["course_id"]
+            max_depth = td["max_depth"]
+            duration = td["duration"]
+            site_type = td["site_type"]
+            personality = DiverPersonality(
+                skill_level=td["skill_level"],
+                activity_level=random.uniform(0.3, 0.5),
+            )
+            dive_datetime = td["datetime"]
+            break
+
         # Generate diver personality for this dive
-        personality = DiverPersonality.generate(dive_number=dive_idx, total_dives=num_dives)
+        if not is_training_dive:
+            personality = DiverPersonality.generate(dive_number=dive_idx, total_dives=num_dives)
 
         # Generate profile with site-specific patterns and thermocline
         profile, gas_switches, final_tissue = generate_dive_profile(
@@ -2853,6 +3127,10 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf", sam
         if active_trip:
             trip_link = ET.SubElement(before, "link")
             trip_link.set("ref", f"trip_{active_trip['id']}")
+        # Link to training course if this is a course dive
+        if course_ref:
+            course_link = ET.SubElement(before, "link")
+            course_link.set("ref", course_ref)
         ET.SubElement(before, "divenumber").text = str(dive_number)
         ET.SubElement(before, "datetime").text = dive_datetime.strftime("%Y-%m-%dT%H:%M:%S")
         ET.SubElement(before, "airtemperature").text = f"{air_temp_kelvin:.2f}"
@@ -3168,6 +3446,33 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf", sam
         if cert.get("facility_number"):
             ET.SubElement(cert_elem, "instructornumber").text = cert["facility_number"]
 
+    # Courses in Submersion's expected format
+    courses_elem = ET.SubElement(submersion, "courses")
+    for course in PADI_COURSES:
+        cert = next((c for c in PADI_CERTIFICATIONS if c["id"] == course["certification_id"]), None)
+        if cert is None:
+            continue
+
+        course_elem = ET.SubElement(courses_elem, "course")
+        course_elem.set("id", course["id"])
+        ET.SubElement(course_elem, "name").text = course["name"]
+        ET.SubElement(course_elem, "agency").text = course["agency"]
+
+        completion_date = datetime.strptime(cert["date"], "%Y-%m-%d")
+        start_date = completion_date - timedelta(days=course["course_duration_days"])
+        ET.SubElement(course_elem, "startdate").text = start_date.strftime("%Y-%m-%d")
+        ET.SubElement(course_elem, "completiondate").text = cert["date"]
+
+        ET.SubElement(course_elem, "instructorname").text = course["instructor"]
+        if course.get("instructor_number"):
+            ET.SubElement(course_elem, "instructornumber").text = course["instructor_number"]
+        ET.SubElement(course_elem, "location").text = course["location"]
+
+        # Link to certification
+        cert_link = ET.SubElement(course_elem, "link")
+        cert_link.set("ref", course["certification_id"])
+        cert_link.set("role", "certification")
+
     # Tags in Submersion's expected format (matches dive tagRefs)
     tags_elem = ET.SubElement(submersion, "tags")
     tag_definitions = [
@@ -3208,6 +3513,7 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf", sam
     print(f"- {len(buddies)} buddies")
     print(f"- {total_equipment} equipment items in {len(EQUIPMENT_SETS)} sets")
     print(f"- {len(PADI_CERTIFICATIONS)} certifications (PADI)")
+    print(f"- {len(PADI_COURSES)} courses (PADI) with {sum(c['num_training_dives'] for c in PADI_COURSES)} training dives")
     print(f"- Equipment sets: {', '.join(EQUIPMENT_SETS.keys())}")
     print(f"- Multi-tank configs with AI pressure refs")
     print(f"\nTrip breakdown:")

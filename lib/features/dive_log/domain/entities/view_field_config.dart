@@ -275,7 +275,7 @@ class FieldPreset extends Equatable {
     this.isBuiltIn = false,
   });
 
-  /// Returns the three built-in table presets: Standard, Technical, Planning.
+  /// Returns the built-in table presets.
   static List<FieldPreset> builtInTablePresets() {
     final standard = TableViewConfig(
       columns: [
@@ -309,52 +309,12 @@ class FieldPreset extends Equatable {
       ],
     );
 
-    final technical = TableViewConfig(
-      columns: [
-        TableColumnConfig(field: DiveField.diveNumber, isPinned: true),
-        TableColumnConfig(field: DiveField.dateTime),
-        TableColumnConfig(field: DiveField.maxDepth),
-        TableColumnConfig(field: DiveField.avgDepth),
-        TableColumnConfig(field: DiveField.bottomTime),
-        TableColumnConfig(field: DiveField.primaryGas),
-        TableColumnConfig(field: DiveField.startPressure),
-        TableColumnConfig(field: DiveField.endPressure),
-        TableColumnConfig(field: DiveField.sacRate),
-      ],
-    );
-
-    final planning = TableViewConfig(
-      columns: [
-        TableColumnConfig(field: DiveField.diveNumber, isPinned: true),
-        TableColumnConfig(field: DiveField.siteName, isPinned: true),
-        TableColumnConfig(field: DiveField.dateTime),
-        TableColumnConfig(field: DiveField.maxDepth),
-        TableColumnConfig(field: DiveField.bottomTime),
-        TableColumnConfig(field: DiveField.buddy),
-        TableColumnConfig(field: DiveField.notes),
-      ],
-    );
-
     return [
       FieldPreset(
         id: 'builtin_standard',
         name: 'Standard',
         viewMode: ListViewMode.table,
         configJson: standard.toJson(),
-        isBuiltIn: true,
-      ),
-      FieldPreset(
-        id: 'builtin_technical',
-        name: 'Technical',
-        viewMode: ListViewMode.table,
-        configJson: technical.toJson(),
-        isBuiltIn: true,
-      ),
-      FieldPreset(
-        id: 'builtin_planning',
-        name: 'Planning',
-        viewMode: ListViewMode.table,
-        configJson: planning.toJson(),
         isBuiltIn: true,
       ),
     ];

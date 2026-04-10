@@ -162,8 +162,6 @@ void main() {
         expect(presets.isNotEmpty, isTrue);
         expect(presets.any((p) => p.isBuiltIn), isTrue);
         expect(presets.any((p) => p.name == 'Standard'), isTrue);
-        expect(presets.any((p) => p.name == 'Technical'), isTrue);
-        expect(presets.any((p) => p.name == 'Planning'), isTrue);
       });
 
       test(

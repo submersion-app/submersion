@@ -174,9 +174,10 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
           units: units,
           onSortFieldChanged: notifier.setSortField,
           onResizeColumn: notifier.resizeColumn,
-          onEntityTap: (id) {
+          onEntityTapDown: (id) {
             ref.read(highlightedCourseIdProvider.notifier).state = id;
           },
+          onEntityTap: (id) {},
           onEntityDoubleTap: (id) {
             context.push('/courses/$id');
           },

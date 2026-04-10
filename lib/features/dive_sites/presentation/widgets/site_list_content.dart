@@ -537,11 +537,14 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 units: units,
                 onSortFieldChanged: notifier.setSortField,
                 onResizeColumn: notifier.resizeColumn,
+                onEntityTapDown: (id) {
+                  if (!_isSelectionMode) {
+                    ref.read(highlightedSiteIdProvider.notifier).state = id;
+                  }
+                },
                 onEntityTap: (id) {
                   if (_isSelectionMode) {
                     _toggleSelection(id);
-                  } else {
-                    ref.read(highlightedSiteIdProvider.notifier).state = id;
                   }
                 },
                 onEntityDoubleTap: (id) {

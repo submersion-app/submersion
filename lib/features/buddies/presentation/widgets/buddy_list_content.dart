@@ -518,11 +518,14 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           units: units,
           onSortFieldChanged: notifier.setSortField,
           onResizeColumn: notifier.resizeColumn,
+          onEntityTapDown: (id) {
+            if (!_isSelectionMode) {
+              ref.read(highlightedBuddyIdProvider.notifier).state = id;
+            }
+          },
           onEntityTap: (id) {
             if (_isSelectionMode) {
               _toggleSelection(id);
-            } else {
-              ref.read(highlightedBuddyIdProvider.notifier).state = id;
             }
           },
           onEntityDoubleTap: (id) {

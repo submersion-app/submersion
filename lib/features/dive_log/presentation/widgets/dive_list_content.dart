@@ -1258,11 +1258,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             Expanded(
               child: DiveTableView(
                 dives: dives,
+                onDiveTapDown: (id) {
+                  if (!_isSelectionMode) {
+                    ref.read(highlightedDiveIdProvider.notifier).state = id;
+                  }
+                },
                 onDiveTap: (id) {
                   if (_isSelectionMode) {
                     _toggleSelection(id);
-                  } else {
-                    ref.read(highlightedDiveIdProvider.notifier).state = id;
                   }
                 },
                 onDiveDoubleTap: (id) {
