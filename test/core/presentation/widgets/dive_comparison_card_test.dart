@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/presentation/widgets/dive_comparison_card.dart';
+import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -21,6 +22,10 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _TestSettingsNotifier() : super(const AppSettings());
+
+  @override
+  Future<void> setMapStyle(MapStyle style) async =>
+      state = state.copyWith(mapStyle: style);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

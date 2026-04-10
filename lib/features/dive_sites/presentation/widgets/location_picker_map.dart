@@ -33,7 +33,7 @@ class LocationPickerMap extends ConsumerStatefulWidget {
   const LocationPickerMap({super.key, this.initialLocation});
 
   @override
-  State<LocationPickerMap> createState() => _LocationPickerMapState();
+  ConsumerState<LocationPickerMap> createState() => _LocationPickerMapState();
 }
 
 class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {

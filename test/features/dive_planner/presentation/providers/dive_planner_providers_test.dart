@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
@@ -16,6 +17,10 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   void updatePressureUnitForTest(PressureUnit unit) {
     state = AppSettings(pressureUnit: unit);
   }
+
+  @override
+  Future<void> setMapStyle(MapStyle style) async =>
+      state = state.copyWith(mapStyle: style);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

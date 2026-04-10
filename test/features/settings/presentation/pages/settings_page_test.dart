@@ -13,6 +13,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
@@ -162,6 +163,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDiveCenterListViewMode(ListViewMode mode) async =>
       state = state.copyWith(diveCenterListViewMode: mode);
+  @override
+  Future<void> setMapStyle(MapStyle style) async =>
+      state = state.copyWith(mapStyle: style);
   @override
   Future<void> setCardColorGradientPreset(String preset) async =>
       state = state.copyWith(cardColorGradientPreset: preset);

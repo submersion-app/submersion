@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_settings_panel.dart';
@@ -14,6 +15,10 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _TestSettingsNotifier({PressureUnit pressureUnit = PressureUnit.bar})
     : super(AppSettings(pressureUnit: pressureUnit));
+
+  @override
+  Future<void> setMapStyle(MapStyle style) async =>
+      state = state.copyWith(mapStyle: style);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

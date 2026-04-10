@@ -135,7 +135,7 @@ class _SiteDetailContent extends ConsumerWidget {
         children: [
           // Map Section (if coordinates exist)
           if (site.hasCoordinates) ...[
-            _buildMapSection(context, site),
+            _buildMapSection(context, ref, site),
             const SizedBox(height: 16),
           ],
 
@@ -356,7 +356,7 @@ class _SiteDetailContent extends ConsumerWidget {
     }
   }
 
-  Widget _buildMapSection(BuildContext context, DiveSite site) {
+  Widget _buildMapSection(BuildContext context, WidgetRef ref, DiveSite site) {
     final colorScheme = Theme.of(context).colorScheme;
     final siteLocation = LatLng(
       site.location!.latitude,
@@ -438,7 +438,7 @@ class _SiteDetailContent extends ConsumerWidget {
                       context.l10n.diveSites_detail_semantics_viewFullscreenMap,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(4),
-                    onTap: () => _showFullscreenMap(context, site),
+                    onTap: () => _showFullscreenMap(context, ref, site),
                     child: Padding(
                       padding: const EdgeInsets.all(6),
                       child: Icon(
@@ -457,7 +457,7 @@ class _SiteDetailContent extends ConsumerWidget {
     );
   }
 
-  void _showFullscreenMap(BuildContext context, DiveSite site) {
+  void _showFullscreenMap(BuildContext context, WidgetRef ref, DiveSite site) {
     final colorScheme = Theme.of(context).colorScheme;
     final siteLocation = LatLng(
       site.location!.latitude,

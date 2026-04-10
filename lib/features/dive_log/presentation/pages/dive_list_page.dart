@@ -9,7 +9,6 @@ import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/map_tile_config.dart';
-import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -888,7 +887,12 @@ class DiveListTile extends ConsumerWidget {
 
     // Build the card with or without map background
     if (shouldShowMap) {
-      final tileUrl = _osmTileUrl(siteLatitude!, siteLongitude!, 13, ref.watch(settingsProvider).mapStyle);
+      final tileUrl = _osmTileUrl(
+        siteLatitude!,
+        siteLongitude!,
+        13,
+        ref.watch(settingsProvider).mapStyle,
+      );
       return Card(
         margin:
             margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

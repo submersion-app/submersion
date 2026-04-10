@@ -574,13 +574,13 @@ class _NotesSection extends StatelessWidget {
   }
 }
 
-class _MapSection extends StatelessWidget {
+class _MapSection extends ConsumerWidget {
   final DiveCenter center;
 
   const _MapSection({required this.center});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final centerLocation = LatLng(center.latitude!, center.longitude!);
 
@@ -658,7 +658,7 @@ class _MapSection extends StatelessWidget {
                       context.l10n.diveCenters_accessibility_viewFullscreenMap,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(4),
-                    onTap: () => _showFullscreenMap(context),
+                    onTap: () => _showFullscreenMap(context, ref),
                     child: Padding(
                       padding: const EdgeInsets.all(6),
                       child: Icon(
@@ -677,7 +677,7 @@ class _MapSection extends StatelessWidget {
     );
   }
 
-  void _showFullscreenMap(BuildContext context) {
+  void _showFullscreenMap(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final centerLocation = LatLng(center.latitude!, center.longitude!);
 

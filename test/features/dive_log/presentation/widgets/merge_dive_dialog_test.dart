@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -103,6 +104,10 @@ class _FakeDiveListNotifier extends StateNotifier<AsyncValue<List<Dive>>>
 class _FakeSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _FakeSettingsNotifier() : super(const AppSettings());
+
+  @override
+  Future<void> setMapStyle(MapStyle style) async =>
+      state = state.copyWith(mapStyle: style);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
