@@ -2964,9 +2964,17 @@ class AppDatabase extends _$AppDatabase {
         if (from < 63) await reportProgress();
 
         if (from < 64) {
-          await customStatement(
-            "ALTER TABLE diver_settings ADD COLUMN map_style TEXT NOT NULL DEFAULT 'openStreetMap'",
-          );
+          final cols = await customSelect(
+            "PRAGMA table_info('diver_settings')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('map_style')) {
+              await customStatement(
+                "ALTER TABLE diver_settings ADD COLUMN map_style TEXT NOT NULL DEFAULT 'openStreetMap'",
+              );
+            }
+          }
         }
         if (from < 64) await reportProgress();
       },
