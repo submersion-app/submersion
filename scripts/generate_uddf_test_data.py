@@ -1542,7 +1542,7 @@ def generate_dive_profile(
     site_type: str = "reef",
     thermocline_profile: Dict = None,
     tissue_state: TissueState = None,
-    sample_interval: int = 10,
+    sample_interval: int = 5,
 ) -> Tuple[List[Dict], List[Dict], TissueState]:
     """Generate realistic depth, temperature, and pressure profiles using Bühlmann ZHL-16C.
 
@@ -2048,13 +2048,13 @@ def generate_trips(start_date: datetime, end_date: datetime, num_trips: int = 20
     return trips
 
 
-def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf", sample_interval: int = 10, max_sites: int = None):
+def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf", sample_interval: int = 5, max_sites: int = None):
     """Generate UDDF 3.2.1 compliant file.
 
     Args:
         num_dives: Number of dives to generate
         output_path: Output file path
-        sample_interval: Profile sample interval in seconds (10 for detailed, 30 for quick)
+        sample_interval: Profile sample interval in seconds (5 for detailed, 30 for quick)
         max_sites: Maximum number of dive sites to include (None = all sites)
     """
     # Limit sites if specified (speeds up import due to geolocation lookups)
@@ -2868,8 +2868,8 @@ Examples:
     parser.add_argument(
         "--sample-interval",
         type=int,
-        default=10,
-        help="Profile sample interval in seconds (default: 10, use 30 for smaller files)"
+        default=5,
+        help="Profile sample interval in seconds (default: 5, use 30 for smaller files)"
     )
     parser.add_argument(
         "--max-sites",
