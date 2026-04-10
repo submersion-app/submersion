@@ -582,6 +582,5 @@ void main() {
       // Verify bottomTime was removed
       expect(fields, isNot(contains(DiveField.bottomTime)));
     });
-
   });
 }
