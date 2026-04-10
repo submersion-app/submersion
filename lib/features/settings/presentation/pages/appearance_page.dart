@@ -74,9 +74,7 @@ class AppearancePage extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.map_outlined),
             title: Text(context.l10n.settings_appearance_mapStyle),
-            subtitle: Text(
-              _getMapStyleDisplayName(context, settings.mapStyle),
-            ),
+            subtitle: Text(_getMapStyleDisplayName(context, settings.mapStyle)),
             trailing: DropdownButton<MapStyle>(
               value: settings.mapStyle,
               underline: const SizedBox.shrink(),
