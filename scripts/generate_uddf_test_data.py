@@ -248,12 +248,23 @@ def calculate_temperature_at_depth(
     depth: float,
     profile: Dict,
     surface_temp: float,
-    variation_seed: float = 0.0
+    temp_offset: float = 0.0
 ) -> float:
     """
     Calculate water temperature at a given depth with thermocline modeling.
 
     Uses smooth S-curve transition through the thermocline zone.
+    Temperature is purely depth-dependent (stratified) with only a small
+    per-dive offset for day-to-day variation.
+
+    Args:
+        depth: Current depth in meters.
+        profile: Thermocline profile dict.
+        surface_temp: Surface water temperature in Celsius.
+        temp_offset: Per-dive temperature offset in Celsius (+/- 0.2 typical).
+
+    Returns:
+        Temperature in Celsius at the given depth.
     """
     thermo_start = profile["thermocline_start"]
     thermo_thick = profile["thermocline_thickness"]
@@ -261,26 +272,25 @@ def calculate_temperature_at_depth(
     deep_grad = profile["deep_gradient"]
     thermo_end = thermo_start + thermo_thick
 
-    # Add small random variation
-    noise = math.sin(depth * 0.5 + variation_seed) * 0.3
+    # Tiny random sensor noise (not depth-correlated)
+    sensor_noise = random.uniform(-0.05, 0.05)
 
     if depth < thermo_start:
         # Surface layer - stable temperature
-        return surface_temp + noise
+        return surface_temp + temp_offset + sensor_noise
     elif depth < thermo_end:
         # Thermocline transition - smooth S-curve
         progress = (depth - thermo_start) / thermo_thick
-        # Sigmoid-like smooth step
         t = progress * math.pi
         smooth = (1 - math.cos(t)) / 2  # 0 to 1 smoothly
         temp = surface_temp - (temp_drop * smooth)
-        return temp + noise
+        return temp + temp_offset + sensor_noise
     else:
         # Below thermocline - gradual cooling (or warming for cenotes)
         base_temp = surface_temp - temp_drop
         extra_depth = depth - thermo_end
         temp = base_temp - (extra_depth * deep_grad)
-        return temp + noise
+        return temp + temp_offset + sensor_noise
 
 
 # =============================================================================
@@ -1145,29 +1155,6 @@ def apply_micro_event(event: Dict, current_time: float) -> float:
     return event["depth_offset"] * envelope
 
 
-def depth_variation(time_seconds: float, amplitude: float = 2.0, seed: float = 0.0) -> float:
-    """
-    Generate smooth, natural depth variations simulating terrain following.
-
-    Combines multiple sine waves at different frequencies for an organic feel.
-
-    Args:
-        time_seconds: Current time in seconds
-        amplitude: Maximum variation in meters
-        seed: Random seed offset for variety between dives
-
-    Returns:
-        Depth variation in meters (can be positive or negative)
-    """
-    t = time_seconds + seed
-    return (
-        math.sin(t * 0.05) * 0.5 +
-        math.sin(t * 0.023) * 0.3 +
-        math.sin(t * 0.089) * 0.15 +
-        math.sin(t * 0.011) * 0.05
-    ) * amplitude
-
-
 def calculate_gas_duration(
     max_depth: float,
     tank_configs: List[Dict],
@@ -1762,6 +1749,8 @@ def generate_dive_profile(
     thermocline_profile: Dict = None,
     tissue_state: TissueState = None,
     sample_interval: int = 5,
+    temp_offset: float = 0.0,
+    personality: "DiverPersonality" = None,
 ) -> Tuple[List[Dict], List[Dict], TissueState]:
     """Generate realistic depth, temperature, and pressure profiles using Bühlmann ZHL-16C.
 
@@ -1796,9 +1785,24 @@ def generate_dive_profile(
     profile_points = []
     total_seconds = duration_minutes * 60
 
+    # Create personality if not provided
+    if personality is None:
+        personality = DiverPersonality(skill_level=0.5, activity_level=0.5)
+
+    # Create Perlin noise generator for this dive
+    perlin = PerlinNoise(seed=random.randint(0, 100000))
+
+    # Breathing parameters for this dive
+    breath_rate = 18 - personality.skill_level * 6 + random.uniform(-1, 1)
+
+    # Depth target variety: +/- 5-10% jitter on actual max depth
+    depth_jitter = random.uniform(-0.10, 0.05)
+    max_depth = max_depth * (1.0 + depth_jitter)
+    max_depth = max(5, max_depth)
+
     # Descent/ascent rates
-    descent_rate = 15  # m/min - slightly slower for realism
-    ascent_rate = 9  # m/min - standard safe ascent rate
+    descent_rate = random.uniform(*personality.descent_rate_range)
+    ascent_rate = personality.ascent_rate
 
     # Calculate phase durations
     descent_time_seconds = (max_depth / descent_rate) * 60
@@ -1810,7 +1814,7 @@ def generate_dive_profile(
 
     # Initialize tank states with realistic SAC rates
     tank_states = []
-    base_sac = random.uniform(13, 16) if is_tech else random.uniform(15, 19)
+    base_sac = personality.base_sac if not is_tech else random.uniform(12, 15)
 
     # For manifolded doubles, use same starting pressure
     manifold_start_pressure = random.randint(200, 210)
@@ -1935,9 +1939,6 @@ def generate_dive_profile(
     if not level_depths:
         level_depths = [max_depth]
 
-    # Random seed for depth variation
-    variation_seed = random.uniform(0, 1000)
-
     current_time = 0
     current_depth = 0.0
     dive_phase = "descent"  # descent, bottom, ascent
@@ -1950,6 +1951,101 @@ def generate_dive_profile(
     estimated_ascent_time = (max_depth / ascent_rate) * 60 + safety_stop_duration
     available_bottom_time = total_seconds - descent_time_seconds - estimated_ascent_time
     time_per_level = max(60, available_bottom_time / len(level_depths))
+
+    # Pre-compute level durations (deeper levels get more time)
+    if len(level_depths) > 1:
+        level_weights = []
+        for li in range(len(level_depths)):
+            if li == 0:
+                level_weights.append(0.5)
+            elif li == 1:
+                level_weights.append(0.3)
+            else:
+                level_weights.append(0.2 / max(1, len(level_depths) - 2))
+        total_weight = sum(level_weights)
+        level_weights = [w / total_weight for w in level_weights]
+        level_durations = [
+            available_bottom_time * level_weights[i] * random.uniform(0.9, 1.1)
+            for i in range(len(level_depths))
+        ]
+    else:
+        level_durations = [available_bottom_time]
+
+    # Pre-generate equalization pauses for descent
+    eq_pauses = []
+    num_eq_pauses = personality.eq_pause_count
+    if num_eq_pauses > 0 and descent_time_seconds > 20:
+        for i in range(num_eq_pauses):
+            pause_depth = random.uniform(3, 9)
+            pause_progress = pause_depth / (level_depths[0] if level_depths else max_depth)
+            pause_start = pause_progress * descent_time_seconds
+            pause_dur = random.uniform(3, 8)
+            eq_pauses.append((pause_depth, pause_start, pause_dur))
+    personality._eq_pauses = eq_pauses
+
+    # Buddy check pause (30% chance)
+    buddy_check_pause = None
+    if random.random() < 0.3:
+        buddy_check_pause = (random.uniform(3, 5), random.uniform(5, 10))
+
+    # Pre-generate micro-events for each depth level
+    all_level_events = []
+    level_start_est = descent_time_seconds
+    for lvl_idx, lvl_depth in enumerate(level_depths):
+        lvl_dur = time_per_level
+        events = generate_micro_events(
+            level_start_time=level_start_est,
+            level_duration=lvl_dur,
+            target_depth=lvl_depth,
+            activity_level=personality.activity_level,
+            max_depth=max_depth,
+        )
+        all_level_events.append(events)
+        level_start_est += lvl_dur
+
+    # Site-type specific micro-event adjustments
+    if site_type == "wall":
+        for events in all_level_events:
+            while len(events) > 2:
+                events.pop()
+    elif site_type == "manta":
+        for events in all_level_events:
+            while len(events) > 1:
+                events.pop()
+            for e in events:
+                e["depth_offset"] *= 0.3
+    elif site_type == "drift":
+        for events in all_level_events:
+            for e in events:
+                e["duration"] = max(e["duration"], 60)
+                e["depth_offset"] *= 0.7
+    elif site_type == "wreck":
+        for events in all_level_events:
+            for e in events:
+                e["duration"] = max(15, e["duration"] * 0.6)
+
+    # Pre-generate exertion spikes for gas consumption
+    num_spikes = random.randint(2, 4)
+    exertion_spikes = []
+    for _ in range(num_spikes):
+        spike_start = random.uniform(descent_time_seconds, total_seconds * 0.8)
+        spike_duration = random.uniform(30, 60)
+        spike_magnitude = random.uniform(1.2, 1.4)
+        exertion_spikes.append((spike_start, spike_duration, spike_magnitude))
+
+    # Occasional anomalies
+    buoyancy_slip_time = None
+    if random.random() < 0.05:
+        buoyancy_slip_time = random.uniform(descent_time_seconds + 60, total_seconds * 0.6)
+
+    if random.random() < 0.03:
+        total_seconds = int(total_seconds * random.uniform(0.7, 0.8))
+
+    extra_long_eq_pause = random.random() < 0.10
+    if extra_long_eq_pause and eq_pauses:
+        idx = random.randint(0, len(eq_pauses) - 1)
+        d, s, dur = eq_pauses[idx]
+        eq_pauses[idx] = (d, s, dur + random.uniform(8, 15))
 
     # Maximum allowed dive time (safety limit to prevent infinite loops)
     max_dive_time = total_seconds + 1800  # Allow up to 30 extra minutes for deco
@@ -1964,12 +2060,26 @@ def generate_dive_profile(
             dive_phase = "ascent"
 
         if dive_phase == "descent":
-            # Smooth curved descent using easing function
+            target_depth_descent = level_depths[0] if level_depths else max_depth
+
             if current_time < descent_time_seconds:
                 progress = current_time / descent_time_seconds
-                eased_progress = ease_in_out_cubic(progress)
-                target_depth = level_depths[0] if level_depths else max_depth
-                current_depth = target_depth * eased_progress
+
+                # Check for equalization pauses in first 10m
+                estimated_depth = target_depth_descent * progress
+                in_eq_pause = False
+                if estimated_depth < 10 and hasattr(personality, '_eq_pauses'):
+                    for pause_depth, pause_start, pause_dur in personality._eq_pauses:
+                        if pause_start <= current_time < pause_start + pause_dur:
+                            current_depth = pause_depth
+                            in_eq_pause = True
+                            break
+
+                if not in_eq_pause:
+                    eased_progress = ease_in_out_cubic(progress)
+                    current_depth = target_depth_descent * eased_progress
+                    # Slight wobble during descent
+                    current_depth += perlin.noise(current_time * 0.05) * personality.noise_amplitude * 0.3
             else:
                 dive_phase = "bottom"
                 level_start_time = current_time
@@ -1977,35 +2087,63 @@ def generate_dive_profile(
 
         elif dive_phase == "bottom":
             target_depth = level_depths[level_index] if level_index < len(level_depths) else level_depths[-1]
-
-            # Time spent at current level
             time_at_level = current_time - level_start_time
 
-            # Check if we should move to next level or start ascent
-            if time_at_level >= time_per_level:
+            # Use pre-computed level duration
+            current_level_duration = level_durations[min(level_index, len(level_durations) - 1)]
+
+            if time_at_level >= current_level_duration:
                 if level_index < len(level_depths) - 1:
-                    # Move to next (shallower) level
                     level_index += 1
                     level_start_time = current_time
                     target_depth = level_depths[level_index]
                 else:
-                    # Start ascent
                     dive_phase = "ascent"
 
             if dive_phase == "bottom":
-                # Add natural terrain-following variation
-                variation = depth_variation(current_time, amplitude=1.5, seed=variation_seed)
-                current_depth = target_depth + variation
+                # Depth band width varies by site type
+                band_width = 2.0
+                if site_type == "wall":
+                    band_width = 1.0
+                elif site_type == "manta":
+                    band_width = 0.5
+                elif site_type == "drift":
+                    band_width = 3.0
+                elif site_type == "wreck":
+                    band_width = 1.5
+
+                # Base depth from Perlin noise within band
+                noise_val = perlin.noise(current_time * 0.015) * band_width
+                current_depth = target_depth + noise_val
+
+                # Add breathing oscillation
+                current_depth += breathing_oscillation(current_time, personality.skill_level, breath_rate)
+
+                # Apply micro-events
+                if level_index < len(all_level_events):
+                    for event in all_level_events[level_index]:
+                        current_depth += apply_micro_event(event, current_time)
+
+                # Buoyancy slip anomaly
+                if buoyancy_slip_time is not None:
+                    slip_window = 15
+                    if buoyancy_slip_time <= current_time < buoyancy_slip_time + slip_window:
+                        slip_progress = (current_time - buoyancy_slip_time) / slip_window
+                        if slip_progress < 0.3:
+                            current_depth -= 2.5 * (slip_progress / 0.3)
+                        else:
+                            current_depth -= 2.5 * (1.0 - (slip_progress - 0.3) / 0.7)
+                        current_depth = max(3, current_depth)
 
                 # Smooth transition between levels
-                if level_index > 0:
-                    prev_level_depth = level_depths[level_index - 1]
-                    transition_progress = min(1.0, time_at_level / 60)  # 1 minute transition
-                    if transition_progress < 1.0:
-                        eased = ease_in_out_cubic(transition_progress)
-                        current_depth = prev_level_depth + (target_depth - prev_level_depth) * eased + variation * transition_progress
+                if level_index > 0 and time_at_level < 90:
+                    prev_depth = level_depths[level_index - 1]
+                    transition_progress = min(1.0, time_at_level / 90.0)
+                    eased = ease_in_out_cubic(transition_progress)
+                    blend_depth = prev_depth + (target_depth - prev_depth) * eased
+                    current_depth = blend_depth + noise_val * transition_progress
 
-                # Clamp to reasonable bounds
+                # Clamp
                 current_depth = max(3, min(max_depth + 2, current_depth))
 
         elif dive_phase == "ascent":
@@ -2017,7 +2155,7 @@ def generate_dive_profile(
                 first_stop_depth = math.ceil(ceiling / 3) * 3  # Round up to nearest 3m
 
             # Maximum ascent per interval (respecting 9m/min limit)
-            max_ascent = (ascent_rate / 60) * sample_interval
+            max_ascent = (personality.ascent_rate / 60) * sample_interval
 
             # Determine target depth (respecting ceiling)
             if ceiling > 0.5:
@@ -2047,10 +2185,13 @@ def generate_dive_profile(
                         safety_stop_start_time = current_time
                     time_at_safety = current_time - safety_stop_start_time
                     if time_at_safety < safety_stop_duration:
-                        current_depth = safety_stop_depth + random.uniform(-0.3, 0.3)
+                        current_depth = safety_stop_depth + perlin.noise(current_time * 0.1) * 0.5
                     else:
                         # Final ascent to surface
                         current_depth = max(0, current_depth - max_ascent)
+                else:
+                    # Very shallow - surface
+                    current_depth = 0
 
         current_depth = max(0, round(current_depth, 2))
 
@@ -2063,15 +2204,13 @@ def generate_dive_profile(
         # TEMPERATURE CALCULATION (with thermocline modeling)
         # =================================================================
         if thermocline_profile is not None:
-            # Use realistic thermocline model
             current_temp = calculate_temperature_at_depth(
-                current_depth, thermocline_profile, surface_temp, variation_seed
+                current_depth, thermocline_profile, surface_temp, temp_offset
             )
         else:
-            # Fallback to simple linear gradient
             temp_gradient = (surface_temp - bottom_temp) / max(max_depth, 1)
             current_temp = surface_temp - (temp_gradient * current_depth)
-            current_temp += random.uniform(-0.2, 0.2)
+            current_temp += random.uniform(-0.05, 0.05)
         current_temp_kelvin = round(current_temp + 273.15, 2)
 
         # =================================================================
@@ -2080,14 +2219,37 @@ def generate_dive_profile(
         is_ascending = dive_phase == "ascent"
         ambient_pressure = 1 + (current_depth / 10)
 
-        # Activity-based SAC modifier
+        # Workload-driven SAC modifier
         if dive_phase == "descent":
-            sac_modifier = 1.15  # Higher consumption during descent
+            sac_modifier = 1.15 + (1.0 - personality.skill_level) * 0.1
         elif is_ascending:
-            sac_modifier = 0.90  # Lower consumption during controlled ascent
+            sac_modifier = 0.85 + random.uniform(-0.05, 0.05)
         else:
-            # Bottom phase - varies with activity
-            sac_modifier = 1.0 + depth_variation(current_time, amplitude=0.1, seed=variation_seed + 500)
+            sac_modifier = 1.0
+
+            # Depth change effort
+            if len(profile_points) >= 2:
+                prev_depth = profile_points[-1]["depth"]
+                depth_change_rate = abs(current_depth - prev_depth) / sample_interval * 60
+                sac_modifier += depth_change_rate * 0.03
+
+            # Micro-event activity boost
+            if level_index < len(all_level_events):
+                for event in all_level_events[level_index]:
+                    event_offset = apply_micro_event(event, current_time)
+                    if abs(event_offset) > 0.1:
+                        sac_modifier += 0.15
+                        break
+
+            # Exertion spikes
+            for spike_start, spike_dur, spike_mag in exertion_spikes:
+                if spike_start <= current_time < spike_start + spike_dur:
+                    sac_modifier *= spike_mag
+                    break
+
+            # Skill-based random variation
+            sac_jitter = random.uniform(-0.08, 0.08) * (1.0 - personality.sac_consistency)
+            sac_modifier += sac_jitter
 
         tanks_to_consume = []
 
@@ -2591,9 +2753,11 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf", sam
         temp_range = thermocline_profile["surface_temp"]
         surface_temp = random.uniform(temp_range[0], temp_range[1])
 
+        # Per-dive temperature offset for day-to-day variation
+        temp_offset = random.uniform(-0.2, 0.2)
         # Bottom temp calculated via thermocline model (for reference in XML)
         bottom_temp = calculate_temperature_at_depth(
-            max_depth, thermocline_profile, surface_temp, random.uniform(0, 1000)
+            max_depth, thermocline_profile, surface_temp, temp_offset
         )
 
         air_temp = surface_temp + random.uniform(-2, 5)
@@ -2640,6 +2804,9 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf", sam
             duration = int(min(max_safe_duration, target_duration))
             duration = max(20, duration)
 
+        # Generate diver personality for this dive
+        personality = DiverPersonality.generate(dive_number=dive_idx, total_dives=num_dives)
+
         # Generate profile with site-specific patterns and thermocline
         profile, gas_switches, final_tissue = generate_dive_profile(
             max_depth=max_depth,
@@ -2652,6 +2819,8 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf", sam
             thermocline_profile=thermocline_profile,
             tissue_state=dive_session.tissue if dive_session.dive_count_today > 0 else None,
             sample_interval=sample_interval,
+            temp_offset=temp_offset,
+            personality=personality,
         )
 
         # Update session tissue state for next dive
