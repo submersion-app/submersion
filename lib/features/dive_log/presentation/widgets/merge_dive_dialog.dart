@@ -312,8 +312,8 @@ class _DiveCandidateTile extends StatelessWidget {
 
     final subtitle = [
       if (depthStr != null) depthStr,
-      if (durationStr != null) durationStr,
-      if (computerStr != null) computerStr,
+      ?durationStr,
+      ?computerStr,
     ].join(' \u00b7 ');
 
     return ListTile(

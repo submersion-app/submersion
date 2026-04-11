@@ -49,7 +49,7 @@ class EquipmentSetListContent extends ConsumerWidget {
       return Column(
         children: [
           _buildCompactAppBar(context),
-          if (headerExtension != null) headerExtension!,
+          ?headerExtension,
           Expanded(child: content),
         ],
       );

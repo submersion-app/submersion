@@ -32,8 +32,7 @@ class _BuddyMergePageState extends ConsumerState<BuddyMergePage> {
       widget.buddyIds.map((id) => repository.getBuddyById(id)),
     );
     final buddiesById = <String, Buddy>{
-      for (final buddy in fetched)
-        if (buddy != null) buddy.id: buddy,
+      for (final buddy in fetched.nonNulls) buddy.id: buddy,
     };
     return widget.buddyIds
         .map((id) => buddiesById[id])
