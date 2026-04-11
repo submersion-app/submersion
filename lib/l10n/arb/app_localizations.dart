@@ -11232,6 +11232,12 @@ abstract class AppLocalizations {
   /// **'Type \"Delete {name}\" to confirm'**
   String divers_detail_deleteDialogConfirmHint(String name);
 
+  /// No description provided for @divers_detail_deleteDialogConfirmText.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}'**
+  String divers_detail_deleteDialogConfirmText(String name);
+
   /// No description provided for @enum_altitudeGroup_extreme.
   ///
   /// In en, this message translates to:

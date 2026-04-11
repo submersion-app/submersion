@@ -814,8 +814,15 @@ class _DeleteDiverDialog extends StatefulWidget {
 class _DeleteDiverDialogState extends State<_DeleteDiverDialog> {
   final _controller = TextEditingController();
   bool _isConfirmed = false;
+  late String _confirmationText;
 
-  String get _confirmationText => 'Delete ${widget.diverName}';
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _confirmationText = context.l10n.divers_detail_deleteDialogConfirmText(
+      widget.diverName,
+    );
+  }
 
   @override
   void initState() {

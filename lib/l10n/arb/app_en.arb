@@ -3593,6 +3593,14 @@
       }
     }
   },
+  "divers_detail_deleteDialogConfirmText": "Delete {name}",
+  "@divers_detail_deleteDialogConfirmText": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "@divers_detail_deleteError": {
     "placeholders": {
       "error": {

@@ -111,7 +111,8 @@ class DiveComputerRepository {
   }) async {
     try {
       final query = _db.select(_db.diveComputers)
-        ..where((t) => t.bluetoothAddress.equals(address));
+        ..where((t) => t.bluetoothAddress.equals(address))
+        ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));

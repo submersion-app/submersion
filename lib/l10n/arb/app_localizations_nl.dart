@@ -6527,6 +6527,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String divers_detail_deleteDialogConfirmText(String name) {
+    return 'Delete $name';
+  }
+
+  @override
   String get enum_altitudeGroup_extreme => 'Extreme hoogte';
 
   @override
