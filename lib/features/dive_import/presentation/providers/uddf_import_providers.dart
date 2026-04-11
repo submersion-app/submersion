@@ -241,7 +241,7 @@ class UddfImportNotifier extends StateNotifier<UddfImportState> {
     try {
       // Use FileType.any on iOS/macOS since custom extensions don't work
       // reliably in sandboxed apps.
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.any,
         allowMultiple: false,
       );

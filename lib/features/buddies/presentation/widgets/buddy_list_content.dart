@@ -299,23 +299,26 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
     }
 
     try {
-      if (!await FlutterContacts.requestPermission(readonly: true)) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                context.l10n.buddies_message_contactPermissionRequired,
+      if (!await FlutterContacts.permissions.has(PermissionType.read)) {
+        await FlutterContacts.permissions.request(PermissionType.read);
+        if (!await FlutterContacts.permissions.has(PermissionType.read)) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  context.l10n.buddies_message_contactPermissionRequired,
+                ),
               ),
-            ),
-          );
+            );
+          }
+          return;
         }
-        return;
       }
 
-      final contact = await FlutterContacts.openExternalPick();
-      if (contact == null) return;
+      final contactId = await FlutterContacts.native.showPicker();
+      if (contactId == null) return;
 
-      final fullContact = await FlutterContacts.getContact(contact.id);
+      final fullContact = await FlutterContacts.get(contactId);
       if (fullContact == null) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

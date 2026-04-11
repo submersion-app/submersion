@@ -83,7 +83,7 @@ Future<String> saveImageToPhotos(List<int> pngBytes, String fileName) async {
 /// Opens a file picker dialog allowing the user to choose where to save.
 /// Returns the saved file path, or null if the user cancelled.
 Future<String?> saveImageToFile(List<int> pngBytes, String fileName) async {
-  final result = await FilePicker.platform.saveFile(
+  final result = await FilePicker.saveFile(
     dialogTitle: 'Save Profile Image',
     fileName: fileName,
     type: FileType.image,
@@ -111,7 +111,7 @@ Future<String> sharePdfBytes(List<int> pdfBytes, String fileName) async {
 /// Opens a file picker dialog allowing the user to choose where to save.
 /// Returns the saved file path, or null if the user cancelled.
 Future<String?> savePdfToFile(List<int> pdfBytes, String fileName) async {
-  final result = await FilePicker.platform.saveFile(
+  final result = await FilePicker.saveFile(
     dialogTitle: 'Save PDF',
     fileName: fileName,
     type: FileType.custom,

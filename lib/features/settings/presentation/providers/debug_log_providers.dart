@@ -147,7 +147,7 @@ Future<String?> saveLogFile(LogFileService service) async {
   if (!file.existsSync()) return null;
 
   final bytes = await file.readAsBytes();
-  final result = await FilePicker.platform.saveFile(
+  final result = await FilePicker.saveFile(
     dialogTitle: 'Save Debug Logs',
     fileName: 'submersion-debug-logs.txt',
     type: FileType.custom,

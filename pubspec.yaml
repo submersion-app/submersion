@@ -51,7 +51,7 @@ dependencies:
 
   # Cloud Storage
   google_sign_in: ^7.2.0
-  googleapis: ^15.0.0
+  googleapis: ^16.0.0
   extension_google_sign_in_as_googleapis_auth: ^3.0.0
   googleapis_auth: ^2.0.0
 
@@ -59,17 +59,17 @@ dependencies:
   libdivecomputer_plugin:
     path: packages/libdivecomputer_plugin
   permission_handler: ^12.0.1
-  file_picker: ^10.3.9
+  file_picker: ^11.0.2
   image_picker: ^1.1.2
   share_plus: ^12.0.1
-  desktop_drop: ^0.4.4
+  desktop_drop: ^0.7.0
   receive_sharing_intent: ^1.8.1
   url_launcher: ^6.3.1
-  flutter_contacts: ^1.1.9+2
+  flutter_contacts: ^2.0.2
   geolocator: ^14.0.2
   geocoding: ^4.0.0
   photo_manager: ^3.6.0
-  native_exif: ^0.6.0
+  native_exif: ^0.7.0
   health: ^13.3.0  # Cross-platform health data (HealthKit, Health Connect)
 
   # Storage
@@ -98,9 +98,9 @@ dependencies:
   package_info_plus: ^8.0.0
 
   # Notifications
-  flutter_local_notifications: ^18.0.1
+  flutter_local_notifications: ^21.0.0
   workmanager: ^0.9.0+3
-  timezone: ^0.10.0
+  timezone: ^0.11.0
   google_fonts: ^8.0.2
   linked_scroll_controller: ^0.2.0
 

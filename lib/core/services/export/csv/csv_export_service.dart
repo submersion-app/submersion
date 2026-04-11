@@ -280,7 +280,7 @@ class CsvExportService {
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'dives_export_$dateStr.csv';
 
-    final result = await FilePicker.platform.saveFile(
+    final result = await FilePicker.saveFile(
       dialogTitle: 'Save Dives CSV',
       fileName: fileName,
       type: FileType.custom,
@@ -304,7 +304,7 @@ class CsvExportService {
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'sites_export_$dateStr.csv';
 
-    final result = await FilePicker.platform.saveFile(
+    final result = await FilePicker.saveFile(
       dialogTitle: 'Save Sites CSV',
       fileName: fileName,
       type: FileType.custom,
@@ -328,7 +328,7 @@ class CsvExportService {
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'equipment_export_$dateStr.csv';
 
-    final result = await FilePicker.platform.saveFile(
+    final result = await FilePicker.saveFile(
       dialogTitle: 'Save Equipment CSV',
       fileName: fileName,
       type: FileType.custom,

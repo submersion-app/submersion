@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:cross_file/cross_file.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -60,10 +59,10 @@ Future<void> _triggerDrop(WidgetTester tester, DropDoneDetails details) async {
 
 /// Create an [XFile] with pre-loaded [bytes] that avoids real file I/O.
 ///
-/// On dart:io platforms [XFile.fromData] stores the bytes in memory so
-/// [readAsBytes] returns them directly (unlike [XFile()] which ignores bytes).
-XFile _xFileFromBytes(Uint8List bytes, String name) =>
-    XFile.fromData(bytes, path: name);
+/// On dart:io platforms [DropItemFile.fromData] stores the bytes in memory so
+/// [readAsBytes] returns them directly (unlike [DropItemFile()] which ignores bytes).
+DropItemFile _xFileFromBytes(Uint8List bytes, String name) =>
+    DropItemFile.fromData(bytes, path: name);
 
 /// UDDF XML content recognised by the format detector.
 final _uddfBytes = Uint8List.fromList(
@@ -248,7 +247,7 @@ void main() {
           final dropTarget = tester.widget<DropTarget>(find.byType(DropTarget));
           dropTarget.onDragDone?.call(
             DropDoneDetails(
-              files: [XFile('/nonexistent/path/file.uddf')],
+              files: [DropItemFile('/nonexistent/path/file.uddf')],
               localPosition: Offset.zero,
               globalPosition: Offset.zero,
             ),

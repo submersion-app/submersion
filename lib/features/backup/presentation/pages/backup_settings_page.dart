@@ -167,7 +167,7 @@ class BackupSettingsPage extends ConsumerWidget {
     ExportBottomSheet.show(
       context,
       onSaveToFile: () async {
-        final result = await FilePicker.platform.saveFile(
+        final result = await FilePicker.saveFile(
           dialogTitle: context.l10n.backup_export_title,
           fileName: _generateDefaultFilename(),
           allowedExtensions: ['db', 'sqlite'],
@@ -204,7 +204,7 @@ class BackupSettingsPage extends ConsumerWidget {
   Future<void> _handleImport(BuildContext context, WidgetRef ref) async {
     final FilePickerResult? result;
     try {
-      result = await FilePicker.platform.pickFiles(type: FileType.any);
+      result = await FilePicker.pickFiles(type: FileType.any);
     } on Exception catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -431,7 +431,7 @@ class BackupSettingsPage extends ConsumerWidget {
           ),
           trailing: TextButton(
             onPressed: () async {
-              final path = await FilePicker.platform.getDirectoryPath(
+              final path = await FilePicker.getDirectoryPath(
                 dialogTitle: context.l10n.backup_location_title,
               );
               if (path != null) {

@@ -139,7 +139,7 @@ class DatabaseLocationService {
 
     // On other platforms, use file_picker
     try {
-      final result = await FilePicker.platform.getDirectoryPath(
+      final result = await FilePicker.getDirectoryPath(
         dialogTitle: 'Choose Database Storage Location',
         lockParentWindow: true,
       );

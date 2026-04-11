@@ -124,7 +124,7 @@ class ExcelExportService {
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'submersion_export_$dateStr.xlsx';
 
-    final result = await FilePicker.platform.saveFile(
+    final result = await FilePicker.saveFile(
       dialogTitle: 'Save Excel File',
       fileName: fileName,
       type: FileType.custom,

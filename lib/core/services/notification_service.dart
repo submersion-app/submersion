@@ -64,7 +64,7 @@ class NotificationService {
     );
 
     await _plugin.initialize(
-      initSettings,
+      settings: initSettings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
 
@@ -166,15 +166,13 @@ class NotificationService {
     final scheduledTz = tz.TZDateTime.from(scheduledDate, tz.local);
 
     await _plugin.zonedSchedule(
-      notificationId,
-      title,
-      body,
-      scheduledTz,
-      details,
+      id: notificationId,
+      title: title,
+      body: body,
+      scheduledDate: scheduledTz,
+      notificationDetails: details,
       payload: equipmentId,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
     );
 
     _log.info(
@@ -222,7 +220,12 @@ class NotificationService {
     // Use a fixed ID so repeated backup notifications replace each other
     const backupNotificationId = 99000;
 
-    await _plugin.show(backupNotificationId, title, body, details);
+    await _plugin.show(
+      id: backupNotificationId,
+      title: title,
+      body: body,
+      notificationDetails: details,
+    );
 
     _log.info('Showed backup notification (success: $success)');
   }
@@ -230,7 +233,7 @@ class NotificationService {
   /// Cancel a specific notification
   Future<void> cancelNotification(int notificationId) async {
     if (!_isMobilePlatform) return;
-    await _plugin.cancel(notificationId);
+    await _plugin.cancel(id: notificationId);
     _log.info('Cancelled notification $notificationId');
   }
 
