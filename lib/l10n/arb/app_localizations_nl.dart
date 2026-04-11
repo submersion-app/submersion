@@ -6522,6 +6522,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divers_summary_totalDiversLabel => 'Totaal duikers';
 
   @override
+  String divers_detail_deleteDialogConfirmHint(String name) {
+    return 'Type \"Delete $name\" to confirm';
+  }
+
+  @override
   String get enum_altitudeGroup_extreme => 'Extreme hoogte';
 
   @override

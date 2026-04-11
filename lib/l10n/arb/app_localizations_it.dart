@@ -6576,6 +6576,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get divers_summary_totalDiversLabel => 'Subacquei totali';
 
   @override
+  String divers_detail_deleteDialogConfirmHint(String name) {
+    return 'Type \"Delete $name\" to confirm';
+  }
+
+  @override
   String get enum_altitudeGroup_extreme => 'Altitudine estrema';
 
   @override

@@ -782,25 +782,7 @@ class _DiverDetailContent extends ConsumerWidget {
   Future<bool> _showDeleteConfirmation(BuildContext context) async {
     return await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: Text(context.l10n.divers_detail_deleteDialogTitle),
-            content: Text(
-              context.l10n.divers_detail_deleteDialogContent(diver.name),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(context.l10n.divers_detail_cancelButton),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
-                child: Text(context.l10n.divers_detail_deleteButton),
-              ),
-            ],
-          ),
+          builder: (context) => _DeleteDiverDialog(diverName: diver.name),
         ) ??
         false;
   }
@@ -817,6 +799,92 @@ class _DiverDetailContent extends ConsumerWidget {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }
+  }
+}
+
+class _DeleteDiverDialog extends StatefulWidget {
+  const _DeleteDiverDialog({required this.diverName});
+
+  final String diverName;
+
+  @override
+  State<_DeleteDiverDialog> createState() => _DeleteDiverDialogState();
+}
+
+class _DeleteDiverDialogState extends State<_DeleteDiverDialog> {
+  final _controller = TextEditingController();
+  bool _isConfirmed = false;
+
+  String get _confirmationText => 'Delete ${widget.diverName}';
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onTextChanged);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    final confirmed = _controller.text.trim() == _confirmationText;
+    if (confirmed != _isConfirmed) {
+      setState(() => _isConfirmed = confirmed);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AlertDialog(
+      title: Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, color: theme.colorScheme.error),
+          const SizedBox(width: 8),
+          Expanded(child: Text(context.l10n.divers_detail_deleteDialogTitle)),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.divers_detail_deleteDialogContent(widget.diverName),
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _controller,
+            decoration: InputDecoration(
+              hintText: context.l10n.divers_detail_deleteDialogConfirmHint(
+                widget.diverName,
+              ),
+              border: const OutlineInputBorder(),
+            ),
+            autofocus: true,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(context.l10n.divers_detail_cancelButton),
+        ),
+        FilledButton(
+          onPressed: _isConfirmed
+              ? () => Navigator.of(context).pop(true)
+              : null,
+          style: FilledButton.styleFrom(
+            backgroundColor: theme.colorScheme.error,
+          ),
+          child: Text(context.l10n.divers_detail_deleteButton),
+        ),
+      ],
+    );
   }
 }
 

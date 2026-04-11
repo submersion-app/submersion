@@ -3483,7 +3483,7 @@
   "divers_detail_contactTitle": "Contact",
   "divers_detail_defaultLabel": "Default",
   "divers_detail_deleteButton": "Delete",
-  "divers_detail_deleteDialogContent": "Are you sure you want to delete {name}? All associated dive logs will be unassigned.",
+  "divers_detail_deleteDialogContent": "This will permanently delete {name} and all associated data including dive logs, dive computers, equipment, certifications, and sites.",
   "divers_detail_deleteDialogTitle": "Delete Diver?",
   "divers_detail_deleteError": "Failed to delete: {error}",
   "divers_detail_deleteMenuItem": "Delete",
@@ -3582,6 +3582,14 @@
     "placeholders": {
       "name": {
         "type": "Object"
+      }
+    }
+  },
+  "divers_detail_deleteDialogConfirmHint": "Type \"Delete {name}\" to confirm",
+  "@divers_detail_deleteDialogConfirmHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
       }
     }
   },

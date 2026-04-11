@@ -10659,7 +10659,7 @@ abstract class AppLocalizations {
   /// No description provided for @divers_detail_deleteDialogContent.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to delete {name}? All associated dive logs will be unassigned.'**
+  /// **'This will permanently delete {name} and all associated data including dive logs, dive computers, equipment, certifications, and sites.'**
   String divers_detail_deleteDialogContent(Object name);
 
   /// No description provided for @divers_detail_deleteDialogTitle.
@@ -11225,6 +11225,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total Divers'**
   String get divers_summary_totalDiversLabel;
+
+  /// No description provided for @divers_detail_deleteDialogConfirmHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type \"Delete {name}\" to confirm'**
+  String divers_detail_deleteDialogConfirmHint(String name);
 
   /// No description provided for @enum_altitudeGroup_extreme.
   ///
