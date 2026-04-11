@@ -236,6 +236,11 @@ jobs:
       - name: Update CocoaPods repo
         run: pod repo update
 
+      - name: Clean native asset build state
+        run: |
+          rm -rf build/native_assets
+          rm -rf .dart_tool/flutter_build
+
       - name: Build iOS
         run: flutter build ios --release --no-codesign "${{ env.DART_DEFINES }}" -v
 
@@ -314,6 +319,11 @@ jobs:
 
       - name: Update CocoaPods repo
         run: pod repo update
+
+      - name: Clean native asset build state
+        run: |
+          rm -rf build/native_assets
+          rm -rf .dart_tool/flutter_build
 
       - name: Build macOS (no-sandbox for distribution)
         run: |
