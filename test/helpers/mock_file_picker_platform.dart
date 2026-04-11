@@ -1,7 +1,11 @@
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
+// FilePickerPlatform is not publicly exported; centralise the src/ import here
+// so test files only depend on this helper.
 import 'package:file_picker/src/platform/file_picker_platform_interface.dart';
+export 'package:file_picker/src/platform/file_picker_platform_interface.dart'
+    show FilePickerPlatform;
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 /// A mock [FilePickerPlatform] that returns pre-configured results
