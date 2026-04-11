@@ -887,6 +887,10 @@ jobs:
     name: Generate Appcast & Checksums
     runs-on: ubuntu-latest
     needs: [build-macos, build-windows, build-linux, build-android, build-ios]
+    if: >-
+      !contains(github.ref_name, '-alpha') &&
+      !contains(github.ref_name, '-beta') &&
+      !contains(github.ref_name, '-rc')
 
     steps:
       - name: Checkout repository
@@ -943,6 +947,7 @@ jobs:
     name: Create GitHub Release
     runs-on: ubuntu-latest
     needs: [build-macos, build-windows, build-linux, build-android, build-ios, generate-appcast]
+    if: !cancelled() && !failure()
     permissions:
       contents: write
 
@@ -963,6 +968,9 @@ jobs:
 
       - name: List artifacts
         run: ls -la
+
+      - name: Generate checksums
+        run: sha256sum Submersion-* > checksums-sha256.txt
 
       - name: Determine if pre-release
         id: prerelease
@@ -1008,15 +1016,22 @@ jobs:
             --repo "${{ github.repository }}" \
             --json assets -q '.assets[].name')
 
+          EXPECTED=(
+            "Submersion-${TAG_NAME}-macOS.dmg"
+            "Submersion-${TAG_NAME}-Windows-Setup.exe"
+            "Submersion-${TAG_NAME}-Linux.tar.gz"
+            "Submersion-${TAG_NAME}-Android.apk"
+            "Submersion-${TAG_NAME}-Android.aab"
+            "checksums-sha256.txt"
+          )
+
+          # Appcast is only generated for stable releases
+          if ! echo "$TAG_NAME" | grep -qE '\-(alpha|beta|rc)'; then
+            EXPECTED+=("appcast.xml")
+          fi
+
           MISSING=()
-          for expected in \
-            "Submersion-${TAG_NAME}-macOS.dmg" \
-            "Submersion-${TAG_NAME}-Windows-Setup.exe" \
-            "Submersion-${TAG_NAME}-Linux.tar.gz" \
-            "Submersion-${TAG_NAME}-Android.apk" \
-            "Submersion-${TAG_NAME}-Android.aab" \
-            "appcast.xml" \
-            "checksums-sha256.txt"; do
+          for expected in "${EXPECTED[@]}"; do
             if echo "$ASSETS" | grep -q "$expected"; then
               echo "  [OK] $expected"
             else
@@ -1053,6 +1068,10 @@ jobs:
           fi
 
       - name: Validate appcast XML
+        if: >-
+          !contains(github.ref_name, '-alpha') &&
+          !contains(github.ref_name, '-beta') &&
+          !contains(github.ref_name, '-rc')
         env:
           TAG_NAME: ${{ github.ref_name }}
           GH_TOKEN: ${{ github.token }}
