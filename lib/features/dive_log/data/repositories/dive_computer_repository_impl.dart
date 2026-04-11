@@ -100,14 +100,26 @@ class DiveComputerRepository {
 
   /// Find a dive computer by its Bluetooth address.
   ///
-  /// Returns `null` if no computer with the given address exists.
-  Future<domain.DiveComputer?> findByBluetoothAddress(String address) async {
+  /// When [diverId] is provided, only returns a computer that belongs to that
+  /// diver. Uses `.get()` instead of `.getSingleOrNull()` so it does not throw
+  /// when multiple divers have records for the same bluetooth address.
+  ///
+  /// Returns `null` if no matching computer exists.
+  Future<domain.DiveComputer?> findByBluetoothAddress(
+    String address, {
+    String? diverId,
+  }) async {
     try {
       final query = _db.select(_db.diveComputers)
         ..where((t) => t.bluetoothAddress.equals(address));
 
-      final row = await query.getSingleOrNull();
-      return row != null ? _mapRowToComputer(row) : null;
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
+
+      final rows = await query.get();
+      if (rows.isEmpty) return null;
+      return _mapRowToComputer(rows.first);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to find dive computer by bluetooth address: $address',

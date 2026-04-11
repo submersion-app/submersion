@@ -119,15 +119,18 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   /// Look up an existing computer by the discovered device's address.
   ///
   /// Called before the download starts in discovery mode. If a matching
-  /// computer is found, its [lastDiveFingerprint] enables incremental
-  /// download (only new dives). Does NOT create a new computer record —
-  /// that happens in [ensureComputer] after the download completes.
+  /// computer is found for the current diver, its [lastDiveFingerprint]
+  /// enables incremental download (only new dives). Does NOT create a new
+  /// computer record -- that happens in [ensureComputer] after the download
+  /// completes.
   Future<void> resolveKnownComputer(DiscoveredDevice device) async {
     if (computer != null) return;
     if (device.connectionType == DeviceConnectionType.ble ||
         device.connectionType == DeviceConnectionType.bluetoothClassic) {
+      if (_diverId.isEmpty) return;
       final existing = await _computerRepository.findByBluetoothAddress(
         device.address,
+        diverId: _diverId,
       );
       if (existing != null) {
         _computer = existing;

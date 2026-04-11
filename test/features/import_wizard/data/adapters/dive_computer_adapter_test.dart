@@ -30,6 +30,7 @@ import 'dive_computer_adapter_test.mocks.dart';
 DiveComputer makeComputer({
   String id = 'computer-1',
   String name = 'My Perdix',
+  String? diverId,
   String? manufacturer = 'Shearwater',
   String? model = 'Perdix',
   String? serialNumber = 'SN-12345',
@@ -38,6 +39,7 @@ DiveComputer makeComputer({
   return DiveComputer(
     id: id,
     name: name,
+    diverId: diverId,
     manufacturer: manufacturer,
     model: model,
     serialNumber: serialNumber,
@@ -786,9 +788,15 @@ void main() {
         diverId: diverId,
       );
 
-      final existingComputer = makeComputer(id: 'found-computer');
+      final existingComputer = makeComputer(
+        id: 'found-computer',
+        diverId: diverId,
+      );
       when(
-        mockComputerRepo.findByBluetoothAddress('AA:BB:CC:DD:EE:FF'),
+        mockComputerRepo.findByBluetoothAddress(
+          'AA:BB:CC:DD:EE:FF',
+          diverId: diverId,
+        ),
       ).thenAnswer((_) async => existingComputer);
 
       final device = DiscoveredDevice(
@@ -803,7 +811,10 @@ void main() {
 
       expect(discoveryAdapter.computer, equals(existingComputer));
       verify(
-        mockComputerRepo.findByBluetoothAddress('AA:BB:CC:DD:EE:FF'),
+        mockComputerRepo.findByBluetoothAddress(
+          'AA:BB:CC:DD:EE:FF',
+          diverId: diverId,
+        ),
       ).called(1);
     });
 
@@ -816,7 +827,10 @@ void main() {
       );
 
       when(
-        mockComputerRepo.findByBluetoothAddress('11:22:33:44:55:66'),
+        mockComputerRepo.findByBluetoothAddress(
+          '11:22:33:44:55:66',
+          diverId: diverId,
+        ),
       ).thenAnswer((_) async => null);
 
       final device = DiscoveredDevice(
@@ -830,7 +844,10 @@ void main() {
       await discoveryAdapter.resolveKnownComputer(device);
 
       verify(
-        mockComputerRepo.findByBluetoothAddress('11:22:33:44:55:66'),
+        mockComputerRepo.findByBluetoothAddress(
+          '11:22:33:44:55:66',
+          diverId: diverId,
+        ),
       ).called(1);
       // No computer found, so it stays null.
       expect(discoveryAdapter.computer, isNull);
@@ -854,7 +871,12 @@ void main() {
 
       await discoveryAdapter.resolveKnownComputer(device);
 
-      verifyNever(mockComputerRepo.findByBluetoothAddress(any));
+      verifyNever(
+        mockComputerRepo.findByBluetoothAddress(
+          any,
+          diverId: anyNamed('diverId'),
+        ),
+      );
       expect(discoveryAdapter.computer, isNull);
     });
 
@@ -870,7 +892,72 @@ void main() {
 
       await adapter.resolveKnownComputer(device);
 
-      verifyNever(mockComputerRepo.findByBluetoothAddress(any));
+      verifyNever(
+        mockComputerRepo.findByBluetoothAddress(
+          any,
+          diverId: anyNamed('diverId'),
+        ),
+      );
+    });
+
+    test(
+      'leaves computer null when address belongs to different diver',
+      () async {
+        final discoveryAdapter = DiveComputerAdapter(
+          importService: mockImportService,
+          computerRepository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          diverId: diverId,
+        );
+
+        // The address exists but belongs to another diver; diver-scoped lookup
+        // returns null.
+        when(
+          mockComputerRepo.findByBluetoothAddress(
+            'AA:BB:CC:DD:EE:FF',
+            diverId: diverId,
+          ),
+        ).thenAnswer((_) async => null);
+
+        final device = DiscoveredDevice(
+          id: 'device-1',
+          name: 'Perdix 2',
+          connectionType: DeviceConnectionType.ble,
+          address: 'AA:BB:CC:DD:EE:FF',
+          discoveredAt: DateTime(2026, 3, 20),
+        );
+
+        await discoveryAdapter.resolveKnownComputer(device);
+
+        expect(discoveryAdapter.computer, isNull);
+      },
+    );
+
+    test('is a no-op when diverId is empty', () async {
+      final emptyDiverAdapter = DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        diverId: '',
+      );
+
+      final device = DiscoveredDevice(
+        id: 'device-1',
+        name: 'Perdix 2',
+        connectionType: DeviceConnectionType.ble,
+        address: 'AA:BB:CC:DD:EE:FF',
+        discoveredAt: DateTime(2026, 3, 20),
+      );
+
+      await emptyDiverAdapter.resolveKnownComputer(device);
+
+      verifyNever(
+        mockComputerRepo.findByBluetoothAddress(
+          any,
+          diverId: anyNamed('diverId'),
+        ),
+      );
+      expect(emptyDiverAdapter.computer, isNull);
     });
   });
 

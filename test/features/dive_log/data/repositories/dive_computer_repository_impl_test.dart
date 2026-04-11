@@ -126,6 +126,89 @@ void main() {
         );
   }
 
+  Future<void> insertDiver(String id) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.divers)
+        .insertOnConflictUpdate(
+          DiversCompanion(
+            id: Value(id),
+            name: Value('Diver $id'),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+  }
+
+  // ---------------------------------------------------------------------------
+  // findByBluetoothAddress - diver-scoped lookup
+  // ---------------------------------------------------------------------------
+
+  group('findByBluetoothAddress', () {
+    test('returns computer matching address and diverId', () async {
+      await insertDiver('diver-a');
+      await insertDiver('diver-b');
+      await insertComputer(
+        id: 'comp-a',
+        diverId: 'diver-a',
+        bluetoothAddress: 'AA:BB:CC:DD:EE:FF',
+      );
+      await insertComputer(
+        id: 'comp-b',
+        diverId: 'diver-b',
+        bluetoothAddress: 'AA:BB:CC:DD:EE:FF',
+      );
+
+      final result = await repository.findByBluetoothAddress(
+        'AA:BB:CC:DD:EE:FF',
+        diverId: 'diver-b',
+      );
+      expect(result?.id, equals('comp-b'));
+      expect(result?.diverId, equals('diver-b'));
+    });
+
+    test(
+      'returns null when address exists but diverId does not match',
+      () async {
+        await insertDiver('diver-a');
+        await insertComputer(
+          id: 'comp-a',
+          diverId: 'diver-a',
+          bluetoothAddress: 'AA:BB:CC:DD:EE:FF',
+        );
+
+        final result = await repository.findByBluetoothAddress(
+          'AA:BB:CC:DD:EE:FF',
+          diverId: 'diver-other',
+        );
+        expect(result, isNull);
+      },
+    );
+
+    test(
+      'does not throw when multiple records share the same address',
+      () async {
+        await insertDiver('diver-a');
+        await insertDiver('diver-b');
+        await insertComputer(
+          id: 'comp-a',
+          diverId: 'diver-a',
+          bluetoothAddress: 'AA:BB:CC:DD:EE:FF',
+        );
+        await insertComputer(
+          id: 'comp-b',
+          diverId: 'diver-b',
+          bluetoothAddress: 'AA:BB:CC:DD:EE:FF',
+        );
+
+        final result = await repository.findByBluetoothAddress(
+          'AA:BB:CC:DD:EE:FF',
+        );
+        expect(result, isNotNull);
+      },
+    );
+  });
+
   // ---------------------------------------------------------------------------
   // deleteComputer - FK reference clearing
   // ---------------------------------------------------------------------------

@@ -174,6 +174,14 @@ class MockHealth extends _i1.Mock implements _i2.Health {
           as _i4.Future<bool>);
 
   @override
+  _i4.Future<bool> isSkinTemperatureAvailable() =>
+      (super.noSuchMethod(
+            Invocation.method(#isSkinTemperatureAvailable, []),
+            returnValue: _i4.Future<bool>.value(false),
+          )
+          as _i4.Future<bool>);
+
+  @override
   _i4.Future<bool> requestAuthorization(
     List<_i2.HealthDataType>? types, {
     List<_i2.HealthDataAccess>? permissions,
@@ -566,6 +574,30 @@ class MockHealth extends _i1.Mock implements _i2.Health {
             ),
           )
           as _i4.Future<List<_i2.HealthDataPoint>>);
+
+  @override
+  _i4.Future<String?> getChangesToken({
+    required List<_i2.HealthDataType>? types,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getChangesToken, [], {#types: types}),
+            returnValue: _i4.Future<String?>.value(),
+          )
+          as _i4.Future<String?>);
+
+  @override
+  _i4.Future<_i2.HealthChangesResponse?> getChanges({
+    required String? changesToken,
+    bool? includeSelf = false,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getChanges, [], {
+              #changesToken: changesToken,
+              #includeSelf: includeSelf,
+            }),
+            returnValue: _i4.Future<_i2.HealthChangesResponse?>.value(),
+          )
+          as _i4.Future<_i2.HealthChangesResponse?>);
 
   @override
   List<_i2.HealthDataPoint> removeDuplicates(

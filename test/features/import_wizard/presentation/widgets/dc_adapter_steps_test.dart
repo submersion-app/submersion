@@ -82,14 +82,20 @@ class _FakeDiveComputerRepository extends DiveComputerRepository {
   @override
   Future<void> updateComputer(dynamic computer) async {}
   @override
-  Future<DiveComputer?> findByBluetoothAddress(String address) async => null;
+  Future<DiveComputer?> findByBluetoothAddress(
+    String address, {
+    String? diverId,
+  }) async => null;
 }
 
 /// Repository that never resolves findByBluetoothAddress, simulating
 /// an async delay during computer resolution.
 class _NeverResolveDiveComputerRepository extends DiveComputerRepository {
   @override
-  Future<DiveComputer?> findByBluetoothAddress(String address) {
+  Future<DiveComputer?> findByBluetoothAddress(
+    String address, {
+    String? diverId,
+  }) {
     return Completer<DiveComputer?>().future;
   }
 
