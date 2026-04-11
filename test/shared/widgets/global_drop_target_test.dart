@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:cross_file/cross_file.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,12 +57,12 @@ Future<void> _triggerDrop(WidgetTester tester, DropDoneDetails details) async {
   }
 }
 
-/// Create an [XFile] with pre-loaded [bytes] that avoids real file I/O.
+/// Create a [DropItemFile] with pre-loaded [bytes] that avoids real file I/O.
 ///
-/// On dart:io platforms [XFile.fromData] stores the bytes in memory so
-/// [readAsBytes] returns them directly (unlike [XFile()] which ignores bytes).
-XFile _xFileFromBytes(Uint8List bytes, String name) =>
-    XFile.fromData(bytes, path: name);
+/// On dart:io platforms [DropItemFile.fromData] stores the bytes in memory so
+/// [readAsBytes] returns them directly (unlike [DropItemFile()] which ignores bytes).
+DropItemFile _dropItemFromBytes(Uint8List bytes, String name) =>
+    DropItemFile.fromData(bytes, path: name);
 
 /// UDDF XML content recognised by the format detector.
 final _uddfBytes = Uint8List.fromList(
@@ -225,7 +224,7 @@ void main() {
         await _triggerDrop(
           tester,
           DropDoneDetails(
-            files: [_xFileFromBytes(_uddfBytes, 'test.uddf')],
+            files: [_dropItemFromBytes(_uddfBytes, 'test.uddf')],
             localPosition: Offset.zero,
             globalPosition: Offset.zero,
           ),
@@ -248,7 +247,7 @@ void main() {
           final dropTarget = tester.widget<DropTarget>(find.byType(DropTarget));
           dropTarget.onDragDone?.call(
             DropDoneDetails(
-              files: [XFile('/nonexistent/path/file.uddf')],
+              files: [DropItemFile('/nonexistent/path/file.uddf')],
               localPosition: Offset.zero,
               globalPosition: Offset.zero,
             ),
@@ -271,7 +270,7 @@ void main() {
         await _triggerDrop(
           tester,
           DropDoneDetails(
-            files: [_xFileFromBytes(_pngBytes, 'photo.png')],
+            files: [_dropItemFromBytes(_pngBytes, 'photo.png')],
             localPosition: Offset.zero,
             globalPosition: Offset.zero,
           ),
@@ -291,7 +290,7 @@ void main() {
         await _triggerDrop(
           tester,
           DropDoneDetails(
-            files: [_xFileFromBytes(_uddfBytes, 'dive.uddf')],
+            files: [_dropItemFromBytes(_uddfBytes, 'dive.uddf')],
             localPosition: Offset.zero,
             globalPosition: Offset.zero,
           ),
@@ -311,7 +310,7 @@ void main() {
         await _triggerDrop(
           tester,
           DropDoneDetails(
-            files: [_xFileFromBytes(_csvBytes, 'dives.csv')],
+            files: [_dropItemFromBytes(_csvBytes, 'dives.csv')],
             localPosition: Offset.zero,
             globalPosition: Offset.zero,
           ),
@@ -330,7 +329,7 @@ void main() {
       await _triggerDrop(
         tester,
         DropDoneDetails(
-          files: [_xFileFromBytes(_fitBytes, 'dive.fit')],
+          files: [_dropItemFromBytes(_fitBytes, 'dive.fit')],
           localPosition: Offset.zero,
           globalPosition: Offset.zero,
         ),
@@ -349,8 +348,8 @@ void main() {
         tester,
         DropDoneDetails(
           files: [
-            _xFileFromBytes(_uddfBytes, 'dive.uddf'),
-            _xFileFromBytes(_pngBytes, 'photo.png'),
+            _dropItemFromBytes(_uddfBytes, 'dive.uddf'),
+            _dropItemFromBytes(_pngBytes, 'photo.png'),
           ],
           localPosition: Offset.zero,
           globalPosition: Offset.zero,

@@ -198,7 +198,7 @@ class PdfExportService {
       allSightings: allSightings,
     );
 
-    final saveResult = await FilePicker.platform.saveFile(
+    final saveResult = await FilePicker.saveFile(
       dialogTitle: 'Save PDF File',
       fileName: result.fileName,
       type: FileType.custom,

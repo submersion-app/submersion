@@ -532,7 +532,7 @@ class UddfFullExportService {
     final fileName =
         'submersion_backup_${_dateFormat.format(DateTime.now())}.uddf';
 
-    final result = await FilePicker.platform.saveFile(
+    final result = await FilePicker.saveFile(
       dialogTitle: 'Save UDDF File',
       fileName: fileName,
       type: FileType.custom,

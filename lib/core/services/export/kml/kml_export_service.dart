@@ -79,7 +79,7 @@ class KmlExportService {
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'submersion_sites_$dateStr.kml';
 
-    final result = await FilePicker.platform.saveFile(
+    final result = await FilePicker.saveFile(
       dialogTitle: 'Save KML File',
       fileName: fileName,
       type: FileType.custom,

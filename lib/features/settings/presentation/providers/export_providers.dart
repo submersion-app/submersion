@@ -1037,7 +1037,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       await DatabaseService.instance.backup(tempBackupPath);
 
       // Let user choose where to save the file
-      final savePath = await FilePicker.platform.saveFile(
+      final savePath = await FilePicker.saveFile(
         dialogTitle: 'Save Backup',
         fileName: fileName,
         type: FileType.any,
@@ -1085,7 +1085,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
     try {
       // Use FileType.any on iOS/macOS since custom extensions don't work reliably
       final useAnyType = Platform.isIOS || Platform.isMacOS;
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: useAnyType ? FileType.any : FileType.custom,
         allowedExtensions: useAnyType ? null : ['db'],
         allowMultiple: false,
