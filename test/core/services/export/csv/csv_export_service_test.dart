@@ -1,6 +1,11 @@
+import 'package:file_picker/src/platform/file_picker_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/csv/csv_export_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+
+import '../../../../helpers/mock_file_picker_platform.dart';
 
 void main() {
   late CsvExportService service;
@@ -67,6 +72,39 @@ void main() {
       // Pressures exported with 1 decimal for round-trip fidelity
       expect(csv, contains('206.8'));
       expect(csv, contains('50.5'));
+    });
+  });
+
+  group('save to file', () {
+    late MockFilePickerPlatform mockPicker;
+    late FilePickerPlatform originalPicker;
+
+    setUp(() {
+      originalPicker = FilePickerPlatform.instance;
+      mockPicker = MockFilePickerPlatform();
+      FilePickerPlatform.instance = mockPicker;
+    });
+
+    tearDown(() {
+      FilePickerPlatform.instance = originalPicker;
+    });
+
+    test('saveDivesCsvToFile returns null when user cancels', () async {
+      mockPicker.saveFileResult = null;
+      final result = await service.saveDivesCsvToFile([]);
+      expect(result, isNull);
+    });
+
+    test('saveSitesCsvToFile returns null when user cancels', () async {
+      mockPicker.saveFileResult = null;
+      final result = await service.saveSitesCsvToFile(<DiveSite>[]);
+      expect(result, isNull);
+    });
+
+    test('saveEquipmentCsvToFile returns null when user cancels', () async {
+      mockPicker.saveFileResult = null;
+      final result = await service.saveEquipmentCsvToFile(<EquipmentItem>[]);
+      expect(result, isNull);
     });
   });
 }

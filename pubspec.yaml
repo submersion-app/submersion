@@ -119,6 +119,7 @@ dev_dependencies:
   json_serializable: ^6.11.2
   riverpod_generator: ^4.0.0+1
   mockito: ^5.6.1
+  plugin_platform_interface: ^2.1.8
 
 dependency_overrides:
   # Pin to 9.4.5 to avoid CNAuthorizationStatusLimited compile error
