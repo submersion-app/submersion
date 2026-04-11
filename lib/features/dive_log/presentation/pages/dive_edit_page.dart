@@ -1551,9 +1551,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         'editProfile',
         pathParameters: {'diveId': diveId},
         queryParameters: {
-          if (initialMode != null) 'mode': initialMode,
-          if (selected.computerId != null)
-            'sourceComputerId': selected.computerId!,
+          'mode': ?initialMode,
+          'sourceComputerId': ?selected.computerId,
         },
       );
     } else {
@@ -1562,7 +1561,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       context.pushNamed(
         'editProfile',
         pathParameters: {'diveId': diveId},
-        queryParameters: {if (initialMode != null) 'mode': initialMode},
+        queryParameters: {'mode': ?initialMode},
       );
     }
   }

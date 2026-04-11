@@ -203,10 +203,10 @@ class SubsurfaceXmlParser implements ImportParser {
     final diveNumber = _parseInt(numberStr);
 
     final result = <String, dynamic>{
-      if (dateTime != null) 'dateTime': dateTime,
-      if (diveNumber != null) 'diveNumber': diveNumber,
-      if (duration != null) 'duration': duration,
-      if (duration != null) 'runtime': duration,
+      'dateTime': ?dateTime,
+      'diveNumber': ?diveNumber,
+      'duration': ?duration,
+      'runtime': ?duration,
     };
 
     final cns = _parseDouble(dive.getAttribute('cns'));
