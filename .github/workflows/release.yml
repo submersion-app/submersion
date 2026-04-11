@@ -947,7 +947,7 @@ jobs:
     name: Create GitHub Release
     runs-on: ubuntu-latest
     needs: [build-macos, build-windows, build-linux, build-android, build-ios, generate-appcast]
-    if: !cancelled() && !failure()
+    if: ${{ !cancelled() && !failure() }}
     permissions:
       contents: write
 
