@@ -6260,7 +6260,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogContent(Object name) {
-    return 'Sind Sie sicher, dass Sie $name loeschen moechten? Alle zugeordneten Tauchprotokolle werden freigegeben.';
+    return 'This will permanently delete $name and all associated data including dive logs, dive computers, equipment, certifications, and sites.';
   }
 
   @override

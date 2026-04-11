@@ -822,6 +822,11 @@ class _DeleteDiverDialogState extends State<_DeleteDiverDialog> {
     _confirmationText = context.l10n.divers_detail_deleteDialogConfirmText(
       widget.diverName,
     );
+    // Re-evaluate in case locale changed while user had typed text.
+    final confirmed = _controller.text.trim() == _confirmationText;
+    if (confirmed != _isConfirmed) {
+      setState(() => _isConfirmed = confirmed);
+    }
   }
 
   @override

@@ -2988,6 +2988,24 @@ class AppDatabase extends _$AppDatabase {
               );
             }
           }
+
+          // Custom dive types may be orphaned too, but built-in types
+          // (is_built_in = 1) intentionally have null diver_id. Only
+          // delete orphaned custom types.
+          final diveTypeCols = await customSelect(
+            "PRAGMA table_info('dive_types')",
+          ).get();
+          final hasDiverId = diveTypeCols.any(
+            (c) => c.read<String>('name') == 'diver_id',
+          );
+          final hasBuiltIn = diveTypeCols.any(
+            (c) => c.read<String>('name') == 'is_built_in',
+          );
+          if (hasDiverId && hasBuiltIn) {
+            await customStatement(
+              'DELETE FROM dive_types WHERE diver_id IS NULL AND is_built_in = 0',
+            );
+          }
         }
         if (from < 64) await reportProgress();
       },
