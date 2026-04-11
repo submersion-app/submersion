@@ -2964,8 +2964,10 @@ class AppDatabase extends _$AppDatabase {
           // Delete orphaned records (diver_id = NULL) left by prior diver
           // deletions that nullified instead of cascade-deleting.
           // Delete dives first so child tables CASCADE automatically.
-          await customStatement('DELETE FROM dives WHERE diver_id IS NULL');
+          // Guard: only run on tables that have a diver_id column (older
+          // migration-test databases may not have it).
           for (final table in [
+            'dives',
             'trips',
             'dive_sites',
             'equipment',
@@ -2977,7 +2979,14 @@ class AppDatabase extends _$AppDatabase {
             'dive_computers',
             'tank_presets',
           ]) {
-            await customStatement('DELETE FROM $table WHERE diver_id IS NULL');
+            final cols = await customSelect(
+              "PRAGMA table_info('$table')",
+            ).get();
+            if (cols.any((c) => c.read<String>('name') == 'diver_id')) {
+              await customStatement(
+                'DELETE FROM $table WHERE diver_id IS NULL',
+              );
+            }
           }
         }
         if (from < 64) await reportProgress();

@@ -110,6 +110,9 @@ void main() {
 
           // Insert test data with INTEGER pressures
           rawDb.execute('''
+            INSERT INTO divers (id, name) VALUES ('diver1', 'Test Diver')
+          ''');
+          rawDb.execute('''
             INSERT INTO dives (id, dive_date_time, created_at, updated_at)
             VALUES ('d1', 0, 0, 0)
           ''');
@@ -118,8 +121,8 @@ void main() {
             VALUES ('t1', 'd1', 11.1, 207, 200, 50, 21.0, 0.0, 0, 'backGas')
           ''');
           rawDb.execute('''
-            INSERT INTO tank_presets (id, name, display_name, volume_liters, working_pressure_bar, material, created_at, updated_at)
-            VALUES ('p1', 'custom', 'Custom', 12.0, 232, 'steel', 0, 0)
+            INSERT INTO tank_presets (id, diver_id, name, display_name, volume_liters, working_pressure_bar, material, created_at, updated_at)
+            VALUES ('p1', 'diver1', 'custom', 'Custom', 12.0, 232, 'steel', 0, 0)
           ''');
         },
       );
