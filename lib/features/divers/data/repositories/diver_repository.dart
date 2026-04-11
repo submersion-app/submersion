@@ -197,49 +197,80 @@ class DiverRepository {
     try {
       _log.info('Deleting diver: $id');
 
-      // First, set diverId to null in all related tables to avoid FK constraint
+      // Step 1: Null out cross-diver FK references to this diver's computers.
+      // Other divers' dives/profiles/data_sources may reference this diver's
+      // dive_computers (from multi-computer consolidation). These nullable FKs
+      // have no CASCADE, so null them before deleting the computers.
       await _db.customStatement(
-        'UPDATE dives SET diver_id = NULL WHERE diver_id = ?',
+        'UPDATE dives SET computer_id = NULL '
+        'WHERE computer_id IN '
+        '(SELECT id FROM dive_computers WHERE diver_id = ?) '
+        'AND (diver_id IS NULL OR diver_id != ?)',
+        [id, id],
+      );
+      await _db.customStatement(
+        'UPDATE dive_profiles SET computer_id = NULL '
+        'WHERE computer_id IN '
+        '(SELECT id FROM dive_computers WHERE diver_id = ?) '
+        'AND dive_id NOT IN (SELECT id FROM dives WHERE diver_id = ?)',
+        [id, id],
+      );
+      await _db.customStatement(
+        'UPDATE dive_data_sources SET computer_id = NULL '
+        'WHERE computer_id IN '
+        '(SELECT id FROM dive_computers WHERE diver_id = ?) '
+        'AND dive_id NOT IN (SELECT id FROM dives WHERE diver_id = ?)',
+        [id, id],
+      );
+
+      // Step 2: Delete dives (cascades: profiles, tanks, data_sources,
+      // equipment, weights, sightings, tags, buddies, events, photos,
+      // pressure profiles, gas switches, tide records, custom fields,
+      // pending photo suggestions)
+      await _db.customStatement('DELETE FROM dives WHERE diver_id = ?', [id]);
+
+      // Step 3: Delete trip children that lack CASCADE on trip FK
+      await _db.customStatement(
+        'DELETE FROM liveaboard_detail_records WHERE trip_id IN '
+        '(SELECT id FROM trips WHERE diver_id = ?)',
         [id],
       );
       await _db.customStatement(
-        'UPDATE trips SET diver_id = NULL WHERE diver_id = ?',
+        'DELETE FROM trip_itinerary_days WHERE trip_id IN '
+        '(SELECT id FROM trips WHERE diver_id = ?)',
         [id],
       );
+
+      // Step 4: Delete remaining per-diver entities
+      await _db.customStatement('DELETE FROM trips WHERE diver_id = ?', [id]);
+      await _db.customStatement('DELETE FROM dive_sites WHERE diver_id = ?', [
+        id,
+      ]);
+      await _db.customStatement('DELETE FROM equipment WHERE diver_id = ?', [
+        id,
+      ]);
       await _db.customStatement(
-        'UPDATE dive_sites SET diver_id = NULL WHERE diver_id = ?',
+        'DELETE FROM equipment_sets WHERE diver_id = ?',
         [id],
       );
+      await _db.customStatement('DELETE FROM buddies WHERE diver_id = ?', [id]);
       await _db.customStatement(
-        'UPDATE equipment SET diver_id = NULL WHERE diver_id = ?',
+        'DELETE FROM certifications WHERE diver_id = ?',
         [id],
       );
+      await _db.customStatement('DELETE FROM dive_centers WHERE diver_id = ?', [
+        id,
+      ]);
+      await _db.customStatement('DELETE FROM tags WHERE diver_id = ?', [id]);
       await _db.customStatement(
-        'UPDATE equipment_sets SET diver_id = NULL WHERE diver_id = ?',
+        'DELETE FROM dive_types WHERE diver_id = ? AND is_built_in = 0',
         [id],
       );
+      await _db.customStatement('DELETE FROM tank_presets WHERE diver_id = ?', [
+        id,
+      ]);
       await _db.customStatement(
-        'UPDATE buddies SET diver_id = NULL WHERE diver_id = ?',
-        [id],
-      );
-      await _db.customStatement(
-        'UPDATE certifications SET diver_id = NULL WHERE diver_id = ?',
-        [id],
-      );
-      await _db.customStatement(
-        'UPDATE dive_centers SET diver_id = NULL WHERE diver_id = ?',
-        [id],
-      );
-      await _db.customStatement(
-        'UPDATE tags SET diver_id = NULL WHERE diver_id = ?',
-        [id],
-      );
-      await _db.customStatement(
-        'UPDATE dive_types SET diver_id = NULL WHERE diver_id = ?',
-        [id],
-      );
-      await _db.customStatement(
-        'UPDATE dive_computers SET diver_id = NULL WHERE diver_id = ?',
+        'DELETE FROM dive_computers WHERE diver_id = ?',
         [id],
       );
 
