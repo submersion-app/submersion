@@ -207,6 +207,23 @@ void main() {
         expect(result, isNotNull);
       },
     );
+
+    test('treats empty diverId as null (no filter)', () async {
+      await insertDiver('diver-a');
+      await insertComputer(
+        id: 'comp-a',
+        diverId: 'diver-a',
+        bluetoothAddress: 'AA:BB:CC:DD:EE:FF',
+      );
+
+      // Empty string should not be treated as a diver filter; should
+      // find the computer regardless of its diverId.
+      final result = await repository.findByBluetoothAddress(
+        'AA:BB:CC:DD:EE:FF',
+        diverId: '',
+      );
+      expect(result?.id, equals('comp-a'));
+    });
   });
 
   // ---------------------------------------------------------------------------

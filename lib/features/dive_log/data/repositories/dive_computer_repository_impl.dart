@@ -100,9 +100,11 @@ class DiveComputerRepository {
 
   /// Find a dive computer by its Bluetooth address.
   ///
-  /// When [diverId] is provided, only returns a computer that belongs to that
-  /// diver. Uses `.get()` instead of `.getSingleOrNull()` so it does not throw
-  /// when multiple divers have records for the same bluetooth address.
+  /// When [diverId] is provided (non-empty), only returns a computer that
+  /// belongs to that diver. The query orders by most recently updated and
+  /// applies `LIMIT 1` before calling `.getSingleOrNull()`, so it does not
+  /// throw when multiple records exist for the same bluetooth address.
+  /// Empty/blank [diverId] is treated as null (no diver filter).
   ///
   /// Returns `null` if no matching computer exists.
   Future<domain.DiveComputer?> findByBluetoothAddress(
@@ -110,13 +112,16 @@ class DiveComputerRepository {
     String? diverId,
   }) async {
     try {
+      final normalizedDiverId = diverId?.trim().isEmpty == true
+          ? null
+          : diverId;
       final query = _db.select(_db.diveComputers)
         ..where((t) => t.bluetoothAddress.equals(address))
         ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
         ..limit(1);
 
-      if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
+      if (normalizedDiverId != null) {
+        query.where((t) => t.diverId.equals(normalizedDiverId));
       }
 
       final row = await query.getSingleOrNull();
@@ -626,9 +631,17 @@ class DiveComputerRepository {
       final startMs = profileStartTime.millisecondsSinceEpoch;
       final toleranceMs = toleranceMinutes * 60 * 1000;
 
+      // Normalize blank diverId to null so an empty string doesn't scope
+      // the SQL filter to `diver_id = ''` and prevent real matches.
+      final normalizedDiverId = diverId?.trim().isEmpty == true
+          ? null
+          : diverId;
+
       // Build diver filter conditionally
-      final diverClause = diverId != null ? 'AND diver_id = ?' : '';
-      final diverVars = diverId != null ? [Variable(diverId)] : <Variable>[];
+      final diverClause = normalizedDiverId != null ? 'AND diver_id = ?' : '';
+      final diverVars = normalizedDiverId != null
+          ? [Variable(normalizedDiverId)]
+          : <Variable>[];
 
       // Search for dives within the tolerance window
       final result = await _db

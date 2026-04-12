@@ -4,7 +4,7 @@
 
 **Goal:** Allow multiple diver profiles to each have their own dive computer record for the same physical device. Cascade-delete diver data when a profile is deleted so orphaned records never exist. Clean up historical orphans with a one-time migration.
 
-**Architecture:** Three changes: (1) `deleteDiver` cascade-deletes associated data instead of nullifying `diverId`, (2) `resolveKnownComputer` uses a diver-scoped lookup so each diver gets their own computer record, (3) migration v64 reassigns historical orphaned records to the sole diver (or deletes them when multiple divers exist). The `claimComputer` method added in the initial fix is removed -- no orphans means no claiming.
+**Architecture:** Three changes: (1) `deleteDiver` cascade-deletes associated data instead of nullifying `diverId`, (2) `resolveKnownComputer` uses a diver-scoped lookup so each diver gets their own computer record, (3) migration v64 deletes historical orphaned records. The `claimComputer` method added in the initial fix is removed -- no orphans means no claiming.
 
 **Tech Stack:** Drift ORM (SQLite), Riverpod, Flutter
 
