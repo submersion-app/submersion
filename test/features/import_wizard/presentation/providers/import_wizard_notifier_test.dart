@@ -1515,4 +1515,97 @@ void main() {
       expect(state.selections[ImportEntityType.sites], contains(0));
     });
   });
+
+  group('firstPendingLocation', () {
+    ImportBundle bundleWithDiveAndSiteDuplicates() {
+      return ImportBundle(
+        source: const ImportSourceInfo(
+          type: ImportSourceType.uddf,
+          displayName: 'dive-and-site-dupes.uddf',
+        ),
+        groups: {
+          ImportEntityType.dives: EntityGroup(
+            items: const [EntityItem(title: 'Dive 1', subtitle: '')],
+            duplicateIndices: const {0},
+            matchResults: const {
+              0: DiveMatchResult(
+                diveId: 'e1',
+                score: 0.9,
+                timeDifferenceMs: 0,
+                depthDifferenceMeters: 0.0,
+                durationDifferenceSeconds: 0,
+              ),
+            },
+          ),
+          ImportEntityType.sites: EntityGroup(
+            items: const [EntityItem(title: 'Site A', subtitle: '')],
+            duplicateIndices: const {0},
+          ),
+        },
+      );
+    }
+
+    test('returns null when nothing pending', () {
+      final container = ProviderContainer(
+        overrides: [
+          importWizardNotifierProvider.overrideWith(
+            (ref) => ImportWizardNotifier(_TestAdapter()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final loc = container
+          .read(importWizardNotifierProvider.notifier)
+          .firstPendingLocation();
+      expect(loc, isNull);
+    });
+
+    test('returns first pending dive when dives have pending', () {
+      final bundle = _bundleWithProbableDiveDuplicate(index: 0);
+      final container = ProviderContainer(
+        overrides: [
+          importWizardNotifierProvider.overrideWith(
+            (ref) => ImportWizardNotifier(_TestAdapter()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(importWizardNotifierProvider.notifier);
+      notifier.setBundle(bundle);
+
+      final loc = notifier.firstPendingLocation();
+
+      expect(loc, isNotNull);
+      expect(loc!.type, ImportEntityType.dives);
+      expect(loc.index, 0);
+    });
+
+    test('returns sites location after dive pending is drained', () {
+      final bundle = bundleWithDiveAndSiteDuplicates();
+      final container = ProviderContainer(
+        overrides: [
+          importWizardNotifierProvider.overrideWith(
+            (ref) => ImportWizardNotifier(_TestAdapter()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(importWizardNotifierProvider.notifier);
+      notifier.setBundle(bundle);
+
+      // Sanity: dives is the first pending tab before draining.
+      final before = notifier.firstPendingLocation();
+      expect(before, isNotNull);
+      expect(before!.type, ImportEntityType.dives);
+
+      // Drain all dive pending via bulk skip.
+      notifier.applyBulkAction(ImportEntityType.dives, DuplicateAction.skip);
+
+      final after = notifier.firstPendingLocation();
+      expect(after, isNotNull);
+      expect(after!.type, ImportEntityType.sites);
+      expect(after.index, 0);
+    });
+  });
 }

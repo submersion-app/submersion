@@ -10,6 +10,17 @@ import 'package:submersion/features/import_wizard/domain/models/unified_import_r
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 
 // ============================================================================
+// Public value types
+// ============================================================================
+
+/// A (type, index) pair identifying a pending-review row.
+class PendingLocation {
+  const PendingLocation({required this.type, required this.index});
+  final ImportEntityType type;
+  final int index;
+}
+
+// ============================================================================
 // State
 // ============================================================================
 
@@ -412,6 +423,22 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       selections: {...state.selections, type: currentSelection},
       pendingDuplicateReview: updatedPending,
     );
+  }
+
+  /// Location of the first pending-review row across all entity tabs in
+  /// [ImportEntityType.values] enum order. Returns the smallest index within
+  /// the first non-empty pending set. Returns null if no pending rows exist.
+  ///
+  /// Used by the review step UI to jump the user to the first row that
+  /// still needs a decision when the Import button is gated.
+  PendingLocation? firstPendingLocation() {
+    for (final type in ImportEntityType.values) {
+      final pending = state.pendingFor(type);
+      if (pending.isEmpty) continue;
+      final sorted = pending.toList()..sort();
+      return PendingLocation(type: type, index: sorted.first);
+    }
+    return null;
   }
 
   // -------------------------------------------------------------------------
