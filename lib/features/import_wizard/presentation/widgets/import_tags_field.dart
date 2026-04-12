@@ -100,107 +100,102 @@ class _ImportTagsFieldState extends State<ImportTagsField> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: RawAutocomplete<Tag>(
+        textEditingController: _textController,
+        focusNode: _focusNode,
+        optionsBuilder: (textEditingValue) {
+          return _filteredSuggestions(textEditingValue.text);
+        },
+        onSelected: (tag) {
+          widget.onAdd(TagSelection(existingTagId: tag.id, name: tag.name));
+          _textController.clear();
+        },
+        fieldViewBuilder: (context, controller, focusNode, onSubmitted) {
+          return Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Icon(Icons.label_outline, size: 18, color: colorScheme.primary),
-              const SizedBox(width: 8),
-              Text(
-                l10n.importWizard_tagsLabel,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          RawAutocomplete<Tag>(
-            textEditingController: _textController,
-            focusNode: _focusNode,
-            optionsBuilder: (textEditingValue) {
-              return _filteredSuggestions(textEditingValue.text);
-            },
-            onSelected: (tag) {
-              widget.onAdd(TagSelection(existingTagId: tag.id, name: tag.name));
-              _textController.clear();
-            },
-            fieldViewBuilder: (context, controller, focusNode, onSubmitted) {
-              return Wrap(
-                spacing: 6,
-                runSpacing: 4,
+              // Icon + label as one atomic cell so they stay together when
+              // the row wraps. Lives inline with the chips so the whole
+              // field fits on one line when space permits.
+              Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  for (var i = 0; i < widget.tags.length; i++)
-                    () {
-                      final tagColor = _resolveColor(widget.tags[i]);
-                      return Chip(
-                        label: Text(widget.tags[i].name),
-                        backgroundColor: tagColor.withValues(alpha: 0.2),
-                        side: BorderSide(color: tagColor),
-                        labelStyle: TextStyle(color: tagColor),
-                        deleteIcon: Icon(
-                          Icons.close,
-                          size: 18,
-                          color: tagColor,
-                        ),
-                        onDeleted: () => widget.onRemove(i),
-                        visualDensity: VisualDensity.compact,
-                      );
-                    }(),
-                  IntrinsicWidth(
-                    child: TextField(
-                      controller: controller,
-                      focusNode: focusNode,
-                      decoration: InputDecoration(
-                        hintText: widget.tags.isEmpty
-                            ? l10n.tags_hint_addTags
-                            : l10n.tags_hint_addMoreTags,
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                      ),
-                      onSubmitted: (text) {
-                        _submitTag(text);
-                        onSubmitted();
-                      },
+                  Icon(
+                    Icons.label_outline,
+                    size: 18,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    l10n.importWizard_tagsLabel,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
-              );
-            },
-            optionsViewBuilder: (context, onSelected, options) {
-              return Align(
-                alignment: Alignment.topLeft,
-                child: Material(
-                  elevation: 4,
-                  borderRadius: BorderRadius.circular(8),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 200),
-                    child: ListView.builder(
-                      padding: EdgeInsets.zero,
-                      shrinkWrap: true,
-                      itemCount: options.length,
-                      itemBuilder: (context, index) {
-                        final tag = options.elementAt(index);
-                        return ListTile(
-                          dense: true,
-                          leading: Icon(
-                            Icons.label,
-                            color: tag.color,
-                            size: 20,
-                          ),
-                          title: Text(tag.name),
-                          onTap: () => onSelected(tag),
-                        );
-                      },
-                    ),
+              ),
+              for (var i = 0; i < widget.tags.length; i++)
+                () {
+                  final tagColor = _resolveColor(widget.tags[i]);
+                  return Chip(
+                    label: Text(widget.tags[i].name),
+                    backgroundColor: tagColor.withValues(alpha: 0.2),
+                    side: BorderSide(color: tagColor),
+                    labelStyle: TextStyle(color: tagColor),
+                    deleteIcon: Icon(Icons.close, size: 18, color: tagColor),
+                    onDeleted: () => widget.onRemove(i),
+                    visualDensity: VisualDensity.compact,
+                  );
+                }(),
+              IntrinsicWidth(
+                child: TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  decoration: InputDecoration(
+                    hintText: widget.tags.isEmpty
+                        ? l10n.tags_hint_addTags
+                        : l10n.tags_hint_addMoreTags,
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
                   ),
+                  onSubmitted: (text) {
+                    _submitTag(text);
+                    onSubmitted();
+                  },
                 ),
-              );
-            },
-          ),
-        ],
+              ),
+            ],
+          );
+        },
+        optionsViewBuilder: (context, onSelected, options) {
+          return Align(
+            alignment: Alignment.topLeft,
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(8),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 200),
+                child: ListView.builder(
+                  padding: EdgeInsets.zero,
+                  shrinkWrap: true,
+                  itemCount: options.length,
+                  itemBuilder: (context, index) {
+                    final tag = options.elementAt(index);
+                    return ListTile(
+                      dense: true,
+                      leading: Icon(Icons.label, color: tag.color, size: 20),
+                      title: Text(tag.name),
+                      onTap: () => onSelected(tag),
+                    );
+                  },
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
