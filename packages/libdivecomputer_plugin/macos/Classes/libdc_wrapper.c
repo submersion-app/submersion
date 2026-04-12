@@ -87,6 +87,26 @@ void libdc_descriptor_iterator_free(libdc_descriptor_iterator_t *iter) {
     free(iter);
 }
 
+// Case-insensitive, space-insensitive compare (ASCII ' ' only; tabs and
+// newlines are not ignored — they don't appear in BLE advertised names or
+// libdivecomputer product strings). BLE advertised names sometimes omit
+// spaces that the libdivecomputer product name includes (e.g. "Puck4" vs
+// "Puck 4", "Quad2" vs "Quad 2"), so a plain strcasecmp misses the
+// exact-product tiebreaker and the matcher falls back to the first
+// family-level descriptor (usually the wrong model).
+static int strcasecmp_nospace(const char *a, const char *b) {
+    while (*a || *b) {
+        while (*a == ' ') a++;
+        while (*b == ' ') b++;
+        if (tolower((unsigned char)*a) != tolower((unsigned char)*b)) {
+            return 1;
+        }
+        if (*a) a++;
+        if (*b) b++;
+    }
+    return 0;
+}
+
 int libdc_descriptor_match(const char *name, unsigned int transport,
                            libdc_descriptor_info_t *info) {
     if (name == NULL || info == NULL) {
@@ -157,7 +177,7 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
             // Without this, the first family-level match wins (often wrong).
             if (!has_name_model) {
                 const char *product = dc_descriptor_get_product(desc);
-                if (product && strcasecmp(name, product) == 0) {
+                if (product && strcasecmp_nospace(name, product) == 0) {
                     info->vendor = dc_descriptor_get_vendor(desc);
                     info->product = product;
                     info->model = dc_descriptor_get_model(desc);
