@@ -67,14 +67,19 @@ static void test_edge_cases(void) {
     assert(strcasecmp_nospace("", "X") != 0);
     assert(strcasecmp_nospace("X", "") != 0);
 
-    // Strings that differ only in whitespace count/position.
+    // Strings that differ only in embedded/leading/trailing spaces.
     assert(strcasecmp_nospace("A B C", "ABC") == 0);
     assert(strcasecmp_nospace("  ABC  ", "ABC") == 0);
     assert(strcasecmp_nospace("A  B", "AB") == 0);
 
-    // All-whitespace strings collapse to empty and match each other.
+    // All-space strings collapse to empty and match each other.
     assert(strcasecmp_nospace(" ", "  ") == 0);
     assert(strcasecmp_nospace("   ", "") == 0);
+
+    // Tabs and newlines are NOT ignored (helper is space-only, not
+    // general whitespace). BLE names don't carry them in practice.
+    assert(strcasecmp_nospace("A\tB", "AB") != 0);
+    assert(strcasecmp_nospace("A\nB", "AB") != 0);
 
     printf("PASS: test_edge_cases\n");
 }

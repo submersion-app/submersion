@@ -87,11 +87,13 @@ void libdc_descriptor_iterator_free(libdc_descriptor_iterator_t *iter) {
     free(iter);
 }
 
-// Case-insensitive, whitespace-insensitive compare. BLE advertised names
-// sometimes omit spaces that the libdivecomputer product name includes
-// (e.g. "Puck4" vs "Puck 4", "Quad2" vs "Quad 2"), so a plain strcasecmp
-// misses the exact-product tiebreaker and the matcher falls back to the
-// first family-level descriptor (usually the wrong model).
+// Case-insensitive, space-insensitive compare (ASCII ' ' only; tabs and
+// newlines are not ignored — they don't appear in BLE advertised names or
+// libdivecomputer product strings). BLE advertised names sometimes omit
+// spaces that the libdivecomputer product name includes (e.g. "Puck4" vs
+// "Puck 4", "Quad2" vs "Quad 2"), so a plain strcasecmp misses the
+// exact-product tiebreaker and the matcher falls back to the first
+// family-level descriptor (usually the wrong model).
 static int strcasecmp_nospace(const char *a, const char *b) {
     while (*a || *b) {
         while (*a == ' ') a++;
