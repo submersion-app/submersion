@@ -19,6 +19,7 @@ class ImportWizardState {
     this.bundle,
     this.selections = const {},
     this.duplicateActions = const {},
+    this.pendingDuplicateReview = const {},
     this.retainSourceDiveNumbers = false,
     this.importTags = const [],
     this.importPhase,
@@ -40,6 +41,15 @@ class ImportWizardState {
 
   /// User-chosen action per duplicate item, keyed by entity type and index.
   final Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions;
+
+  /// Per-entity-type set of indices whose duplicate status is flagged but
+  /// whose resolution has not yet been explicitly chosen by the user.
+  ///
+  /// An index is present in this set when the row was flagged as a suspected
+  /// duplicate and the user has not yet explicitly acted on it. Per-row and
+  /// per-tab bulk actions remove indices from the relevant set. The Import
+  /// button is gated on this set being empty across all types.
+  final Map<ImportEntityType, Set<int>> pendingDuplicateReview;
 
   /// When true, imported dives keep their original dive numbers from the
   /// source file instead of being auto-assigned sequential numbers.
@@ -72,6 +82,7 @@ class ImportWizardState {
     bool clearBundle = false,
     Map<ImportEntityType, Set<int>>? selections,
     Map<ImportEntityType, Map<int, DuplicateAction>>? duplicateActions,
+    Map<ImportEntityType, Set<int>>? pendingDuplicateReview,
     bool? retainSourceDiveNumbers,
     List<TagSelection>? importTags,
     ImportPhase? importPhase,
@@ -89,6 +100,8 @@ class ImportWizardState {
       bundle: clearBundle ? null : (bundle ?? this.bundle),
       selections: selections ?? this.selections,
       duplicateActions: duplicateActions ?? this.duplicateActions,
+      pendingDuplicateReview:
+          pendingDuplicateReview ?? this.pendingDuplicateReview,
       retainSourceDiveNumbers:
           retainSourceDiveNumbers ?? this.retainSourceDiveNumbers,
       importTags: importTags ?? this.importTags,
@@ -102,6 +115,19 @@ class ImportWizardState {
       error: clearError ? null : (error ?? this.error),
     );
   }
+
+  /// Pending-review indices for a given entity type. Empty if none.
+  Set<int> pendingFor(ImportEntityType type) {
+    return pendingDuplicateReview[type] ?? const {};
+  }
+
+  /// Whether any entity type has at least one pending-review row.
+  bool get hasPendingReviews =>
+      pendingDuplicateReview.values.any((set) => set.isNotEmpty);
+
+  /// Total count of pending-review rows across all entity types.
+  int get totalPending =>
+      pendingDuplicateReview.values.fold(0, (sum, s) => sum + s.length);
 }
 
 // ============================================================================
