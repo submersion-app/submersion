@@ -267,6 +267,7 @@ class MockDiveComputerRepository extends _i1.Mock
     int? durationSeconds,
     double? maxDepth,
     String? fingerprint,
+    String? diverId,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#findMatchingDiveWithScore, [], {
@@ -275,6 +276,7 @@ class MockDiveComputerRepository extends _i1.Mock
               #durationSeconds: durationSeconds,
               #maxDepth: maxDepth,
               #fingerprint: fingerprint,
+              #diverId: diverId,
             }),
             returnValue: _i7.Future<_i6.DiveMatchResult?>.value(),
           )

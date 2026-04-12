@@ -286,7 +286,10 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
     for (var i = 0; i < _downloadedDives.length; i++) {
       final dive = _downloadedDives[i];
-      final result = await _importService.detectDuplicate(dive);
+      final result = await _importService.detectDuplicate(
+        dive,
+        diverId: _diverId,
+      );
 
       if (result.isDuplicate && result.score >= 0.5) {
         duplicateIndices.add(i);

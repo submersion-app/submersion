@@ -361,6 +361,7 @@ class DiveImportService {
     DownloadedDive dive, {
     double timeTolerance = 5.0, // minutes
     double depthTolerance = 0.5, // meters
+    String? diverId,
   }) async {
     // Use the repository's enhanced matching with scoring
     final match = await _repository.findMatchingDiveWithScore(
@@ -369,6 +370,7 @@ class DiveImportService {
       durationSeconds: dive.durationSeconds,
       maxDepth: dive.maxDepth,
       fingerprint: dive.fingerprint,
+      diverId: diverId,
     );
 
     if (match == null) {

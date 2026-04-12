@@ -620,10 +620,15 @@ class DiveComputerRepository {
     int? durationSeconds,
     double? maxDepth,
     String? fingerprint,
+    String? diverId,
   }) async {
     try {
       final startMs = profileStartTime.millisecondsSinceEpoch;
       final toleranceMs = toleranceMinutes * 60 * 1000;
+
+      // Build diver filter conditionally
+      final diverClause = diverId != null ? 'AND diver_id = ?' : '';
+      final diverVars = diverId != null ? [Variable(diverId)] : <Variable>[];
 
       // Search for dives within the tolerance window
       final result = await _db
@@ -634,6 +639,7 @@ class DiveComputerRepository {
           ABS(COALESCE(entry_time, dive_date_time) - ?) as time_diff
         FROM dives
         WHERE ABS(COALESCE(entry_time, dive_date_time) - ?) <= ?
+          $diverClause
         ORDER BY time_diff ASC
         LIMIT 10
       ''',
@@ -641,6 +647,7 @@ class DiveComputerRepository {
               Variable(startMs),
               Variable(startMs),
               Variable(toleranceMs),
+              ...diverVars,
             ],
           )
           .get();

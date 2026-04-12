@@ -39,6 +39,7 @@ void main() {
         durationSeconds: anyNamed('durationSeconds'),
         maxDepth: anyNamed('maxDepth'),
         fingerprint: anyNamed('fingerprint'),
+        diverId: anyNamed('diverId'),
       ),
     ).thenAnswer((_) async => null);
 
@@ -334,6 +335,7 @@ void main() {
             durationSeconds: anyNamed('durationSeconds'),
             maxDepth: anyNamed('maxDepth'),
             fingerprint: anyNamed('fingerprint'),
+            diverId: anyNamed('diverId'),
           ),
         ).thenAnswer(
           (_) async => const DiveMatchResult(

@@ -231,7 +231,9 @@ void main() {
       adapter.setDownloadedDives([dive]);
       final bundle = await adapter.buildBundle();
 
-      when(mockImportService.detectDuplicate(dive)).thenAnswer(
+      when(
+        mockImportService.detectDuplicate(dive, diverId: diverId),
+      ).thenAnswer(
         (_) async => const DuplicateResult(
           matchingDiveId: 'existing-dive-1',
           confidence: DuplicateConfidence.likely,
@@ -254,7 +256,9 @@ void main() {
       adapter.setDownloadedDives([dive]);
       final bundle = await adapter.buildBundle();
 
-      when(mockImportService.detectDuplicate(dive)).thenAnswer(
+      when(
+        mockImportService.detectDuplicate(dive, diverId: diverId),
+      ).thenAnswer(
         (_) async => const DuplicateResult(
           matchingDiveId: 'existing-dive-1',
           confidence: DuplicateConfidence.likely,
@@ -280,7 +284,9 @@ void main() {
       adapter.setDownloadedDives([dive]);
       final bundle = await adapter.buildBundle();
 
-      when(mockImportService.detectDuplicate(dive)).thenAnswer(
+      when(
+        mockImportService.detectDuplicate(dive, diverId: diverId),
+      ).thenAnswer(
         (_) async => const DuplicateResult(
           confidence: DuplicateConfidence.none,
           score: 0.2,
@@ -298,7 +304,9 @@ void main() {
       adapter.setDownloadedDives([dive]);
       final bundle = await adapter.buildBundle();
 
-      when(mockImportService.detectDuplicate(dive)).thenAnswer(
+      when(
+        mockImportService.detectDuplicate(dive, diverId: diverId),
+      ).thenAnswer(
         (_) async => const DuplicateResult(
           matchingDiveId: 'existing-dive-1',
           confidence: DuplicateConfidence.possible,
@@ -320,7 +328,9 @@ void main() {
       adapter.setDownloadedDives([dive]);
       final bundle = await adapter.buildBundle();
 
-      when(mockImportService.detectDuplicate(dive)).thenAnswer(
+      when(
+        mockImportService.detectDuplicate(dive, diverId: diverId),
+      ).thenAnswer(
         (_) async => const DuplicateResult(
           matchingDiveId: 'existing-dive-1',
           confidence: DuplicateConfidence.none,
@@ -341,7 +351,9 @@ void main() {
       adapter.setDownloadedDives([dive1, dive2]);
       final bundle = await adapter.buildBundle();
 
-      when(mockImportService.detectDuplicate(dive1)).thenAnswer(
+      when(
+        mockImportService.detectDuplicate(dive1, diverId: diverId),
+      ).thenAnswer(
         (_) async => const DuplicateResult(
           matchingDiveId: 'existing-1',
           confidence: DuplicateConfidence.exact,
@@ -350,7 +362,7 @@ void main() {
         ),
       );
       when(
-        mockImportService.detectDuplicate(dive2),
+        mockImportService.detectDuplicate(dive2, diverId: diverId),
       ).thenAnswer((_) async => DuplicateResult.noMatch());
 
       final result = await adapter.checkDuplicates(bundle);

@@ -140,12 +140,17 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
     _i8.DownloadedDive? dive, {
     double? timeTolerance = 5.0,
     double? depthTolerance = 0.5,
+    String? diverId,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
               #detectDuplicate,
               [dive],
-              {#timeTolerance: timeTolerance, #depthTolerance: depthTolerance},
+              {
+                #timeTolerance: timeTolerance,
+                #depthTolerance: depthTolerance,
+                #diverId: diverId,
+              },
             ),
             returnValue: _i7.Future<_i2.DuplicateResult>.value(
               _FakeDuplicateResult_1(
@@ -156,6 +161,7 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
                   {
                     #timeTolerance: timeTolerance,
                     #depthTolerance: depthTolerance,
+                    #diverId: diverId,
                   },
                 ),
               ),
@@ -169,6 +175,7 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
                   {
                     #timeTolerance: timeTolerance,
                     #depthTolerance: depthTolerance,
+                    #diverId: diverId,
                   },
                 ),
               ),
@@ -443,6 +450,7 @@ class MockDiveComputerRepository extends _i1.Mock
     int? durationSeconds,
     double? maxDepth,
     String? fingerprint,
+    String? diverId,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#findMatchingDiveWithScore, [], {
@@ -451,6 +459,7 @@ class MockDiveComputerRepository extends _i1.Mock
               #durationSeconds: durationSeconds,
               #maxDepth: maxDepth,
               #fingerprint: fingerprint,
+              #diverId: diverId,
             }),
             returnValue: _i7.Future<_i10.DiveMatchResult?>.value(),
             returnValueForMissingStub:

@@ -275,6 +275,10 @@ class UniversalAdapter implements ImportSourceAdapter {
 
     const checker = ImportDuplicateChecker();
 
+    // Scope duplicate detection to the current diver's data only.
+    final currentDiver = await _ref.read(currentDiverProvider.future);
+    final diverId = currentDiver?.id;
+
     // Use refresh() to force re-fetch from the database. read() may return
     // stale cached data if a provider was invalidated but not yet re-fetched.
     final existingTrips = await _ref.refresh(allTripsProvider.future);
@@ -290,7 +294,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     final existingTags = await _ref.refresh(tagsProvider.future);
     final existingDiveTypes = await _ref.refresh(diveTypesProvider.future);
     final diveRepo = _ref.read(diveRepositoryProvider);
-    final existingDives = await diveRepo.getAllDives();
+    final existingDives = await diveRepo.getAllDives(diverId: diverId);
 
     final dupResult = checker.check(
       payload: payload,
