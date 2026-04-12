@@ -7795,6 +7795,7 @@
   "universalImport_semantics_importError": "Import error: {error}",
   "universalImport_semantics_importProgress": "Import progress: {percent} percent",
   "universalImport_semantics_itemsSelected": "{count} items selected for import",
+  "universalImport_semantics_needsDecision": "Suspected duplicate, needs decision",
   "universalImport_semantics_possibleDuplicate": "Possible duplicate",
   "universalImport_semantics_probableDuplicate": "Probable duplicate",
   "universalImport_semantics_sourceDetected": "Source detected: {description}",
@@ -8059,6 +8060,9 @@
         "example": "5"
       }
     }
+  },
+  "@universalImport_semantics_needsDecision": {
+    "description": "Screen reader label for the 'Needs decision' pill on a pending duplicate row"
   },
   "@universalImport_semantics_possibleDuplicate": {
     "description": "Accessibility label for the possible duplicate badge"

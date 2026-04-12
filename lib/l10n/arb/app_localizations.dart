@@ -23883,6 +23883,12 @@ abstract class AppLocalizations {
   /// **'{count} items selected for import'**
   String universalImport_semantics_itemsSelected(Object count);
 
+  /// Screen reader label for the 'Needs decision' pill on a pending duplicate row
+  ///
+  /// In en, this message translates to:
+  /// **'Suspected duplicate, needs decision'**
+  String get universalImport_semantics_needsDecision;
+
   /// Accessibility label for the possible duplicate badge
   ///
   /// In en, this message translates to:

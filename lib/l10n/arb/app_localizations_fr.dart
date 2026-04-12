@@ -14125,6 +14125,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get universalImport_semantics_needsDecision =>
+      'Suspected duplicate, needs decision';
+
+  @override
   String get universalImport_semantics_possibleDuplicate => 'Doublon possible';
 
   @override

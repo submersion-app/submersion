@@ -14024,6 +14024,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get universalImport_semantics_needsDecision =>
+      'Suspected duplicate, needs decision';
+
+  @override
   String get universalImport_semantics_possibleDuplicate =>
       'Lehetséges duplikátum';
 
