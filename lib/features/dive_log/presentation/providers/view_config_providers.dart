@@ -257,6 +257,13 @@ class CardViewConfigNotifier extends StateNotifier<domain.CardViewConfig> {
     _save();
   }
 
+  /// Toggle whether tag chips are shown on the card.
+  void setShowTags(bool value) {
+    if (state.showTags == value) return;
+    state = state.copyWith(showTags: value);
+    _save();
+  }
+
   /// Reset to the default config for the current mode.
   void resetToDefault() {
     state = _defaultForMode(_mode ?? ListViewMode.compact);

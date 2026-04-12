@@ -309,11 +309,47 @@ void main() {
       expect(modified.mode, equals(original.mode));
       expect(modified.slots.length, equals(original.slots.length));
       expect(modified.extraFields, equals(original.extraFields));
+      expect(modified.showTags, equals(original.showTags));
     });
 
-    test('props includes mode, slots, and extraFields', () {
+    test('props includes mode, slots, extraFields, and showTags', () {
       final config = CardViewConfig.defaultCompact();
-      expect(config.props.length, equals(3));
+      expect(config.props.length, equals(4));
+    });
+
+    test('defaults showTags to true for all factory constructors', () {
+      expect(CardViewConfig.defaultCompact().showTags, isTrue);
+      expect(CardViewConfig.defaultDense().showTags, isTrue);
+      expect(CardViewConfig.defaultDetailed().showTags, isTrue);
+    });
+
+    test('copyWith updates showTags', () {
+      final original = CardViewConfig.defaultDetailed();
+      final modified = original.copyWith(showTags: false);
+      expect(modified.showTags, isFalse);
+      // other fields unchanged
+      expect(modified.mode, equals(original.mode));
+      expect(modified.slots, equals(original.slots));
+    });
+
+    test('serializes showTags round-trip', () {
+      final config = CardViewConfig.defaultDetailed().copyWith(showTags: false);
+      final json = jsonEncode(config.toJson());
+      final restored = CardViewConfig.fromJson(
+        jsonDecode(json) as Map<String, dynamic>,
+      );
+      expect(restored.showTags, isFalse);
+    });
+
+    test('fromJson defaults showTags to true when missing', () {
+      final json = {
+        'mode': 'detailed',
+        'slots': [
+          {'slotId': 'title', 'field': 'siteName'},
+        ],
+      };
+      final config = CardViewConfig.fromJson(json);
+      expect(config.showTags, isTrue);
     });
   });
 

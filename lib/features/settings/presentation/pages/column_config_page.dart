@@ -544,6 +544,17 @@ class _DetailedCardConfigSection extends ConsumerWidget {
 
     return ListView(
       children: [
+        // -- Display options (card-wide toggles) --
+        _SectionHeader(title: 'DISPLAY OPTIONS', theme: theme),
+        SwitchListTile(
+          title: const Text('Show tags'),
+          subtitle: const Text('Display tag chips on detailed dive cards'),
+          value: config.showTags,
+          onChanged: notifier.setShowTags,
+        ),
+
+        const Divider(),
+
         // -- Slot assignments (fixed card area) --
         _SectionHeader(title: 'SLOT ASSIGNMENTS', theme: theme),
         ...config.slots.map((slot) {

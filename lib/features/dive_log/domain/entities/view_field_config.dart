@@ -169,11 +169,13 @@ class CardViewConfig extends Equatable {
   final ListViewMode mode;
   final List<CardSlotConfig> slots;
   final List<DiveField> extraFields;
+  final bool showTags;
 
   const CardViewConfig({
     required this.mode,
     required this.slots,
     this.extraFields = const [],
+    this.showTags = true,
   });
 
   /// Default configuration for the compact card view with 4 named slots.
@@ -220,11 +222,13 @@ class CardViewConfig extends Equatable {
     ListViewMode? mode,
     List<CardSlotConfig>? slots,
     List<DiveField>? extraFields,
+    bool? showTags,
   }) {
     return CardViewConfig(
       mode: mode ?? this.mode,
       slots: slots ?? this.slots,
       extraFields: extraFields ?? this.extraFields,
+      showTags: showTags ?? this.showTags,
     );
   }
 
@@ -233,6 +237,7 @@ class CardViewConfig extends Equatable {
       'mode': mode.name,
       'slots': slots.map((s) => s.toJson()).toList(),
       'extraFields': extraFields.map((f) => f.name).toList(),
+      'showTags': showTags,
     };
   }
 
@@ -252,11 +257,12 @@ class CardViewConfig extends Equatable {
               .whereType<DiveField>()
               .toList() ??
           [],
+      showTags: json['showTags'] as bool? ?? true,
     );
   }
 
   @override
-  List<Object?> get props => [mode, slots, extraFields];
+  List<Object?> get props => [mode, slots, extraFields, showTags];
 }
 
 /// A named preset for field configuration, either built-in or user-created.

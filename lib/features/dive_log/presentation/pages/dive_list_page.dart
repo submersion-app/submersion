@@ -817,7 +817,7 @@ class DiveListTile extends ConsumerWidget {
                   ),
                 ),
                 // Tags
-                if (tags.isNotEmpty) ...[
+                if (tags.isNotEmpty && detailedConfig.showTags) ...[
                   const SizedBox(height: 6),
                   Padding(
                     padding: const EdgeInsetsDirectional.only(start: 52),

@@ -584,6 +584,22 @@ void main() {
       expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
     });
 
+    testWidgets('detailed mode shows Show tags toggle', (tester) async {
+      await tester.pumpWidget(_buildColumnConfigPage());
+      await tester.pump();
+
+      // Switch to Detailed mode
+      await tester.tap(find.text('Table'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Detailed').last);
+      await tester.pumpAndSettle();
+
+      // The Show tags switch sits at the top of the detailed config section
+      expect(find.text('DISPLAY OPTIONS'), findsOneWidget);
+      expect(find.text('Show tags'), findsOneWidget);
+      expect(find.byType(SwitchListTile), findsOneWidget);
+    });
+
     testWidgets('detailed mode shows AVAILABLE FIELDS section', (tester) async {
       await tester.pumpWidget(_buildColumnConfigPage());
       await tester.pump();
@@ -594,7 +610,12 @@ void main() {
       await tester.tap(find.text('Detailed').last);
       await tester.pumpAndSettle();
 
-      // AVAILABLE FIELDS header should be visible
+      // AVAILABLE FIELDS header is below the fold; scroll the ListView to it
+      await tester.scrollUntilVisible(
+        find.text('AVAILABLE FIELDS'),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       expect(find.text('AVAILABLE FIELDS'), findsOneWidget);
     });
 
@@ -679,7 +700,12 @@ void main() {
       await tester.tap(find.text('Detailed').last);
       await tester.pumpAndSettle();
 
-      // Should show the help text for extra fields
+      // Help text sits after the slot section; scroll to ensure it is visible
+      await tester.scrollUntilVisible(
+        find.textContaining('Additional fields shown below'),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       expect(
         find.textContaining('Additional fields shown below'),
         findsOneWidget,
@@ -698,7 +724,12 @@ void main() {
       await tester.tap(find.text('Detailed').last);
       await tester.pumpAndSettle();
 
-      // Default config has no extra fields, so the empty message should show
+      // Empty message sits after the slot section; scroll to ensure visibility
+      await tester.scrollUntilVisible(
+        find.textContaining('No extra fields configured'),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       expect(find.textContaining('No extra fields configured'), findsOneWidget);
     });
 
