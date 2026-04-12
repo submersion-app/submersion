@@ -120,16 +120,16 @@ ProviderContainer _freshContainer() {
 }
 
 ImportBundle _bundleWithProbableDuplicate() {
-  return ImportBundle(
-    source: const ImportSourceInfo(
+  return const ImportBundle(
+    source: ImportSourceInfo(
       type: ImportSourceType.uddf,
       displayName: 'probable.uddf',
     ),
     groups: {
       ImportEntityType.dives: EntityGroup(
-        items: const [EntityItem(title: 'Dive 1', subtitle: '')],
-        duplicateIndices: const {0},
-        matchResults: const {
+        items: [EntityItem(title: 'Dive 1', subtitle: '')],
+        duplicateIndices: {0},
+        matchResults: {
           0: DiveMatchResult(
             diveId: 'existing-1',
             score: 0.9,
@@ -144,16 +144,16 @@ ImportBundle _bundleWithProbableDuplicate() {
 }
 
 ImportBundle _bundleWithPossibleDuplicate() {
-  return ImportBundle(
-    source: const ImportSourceInfo(
+  return const ImportBundle(
+    source: ImportSourceInfo(
       type: ImportSourceType.uddf,
       displayName: 'possible.uddf',
     ),
     groups: {
       ImportEntityType.dives: EntityGroup(
-        items: const [EntityItem(title: 'Dive 1', subtitle: '')],
-        duplicateIndices: const {0},
-        matchResults: const {
+        items: [EntityItem(title: 'Dive 1', subtitle: '')],
+        duplicateIndices: {0},
+        matchResults: {
           0: DiveMatchResult(
             diveId: 'existing-1',
             score: 0.55,

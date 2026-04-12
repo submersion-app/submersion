@@ -102,19 +102,19 @@ ImportBundle _bundleWithUnscoredSiteDuplicate({required int index}) {
 }
 
 ImportBundle _bundleWithOneCleanAndOneDuplicateDive() {
-  return ImportBundle(
-    source: const ImportSourceInfo(
+  return const ImportBundle(
+    source: ImportSourceInfo(
       type: ImportSourceType.uddf,
       displayName: 'mixed.uddf',
     ),
     groups: {
       ImportEntityType.dives: EntityGroup(
-        items: const [
+        items: [
           EntityItem(title: 'Dive 1', subtitle: ''),
           EntityItem(title: 'Dive 2', subtitle: ''),
         ],
-        duplicateIndices: const {1},
-        matchResults: const {
+        duplicateIndices: {1},
+        matchResults: {
           1: DiveMatchResult(
             diveId: 'existing-dive',
             score: 0.85,
@@ -127,14 +127,14 @@ ImportBundle _bundleWithOneCleanAndOneDuplicateDive() {
 }
 
 ImportBundle _bundleWithOneCleanDive() {
-  return ImportBundle(
-    source: const ImportSourceInfo(
+  return const ImportBundle(
+    source: ImportSourceInfo(
       type: ImportSourceType.uddf,
       displayName: 'clean.uddf',
     ),
     groups: {
       ImportEntityType.dives: EntityGroup(
-        items: const [EntityItem(title: 'Dive 1', subtitle: '')],
+        items: [EntityItem(title: 'Dive 1', subtitle: '')],
       ),
     },
   );
@@ -1296,19 +1296,19 @@ void main() {
 
   group('applyBulkAction', () {
     ImportBundle bundleWithTwoPendingDives() {
-      return ImportBundle(
-        source: const ImportSourceInfo(
+      return const ImportBundle(
+        source: ImportSourceInfo(
           type: ImportSourceType.uddf,
           displayName: 'two-pending.uddf',
         ),
         groups: {
           ImportEntityType.dives: EntityGroup(
-            items: const [
+            items: [
               EntityItem(title: 'Dive 1', subtitle: ''),
               EntityItem(title: 'Dive 2', subtitle: ''),
             ],
-            duplicateIndices: const {0, 1},
-            matchResults: const {
+            duplicateIndices: {0, 1},
+            matchResults: {
               0: DiveMatchResult(
                 diveId: 'e1',
                 score: 0.9,
@@ -1330,19 +1330,19 @@ void main() {
     }
 
     ImportBundle bundleWithMixedConfidenceDives() {
-      return ImportBundle(
-        source: const ImportSourceInfo(
+      return const ImportBundle(
+        source: ImportSourceInfo(
           type: ImportSourceType.uddf,
           displayName: 'mixed-confidence.uddf',
         ),
         groups: {
           ImportEntityType.dives: EntityGroup(
-            items: const [
+            items: [
               EntityItem(title: 'Dive 1', subtitle: ''),
               EntityItem(title: 'Dive 2', subtitle: ''),
             ],
-            duplicateIndices: const {0, 1},
-            matchResults: const {
+            duplicateIndices: {0, 1},
+            matchResults: {
               0: DiveMatchResult(
                 diveId: 'e1',
                 score: 0.9, // probable
@@ -1518,16 +1518,16 @@ void main() {
 
   group('firstPendingLocation', () {
     ImportBundle bundleWithDiveAndSiteDuplicates() {
-      return ImportBundle(
-        source: const ImportSourceInfo(
+      return const ImportBundle(
+        source: ImportSourceInfo(
           type: ImportSourceType.uddf,
           displayName: 'dive-and-site-dupes.uddf',
         ),
         groups: {
           ImportEntityType.dives: EntityGroup(
-            items: const [EntityItem(title: 'Dive 1', subtitle: '')],
-            duplicateIndices: const {0},
-            matchResults: const {
+            items: [EntityItem(title: 'Dive 1', subtitle: '')],
+            duplicateIndices: {0},
+            matchResults: {
               0: DiveMatchResult(
                 diveId: 'e1',
                 score: 0.9,
@@ -1538,8 +1538,8 @@ void main() {
             },
           ),
           ImportEntityType.sites: EntityGroup(
-            items: const [EntityItem(title: 'Site A', subtitle: '')],
-            duplicateIndices: const {0},
+            items: [EntityItem(title: 'Site A', subtitle: '')],
+            duplicateIndices: {0},
           ),
         },
       );
