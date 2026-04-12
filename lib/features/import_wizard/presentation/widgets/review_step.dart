@@ -155,6 +155,7 @@ class _MultiTypeLayout extends StatelessWidget {
     return DefaultTabController(
       length: types.length,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (hasDives)
             _RetainDiveNumbersToggle(state: state, notifier: notifier),

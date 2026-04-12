@@ -862,7 +862,11 @@ class _EntityActionButton extends StatelessWidget {
 
     return OutlinedButton(
       onPressed: onPressed,
-      style: OutlinedButton.styleFrom(minimumSize: minSize),
+      style: OutlinedButton.styleFrom(
+        minimumSize: minSize,
+        foregroundColor: color,
+        side: BorderSide(color: color, width: 2.5),
+      ),
       child: child,
     );
   }

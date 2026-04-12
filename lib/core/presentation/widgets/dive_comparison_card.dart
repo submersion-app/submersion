@@ -569,7 +569,7 @@ class _ActionButton extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             minimumSize: minSize,
             foregroundColor: color,
-            side: color != null ? BorderSide(color: color!, width: 1.5) : null,
+            side: color != null ? BorderSide(color: color!, width: 2.5) : null,
           ),
           child: child,
         );
