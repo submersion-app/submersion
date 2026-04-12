@@ -230,8 +230,12 @@ List<Override> _fullOverrides({
   final courseRepo = mockCourseRepo ?? MockCourseRepository();
   final tankPresetRepo = mockTankPresetRepo ?? MockTankPresetRepository();
 
-  // Set up default mock return values for getAllDives.
+  // Set up default mock return values for getAllDives. Production code
+  // calls it with a diverId filter, so stub both variants.
   when(diveRepo.getAllDives()).thenAnswer((_) async => existingDives);
+  when(
+    diveRepo.getAllDives(diverId: anyNamed('diverId')),
+  ).thenAnswer((_) async => existingDives);
 
   return [
     universalImportNotifierProvider.overrideWith((ref) {
