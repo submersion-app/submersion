@@ -41,9 +41,9 @@ class DiverProfileHubPage extends ConsumerWidget {
             actions: [
               if (diverCount > 1)
                 PopupMenuButton<String>(
-                  onSelected: (value) {
+                  onSelected: (value) async {
                     if (value == 'delete') {
-                      _showDeleteConfirmation(context, ref, diver);
+                      await _showDeleteConfirmation(context, ref, diver);
                     }
                   },
                   itemBuilder: (context) => [

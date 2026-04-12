@@ -112,15 +112,15 @@ class DiveComputerRepository {
     try {
       final query = _db.select(_db.diveComputers)
         ..where((t) => t.bluetoothAddress.equals(address))
-        ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)]);
+        ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+        ..limit(1);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
       }
 
-      final rows = await query.get();
-      if (rows.isEmpty) return null;
-      return _mapRowToComputer(rows.first);
+      final row = await query.getSingleOrNull();
+      return row != null ? _mapRowToComputer(row) : null;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to find dive computer by bluetooth address: $address',
