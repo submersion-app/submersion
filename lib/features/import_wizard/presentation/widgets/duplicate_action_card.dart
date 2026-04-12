@@ -5,6 +5,8 @@ import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/needs_decision_pill.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A collapsed/expandable card summarising one duplicate item.
 ///
@@ -35,6 +37,13 @@ class DuplicateActionCard extends StatefulWidget {
   /// Only shown when [selectedAction] is [DuplicateAction.importAsNew].
   final int? projectedDiveNumber;
 
+  /// Whether this duplicate still needs an explicit user decision.
+  ///
+  /// When `true`, the card is rendered in a warning visual state: a 4-px
+  /// warning-colored border, a [NeedsDecisionPill] in the header, and the
+  /// collapsed expand control is labelled "Decide".
+  final bool isPending;
+
   const DuplicateActionCard({
     super.key,
     required this.item,
@@ -44,6 +53,7 @@ class DuplicateActionCard extends StatefulWidget {
     required this.onActionChanged,
     required this.existingDiveId,
     this.projectedDiveNumber,
+    this.isPending = false,
   });
 
   @override
@@ -65,11 +75,15 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
       DuplicateAction.skip => score >= 0.7 ? colorScheme.error : Colors.orange,
     };
 
+    final BorderSide borderSide = widget.isPending
+        ? BorderSide(color: colorScheme.tertiary, width: 4)
+        : BorderSide(color: borderColor, width: 1.5);
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: borderColor, width: 1.5),
+        side: borderSide,
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -80,6 +94,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
             matchResult: widget.matchResult,
             selectedAction: widget.selectedAction,
             expanded: _expanded,
+            isPending: widget.isPending,
             onToggle: () => setState(() => _expanded = !_expanded),
             projectedDiveNumber:
                 widget.selectedAction == DuplicateAction.importAsNew
@@ -124,6 +139,7 @@ class _CollapsedHeader extends StatelessWidget {
   final DiveMatchResult matchResult;
   final DuplicateAction selectedAction;
   final bool expanded;
+  final bool isPending;
   final VoidCallback onToggle;
   final int? projectedDiveNumber;
 
@@ -133,6 +149,7 @@ class _CollapsedHeader extends StatelessWidget {
     required this.selectedAction,
     required this.expanded,
     required this.onToggle,
+    this.isPending = false,
     this.projectedDiveNumber,
   });
 
@@ -226,10 +243,26 @@ class _CollapsedHeader extends StatelessWidget {
                 ),
               ),
             ),
+            // Needs-decision pill — only shown when this row is pending.
+            if (isPending) ...[
+              const SizedBox(width: 8),
+              NeedsDecisionPill(colorScheme: colorScheme),
+            ],
             const SizedBox(width: 6),
             // Action badge
             _ActionBadge(action: selectedAction),
             const SizedBox(width: 4),
+            // "Decide" label — only shown when pending and collapsed.
+            if (isPending && !expanded) ...[
+              Text(
+                context.l10n.universalImport_dive_decideAction,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: colorScheme.tertiary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 4),
+            ],
             // Expand/collapse chevron
             Icon(
               expanded ? Icons.expand_less : Icons.expand_more,
