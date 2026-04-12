@@ -292,14 +292,22 @@ class _EntityTab extends StatelessWidget {
         onToggleSelection: (i) => notifier.toggleSelection(type, i),
         onDuplicateActionChanged: (i, a) {
           notifier.setDuplicateAction(type, i, a);
-          _showActionSnackbar(context, 'Marked as ${_actionLabel(a)}');
+          _showActionSnackbar(
+            context,
+            context.l10n.universalImport_snackbar_markedAs(
+              _actionLabel(context, a),
+            ),
+          );
         },
         onBulkAction: (action) {
           final count = state.pendingFor(type).length;
           notifier.applyBulkAction(type, action);
           _showActionSnackbar(
             context,
-            '$count marked as ${_actionLabel(action)}',
+            context.l10n.universalImport_snackbar_bulkMarkedAs(
+              count,
+              _actionLabel(context, action),
+            ),
           );
         },
         onSelectAll: () => notifier.selectAll(type),
@@ -311,10 +319,13 @@ class _EntityTab extends StatelessWidget {
   }
 }
 
-String _actionLabel(DuplicateAction action) => switch (action) {
-  DuplicateAction.skip => 'Skip',
-  DuplicateAction.importAsNew => 'Import as New',
-  DuplicateAction.consolidate => 'Consolidate',
+String _actionLabel(
+  BuildContext context,
+  DuplicateAction action,
+) => switch (action) {
+  DuplicateAction.skip => context.l10n.universalImport_label_skip,
+  DuplicateAction.importAsNew => context.l10n.universalImport_label_importAsNew,
+  DuplicateAction.consolidate => context.l10n.universalImport_label_consolidate,
 };
 
 void _showActionSnackbar(BuildContext context, String message) {
@@ -443,7 +454,11 @@ class _BottomBar extends StatelessWidget {
                   ),
                 ),
                 FilledButton(
-                  onPressed: hasPendingReviews ? null : onImport,
+                  onPressed:
+                      (hasPendingReviews ||
+                          (counts.importing + counts.consolidating) == 0)
+                      ? null
+                      : onImport,
                   child: const Text('Import Selected'),
                 ),
               ],

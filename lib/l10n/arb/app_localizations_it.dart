@@ -13958,6 +13958,9 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get universalImport_label_consolidate => 'Consolidate';
+
+  @override
   String get universalImport_label_detecting => 'Rilevamento...';
 
   @override
@@ -13972,6 +13975,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String universalImport_label_duplicatesFound(Object count) {
     return '$count duplicati trovati e deselezionati automaticamente.';
   }
+
+  @override
+  String get universalImport_label_importAsNew => 'Import as New';
 
   @override
   String get universalImport_label_importComplete => 'Importazione Completata';
@@ -14027,6 +14033,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String universalImport_label_xOfYSelected(Object selected, Object total) {
     return '$selected di $total selezionati';
   }
+
+  @override
+  String get universalImport_pending_chooseAction => 'Choose an action';
 
   @override
   String universalImport_pending_gateHint(int count) {
@@ -14092,6 +14101,16 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String universalImport_semantics_toggleSelection(Object name) {
     return 'Attiva/disattiva selezione per $name';
+  }
+
+  @override
+  String universalImport_snackbar_bulkMarkedAs(int count, String action) {
+    return '$count marked as $action';
+  }
+
+  @override
+  String universalImport_snackbar_markedAs(String action) {
+    return 'Marked as $action';
   }
 
   @override

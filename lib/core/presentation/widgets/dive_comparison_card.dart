@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shared comparison card for dive duplicate resolution.
 ///
@@ -458,7 +459,7 @@ class DiveComparisonCard extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                'Choose an action',
+                context.l10n.universalImport_pending_chooseAction,
                 style: theme.textTheme.titleSmall?.copyWith(
                   color: colorScheme.tertiary,
                   fontWeight: FontWeight.w700,

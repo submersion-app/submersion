@@ -23723,6 +23723,12 @@ abstract class AppLocalizations {
   /// **'{mapped} of {total} columns mapped'**
   String universalImport_label_columnsMapped(Object mapped, Object total);
 
+  /// Short action label meaning the incoming duplicate should be merged into the existing record (used on snackbars and bulk buttons)
+  ///
+  /// In en, this message translates to:
+  /// **'Consolidate'**
+  String get universalImport_label_consolidate;
+
   /// Button label shown while detecting the file format
   ///
   /// In en, this message translates to:
@@ -23746,6 +23752,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} duplicates found and auto-deselected.'**
   String universalImport_label_duplicatesFound(Object count);
+
+  /// Short action label meaning the incoming duplicate should be imported as a brand-new entry (used on snackbars and bulk buttons)
+  ///
+  /// In en, this message translates to:
+  /// **'Import as New'**
+  String get universalImport_label_importAsNew;
 
   /// Headline text shown on the import summary step
   ///
@@ -23830,6 +23842,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{selected} of {total} selected'**
   String universalImport_label_xOfYSelected(Object selected, Object total);
+
+  /// Prompt shown above the action buttons on an expanded pending duplicate row, telling the user to pick an action
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an action'**
+  String get universalImport_pending_chooseAction;
 
   /// Hint text telling the user how many pending duplicates still need a decision before Import can proceed
   ///
@@ -23918,6 +23936,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Toggle selection for {name}'**
   String universalImport_semantics_toggleSelection(Object name);
+
+  /// Snackbar shown after a bulk action resolves multiple pending duplicates, confirming the count and action
+  ///
+  /// In en, this message translates to:
+  /// **'{count} marked as {action}'**
+  String universalImport_snackbar_bulkMarkedAs(int count, String action);
+
+  /// Snackbar shown after a single duplicate is resolved, confirming the chosen action
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as {action}'**
+  String universalImport_snackbar_markedAs(String action);
 
   /// Step indicator label for the import step
   ///

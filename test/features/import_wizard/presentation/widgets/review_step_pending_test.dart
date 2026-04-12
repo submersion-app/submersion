@@ -289,7 +289,8 @@ void main() {
     );
 
     testWidgets(
-      'draining pending via applyBulkAction re-enables Import button',
+      'draining pending via applyBulkAction(importAsNew) re-enables Import '
+      'button',
       (tester) async {
         await tester.binding.setSurfaceSize(const Size(800, 600));
         addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -309,14 +310,48 @@ void main() {
         );
         expect(importButton.onPressed, isNull);
 
-        // Drain via bulk skip.
-        notifier.applyBulkAction(ImportEntityType.dives, DuplicateAction.skip);
+        // Drain via bulk importAsNew — both drains pending AND adds something
+        // to import, so the gate re-enables.
+        notifier.applyBulkAction(
+          ImportEntityType.dives,
+          DuplicateAction.importAsNew,
+        );
         await tester.pump();
 
         importButton = tester.widget<FilledButton>(
           find.widgetWithText(FilledButton, 'Import Selected'),
         );
         expect(importButton.onPressed, isNotNull);
+      },
+    );
+
+    testWidgets(
+      'bulk skip on a pending-only bundle leaves Import button disabled',
+      (tester) async {
+        // Guards the Copilot-requested gate: when the user resolves all
+        // pending by skipping everything (and nothing else is queued for
+        // import), Import stays disabled because pressing it would be a
+        // no-op. Previously the button re-enabled as soon as pending was
+        // empty, regardless of whether anything was actually selected.
+        await tester.binding.setSurfaceSize(const Size(800, 600));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        final container = _buildContainer();
+        addTearDown(container.dispose);
+
+        final notifier = container.read(importWizardNotifierProvider.notifier);
+        notifier.setBundle(_bundleWithOnePendingDive());
+
+        await tester.pumpWidget(_pumpReview(container: container));
+        await tester.pump();
+
+        notifier.applyBulkAction(ImportEntityType.dives, DuplicateAction.skip);
+        await tester.pump();
+
+        final importButton = tester.widget<FilledButton>(
+          find.widgetWithText(FilledButton, 'Import Selected'),
+        );
+        expect(importButton.onPressed, isNull);
       },
     );
   });

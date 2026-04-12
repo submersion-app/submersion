@@ -7769,10 +7769,12 @@
   "universalImport_error_unsupportedFormat": "This format is not yet supported. Please export as UDDF or CSV.",
   "universalImport_label_columnMapping": "Column Mapping",
   "universalImport_label_columnsMapped": "{mapped} of {total} columns mapped",
+  "universalImport_label_consolidate": "Consolidate",
   "universalImport_label_detecting": "Detecting...",
   "universalImport_label_diveNumber": "Dive #{number}",
   "universalImport_label_duplicate": "Duplicate",
   "universalImport_label_duplicatesFound": "{count} duplicates found and auto-deselected.",
+  "universalImport_label_importAsNew": "Import as New",
   "universalImport_label_importComplete": "Import Complete",
   "universalImport_label_importing": "Importing",
   "universalImport_label_importingEllipsis": "Importing...",
@@ -7787,6 +7789,7 @@
   "universalImport_label_unnamed": "Unnamed",
   "universalImport_label_xOfY": "{current} of {total}",
   "universalImport_label_xOfYSelected": "{selected} of {total} selected",
+  "universalImport_pending_chooseAction": "Choose an action",
   "universalImport_pending_gateHint": "{count} duplicate(s) need a decision",
   "universalImport_pending_needsDecision": "Needs decision",
   "universalImport_pending_reviewAction": "Review",
@@ -7801,6 +7804,8 @@
   "universalImport_semantics_sourceDetected": "Source detected: {description}",
   "universalImport_semantics_sourceUncertain": "Source uncertain: {description}",
   "universalImport_semantics_toggleSelection": "Toggle selection for {name}",
+  "universalImport_snackbar_bulkMarkedAs": "{count} marked as {action}",
+  "universalImport_snackbar_markedAs": "Marked as {action}",
   "universalImport_step_import": "Import",
   "universalImport_step_map": "Map",
   "universalImport_step_review": "Review",
@@ -7886,6 +7891,9 @@
       }
     }
   },
+  "@universalImport_label_consolidate": {
+    "description": "Short action label meaning the incoming duplicate should be merged into the existing record (used on snackbars and bulk buttons)"
+  },
   "@universalImport_label_detecting": {
     "description": "Button label shown while detecting the file format"
   },
@@ -7909,6 +7917,9 @@
         "example": "3"
       }
     }
+  },
+  "@universalImport_label_importAsNew": {
+    "description": "Short action label meaning the incoming duplicate should be imported as a brand-new entry (used on snackbars and bulk buttons)"
   },
   "@universalImport_label_importComplete": {
     "description": "Headline text shown on the import summary step"
@@ -7999,6 +8010,9 @@
         "example": "5"
       }
     }
+  },
+  "@universalImport_pending_chooseAction": {
+    "description": "Prompt shown above the action buttons on an expanded pending duplicate row, telling the user to pick an action"
   },
   "@universalImport_pending_gateHint": {
     "description": "Hint text telling the user how many pending duplicates still need a decision before Import can proceed",
@@ -8094,6 +8108,27 @@
       "name": {
         "type": "Object",
         "example": "Dive #42"
+      }
+    }
+  },
+  "@universalImport_snackbar_bulkMarkedAs": {
+    "description": "Snackbar shown after a bulk action resolves multiple pending duplicates, confirming the count and action",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "action": {
+        "type": "String",
+        "example": "Skip"
+      }
+    }
+  },
+  "@universalImport_snackbar_markedAs": {
+    "description": "Snackbar shown after a single duplicate is resolved, confirming the chosen action",
+    "placeholders": {
+      "action": {
+        "type": "String",
+        "example": "Import as New"
       }
     }
   },

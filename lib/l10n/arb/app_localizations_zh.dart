@@ -13266,6 +13266,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get universalImport_label_consolidate => 'Consolidate';
+
+  @override
   String get universalImport_label_detecting => '检测中...';
 
   @override
@@ -13280,6 +13283,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String universalImport_label_duplicatesFound(Object count) {
     return '发现 $count 条重复记录并已自动取消选择。';
   }
+
+  @override
+  String get universalImport_label_importAsNew => 'Import as New';
 
   @override
   String get universalImport_label_importComplete => '导入完成';
@@ -13334,6 +13340,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String universalImport_label_xOfYSelected(Object selected, Object total) {
     return '已选择 $selected/$total';
   }
+
+  @override
+  String get universalImport_pending_chooseAction => 'Choose an action';
 
   @override
   String universalImport_pending_gateHint(int count) {
@@ -13397,6 +13406,16 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String universalImport_semantics_toggleSelection(Object name) {
     return '切换 $name 的选择';
+  }
+
+  @override
+  String universalImport_snackbar_bulkMarkedAs(int count, String action) {
+    return '$count marked as $action';
+  }
+
+  @override
+  String universalImport_snackbar_markedAs(String action) {
+    return 'Marked as $action';
   }
 
   @override

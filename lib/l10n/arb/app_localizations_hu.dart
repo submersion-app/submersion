@@ -13914,6 +13914,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get universalImport_label_consolidate => 'Consolidate';
+
+  @override
   String get universalImport_label_detecting => 'Észlelés...';
 
   @override
@@ -13928,6 +13931,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String universalImport_label_duplicatesFound(Object count) {
     return '$count duplikátum találva és automatikusan kijelölés törölve.';
   }
+
+  @override
+  String get universalImport_label_importAsNew => 'Import as New';
 
   @override
   String get universalImport_label_importComplete => 'Importálás kész';
@@ -13983,6 +13989,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String universalImport_label_xOfYSelected(Object selected, Object total) {
     return '$selected kiválasztva a(z) $total-ból';
   }
+
+  @override
+  String get universalImport_pending_chooseAction => 'Choose an action';
 
   @override
   String universalImport_pending_gateHint(int count) {
@@ -14048,6 +14057,16 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String universalImport_semantics_toggleSelection(Object name) {
     return 'Kijelölés váltása: $name';
+  }
+
+  @override
+  String universalImport_snackbar_bulkMarkedAs(int count, String action) {
+    return '$count marked as $action';
+  }
+
+  @override
+  String universalImport_snackbar_markedAs(String action) {
+    return 'Marked as $action';
   }
 
   @override

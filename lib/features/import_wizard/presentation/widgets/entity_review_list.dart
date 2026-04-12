@@ -697,7 +697,7 @@ class _EntityComparisonPanel extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
-                    'Choose an action',
+                    context.l10n.universalImport_pending_chooseAction,
                     style: theme.textTheme.titleSmall?.copyWith(
                       color: colorScheme.tertiary,
                       fontWeight: FontWeight.w700,
