@@ -968,10 +968,9 @@ class _BulkActionRow extends StatelessWidget {
               ),
             ),
           if (availableActions.contains(DuplicateAction.consolidate))
+            // TODO(#200): enable when bulk-consolidate is implemented end-to-end.
             OutlinedButton.icon(
-              onPressed: matchableConsolidateCount > 0
-                  ? () => onBulkAction(DuplicateAction.consolidate)
-                  : null,
+              onPressed: null,
               icon: const Icon(Icons.merge_type, size: 16),
               label: Text(
                 context.l10n.universalImport_bulk_consolidateMatched(
