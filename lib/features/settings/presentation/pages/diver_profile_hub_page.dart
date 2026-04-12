@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/widgets/delete_diver_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class DiverProfileHubPage extends ConsumerWidget {
@@ -401,45 +402,22 @@ class DiverProfileHubPage extends ConsumerWidget {
     );
   }
 
-  void _showDeleteConfirmation(
+  Future<void> _showDeleteConfirmation(
     BuildContext context,
     WidgetRef ref,
     Diver diver,
-  ) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(context.l10n.settings_profileHub_deleteConfirmTitle),
-          content: Text(
-            context.l10n.settings_profileHub_deleteConfirmContent(diver.name),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(context.l10n.divers_detail_cancelButton),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                ref
-                    .read(diverListNotifierProvider.notifier)
-                    .deleteDiver(diver.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(context.l10n.settings_profileHub_deleted),
-                  ),
-                );
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
-                foregroundColor: Theme.of(context).colorScheme.onError,
-              ),
-              child: Text(context.l10n.divers_detail_deleteButton),
-            ),
-          ],
-        );
-      },
+  ) async {
+    final confirmed = await DeleteDiverDialog.show(
+      context,
+      diverName: diver.name,
     );
+    if (confirmed && context.mounted) {
+      await ref.read(diverListNotifierProvider.notifier).deleteDiver(diver.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.settings_profileHub_deleted)),
+        );
+      }
+    }
   }
 }
