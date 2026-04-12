@@ -290,9 +290,18 @@ class _EntityTab extends StatelessWidget {
         availableActions: availableActions,
         pendingIndices: state.pendingFor(type),
         onToggleSelection: (i) => notifier.toggleSelection(type, i),
-        onDuplicateActionChanged: (i, a) =>
-            notifier.setDuplicateAction(type, i, a),
-        onBulkAction: (action) => notifier.applyBulkAction(type, action),
+        onDuplicateActionChanged: (i, a) {
+          notifier.setDuplicateAction(type, i, a);
+          _showActionSnackbar(context, 'Marked as ${_actionLabel(a)}');
+        },
+        onBulkAction: (action) {
+          final count = state.pendingFor(type).length;
+          notifier.applyBulkAction(type, action);
+          _showActionSnackbar(
+            context,
+            '$count marked as ${_actionLabel(action)}',
+          );
+        },
         onSelectAll: () => notifier.selectAll(type),
         onDeselectAll: () => notifier.deselectAll(type),
         existingDiveIdForIndex: (i) => group.matchResults?[i]?.diveId ?? '',
@@ -300,6 +309,26 @@ class _EntityTab extends StatelessWidget {
       ),
     );
   }
+}
+
+String _actionLabel(DuplicateAction action) => switch (action) {
+  DuplicateAction.skip => 'Skip',
+  DuplicateAction.importAsNew => 'Import as New',
+  DuplicateAction.consolidate => 'Consolidate',
+};
+
+void _showActionSnackbar(BuildContext context, String message) {
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  if (messenger == null) return;
+  messenger
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(milliseconds: 1500),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
 }
 
 // ---------------------------------------------------------------------------
