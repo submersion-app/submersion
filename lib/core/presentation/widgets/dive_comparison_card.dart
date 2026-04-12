@@ -386,7 +386,7 @@ class DiveComparisonCard extends ConsumerWidget {
     }
 
     Color? colorFor(DuplicateAction action) {
-      if (!isTriState || selectedAction != action) return null;
+      if (!isTriState) return null;
       return switch (action) {
         DuplicateAction.skip => colorScheme.error,
         DuplicateAction.importAsNew => Colors.green,
@@ -556,13 +556,20 @@ class _ActionButton extends StatelessWidget {
       case _ActionButtonStyle.text:
         return TextButton(
           onPressed: onPressed,
-          style: TextButton.styleFrom(minimumSize: minSize),
+          style: TextButton.styleFrom(
+            minimumSize: minSize,
+            foregroundColor: color,
+          ),
           child: child,
         );
       case _ActionButtonStyle.outlined:
         return OutlinedButton(
           onPressed: onPressed,
-          style: OutlinedButton.styleFrom(minimumSize: minSize),
+          style: OutlinedButton.styleFrom(
+            minimumSize: minSize,
+            foregroundColor: color,
+            side: color != null ? BorderSide(color: color!, width: 1.5) : null,
+          ),
           child: child,
         );
       case _ActionButtonStyle.filled:
