@@ -1157,4 +1157,140 @@ void main() {
       expect(state.totalPending, 0);
     });
   });
+
+  group('setDuplicateAction drains pending', () {
+    test('skip drains pending and syncs selections', () async {
+      final bundle = _bundleWithProbableDiveDuplicate(index: 0);
+      final container = ProviderContainer(
+        overrides: [
+          importWizardNotifierProvider.overrideWith(
+            (ref) => ImportWizardNotifier(_TestAdapter()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(importWizardNotifierProvider.notifier);
+      notifier.setBundle(bundle);
+
+      notifier.setDuplicateAction(
+        ImportEntityType.dives,
+        0,
+        DuplicateAction.skip,
+      );
+
+      final state = container.read(importWizardNotifierProvider);
+      expect(state.pendingFor(ImportEntityType.dives), isEmpty);
+      expect(
+        state.duplicateActions[ImportEntityType.dives]?[0],
+        DuplicateAction.skip,
+      );
+      expect(state.selections[ImportEntityType.dives], isNot(contains(0)));
+    });
+
+    test('importAsNew drains pending and selects', () async {
+      final bundle = _bundleWithProbableDiveDuplicate(index: 0);
+      final container = ProviderContainer(
+        overrides: [
+          importWizardNotifierProvider.overrideWith(
+            (ref) => ImportWizardNotifier(_TestAdapter()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(importWizardNotifierProvider.notifier);
+      notifier.setBundle(bundle);
+
+      notifier.setDuplicateAction(
+        ImportEntityType.dives,
+        0,
+        DuplicateAction.importAsNew,
+      );
+
+      final state = container.read(importWizardNotifierProvider);
+      expect(state.pendingFor(ImportEntityType.dives), isEmpty);
+      expect(
+        state.duplicateActions[ImportEntityType.dives]?[0],
+        DuplicateAction.importAsNew,
+      );
+      expect(state.selections[ImportEntityType.dives], contains(0));
+    });
+
+    test('consolidate drains pending and selects', () async {
+      final bundle = _bundleWithProbableDiveDuplicate(index: 0);
+      final container = ProviderContainer(
+        overrides: [
+          importWizardNotifierProvider.overrideWith(
+            (ref) => ImportWizardNotifier(_TestAdapter()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(importWizardNotifierProvider.notifier);
+      notifier.setBundle(bundle);
+
+      notifier.setDuplicateAction(
+        ImportEntityType.dives,
+        0,
+        DuplicateAction.consolidate,
+      );
+
+      final state = container.read(importWizardNotifierProvider);
+      expect(state.pendingFor(ImportEntityType.dives), isEmpty);
+      expect(
+        state.duplicateActions[ImportEntityType.dives]?[0],
+        DuplicateAction.consolidate,
+      );
+      expect(state.selections[ImportEntityType.dives], contains(0));
+    });
+  });
+
+  group('toggleSelection drains pending', () {
+    test('toggleSelection on a pending index drains it', () async {
+      final bundle = _bundleWithProbableDiveDuplicate(index: 0);
+      final container = ProviderContainer(
+        overrides: [
+          importWizardNotifierProvider.overrideWith(
+            (ref) => ImportWizardNotifier(_TestAdapter()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(importWizardNotifierProvider.notifier);
+      notifier.setBundle(bundle);
+
+      notifier.toggleSelection(ImportEntityType.dives, 0);
+
+      final state = container.read(importWizardNotifierProvider);
+      expect(state.pendingFor(ImportEntityType.dives), isEmpty);
+      expect(state.selections[ImportEntityType.dives], contains(0));
+    });
+
+    test(
+      'toggleSelection on a non-pending index does not change pending',
+      () async {
+        final bundle = _bundleWithOneCleanAndOneDuplicateDive();
+        final container = ProviderContainer(
+          overrides: [
+            importWizardNotifierProvider.overrideWith(
+              (ref) => ImportWizardNotifier(_TestAdapter()),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+        final notifier = container.read(importWizardNotifierProvider.notifier);
+        notifier.setBundle(bundle);
+
+        // index 0 = clean (selected), index 1 = pending duplicate
+        notifier.toggleSelection(ImportEntityType.dives, 0);
+
+        final state = container.read(importWizardNotifierProvider);
+        expect(
+          state.pendingFor(ImportEntityType.dives),
+          {1},
+          reason: 'Pending for duplicate should be unchanged',
+        );
+        expect(state.selections[ImportEntityType.dives], isNot(contains(0)));
+      },
+    );
+  });
 }

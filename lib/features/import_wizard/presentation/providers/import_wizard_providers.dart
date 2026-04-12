@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
@@ -219,7 +220,13 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     } else {
       updated.add(index);
     }
-    state = state.copyWith(selections: {...state.selections, type: updated});
+
+    final updatedPending = _drainPending(type, {index});
+
+    state = state.copyWith(
+      selections: {...state.selections, type: updated},
+      pendingDuplicateReview: updatedPending,
+    );
   }
 
   /// Select all non-duplicate items for [type].
@@ -301,17 +308,59 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   // -------------------------------------------------------------------------
 
   /// Set the [action] for a specific duplicate item.
+  ///
+  /// In addition to recording the action, this also:
+  /// - Syncs [ImportWizardState.selections] for [type]: removes [index] when
+  ///   [action] is [DuplicateAction.skip]; adds [index] otherwise.
+  /// - Drains [index] from [ImportWizardState.pendingDuplicateReview] for
+  ///   [type] via [_drainPending].
   void setDuplicateAction(
     ImportEntityType type,
     int index,
     DuplicateAction action,
   ) {
-    final current =
+    final actionsForType =
         state.duplicateActions[type] ?? const <int, DuplicateAction>{};
-    final updated = Map<int, DuplicateAction>.from(current)..[index] = action;
-    state = state.copyWith(
-      duplicateActions: {...state.duplicateActions, type: updated},
+    final updatedActions = Map<int, DuplicateAction>.from(actionsForType)
+      ..[index] = action;
+
+    final currentSelection = Set<int>.from(
+      state.selections[type] ?? const <int>{},
     );
+    if (action == DuplicateAction.skip) {
+      currentSelection.remove(index);
+    } else {
+      currentSelection.add(index);
+    }
+
+    final updatedPending = _drainPending(type, {index});
+
+    state = state.copyWith(
+      duplicateActions: {...state.duplicateActions, type: updatedActions},
+      selections: {...state.selections, type: currentSelection},
+      pendingDuplicateReview: updatedPending,
+    );
+  }
+
+  /// Returns a new pending-review map with the given indices removed from
+  /// the set for [type]. If the resulting set is empty, the type key is
+  /// removed from the map entirely (keeps `hasPendingReviews` fast).
+  Map<ImportEntityType, Set<int>> _drainPending(
+    ImportEntityType type,
+    Set<int> indices,
+  ) {
+    final current = state.pendingFor(type);
+    if (current.isEmpty) return state.pendingDuplicateReview;
+    final updated = current.difference(indices);
+    final newMap = Map<ImportEntityType, Set<int>>.from(
+      state.pendingDuplicateReview,
+    );
+    if (updated.isEmpty) {
+      newMap.remove(type);
+    } else {
+      newMap[type] = updated;
+    }
+    return newMap;
   }
 
   // -------------------------------------------------------------------------
@@ -428,6 +477,14 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// Return to the initial state.
   void reset() {
     state = const ImportWizardState();
+  }
+
+  /// Replace the notifier's state directly. Intended for widget tests that
+  /// need to seed an arbitrary state (e.g. pending-review rows) without going
+  /// through the full [setBundle] flow.
+  @visibleForTesting
+  void debugSetState(ImportWizardState newState) {
+    state = newState;
   }
 }
 
