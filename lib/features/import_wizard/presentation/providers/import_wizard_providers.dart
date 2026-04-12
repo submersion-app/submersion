@@ -363,6 +363,57 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     return newMap;
   }
 
+  /// Apply [action] to every pending-review index for [type] in a single
+  /// state update.
+  ///
+  /// For [DuplicateAction.consolidate], only indices whose
+  /// `DiveMatchResult.score >= 0.7` are consolidated; weaker matches remain
+  /// pending. For other actions, every pending index is affected.
+  ///
+  /// No-op if the type has no pending indices or (for consolidate) no
+  /// probable matches.
+  void applyBulkAction(ImportEntityType type, DuplicateAction action) {
+    final pending = state.pendingFor(type);
+    if (pending.isEmpty) return;
+
+    final Set<int> affected;
+    if (action == DuplicateAction.consolidate) {
+      final matchResults = state.bundle?.groups[type]?.matchResults;
+      if (matchResults == null) return;
+      affected = pending.where((i) {
+        final match = matchResults[i];
+        return match != null && match.score >= 0.7;
+      }).toSet();
+    } else {
+      affected = pending;
+    }
+
+    if (affected.isEmpty) return;
+
+    final actionsForType =
+        state.duplicateActions[type] ?? const <int, DuplicateAction>{};
+    final updatedActions = Map<int, DuplicateAction>.from(actionsForType);
+    final currentSelection = Set<int>.from(
+      state.selections[type] ?? const <int>{},
+    );
+    for (final i in affected) {
+      updatedActions[i] = action;
+      if (action == DuplicateAction.skip) {
+        currentSelection.remove(i);
+      } else {
+        currentSelection.add(i);
+      }
+    }
+
+    final updatedPending = _drainPending(type, affected);
+
+    state = state.copyWith(
+      duplicateActions: {...state.duplicateActions, type: updatedActions},
+      selections: {...state.selections, type: currentSelection},
+      pendingDuplicateReview: updatedPending,
+    );
+  }
+
   // -------------------------------------------------------------------------
   // Import
   // -------------------------------------------------------------------------

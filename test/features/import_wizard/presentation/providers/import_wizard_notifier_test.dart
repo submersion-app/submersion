@@ -1293,4 +1293,226 @@ void main() {
       },
     );
   });
+
+  group('applyBulkAction', () {
+    ImportBundle bundleWithTwoPendingDives() {
+      return ImportBundle(
+        source: const ImportSourceInfo(
+          type: ImportSourceType.uddf,
+          displayName: 'two-pending.uddf',
+        ),
+        groups: {
+          ImportEntityType.dives: EntityGroup(
+            items: const [
+              EntityItem(title: 'Dive 1', subtitle: ''),
+              EntityItem(title: 'Dive 2', subtitle: ''),
+            ],
+            duplicateIndices: const {0, 1},
+            matchResults: const {
+              0: DiveMatchResult(
+                diveId: 'e1',
+                score: 0.9,
+                timeDifferenceMs: 0,
+                depthDifferenceMeters: 0.0,
+                durationDifferenceSeconds: 0,
+              ),
+              1: DiveMatchResult(
+                diveId: 'e2',
+                score: 0.9,
+                timeDifferenceMs: 0,
+                depthDifferenceMeters: 0.0,
+                durationDifferenceSeconds: 0,
+              ),
+            },
+          ),
+        },
+      );
+    }
+
+    ImportBundle bundleWithMixedConfidenceDives() {
+      return ImportBundle(
+        source: const ImportSourceInfo(
+          type: ImportSourceType.uddf,
+          displayName: 'mixed-confidence.uddf',
+        ),
+        groups: {
+          ImportEntityType.dives: EntityGroup(
+            items: const [
+              EntityItem(title: 'Dive 1', subtitle: ''),
+              EntityItem(title: 'Dive 2', subtitle: ''),
+            ],
+            duplicateIndices: const {0, 1},
+            matchResults: const {
+              0: DiveMatchResult(
+                diveId: 'e1',
+                score: 0.9, // probable
+                timeDifferenceMs: 0,
+                depthDifferenceMeters: 0.0,
+                durationDifferenceSeconds: 0,
+              ),
+              1: DiveMatchResult(
+                diveId: 'e2',
+                score: 0.55, // possible (weak)
+                timeDifferenceMs: 600000,
+                depthDifferenceMeters: 3.0,
+                durationDifferenceSeconds: 480,
+              ),
+            },
+          ),
+        },
+      );
+    }
+
+    test('skip drains all pending for type and sets resolutions', () async {
+      final bundle = bundleWithTwoPendingDives();
+      final container = ProviderContainer(
+        overrides: [
+          importWizardNotifierProvider.overrideWith(
+            (ref) => ImportWizardNotifier(_TestAdapter()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(importWizardNotifierProvider.notifier);
+      notifier.setBundle(bundle);
+
+      notifier.applyBulkAction(ImportEntityType.dives, DuplicateAction.skip);
+
+      final state = container.read(importWizardNotifierProvider);
+      expect(state.pendingFor(ImportEntityType.dives), isEmpty);
+      expect(
+        state.duplicateActions[ImportEntityType.dives]?[0],
+        DuplicateAction.skip,
+      );
+      expect(
+        state.duplicateActions[ImportEntityType.dives]?[1],
+        DuplicateAction.skip,
+      );
+      expect(state.selections[ImportEntityType.dives], isNot(contains(0)));
+      expect(state.selections[ImportEntityType.dives], isNot(contains(1)));
+    });
+
+    test('importAsNew drains all pending and selects them', () async {
+      final bundle = bundleWithTwoPendingDives();
+      final container = ProviderContainer(
+        overrides: [
+          importWizardNotifierProvider.overrideWith(
+            (ref) => ImportWizardNotifier(_TestAdapter()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(importWizardNotifierProvider.notifier);
+      notifier.setBundle(bundle);
+
+      notifier.applyBulkAction(
+        ImportEntityType.dives,
+        DuplicateAction.importAsNew,
+      );
+
+      final state = container.read(importWizardNotifierProvider);
+      expect(state.pendingFor(ImportEntityType.dives), isEmpty);
+      expect(
+        state.duplicateActions[ImportEntityType.dives]?[0],
+        DuplicateAction.importAsNew,
+      );
+      expect(
+        state.duplicateActions[ImportEntityType.dives]?[1],
+        DuplicateAction.importAsNew,
+      );
+      expect(state.selections[ImportEntityType.dives], contains(0));
+      expect(state.selections[ImportEntityType.dives], contains(1));
+    });
+
+    test(
+      'consolidate drains only probable matches, leaves weak pending',
+      () async {
+        final bundle = bundleWithMixedConfidenceDives();
+        final container = ProviderContainer(
+          overrides: [
+            importWizardNotifierProvider.overrideWith(
+              (ref) => ImportWizardNotifier(_TestAdapter()),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+        final notifier = container.read(importWizardNotifierProvider.notifier);
+        notifier.setBundle(bundle);
+
+        notifier.applyBulkAction(
+          ImportEntityType.dives,
+          DuplicateAction.consolidate,
+        );
+
+        final state = container.read(importWizardNotifierProvider);
+        expect(
+          state.pendingFor(ImportEntityType.dives),
+          {1},
+          reason: 'Weak match (score 0.55) should remain pending',
+        );
+        expect(
+          state.duplicateActions[ImportEntityType.dives]?[0],
+          DuplicateAction.consolidate,
+        );
+        expect(
+          state.duplicateActions[ImportEntityType.dives]?.containsKey(1),
+          isFalse,
+          reason: 'Weak match should not have a recorded action',
+        );
+      },
+    );
+
+    test('no-op when pending for type is empty', () async {
+      final bundle = bundleWithTwoPendingDives();
+      final container = ProviderContainer(
+        overrides: [
+          importWizardNotifierProvider.overrideWith(
+            (ref) => ImportWizardNotifier(_TestAdapter()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(importWizardNotifierProvider.notifier);
+      notifier.setBundle(bundle);
+
+      // First drain all pending via bulk skip.
+      notifier.applyBulkAction(ImportEntityType.dives, DuplicateAction.skip);
+      // Pending is now empty — second call must be a no-op and NOT
+      // overwrite the recorded skip action.
+      notifier.applyBulkAction(
+        ImportEntityType.dives,
+        DuplicateAction.importAsNew,
+      );
+
+      final state = container.read(importWizardNotifierProvider);
+      expect(
+        state.duplicateActions[ImportEntityType.dives]?[0],
+        DuplicateAction.skip,
+        reason: 'Second bulk call should be a no-op once pending is empty',
+      );
+    });
+
+    test('non-dive bulk action drains pending and updates selection', () async {
+      final bundle = _bundleWithUnscoredSiteDuplicate(index: 0);
+      final container = ProviderContainer(
+        overrides: [
+          importWizardNotifierProvider.overrideWith(
+            (ref) => ImportWizardNotifier(_TestAdapter()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(importWizardNotifierProvider.notifier);
+      notifier.setBundle(bundle);
+
+      notifier.applyBulkAction(
+        ImportEntityType.sites,
+        DuplicateAction.importAsNew,
+      );
+
+      final state = container.read(importWizardNotifierProvider);
+      expect(state.pendingFor(ImportEntityType.sites), isEmpty);
+      expect(state.selections[ImportEntityType.sites], contains(0));
+    });
+  });
 }
