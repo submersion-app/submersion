@@ -24,7 +24,10 @@ const _item = EntityItem(
   subtitle: '25.0 m · 50 min',
 );
 
-Widget _pump({required bool isPending}) {
+Widget _pump({
+  required bool isPending,
+  DuplicateAction? selectedAction = DuplicateAction.skip,
+}) {
   return MaterialApp(
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
@@ -33,7 +36,7 @@ Widget _pump({required bool isPending}) {
         child: DuplicateActionCard(
           item: _item,
           matchResult: _matchResult,
-          selectedAction: DuplicateAction.skip,
+          selectedAction: selectedAction,
           availableActions: const {
             DuplicateAction.skip,
             DuplicateAction.importAsNew,
@@ -149,6 +152,43 @@ void main() {
       await tester.pump();
 
       expect(find.text('Decide'), findsNothing);
+    });
+
+    testWidgets(
+      'does NOT show action chip when pending and selectedAction is null',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 600);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+
+        await tester.pumpWidget(_pump(isPending: true, selectedAction: null));
+        await tester.pump();
+
+        // None of the action badge labels should be visible because no
+        // decision has been made yet.
+        expect(find.text('SKIP'), findsNothing);
+        expect(find.text('IMPORT'), findsNothing);
+        expect(find.text('CONSOLIDATE'), findsNothing);
+
+        // But the pending visual cues are still present.
+        expect(find.text('Needs decision'), findsOneWidget);
+        expect(find.text('Decide'), findsOneWidget);
+      },
+    );
+
+    testWidgets('shows SKIP chip when pending and selectedAction is skip', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(
+        _pump(isPending: true, selectedAction: DuplicateAction.skip),
+      );
+      await tester.pump();
+
+      expect(find.text('SKIP'), findsOneWidget);
     });
   });
 }

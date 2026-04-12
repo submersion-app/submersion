@@ -193,11 +193,11 @@ class EntityReviewList extends StatelessWidget {
   Widget _buildDuplicateCard(int index) {
     final item = group.items[index];
     final matchResult = group.matchResults![index]!;
-    final action =
-        duplicateActions[index] ??
-        (matchResult.isProbable
-            ? DuplicateAction.skip
-            : DuplicateAction.importAsNew);
+    // Pass the user's chosen action verbatim — including `null`, which means
+    // the user has not yet decided. Falling back to a default here would
+    // contradict the "Needs decision" pending state and pre-highlight a
+    // button the user did not pick.
+    final action = duplicateActions[index];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -271,7 +271,9 @@ class EntityReviewList extends StatelessWidget {
 
   Widget _buildEntityDuplicateCard(int index) {
     final item = group.items[index];
-    final action = duplicateActions[index] ?? DuplicateAction.skip;
+    // Pass the user's chosen action verbatim — `null` means "not yet decided"
+    // and is rendered as a pending row with no pre-selected button.
+    final action = duplicateActions[index];
     final entityMatch = group.entityMatches?[index];
 
     return _EntityDuplicateCard(
@@ -451,7 +453,11 @@ class _NonDuplicateRow extends StatelessWidget {
 class _EntityDuplicateCard extends StatefulWidget {
   final EntityItem item;
   final EntityMatchResult? entityMatch;
-  final DuplicateAction selectedAction;
+
+  /// The action chosen for this row, or `null` when the user has not yet
+  /// decided. Null suppresses the action badge in the collapsed header and
+  /// leaves both action buttons outlined in the expanded panel.
+  final DuplicateAction? selectedAction;
   final ValueChanged<DuplicateAction> onActionChanged;
 
   /// Whether this row still needs an explicit user decision.
@@ -481,7 +487,19 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
     final colorScheme = theme.colorScheme;
 
     final isImporting = widget.selectedAction == DuplicateAction.importAsNew;
-    final borderColor = isImporting ? Colors.green : colorScheme.error;
+    // When [selectedAction] is null (row pending a decision) we fall back to
+    // the tertiary warning colour so the 1.5-px border reads as "undecided"
+    // rather than implying a skip. Pending rows override with a 4-px border
+    // anyway, so this fallback only matters for the rare non-pending-null
+    // case.
+    final Color borderColor;
+    if (widget.selectedAction == null) {
+      borderColor = colorScheme.tertiary;
+    } else if (isImporting) {
+      borderColor = Colors.green;
+    } else {
+      borderColor = colorScheme.error;
+    }
 
     final BorderSide borderSide = widget.isPending
         ? BorderSide(color: colorScheme.tertiary, width: 4)
@@ -507,6 +525,8 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
               onTap: widget.entityMatch != null
                   ? () => setState(() => _expanded = !_expanded)
                   : () => widget.onActionChanged(
+                      // First tap on an undecided row (null) defaults to
+                      // importAsNew; otherwise toggle between the two states.
                       isImporting
                           ? DuplicateAction.skip
                           : DuplicateAction.importAsNew,
@@ -555,9 +575,11 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
                       const SizedBox(width: 8),
                       NeedsDecisionPill(colorScheme: colorScheme),
                     ],
-                    const SizedBox(width: 8),
-                    // Action badge
-                    _SimpleActionBadge(isImporting: isImporting),
+                    // Action badge — suppressed when no decision has been made.
+                    if (widget.selectedAction != null) ...[
+                      const SizedBox(width: 8),
+                      _SimpleActionBadge(isImporting: isImporting),
+                    ],
                     // Expand/collapse chevron (only when comparison data exists)
                     if (widget.entityMatch != null) ...[
                       const SizedBox(width: 4),
@@ -577,6 +599,7 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
                 entityMatch: widget.entityMatch!,
                 selectedAction: widget.selectedAction,
                 onActionChanged: widget.onActionChanged,
+                isPending: widget.isPending,
               ),
           ],
         ),
@@ -588,13 +611,23 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
 /// The expanded comparison panel showing existing vs incoming fields.
 class _EntityComparisonPanel extends StatelessWidget {
   final EntityMatchResult entityMatch;
-  final DuplicateAction selectedAction;
+
+  /// The currently selected action, or `null` when the row is still pending a
+  /// decision. Null leaves both action buttons outlined (no pre-highlight).
+  final DuplicateAction? selectedAction;
   final ValueChanged<DuplicateAction> onActionChanged;
+
+  /// Whether the enclosing row still needs an explicit user decision.
+  ///
+  /// When `true` AND [selectedAction] is `null`, a "Choose an action" label
+  /// is rendered above the action-button row.
+  final bool isPending;
 
   const _EntityComparisonPanel({
     required this.entityMatch,
     required this.selectedAction,
     required this.onActionChanged,
+    this.isPending = false,
   });
 
   @override
@@ -607,6 +640,8 @@ class _EntityComparisonPanel extends StatelessWidget {
       ...entityMatch.existingFields.keys,
       ...entityMatch.incomingFields.keys,
     };
+
+    final showChooseLabel = isPending && selectedAction == null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -651,24 +686,42 @@ class _EntityComparisonPanel extends StatelessWidget {
         // Action buttons — match dive card style
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Wrap(
-            alignment: WrapAlignment.start,
-            spacing: 8,
-            runSpacing: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              _EntityActionButton(
-                label: 'Skip',
-                subtitle: 'Discard this import',
-                isSelected: selectedAction == DuplicateAction.skip,
-                color: colorScheme.error,
-                onPressed: () => onActionChanged(DuplicateAction.skip),
-              ),
-              _EntityActionButton(
-                label: 'Import as New',
-                subtitle: 'Create separate entry',
-                isSelected: selectedAction == DuplicateAction.importAsNew,
-                color: Colors.green.shade700,
-                onPressed: () => onActionChanged(DuplicateAction.importAsNew),
+              if (showChooseLabel)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Choose an action',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: colorScheme.tertiary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              Wrap(
+                alignment: WrapAlignment.start,
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  _EntityActionButton(
+                    label: 'Skip',
+                    subtitle: 'Discard this import',
+                    isSelected: selectedAction == DuplicateAction.skip,
+                    color: colorScheme.error,
+                    onPressed: () => onActionChanged(DuplicateAction.skip),
+                  ),
+                  _EntityActionButton(
+                    label: 'Import as New',
+                    subtitle: 'Create separate entry',
+                    isSelected: selectedAction == DuplicateAction.importAsNew,
+                    color: Colors.green.shade700,
+                    onPressed: () =>
+                        onActionChanged(DuplicateAction.importAsNew),
+                  ),
+                ],
               ),
             ],
           ),

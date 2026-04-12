@@ -57,6 +57,13 @@ class DiveComparisonCard extends ConsumerWidget {
   /// avoid a nested card outline (grey line artifact).
   final bool embedded;
 
+  /// Whether the enclosing row still needs an explicit user decision.
+  ///
+  /// When `true` AND [selectedAction] is `null`, a "Choose an action" label is
+  /// rendered above the action-button row to make the required decision
+  /// visually prominent. Has no effect in immediate-action mode.
+  final bool isPending;
+
   const DiveComparisonCard({
     super.key,
     required this.incoming,
@@ -71,6 +78,7 @@ class DiveComparisonCard extends ConsumerWidget {
     this.onActionChanged,
     this.availableActions,
     this.embedded = false,
+    this.isPending = false,
   });
 
   @override
@@ -354,8 +362,12 @@ class DiveComparisonCard extends ConsumerWidget {
   }
 
   Widget _buildActionButtons(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isTriState = selectedAction != null;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    // Tri-state selector mode is identified by the presence of an
+    // [onActionChanged] callback. A pending row legitimately passes a null
+    // [selectedAction] in this mode, so we cannot key off the action value.
+    final isTriState = onActionChanged != null;
 
     // In tri-state mode, limit buttons to availableActions (default: all).
     bool showAction(DuplicateAction action) {
@@ -431,13 +443,35 @@ class DiveComparisonCard extends ConsumerWidget {
       );
     }
 
+    // Show a "Choose an action" label when the enclosing row is pending and
+    // no action has been selected yet — reinforces the pending visual cue and
+    // makes the required decision prominent.
+    final showChooseLabel = isPending && isTriState && selectedAction == null;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Wrap(
-        alignment: WrapAlignment.start,
-        spacing: 8,
-        runSpacing: 4,
-        children: buttons,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (showChooseLabel)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                'Choose an action',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: colorScheme.tertiary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          Wrap(
+            alignment: WrapAlignment.start,
+            spacing: 8,
+            runSpacing: 4,
+            children: buttons,
+          ),
+        ],
       ),
     );
   }

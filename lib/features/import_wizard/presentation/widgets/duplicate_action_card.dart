@@ -21,7 +21,11 @@ class DuplicateActionCard extends StatefulWidget {
   final DiveMatchResult matchResult;
 
   /// The currently selected action for this item.
-  final DuplicateAction selectedAction;
+  ///
+  /// `null` when the user has not yet made a decision. In that state the
+  /// card renders without an action badge and the embedded comparison card
+  /// leaves every action button outlined (no button is pre-highlighted).
+  final DuplicateAction? selectedAction;
 
   /// The set of action buttons to show in the expanded comparison card.
   final Set<DuplicateAction> availableActions;
@@ -69,10 +73,14 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
     final colorScheme = theme.colorScheme;
     final score = widget.matchResult.score;
 
+    // Fallback-free border colour for non-pending rows. Pending rows always
+    // override with the tertiary warning border below, so the fallback used
+    // here (when [selectedAction] is null) is only theoretical.
     final borderColor = switch (widget.selectedAction) {
       DuplicateAction.importAsNew => Colors.green,
       DuplicateAction.consolidate => colorScheme.primary,
       DuplicateAction.skip => score >= 0.7 ? colorScheme.error : Colors.orange,
+      null => colorScheme.tertiary,
     };
 
     final BorderSide borderSide = widget.isPending
@@ -130,6 +138,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
       selectedAction: widget.selectedAction,
       onActionChanged: widget.onActionChanged,
       availableActions: widget.availableActions,
+      isPending: widget.isPending,
     );
   }
 }
@@ -137,7 +146,10 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
 class _CollapsedHeader extends StatelessWidget {
   final EntityItem item;
   final DiveMatchResult matchResult;
-  final DuplicateAction selectedAction;
+
+  /// The action chosen for this row, or `null` when the user has not yet
+  /// decided. Null suppresses the trailing [_ActionBadge].
+  final DuplicateAction? selectedAction;
   final bool expanded;
   final bool isPending;
   final VoidCallback onToggle;
@@ -248,10 +260,12 @@ class _CollapsedHeader extends StatelessWidget {
               const SizedBox(width: 8),
               NeedsDecisionPill(colorScheme: colorScheme),
             ],
-            const SizedBox(width: 6),
-            // Action badge
-            _ActionBadge(action: selectedAction),
-            const SizedBox(width: 4),
+            // Action badge — suppressed when no decision has been made yet.
+            if (selectedAction != null) ...[
+              const SizedBox(width: 6),
+              _ActionBadge(action: selectedAction!),
+              const SizedBox(width: 4),
+            ],
             // "Decide" label — only shown when pending and collapsed.
             if (isPending && !expanded) ...[
               Text(
