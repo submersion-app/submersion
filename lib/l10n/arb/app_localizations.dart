@@ -23669,11 +23669,41 @@ abstract class AppLocalizations {
   /// **'Select File'**
   String get universalImport_action_selectFile;
 
+  /// Bulk action button that consolidates all matched pending duplicate dives
+  ///
+  /// In en, this message translates to:
+  /// **'Consolidate matched ({count})'**
+  String universalImport_bulk_consolidateMatched(int count);
+
+  /// Bulk action button that imports all items in the current tab
+  ///
+  /// In en, this message translates to:
+  /// **'Import all ({count})'**
+  String universalImport_bulk_importAll(int count);
+
+  /// Bulk action button that imports all pending duplicate items as new dives
+  ///
+  /// In en, this message translates to:
+  /// **'Import all as new ({count})'**
+  String universalImport_bulk_importAllAsNew(int count);
+
+  /// Bulk action button that skips all items in the current tab
+  ///
+  /// In en, this message translates to:
+  /// **'Skip all ({count})'**
+  String universalImport_bulk_skipAll(int count);
+
   /// Description text on the file selection step listing supported formats
   ///
   /// In en, this message translates to:
   /// **'Select a dive log file to import. Supported formats include CSV, UDDF, Subsurface XML, Garmin FIT, and Shearwater Cloud databases.'**
   String get universalImport_description_supportedFormats;
+
+  /// Label on the expansion button for a pending duplicate dive row (replaces 'Compare dives')
+  ///
+  /// In en, this message translates to:
+  /// **'Decide'**
+  String get universalImport_dive_decideAction;
 
   /// Error message shown when the detected file format is not supported
   ///
@@ -23801,6 +23831,30 @@ abstract class AppLocalizations {
   /// **'{selected} of {total} selected'**
   String universalImport_label_xOfYSelected(Object selected, Object total);
 
+  /// Hint text telling the user how many pending duplicates still need a decision before Import can proceed
+  ///
+  /// In en, this message translates to:
+  /// **'{count} duplicate(s) need a decision'**
+  String universalImport_pending_gateHint(int count);
+
+  /// Pill/badge shown on a pending duplicate row indicating the user must pick an action
+  ///
+  /// In en, this message translates to:
+  /// **'Needs decision'**
+  String get universalImport_pending_needsDecision;
+
+  /// Action label jumping the user to the pending duplicate that needs review
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get universalImport_pending_reviewAction;
+
+  /// Row hint shown under an undecided pending duplicate prompting the user to tap the Decide button
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Decide to choose'**
+  String get universalImport_rowHint_tapCompareToDecide;
+
   /// Accessibility label for entity type selection count
   ///
   /// In en, this message translates to:
@@ -23882,6 +23936,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select'**
   String get universalImport_step_select;
+
+  /// Addendum to the pending duplicates summary banner clarifying that each needs a decision before import
+  ///
+  /// In en, this message translates to:
+  /// **'Each needs a decision before importing.'**
+  String get universalImport_summary_decidesRequired;
 
   /// Title for the universal import wizard page and file selection heading
   ///

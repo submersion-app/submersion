@@ -13227,8 +13227,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_action_selectFile => '选择文件';
 
   @override
+  String universalImport_bulk_consolidateMatched(int count) {
+    return 'Consolidate matched ($count)';
+  }
+
+  @override
+  String universalImport_bulk_importAll(int count) {
+    return 'Import all ($count)';
+  }
+
+  @override
+  String universalImport_bulk_importAllAsNew(int count) {
+    return 'Import all as new ($count)';
+  }
+
+  @override
+  String universalImport_bulk_skipAll(int count) {
+    return 'Skip all ($count)';
+  }
+
+  @override
   String get universalImport_description_supportedFormats =>
       '选择一个潜水日志文件进行导入。支持的格式包括 CSV、UDDF、Subsurface XML 和 Garmin FIT。';
+
+  @override
+  String get universalImport_dive_decideAction => 'Decide';
 
   @override
   String get universalImport_error_unsupportedFormat =>
@@ -13313,6 +13336,21 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String universalImport_pending_gateHint(int count) {
+    return '$count duplicate(s) need a decision';
+  }
+
+  @override
+  String get universalImport_pending_needsDecision => 'Needs decision';
+
+  @override
+  String get universalImport_pending_reviewAction => 'Review';
+
+  @override
+  String get universalImport_rowHint_tapCompareToDecide =>
+      'Tap Decide to choose';
+
+  @override
   String universalImport_semantics_entitySelection(
     Object selected,
     Object total,
@@ -13368,6 +13406,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get universalImport_step_select => '选择';
+
+  @override
+  String get universalImport_summary_decidesRequired =>
+      'Each needs a decision before importing.';
 
   @override
   String get universalImport_title => '导入数据';

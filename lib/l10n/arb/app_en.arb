@@ -7760,7 +7760,12 @@
   "universalImport_action_selectAll": "Select All",
   "universalImport_action_changeFile": "Change File",
   "universalImport_action_selectFile": "Select File",
+  "universalImport_bulk_consolidateMatched": "Consolidate matched ({count})",
+  "universalImport_bulk_importAll": "Import all ({count})",
+  "universalImport_bulk_importAllAsNew": "Import all as new ({count})",
+  "universalImport_bulk_skipAll": "Skip all ({count})",
   "universalImport_description_supportedFormats": "Select a dive log file to import. Supported formats include CSV, UDDF, Subsurface XML, Garmin FIT, and Shearwater Cloud databases.",
+  "universalImport_dive_decideAction": "Decide",
   "universalImport_error_unsupportedFormat": "This format is not yet supported. Please export as UDDF or CSV.",
   "universalImport_label_columnMapping": "Column Mapping",
   "universalImport_label_columnsMapped": "{mapped} of {total} columns mapped",
@@ -7782,6 +7787,10 @@
   "universalImport_label_unnamed": "Unnamed",
   "universalImport_label_xOfY": "{current} of {total}",
   "universalImport_label_xOfYSelected": "{selected} of {total} selected",
+  "universalImport_pending_gateHint": "{count} duplicate(s) need a decision",
+  "universalImport_pending_needsDecision": "Needs decision",
+  "universalImport_pending_reviewAction": "Review",
+  "universalImport_rowHint_tapCompareToDecide": "Tap Decide to choose",
   "universalImport_semantics_entitySelection": "{selected} of {total} {entityType} selected",
   "universalImport_semantics_importError": "Import error: {error}",
   "universalImport_semantics_importProgress": "Import progress: {percent} percent",
@@ -7795,6 +7804,7 @@
   "universalImport_step_map": "Map",
   "universalImport_step_review": "Review",
   "universalImport_step_select": "Select",
+  "universalImport_summary_decidesRequired": "Each needs a decision before importing.",
   "universalImport_title": "File Import",
   "universalImport_tooltip_closeWizard": "Close import wizard",
   "@universalImport_action_consolidate": {
@@ -7818,8 +7828,43 @@
   "@universalImport_action_selectFile": {
     "description": "Button label for the file picker button"
   },
+  "@universalImport_bulk_consolidateMatched": {
+    "description": "Bulk action button that consolidates all matched pending duplicate dives",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@universalImport_bulk_importAll": {
+    "description": "Bulk action button that imports all items in the current tab",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@universalImport_bulk_importAllAsNew": {
+    "description": "Bulk action button that imports all pending duplicate items as new dives",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@universalImport_bulk_skipAll": {
+    "description": "Bulk action button that skips all items in the current tab",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "@universalImport_description_supportedFormats": {
     "description": "Description text on the file selection step listing supported formats"
+  },
+  "@universalImport_dive_decideAction": {
+    "description": "Label on the expansion button for a pending duplicate dive row (replaces 'Compare dives')"
   },
   "@universalImport_error_unsupportedFormat": {
     "description": "Error message shown when the detected file format is not supported"
@@ -7954,6 +7999,23 @@
       }
     }
   },
+  "@universalImport_pending_gateHint": {
+    "description": "Hint text telling the user how many pending duplicates still need a decision before Import can proceed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@universalImport_pending_needsDecision": {
+    "description": "Pill/badge shown on a pending duplicate row indicating the user must pick an action"
+  },
+  "@universalImport_pending_reviewAction": {
+    "description": "Action label jumping the user to the pending duplicate that needs review"
+  },
+  "@universalImport_rowHint_tapCompareToDecide": {
+    "description": "Row hint shown under an undecided pending duplicate prompting the user to tap the Decide button"
+  },
   "@universalImport_semantics_entitySelection": {
     "description": "Accessibility label for entity type selection count",
     "placeholders": {
@@ -8042,6 +8104,9 @@
   },
   "@universalImport_step_select": {
     "description": "Step indicator label for the file selection step"
+  },
+  "@universalImport_summary_decidesRequired": {
+    "description": "Addendum to the pending duplicates summary banner clarifying that each needs a decision before import"
   },
   "@universalImport_title": {
     "description": "Title for the universal import wizard page and file selection heading"

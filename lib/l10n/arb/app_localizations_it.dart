@@ -13919,8 +13919,31 @@ class AppLocalizationsIt extends AppLocalizations {
   String get universalImport_action_selectFile => 'Seleziona File';
 
   @override
+  String universalImport_bulk_consolidateMatched(int count) {
+    return 'Consolidate matched ($count)';
+  }
+
+  @override
+  String universalImport_bulk_importAll(int count) {
+    return 'Import all ($count)';
+  }
+
+  @override
+  String universalImport_bulk_importAllAsNew(int count) {
+    return 'Import all as new ($count)';
+  }
+
+  @override
+  String universalImport_bulk_skipAll(int count) {
+    return 'Skip all ($count)';
+  }
+
+  @override
   String get universalImport_description_supportedFormats =>
       'Seleziona un file di registro immersioni da importare. I formati supportati includono CSV, UDDF, Subsurface XML e Garmin FIT.';
+
+  @override
+  String get universalImport_dive_decideAction => 'Decide';
 
   @override
   String get universalImport_error_unsupportedFormat =>
@@ -14006,6 +14029,21 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String universalImport_pending_gateHint(int count) {
+    return '$count duplicate(s) need a decision';
+  }
+
+  @override
+  String get universalImport_pending_needsDecision => 'Needs decision';
+
+  @override
+  String get universalImport_pending_reviewAction => 'Review';
+
+  @override
+  String get universalImport_rowHint_tapCompareToDecide =>
+      'Tap Decide to choose';
+
+  @override
   String universalImport_semantics_entitySelection(
     Object selected,
     Object total,
@@ -14063,6 +14101,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get universalImport_step_select => 'Seleziona';
+
+  @override
+  String get universalImport_summary_decidesRequired =>
+      'Each needs a decision before importing.';
 
   @override
   String get universalImport_title => 'Importa Dati';
