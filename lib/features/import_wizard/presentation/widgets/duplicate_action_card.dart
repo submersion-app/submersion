@@ -44,8 +44,7 @@ class DuplicateActionCard extends StatefulWidget {
   /// Whether this duplicate still needs an explicit user decision.
   ///
   /// When `true`, the card is rendered in a warning visual state: a 4-px
-  /// warning-colored border, a [NeedsDecisionPill] in the header, and the
-  /// collapsed expand control is labelled "Decide".
+  /// warning-colored border and a [NeedsDecisionPill] in the header.
   final bool isPending;
 
   const DuplicateActionCard({
@@ -264,20 +263,9 @@ class _CollapsedHeader extends StatelessWidget {
             if (selectedAction != null) ...[
               const SizedBox(width: 6),
               _ActionBadge(action: selectedAction!),
-              const SizedBox(width: 4),
             ],
-            // "Decide" label — only shown when pending and collapsed.
-            if (isPending && !expanded) ...[
-              Text(
-                context.l10n.universalImport_dive_decideAction,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: colorScheme.tertiary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: 4),
-            ],
-            // Expand/collapse chevron
+            // Breathing room before the expand/collapse chevron.
+            const SizedBox(width: 12),
             Icon(
               expanded ? Icons.expand_less : Icons.expand_more,
               size: 20,

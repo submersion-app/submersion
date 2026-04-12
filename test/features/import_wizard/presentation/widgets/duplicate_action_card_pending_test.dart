@@ -111,49 +111,6 @@ void main() {
       expect(shape.side.color, expectedColor);
     });
 
-    testWidgets('shows "Decide" label when pending and collapsed', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(800, 600);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-
-      await tester.pumpWidget(_pump(isPending: true));
-      await tester.pump();
-
-      expect(find.text('Decide'), findsOneWidget);
-    });
-
-    testWidgets('hides "Decide" label when pending and expanded', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(800, 600);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-
-      await tester.pumpWidget(_pump(isPending: true));
-      await tester.pump();
-
-      // Expand.
-      await tester.tap(find.byIcon(Icons.expand_more));
-      await tester.pump();
-
-      expect(find.text('Decide'), findsNothing);
-    });
-
-    testWidgets('does not show "Decide" label when not pending', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(800, 600);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-
-      await tester.pumpWidget(_pump(isPending: false));
-      await tester.pump();
-
-      expect(find.text('Decide'), findsNothing);
-    });
-
     testWidgets(
       'does NOT show action chip when pending and selectedAction is null',
       (tester) async {
@@ -170,9 +127,8 @@ void main() {
         expect(find.text('IMPORT'), findsNothing);
         expect(find.text('CONSOLIDATE'), findsNothing);
 
-        // But the pending visual cues are still present.
+        // But the pending pill is still present.
         expect(find.text('Needs decision'), findsOneWidget);
-        expect(find.text('Decide'), findsOneWidget);
       },
     );
 
