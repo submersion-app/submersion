@@ -5,6 +5,8 @@ import 'package:submersion/features/import_wizard/domain/models/duplicate_action
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/duplicate_action_card.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/needs_decision_pill.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A scrollable review list for a single entity type.
 ///
@@ -26,12 +28,22 @@ class EntityReviewList extends StatelessWidget {
   /// Which action buttons to show inside each [DuplicateActionCard].
   final Set<DuplicateAction> availableActions;
 
+  /// Indices of duplicate items still awaiting an explicit user decision.
+  ///
+  /// Drives pending-first sorting inside each duplicate section, visual
+  /// pending state on the duplicate cards, and the visibility of the bulk
+  /// action row.
+  final Set<int> pendingIndices;
+
   /// Called when the user toggles a non-duplicate item's checkbox.
   final ValueChanged<int> onToggleSelection;
 
   /// Called when the user changes the action for a duplicate item.
   final void Function(int index, DuplicateAction action)
   onDuplicateActionChanged;
+
+  /// Called when the user taps a bulk action button.
+  final void Function(DuplicateAction action) onBulkAction;
 
   /// Called when the user taps "Select All".
   final VoidCallback onSelectAll;
@@ -54,13 +66,17 @@ class EntityReviewList extends StatelessWidget {
     required this.selectedIndices,
     required this.duplicateActions,
     required this.availableActions,
+    this.pendingIndices = const {},
     required this.onToggleSelection,
     required this.onDuplicateActionChanged,
+    this.onBulkAction = _noopBulkAction,
     required this.onSelectAll,
     required this.onDeselectAll,
     required this.existingDiveIdForIndex,
     this.projectedDiveNumbers,
   });
+
+  static void _noopBulkAction(DuplicateAction _) {}
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +135,16 @@ class EntityReviewList extends StatelessWidget {
             ],
           ),
         ),
+
+        // Bulk action row (only when there are pending duplicates).
+        if (pendingIndices.isNotEmpty)
+          _BulkActionRow(
+            isDiveTab: _isDiveTab(),
+            pendingCount: pendingIndices.length,
+            matchableConsolidateCount: _matchableConsolidateCount(),
+            availableActions: availableActions,
+            onBulkAction: onBulkAction,
+          ),
 
         // Non-duplicate items
         if (nonDuplicateIndices.isNotEmpty) ...[
@@ -183,6 +209,7 @@ class EntityReviewList extends StatelessWidget {
         onActionChanged: (a) => onDuplicateActionChanged(index, a),
         existingDiveId: existingDiveIdForIndex(index),
         projectedDiveNumber: projectedDiveNumbers?[index],
+        isPending: pendingIndices.contains(index),
       ),
     );
   }
@@ -194,41 +221,52 @@ class EntityReviewList extends StatelessWidget {
     ];
   }
 
-  /// Returns duplicate indices filtered by score range, sorted descending by
-  /// score.
+  /// Returns duplicate indices filtered by score range.
+  ///
+  /// Pending-review indices are emitted first (preserving their
+  /// enumeration order from [group.duplicateIndices]). The remaining
+  /// non-pending indices are then sorted descending by match score.
   List<int> _sortedDuplicateIndices({
     required double minScore,
     double maxScore = double.infinity,
   }) {
     final matchResults = group.matchResults;
-    if (matchResults == null) return [];
+    if (matchResults == null) return const [];
 
-    final indices = <int>[];
+    final all = <int>[];
     for (final index in group.duplicateIndices) {
       final result = matchResults[index];
       if (result == null) continue;
       if (result.score >= minScore && result.score < maxScore) {
-        indices.add(index);
+        all.add(index);
       }
     }
 
-    indices.sort((a, b) {
+    final pendingFirst = all.where(pendingIndices.contains).toList();
+    final rest = all.where((i) => !pendingIndices.contains(i)).toList();
+    rest.sort((a, b) {
       final scoreA = matchResults[a]?.score ?? 0;
       final scoreB = matchResults[b]?.score ?? 0;
       return scoreB.compareTo(scoreA);
     });
 
-    return indices;
+    return [...pendingFirst, ...rest];
   }
 
   /// Returns duplicate indices that have no match score (non-dive entities).
+  ///
+  /// Pending-review indices are emitted first, in ascending index order; the
+  /// remaining non-pending indices follow in ascending index order.
   List<int> _unscoredDuplicateIndices() {
     final matchResults = group.matchResults;
     if (matchResults != null) {
       // Entities with matchResults are handled by _sortedDuplicateIndices.
-      return [];
+      return const [];
     }
-    return group.duplicateIndices.toList()..sort();
+    final sorted = group.duplicateIndices.toList()..sort();
+    final pendingFirst = sorted.where(pendingIndices.contains).toList();
+    final rest = sorted.where((i) => !pendingIndices.contains(i)).toList();
+    return [...pendingFirst, ...rest];
   }
 
   Widget _buildEntityDuplicateCard(int index) {
@@ -241,7 +279,27 @@ class EntityReviewList extends StatelessWidget {
       entityMatch: entityMatch,
       selectedAction: action,
       onActionChanged: (a) => onDuplicateActionChanged(index, a),
+      isPending: pendingIndices.contains(index),
     );
+  }
+
+  /// Whether this group represents the dive tab.
+  ///
+  /// A group is a "dive tab" if at least one item carries dive data. This
+  /// controls the bulk-action label variant (Import all as new vs Import all).
+  bool _isDiveTab() {
+    if (group.items.isEmpty) return false;
+    return group.items.any((item) => item.diveData != null);
+  }
+
+  /// Number of pending rows whose match score is high enough (>= 0.7) to
+  /// qualify for bulk consolidation.
+  int _matchableConsolidateCount() {
+    final matchResults = group.matchResults;
+    if (matchResults == null) return 0;
+    return pendingIndices
+        .where((i) => (matchResults[i]?.score ?? 0) >= 0.7)
+        .length;
   }
 
   String _itemCountText(int nonDuplicates, int duplicates, int selectedCount) {
@@ -396,11 +454,18 @@ class _EntityDuplicateCard extends StatefulWidget {
   final DuplicateAction selectedAction;
   final ValueChanged<DuplicateAction> onActionChanged;
 
+  /// Whether this row still needs an explicit user decision.
+  ///
+  /// When true the card renders a warning-colored 4-px border and a
+  /// [NeedsDecisionPill] in its header.
+  final bool isPending;
+
   const _EntityDuplicateCard({
     required this.item,
     required this.entityMatch,
     required this.selectedAction,
     required this.onActionChanged,
+    this.isPending = false,
   });
 
   @override
@@ -418,13 +483,17 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
     final isImporting = widget.selectedAction == DuplicateAction.importAsNew;
     final borderColor = isImporting ? Colors.green : colorScheme.error;
 
+    final BorderSide borderSide = widget.isPending
+        ? BorderSide(color: colorScheme.tertiary, width: 4)
+        : BorderSide(color: borderColor, width: 1.5);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Card(
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: borderColor, width: 1.5),
+          side: borderSide,
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -481,6 +550,11 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
                         ],
                       ),
                     ),
+                    // Needs-decision pill — only shown when this row is pending.
+                    if (widget.isPending) ...[
+                      const SizedBox(width: 8),
+                      NeedsDecisionPill(colorScheme: colorScheme),
+                    ],
                     const SizedBox(width: 8),
                     // Action badge
                     _SimpleActionBadge(isImporting: isImporting),
@@ -787,6 +861,72 @@ class _SectionLabel extends StatelessWidget {
           fontWeight: FontWeight.w700,
           letterSpacing: 0.5,
         ),
+      ),
+    );
+  }
+}
+
+/// Horizontal row of bulk-action buttons rendered above the duplicate list.
+///
+/// Visible only when at least one row is pending. The set of buttons is
+/// filtered by [availableActions] so adapters that don't support certain
+/// actions simply don't render the corresponding button.
+class _BulkActionRow extends StatelessWidget {
+  final bool isDiveTab;
+  final int pendingCount;
+  final int matchableConsolidateCount;
+  final Set<DuplicateAction> availableActions;
+  final void Function(DuplicateAction) onBulkAction;
+
+  const _BulkActionRow({
+    required this.isDiveTab,
+    required this.pendingCount,
+    required this.matchableConsolidateCount,
+    required this.availableActions,
+    required this.onBulkAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 4,
+        children: [
+          if (availableActions.contains(DuplicateAction.skip))
+            OutlinedButton.icon(
+              onPressed: () => onBulkAction(DuplicateAction.skip),
+              icon: const Icon(Icons.block, size: 16),
+              label: Text(
+                context.l10n.universalImport_bulk_skipAll(pendingCount),
+              ),
+            ),
+          if (availableActions.contains(DuplicateAction.importAsNew))
+            OutlinedButton.icon(
+              onPressed: () => onBulkAction(DuplicateAction.importAsNew),
+              icon: const Icon(Icons.add_circle_outline, size: 16),
+              label: Text(
+                isDiveTab
+                    ? context.l10n.universalImport_bulk_importAllAsNew(
+                        pendingCount,
+                      )
+                    : context.l10n.universalImport_bulk_importAll(pendingCount),
+              ),
+            ),
+          if (availableActions.contains(DuplicateAction.consolidate))
+            OutlinedButton.icon(
+              onPressed: matchableConsolidateCount > 0
+                  ? () => onBulkAction(DuplicateAction.consolidate)
+                  : null,
+              icon: const Icon(Icons.merge_type, size: 16),
+              label: Text(
+                context.l10n.universalImport_bulk_consolidateMatched(
+                  matchableConsolidateCount,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

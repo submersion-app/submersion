@@ -272,9 +272,11 @@ class _EntityTab extends StatelessWidget {
         selectedIndices: selectedIndices,
         duplicateActions: duplicateActions,
         availableActions: availableActions,
+        pendingIndices: state.pendingFor(type),
         onToggleSelection: (i) => notifier.toggleSelection(type, i),
         onDuplicateActionChanged: (i, a) =>
             notifier.setDuplicateAction(type, i, a),
+        onBulkAction: (action) => notifier.applyBulkAction(type, action),
         onSelectAll: () => notifier.selectAll(type),
         onDeselectAll: () => notifier.deselectAll(type),
         existingDiveIdForIndex: (i) => group.matchResults?[i]?.diveId ?? '',
