@@ -166,52 +166,41 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   // setBundle
   // -------------------------------------------------------------------------
 
-  /// Store [bundle] and initialize selections and duplicate actions.
+  /// Store [bundle] and initialize selections and pending-review state.
   ///
   /// For each entity group:
   /// - All items are selected except those in [EntityGroup.duplicateIndices].
-  ///
-  /// For dives with [EntityGroup.matchResults]:
-  /// - score >= 0.7 → [DuplicateAction.skip]
-  /// - score >= 0.5 and < 0.7 → [DuplicateAction.importAsNew]
+  /// - Every suspected-duplicate index is recorded in
+  ///   [ImportWizardState.pendingDuplicateReview] so the user must explicitly
+  ///   choose an action before the row gets a recorded resolution.
+  /// - [ImportWizardState.duplicateActions] is left empty — no auto-defaults
+  ///   are written for probable or possible matches. The user drains the
+  ///   pending set via per-row ([setDuplicateAction]) or bulk actions.
   void setBundle(ImportBundle bundle) {
     final selections = <ImportEntityType, Set<int>>{};
-    final duplicateActions = <ImportEntityType, Map<int, DuplicateAction>>{};
+    final pendingReview = <ImportEntityType, Set<int>>{};
 
     for (final entry in bundle.groups.entries) {
       final type = entry.key;
       final group = entry.value;
 
-      // Build initial selection: all indices except duplicates.
       final allIndices = Set<int>.from(
         List.generate(group.items.length, (i) => i),
       );
       selections[type] = allIndices.difference(group.duplicateIndices);
 
-      // Build duplicate actions from match results.
-      final matchResults = group.matchResults;
-      if (matchResults != null && matchResults.isNotEmpty) {
-        final actionsForType = <int, DuplicateAction>{};
-        for (final matchEntry in matchResults.entries) {
-          final index = matchEntry.key;
-          final result = matchEntry.value;
-          if (result.isProbable) {
-            actionsForType[index] = DuplicateAction.skip;
-          } else if (result.score >= 0.5) {
-            // Possible but not probable — default to import as new.
-            actionsForType[index] = DuplicateAction.importAsNew;
-          }
-        }
-        if (actionsForType.isNotEmpty) {
-          duplicateActions[type] = actionsForType;
-        }
+      if (group.duplicateIndices.isNotEmpty) {
+        pendingReview[type] = Set<int>.from(group.duplicateIndices);
       }
     }
 
     state = state.copyWith(
       bundle: bundle,
       selections: selections,
-      duplicateActions: duplicateActions,
+      // Auto-default duplicateActions removed — pending indices are decided
+      // explicitly by the user via setDuplicateAction or applyBulkAction.
+      duplicateActions: const {},
+      pendingDuplicateReview: pendingReview,
       currentStep: 1,
       clearError: true,
     );
