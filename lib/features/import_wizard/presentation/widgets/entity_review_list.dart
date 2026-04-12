@@ -13,8 +13,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Displays non-duplicate items as selectable checkboxes and duplicate items
 /// as [DuplicateActionCard] widgets for per-item action selection.
 ///
-/// Order: non-duplicates first, then likely duplicates (score >= 0.7),
-/// then possible duplicates (score >= 0.5).
+/// Order: likely duplicates (score >= 0.7), then possible duplicates
+/// (score >= 0.5), then non-duplicates. Duplicates appear first so rows
+/// needing a user decision aren't buried beneath clean imports.
 class EntityReviewList extends StatelessWidget {
   /// The entity group containing items, duplicate indices, and match results.
   final EntityGroup group;
@@ -146,19 +147,8 @@ class EntityReviewList extends StatelessWidget {
             onBulkAction: onBulkAction,
           ),
 
-        // Non-duplicate items
-        if (nonDuplicateIndices.isNotEmpty) ...[
-          for (final index in nonDuplicateIndices)
-            _NonDuplicateRow(
-              item: group.items[index],
-              index: index,
-              isSelected: selectedIndices.contains(index),
-              onToggle: () => onToggleSelection(index),
-              projectedDiveNumber: projectedDiveNumbers?[index],
-            ),
-        ],
-
-        // Scored duplicates (dives with matchResults)
+        // Scored duplicates (dives with matchResults) appear first so rows
+        // that need user attention are at the top of the tab.
         if (likelyDuplicateIndices.isNotEmpty) ...[
           _SectionLabel(
             label: 'Potential Duplicates',
@@ -185,6 +175,19 @@ class EntityReviewList extends StatelessWidget {
           ),
           for (final index in _unscoredDuplicateIndices())
             _buildEntityDuplicateCard(index),
+        ],
+
+        // Non-duplicate items (no conflicts — listed after duplicates so the
+        // rows requiring decisions aren't buried beneath clean imports).
+        if (nonDuplicateIndices.isNotEmpty) ...[
+          for (final index in nonDuplicateIndices)
+            _NonDuplicateRow(
+              item: group.items[index],
+              index: index,
+              isSelected: selectedIndices.contains(index),
+              onToggle: () => onToggleSelection(index),
+              projectedDiveNumber: projectedDiveNumbers?[index],
+            ),
         ],
       ],
     );
