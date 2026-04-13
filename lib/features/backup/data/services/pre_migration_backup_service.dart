@@ -48,6 +48,7 @@ class PreMigrationBackupService {
 
     final backupsDir = await _backupsDirProvider();
     await Directory(backupsDir).create(recursive: true);
+    await _sweepTempFiles(backupsDir);
 
     final now = _clock().toUtc();
     final ts = _formatTimestamp(now);
@@ -102,5 +103,24 @@ class PreMigrationBackupService {
       final f = File(path);
       if (await f.exists()) await f.delete();
     } catch (_) {}
+  }
+
+  Future<void> _sweepTempFiles(String backupsDir) async {
+    try {
+      final dir = Directory(backupsDir);
+      await for (final entity in dir.list(followLinks: false)) {
+        if (entity is! File) continue;
+        final name = p.basename(entity.path);
+        if (name.endsWith('.tmp')) {
+          await _safeDelete(entity.path);
+        }
+      }
+    } catch (e, stack) {
+      _log.warning(
+        'Failed sweeping .tmp files in $backupsDir',
+        error: e,
+        stackTrace: stack,
+      );
+    }
   }
 }

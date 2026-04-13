@@ -147,4 +147,55 @@ void main() {
       expect(f.prefs.getHistory(), isEmpty);
     });
   });
+
+  group('.tmp sweep', () {
+    test('deletes leftover .tmp files in backups dir before backup', () async {
+      final f = await _makeFixture();
+      addTearDown(f.dispose);
+      final stale = File(
+        p.join(f.backupsDir, '.20260101-000000-v62-v63.db.tmp'),
+      );
+      await stale.writeAsBytes([1, 2, 3]);
+      expect(await stale.exists(), isTrue);
+
+      final service = PreMigrationBackupService(
+        livePathProvider: () async => f.livePath,
+        backupsDirProvider: () async => f.backupsDir,
+        preferences: f.prefs,
+        clock: () => DateTime.utc(2026, 4, 12, 8, 12, 1),
+        idGenerator: () => 'id',
+      );
+
+      await service.backupIfMigrationPending(
+        stored: 63,
+        target: 64,
+        appVersion: '1.6.0.1241',
+      );
+
+      expect(await stale.exists(), isFalse);
+    });
+
+    test('does not delete non-.tmp files', () async {
+      final f = await _makeFixture();
+      addTearDown(f.dispose);
+      final keep = File(p.join(f.backupsDir, '20260101-000000-manual.db'));
+      await keep.writeAsBytes([1, 2, 3]);
+
+      final service = PreMigrationBackupService(
+        livePathProvider: () async => f.livePath,
+        backupsDirProvider: () async => f.backupsDir,
+        preferences: f.prefs,
+        clock: () => DateTime.utc(2026, 4, 12, 8, 12, 1),
+        idGenerator: () => 'id',
+      );
+
+      await service.backupIfMigrationPending(
+        stored: 63,
+        target: 64,
+        appVersion: '1.6.0.1241',
+      );
+
+      expect(await keep.exists(), isTrue);
+    });
+  });
 }
