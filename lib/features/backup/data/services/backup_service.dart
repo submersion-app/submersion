@@ -13,6 +13,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 
 /// Thin interface for the database operations BackupService needs.
 ///
@@ -399,13 +400,24 @@ class BackupService {
 
   /// Remove old backups beyond the retention count.
   ///
-  /// Keeps the [keepCount] most recent backups and deletes the rest.
+  /// Only prunes manual, unpinned records. Pre-migration records have their
+  /// own retention managed by PreMigrationBackupService. Pinned records are
+  /// exempt from all automatic retention.
+  ///
+  /// Keeps the [keepCount] most recent unpinned manual backups and deletes
+  /// the rest.
   Future<void> pruneOldBackups(int keepCount) async {
     final history = getBackupHistory(); // Already sorted newest-first
-    if (history.length <= keepCount) return;
 
-    final toDelete = history.sublist(keepCount);
-    _log.info('Pruning ${toDelete.length} old backups (keeping $keepCount)');
+    final eligible = history
+        .where((r) => r.type == BackupType.manual && !r.pinned)
+        .toList();
+    if (eligible.length <= keepCount) return;
+
+    final toDelete = eligible.sublist(keepCount);
+    _log.info(
+      'Pruning ${toDelete.length} old manual backups (keeping $keepCount)',
+    );
 
     for (final record in toDelete) {
       await deleteBackup(record);
