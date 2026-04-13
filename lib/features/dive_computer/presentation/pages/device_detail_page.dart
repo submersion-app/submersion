@@ -300,6 +300,14 @@ class DeviceDetailPage extends ConsumerWidget {
               icon: const Icon(Icons.list),
               label: Text(context.l10n.diveComputer_detail_viewDivesButton),
             ),
+            if (computer.lastDiveFingerprint != null) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => _confirmReimportAll(context, computer),
+                icon: const Icon(Icons.refresh),
+                label: Text(context.l10n.diveComputer_detail_reimportAllButton),
+              ),
+            ],
           ],
         ),
       ),
@@ -351,6 +359,35 @@ class DeviceDetailPage extends ConsumerWidget {
           content: Text(context.l10n.diveComputer_detail_cannotFilterNoSerial),
         ),
       );
+    }
+  }
+
+  Future<void> _confirmReimportAll(
+    BuildContext context,
+    DiveComputer computer,
+  ) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.diveComputer_detail_reimportDialogTitle),
+        content: Text(
+          l10n.diveComputer_detail_reimportDialogBody(computer.displayName),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.common_action_continue),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      context.push('/dive-computers/${computer.id}/download?forceFull=true');
     }
   }
 
