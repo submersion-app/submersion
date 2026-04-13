@@ -233,17 +233,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get backup_history_pinAction_pin => 'Pin backup';
+  String get backup_history_pinAction_pin => 'تثبيت النسخة الاحتياطية';
 
   @override
-  String get backup_history_pinAction_unpin => 'Unpin backup';
+  String get backup_history_pinAction_unpin => 'إلغاء تثبيت النسخة الاحتياطية';
 
   @override
-  String get backup_history_pinError => 'Could not update pin state.';
+  String get backup_history_pinError => 'تعذر تحديث حالة التثبيت.';
 
   @override
   String backup_history_preMigrationSubtitle(String size) {
-    return 'Pre-migration backup - $size';
+    return 'نسخة احتياطية قبل الترحيل - $size';
   }
 
   @override
@@ -13659,22 +13659,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String universalImport_bulk_consolidateMatched(int count) {
-    return 'Consolidate matched ($count)';
+    return 'دمج المتطابقة ($count)';
   }
 
   @override
   String universalImport_bulk_importAll(int count) {
-    return 'Import all ($count)';
+    return 'استيراد الكل ($count)';
   }
 
   @override
   String universalImport_bulk_importAllAsNew(int count) {
-    return 'Import all as new ($count)';
+    return 'استيراد الكل كجديد ($count)';
   }
 
   @override
   String universalImport_bulk_skipAll(int count) {
-    return 'Skip all ($count)';
+    return 'تخطي الكل ($count)';
   }
 
   @override
@@ -13682,7 +13682,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'اختر ملف سجل غوص للاستيراد. الصيغ المدعومة تشمل CSV وUDDF وSubsurface XML وGarmin FIT.';
 
   @override
-  String get universalImport_dive_decideAction => 'Decide';
+  String get universalImport_dive_decideAction => 'قرر';
 
   @override
   String get universalImport_error_unsupportedFormat =>
@@ -13697,7 +13697,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_label_consolidate => 'Consolidate';
+  String get universalImport_label_consolidate => 'دمج';
 
   @override
   String get universalImport_label_detecting => 'جارٍ الكشف...';
@@ -13716,7 +13716,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_label_importAsNew => 'Import as New';
+  String get universalImport_label_importAsNew => 'استيراد كجديد';
 
   @override
   String get universalImport_label_importComplete => 'اكتمل الاستيراد';
@@ -13774,22 +13774,22 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_pending_chooseAction => 'Choose an action';
+  String get universalImport_pending_chooseAction => 'اختر إجراء';
 
   @override
   String universalImport_pending_gateHint(int count) {
-    return '$count duplicate(s) need a decision';
+    return '$count نسخة مكررة تحتاج إلى قرار';
   }
 
   @override
-  String get universalImport_pending_needsDecision => 'Needs decision';
+  String get universalImport_pending_needsDecision => 'يتطلب قرارا';
 
   @override
-  String get universalImport_pending_reviewAction => 'Review';
+  String get universalImport_pending_reviewAction => 'مراجعة';
 
   @override
   String get universalImport_rowHint_tapCompareToDecide =>
-      'Tap Decide to choose';
+      'اضغط على قرر للاختيار';
 
   @override
   String universalImport_semantics_entitySelection(
@@ -13817,7 +13817,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get universalImport_semantics_needsDecision =>
-      'Suspected duplicate, needs decision';
+      'نسخة مكررة محتملة، يتطلب قرارا';
 
   @override
   String get universalImport_semantics_possibleDuplicate => 'مكرر محتمل';
@@ -13842,12 +13842,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String universalImport_snackbar_bulkMarkedAs(int count, String action) {
-    return '$count marked as $action';
+    return 'تم تحديد $count بـ $action';
   }
 
   @override
   String universalImport_snackbar_markedAs(String action) {
-    return 'Marked as $action';
+    return 'تم التحديد بـ $action';
   }
 
   @override
@@ -13864,7 +13864,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get universalImport_summary_decidesRequired =>
-      'Each needs a decision before importing.';
+      'يحتاج كل منها إلى قرار قبل الاستيراد.';
 
   @override
   String get universalImport_title => 'استيراد البيانات';
@@ -13975,10 +13975,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_connectionType_bluetooth => 'Bluetooth';
 
   @override
-  String get diveComputer_connectionType_infrared => 'Infrared';
+  String get diveComputer_connectionType_infrared => 'الأشعة تحت الحمراء';
 
   @override
-  String get diveComputer_connectionType_unknown => 'Unknown';
+  String get diveComputer_connectionType_unknown => 'غير معروف';
 
   @override
   String get diveComputer_connectionType_usb => 'USB';
@@ -13988,58 +13988,58 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_detail_cannotFilterNoSerial =>
-      'Cannot filter: no serial number for this computer.';
+      'لا يمكن التصفية: لا يوجد رقم تسلسلي لهذا الكمبيوتر.';
 
   @override
   String diveComputer_detail_deleteDialogContent(String name) {
-    return 'Are you sure you want to remove \"$name\"? This will not delete any dives that were imported from this computer.';
+    return 'هل تريد حقا إزالة \"$name\"؟ لن يؤدي هذا إلى حذف أي غطسات تم استيرادها من هذا الكمبيوتر.';
   }
 
   @override
-  String get diveComputer_detail_deleteDialogTitle => 'Delete Computer?';
+  String get diveComputer_detail_deleteDialogTitle => 'حذف الكمبيوتر؟';
 
   @override
-  String get diveComputer_detail_divesImported => 'Dives Imported';
+  String get diveComputer_detail_divesImported => 'الغطسات المستوردة';
 
   @override
-  String get diveComputer_detail_downloadDivesButton => 'Download Dives';
+  String get diveComputer_detail_downloadDivesButton => 'تنزيل الغطسات';
 
   @override
-  String get diveComputer_detail_editDialogTitle => 'Edit Computer';
+  String get diveComputer_detail_editDialogTitle => 'تعديل الكمبيوتر';
 
   @override
-  String get diveComputer_detail_editNameHint => 'e.g., My Perdix';
+  String get diveComputer_detail_editNameHint => 'مثال: Perdix الخاص بي';
 
   @override
-  String get diveComputer_detail_editNotesHint => 'Optional notes';
+  String get diveComputer_detail_editNotesHint => 'ملاحظات اختيارية';
 
   @override
-  String get diveComputer_detail_labelConnection => 'Connection';
+  String get diveComputer_detail_labelConnection => 'الاتصال';
 
   @override
-  String get diveComputer_detail_labelManufacturer => 'Manufacturer';
+  String get diveComputer_detail_labelManufacturer => 'الشركة المصنعة';
 
   @override
-  String get diveComputer_detail_labelModel => 'Model';
+  String get diveComputer_detail_labelModel => 'الطراز';
 
   @override
-  String get diveComputer_detail_labelName => 'Name';
+  String get diveComputer_detail_labelName => 'الاسم';
 
   @override
-  String get diveComputer_detail_lastDownload => 'Last Download';
+  String get diveComputer_detail_lastDownload => 'آخر تنزيل';
 
   @override
-  String get diveComputer_detail_notesTitle => 'Notes';
+  String get diveComputer_detail_notesTitle => 'الملاحظات';
 
   @override
-  String get diveComputer_detail_statisticsTitle => 'Statistics';
+  String get diveComputer_detail_statisticsTitle => 'الإحصائيات';
 
   @override
-  String get diveComputer_detail_unknown => 'Unknown';
+  String get diveComputer_detail_unknown => 'غير معروف';
 
   @override
   String get diveComputer_detail_viewDivesButton =>
-      'View Dives from This Computer';
+      'عرض الغطسات من هذا الكمبيوتر';
 
   @override
   String get diveComputer_discovery_chooseDifferentDevice => 'اختيار جهاز آخر';
@@ -14141,16 +14141,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_downloadExit_content =>
-      'Leaving will cancel the current download from your dive computer. Are you sure?';
+      'سيؤدي المغادرة إلى إلغاء التنزيل الحالي من كمبيوتر الغوص. هل أنت متأكد؟';
 
   @override
-  String get diveComputer_downloadExit_leave => 'Leave';
+  String get diveComputer_downloadExit_leave => 'مغادرة';
 
   @override
-  String get diveComputer_downloadExit_stay => 'Stay';
+  String get diveComputer_downloadExit_stay => 'البقاء';
 
   @override
-  String get diveComputer_downloadExit_title => 'Download in Progress';
+  String get diveComputer_downloadExit_title => 'التنزيل قيد التقدم';
 
   @override
   String diveComputer_downloadStep_andMoreDives(Object count) {
@@ -14416,87 +14416,87 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_pinCode_instructions =>
-      'Enter the code displayed on your dive computer.';
+      'أدخل الرمز المعروض على كمبيوتر الغوص.';
 
   @override
-  String get diveComputer_pinCode_label => 'PIN Code';
+  String get diveComputer_pinCode_label => 'رمز PIN';
 
   @override
-  String get diveComputer_pinCode_submit => 'Submit';
+  String get diveComputer_pinCode_submit => 'إرسال';
 
   @override
-  String get diveComputer_pinCode_title => 'PIN Code Required';
+  String get diveComputer_pinCode_title => 'رمز PIN مطلوب';
 
   @override
-  String get diveComputer_pinEntry_connectButton => 'Connect';
+  String get diveComputer_pinEntry_connectButton => 'اتصال';
 
   @override
   String get diveComputer_pinEntry_helperText =>
-      'Enter the 4-6 digit PIN shown on your device';
+      'أدخل رمز PIN المكون من 4 إلى 6 أرقام المعروض على جهازك';
 
   @override
   String get diveComputer_pinEntry_instructionsGeneric =>
-      'Check your dive computer display for the PIN code.';
+      'تحقق من شاشة كمبيوتر الغوص لرؤية رمز PIN.';
 
   @override
   String diveComputer_pinEntry_instructionsWithDevice(String deviceName) {
-    return 'Check your $deviceName display for the PIN code.';
+    return 'تحقق من شاشة $deviceName لرؤية رمز PIN.';
   }
 
   @override
   String get diveComputer_pinEntry_semanticLabel =>
-      'PIN code entry, 4 to 6 digits';
+      'إدخال رمز PIN، من 4 إلى 6 أرقام';
 
   @override
-  String get diveComputer_pinEntry_title => 'Enter PIN Code';
+  String get diveComputer_pinEntry_title => 'أدخل رمز PIN';
 
   @override
   String diveComputer_scan_bluetoothSemanticLabel(String name) {
-    return 'Bluetooth device: $name';
+    return 'جهاز Bluetooth: $name';
   }
 
   @override
   String get diveComputer_scan_emptyStateInstructions =>
-      'Make sure your dive computer is:\n• Turned on\n• In Bluetooth pairing mode\n• Close to your device';
+      'تأكد من أن كمبيوتر الغوص:\n• قيد التشغيل\n• في وضع إقران Bluetooth\n• قريب من جهازك';
 
   @override
-  String get diveComputer_scan_knownBadge => 'Known';
+  String get diveComputer_scan_knownBadge => 'معروف';
 
   @override
-  String get diveComputer_scan_lookingForDevicesTitle => 'Looking for Devices';
+  String get diveComputer_scan_lookingForDevicesTitle => 'البحث عن الأجهزة';
 
   @override
   String get diveComputer_scan_noUsbDevicesAvailable =>
-      'No USB devices available';
+      'لا توجد أجهزة USB متاحة';
 
   @override
-  String get diveComputer_scan_retry => 'Retry';
+  String get diveComputer_scan_retry => 'إعادة المحاولة';
 
   @override
-  String get diveComputer_scan_scanAgain => 'Scan Again';
+  String get diveComputer_scan_scanAgain => 'مسح مرة أخرى';
 
   @override
   String get diveComputer_scan_scanningStatus =>
-      'Scanning for dive computers...';
+      'البحث عن أجهزة كمبيوتر الغوص...';
 
   @override
-  String get diveComputer_scan_stopScanning => 'Stop Scanning';
+  String get diveComputer_scan_stopScanning => 'إيقاف المسح';
 
   @override
-  String get diveComputer_scan_supportedBadge => 'Supported';
+  String get diveComputer_scan_supportedBadge => 'مدعوم';
 
   @override
   String get diveComputer_scan_tabBluetooth => 'Bluetooth';
 
   @override
-  String get diveComputer_scan_tabUsb => 'USB Cable';
+  String get diveComputer_scan_tabUsb => 'كابل USB';
 
   @override
-  String get diveComputer_scan_usbCableLabel => 'USB Cable';
+  String get diveComputer_scan_usbCableLabel => 'كابل USB';
 
   @override
   String diveComputer_scan_usbSemanticLabel(String model) {
-    return 'USB device: $model';
+    return 'جهاز USB: $model';
   }
 
   @override

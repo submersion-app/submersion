@@ -230,17 +230,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get backup_history_pinAction_pin => 'Pin backup';
+  String get backup_history_pinAction_pin => 'הצמד גיבוי';
 
   @override
-  String get backup_history_pinAction_unpin => 'Unpin backup';
+  String get backup_history_pinAction_unpin => 'בטל הצמדת גיבוי';
 
   @override
-  String get backup_history_pinError => 'Could not update pin state.';
+  String get backup_history_pinError => 'לא ניתן לעדכן את מצב ההצמדה.';
 
   @override
   String backup_history_preMigrationSubtitle(String size) {
-    return 'Pre-migration backup - $size';
+    return 'גיבוי לפני העברה - $size';
   }
 
   @override
@@ -13559,22 +13559,22 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String universalImport_bulk_consolidateMatched(int count) {
-    return 'Consolidate matched ($count)';
+    return 'איחוד מתאימים ($count)';
   }
 
   @override
   String universalImport_bulk_importAll(int count) {
-    return 'Import all ($count)';
+    return 'ייבוא הכל ($count)';
   }
 
   @override
   String universalImport_bulk_importAllAsNew(int count) {
-    return 'Import all as new ($count)';
+    return 'ייבוא הכל כחדש ($count)';
   }
 
   @override
   String universalImport_bulk_skipAll(int count) {
-    return 'Skip all ($count)';
+    return 'דלג על הכל ($count)';
   }
 
   @override
@@ -13582,7 +13582,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'בחר קובץ יומן צלילה לייבוא. פורמטים נתמכים כוללים CSV, UDDF, Subsurface XML ו-Garmin FIT.';
 
   @override
-  String get universalImport_dive_decideAction => 'Decide';
+  String get universalImport_dive_decideAction => 'החלט';
 
   @override
   String get universalImport_error_unsupportedFormat =>
@@ -13597,7 +13597,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_label_consolidate => 'Consolidate';
+  String get universalImport_label_consolidate => 'איחוד';
 
   @override
   String get universalImport_label_detecting => 'מזהה...';
@@ -13616,7 +13616,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_label_importAsNew => 'Import as New';
+  String get universalImport_label_importAsNew => 'ייבוא כחדש';
 
   @override
   String get universalImport_label_importComplete => 'ייבוא הושלם';
@@ -13674,22 +13674,22 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_pending_chooseAction => 'Choose an action';
+  String get universalImport_pending_chooseAction => 'בחר פעולה';
 
   @override
   String universalImport_pending_gateHint(int count) {
-    return '$count duplicate(s) need a decision';
+    return '$count כפילויות דורשות החלטה';
   }
 
   @override
-  String get universalImport_pending_needsDecision => 'Needs decision';
+  String get universalImport_pending_needsDecision => 'נדרשת החלטה';
 
   @override
-  String get universalImport_pending_reviewAction => 'Review';
+  String get universalImport_pending_reviewAction => 'סקור';
 
   @override
   String get universalImport_rowHint_tapCompareToDecide =>
-      'Tap Decide to choose';
+      'הקש על החלט כדי לבחור';
 
   @override
   String universalImport_semantics_entitySelection(
@@ -13717,7 +13717,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_semantics_needsDecision =>
-      'Suspected duplicate, needs decision';
+      'כפילות חשודה, נדרשת החלטה';
 
   @override
   String get universalImport_semantics_possibleDuplicate => 'כפילות אפשרית';
@@ -13742,12 +13742,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String universalImport_snackbar_bulkMarkedAs(int count, String action) {
-    return '$count marked as $action';
+    return '$count סומנו כ-$action';
   }
 
   @override
   String universalImport_snackbar_markedAs(String action) {
-    return 'Marked as $action';
+    return 'סומן כ-$action';
   }
 
   @override
@@ -13764,7 +13764,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_summary_decidesRequired =>
-      'Each needs a decision before importing.';
+      'כל אחד דורש החלטה לפני הייבוא.';
 
   @override
   String get universalImport_title => 'ייבא נתונים';
@@ -13875,10 +13875,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_connectionType_bluetooth => 'Bluetooth';
 
   @override
-  String get diveComputer_connectionType_infrared => 'Infrared';
+  String get diveComputer_connectionType_infrared => 'אינפרא אדום';
 
   @override
-  String get diveComputer_connectionType_unknown => 'Unknown';
+  String get diveComputer_connectionType_unknown => 'לא ידוע';
 
   @override
   String get diveComputer_connectionType_usb => 'USB';
@@ -13888,58 +13888,57 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_detail_cannotFilterNoSerial =>
-      'Cannot filter: no serial number for this computer.';
+      'לא ניתן לסנן: אין מספר סידורי למחשב זה.';
 
   @override
   String diveComputer_detail_deleteDialogContent(String name) {
-    return 'Are you sure you want to remove \"$name\"? This will not delete any dives that were imported from this computer.';
+    return 'האם אתה בטוח שברצונך להסיר את \"$name\"? פעולה זו לא תמחק צלילות שיובאו ממחשב זה.';
   }
 
   @override
-  String get diveComputer_detail_deleteDialogTitle => 'Delete Computer?';
+  String get diveComputer_detail_deleteDialogTitle => 'למחוק את המחשב?';
 
   @override
-  String get diveComputer_detail_divesImported => 'Dives Imported';
+  String get diveComputer_detail_divesImported => 'צלילות שיובאו';
 
   @override
-  String get diveComputer_detail_downloadDivesButton => 'Download Dives';
+  String get diveComputer_detail_downloadDivesButton => 'הורד צלילות';
 
   @override
-  String get diveComputer_detail_editDialogTitle => 'Edit Computer';
+  String get diveComputer_detail_editDialogTitle => 'ערוך מחשב';
 
   @override
-  String get diveComputer_detail_editNameHint => 'e.g., My Perdix';
+  String get diveComputer_detail_editNameHint => 'לדוגמה, ה-Perdix שלי';
 
   @override
-  String get diveComputer_detail_editNotesHint => 'Optional notes';
+  String get diveComputer_detail_editNotesHint => 'הערות אופציונליות';
 
   @override
-  String get diveComputer_detail_labelConnection => 'Connection';
+  String get diveComputer_detail_labelConnection => 'חיבור';
 
   @override
-  String get diveComputer_detail_labelManufacturer => 'Manufacturer';
+  String get diveComputer_detail_labelManufacturer => 'יצרן';
 
   @override
-  String get diveComputer_detail_labelModel => 'Model';
+  String get diveComputer_detail_labelModel => 'דגם';
 
   @override
-  String get diveComputer_detail_labelName => 'Name';
+  String get diveComputer_detail_labelName => 'שם';
 
   @override
-  String get diveComputer_detail_lastDownload => 'Last Download';
+  String get diveComputer_detail_lastDownload => 'הורדה אחרונה';
 
   @override
-  String get diveComputer_detail_notesTitle => 'Notes';
+  String get diveComputer_detail_notesTitle => 'הערות';
 
   @override
-  String get diveComputer_detail_statisticsTitle => 'Statistics';
+  String get diveComputer_detail_statisticsTitle => 'סטטיסטיקה';
 
   @override
-  String get diveComputer_detail_unknown => 'Unknown';
+  String get diveComputer_detail_unknown => 'לא ידוע';
 
   @override
-  String get diveComputer_detail_viewDivesButton =>
-      'View Dives from This Computer';
+  String get diveComputer_detail_viewDivesButton => 'צפה בצלילות ממחשב זה';
 
   @override
   String get diveComputer_discovery_chooseDifferentDevice => 'בחר מכשיר אחר';
@@ -14039,16 +14038,16 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_downloadExit_content =>
-      'Leaving will cancel the current download from your dive computer. Are you sure?';
+      'יציאה תבטל את ההורדה הנוכחית ממחשב הצלילה. האם אתה בטוח?';
 
   @override
-  String get diveComputer_downloadExit_leave => 'Leave';
+  String get diveComputer_downloadExit_leave => 'עזוב';
 
   @override
-  String get diveComputer_downloadExit_stay => 'Stay';
+  String get diveComputer_downloadExit_stay => 'הישאר';
 
   @override
-  String get diveComputer_downloadExit_title => 'Download in Progress';
+  String get diveComputer_downloadExit_title => 'הורדה בתהליך';
 
   @override
   String diveComputer_downloadStep_andMoreDives(Object count) {
@@ -14313,87 +14312,85 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_pinCode_instructions =>
-      'Enter the code displayed on your dive computer.';
+      'הזן את הקוד המוצג במחשב הצלילה.';
 
   @override
-  String get diveComputer_pinCode_label => 'PIN Code';
+  String get diveComputer_pinCode_label => 'קוד PIN';
 
   @override
-  String get diveComputer_pinCode_submit => 'Submit';
+  String get diveComputer_pinCode_submit => 'שלח';
 
   @override
-  String get diveComputer_pinCode_title => 'PIN Code Required';
+  String get diveComputer_pinCode_title => 'נדרש קוד PIN';
 
   @override
-  String get diveComputer_pinEntry_connectButton => 'Connect';
+  String get diveComputer_pinEntry_connectButton => 'התחבר';
 
   @override
   String get diveComputer_pinEntry_helperText =>
-      'Enter the 4-6 digit PIN shown on your device';
+      'הזן את ה-PIN בן 4-6 הספרות המוצג במכשיר';
 
   @override
   String get diveComputer_pinEntry_instructionsGeneric =>
-      'Check your dive computer display for the PIN code.';
+      'בדוק את תצוגת מחשב הצלילה לקבלת קוד ה-PIN.';
 
   @override
   String diveComputer_pinEntry_instructionsWithDevice(String deviceName) {
-    return 'Check your $deviceName display for the PIN code.';
+    return 'בדוק את תצוגת $deviceName לקבלת קוד ה-PIN.';
   }
 
   @override
   String get diveComputer_pinEntry_semanticLabel =>
-      'PIN code entry, 4 to 6 digits';
+      'הזנת קוד PIN, 4 עד 6 ספרות';
 
   @override
-  String get diveComputer_pinEntry_title => 'Enter PIN Code';
+  String get diveComputer_pinEntry_title => 'הזן קוד PIN';
 
   @override
   String diveComputer_scan_bluetoothSemanticLabel(String name) {
-    return 'Bluetooth device: $name';
+    return 'התקן Bluetooth: $name';
   }
 
   @override
   String get diveComputer_scan_emptyStateInstructions =>
-      'Make sure your dive computer is:\n• Turned on\n• In Bluetooth pairing mode\n• Close to your device';
+      'ודא שמחשב הצלילה שלך:\n• דלוק\n• במצב התאמת Bluetooth\n• קרוב למכשיר שלך';
 
   @override
-  String get diveComputer_scan_knownBadge => 'Known';
+  String get diveComputer_scan_knownBadge => 'מוכר';
 
   @override
-  String get diveComputer_scan_lookingForDevicesTitle => 'Looking for Devices';
+  String get diveComputer_scan_lookingForDevicesTitle => 'מחפש התקנים';
 
   @override
-  String get diveComputer_scan_noUsbDevicesAvailable =>
-      'No USB devices available';
+  String get diveComputer_scan_noUsbDevicesAvailable => 'אין התקני USB זמינים';
 
   @override
-  String get diveComputer_scan_retry => 'Retry';
+  String get diveComputer_scan_retry => 'נסה שוב';
 
   @override
-  String get diveComputer_scan_scanAgain => 'Scan Again';
+  String get diveComputer_scan_scanAgain => 'סרוק שוב';
 
   @override
-  String get diveComputer_scan_scanningStatus =>
-      'Scanning for dive computers...';
+  String get diveComputer_scan_scanningStatus => 'סורק מחשבי צלילה...';
 
   @override
-  String get diveComputer_scan_stopScanning => 'Stop Scanning';
+  String get diveComputer_scan_stopScanning => 'הפסק סריקה';
 
   @override
-  String get diveComputer_scan_supportedBadge => 'Supported';
+  String get diveComputer_scan_supportedBadge => 'נתמך';
 
   @override
   String get diveComputer_scan_tabBluetooth => 'Bluetooth';
 
   @override
-  String get diveComputer_scan_tabUsb => 'USB Cable';
+  String get diveComputer_scan_tabUsb => 'כבל USB';
 
   @override
-  String get diveComputer_scan_usbCableLabel => 'USB Cable';
+  String get diveComputer_scan_usbCableLabel => 'כבל USB';
 
   @override
   String diveComputer_scan_usbSemanticLabel(String model) {
-    return 'USB device: $model';
+    return 'התקן USB: $model';
   }
 
   @override

@@ -227,17 +227,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get backup_history_pinAction_pin => 'Pin backup';
+  String get backup_history_pinAction_pin => '置顶备份';
 
   @override
-  String get backup_history_pinAction_unpin => 'Unpin backup';
+  String get backup_history_pinAction_unpin => '取消置顶备份';
 
   @override
-  String get backup_history_pinError => 'Could not update pin state.';
+  String get backup_history_pinError => '无法更新置顶状态。';
 
   @override
   String backup_history_preMigrationSubtitle(String size) {
-    return 'Pre-migration backup - $size';
+    return '迁移前备份 - $size';
   }
 
   @override
@@ -13242,22 +13242,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String universalImport_bulk_consolidateMatched(int count) {
-    return 'Consolidate matched ($count)';
+    return '合并匹配项 ($count)';
   }
 
   @override
   String universalImport_bulk_importAll(int count) {
-    return 'Import all ($count)';
+    return '全部导入 ($count)';
   }
 
   @override
   String universalImport_bulk_importAllAsNew(int count) {
-    return 'Import all as new ($count)';
+    return '全部作为新导入 ($count)';
   }
 
   @override
   String universalImport_bulk_skipAll(int count) {
-    return 'Skip all ($count)';
+    return '全部跳过 ($count)';
   }
 
   @override
@@ -13265,7 +13265,7 @@ class AppLocalizationsZh extends AppLocalizations {
       '选择一个潜水日志文件进行导入。支持的格式包括 CSV、UDDF、Subsurface XML 和 Garmin FIT。';
 
   @override
-  String get universalImport_dive_decideAction => 'Decide';
+  String get universalImport_dive_decideAction => '决定';
 
   @override
   String get universalImport_error_unsupportedFormat =>
@@ -13280,7 +13280,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get universalImport_label_consolidate => 'Consolidate';
+  String get universalImport_label_consolidate => '合并';
 
   @override
   String get universalImport_label_detecting => '检测中...';
@@ -13299,7 +13299,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get universalImport_label_importAsNew => 'Import as New';
+  String get universalImport_label_importAsNew => '作为新导入';
 
   @override
   String get universalImport_label_importComplete => '导入完成';
@@ -13356,22 +13356,21 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get universalImport_pending_chooseAction => 'Choose an action';
+  String get universalImport_pending_chooseAction => '选择操作';
 
   @override
   String universalImport_pending_gateHint(int count) {
-    return '$count duplicate(s) need a decision';
+    return '$count 个重复项需要决定';
   }
 
   @override
-  String get universalImport_pending_needsDecision => 'Needs decision';
+  String get universalImport_pending_needsDecision => '需要决定';
 
   @override
-  String get universalImport_pending_reviewAction => 'Review';
+  String get universalImport_pending_reviewAction => '审查';
 
   @override
-  String get universalImport_rowHint_tapCompareToDecide =>
-      'Tap Decide to choose';
+  String get universalImport_rowHint_tapCompareToDecide => '点击决定进行选择';
 
   @override
   String universalImport_semantics_entitySelection(
@@ -13398,8 +13397,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get universalImport_semantics_needsDecision =>
-      'Suspected duplicate, needs decision';
+  String get universalImport_semantics_needsDecision => '疑似重复,需要决定';
 
   @override
   String get universalImport_semantics_possibleDuplicate => '可能重复';
@@ -13424,12 +13422,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String universalImport_snackbar_bulkMarkedAs(int count, String action) {
-    return '$count marked as $action';
+    return '$count 已标记为 $action';
   }
 
   @override
   String universalImport_snackbar_markedAs(String action) {
-    return 'Marked as $action';
+    return '已标记为 $action';
   }
 
   @override
@@ -13445,8 +13443,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_step_select => '选择';
 
   @override
-  String get universalImport_summary_decidesRequired =>
-      'Each needs a decision before importing.';
+  String get universalImport_summary_decidesRequired => '每项在导入前都需要决定。';
 
   @override
   String get universalImport_title => '导入数据';
@@ -13550,16 +13547,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_certificate_thisCertifies => '特此证明';
 
   @override
-  String get diveComputer_connectionType_ble => 'Bluetooth LE';
+  String get diveComputer_connectionType_ble => '蓝牙 LE';
 
   @override
-  String get diveComputer_connectionType_bluetooth => 'Bluetooth';
+  String get diveComputer_connectionType_bluetooth => '蓝牙';
 
   @override
-  String get diveComputer_connectionType_infrared => 'Infrared';
+  String get diveComputer_connectionType_infrared => '红外线';
 
   @override
-  String get diveComputer_connectionType_unknown => 'Unknown';
+  String get diveComputer_connectionType_unknown => '未知';
 
   @override
   String get diveComputer_connectionType_usb => 'USB';
@@ -13568,59 +13565,57 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveComputer_connectionType_wifi => 'Wi-Fi';
 
   @override
-  String get diveComputer_detail_cannotFilterNoSerial =>
-      'Cannot filter: no serial number for this computer.';
+  String get diveComputer_detail_cannotFilterNoSerial => '无法筛选:此电脑没有序列号。';
 
   @override
   String diveComputer_detail_deleteDialogContent(String name) {
-    return 'Are you sure you want to remove \"$name\"? This will not delete any dives that were imported from this computer.';
+    return '确定要移除“$name”吗?这不会删除从此电脑导入的任何潜水记录。';
   }
 
   @override
-  String get diveComputer_detail_deleteDialogTitle => 'Delete Computer?';
+  String get diveComputer_detail_deleteDialogTitle => '删除电脑?';
 
   @override
-  String get diveComputer_detail_divesImported => 'Dives Imported';
+  String get diveComputer_detail_divesImported => '已导入潜水';
 
   @override
-  String get diveComputer_detail_downloadDivesButton => 'Download Dives';
+  String get diveComputer_detail_downloadDivesButton => '下载潜水记录';
 
   @override
-  String get diveComputer_detail_editDialogTitle => 'Edit Computer';
+  String get diveComputer_detail_editDialogTitle => '编辑电脑';
 
   @override
-  String get diveComputer_detail_editNameHint => 'e.g., My Perdix';
+  String get diveComputer_detail_editNameHint => '例如,我的 Perdix';
 
   @override
-  String get diveComputer_detail_editNotesHint => 'Optional notes';
+  String get diveComputer_detail_editNotesHint => '可选备注';
 
   @override
-  String get diveComputer_detail_labelConnection => 'Connection';
+  String get diveComputer_detail_labelConnection => '连接';
 
   @override
-  String get diveComputer_detail_labelManufacturer => 'Manufacturer';
+  String get diveComputer_detail_labelManufacturer => '制造商';
 
   @override
-  String get diveComputer_detail_labelModel => 'Model';
+  String get diveComputer_detail_labelModel => '型号';
 
   @override
-  String get diveComputer_detail_labelName => 'Name';
+  String get diveComputer_detail_labelName => '名称';
 
   @override
-  String get diveComputer_detail_lastDownload => 'Last Download';
+  String get diveComputer_detail_lastDownload => '上次下载';
 
   @override
-  String get diveComputer_detail_notesTitle => 'Notes';
+  String get diveComputer_detail_notesTitle => '备注';
 
   @override
-  String get diveComputer_detail_statisticsTitle => 'Statistics';
+  String get diveComputer_detail_statisticsTitle => '统计';
 
   @override
-  String get diveComputer_detail_unknown => 'Unknown';
+  String get diveComputer_detail_unknown => '未知';
 
   @override
-  String get diveComputer_detail_viewDivesButton =>
-      'View Dives from This Computer';
+  String get diveComputer_detail_viewDivesButton => '查看此电脑的潜水记录';
 
   @override
   String get diveComputer_discovery_chooseDifferentDevice => '选择其他设备';
@@ -13717,17 +13712,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveComputer_discovery_usbSearchHint => '按制造商或型号搜索...';
 
   @override
-  String get diveComputer_downloadExit_content =>
-      'Leaving will cancel the current download from your dive computer. Are you sure?';
+  String get diveComputer_downloadExit_content => '离开将取消当前从潜水电脑下载的任务。确定吗?';
 
   @override
-  String get diveComputer_downloadExit_leave => 'Leave';
+  String get diveComputer_downloadExit_leave => '离开';
 
   @override
-  String get diveComputer_downloadExit_stay => 'Stay';
+  String get diveComputer_downloadExit_stay => '留下';
 
   @override
-  String get diveComputer_downloadExit_title => 'Download in Progress';
+  String get diveComputer_downloadExit_title => '下载进行中';
 
   @override
   String diveComputer_downloadStep_andMoreDives(Object count) {
@@ -13983,88 +13977,82 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveComputer_list_title => '潜水电脑';
 
   @override
-  String get diveComputer_pinCode_instructions =>
-      'Enter the code displayed on your dive computer.';
+  String get diveComputer_pinCode_instructions => '输入潜水电脑上显示的代码。';
 
   @override
-  String get diveComputer_pinCode_label => 'PIN Code';
+  String get diveComputer_pinCode_label => 'PIN 码';
 
   @override
-  String get diveComputer_pinCode_submit => 'Submit';
+  String get diveComputer_pinCode_submit => '提交';
 
   @override
-  String get diveComputer_pinCode_title => 'PIN Code Required';
+  String get diveComputer_pinCode_title => '需要 PIN 码';
 
   @override
-  String get diveComputer_pinEntry_connectButton => 'Connect';
+  String get diveComputer_pinEntry_connectButton => '连接';
 
   @override
-  String get diveComputer_pinEntry_helperText =>
-      'Enter the 4-6 digit PIN shown on your device';
+  String get diveComputer_pinEntry_helperText => '输入设备上显示的 4 到 6 位数字 PIN 码';
 
   @override
-  String get diveComputer_pinEntry_instructionsGeneric =>
-      'Check your dive computer display for the PIN code.';
+  String get diveComputer_pinEntry_instructionsGeneric => '查看潜水电脑显示屏上的 PIN 码。';
 
   @override
   String diveComputer_pinEntry_instructionsWithDevice(String deviceName) {
-    return 'Check your $deviceName display for the PIN code.';
+    return '查看 $deviceName 显示屏上的 PIN 码。';
   }
 
   @override
-  String get diveComputer_pinEntry_semanticLabel =>
-      'PIN code entry, 4 to 6 digits';
+  String get diveComputer_pinEntry_semanticLabel => 'PIN 码输入,4 到 6 位数字';
 
   @override
-  String get diveComputer_pinEntry_title => 'Enter PIN Code';
+  String get diveComputer_pinEntry_title => '输入 PIN 码';
 
   @override
   String diveComputer_scan_bluetoothSemanticLabel(String name) {
-    return 'Bluetooth device: $name';
+    return '蓝牙设备:$name';
   }
 
   @override
   String get diveComputer_scan_emptyStateInstructions =>
-      'Make sure your dive computer is:\n• Turned on\n• In Bluetooth pairing mode\n• Close to your device';
+      '请确保您的潜水电脑:\n• 已开启\n• 处于蓝牙配对模式\n• 靠近您的设备';
 
   @override
-  String get diveComputer_scan_knownBadge => 'Known';
+  String get diveComputer_scan_knownBadge => '已知';
 
   @override
-  String get diveComputer_scan_lookingForDevicesTitle => 'Looking for Devices';
+  String get diveComputer_scan_lookingForDevicesTitle => '查找设备';
 
   @override
-  String get diveComputer_scan_noUsbDevicesAvailable =>
-      'No USB devices available';
+  String get diveComputer_scan_noUsbDevicesAvailable => '无可用的 USB 设备';
 
   @override
-  String get diveComputer_scan_retry => 'Retry';
+  String get diveComputer_scan_retry => '重试';
 
   @override
-  String get diveComputer_scan_scanAgain => 'Scan Again';
+  String get diveComputer_scan_scanAgain => '重新扫描';
 
   @override
-  String get diveComputer_scan_scanningStatus =>
-      'Scanning for dive computers...';
+  String get diveComputer_scan_scanningStatus => '正在扫描潜水电脑...';
 
   @override
-  String get diveComputer_scan_stopScanning => 'Stop Scanning';
+  String get diveComputer_scan_stopScanning => '停止扫描';
 
   @override
-  String get diveComputer_scan_supportedBadge => 'Supported';
+  String get diveComputer_scan_supportedBadge => '支持';
 
   @override
-  String get diveComputer_scan_tabBluetooth => 'Bluetooth';
+  String get diveComputer_scan_tabBluetooth => '蓝牙';
 
   @override
-  String get diveComputer_scan_tabUsb => 'USB Cable';
+  String get diveComputer_scan_tabUsb => 'USB 线缆';
 
   @override
-  String get diveComputer_scan_usbCableLabel => 'USB Cable';
+  String get diveComputer_scan_usbCableLabel => 'USB 线缆';
 
   @override
   String diveComputer_scan_usbSemanticLabel(String model) {
-    return 'USB device: $model';
+    return 'USB 设备:$model';
   }
 
   @override
