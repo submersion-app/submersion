@@ -42,7 +42,7 @@ class DuplicateActionCard extends StatefulWidget {
 
   /// Whether this duplicate still needs an explicit user decision.
   ///
-  /// When `true`, the card is rendered in a warning visual state: a 4-px
+  /// When `true`, the card is rendered in a warning visual state: a 1.5-px
   /// warning-colored border and a [NeedsDecisionPill] in the header.
   final bool isPending;
 

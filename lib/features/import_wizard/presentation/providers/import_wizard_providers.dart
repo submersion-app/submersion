@@ -330,6 +330,13 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     int index,
     DuplicateAction action,
   ) {
+    assert(
+      _adapter.supportedDuplicateActions.contains(action),
+      'DuplicateAction $action is not supported by adapter '
+      '${_adapter.runtimeType}',
+    );
+    if (!_adapter.supportedDuplicateActions.contains(action)) return;
+
     final actionsForType =
         state.duplicateActions[type] ?? const <int, DuplicateAction>{};
     final updatedActions = Map<int, DuplicateAction>.from(actionsForType)
@@ -384,6 +391,13 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// No-op if the type has no pending indices or (for consolidate) no
   /// probable matches.
   void applyBulkAction(ImportEntityType type, DuplicateAction action) {
+    assert(
+      _adapter.supportedDuplicateActions.contains(action),
+      'DuplicateAction $action is not supported by adapter '
+      '${_adapter.runtimeType}',
+    );
+    if (!_adapter.supportedDuplicateActions.contains(action)) return;
+
     final pending = state.pendingFor(type);
     if (pending.isEmpty) return;
 

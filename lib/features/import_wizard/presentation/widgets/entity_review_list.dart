@@ -465,7 +465,7 @@ class _EntityDuplicateCard extends StatefulWidget {
 
   /// Whether this row still needs an explicit user decision.
   ///
-  /// When true the card renders a warning-colored 4-px border and a
+  /// When true the card renders a warning-colored 1.5-px border and a
   /// [NeedsDecisionPill] in its header.
   final bool isPending;
 
@@ -491,10 +491,9 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
 
     final isImporting = widget.selectedAction == DuplicateAction.importAsNew;
     // When [selectedAction] is null (row pending a decision) we fall back to
-    // the tertiary warning colour so the 1.5-px border reads as "undecided"
-    // rather than implying a skip. Pending rows override with a 4-px border
-    // anyway, so this fallback only matters for the rare non-pending-null
-    // case.
+    // the tertiary warning colour so the border reads as "undecided" rather
+    // than implying a skip. The pending branch below also uses tertiary, so
+    // this fallback only matters for the rare non-pending-null case.
     final Color borderColor;
     if (widget.selectedAction == null) {
       borderColor = colorScheme.tertiary;

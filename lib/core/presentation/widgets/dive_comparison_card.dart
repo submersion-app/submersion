@@ -553,13 +553,18 @@ class _ActionButton extends StatelessWidget {
 
     const minSize = Size(0, 48);
 
+    // When the button is disabled (onPressed == null), skip the semantic
+    // color/border so Material's default disabled styling takes over — keeps
+    // the "not clickable" affordance visually clear.
+    final isEnabled = onPressed != null;
+    final effectiveColor = isEnabled ? color : null;
     switch (style) {
       case _ActionButtonStyle.text:
         return TextButton(
           onPressed: onPressed,
           style: TextButton.styleFrom(
             minimumSize: minSize,
-            foregroundColor: color,
+            foregroundColor: effectiveColor,
           ),
           child: child,
         );
@@ -568,8 +573,10 @@ class _ActionButton extends StatelessWidget {
           onPressed: onPressed,
           style: OutlinedButton.styleFrom(
             minimumSize: minSize,
-            foregroundColor: color,
-            side: color != null ? BorderSide(color: color!, width: 2.5) : null,
+            foregroundColor: effectiveColor,
+            side: effectiveColor != null
+                ? BorderSide(color: effectiveColor, width: 2.5)
+                : null,
           ),
           child: child,
         );
@@ -578,8 +585,8 @@ class _ActionButton extends StatelessWidget {
           onPressed: onPressed,
           style: FilledButton.styleFrom(
             minimumSize: minSize,
-            backgroundColor: color,
-            foregroundColor: color != null ? Colors.white : null,
+            backgroundColor: effectiveColor,
+            foregroundColor: effectiveColor != null ? Colors.white : null,
           ),
           child: child,
         );

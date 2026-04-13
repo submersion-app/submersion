@@ -16,6 +16,7 @@ class NeedsDecisionPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       label: context.l10n.universalImport_semantics_needsDecision,
+      excludeSemantics: true,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
