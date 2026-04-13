@@ -304,8 +304,10 @@ class _StartupWrapperState extends State<StartupWrapper>
       final stored = DatabaseService.getStoredSchemaVersion(dbPath) ?? 0;
       await _runPreMigrationBackup(dbPath: dbPath, stored: stored);
       if (!mounted) return;
+      final totalSteps = AppDatabase.migrationStepCount(stored);
       setState(() {
         _state = _StartupState.migrating;
+        _progress = MigrationProgress(currentStep: 0, totalSteps: totalSteps);
       });
       await _initializeServices();
       if (!mounted) return;
