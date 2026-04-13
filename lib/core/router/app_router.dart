@@ -972,6 +972,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) =>
                         _DiveComputerDownloadWizardRoute(
                           computerId: state.pathParameters['computerId']!,
+                          forceFullDownload:
+                              state.uri.queryParameters['forceFull'] == 'true',
                         ),
                   ),
                 ],
@@ -1096,9 +1098,13 @@ class _DiveComputerDiscoveryWizardRoute extends ConsumerWidget {
 /// Wrapper that creates a [DiveComputerAdapter] for quick download
 /// from a known (previously paired) computer.
 class _DiveComputerDownloadWizardRoute extends ConsumerWidget {
-  const _DiveComputerDownloadWizardRoute({required this.computerId});
+  const _DiveComputerDownloadWizardRoute({
+    required this.computerId,
+    this.forceFullDownload = false,
+  });
 
   final String computerId;
+  final bool forceFullDownload;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1124,6 +1130,7 @@ class _DiveComputerDownloadWizardRoute extends ConsumerWidget {
             diverId: diverId,
             knownComputer: computer,
             ref: ref,
+            forceFullDownload: forceFullDownload,
           ),
         );
       },
