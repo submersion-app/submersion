@@ -171,28 +171,31 @@ void main() {
       expect(restored, original);
     });
 
-    test('fromJson reads legacy records (no type/pinned/appVersion fields)', () {
-      final legacyJson = {
-        'id': 'id',
-        'filename': 'f.db',
-        'timestamp': 1700000000000,
-        'sizeBytes': 42,
-        'location': 'local',
-        'diveCount': 3,
-        'siteCount': 4,
-        'cloudFileId': null,
-        'localPath': '/tmp/f.db',
-        'isAutomatic': false,
-      };
-      final r = BackupRecord.fromJson(legacyJson);
-      expect(r.type, BackupType.manual);
-      expect(r.pinned, false);
-      expect(r.appVersion, isNull);
-      expect(r.fromSchemaVersion, isNull);
-      expect(r.toSchemaVersion, isNull);
-      expect(r.diveCount, 3);
-      expect(r.siteCount, 4);
-    });
+    test(
+      'fromJson reads legacy records (no type/pinned/appVersion fields)',
+      () {
+        final legacyJson = {
+          'id': 'id',
+          'filename': 'f.db',
+          'timestamp': 1700000000000,
+          'sizeBytes': 42,
+          'location': 'local',
+          'diveCount': 3,
+          'siteCount': 4,
+          'cloudFileId': null,
+          'localPath': '/tmp/f.db',
+          'isAutomatic': false,
+        };
+        final r = BackupRecord.fromJson(legacyJson);
+        expect(r.type, BackupType.manual);
+        expect(r.pinned, false);
+        expect(r.appVersion, isNull);
+        expect(r.fromSchemaVersion, isNull);
+        expect(r.toSchemaVersion, isNull);
+        expect(r.diveCount, 3);
+        expect(r.siteCount, 4);
+      },
+    );
 
     test('fromJson handles null counts for pre-migration records', () {
       final json = {
