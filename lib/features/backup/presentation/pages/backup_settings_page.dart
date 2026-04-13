@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
@@ -310,35 +311,67 @@ class BackupSettingsPage extends ConsumerWidget {
 
     return ListTile(
       leading: Icon(_locationIcon(record.location)),
-      title: Text(dateFormat.format(record.timestamp)),
-      subtitle: Text(
-        '${record.diveCount} dives, ${record.siteCount} sites - ${record.formattedSize}'
-        '${record.isAutomatic ? ' (auto)' : ''}',
-      ),
-      trailing: PopupMenuButton<String>(
-        onSelected: (action) =>
-            _handleHistoryAction(context, ref, action, record),
-        itemBuilder: (context) => [
-          PopupMenuItem(
-            value: 'restore',
-            child: ListTile(
-              leading: const Icon(Icons.restore),
-              title: Text(context.l10n.backup_history_action_restore),
-              contentPadding: EdgeInsets.zero,
-              dense: true,
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              dateFormat.format(record.timestamp),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          PopupMenuItem(
-            value: 'delete',
-            child: ListTile(
-              leading: Icon(Icons.delete, color: theme.colorScheme.error),
-              title: Text(
-                context.l10n.backup_history_action_delete,
-                style: TextStyle(color: theme.colorScheme.error),
-              ),
-              contentPadding: EdgeInsets.zero,
-              dense: true,
+          if (record.type == BackupType.preMigration) ...[
+            const SizedBox(width: 8),
+            _PreMigrationBadge(
+              fromVersion: record.fromSchemaVersion ?? 0,
+              toVersion: record.toSchemaVersion ?? 0,
             ),
+          ],
+        ],
+      ),
+      subtitle: Text(
+        record.type == BackupType.preMigration
+            ? 'Pre-migration backup - ${record.formattedSize}'
+            : '${record.diveCount ?? 0} dives, '
+                  '${record.siteCount ?? 0} sites - ${record.formattedSize}'
+                  '${record.isAutomatic ? ' (auto)' : ''}',
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: Icon(
+              record.pinned ? Icons.push_pin : Icons.push_pin_outlined,
+            ),
+            tooltip: record.pinned ? 'Unpin backup' : 'Pin backup',
+            onPressed: () => _togglePin(ref, record),
+          ),
+          PopupMenuButton<String>(
+            onSelected: (action) =>
+                _handleHistoryAction(context, ref, action, record),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'restore',
+                child: ListTile(
+                  leading: const Icon(Icons.restore),
+                  title: Text(context.l10n.backup_history_action_restore),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
+              ),
+              PopupMenuItem(
+                value: 'delete',
+                child: ListTile(
+                  leading: Icon(Icons.delete, color: theme.colorScheme.error),
+                  title: Text(
+                    context.l10n.backup_history_action_delete,
+                    style: TextStyle(color: theme.colorScheme.error),
+                  ),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -348,6 +381,15 @@ class BackupSettingsPage extends ConsumerWidget {
   // ===========================================================================
   // History Actions
   // ===========================================================================
+
+  Future<void> _togglePin(WidgetRef ref, BackupRecord record) async {
+    final service = ref.read(backupServiceProvider);
+    if (record.pinned) {
+      await service.unpinBackup(record.id);
+    } else {
+      await service.pinBackup(record.id);
+    }
+  }
 
   Future<void> _handleHistoryAction(
     BuildContext context,
@@ -539,5 +581,33 @@ class BackupSettingsPage extends ConsumerWidget {
       case BackupFrequency.monthly:
         return context.l10n.backup_frequency_monthly;
     }
+  }
+}
+
+class _PreMigrationBadge extends StatelessWidget {
+  final int fromVersion;
+  final int toVersion;
+
+  const _PreMigrationBadge({
+    required this.fromVersion,
+    required this.toVersion,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        'v$fromVersion \u2192 v$toVersion',
+        style: TextStyle(
+          fontSize: 11,
+          color: Theme.of(context).colorScheme.onSecondaryContainer,
+        ),
+      ),
+    );
   }
 }
