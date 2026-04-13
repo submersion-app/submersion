@@ -9,8 +9,7 @@ import 'package:submersion/features/backup/data/services/pre_migration_backup_se
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 
 void main() {
-  test('end-to-end: seeds v63 DB, backs up, verifies bytes + record',
-      () async {
+  test('end-to-end: seeds v63 DB, backs up, verifies bytes + record', () async {
     final tmp = await Directory.systemTemp.createTemp('pmbs_int_');
     addTearDown(() => tmp.delete(recursive: true));
 
@@ -46,7 +45,7 @@ void main() {
     );
 
     // Assert backup .db exists and matches live bytes.
-    final backupPath = p.join(backupsDir, '20260412-081201-v63-v64.db');
+    final backupPath = p.join(backupsDir, '20260412-081201000-v63-v64.db');
     expect(await File(backupPath).exists(), isTrue);
     expect(
       await File(backupPath).readAsBytes(),
@@ -54,8 +53,10 @@ void main() {
     );
 
     // Assert the backup DB itself reads user_version == 63 and sentinel data.
-    final verify =
-        sqlite3.sqlite3.open(backupPath, mode: sqlite3.OpenMode.readOnly);
+    final verify = sqlite3.sqlite3.open(
+      backupPath,
+      mode: sqlite3.OpenMode.readOnly,
+    );
     try {
       expect(verify.select('PRAGMA user_version').first.values.first, 63);
       expect(verify.select('SELECT id FROM sentinel').first.values.first, 42);

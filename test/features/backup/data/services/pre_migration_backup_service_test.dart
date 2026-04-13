@@ -58,7 +58,7 @@ void main() {
         appVersion: '1.6.0.1241',
       );
 
-      const expectedName = '20260412-081201-v63-v64.db';
+      const expectedName = '20260412-081201000-v63-v64.db';
       final backupFile = File(p.join(f.backupsDir, expectedName));
       expect(await backupFile.exists(), isTrue);
       expect(
@@ -94,7 +94,7 @@ void main() {
         expect(record.fromSchemaVersion, 63);
         expect(record.toSchemaVersion, 64);
         expect(record.appVersion, '1.6.0.1241');
-        expect(record.filename, '20260412-081201-v63-v64.db');
+        expect(record.filename, '20260412-081201000-v63-v64.db');
         expect(record.diveCount, isNull);
         expect(record.siteCount, isNull);
         expect(record.pinned, false);
@@ -469,13 +469,15 @@ void main() {
       final entries = await Directory(f.backupsDir).list().toList();
       final names = entries.map((e) => p.basename(e.path)).toList();
       expect(names.any((n) => n.endsWith('.tmp')), isFalse);
-      expect(names, contains('20260412-081201-v63-v64.db'));
+      expect(names, contains('20260412-081201000-v63-v64.db'));
     });
   });
 }
 
 String _ts(DateTime utc) {
   String two(int v) => v.toString().padLeft(2, '0');
+  String three(int v) => v.toString().padLeft(3, '0');
   return '${utc.year}${two(utc.month)}${two(utc.day)}-'
-      '${two(utc.hour)}${two(utc.minute)}${two(utc.second)}';
+      '${two(utc.hour)}${two(utc.minute)}${two(utc.second)}'
+      '${three(utc.millisecond)}';
 }

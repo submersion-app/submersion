@@ -110,9 +110,11 @@ class PreMigrationBackupService {
 
   String _formatTimestamp(DateTime utc) {
     String two(int v) => v.toString().padLeft(2, '0');
+    String three(int v) => v.toString().padLeft(3, '0');
     final d = utc;
     return '${d.year}${two(d.month)}${two(d.day)}-'
-        '${two(d.hour)}${two(d.minute)}${two(d.second)}';
+        '${two(d.hour)}${two(d.minute)}${two(d.second)}'
+        '${three(d.millisecond)}';
   }
 
   Future<void> _safeDelete(String path) async {
