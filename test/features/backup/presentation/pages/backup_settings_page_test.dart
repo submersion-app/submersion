@@ -132,6 +132,29 @@ void main() {
       expect(preMig.type == BackupType.preMigration, isTrue);
       expect(manual.type == BackupType.preMigration, isFalse);
     });
+
+    test(
+      'preMigration record without schema versions fails badge render gate',
+      () {
+        final incomplete = BackupRecord(
+          id: 'pre-incomplete',
+          filename: 'pre.db',
+          timestamp: _kNow,
+          sizeBytes: 512,
+          location: BackupLocation.local,
+          type: BackupType.preMigration,
+        );
+
+        // Badge is rendered only when all three conditions hold:
+        //   type == preMigration AND fromSchemaVersion != null AND
+        //   toSchemaVersion != null.
+        final shouldRenderBadge =
+            incomplete.type == BackupType.preMigration &&
+            incomplete.fromSchemaVersion != null &&
+            incomplete.toSchemaVersion != null;
+        expect(shouldRenderBadge, isFalse);
+      },
+    );
   });
 }
 

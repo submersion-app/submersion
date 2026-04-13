@@ -47,7 +47,7 @@ void main() {
     expect(find.text('Restore'), findsOneWidget);
     expect(find.text('Restore anyway'), findsNothing);
     expect(find.textContaining('will re-run'), findsNothing);
-    expect(find.textContaining('app version matches'), findsOneWidget);
+    expect(find.textContaining('database schema matches'), findsOneWidget);
   });
 
   testWidgets('warning path: current > from — Restore anyway + warning text', (

@@ -185,13 +185,15 @@ class RestoreConfirmationDialog extends StatelessWidget {
     }
 
     if (currentSchemaVersion == fromV) {
-      // Green path: app version matches; restore is safe.
+      // Green path: database schema matches the backup's pre-migration
+      // state; restore is safe.
       return AlertDialog(
         title: const Text('Restore pre-migration backup'),
         content: Text(
           'This backup was made on $timestamp by app $appVersion, just '
           'before upgrading the database from v$fromV to v$toV.\n\n'
-          'Your app version matches the backup, so restore is safe.',
+          "Your app's database schema matches this backup, so "
+          'restore is safe.',
         ),
         actions: [
           TextButton(

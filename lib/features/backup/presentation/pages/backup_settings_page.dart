@@ -325,11 +325,13 @@ class BackupSettingsPage extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          if (record.type == BackupType.preMigration) ...[
+          if (record.type == BackupType.preMigration &&
+              record.fromSchemaVersion != null &&
+              record.toSchemaVersion != null) ...[
             const SizedBox(width: 8),
             PreMigrationBadge(
-              fromVersion: record.fromSchemaVersion ?? 0,
-              toVersion: record.toSchemaVersion ?? 0,
+              fromVersion: record.fromSchemaVersion!,
+              toVersion: record.toSchemaVersion!,
             ),
           ],
         ],
