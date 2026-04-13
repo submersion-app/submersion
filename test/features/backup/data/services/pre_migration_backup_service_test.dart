@@ -447,6 +447,31 @@ void main() {
       );
     });
   });
+
+  group('atomicity', () {
+    test('final .db exists only under non-.tmp name after success', () async {
+      final f = await _makeFixture();
+      addTearDown(f.dispose);
+      final service = PreMigrationBackupService(
+        livePathProvider: () async => f.livePath,
+        backupsDirProvider: () async => f.backupsDir,
+        preferences: f.prefs,
+        clock: () => DateTime.utc(2026, 4, 12, 8, 12, 1),
+        idGenerator: () => 'id',
+      );
+
+      await service.backupIfMigrationPending(
+        stored: 63,
+        target: 64,
+        appVersion: '1.6.0.1241',
+      );
+
+      final entries = await Directory(f.backupsDir).list().toList();
+      final names = entries.map((e) => p.basename(e.path)).toList();
+      expect(names.any((n) => n.endsWith('.tmp')), isFalse);
+      expect(names, contains('20260412-081201-v63-v64.db'));
+    });
+  });
 }
 
 String _ts(DateTime utc) {
