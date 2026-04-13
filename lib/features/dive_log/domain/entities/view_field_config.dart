@@ -212,7 +212,7 @@ class CardViewConfig extends Equatable {
         CardSlotConfig(slotId: 'title', field: DiveField.siteName),
         CardSlotConfig(slotId: 'date', field: DiveField.dateTime),
         CardSlotConfig(slotId: 'stat1', field: DiveField.maxDepth),
-        CardSlotConfig(slotId: 'stat2', field: DiveField.bottomTime),
+        CardSlotConfig(slotId: 'stat2', field: DiveField.runtime),
       ],
       extraFields: [],
     );

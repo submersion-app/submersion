@@ -646,7 +646,7 @@ class DiveListTile extends ConsumerWidget {
     }
 
     final stat1Field = slotField('stat1', DiveField.maxDepth);
-    final stat2Field = slotField('stat2', DiveField.bottomTime);
+    final stat2Field = slotField('stat2', DiveField.runtime);
 
     // Build the content widget (used in both map and non-map variants)
     Widget buildContent() {

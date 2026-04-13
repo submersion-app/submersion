@@ -72,6 +72,15 @@ void main() {
               updated_at INTEGER NOT NULL DEFAULT 0
             )
           ''');
+          rawDb.execute('''
+            CREATE TABLE view_configs (
+              id TEXT NOT NULL PRIMARY KEY,
+              diver_id TEXT NOT NULL REFERENCES divers(id) ON DELETE CASCADE,
+              view_mode TEXT NOT NULL,
+              config_json TEXT NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
 
           createStubTables(rawDb);
 

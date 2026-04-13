@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 part 'database.g.dart';
@@ -1307,7 +1309,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 64;
+  static const int currentSchemaVersion = 65;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1375,6 +1377,7 @@ class AppDatabase extends _$AppDatabase {
     62,
     63,
     64,
+    65,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -3008,6 +3011,42 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 64) await reportProgress();
+
+        if (from < 65) {
+          // Flip legacy detailed-card stat2 default from bottomTime to runtime.
+          // Preserves deliberate customizations (e.g. waterTemp) by only
+          // rewriting rows that still carry the old default.
+          final rows = await customSelect(
+            "SELECT id, config_json FROM view_configs WHERE view_mode = 'detailed'",
+          ).get();
+          final now = DateTime.now().millisecondsSinceEpoch;
+          for (final row in rows) {
+            final configJson = row.read<String>('config_json');
+            Map<String, dynamic> parsed;
+            try {
+              parsed = jsonDecode(configJson) as Map<String, dynamic>;
+            } catch (_) {
+              continue;
+            }
+            final slots = parsed['slots'];
+            if (slots is! List) continue;
+            var modified = false;
+            for (final slot in slots) {
+              if (slot is Map<String, dynamic> &&
+                  slot['slotId'] == 'stat2' &&
+                  slot['field'] == 'bottomTime') {
+                slot['field'] = 'runtime';
+                modified = true;
+              }
+            }
+            if (!modified) continue;
+            await customStatement(
+              'UPDATE view_configs SET config_json = ?, updated_at = ? WHERE id = ?',
+              [jsonEncode(parsed), now, row.read<String>('id')],
+            );
+          }
+        }
+        if (from < 65) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
