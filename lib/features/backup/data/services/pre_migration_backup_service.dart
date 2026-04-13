@@ -50,10 +50,11 @@ class PreMigrationBackupService {
     final backupsDir = await _backupsDirProvider();
     try {
       await Directory(backupsDir).create(recursive: true);
-      await _sweepTempFiles(backupsDir);
     } catch (e, stack) {
       throw BackupFailedException.fromError(e, stack);
     }
+
+    await _sweepTempFiles(backupsDir);
 
     final now = _clock().toUtc();
     final ts = _formatTimestamp(now);
