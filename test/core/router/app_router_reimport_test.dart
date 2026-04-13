@@ -1,29 +1,33 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/router/app_router.dart'
+    show parseForceFullQueryParam;
+
+// This file tests the real `parseForceFullQueryParam` from app_router.dart
+// (not a local mirror), so a drift in the router's parsing rule will break
+// these assertions.
 
 void main() {
   group('forceFull query param parsing', () {
-    bool parseForceFull(String? value) => value == 'true';
-
     test('returns true for "true"', () {
-      expect(parseForceFull('true'), isTrue);
+      expect(parseForceFullQueryParam('true'), isTrue);
     });
 
     test('returns false for "false"', () {
-      expect(parseForceFull('false'), isFalse);
+      expect(parseForceFullQueryParam('false'), isFalse);
     });
 
     test('returns false for null (absent)', () {
-      expect(parseForceFull(null), isFalse);
+      expect(parseForceFullQueryParam(null), isFalse);
     });
 
     test('returns false for empty string', () {
-      expect(parseForceFull(''), isFalse);
+      expect(parseForceFullQueryParam(''), isFalse);
     });
 
     test('returns false for malformed values', () {
-      expect(parseForceFull('1'), isFalse);
-      expect(parseForceFull('TRUE'), isFalse);
-      expect(parseForceFull('yes'), isFalse);
+      expect(parseForceFullQueryParam('1'), isFalse);
+      expect(parseForceFullQueryParam('TRUE'), isFalse);
+      expect(parseForceFullQueryParam('yes'), isFalse);
     });
   });
 }

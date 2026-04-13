@@ -972,8 +972,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) =>
                         _DiveComputerDownloadWizardRoute(
                           computerId: state.pathParameters['computerId']!,
-                          forceFullDownload:
-                              state.uri.queryParameters['forceFull'] == 'true',
+                          forceFullDownload: parseForceFullQueryParam(
+                            state.uri.queryParameters['forceFull'],
+                          ),
                         ),
                   ),
                 ],
@@ -1153,3 +1154,11 @@ class _UniversalImportWizardRoute extends ConsumerWidget {
     return UnifiedImportWizard(adapter: UniversalAdapter(ref: ref));
   }
 }
+
+/// Parses the `forceFull` URL query parameter for the DC download route.
+///
+/// Strict equality against `'true'` — any other value (null, empty, `'1'`,
+/// case variants, arbitrary strings) returns false. This conservative rule
+/// keeps the URL contract unambiguous for shareability and logging.
+@visibleForTesting
+bool parseForceFullQueryParam(String? value) => value == 'true';
