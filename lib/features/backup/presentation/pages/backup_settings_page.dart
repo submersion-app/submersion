@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
@@ -237,7 +238,11 @@ class BackupSettingsPage extends ConsumerWidget {
 
     if (!context.mounted) return;
 
-    final confirmed = await RestoreConfirmationDialog.show(context, record);
+    final confirmed = await RestoreConfirmationDialog.show(
+      context,
+      record,
+      currentSchemaVersion: AppDatabase.currentSchemaVersion,
+    );
     if (confirmed) {
       ref.read(backupOperationProvider.notifier).restoreFromFilePath(filePath);
     }
@@ -410,7 +415,11 @@ class BackupSettingsPage extends ConsumerWidget {
   ) async {
     switch (action) {
       case 'restore':
-        final confirmed = await RestoreConfirmationDialog.show(context, record);
+        final confirmed = await RestoreConfirmationDialog.show(
+          context,
+          record,
+          currentSchemaVersion: AppDatabase.currentSchemaVersion,
+        );
         if (confirmed) {
           ref.read(backupOperationProvider.notifier).restoreFromBackup(record);
         }
