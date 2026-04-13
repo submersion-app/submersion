@@ -44,12 +44,16 @@ class PreMigrationBackupService {
   }) async {
     if (stored >= target) return;
 
-    final livePath = await _livePathProvider();
-    if (!await File(livePath).exists()) return;
-
-    final backupsDir = await _backupsDirProvider();
+    late final String livePath;
+    late final String backupsDir;
     try {
+      livePath = await _livePathProvider();
+      if (!await File(livePath).exists()) return;
+
+      backupsDir = await _backupsDirProvider();
       await Directory(backupsDir).create(recursive: true);
+    } on BackupFailedException {
+      rethrow;
     } catch (e, stack) {
       throw BackupFailedException.fromError(e, stack);
     }
@@ -70,7 +74,12 @@ class PreMigrationBackupService {
       throw BackupFailedException.fromError(e, stack);
     }
 
-    final sizeBytes = await File(finalPath).length();
+    late final int sizeBytes;
+    try {
+      sizeBytes = await File(finalPath).length();
+    } catch (e, stack) {
+      throw BackupFailedException.fromError(e, stack);
+    }
 
     try {
       await _preferences.addRecord(
