@@ -70,7 +70,7 @@ class RestoreConfirmationDialog extends StatelessWidget {
                 const SizedBox(height: 4),
                 if ((record.diveCount ?? 0) > 0 || (record.siteCount ?? 0) > 0)
                   Text(
-                    '${record.diveCount} dives, ${record.siteCount} sites',
+                    '${record.diveCount ?? 0} dives, ${record.siteCount ?? 0} sites',
                     style: theme.textTheme.bodySmall,
                   ),
                 Text(record.formattedSize, style: theme.textTheme.bodySmall),
