@@ -222,9 +222,9 @@ Four new keys in `lib/l10n/arb/app_en.arb`:
 | `diveComputer_detail_reimportAllButton` | "Re-import all dives" |
 | `diveComputer_detail_reimportDialogTitle` | "Re-import all dives?" |
 | `diveComputer_detail_reimportDialogBody` | "Download every dive from {computerName} and review them against your log. This may take several minutes." (placeholder: `computerName`) |
-| `diveComputer_download_reimportHint` | "Looking for older or deleted dives? Re-import all →" |
+| `diveComputer_download_reimportHint` | "Looking for older or deleted dives? Re-import all" |
 
-Reuses existing keys: `common_cancel`, `common_continue`.
+Also adds `common_action_continue` ("Continue"); reuses existing `common_action_cancel`.
 
 Other locale `.arb` files are not updated in this change; the existing codegen fallback will serve the English strings until translations land. This matches the project's pattern for in-progress features.
 
