@@ -7,6 +7,7 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/pre_migration_backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
+import 'package:submersion/features/backup/domain/exceptions/backup_failed_exception.dart';
 
 Future<_Fixture> _makeFixture() async {
   final tmp = await Directory.systemTemp.createTemp('pmbs_test_');
@@ -411,6 +412,39 @@ void main() {
           .where((r) => r.type == BackupType.manual)
           .length;
       expect(manualCount, 5);
+    });
+  });
+
+  group('error handling', () {
+    test('wraps directory-creation errors as BackupFailedException '
+        '(backupsDir path is a regular file)', () async {
+      // Trigger a file-system error without needing ENOSPC by pointing the
+      // backupsDir at a path that already exists as a regular file.
+      final tmp = await Directory.systemTemp.createTemp('pmbs_err_');
+      addTearDown(() => tmp.delete(recursive: true));
+      final live = File(p.join(tmp.path, 'submersion.db'));
+      await live.writeAsBytes([1, 2, 3]);
+      final conflicting = File(p.join(tmp.path, 'not-a-dir'));
+      await conflicting.writeAsBytes([0]);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = BackupPreferences(await SharedPreferences.getInstance());
+
+      final service = PreMigrationBackupService(
+        livePathProvider: () async => live.path,
+        backupsDirProvider: () async => conflicting.path,
+        preferences: prefs,
+        clock: () => DateTime.utc(2026, 4, 12),
+        idGenerator: () => 'id',
+      );
+
+      expect(
+        () async => service.backupIfMigrationPending(
+          stored: 63,
+          target: 64,
+          appVersion: '1.6.0.1241',
+        ),
+        throwsA(isA<BackupFailedException>()),
+      );
     });
   });
 }

@@ -48,8 +48,12 @@ class PreMigrationBackupService {
     if (!await File(livePath).exists()) return;
 
     final backupsDir = await _backupsDirProvider();
-    await Directory(backupsDir).create(recursive: true);
-    await _sweepTempFiles(backupsDir);
+    try {
+      await Directory(backupsDir).create(recursive: true);
+      await _sweepTempFiles(backupsDir);
+    } catch (e, stack) {
+      throw BackupFailedException.fromError(e, stack);
+    }
 
     final now = _clock().toUtc();
     final ts = _formatTimestamp(now);
