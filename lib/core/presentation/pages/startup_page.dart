@@ -291,6 +291,10 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// themselves, so an enforced minimum delay would feel slow.
   Future<void> _retryPreMigrationBackup() async {
     if (!mounted) return;
+    if (_state != _StartupState.backupFailed) {
+      // Already retrying or moved on; ignore rapid taps.
+      return;
+    }
     setState(() {
       _state = _StartupState.backingUp;
       _backupError = null;
