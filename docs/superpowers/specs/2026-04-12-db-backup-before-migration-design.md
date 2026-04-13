@@ -182,8 +182,8 @@ practice:
 ```
 <backupsDir>/
   20260101-143022-manual.db                ← existing manual
-  20260412-081201-v63-v64.db               ← new pre-migration
-  .20260412-081535-v63-v64.db.tmp          ← transient; swept on next
+  20260412-081201000-v63-v64.db            ← new pre-migration
+  .20260412-081535000-v63-v64.db.tmp       ← transient; swept on next
                                              migration-pending startup
 ```
 
@@ -191,8 +191,9 @@ practice:
 
 - Manual backups: existing convention (unchanged).
 - Pre-migration backups: `<UTC-timestamp>-v<from>-v<to>.db` where
-  timestamp is `yyyyMMdd-HHmmss`. Encoding the schema pair in the
-  filename makes the folder self-describing for support purposes
+  timestamp is `yyyyMMdd-HHmmssSSS` (millisecond precision prevents
+  same-second collisions on rapid retry). Encoding the schema pair in
+  the filename makes the folder self-describing for support purposes
   (e.g., "the v63→v64 backup I'm looking for is on disk even if the
   SharedPreferences registry is lost in a reinstall").
 
