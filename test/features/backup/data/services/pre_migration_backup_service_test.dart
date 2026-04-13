@@ -222,4 +222,201 @@ void main() {
       expect(await notOurs.exists(), isTrue);
     });
   });
+
+  group('retention prune', () {
+    test(
+      'keeps newest 3 unpinned pre-migration backups, deletes older',
+      () async {
+        final f = await _makeFixture();
+        addTearDown(f.dispose);
+        for (var i = 0; i < 4; i++) {
+          final ts = DateTime.utc(2026, 1, 1 + i);
+          final name = '${_ts(ts)}-v$i-v${i + 1}.db';
+          final file = File(p.join(f.backupsDir, name));
+          await file.writeAsBytes([i]);
+          await f.prefs.addRecord(
+            BackupRecord(
+              id: 'r$i',
+              filename: name,
+              timestamp: ts,
+              sizeBytes: 1,
+              location: BackupLocation.local,
+              localPath: file.path,
+              type: BackupType.preMigration,
+              fromSchemaVersion: i,
+              toSchemaVersion: i + 1,
+            ),
+          );
+        }
+
+        final service = PreMigrationBackupService(
+          livePathProvider: () async => f.livePath,
+          backupsDirProvider: () async => f.backupsDir,
+          preferences: f.prefs,
+          clock: () => DateTime.utc(2026, 4, 12, 8, 12, 1),
+          idGenerator: () => 'new',
+        );
+
+        await service.backupIfMigrationPending(
+          stored: 63,
+          target: 64,
+          appVersion: '1.6.0.1241',
+        );
+
+        final remaining = f.prefs
+            .getHistory()
+            .where((r) => r.type == BackupType.preMigration)
+            .toList();
+        expect(remaining, hasLength(3));
+        expect(
+          remaining.map((r) => r.id),
+          containsAll(<String>['new', 'r3', 'r2']),
+        );
+        expect(remaining.map((r) => r.id), isNot(contains('r0')));
+        expect(remaining.map((r) => r.id), isNot(contains('r1')));
+        expect(
+          await File(
+            p.join(f.backupsDir, '${_ts(DateTime.utc(2026, 1, 1))}-v0-v1.db'),
+          ).exists(),
+          isFalse,
+        );
+        expect(
+          await File(
+            p.join(f.backupsDir, '${_ts(DateTime.utc(2026, 1, 2))}-v1-v2.db'),
+          ).exists(),
+          isFalse,
+        );
+      },
+    );
+
+    test('pinned pre-migration backups are never pruned', () async {
+      final f = await _makeFixture();
+      addTearDown(f.dispose);
+      for (var i = 0; i < 5; i++) {
+        final ts = DateTime.utc(2026, 1, 1 + i);
+        final name = '${_ts(ts)}-v$i-v${i + 1}.db';
+        await File(p.join(f.backupsDir, name)).writeAsBytes([i]);
+        await f.prefs.addRecord(
+          BackupRecord(
+            id: 'pinned-$i',
+            filename: name,
+            timestamp: ts,
+            sizeBytes: 1,
+            location: BackupLocation.local,
+            localPath: p.join(f.backupsDir, name),
+            type: BackupType.preMigration,
+            fromSchemaVersion: i,
+            toSchemaVersion: i + 1,
+            pinned: true,
+          ),
+        );
+      }
+
+      final service = PreMigrationBackupService(
+        livePathProvider: () async => f.livePath,
+        backupsDirProvider: () async => f.backupsDir,
+        preferences: f.prefs,
+        clock: () => DateTime.utc(2026, 4, 12),
+        idGenerator: () => 'new',
+      );
+      await service.backupIfMigrationPending(
+        stored: 63,
+        target: 64,
+        appVersion: '1.6.0.1241',
+      );
+
+      final preMigrationRecords = f.prefs
+          .getHistory()
+          .where((r) => r.type == BackupType.preMigration)
+          .toList();
+      expect(preMigrationRecords, hasLength(6));
+    });
+
+    test('does nothing when only 2 unpinned exist', () async {
+      final f = await _makeFixture();
+      addTearDown(f.dispose);
+      for (var i = 0; i < 2; i++) {
+        final ts = DateTime.utc(2026, 1, 1 + i);
+        final name = '${_ts(ts)}-v$i-v${i + 1}.db';
+        await File(p.join(f.backupsDir, name)).writeAsBytes([i]);
+        await f.prefs.addRecord(
+          BackupRecord(
+            id: 'r$i',
+            filename: name,
+            timestamp: ts,
+            sizeBytes: 1,
+            location: BackupLocation.local,
+            localPath: p.join(f.backupsDir, name),
+            type: BackupType.preMigration,
+            fromSchemaVersion: i,
+            toSchemaVersion: i + 1,
+          ),
+        );
+      }
+
+      final service = PreMigrationBackupService(
+        livePathProvider: () async => f.livePath,
+        backupsDirProvider: () async => f.backupsDir,
+        preferences: f.prefs,
+        clock: () => DateTime.utc(2026, 4, 12),
+        idGenerator: () => 'new',
+      );
+      await service.backupIfMigrationPending(
+        stored: 63,
+        target: 64,
+        appVersion: '1.6.0.1241',
+      );
+
+      final count = f.prefs
+          .getHistory()
+          .where((r) => r.type == BackupType.preMigration)
+          .length;
+      expect(count, 3);
+    });
+
+    test('does not touch manual-backup records', () async {
+      final f = await _makeFixture();
+      addTearDown(f.dispose);
+      for (var i = 0; i < 5; i++) {
+        final name = 'manual-$i.db';
+        await File(p.join(f.backupsDir, name)).writeAsBytes([i]);
+        await f.prefs.addRecord(
+          BackupRecord(
+            id: 'm$i',
+            filename: name,
+            timestamp: DateTime.utc(2026, 1, 1 + i),
+            sizeBytes: 1,
+            location: BackupLocation.local,
+            localPath: p.join(f.backupsDir, name),
+            type: BackupType.manual,
+          ),
+        );
+      }
+
+      final service = PreMigrationBackupService(
+        livePathProvider: () async => f.livePath,
+        backupsDirProvider: () async => f.backupsDir,
+        preferences: f.prefs,
+        clock: () => DateTime.utc(2026, 4, 12),
+        idGenerator: () => 'new',
+      );
+      await service.backupIfMigrationPending(
+        stored: 63,
+        target: 64,
+        appVersion: '1.6.0.1241',
+      );
+
+      final manualCount = f.prefs
+          .getHistory()
+          .where((r) => r.type == BackupType.manual)
+          .length;
+      expect(manualCount, 5);
+    });
+  });
+}
+
+String _ts(DateTime utc) {
+  String two(int v) => v.toString().padLeft(2, '0');
+  return '${utc.year}${two(utc.month)}${two(utc.day)}-'
+      '${two(utc.hour)}${two(utc.minute)}${two(utc.second)}';
 }

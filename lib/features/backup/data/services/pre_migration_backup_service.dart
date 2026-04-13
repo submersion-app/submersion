@@ -17,6 +17,7 @@ typedef AsyncPathResolver = Future<String> Function();
 /// existing BackupPreferences registry so it appears alongside manual
 /// backups in the backup list UI.
 class PreMigrationBackupService {
+  static const int _retainN = 3;
   final AsyncPathResolver _livePathProvider;
   final AsyncPathResolver _backupsDirProvider;
   final BackupPreferences _preferences;
@@ -88,6 +89,17 @@ class PreMigrationBackupService {
         error: e,
         stackTrace: stack,
       );
+      return;
+    }
+
+    try {
+      await _pruneExcess();
+    } catch (e, stack) {
+      _log.warning(
+        'Pre-migration prune failed (backup kept)',
+        error: e,
+        stackTrace: stack,
+      );
     }
   }
 
@@ -103,6 +115,24 @@ class PreMigrationBackupService {
       final f = File(path);
       if (await f.exists()) await f.delete();
     } catch (_) {}
+  }
+
+  Future<void> _pruneExcess() async {
+    final all = _preferences.getHistory();
+    final preMigration = all
+        .where((r) => r.type == BackupType.preMigration)
+        .toList();
+    final unpinned = preMigration.where((r) => !r.pinned).toList()
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    if (unpinned.length <= _retainN) return;
+    final toDelete = unpinned.sublist(_retainN);
+    for (final record in toDelete) {
+      await _preferences.removeRecord(record.id);
+      final path = record.localPath;
+      if (path != null) {
+        await _safeDelete(path);
+      }
+    }
   }
 
   Future<void> _sweepTempFiles(String backupsDir) async {
