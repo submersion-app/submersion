@@ -128,9 +128,9 @@ StartupPage._runInitialization
    │              pinned: false, diveCount: null, siteCount: null}
    │        6h. Prune: load records where type == preMigration;
    │              partition by pinned; sort unpinned by timestamp DESC;
-   │              keep first 3; for each to-delete remove the record
-   │              via BackupPreferences.removeRecord() first, then
-   │              unlink the .db file
+   │              keep first 3; for each to-delete unlink the .db
+   │              file first, then remove the record via
+   │              BackupPreferences.removeRecord()
    │        6i. Return void
    │
    │  On exception at 6b–6f: rethrow wrapped as BackupFailedException
@@ -151,11 +151,14 @@ recoverable state:
   never leaves a partial file being mistaken for a complete backup.
   The `.tmp` extension and leading dot also hide in-progress copies
   from Finder.
-- Step 6h removes the registry record *before* unlinking the paired
-  `.db` file during prune. A crash mid-prune leaves orphan `.db`
-  files (not visible in the registry listing) rather than registry
-  records pointing at missing files (which would force defensive
-  checks in every consumer of `getBackupHistory()`).
+- Step 6h unlinks the paired `.db` file *before* removing the registry
+  record during prune. A crash mid-prune leaves a registry record
+  referencing a missing file — which the existing
+  `BackupService.getValidatedBackupHistory()` already filters
+  defensively, and which the user can dismiss through normal UI. This
+  is preferable to the reverse order, which would silently leak `.db`
+  files on disk (the `.tmp` sweep does not target `.db` files by
+  design).
 - Step 6g registers the record *after* the `.db` rename. A crash
   between 6f and 6g leaves an orphan `.db` on disk — safer than a
   record referring to a file that is not there. A subsequent
@@ -179,8 +182,8 @@ practice:
 ```
 <backupsDir>/
   20260101-143022-manual.db                ← existing manual
-  20260412-081201-v63-v64.db               ← new pre-migration
-  .20260412-081535-v63-v64.db.tmp          ← transient; swept on next
+  20260412-081201000-v63-v64.db            ← new pre-migration
+  .20260412-081535000-v63-v64.db.tmp       ← transient; swept on next
                                              migration-pending startup
 ```
 
@@ -188,8 +191,9 @@ practice:
 
 - Manual backups: existing convention (unchanged).
 - Pre-migration backups: `<UTC-timestamp>-v<from>-v<to>.db` where
-  timestamp is `yyyyMMdd-HHmmss`. Encoding the schema pair in the
-  filename makes the folder self-describing for support purposes
+  timestamp is `yyyyMMdd-HHmmssSSS` (millisecond precision prevents
+  same-second collisions on rapid retry). Encoding the schema pair in
+  the filename makes the folder self-describing for support purposes
   (e.g., "the v63→v64 backup I'm looking for is on disk even if the
   SharedPreferences registry is lost in a reinstall").
 
@@ -314,9 +318,9 @@ logged).
 2. Partition into pinned vs unpinned.
 3. Sort unpinned by `timestamp` DESC.
 4. Keep the first 3; mark the rest for deletion.
-5. For each to-delete: remove the record via
-   `BackupPreferences.removeRecord(id)` first, then unlink the `.db`
-   file at `record.localPath`.
+5. For each to-delete: unlink the `.db` file at `record.localPath`
+   first (if non-null), then remove the record via
+   `BackupPreferences.removeRecord(id)`.
 6. Pinned backups are never deleted (unbounded by design — pinning is
    the user's explicit opt-in to retain).
 

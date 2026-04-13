@@ -13,6 +13,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 
 /// Thin interface for the database operations BackupService needs.
 ///
@@ -378,15 +379,45 @@ class BackupService {
     _log.info('Backup deleted: ${record.filename}');
   }
 
+  /// Pin a backup record so it is excluded from automatic pruning.
+  Future<void> pinBackup(String id) => _setPinned(id, true);
+
+  /// Unpin a backup record so it is subject to automatic pruning again.
+  Future<void> unpinBackup(String id) => _setPinned(id, false);
+
+  Future<void> _setPinned(String id, bool pinned) async {
+    final history = _preferences.getHistory();
+    BackupRecord? match;
+    for (final r in history) {
+      if (r.id == id) {
+        match = r;
+        break;
+      }
+    }
+    if (match == null) return;
+    await _preferences.updateRecord(match.copyWith(pinned: pinned));
+  }
+
   /// Remove old backups beyond the retention count.
   ///
-  /// Keeps the [keepCount] most recent backups and deletes the rest.
+  /// Only prunes manual, unpinned records. Pre-migration records have their
+  /// own retention managed by PreMigrationBackupService. Pinned records are
+  /// exempt from all automatic retention.
+  ///
+  /// Keeps the [keepCount] most recent unpinned manual backups and deletes
+  /// the rest.
   Future<void> pruneOldBackups(int keepCount) async {
     final history = getBackupHistory(); // Already sorted newest-first
-    if (history.length <= keepCount) return;
 
-    final toDelete = history.sublist(keepCount);
-    _log.info('Pruning ${toDelete.length} old backups (keeping $keepCount)');
+    final eligible = history
+        .where((r) => r.type == BackupType.manual && !r.pinned)
+        .toList();
+    if (eligible.length <= keepCount) return;
+
+    final toDelete = eligible.sublist(keepCount);
+    _log.info(
+      'Pruning ${toDelete.length} old manual backups (keeping $keepCount)',
+    );
 
     for (final record in toDelete) {
       await deleteBackup(record);
@@ -423,9 +454,13 @@ class BackupService {
   // File System Helpers
   // ===========================================================================
 
-  /// Get the active backups directory (custom or default), creating it if needed.
-  Future<String> getBackupsDirectory() async {
-    final settings = _preferences.getSettings();
+  /// Resolves the backups directory using the given preferences, without
+  /// needing a full BackupService instance. Used by startup paths that
+  /// run before Riverpod is established and before the DB is open.
+  static Future<String> resolveBackupsDirectory(
+    BackupPreferences preferences,
+  ) async {
+    final settings = preferences.getSettings();
     if (settings.backupLocation != null) {
       final customDir = Directory(settings.backupLocation!);
       if (!await customDir.exists()) {
@@ -433,11 +468,22 @@ class BackupService {
       }
       return customDir.path;
     }
-    return getLocalBackupsDirectory();
+    final appDir = await getApplicationDocumentsDirectory();
+    final backupDir = Directory(p.join(appDir.path, _localBackupFolder));
+    if (!await backupDir.exists()) {
+      await backupDir.create(recursive: true);
+    }
+    return backupDir.path;
   }
+
+  /// Get the active backups directory (custom or default), creating it if needed.
+  Future<String> getBackupsDirectory() =>
+      BackupService.resolveBackupsDirectory(_preferences);
 
   /// Get the local backups directory, creating it if needed.
   Future<String> getLocalBackupsDirectory() async {
+    // Direct-path version bypassing custom-location check; preserved for
+    // existing callers that want the default location specifically.
     final appDir = await getApplicationDocumentsDirectory();
     final backupDir = Directory(p.join(appDir.path, _localBackupFolder));
     if (!await backupDir.exists()) {

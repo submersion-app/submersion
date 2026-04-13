@@ -9,6 +9,9 @@ import 'package:submersion/core/domain/entities/migration_progress.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/pre_migration_backup_service.dart';
+import 'package:submersion/features/backup/domain/exceptions/backup_failed_exception.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -23,6 +26,34 @@ class _FakeLocationService extends DatabaseLocationService {
   Future<String> getDatabasePath() async => _path;
 }
 
+/// A synchronous no-op subclass of [PreMigrationBackupService] for tests that
+/// exercise the migration path without wanting real file I/O.
+class _NoOpBackupService extends PreMigrationBackupService {
+  _NoOpBackupService({required super.preferences})
+    : super(
+        livePathProvider: () async => '/tmp/test.db',
+        backupsDirProvider: () async => '/tmp/test-backups',
+      );
+
+  @override
+  Future<void> backupIfMigrationPending({
+    required int stored,
+    required int target,
+    required String appVersion,
+  }) async {
+    // Intentional no-op: skip all file I/O in widget tests.
+  }
+}
+
+/// Factory for the no-op backup service used by tests that exercise the
+/// migration path but do not want to test backup behaviour.
+PreMigrationBackupService _noOpBackupFactory({
+  required String livePath,
+  required BackupPreferences preferences,
+}) {
+  return _NoOpBackupService(preferences: preferences);
+}
+
 /// Builds a [StartupWrapper] for widget testing with injectable overrides.
 Widget _buildStartupWrapper({
   required SharedPreferences prefs,
@@ -31,6 +62,11 @@ Widget _buildStartupWrapper({
   ServiceInitializer? initializerOverride,
   SchemaVersionProbe? schemaVersionProbeOverride,
   VoidCallback? closeAppOverride,
+  PreMigrationBackupService Function({
+    required String livePath,
+    required BackupPreferences preferences,
+  })?
+  preMigrationBackupFactory,
 }) {
   return StartupWrapper(
     prefs: prefs,
@@ -39,6 +75,7 @@ Widget _buildStartupWrapper({
     initializerOverride: initializerOverride,
     schemaVersionProbeOverride: schemaVersionProbeOverride,
     closeAppOverride: closeAppOverride,
+    preMigrationBackupFactory: preMigrationBackupFactory,
   );
 }
 
@@ -538,6 +575,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: true, totalSteps: 5),
+          preMigrationBackupFactory: _noOpBackupFactory,
           initializerOverride: (onProgress) {
             capturedCallback = onProgress;
             // Never completes -- we stay on the migration screen
@@ -546,7 +584,9 @@ void main() {
         ),
       );
 
-      // After first pump the widget should show migrating state
+      // Pump through the backup step (synchronous no-op factory) then into
+      // migrating state.
+      await tester.pump();
       await tester.pump();
 
       // Verify migration UI is shown
@@ -723,6 +763,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: true, totalSteps: 10),
+          preMigrationBackupFactory: _noOpBackupFactory,
           initializerOverride: (onProgress) {
             progressCallback = onProgress;
             return Completer<void>().future;
@@ -730,6 +771,9 @@ void main() {
         ),
       );
 
+      // Pump through the backup step (synchronous no-op factory) then into
+      // migrating state.
+      await tester.pump();
       await tester.pump();
 
       // Initial: step 0 of 10
@@ -788,6 +832,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: true, totalSteps: 3),
+          preMigrationBackupFactory: _noOpBackupFactory,
           initializerOverride: (_) => Completer<void>().future,
         ),
       );
@@ -869,4 +914,279 @@ void main() {
       expect(find.textContaining('Your data is safe'), findsOneWidget);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Pre-migration backup flow transitions
+  // ---------------------------------------------------------------------------
+  group('pre-migration backup flow', () {
+    late SharedPreferences prefs;
+    late LogFileService logFileService;
+    late DatabaseLocationService locationService;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+      logFileService = LogFileService(logDirectory: '/tmp/test-logs');
+      locationService = _FakeLocationService(prefs);
+    });
+
+    testWidgets(
+      'BackupFailedException transitions to backupFailed with classified message',
+      (tester) async {
+        PreMigrationBackupService failingFactory({
+          required String livePath,
+          required BackupPreferences preferences,
+        }) {
+          return _ThrowingBackupService(
+            preferences: preferences,
+            error: const BackupFailedException(
+              cause: BackupFailureCause.diskFull,
+              userMessage: 'Not enough free disk space to back up your data.',
+              technicalDetails: 'FileSystemException(28)',
+            ),
+          );
+        }
+
+        await tester.pumpWidget(
+          _buildStartupWrapper(
+            prefs: prefs,
+            logFileService: logFileService,
+            locationService: locationService,
+            schemaVersionProbeOverride: (_) =>
+                (needsMigration: true, totalSteps: 5),
+            preMigrationBackupFactory: failingFactory,
+            initializerOverride: (_) async {
+              // Should never be called: backup failure blocks migration.
+              throw StateError('initializer must not run on backup failure');
+            },
+          ),
+        );
+
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(const ValueKey('error')), findsOneWidget);
+        expect(find.text("Couldn't back up your data"), findsOneWidget);
+        expect(
+          find.text('Not enough free disk space to back up your data.'),
+          findsOneWidget,
+        );
+        expect(find.widgetWithText(ElevatedButton, 'Retry'), findsOneWidget);
+        expect(find.widgetWithText(TextButton, 'Quit'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Retry after backup failure recovers when second attempt succeeds',
+      (tester) async {
+        var attempt = 0;
+        PreMigrationBackupService flakyFactory({
+          required String livePath,
+          required BackupPreferences preferences,
+        }) {
+          attempt += 1;
+          if (attempt == 1) {
+            return _ThrowingBackupService(
+              preferences: preferences,
+              error: const BackupFailedException(
+                cause: BackupFailureCause.unknown,
+                userMessage: 'Temporary backup failure.',
+                technicalDetails: 'flaky',
+              ),
+            );
+          }
+          return _NoOpBackupService(preferences: preferences);
+        }
+
+        await tester.pumpWidget(
+          _buildStartupWrapper(
+            prefs: prefs,
+            logFileService: logFileService,
+            locationService: locationService,
+            schemaVersionProbeOverride: (_) =>
+                (needsMigration: true, totalSteps: 3),
+            preMigrationBackupFactory: flakyFactory,
+            // Never completes so retry path stops at the "migrating" state,
+            // avoiding go_router redirect that would need DatabaseService.
+            initializerOverride: (_) => Completer<void>().future,
+          ),
+        );
+
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        expect(find.text("Couldn't back up your data"), findsOneWidget);
+
+        await tester.tap(find.widgetWithText(ElevatedButton, 'Retry'));
+        await tester.pump();
+        await tester.pump();
+
+        expect(attempt, 2);
+        // Recovery: the error scaffold is gone; the progress UI took its place.
+        expect(find.byKey(const ValueKey('error')), findsNothing);
+        expect(find.text("Couldn't back up your data"), findsNothing);
+        expect(find.byType(LinearProgressIndicator), findsOneWidget);
+
+        // Drain any pending timers from the retry path.
+        await tester.pump(const Duration(seconds: 2));
+      },
+    );
+
+    testWidgets(
+      'Retry that fails again with BackupFailedException stays on backupFailed',
+      (tester) async {
+        var attempt = 0;
+        PreMigrationBackupService alwaysFailingFactory({
+          required String livePath,
+          required BackupPreferences preferences,
+        }) {
+          attempt += 1;
+          return _ThrowingBackupService(
+            preferences: preferences,
+            error: BackupFailedException(
+              cause: BackupFailureCause.permissionDenied,
+              userMessage: 'Attempt $attempt failed.',
+              technicalDetails: 'EACCES',
+            ),
+          );
+        }
+
+        await tester.pumpWidget(
+          _buildStartupWrapper(
+            prefs: prefs,
+            logFileService: logFileService,
+            locationService: locationService,
+            schemaVersionProbeOverride: (_) =>
+                (needsMigration: true, totalSteps: 1),
+            preMigrationBackupFactory: alwaysFailingFactory,
+            initializerOverride: (_) async {},
+          ),
+        );
+
+        await tester.pump();
+        await tester.pumpAndSettle();
+        expect(find.text('Attempt 1 failed.'), findsOneWidget);
+
+        await tester.tap(find.widgetWithText(ElevatedButton, 'Retry'));
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        expect(attempt, 2);
+        expect(find.text("Couldn't back up your data"), findsOneWidget);
+        expect(find.text('Attempt 2 failed.'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Retry that throws a non-BackupFailedException goes to generic error',
+      (tester) async {
+        var attempt = 0;
+        PreMigrationBackupService factory({
+          required String livePath,
+          required BackupPreferences preferences,
+        }) {
+          attempt += 1;
+          if (attempt == 1) {
+            return _ThrowingBackupService(
+              preferences: preferences,
+              error: const BackupFailedException(
+                cause: BackupFailureCause.unknown,
+                userMessage: 'First failure.',
+                technicalDetails: '',
+              ),
+            );
+          }
+          return _ThrowingBackupService(
+            preferences: preferences,
+            error: Exception('unexpected non-backup-failed'),
+          );
+        }
+
+        await tester.pumpWidget(
+          _buildStartupWrapper(
+            prefs: prefs,
+            logFileService: logFileService,
+            locationService: locationService,
+            schemaVersionProbeOverride: (_) =>
+                (needsMigration: true, totalSteps: 1),
+            preMigrationBackupFactory: factory,
+            initializerOverride: (_) async {},
+          ),
+        );
+
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.widgetWithText(ElevatedButton, 'Retry'));
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        expect(attempt, 2);
+        expect(find.byKey(const ValueKey('error')), findsOneWidget);
+        expect(
+          find.textContaining('unexpected non-backup-failed'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('Quit button on backupFailed invokes closeAppOverride', (
+      tester,
+    ) async {
+      var quitCalled = 0;
+      PreMigrationBackupService factory({
+        required String livePath,
+        required BackupPreferences preferences,
+      }) {
+        return _ThrowingBackupService(
+          preferences: preferences,
+          error: const BackupFailedException(
+            cause: BackupFailureCause.diskFull,
+            userMessage: 'Disk is full.',
+            technicalDetails: '',
+          ),
+        );
+      }
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: true, totalSteps: 1),
+          preMigrationBackupFactory: factory,
+          initializerOverride: (_) async {},
+          closeAppOverride: () => quitCalled++,
+        ),
+      );
+
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Quit'));
+      await tester.pump();
+
+      expect(quitCalled, 1);
+    });
+  });
+}
+
+/// A backup service whose `backupIfMigrationPending` always throws.
+class _ThrowingBackupService extends PreMigrationBackupService {
+  final Object error;
+  _ThrowingBackupService({required super.preferences, required this.error})
+    : super(
+        livePathProvider: () async => '/tmp/test.db',
+        backupsDirProvider: () async => '/tmp/test-backups',
+      );
+
+  @override
+  Future<void> backupIfMigrationPending({
+    required int stored,
+    required int target,
+    required String appVersion,
+  }) async {
+    throw error;
+  }
 }

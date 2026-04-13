@@ -232,6 +232,21 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get backup_history_pinAction_pin => 'Biztonsagi mentes rogzitese';
+
+  @override
+  String get backup_history_pinAction_unpin => 'Rogzites megszuntetese';
+
+  @override
+  String get backup_history_pinError =>
+      'Nem sikerult a rogzites allapotat frissiteni.';
+
+  @override
+  String backup_history_preMigrationSubtitle(String size) {
+    return 'Migracio elotti mentes - $size';
+  }
+
+  @override
   String get backup_import_invalidFile =>
       'Ez a fájl nem tűnik érvényes Submersion biztonsági mentésnek';
 
@@ -13879,22 +13894,22 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String universalImport_bulk_consolidateMatched(int count) {
-    return 'Consolidate matched ($count)';
+    return 'Egyezoek osszevonasa ($count)';
   }
 
   @override
   String universalImport_bulk_importAll(int count) {
-    return 'Import all ($count)';
+    return 'Mind importalasa ($count)';
   }
 
   @override
   String universalImport_bulk_importAllAsNew(int count) {
-    return 'Import all as new ($count)';
+    return 'Mind importalasa ujkent ($count)';
   }
 
   @override
   String universalImport_bulk_skipAll(int count) {
-    return 'Skip all ($count)';
+    return 'Mind kihagyasa ($count)';
   }
 
   @override
@@ -13902,7 +13917,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Válassz egy merülési napló fájlt az importáláshoz. Támogatott formátumok: CSV, UDDF, Subsurface XML és Garmin FIT.';
 
   @override
-  String get universalImport_dive_decideAction => 'Decide';
+  String get universalImport_dive_decideAction => 'Dontes';
 
   @override
   String get universalImport_error_unsupportedFormat =>
@@ -13917,7 +13932,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get universalImport_label_consolidate => 'Consolidate';
+  String get universalImport_label_consolidate => 'Osszevonas';
 
   @override
   String get universalImport_label_detecting => 'Észlelés...';
@@ -13936,7 +13951,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get universalImport_label_importAsNew => 'Import as New';
+  String get universalImport_label_importAsNew => 'Importalas ujkent';
 
   @override
   String get universalImport_label_importComplete => 'Importálás kész';
@@ -13994,22 +14009,22 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get universalImport_pending_chooseAction => 'Choose an action';
+  String get universalImport_pending_chooseAction => 'Valassz muveletet';
 
   @override
   String universalImport_pending_gateHint(int count) {
-    return '$count duplicate(s) need a decision';
+    return '$count duplikatum dontest igenyel';
   }
 
   @override
-  String get universalImport_pending_needsDecision => 'Needs decision';
+  String get universalImport_pending_needsDecision => 'Dontes szukseges';
 
   @override
-  String get universalImport_pending_reviewAction => 'Review';
+  String get universalImport_pending_reviewAction => 'Attekintes';
 
   @override
   String get universalImport_rowHint_tapCompareToDecide =>
-      'Tap Decide to choose';
+      'Koppints a Dontes gombra a valasztashoz';
 
   @override
   String universalImport_semantics_entitySelection(
@@ -14037,7 +14052,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_semantics_needsDecision =>
-      'Suspected duplicate, needs decision';
+      'Valoszinu duplikatum, dontes szukseges';
 
   @override
   String get universalImport_semantics_possibleDuplicate =>
@@ -14064,12 +14079,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String universalImport_snackbar_bulkMarkedAs(int count, String action) {
-    return '$count marked as $action';
+    return '$count megjelolve mint $action';
   }
 
   @override
   String universalImport_snackbar_markedAs(String action) {
-    return 'Marked as $action';
+    return 'Megjelolve mint $action';
   }
 
   @override
@@ -14086,7 +14101,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_summary_decidesRequired =>
-      'Each needs a decision before importing.';
+      'Mindegyik dontest igenyel az importalas elott.';
 
   @override
   String get universalImport_title => 'Adatok importálása';
@@ -14199,10 +14214,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveComputer_connectionType_bluetooth => 'Bluetooth';
 
   @override
-  String get diveComputer_connectionType_infrared => 'Infrared';
+  String get diveComputer_connectionType_infrared => 'Infravoros';
 
   @override
-  String get diveComputer_connectionType_unknown => 'Unknown';
+  String get diveComputer_connectionType_unknown => 'Ismeretlen';
 
   @override
   String get diveComputer_connectionType_usb => 'USB';
@@ -14212,48 +14227,48 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_detail_cannotFilterNoSerial =>
-      'Cannot filter: no serial number for this computer.';
+      'Nem lehet szurni: nincs sorozatszam ehhez a szamitogephez.';
 
   @override
   String diveComputer_detail_deleteDialogContent(String name) {
-    return 'Are you sure you want to remove \"$name\"? This will not delete any dives that were imported from this computer.';
+    return 'Biztosan eltavolitod a(z) \"$name\" eszkozt? Ez nem torli az errol a szamitogeprol importalt merulseket.';
   }
 
   @override
-  String get diveComputer_detail_deleteDialogTitle => 'Delete Computer?';
+  String get diveComputer_detail_deleteDialogTitle => 'Szamitogep torlese?';
 
   @override
-  String get diveComputer_detail_divesImported => 'Dives Imported';
+  String get diveComputer_detail_divesImported => 'Importalt merulesek';
 
   @override
-  String get diveComputer_detail_downloadDivesButton => 'Download Dives';
+  String get diveComputer_detail_downloadDivesButton => 'Merulesek letoltese';
 
   @override
-  String get diveComputer_detail_editDialogTitle => 'Edit Computer';
+  String get diveComputer_detail_editDialogTitle => 'Szamitogep szerkesztese';
 
   @override
-  String get diveComputer_detail_editNameHint => 'e.g., My Perdix';
+  String get diveComputer_detail_editNameHint => 'Peldaul Perdixem';
 
   @override
-  String get diveComputer_detail_editNotesHint => 'Optional notes';
+  String get diveComputer_detail_editNotesHint => 'Opcionalis megjegyzesek';
 
   @override
-  String get diveComputer_detail_labelConnection => 'Connection';
+  String get diveComputer_detail_labelConnection => 'Kapcsolat';
 
   @override
-  String get diveComputer_detail_labelManufacturer => 'Manufacturer';
+  String get diveComputer_detail_labelManufacturer => 'Gyarto';
 
   @override
-  String get diveComputer_detail_labelModel => 'Model';
+  String get diveComputer_detail_labelModel => 'Modell';
 
   @override
-  String get diveComputer_detail_labelName => 'Name';
+  String get diveComputer_detail_labelName => 'Nev';
 
   @override
-  String get diveComputer_detail_lastDownload => 'Last Download';
+  String get diveComputer_detail_lastDownload => 'Utolso letoltes';
 
   @override
-  String get diveComputer_detail_notesTitle => 'Notes';
+  String get diveComputer_detail_notesTitle => 'Megjegyzesek';
 
   @override
   String get diveComputer_detail_reimportAllButton => 'Re-import all dives';
@@ -14267,14 +14282,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveComputer_detail_reimportDialogTitle => 'Re-import all dives?';
 
   @override
-  String get diveComputer_detail_statisticsTitle => 'Statistics';
+  String get diveComputer_detail_statisticsTitle => 'Statisztikak';
 
   @override
-  String get diveComputer_detail_unknown => 'Unknown';
+  String get diveComputer_detail_unknown => 'Ismeretlen';
 
   @override
   String get diveComputer_detail_viewDivesButton =>
-      'View Dives from This Computer';
+      'Errol a szamitogeprol szarmazo merulesek';
 
   @override
   String get diveComputer_discovery_chooseDifferentDevice =>
@@ -14380,16 +14395,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_downloadExit_content =>
-      'Leaving will cancel the current download from your dive computer. Are you sure?';
+      'A kilepes megszakitja a folyamatban levo letoltest a merulo szamitogeprol. Biztos vagy benne?';
 
   @override
-  String get diveComputer_downloadExit_leave => 'Leave';
+  String get diveComputer_downloadExit_leave => 'Kilepes';
 
   @override
-  String get diveComputer_downloadExit_stay => 'Stay';
+  String get diveComputer_downloadExit_stay => 'Maradas';
 
   @override
-  String get diveComputer_downloadExit_title => 'Download in Progress';
+  String get diveComputer_downloadExit_title => 'Letoltes folyamatban';
 
   @override
   String diveComputer_downloadStep_andMoreDives(Object count) {
@@ -14665,87 +14680,87 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_pinCode_instructions =>
-      'Enter the code displayed on your dive computer.';
+      'Add meg a merulo szamitogepen megjelenitett kodot.';
 
   @override
-  String get diveComputer_pinCode_label => 'PIN Code';
+  String get diveComputer_pinCode_label => 'PIN-kod';
 
   @override
-  String get diveComputer_pinCode_submit => 'Submit';
+  String get diveComputer_pinCode_submit => 'Kuldes';
 
   @override
-  String get diveComputer_pinCode_title => 'PIN Code Required';
+  String get diveComputer_pinCode_title => 'PIN-kod szukseges';
 
   @override
-  String get diveComputer_pinEntry_connectButton => 'Connect';
+  String get diveComputer_pinEntry_connectButton => 'Csatlakozas';
 
   @override
   String get diveComputer_pinEntry_helperText =>
-      'Enter the 4-6 digit PIN shown on your device';
+      'Add meg az eszkozon megjelenitett 4-6 jegyu PIN-kodot';
 
   @override
   String get diveComputer_pinEntry_instructionsGeneric =>
-      'Check your dive computer display for the PIN code.';
+      'Ellenorizd a merulo szamitogep kijelzojet a PIN-kodhoz.';
 
   @override
   String diveComputer_pinEntry_instructionsWithDevice(String deviceName) {
-    return 'Check your $deviceName display for the PIN code.';
+    return 'Ellenorizd a(z) $deviceName kijelzojet a PIN-kodhoz.';
   }
 
   @override
   String get diveComputer_pinEntry_semanticLabel =>
-      'PIN code entry, 4 to 6 digits';
+      'PIN-kod bevitel, 4-6 szamjegy';
 
   @override
-  String get diveComputer_pinEntry_title => 'Enter PIN Code';
+  String get diveComputer_pinEntry_title => 'PIN-kod megadasa';
 
   @override
   String diveComputer_scan_bluetoothSemanticLabel(String name) {
-    return 'Bluetooth device: $name';
+    return 'Bluetooth eszkoz: $name';
   }
 
   @override
   String get diveComputer_scan_emptyStateInstructions =>
-      'Make sure your dive computer is:\n• Turned on\n• In Bluetooth pairing mode\n• Close to your device';
+      'Gyozodj meg arrol, hogy a merulo szamitogeped:\n• Be van kapcsolva\n• Bluetooth parositasi modban van\n• Kozel van az eszkozodhoz';
 
   @override
-  String get diveComputer_scan_knownBadge => 'Known';
+  String get diveComputer_scan_knownBadge => 'Ismert';
 
   @override
-  String get diveComputer_scan_lookingForDevicesTitle => 'Looking for Devices';
+  String get diveComputer_scan_lookingForDevicesTitle => 'Eszkozok keresese';
 
   @override
   String get diveComputer_scan_noUsbDevicesAvailable =>
-      'No USB devices available';
+      'Nincs elerheto USB-eszkoz';
 
   @override
-  String get diveComputer_scan_retry => 'Retry';
+  String get diveComputer_scan_retry => 'Ujra';
 
   @override
-  String get diveComputer_scan_scanAgain => 'Scan Again';
+  String get diveComputer_scan_scanAgain => 'Ujra keres';
 
   @override
   String get diveComputer_scan_scanningStatus =>
-      'Scanning for dive computers...';
+      'Merulo szamitogepek keresese...';
 
   @override
-  String get diveComputer_scan_stopScanning => 'Stop Scanning';
+  String get diveComputer_scan_stopScanning => 'Keres leallitasa';
 
   @override
-  String get diveComputer_scan_supportedBadge => 'Supported';
+  String get diveComputer_scan_supportedBadge => 'Tamogatott';
 
   @override
   String get diveComputer_scan_tabBluetooth => 'Bluetooth';
 
   @override
-  String get diveComputer_scan_tabUsb => 'USB Cable';
+  String get diveComputer_scan_tabUsb => 'USB-kabel';
 
   @override
-  String get diveComputer_scan_usbCableLabel => 'USB Cable';
+  String get diveComputer_scan_usbCableLabel => 'USB-kabel';
 
   @override
   String diveComputer_scan_usbSemanticLabel(String model) {
-    return 'USB device: $model';
+    return 'USB-eszkoz: $model';
   }
 
   @override

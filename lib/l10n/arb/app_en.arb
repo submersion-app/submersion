@@ -244,6 +244,17 @@
       }
     }
   },
+  "backup_history_pinAction_pin": "Pin backup",
+  "backup_history_pinAction_unpin": "Unpin backup",
+  "backup_history_pinError": "Could not update pin state.",
+  "backup_history_preMigrationSubtitle": "Pre-migration backup - {size}",
+  "@backup_history_preMigrationSubtitle": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "backup_import_invalidFile": "This file does not appear to be a valid Submersion backup",
   "backup_import_subtitle": "Import a backup from any location",
   "backup_import_title": "Restore from File",

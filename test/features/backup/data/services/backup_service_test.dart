@@ -11,6 +11,7 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
+import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 
 // =============================================================================
 // Test Doubles
@@ -900,6 +901,208 @@ void main() {
         // Stale record should be removed from preferences
         final rawHistory = preferences.getHistory();
         expect(rawHistory, isEmpty);
+      });
+    });
+
+    group('pinBackup / unpinBackup', () {
+      test('pinBackup flips pinned to true on the record', () async {
+        final record = BackupRecord(
+          id: 'pin-me',
+          filename: 'backup.db',
+          timestamp: DateTime(2025, 6, 15),
+          sizeBytes: 1000,
+          location: BackupLocation.local,
+          diveCount: 5,
+          siteCount: 2,
+        );
+        await preferences.addRecord(record);
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        await service.pinBackup('pin-me');
+
+        final history = preferences.getHistory();
+        expect(history.single.pinned, true);
+      });
+
+      test('unpinBackup flips pinned to false', () async {
+        final record = BackupRecord(
+          id: 'unpin-me',
+          filename: 'backup.db',
+          timestamp: DateTime(2025, 6, 15),
+          sizeBytes: 1000,
+          location: BackupLocation.local,
+          diveCount: 5,
+          siteCount: 2,
+          pinned: true,
+        );
+        await preferences.addRecord(record);
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        await service.unpinBackup('unpin-me');
+
+        final history = preferences.getHistory();
+        expect(history.single.pinned, false);
+      });
+
+      test('pinBackup is a no-op for unknown ids (does not throw)', () async {
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        await expectLater(service.pinBackup('unknown'), completes);
+
+        expect(preferences.getHistory(), isEmpty);
+      });
+    });
+
+    group('pruneOldBackups type + pinned isolation', () {
+      test('only prunes manual records, never pre-migration', () async {
+        // Seed 3 manual records + 2 pre-migration records
+        for (var i = 0; i < 3; i++) {
+          await preferences.addRecord(
+            BackupRecord(
+              id: 'm$i',
+              filename: 'm$i.db',
+              timestamp: DateTime(2026, 1, 1 + i),
+              sizeBytes: 1,
+              location: BackupLocation.local,
+              type: BackupType.manual,
+            ),
+          );
+        }
+        for (var i = 0; i < 2; i++) {
+          await preferences.addRecord(
+            BackupRecord(
+              id: 'p$i',
+              filename: 'p$i.db',
+              timestamp: DateTime(2025, 1, 1 + i), // older than manuals
+              sizeBytes: 1,
+              location: BackupLocation.local,
+              type: BackupType.preMigration,
+              fromSchemaVersion: 63,
+              toSchemaVersion: 64,
+            ),
+          );
+        }
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        // Prune to keep 1 — should delete 2 manual, keep all pre-migration
+        await service.pruneOldBackups(1);
+
+        final remaining = preferences.getHistory();
+        final manualCount = remaining
+            .where((r) => r.type == BackupType.manual)
+            .length;
+        final preMigCount = remaining
+            .where((r) => r.type == BackupType.preMigration)
+            .length;
+        expect(manualCount, 1, reason: 'should keep only 1 manual');
+        expect(preMigCount, 2, reason: 'pre-migration untouched');
+      });
+
+      test('does not prune pinned manual records', () async {
+        // Seed 3 manual records, middle one pinned
+        await preferences.addRecord(
+          BackupRecord(
+            id: 'm0',
+            filename: 'm0.db',
+            timestamp: DateTime(2026, 1, 1),
+            sizeBytes: 1,
+            location: BackupLocation.local,
+            type: BackupType.manual,
+          ),
+        );
+        await preferences.addRecord(
+          BackupRecord(
+            id: 'm1-pinned',
+            filename: 'm1.db',
+            timestamp: DateTime(2026, 1, 2),
+            sizeBytes: 1,
+            location: BackupLocation.local,
+            type: BackupType.manual,
+            pinned: true,
+          ),
+        );
+        await preferences.addRecord(
+          BackupRecord(
+            id: 'm2',
+            filename: 'm2.db',
+            timestamp: DateTime(2026, 1, 3),
+            sizeBytes: 1,
+            location: BackupLocation.local,
+            type: BackupType.manual,
+          ),
+        );
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        // Prune to keep 1 — should keep newest (m2) + pinned (m1-pinned), drop m0
+        await service.pruneOldBackups(1);
+
+        final remaining = preferences.getHistory();
+        final ids = remaining.map((r) => r.id).toSet();
+        expect(ids, contains('m1-pinned'));
+        expect(ids, contains('m2'));
+        expect(ids, isNot(contains('m0')));
+      });
+
+      test('keepCount applies only to unpinned manual records', () async {
+        // 2 pinned + 5 unpinned manuals
+        for (var i = 0; i < 2; i++) {
+          await preferences.addRecord(
+            BackupRecord(
+              id: 'pinned-$i',
+              filename: 'p$i.db',
+              timestamp: DateTime(2026, 1, 1 + i),
+              sizeBytes: 1,
+              location: BackupLocation.local,
+              type: BackupType.manual,
+              pinned: true,
+            ),
+          );
+        }
+        for (var i = 0; i < 5; i++) {
+          await preferences.addRecord(
+            BackupRecord(
+              id: 'u$i',
+              filename: 'u$i.db',
+              timestamp: DateTime(2026, 2, 1 + i),
+              sizeBytes: 1,
+              location: BackupLocation.local,
+              type: BackupType.manual,
+            ),
+          );
+        }
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        // Keep 2 unpinned manuals; all 2 pinned stay
+        await service.pruneOldBackups(2);
+
+        final remaining = preferences.getHistory();
+        final pinnedCount = remaining.where((r) => r.pinned).length;
+        final unpinnedCount = remaining.where((r) => !r.pinned).length;
+        expect(pinnedCount, 2);
+        expect(unpinnedCount, 2);
       });
     });
 
