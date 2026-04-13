@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
 
@@ -17,6 +18,12 @@ void main() {
       find.textContaining('Looking for older or deleted dives'),
       findsOneWidget,
     );
+    expect(find.text('No new dives to download'), findsOneWidget);
+    expect(
+      find.text('All dives from this computer have already been imported.'),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
   });
 
   testWidgets('tapping breadcrumb invokes onDone', (tester) async {
