@@ -127,11 +127,11 @@ class PreMigrationBackupService {
     if (unpinned.length <= _retainN) return;
     final toDelete = unpinned.sublist(_retainN);
     for (final record in toDelete) {
-      await _preferences.removeRecord(record.id);
       final path = record.localPath;
       if (path != null) {
         await _safeDelete(path);
       }
+      await _preferences.removeRecord(record.id);
     }
   }
 
