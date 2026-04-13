@@ -105,6 +105,107 @@ void main() {
     expect(find.text('Restore anyway'), findsNothing);
   });
 
+  group('show() static + button dismissal', () {
+    Future<bool?> openAndTap(
+      WidgetTester tester,
+      BackupRecord record,
+      int currentSchemaVersion,
+      String buttonText,
+    ) async {
+      bool? result;
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Builder(
+              builder: (ctx) => TextButton(
+                onPressed: () async {
+                  result = await RestoreConfirmationDialog.show(
+                    ctx,
+                    record,
+                    currentSchemaVersion: currentSchemaVersion,
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(buttonText));
+      await tester.pumpAndSettle();
+      return result;
+    }
+
+    testWidgets('green path Restore returns true', (tester) async {
+      final result = await openAndTap(
+        tester,
+        _preMigration(fromVersion: 63, toVersion: 64),
+        63,
+        'Restore',
+      );
+      expect(result, isTrue);
+    });
+
+    testWidgets('green path Cancel returns false', (tester) async {
+      final result = await openAndTap(
+        tester,
+        _preMigration(fromVersion: 63, toVersion: 64),
+        63,
+        'Cancel',
+      );
+      expect(result, isFalse);
+    });
+
+    testWidgets('warning path Restore anyway returns true', (tester) async {
+      final result = await openAndTap(
+        tester,
+        _preMigration(fromVersion: 63, toVersion: 64),
+        64,
+        'Restore anyway',
+      );
+      expect(result, isTrue);
+    });
+
+    testWidgets('warning path Cancel returns false', (tester) async {
+      final result = await openAndTap(
+        tester,
+        _preMigration(fromVersion: 63, toVersion: 64),
+        64,
+        'Cancel',
+      );
+      expect(result, isFalse);
+    });
+
+    testWidgets('hard-block path Cancel returns false', (tester) async {
+      final result = await openAndTap(
+        tester,
+        _preMigration(fromVersion: 65, toVersion: 66),
+        64,
+        'Cancel',
+      );
+      expect(result, isFalse);
+    });
+
+    testWidgets('metadata-incomplete Cancel returns false', (tester) async {
+      final incomplete = BackupRecord(
+        id: 'inc',
+        filename: 'pre.db',
+        timestamp: DateTime(2026, 4, 12),
+        sizeBytes: 1,
+        location: BackupLocation.local,
+        localPath: '/tmp/pre.db',
+        type: BackupType.preMigration,
+        appVersion: '1.0.0.0',
+      );
+      final result = await openAndTap(tester, incomplete, 64, 'Cancel');
+      expect(result, isFalse);
+    });
+  });
+
   testWidgets('manual record uses existing l10n-based dialog behaviour', (
     tester,
   ) async {

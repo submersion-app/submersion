@@ -2,16 +2,15 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
-import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/backup/presentation/widgets/backup_history_tile.dart';
 import 'package:submersion/features/backup/presentation/widgets/export_bottom_sheet.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -311,84 +310,12 @@ class BackupSettingsPage extends ConsumerWidget {
     WidgetRef ref,
     BackupRecord record,
   ) {
-    final theme = Theme.of(context);
-    final dateFormat = DateFormat.yMMMd().add_jm();
-
-    return ListTile(
-      leading: Icon(_locationIcon(record.location)),
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: Text(
-              dateFormat.format(record.timestamp),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          if (record.type == BackupType.preMigration &&
-              record.fromSchemaVersion != null &&
-              record.toSchemaVersion != null) ...[
-            const SizedBox(width: 8),
-            PreMigrationBadge(
-              fromVersion: record.fromSchemaVersion!,
-              toVersion: record.toSchemaVersion!,
-            ),
-          ],
-        ],
-      ),
-      subtitle: Text(
-        record.type == BackupType.preMigration
-            ? context.l10n.backup_history_preMigrationSubtitle(
-                record.formattedSize,
-              )
-            : '${record.diveCount ?? 0} dives, '
-                  '${record.siteCount ?? 0} sites - ${record.formattedSize}'
-                  '${record.isAutomatic ? ' (auto)' : ''}',
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: Icon(
-              record.pinned ? Icons.push_pin : Icons.push_pin_outlined,
-              color: record.pinned
-                  ? Theme.of(context).colorScheme.primary
-                  : null,
-            ),
-            tooltip: record.pinned
-                ? context.l10n.backup_history_pinAction_unpin
-                : context.l10n.backup_history_pinAction_pin,
-            onPressed: () => _togglePin(context, ref, record),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (action) =>
-                _handleHistoryAction(context, ref, action, record),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'restore',
-                child: ListTile(
-                  leading: const Icon(Icons.restore),
-                  title: Text(context.l10n.backup_history_action_restore),
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                ),
-              ),
-              PopupMenuItem(
-                value: 'delete',
-                child: ListTile(
-                  leading: Icon(Icons.delete, color: theme.colorScheme.error),
-                  title: Text(
-                    context.l10n.backup_history_action_delete,
-                    style: TextStyle(color: theme.colorScheme.error),
-                  ),
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+    return BackupHistoryTile(
+      record: record,
+      leadingIcon: _locationIcon(record.location),
+      onPinToggle: () => _togglePin(context, ref, record),
+      onRestore: () => _handleHistoryAction(context, ref, 'restore', record),
+      onDelete: () => _handleHistoryAction(context, ref, 'delete', record),
     );
   }
 
@@ -612,34 +539,5 @@ class BackupSettingsPage extends ConsumerWidget {
       case BackupFrequency.monthly:
         return context.l10n.backup_frequency_monthly;
     }
-  }
-}
-
-class PreMigrationBadge extends StatelessWidget {
-  final int fromVersion;
-  final int toVersion;
-
-  const PreMigrationBadge({
-    super.key,
-    required this.fromVersion,
-    required this.toVersion,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.secondaryContainer,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        'v$fromVersion \u2192 v$toVersion',
-        style: TextStyle(
-          fontSize: 11,
-          color: Theme.of(context).colorScheme.onSecondaryContainer,
-        ),
-      ),
-    );
   }
 }

@@ -142,4 +142,15 @@ void main() {
     );
     expect(e.cause, BackupFailureCause.sourceMissing);
   });
+
+  test('toString embeds cause and user message for logs', () {
+    const e = BackupFailedException(
+      cause: BackupFailureCause.diskFull,
+      userMessage: 'Disk is full.',
+      technicalDetails: 'ENOSPC',
+    );
+    final s = e.toString();
+    expect(s, contains('BackupFailureCause.diskFull'));
+    expect(s, contains('Disk is full.'));
+  });
 }

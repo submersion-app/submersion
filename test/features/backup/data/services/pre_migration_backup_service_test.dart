@@ -448,6 +448,34 @@ void main() {
     });
   });
 
+  group('construction', () {
+    test('default idGenerator produces a UUID-shaped id', () async {
+      final f = await _makeFixture();
+      addTearDown(f.dispose);
+      final service = PreMigrationBackupService(
+        livePathProvider: () async => f.livePath,
+        backupsDirProvider: () async => f.backupsDir,
+        preferences: f.prefs,
+      );
+
+      await service.backupIfMigrationPending(
+        stored: 63,
+        target: 64,
+        appVersion: '1.6.0.1241',
+      );
+
+      final history = f.prefs.getHistory();
+      expect(history, hasLength(1));
+      final id = history.single.id;
+      // UUID v4 canonical form: 8-4-4-4-12 hex.
+      final uuid = RegExp(
+        r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-'
+        r'[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+      );
+      expect(uuid.hasMatch(id), isTrue, reason: 'id was "$id"');
+    });
+  });
+
   group('atomicity', () {
     test('final .db exists only under non-.tmp name after success', () async {
       final f = await _makeFixture();

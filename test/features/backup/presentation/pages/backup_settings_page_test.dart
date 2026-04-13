@@ -1,9 +1,22 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/presentation/pages/backup_settings_page.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/backup/presentation/widgets/backup_history_tile.dart';
+import 'package:submersion/features/backup/presentation/widgets/pre_migration_badge.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   // ---------------------------------------------------------------------------
@@ -156,7 +169,149 @@ void main() {
       },
     );
   });
+
+  // ---------------------------------------------------------------------------
+  // BackupSettingsPage integration — pin toggle success + error paths
+  // ---------------------------------------------------------------------------
+  group('BackupSettingsPage pin toggle', () {
+    late Directory tempDir;
+    late SharedPreferences prefs;
+    late BackupPreferences backupPrefs;
+    late BackupRecord seededRecord;
+
+    setUp(() async {
+      tempDir = await Directory.systemTemp.createTemp('bsp_test_');
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+      backupPrefs = BackupPreferences(prefs);
+      seededRecord = BackupRecord(
+        id: 'rec-1',
+        filename: 'manual.db',
+        timestamp: _kNow,
+        sizeBytes: 2048,
+        location: BackupLocation.local,
+        localPath: '${tempDir.path}/manual.db',
+        diveCount: 0,
+        siteCount: 0,
+      );
+      await backupPrefs.addRecord(seededRecord);
+    });
+
+    tearDown(() async {
+      if (tempDir.existsSync()) await tempDir.delete(recursive: true);
+    });
+
+    Widget buildApp(BackupService service) {
+      return ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          backupServiceProvider.overrideWithValue(service),
+          cloudStorageProviderProvider.overrideWithValue(null),
+          backupHistoryProvider.overrideWith(
+            (ref) async => backupPrefs.getHistory(),
+          ),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: BackupSettingsPage(),
+        ),
+      );
+    }
+
+    testWidgets('tapping outlined pin flips record to pinned', (tester) async {
+      final service = BackupService(
+        dbAdapter: _FakeBackupDatabaseAdapter(),
+        preferences: backupPrefs,
+        cloudProvider: null,
+      );
+
+      await tester.pumpWidget(buildApp(service));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BackupHistoryTile), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.push_pin_outlined));
+      await tester.pumpAndSettle();
+
+      expect(backupPrefs.getHistory().single.pinned, isTrue);
+    });
+
+    testWidgets('tapping filled pin flips pinned record back to unpinned', (
+      tester,
+    ) async {
+      // Seed as already pinned
+      await backupPrefs.updateRecord(seededRecord.copyWith(pinned: true));
+
+      final service = BackupService(
+        dbAdapter: _FakeBackupDatabaseAdapter(),
+        preferences: backupPrefs,
+        cloudProvider: null,
+      );
+
+      await tester.pumpWidget(buildApp(service));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.push_pin));
+      await tester.pumpAndSettle();
+
+      expect(backupPrefs.getHistory().single.pinned, isFalse);
+    });
+
+    testWidgets('pin failure shows SnackBar with user-facing message', (
+      tester,
+    ) async {
+      final service = _ThrowingPinBackupService(
+        dbAdapter: _FakeBackupDatabaseAdapter(),
+        preferences: backupPrefs,
+      );
+
+      await tester.pumpWidget(buildApp(service));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.push_pin_outlined));
+      await tester.pump(); // let snackbar enter
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(SnackBar), findsOneWidget);
+      // Pin state did not change: error path kept the record unpinned.
+      expect(backupPrefs.getHistory().single.pinned, isFalse);
+    });
+  });
 }
 
 // Fixed timestamp used across tests.
 final _kNow = DateTime(2024, 6, 1, 12, 0, 0);
+
+/// Minimal BackupDatabaseAdapter fake — unused methods throw loud errors.
+class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
+  @override
+  Future<void> backup(String destinationPath) async =>
+      throw UnimplementedError('not used');
+
+  @override
+  Future<void> restore(String backupPath) async =>
+      throw UnimplementedError('not used');
+
+  @override
+  Future<String> get databasePath async => '/fake/db/path';
+
+  @override
+  AppDatabase get database =>
+      throw UnimplementedError('Fake does not support direct queries');
+}
+
+/// BackupService override that throws on pin/unpin to exercise the error path.
+class _ThrowingPinBackupService extends BackupService {
+  _ThrowingPinBackupService({
+    required super.dbAdapter,
+    required super.preferences,
+  });
+
+  @override
+  Future<void> pinBackup(String id) async =>
+      throw StateError('simulated pin failure');
+
+  @override
+  Future<void> unpinBackup(String id) async =>
+      throw StateError('simulated unpin failure');
+}
