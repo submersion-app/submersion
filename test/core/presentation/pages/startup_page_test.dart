@@ -9,6 +9,8 @@ import 'package:submersion/core/domain/entities/migration_progress.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/pre_migration_backup_service.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -23,6 +25,34 @@ class _FakeLocationService extends DatabaseLocationService {
   Future<String> getDatabasePath() async => _path;
 }
 
+/// A synchronous no-op subclass of [PreMigrationBackupService] for tests that
+/// exercise the migration path without wanting real file I/O.
+class _NoOpBackupService extends PreMigrationBackupService {
+  _NoOpBackupService({required super.preferences})
+    : super(
+        livePathProvider: () async => '/tmp/test.db',
+        backupsDirProvider: () async => '/tmp/test-backups',
+      );
+
+  @override
+  Future<void> backupIfMigrationPending({
+    required int stored,
+    required int target,
+    required String appVersion,
+  }) async {
+    // Intentional no-op: skip all file I/O in widget tests.
+  }
+}
+
+/// Factory for the no-op backup service used by tests that exercise the
+/// migration path but do not want to test backup behaviour.
+PreMigrationBackupService _noOpBackupFactory({
+  required String livePath,
+  required BackupPreferences preferences,
+}) {
+  return _NoOpBackupService(preferences: preferences);
+}
+
 /// Builds a [StartupWrapper] for widget testing with injectable overrides.
 Widget _buildStartupWrapper({
   required SharedPreferences prefs,
@@ -31,6 +61,11 @@ Widget _buildStartupWrapper({
   ServiceInitializer? initializerOverride,
   SchemaVersionProbe? schemaVersionProbeOverride,
   VoidCallback? closeAppOverride,
+  PreMigrationBackupService Function({
+    required String livePath,
+    required BackupPreferences preferences,
+  })?
+  preMigrationBackupFactory,
 }) {
   return StartupWrapper(
     prefs: prefs,
@@ -39,6 +74,7 @@ Widget _buildStartupWrapper({
     initializerOverride: initializerOverride,
     schemaVersionProbeOverride: schemaVersionProbeOverride,
     closeAppOverride: closeAppOverride,
+    preMigrationBackupFactory: preMigrationBackupFactory,
   );
 }
 
@@ -538,6 +574,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: true, totalSteps: 5),
+          preMigrationBackupFactory: _noOpBackupFactory,
           initializerOverride: (onProgress) {
             capturedCallback = onProgress;
             // Never completes -- we stay on the migration screen
@@ -546,7 +583,9 @@ void main() {
         ),
       );
 
-      // After first pump the widget should show migrating state
+      // Pump through the backup step (synchronous no-op factory) then into
+      // migrating state.
+      await tester.pump();
       await tester.pump();
 
       // Verify migration UI is shown
@@ -723,6 +762,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: true, totalSteps: 10),
+          preMigrationBackupFactory: _noOpBackupFactory,
           initializerOverride: (onProgress) {
             progressCallback = onProgress;
             return Completer<void>().future;
@@ -730,6 +770,9 @@ void main() {
         ),
       );
 
+      // Pump through the backup step (synchronous no-op factory) then into
+      // migrating state.
+      await tester.pump();
       await tester.pump();
 
       // Initial: step 0 of 10
@@ -788,6 +831,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: true, totalSteps: 3),
+          preMigrationBackupFactory: _noOpBackupFactory,
           initializerOverride: (_) => Completer<void>().future,
         ),
       );
