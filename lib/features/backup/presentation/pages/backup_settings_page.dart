@@ -399,6 +399,7 @@ class BackupSettingsPage extends ConsumerWidget {
       } else {
         await service.pinBackup(record.id);
       }
+      ref.invalidate(backupHistoryProvider);
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(
