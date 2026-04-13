@@ -300,16 +300,6 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     } else {
       WidgetsBinding.instance.addPostFrameCallback((_) => _resolveComputer());
     }
-
-    // If the adapter requests a full re-download (Re-import all dives),
-    // bypass the stored fingerprint by flipping newDivesOnly to false
-    // before DownloadStepWidget triggers startDownload.
-    if (widget.adapter.forceFullDownload) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        ref.read(downloadNotifierProvider.notifier).setNewDivesOnly(false);
-      });
-    }
   }
 
   Future<void> _resolveComputer() async {
@@ -409,6 +399,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     return DownloadStepWidget(
       device: device,
       computer: computer,
+      forceFullDownload: widget.adapter.forceFullDownload,
       onComplete: () {
         // Handled by the state watcher above.
       },

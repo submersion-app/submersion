@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/download_step_widget.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -10,22 +12,39 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/fake_import_adapter_deps.dart';
 
 // ---------------------------------------------------------------------------
-// Widget helper
+// Helpers
 // ---------------------------------------------------------------------------
+
+DiveComputer _computerWithAddress() => DiveComputer.create(
+  id: 'dc-1',
+  name: 'Test Computer',
+  diverId: 'diver-1',
+  manufacturer: 'Shearwater',
+  model: 'Perdix 2',
+).copyWith(bluetoothAddress: 'AA:BB:CC:DD:EE:FF');
 
 Widget _buildDownloadStep({
   required DiveComputerAdapter adapter,
   required FakeImportAdapterDeps deps,
+  required DiveComputer knownComputer,
 }) {
   return ProviderScope(
     overrides: [
       diveComputerServiceProvider.overrideWithValue(deps.fakeService),
       diveComputerRepositoryProvider.overrideWithValue(deps.computerRepo),
+      // Return an empty descriptor list so DcAdapterDownloadStep synthesizes
+      // a DiscoveredDevice from the known computer's bluetoothAddress.
+      deviceDescriptorsProvider.overrideWith((ref) async => []),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: DcAdapterDownloadStep(adapter: adapter)),
+      home: Scaffold(
+        body: DcAdapterDownloadStep(
+          adapter: adapter,
+          knownComputer: knownComputer,
+        ),
+      ),
     ),
   );
 }
@@ -33,12 +52,18 @@ Widget _buildDownloadStep({
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
+//
+// These tests verify that the adapter's `forceFullDownload` flag is threaded
+// through to the DownloadStepWidget's constructor argument. The actual
+// reset-then-apply-then-start ordering is verified in
+// `test/features/dive_computer/presentation/widgets/download_step_widget_force_full_test.dart`.
 
 void main() {
   testWidgets(
-    'setNewDivesOnly(false) is called when forceFullDownload is true',
+    'adapter forceFullDownload=true propagates to DownloadStepWidget',
     (tester) async {
       final deps = FakeImportAdapterDeps();
+      final computer = _computerWithAddress();
       final adapter = DiveComputerAdapter(
         importService: deps.importService,
         computerRepository: deps.computerRepo,
@@ -47,27 +72,27 @@ void main() {
         forceFullDownload: true,
       );
 
-      await tester.pumpWidget(_buildDownloadStep(adapter: adapter, deps: deps));
-
-      // Trigger post-frame callbacks.
+      await tester.pumpWidget(
+        _buildDownloadStep(
+          adapter: adapter,
+          deps: deps,
+          knownComputer: computer,
+        ),
+      );
       await tester.pump();
 
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(DcAdapterDownloadStep)),
+      final step = tester.widget<DownloadStepWidget>(
+        find.byType(DownloadStepWidget),
       );
-
-      expect(
-        container.read(downloadNotifierProvider).newDivesOnly,
-        isFalse,
-        reason: 'forceFullDownload should flip newDivesOnly to false',
-      );
+      expect(step.forceFullDownload, isTrue);
     },
   );
 
   testWidgets(
-    'newDivesOnly stays true when forceFullDownload is false (default)',
+    'adapter forceFullDownload=false (default) propagates to DownloadStepWidget',
     (tester) async {
       final deps = FakeImportAdapterDeps();
+      final computer = _computerWithAddress();
       final adapter = DiveComputerAdapter(
         importService: deps.importService,
         computerRepository: deps.computerRepo,
@@ -75,14 +100,19 @@ void main() {
         diverId: 'diver-1',
       );
 
-      await tester.pumpWidget(_buildDownloadStep(adapter: adapter, deps: deps));
+      await tester.pumpWidget(
+        _buildDownloadStep(
+          adapter: adapter,
+          deps: deps,
+          knownComputer: computer,
+        ),
+      );
       await tester.pump();
 
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(DcAdapterDownloadStep)),
+      final step = tester.widget<DownloadStepWidget>(
+        find.byType(DownloadStepWidget),
       );
-
-      expect(container.read(downloadNotifierProvider).newDivesOnly, isTrue);
+      expect(step.forceFullDownload, isFalse);
     },
   );
 }

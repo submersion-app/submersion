@@ -17,12 +17,18 @@ class DownloadStepWidget extends ConsumerStatefulWidget {
   final VoidCallback onComplete;
   final void Function(String error) onError;
 
+  /// When true, `newDivesOnly` is set to false after the notifier reset,
+  /// causing the download to bypass the stored fingerprint and fetch every
+  /// dive on the device. Used by the "Re-import all dives" flow.
+  final bool forceFullDownload;
+
   const DownloadStepWidget({
     super.key,
     required this.device,
     this.computer,
     required this.onComplete,
     required this.onError,
+    this.forceFullDownload = false,
   });
 
   @override
@@ -52,6 +58,13 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     // Clear stale state from any previous download immediately so the
     // next build() cycle does not see old progress.
     notifier.reset();
+
+    // Apply forceFullDownload AFTER reset so the flag survives until
+    // startDownload reads state.newDivesOnly. Any earlier mutation (e.g.,
+    // from the parent widget's initState) would be wiped by reset().
+    if (widget.forceFullDownload) {
+      notifier.setNewDivesOnly(false);
+    }
 
     // Pass computer so the notifier can persist device info when done.
     await notifier.startDownload(widget.device!, computer: widget.computer);
