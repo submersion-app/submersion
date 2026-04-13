@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,9 +17,9 @@ import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/pre_migration_backup_service.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_failed_exception.dart';
-import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/main.dart' show SubmersionRestart;
@@ -273,12 +272,9 @@ class _StartupWrapperState extends State<StartupWrapper>
     } else {
       final info = await PackageInfo.fromPlatform();
       appVersion = '${info.version}.${info.buildNumber}';
-      if (!mounted) return;
-      final container = ProviderScope.containerOf(context, listen: false);
-      final backupService = container.read(backupServiceProvider);
       service = PreMigrationBackupService(
         livePathProvider: () async => dbPath,
-        backupsDirProvider: backupService.getBackupsDirectory,
+        backupsDirProvider: () => BackupService.resolveBackupsDirectory(prefs),
         preferences: prefs,
       );
     }

@@ -442,9 +442,13 @@ class BackupService {
   // File System Helpers
   // ===========================================================================
 
-  /// Get the active backups directory (custom or default), creating it if needed.
-  Future<String> getBackupsDirectory() async {
-    final settings = _preferences.getSettings();
+  /// Resolves the backups directory using the given preferences, without
+  /// needing a full BackupService instance. Used by startup paths that
+  /// run before Riverpod is established and before the DB is open.
+  static Future<String> resolveBackupsDirectory(
+    BackupPreferences preferences,
+  ) async {
+    final settings = preferences.getSettings();
     if (settings.backupLocation != null) {
       final customDir = Directory(settings.backupLocation!);
       if (!await customDir.exists()) {
@@ -452,11 +456,22 @@ class BackupService {
       }
       return customDir.path;
     }
-    return getLocalBackupsDirectory();
+    final appDir = await getApplicationDocumentsDirectory();
+    final backupDir = Directory(p.join(appDir.path, _localBackupFolder));
+    if (!await backupDir.exists()) {
+      await backupDir.create(recursive: true);
+    }
+    return backupDir.path;
   }
+
+  /// Get the active backups directory (custom or default), creating it if needed.
+  Future<String> getBackupsDirectory() =>
+      BackupService.resolveBackupsDirectory(_preferences);
 
   /// Get the local backups directory, creating it if needed.
   Future<String> getLocalBackupsDirectory() async {
+    // Direct-path version bypassing custom-location check; preserved for
+    // existing callers that want the default location specifically.
     final appDir = await getApplicationDocumentsDirectory();
     final backupDir = Directory(p.join(appDir.path, _localBackupFolder));
     if (!await backupDir.exists()) {
