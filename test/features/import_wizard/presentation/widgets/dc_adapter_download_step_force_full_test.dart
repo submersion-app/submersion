@@ -7,7 +7,7 @@ import 'package:submersion/features/import_wizard/data/adapters/dive_computer_ad
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-import '../../../../helpers/mock_import_adapter_deps.dart';
+import '../../../../helpers/fake_import_adapter_deps.dart';
 
 // ---------------------------------------------------------------------------
 // Widget helper
@@ -15,7 +15,7 @@ import '../../../../helpers/mock_import_adapter_deps.dart';
 
 Widget _buildDownloadStep({
   required DiveComputerAdapter adapter,
-  required MockImportAdapterDeps deps,
+  required FakeImportAdapterDeps deps,
 }) {
   return ProviderScope(
     overrides: [
@@ -38,7 +38,7 @@ void main() {
   testWidgets(
     'setNewDivesOnly(false) is called when forceFullDownload is true',
     (tester) async {
-      final deps = MockImportAdapterDeps();
+      final deps = FakeImportAdapterDeps();
       final adapter = DiveComputerAdapter(
         importService: deps.importService,
         computerRepository: deps.computerRepo,
@@ -67,7 +67,7 @@ void main() {
   testWidgets(
     'newDivesOnly stays true when forceFullDownload is false (default)',
     (tester) async {
-      final deps = MockImportAdapterDeps();
+      final deps = FakeImportAdapterDeps();
       final adapter = DiveComputerAdapter(
         importService: deps.importService,
         computerRepository: deps.computerRepo,

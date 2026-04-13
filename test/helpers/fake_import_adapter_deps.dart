@@ -74,7 +74,7 @@ class _FakeDiveComputerRepository extends DiveComputerRepository {
 ///
 /// The [fakeService]'s [downloadEvents] returns an empty stream so the
 /// [DownloadNotifier] doesn't hit platform channels during pump.
-class MockImportAdapterDeps {
+class FakeImportAdapterDeps {
   final pigeon.DiveComputerService fakeService = _FakeDiveComputerService();
   final DiveComputerRepository computerRepo = _FakeDiveComputerRepository();
   final DiveRepository diveRepo = DiveRepository();
