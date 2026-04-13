@@ -251,6 +251,15 @@ class _StartupWrapperState extends State<StartupWrapper>
     required String dbPath,
     required int stored,
   }) async {
+    assert(
+      widget.schemaVersionProbeOverride == null ||
+          widget.preMigrationBackupFactory != null,
+      'When schemaVersionProbeOverride is set in tests, you must also supply '
+      'preMigrationBackupFactory — otherwise the pre-migration backup will '
+      'run with stored=0 and attempt a real file copy against the production '
+      'database path.',
+    );
+
     final prefs = BackupPreferences(widget.prefs);
 
     final PreMigrationBackupService service;
@@ -281,6 +290,9 @@ class _StartupWrapperState extends State<StartupWrapper>
     );
   }
 
+  /// Re-runs backup → services → ready without the 1-second splash delay used
+  /// on first launch; the user is already looking at the splash and tapped Retry
+  /// themselves, so an enforced minimum delay would feel slow.
   Future<void> _retryPreMigrationBackup() async {
     if (!mounted) return;
     setState(() {
