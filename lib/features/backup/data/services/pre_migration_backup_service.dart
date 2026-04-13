@@ -9,7 +9,7 @@ import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_failed_exception.dart';
 
-typedef PathProvider = Future<String> Function();
+typedef AsyncPathResolver = Future<String> Function();
 
 /// Copies the live sqlite database before Drift runs a schema migration.
 ///
@@ -17,16 +17,16 @@ typedef PathProvider = Future<String> Function();
 /// existing BackupPreferences registry so it appears alongside manual
 /// backups in the backup list UI.
 class PreMigrationBackupService {
-  final PathProvider _livePathProvider;
-  final PathProvider _backupsDirProvider;
+  final AsyncPathResolver _livePathProvider;
+  final AsyncPathResolver _backupsDirProvider;
   final BackupPreferences _preferences;
   final DateTime Function() _clock;
   final String Function() _idGenerator;
   final _log = LoggerService.forClass(PreMigrationBackupService);
 
   PreMigrationBackupService({
-    required PathProvider livePathProvider,
-    required PathProvider backupsDirProvider,
+    required AsyncPathResolver livePathProvider,
+    required AsyncPathResolver backupsDirProvider,
     required BackupPreferences preferences,
     DateTime Function()? clock,
     String Function()? idGenerator,
@@ -83,7 +83,7 @@ class PreMigrationBackupService {
       );
     } catch (e, stack) {
       _log.warning(
-        'Pre-migration backup registered failed; .db is on disk at $finalPath',
+        'Pre-migration backup registration failed; .db is on disk at $finalPath',
         error: e,
         stackTrace: stack,
       );
