@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dialog for entering a PIN code for dive computer authentication.
 ///
@@ -72,14 +73,16 @@ class _PinEntryDialogState extends State<PinEntryDialog> {
 
     return AlertDialog(
       icon: Icon(Icons.pin, size: 48, color: colorScheme.primary),
-      title: const Text('Enter PIN Code'),
+      title: Text(context.l10n.diveComputer_pinEntry_title),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             widget.deviceName != null
-                ? 'Check your ${widget.deviceName} display for the PIN code.'
-                : 'Check your dive computer display for the PIN code.',
+                ? context.l10n.diveComputer_pinEntry_instructionsWithDevice(
+                    widget.deviceName!,
+                  )
+                : context.l10n.diveComputer_pinEntry_instructionsGeneric,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
@@ -87,7 +90,7 @@ class _PinEntryDialogState extends State<PinEntryDialog> {
           ),
           const SizedBox(height: 24),
           Semantics(
-            label: 'PIN code entry, 4 to 6 digits',
+            label: context.l10n.diveComputer_pinEntry_semanticLabel,
             textField: true,
             child: TextField(
               controller: _pinController,
@@ -124,7 +127,7 @@ class _PinEntryDialogState extends State<PinEntryDialog> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Enter the 4-6 digit PIN shown on your device',
+            context.l10n.diveComputer_pinEntry_helperText,
             style: theme.textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -132,10 +135,13 @@ class _PinEntryDialogState extends State<PinEntryDialog> {
         ],
       ),
       actions: [
-        TextButton(onPressed: _onCancel, child: const Text('Cancel')),
+        TextButton(
+          onPressed: _onCancel,
+          child: Text(context.l10n.common_action_cancel),
+        ),
         FilledButton(
           onPressed: _isValid ? _onSubmit : null,
-          child: const Text('Connect'),
+          child: Text(context.l10n.diveComputer_pinEntry_connectButton),
         ),
       ],
     );

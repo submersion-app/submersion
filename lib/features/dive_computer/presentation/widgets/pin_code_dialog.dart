@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shows a modal dialog for entering a BLE PIN code.
 ///
@@ -59,12 +60,12 @@ class _PinCodeDialogState extends State<_PinCodeDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('PIN Code Required'),
+      title: Text(context.l10n.diveComputer_pinCode_title),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Enter the code displayed on your dive computer.'),
+          Text(context.l10n.diveComputer_pinCode_instructions),
           const SizedBox(height: 16),
           TextField(
             controller: _controller,
@@ -74,10 +75,10 @@ class _PinCodeDialogState extends State<_PinCodeDialog> {
               FilteringTextInputFormatter.digitsOnly,
               LengthLimitingTextInputFormatter(6),
             ],
-            decoration: const InputDecoration(
-              labelText: 'PIN Code',
+            decoration: InputDecoration(
+              labelText: context.l10n.diveComputer_pinCode_label,
               hintText: '000000',
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
             onChanged: (_) => setState(() {}),
             onSubmitted: (_) => _submit(),
@@ -87,11 +88,11 @@ class _PinCodeDialogState extends State<_PinCodeDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(null),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.common_action_cancel),
         ),
         TextButton(
           onPressed: _controller.text.isNotEmpty ? _submit : null,
-          child: const Text('Submit'),
+          child: Text(context.l10n.diveComputer_pinCode_submit),
         ),
       ],
     );

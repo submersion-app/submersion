@@ -92,7 +92,9 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
 
     final statusText = switch (downloadState.phase) {
       DownloadPhase.processing =>
-        'Importing ${downloadState.downloadedDives.length} dives...',
+        context.l10n.diveComputer_download_importingCountDives(
+          downloadState.downloadedDives.length,
+        ),
       DownloadPhase.cancelled =>
         context.l10n.diveComputer_downloadStep_cancelled,
       _ =>
