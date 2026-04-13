@@ -4,29 +4,38 @@
 
 ## Problem
 
-In today's universal-import review step, any incoming row flagged as a suspected duplicate is silently excluded from the import's default selection. The user can confirm the import without ever reviewing those rows, which results in dives (and other entities) being inadvertently skipped or overlooked in a long import list. The failure is silent — there is no indication that rows were dropped, and an explicit user-chosen "skip" is indistinguishable from the auto-default.
+In today's import review step, every row the duplicate checker flags is given an automatic default action the user never confirmed:
+
+- Probable duplicates (score ≥ 0.7) auto-default to `skip` and are deselected.
+- Possible duplicates (0.5 ≤ score < 0.7) auto-default to `importAsNew` and stay selected.
+- Unscored duplicates (non-dive entities) auto-default to `skip`.
+
+The user can confirm the import without reviewing any of these rows, so dives and other entities can be silently skipped or silently double-imported. The failure is silent — there is no indication that the app decided anything on the user's behalf, and a user-chosen action is indistinguishable from the auto-default.
 
 ## Goal
 
-Replace the auto-skip default with an explicit "needs decision" state. Every suspected duplicate must be reviewed and resolved before the Import button becomes available. Provide efficient bulk actions so users facing many duplicates can still complete an import quickly.
+Replace every auto-default with an explicit "needs decision" state. Every suspected duplicate (any row with `score >= 0.5` for dives, or any entry in `EntityGroup.duplicateIndices` for non-dives) must be reviewed and resolved before the Import button becomes available. Provide efficient bulk actions per tab so users facing many duplicates can complete an import without clicking dozens of rows individually.
 
 ## Scope
 
-- Applies to the universal import flow in `lib/features/universal_import/` (the active import wizard, used by both dive-computer imports and file imports).
-- Applies to every entity type with duplicate detection: dives, sites, buddies, trips, equipment, dive centers, certifications, courses, tags, dive types.
-- Does **not** apply to the legacy `lib/features/import_wizard/` flow.
+- Applies to the active unified import flow in `lib/features/import_wizard/` — the `UnifiedImportWizard` widget, `ReviewStep`, `EntityReviewList`, `DuplicateActionCard`, and `ImportWizardNotifier` / `ImportWizardState`.
+- Applies to every entity type the duplicate checker flags: dives, sites, buddies, trips, equipment, dive centers, certifications, courses, tags, dive types.
+- Applies to every import source (file, dive computer, HealthKit, UDDF, FIT) because they all route through `UnifiedImportWizard` with different `SourceAdapter` implementations.
+- Respects the adapter's `supportedDuplicateActions` set — the bulk-action row only shows buttons for actions the adapter supports.
+- Does **not** apply to the orphaned `lib/features/universal_import/presentation/widgets/import_review_step.dart` (dead code; out of scope to clean up in this change).
 
 ## Out of Scope
 
 - No changes to duplicate-detection scoring thresholds (`dive_matcher.dart` stays as-is).
 - No "revert to undecided" per-row control — once chosen, a row is resolved. Reverting requires cancelling and re-running the import.
-- No new "merge / update existing" action for non-dive entities. Sites, buddies, etc. remain binary (import / skip).
+- No new action options for non-dive entities; they remain binary (import / skip) per adapter capability.
 - No persistence of partial review state across wizard sessions. A cancelled review discards decisions.
 - No changes to duplicate-detection logic itself (`import_duplicate_checker.dart`).
+- No rewiring of the router or deletion of the orphaned `universal_import/` review-step widget.
 
 ## State Model (Approach B: orthogonal "pending review" set)
 
-Add one field to `UniversalImportState` (`lib/features/universal_import/presentation/providers/universal_import_state.dart`):
+Add one field to `ImportWizardState` (`lib/features/import_wizard/presentation/providers/import_wizard_providers.dart`):
 
 ```dart
 final Map<ImportEntityType, Set<int>> pendingDuplicateReview;
@@ -41,6 +50,9 @@ For every `ImportEntityType t` and every index `i`:
 ### State helpers
 
 ```dart
+Set<int> pendingFor(ImportEntityType type) =>
+    pendingDuplicateReview[type] ?? const {};
+
 bool get hasPendingReviews =>
     pendingDuplicateReview.values.any((set) => set.isNotEmpty);
 
@@ -48,109 +60,138 @@ int get totalPending =>
     pendingDuplicateReview.values.fold(0, (sum, s) => sum + s.length);
 ```
 
-### Population (parse time)
+### Population (`setBundle`)
 
-In `_parseAndCheckDuplicates()` (`lib/features/universal_import/presentation/providers/universal_import_providers.dart` around lines 353-419):
+The existing `ImportWizardNotifier.setBundle(ImportBundle bundle)` method initializes `selections` and `duplicateActions` from the bundle's duplicate data. Today it auto-defaults actions based on score (skip for probable, importAsNew for possible) and deselects duplicates from `selections`.
 
-- `pendingDuplicateReview[ImportEntityType.dives]` = all indices with `DiveMatchResult.score >= 0.5` (existing "possible duplicate" threshold from `import_duplicate_checker.dart:682`).
-- `pendingDuplicateReview[type]` for every non-dive duplicate type = all indices present in the corresponding duplicate set from `ImportDuplicateResult`.
-- Default `selections[type]` behavior is unchanged: duplicates are initially deselected; the new gate makes "deselected" no longer equivalent to "skipped."
+After this change:
+
+- `pendingDuplicateReview[type]` is populated with every index in `EntityGroup.duplicateIndices` for that type, regardless of whether it's probable or possible.
+- `duplicateActions[type]` is cleared for pending rows (no auto-default values). Non-pending rows are unaffected.
+- `selections[type]` continues to exclude pending indices by default (nothing is imported until the user resolves). A user-chosen `importAsNew` or `consolidate` re-adds the index to `selections`.
 
 ### Drain conditions
 
-- **Per-row action:** removes the index from `pendingDuplicateReview[type]`.
-- **Bulk action:** removes all qualifying pending indices for that type in a single state update.
-- **Cancel wizard:** state is discarded entirely; no explicit drain required.
-- **Re-parse:** `_parseAndCheckDuplicates()` rebuilds `pendingDuplicateReview` from scratch.
+- **Per-row action** (existing `setDuplicateAction(type, index, action)`): the chosen index is removed from `pendingDuplicateReview[type]` in the same state emission.
+- **Non-duplicate toggle** (existing `toggleSelection(type, index)`): if the index happens to be pending (edge case where the user toggles the checkbox of a pending row), it is also drained.
+- **Bulk action** (new, see below): all targeted indices are drained in a single emission.
+- **Cancel wizard / re-build bundle**: the state is discarded or rebuilt from scratch.
 
 ## Notifier API Changes
 
-In `lib/features/universal_import/presentation/providers/universal_import_providers.dart`:
+All in `lib/features/import_wizard/presentation/providers/import_wizard_providers.dart`.
 
 ### Modified
 
-**`setDiveResolution(int index, DiveDuplicateResolution resolution)`**
-Existing atomic update of `diveResolutions` and `selections[dives]` is extended to also remove `index` from `pendingDuplicateReview[ImportEntityType.dives]`. Single `copyWith`.
+**`setBundle(ImportBundle bundle)`**
+Extend current auto-default logic to populate `pendingDuplicateReview` from each `EntityGroup.duplicateIndices`. Do not auto-assign `duplicateActions` values for pending rows (leave those absent until the user acts).
+
+**`setDuplicateAction(ImportEntityType type, int index, DuplicateAction action)`**
+Current behavior: records the action in `duplicateActions` and syncs `selections[type]` accordingly. Extension: also drains `index` from `pendingDuplicateReview[type]` in the same `copyWith`.
+
+**`toggleSelection(ImportEntityType type, int index)`**
+Current behavior: toggles `selections[type]`. Extension: if `index` is in `pendingDuplicateReview[type]`, drain it (explicit user interaction counts as a decision).
 
 ### New
 
-**`setEntityAction(ImportEntityType type, int index, bool include)`**
-For non-dive entity rows that are flagged duplicates. Adds/removes `index` from `selections[type]` and removes `index` from `pendingDuplicateReview[type]` in one `copyWith`.
+**`applyBulkAction(ImportEntityType type, DuplicateAction action)`**
+Apply `action` to every pending-review index for `type`, in one state emission. Respects the adapter's `supportedDuplicateActions`:
 
-**`applyBulkDiveAction(DiveDuplicateResolution action, {bool onlyPending = true})`**
-Iterates the pending (or all duplicate) dive indices, applies `action` to each, and emits a single state update. For `action == consolidate`, only applies to indices whose `DiveMatchResult.score >= 0.7` (the existing "probable duplicate" threshold); unmatchable indices remain pending.
+- For `DuplicateAction.consolidate`: only applies to indices whose `DiveMatchResult.score >= 0.7` (probable threshold from `dive_matcher.dart`). Weaker matches remain pending. Only relevant on adapters that support consolidate.
+- For `DuplicateAction.skip`: applies to all pending indices; removes them from `selections[type]`.
+- For `DuplicateAction.importAsNew`: applies to all pending indices; adds them to `selections[type]`.
 
-**`applyBulkEntityAction(ImportEntityType type, bool import, {bool onlyPending = true})`**
-Iterates the pending (or all duplicate) indices for `type`, sets selection to `import`, drains pending, emits a single state update.
+Indices that do not apply (e.g., non-matchable for consolidate) stay pending.
 
-**`jumpToFirstPending() → (ImportEntityType, int)?`**
-Returns the entity type and index of the first pending row across tabs in tab order. Returns `null` if nothing is pending. The UI uses this to switch tabs and scroll the row into view.
+**`firstPendingLocation() → PendingLocation?`**
+Returns `(type, index)` for the first pending row across tabs in `ImportEntityType.values` enum order, using the smallest index within the first non-empty pending set. Returns null if no pending rows exist. The UI uses this to switch tabs and scroll the first unresolved row into view.
+
+```dart
+class PendingLocation {
+  const PendingLocation({required this.type, required this.index});
+  final ImportEntityType type;
+  final int index;
+}
+```
 
 ### Unchanged
 
-`performImport()` needs no changes. By the time it runs, the Import button gate guarantees `pendingDuplicateReview` is empty, so the existing partition logic (consolidate vs. normal selection) operates on fully-resolved state.
+`performImport()` is unchanged. By the time the Import button fires, the gate guarantees `pendingDuplicateReview` is empty, so the existing partition logic (non-duplicate selection + per-duplicate `duplicateActions`) operates on fully-resolved state.
 
 ## UI
 
-File: `lib/features/universal_import/presentation/widgets/import_review_step.dart` (and `import_dive_card.dart`).
+Files:
+
+- `lib/features/import_wizard/presentation/widgets/review_step.dart`
+- `lib/features/import_wizard/presentation/widgets/entity_review_list.dart`
+- `lib/features/import_wizard/presentation/widgets/duplicate_action_card.dart`
+- Supporting card: `needs_decision_pill.dart` (new shared widget, to be created under `lib/features/import_wizard/presentation/widgets/`).
 
 ### Per-tab layout (reading order)
 
-1. **Duplicate-summary banner** (existing, copy updated):
-   > "N of M dives are suspected duplicates. Each needs a decision before importing."
-
-2. **Bulk-action row** (new; shown only when `pendingDuplicateReview[type]` is non-empty):
-   - **Dives:** three buttons.
-     - `Skip all (n)` — drains *all* pending dive indices, setting each to `skip`.
-     - `Import all as new (n)` — drains *all* pending dive indices, setting each to `importAsNew`.
-     - `Consolidate matched (k)` — drains only pending dive indices whose `DiveMatchResult.score >= 0.7`, setting each to `consolidate`. Indices without a viable match target **remain pending**. The button is disabled when `k == 0`. In a tab where `k < n`, using this button alone does not enable Import; the remaining `n - k` pending dives still require per-row or bulk resolution.
-   - **Other entity types:** two buttons — `Skip all (n)`, `Import all (n)`. Both drain *all* pending indices for that type.
-
-3. **Row list — sorted** so unresolved (pending) rows come first. Within each group (pending / resolved / non-duplicate), original order is preserved.
+1. **Existing non-duplicate header row** — select all / deselect all toggle, count. Unchanged.
+2. **New bulk-action row** — shown only when `pendingDuplicateReview[type]` is non-empty, and only rendering buttons for actions the `adapter.supportedDuplicateActions` set includes:
+   - If `skip` supported: `Skip all (n)` button.
+   - If `importAsNew` supported: `Import all as new (n)` (for dives) / `Import all (n)` (for non-dives) button.
+   - If `consolidate` supported AND matchable pending count `k` > 0: `Consolidate matched (k)` button (disabled when `k == 0`).
+3. **Row list — sorted** so pending indices come first (in ascending order), then the existing non-pending ordering (by match score for duplicates, original order for non-duplicates).
 
 ### Per-row visual state
 
-| Row state | Left border | Badge | Checkbox |
-|---|---|---|---|
-| Not a duplicate | none | none | checked |
-| Duplicate, pending review | 4 px warning-color border (tertiary / semantic warning); paired with `Icons.warning_amber_rounded` inside the pill | "Needs decision" pill | unchecked, with inline hint "Tap Decide to choose" |
-| Duplicate, resolved | subtle neutral left border | small chip showing chosen action ("Skip" / "Import as new" / "Consolidate") | matches chosen action |
+For dive duplicate cards (`DuplicateActionCard`):
 
-The warning color is paired with an icon and text so the state is conveyed without relying on color alone (colorblind-safe).
+| Row state | Left border | Badge | Action header |
+|---|---|---|---|
+| Not pending, user has chosen | subtle neutral | chosen-action chip ("Skip" / "Import as New" / "Consolidate") | existing behavior |
+| Pending (needs decision) | 4 px warning-color border | "Needs decision" pill (icon + text) | button label "Decide" instead of "Compare dives" |
+
+For non-dive duplicate cards (`_EntityDuplicateCard`):
+
+| Row state | Left border | Badge | Expand button |
+|---|---|---|---|
+| Not pending | subtle neutral | chosen-action chip | existing |
+| Pending | 4 px warning-color border | "Needs decision" pill | "Decide" |
+
+For non-duplicate rows (`_NonDuplicateRow`): unchanged.
 
 ### Import button area (bottom)
 
 - **Gate:** enabled iff `state.totalSelected > 0 && !state.hasPendingReviews`.
-- **Pending hint** (shown directly above the button when `hasPendingReviews`):
-  > "N duplicate(s) need a decision" — followed by a `Review` button that calls `jumpToFirstPending()`, switches to the returned tab, and scrolls the pending row into view.
-- **Existing no-selection state** (disabled when `totalSelected == 0`) is preserved.
-- Helper text above the button uses `Semantics(liveRegion: true)` so the count updates are announced by screen readers as rows are resolved.
+- **Pending hint** (shown above the button when `hasPendingReviews`):
+  > "N duplicate(s) need a decision" — followed by a `Review` button that calls `firstPendingLocation()` and animates the `DefaultTabController` to the matching tab.
+- Helper text uses `Semantics(liveRegion: true)` so count changes are announced.
 
-### Comparison expansion (`ImportDiveCard`)
+### Comparison expansion
 
-No change to the expansion mechanism. For pending rows, the button label becomes `Decide` (new l10n key) and adopts the warning accent. Resolved rows retain the existing `Compare dives` label.
+No change to the expansion mechanism itself. For pending rows, the button label becomes `Decide` (using `universalImport_dive_decideAction` l10n key) and adopts the warning accent. Resolved rows retain existing labels.
 
 ## Data Flow
 
 ```
-User selects source
+User starts import via UnifiedImportWizard
   │
   ▼
-_parseAndCheckDuplicates()
-  │
-  ├─→ selections[type] = non-duplicate indices        (unchanged)
-  ├─→ diveResolutions = {}                            (unchanged)
-  └─→ pendingDuplicateReview[type] = duplicate indices  (NEW)
+Source-specific acquisition (file pick / BLE / HealthKit / ...)
   │
   ▼
-Review step
+adapter.buildBundle() → ImportBundle with groups
+adapter.checkDuplicates(bundle) → bundle with duplicateIndices filled
   │
-  ├── Bulk action ──→ applyBulk{Dive,Entity}Action()
-  │                    └─→ update selections/resolutions
+  ▼
+notifier.setBundle(checkedBundle)
+  ├─→ selections[type] = all indices - duplicateIndices  (unchanged)
+  ├─→ duplicateActions[type] cleared for pending indices (CHANGED)
+  └─→ pendingDuplicateReview[type] = duplicateIndices    (NEW)
+  │
+  ▼
+ReviewStep
+  │
+  ├── Bulk action ──→ applyBulkAction(type, action)
+  │                    └─→ update duplicateActions + selections
   │                        drain pendingDuplicateReview[type]
   │
-  └── Per-row action ──→ setDiveResolution() or setEntityAction()
-                         └─→ update selections/resolutions
+  └── Per-row action ──→ setDuplicateAction(type, i, action)
+                         └─→ update duplicateActions + selections
                              pendingDuplicateReview[type].remove(i)
   │
   ▼
@@ -162,7 +203,7 @@ performImport()   (existing, unchanged)
 
 ## Localization
 
-New ARB keys in `lib/l10n/app_en.arb`, accessed via `context.l10n.*`:
+Already added to `lib/l10n/arb/app_en.arb` (inherited from a previous cherry-pick). Relevant keys:
 
 | Key | Value |
 |---|---|
@@ -177,54 +218,50 @@ New ARB keys in `lib/l10n/app_en.arb`, accessed via `context.l10n.*`:
 | `universalImport_rowHint_tapCompareToDecide` | "Tap Decide to choose" |
 | `universalImport_summary_decidesRequired` | "Each needs a decision before importing." |
 
-Other locale ARB files are updated with the same keys (translations may follow in a separate PR per existing project practice).
+One additional key to add during implementation: `universalImport_semantics_needsDecision` for the pill's screen-reader label.
+
+The key prefix `universalImport_*` is a historical artifact from the spec's original (mis-targeted) scope. Renaming is out of scope; the keys ship as-is. (The `universalImport_` ARB namespace is used by the active flow too, so the keys are visible.)
 
 ## Accessibility
 
-- "Needs decision" pill wrapped in `Semantics(label: 'Suspected duplicate, needs decision')`.
-- Warning color paired with `Icons.warning_amber_rounded` plus text (shape + color + text).
-- Pending-count hint above the Import button uses `Semantics(liveRegion: true)` so count changes are announced.
+- "Needs decision" pill wrapped in `Semantics(label: context.l10n.universalImport_semantics_needsDecision)`.
+- Warning color paired with `Icons.warning_amber_rounded` plus text (shape + color + text — colorblind-safe).
+- Pending-count hint above the Import button uses `Semantics(liveRegion: true)` for announcement on count change.
 
 ## Testing
 
-### State / notifier (extend `test/features/universal_import/presentation/providers/universal_import_notifier_test.dart`)
+### State / notifier
 
-- After parse with mixed clean and duplicate dives, `pendingDuplicateReview[dives]` contains exactly the flagged indices.
-- `setDiveResolution(i, skip)` drains `i` from pending.
-- `setDiveResolution(i, importAsNew)` drains `i` from pending and adds to `selections[dives]`.
-- `setDiveResolution(i, consolidate)` drains `i` from pending and adds to `selections[dives]`.
-- `applyBulkDiveAction(skip, onlyPending: true)` drains all pending dive indices; resolutions set to skip; `selections[dives]` unchanged.
-- `applyBulkDiveAction(importAsNew)` drains all pending; selections include each; resolutions = importAsNew.
-- `applyBulkDiveAction(consolidate)` drains only probable-match pending indices (score ≥ 0.7); un-matchable indices remain pending.
-- `setEntityAction(sites, i, true)` drains pending and adds to `selections[sites]`.
-- `setEntityAction(sites, i, false)` drains pending and does not change selection.
-- `applyBulkEntityAction(sites, true)` drains all pending site indices; selections updated.
-- `hasPendingReviews` flips false only when the last pending index across all types is drained.
-- `totalPending` sums across types correctly.
-- Re-parsing discards stale `pendingDuplicateReview` entries.
-- `jumpToFirstPending()` returns entities in tab order; returns `null` when empty.
+File: `test/features/import_wizard/presentation/providers/import_wizard_notifier_test.dart` (extend).
 
-### Widget (new file: `test/features/universal_import/presentation/widgets/import_review_step_pending_test.dart`)
+- After `setBundle` with a bundle containing duplicates, `pendingDuplicateReview[type]` contains exactly the flagged indices; `duplicateActions[type]` has no entries for pending indices.
+- After `setDuplicateAction(type, i, action)`, index `i` is drained from pending; `duplicateActions[type][i] == action`; `selections[type]` reflects the action.
+- After `toggleSelection(type, i)` on a pending index, the index is drained from pending.
+- `applyBulkAction(type, skip)` drains all pending for that type, sets each to skip, removes from selection.
+- `applyBulkAction(type, importAsNew)` drains all pending, sets each to importAsNew, adds to selection.
+- `applyBulkAction(type, consolidate)` on a dive bundle drains only indices with `score >= 0.7`; weaker pending stays pending.
+- `applyBulkAction` on an adapter without a given action throws or is a no-op (TBD — pick one during planning; probably no-op with an assertion).
+- `hasPendingReviews` flips false only when the last pending index is drained.
+- `firstPendingLocation()` returns null when empty; returns dive-first when dives have pending; returns next tab when dives drained.
 
-- Import button is disabled while any tab has pending rows, even with `totalSelected > 0`.
-- Import button enables after all pending rows are resolved via per-row actions.
-- Import button enables after all pending rows are resolved via bulk actions.
-- Pending hint "N duplicate(s) need a decision" shows the correct count and updates as rows resolve.
-- `Review` button jumps to the correct tab and scrolls the first pending row into view.
-- Pending rows render above resolved and non-duplicate rows within each tab.
-- Pending rows display the warning-colored left border, icon, and "Needs decision" pill.
-- Bulk-action buttons appear only when their tab has pending rows; their counts match the pending set size.
-- For the Dives tab, `Consolidate matched` button shows only the count with `score ≥ 0.7`, and is disabled when that count is zero.
-- For non-dive tabs, bulk buttons show the correct affected counts.
+### Widget
 
-### Regression (new file: `test/features/universal_import/presentation/providers/issue_200_regression_test.dart`)
+New file: `test/features/import_wizard/presentation/widgets/review_step_pending_test.dart`.
 
-Simulate the exact failure mode the issue describes:
+- Import button is disabled while any tab has pending rows, even when `totalSelected > 0`.
+- Import button enables after all pending are resolved via per-row actions.
+- Import button enables after all pending are resolved via bulk actions.
+- Pending hint appears and shows correct count; `Review` button jumps to the first pending tab.
+- Pending rows sort above resolved rows in the list.
+- Pending rows render the warning border + "Needs decision" pill.
+- Dive bulk-action row shows only buttons supported by the adapter (e.g., file-import adapter shows skip + importAsNew only; DC adapter shows all three).
+- `Consolidate matched` button shows correct count and is disabled when count is 0.
 
-- Parse an import with ≥ 1 suspected-duplicate dive.
-- Assert the Import button is disabled.
-- Assert that calling `performImport()` without resolving is impossible (covered by the UI gate; verify at state level that `hasPendingReviews` is true and the button's `onPressed` is `null`).
-- Assert no dive is silently skipped — i.e., the only way a dive ends up unimported is an explicit user action.
+### Regression
+
+New file: `test/features/import_wizard/presentation/providers/issue_200_regression_test.dart`.
+
+Self-contained regression guard: after `setBundle` with a bundle containing a probable duplicate dive, assertions prove that (a) `hasPendingReviews` is true, (b) `duplicateActions` has no entry for the pending index (no silent default), (c) only explicit user action drains the pending set, and (d) the Import button's gate condition remains true while any duplicate is unresolved.
 
 ### Unchanged
 
@@ -232,36 +269,44 @@ Simulate the exact failure mode the issue describes:
 
 ## Edge Cases
 
-- **Large imports (many duplicates):** per-tab bulk buttons provide O(1) clicks per tab; large imports remain tractable.
-- **Consolidate-bulk with no viable targets:** affected indices are left pending; the user handles them individually or chooses another bulk action.
-- **All rows are duplicates:** user must resolve all before Import enables. `totalSelected > 0` gate also applies (at least one dive must be importable or consolidatable).
-- **Zero duplicates:** behavior is unchanged from today — Import button enabled as soon as `totalSelected > 0`.
-- **User re-runs parsing with a different file:** `_parseAndCheckDuplicates()` rebuilds the state; stale pending entries are dropped.
-- **User cancels mid-review:** state is discarded; partial decisions are lost (accepted).
+- **Large imports (many duplicates):** per-tab bulk buttons reduce friction to O(1) clicks per tab.
+- **Consolidate-bulk with no viable targets:** un-matchable indices stay pending; user must resolve them individually.
+- **All rows are duplicates:** user must resolve all before Import enables. The `totalSelected > 0` guard still applies (at least one importable row required).
+- **Zero duplicates:** behavior unchanged — Import enables as soon as `totalSelected > 0`.
+- **Mid-flow re-parse:** `setBundle` rebuilds the entire state; stale pending entries are discarded.
+- **Cancel mid-review:** the wizard's state is discarded. Partial decisions are lost. Accepted.
+- **Adapter without consolidate support:** the bulk-action row omits the Consolidate button; per-row `Consolidate` option also not shown by `DiveComparisonCard`. No behavior change from today.
 
 ## Risks and Tradeoffs
 
-- **Two state fields to keep in sync.** `pendingDuplicateReview` and `selections/diveResolutions` must always be updated together. Mitigation: all mutations go through the notifier's atomic `copyWith` methods; a debug-build invariant assertion can verify "no index is both in pending and in a resolved resolutions entry" on each state emission.
-- **More clicks on average.** Users whose imports have only true duplicates will spend more time on the review step than today. Mitigation: per-tab bulk buttons; the Import all as new / Skip all actions take two clicks max per tab.
-- **Ephemeral state.** Cancelled wizards lose partial decisions. Accepted; persistent draft state is a separate, larger feature.
+- **Two state fields (`pendingDuplicateReview` and `duplicateActions` + `selections`) must stay in sync.** Mitigation: all mutations go through the notifier's `copyWith`. A debug assertion can verify "no index is in pending AND in duplicateActions simultaneously" on each emission.
+- **More clicks on average.** Users importing many duplicates will spend more time on the review step than today. Mitigation: per-tab bulk buttons take 2 clicks max per tab.
+- **Ephemeral state.** Cancelled wizards lose partial decisions. Accepted; persistent draft state is a separate feature.
+- **ARB key-prefix inconsistency.** The `universalImport_*` keys land in the `import_wizard/` flow. Not ideal, but renaming them mid-feature rippled through too much code. Tracked as a follow-up.
 
 ## Files Touched
 
 **Modified:**
-- `lib/features/universal_import/presentation/providers/universal_import_state.dart` — add `pendingDuplicateReview`, helpers.
-- `lib/features/universal_import/presentation/providers/universal_import_providers.dart` — populate at parse; extend `setDiveResolution`; add `setEntityAction`, `applyBulkDiveAction`, `applyBulkEntityAction`, `jumpToFirstPending`.
-- `lib/features/universal_import/presentation/widgets/import_review_step.dart` — sort, bulk buttons, gate hint, row styling, Review button.
-- `lib/features/universal_import/presentation/widgets/import_dive_card.dart` — pending visual state, "Decide" label.
-- `lib/l10n/app_en.arb` (and peers) — new strings.
+
+- `lib/features/import_wizard/presentation/providers/import_wizard_providers.dart` — add `pendingDuplicateReview` field; extend `setBundle`, `setDuplicateAction`, `toggleSelection`; add `applyBulkAction`, `firstPendingLocation`, `debugSetState` (test-only); add `PendingLocation` type.
+- `lib/features/import_wizard/presentation/widgets/review_step.dart` — gate Import button, pending hint bar, banner-copy addendum.
+- `lib/features/import_wizard/presentation/widgets/entity_review_list.dart` — sort pending to top, bulk-action row, pass `isPending` to cards.
+- `lib/features/import_wizard/presentation/widgets/duplicate_action_card.dart` — visual pending state, "Decide" label.
+- `lib/l10n/arb/app_en.arb` — add `universalImport_semantics_needsDecision` key.
 
 **Added:**
-- `test/features/universal_import/presentation/widgets/import_review_step_pending_test.dart`
-- `test/features/universal_import/presentation/providers/issue_200_regression_test.dart`
+
+- `lib/features/import_wizard/presentation/widgets/needs_decision_pill.dart` — shared pill widget.
+- `test/features/import_wizard/presentation/widgets/review_step_pending_test.dart`
+- `test/features/import_wizard/presentation/providers/issue_200_regression_test.dart`
 
 **Extended:**
-- `test/features/universal_import/presentation/providers/universal_import_notifier_test.dart`
+
+- `test/features/import_wizard/presentation/providers/import_wizard_notifier_test.dart`
 
 **Unchanged:**
-- `lib/features/universal_import/data/services/import_duplicate_checker.dart`
-- `lib/features/dive_import/domain/services/dive_matcher.dart`
-- `lib/features/universal_import/data/models/import_enums.dart` (the `DiveDuplicateResolution` enum is left alone)
+
+- `lib/features/universal_import/**` — no changes (orphan review step not touched).
+- `lib/features/universal_import/data/services/import_duplicate_checker.dart` — detection logic unchanged.
+- `lib/features/dive_import/domain/services/dive_matcher.dart` — scoring unchanged.
+- `lib/features/import_wizard/data/adapters/*` — adapter interfaces unchanged; the gate and bulk actions respect the existing `supportedDuplicateActions`.

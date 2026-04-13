@@ -13644,8 +13644,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_action_selectFile => 'اختيار ملف';
 
   @override
+  String universalImport_bulk_consolidateMatched(int count) {
+    return 'Consolidate matched ($count)';
+  }
+
+  @override
+  String universalImport_bulk_importAll(int count) {
+    return 'Import all ($count)';
+  }
+
+  @override
+  String universalImport_bulk_importAllAsNew(int count) {
+    return 'Import all as new ($count)';
+  }
+
+  @override
+  String universalImport_bulk_skipAll(int count) {
+    return 'Skip all ($count)';
+  }
+
+  @override
   String get universalImport_description_supportedFormats =>
       'اختر ملف سجل غوص للاستيراد. الصيغ المدعومة تشمل CSV وUDDF وSubsurface XML وGarmin FIT.';
+
+  @override
+  String get universalImport_dive_decideAction => 'Decide';
 
   @override
   String get universalImport_error_unsupportedFormat =>
@@ -13658,6 +13681,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String universalImport_label_columnsMapped(Object mapped, Object total) {
     return '$mapped من $total أعمدة معينة';
   }
+
+  @override
+  String get universalImport_label_consolidate => 'Consolidate';
 
   @override
   String get universalImport_label_detecting => 'جارٍ الكشف...';
@@ -13674,6 +13700,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String universalImport_label_duplicatesFound(Object count) {
     return 'تم العثور على $count مكررات وتم إلغاء تحديدها تلقائياً.';
   }
+
+  @override
+  String get universalImport_label_importAsNew => 'Import as New';
 
   @override
   String get universalImport_label_importComplete => 'اكتمل الاستيراد';
@@ -13731,6 +13760,24 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get universalImport_pending_chooseAction => 'Choose an action';
+
+  @override
+  String universalImport_pending_gateHint(int count) {
+    return '$count duplicate(s) need a decision';
+  }
+
+  @override
+  String get universalImport_pending_needsDecision => 'Needs decision';
+
+  @override
+  String get universalImport_pending_reviewAction => 'Review';
+
+  @override
+  String get universalImport_rowHint_tapCompareToDecide =>
+      'Tap Decide to choose';
+
+  @override
   String universalImport_semantics_entitySelection(
     Object selected,
     Object total,
@@ -13755,6 +13802,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get universalImport_semantics_needsDecision =>
+      'Suspected duplicate, needs decision';
+
+  @override
   String get universalImport_semantics_possibleDuplicate => 'مكرر محتمل';
 
   @override
@@ -13776,6 +13827,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String universalImport_snackbar_bulkMarkedAs(int count, String action) {
+    return '$count marked as $action';
+  }
+
+  @override
+  String universalImport_snackbar_markedAs(String action) {
+    return 'Marked as $action';
+  }
+
+  @override
   String get universalImport_step_import => 'استيراد';
 
   @override
@@ -13786,6 +13847,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get universalImport_step_select => 'اختيار';
+
+  @override
+  String get universalImport_summary_decidesRequired =>
+      'Each needs a decision before importing.';
 
   @override
   String get universalImport_title => 'استيراد البيانات';

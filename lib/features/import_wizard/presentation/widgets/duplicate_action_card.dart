@@ -5,6 +5,7 @@ import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/needs_decision_pill.dart';
 
 /// A collapsed/expandable card summarising one duplicate item.
 ///
@@ -19,7 +20,11 @@ class DuplicateActionCard extends StatefulWidget {
   final DiveMatchResult matchResult;
 
   /// The currently selected action for this item.
-  final DuplicateAction selectedAction;
+  ///
+  /// `null` when the user has not yet made a decision. In that state the
+  /// card renders without an action badge and the embedded comparison card
+  /// leaves every action button outlined (no button is pre-highlighted).
+  final DuplicateAction? selectedAction;
 
   /// The set of action buttons to show in the expanded comparison card.
   final Set<DuplicateAction> availableActions;
@@ -35,6 +40,12 @@ class DuplicateActionCard extends StatefulWidget {
   /// Only shown when [selectedAction] is [DuplicateAction.importAsNew].
   final int? projectedDiveNumber;
 
+  /// Whether this duplicate still needs an explicit user decision.
+  ///
+  /// When `true`, the card is rendered in a warning visual state: a 1.5-px
+  /// warning-colored border and a [NeedsDecisionPill] in the header.
+  final bool isPending;
+
   const DuplicateActionCard({
     super.key,
     required this.item,
@@ -44,6 +55,7 @@ class DuplicateActionCard extends StatefulWidget {
     required this.onActionChanged,
     required this.existingDiveId,
     this.projectedDiveNumber,
+    this.isPending = false,
   });
 
   @override
@@ -59,17 +71,25 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
     final colorScheme = theme.colorScheme;
     final score = widget.matchResult.score;
 
+    // Fallback-free border colour for non-pending rows. Pending rows always
+    // override with the tertiary warning border below, so the fallback used
+    // here (when [selectedAction] is null) is only theoretical.
     final borderColor = switch (widget.selectedAction) {
       DuplicateAction.importAsNew => Colors.green,
       DuplicateAction.consolidate => colorScheme.primary,
       DuplicateAction.skip => score >= 0.7 ? colorScheme.error : Colors.orange,
+      null => colorScheme.tertiary,
     };
+
+    final BorderSide borderSide = widget.isPending
+        ? BorderSide(color: colorScheme.tertiary, width: 1.5)
+        : BorderSide(color: borderColor, width: 1.5);
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: borderColor, width: 1.5),
+        side: borderSide,
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -80,6 +100,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
             matchResult: widget.matchResult,
             selectedAction: widget.selectedAction,
             expanded: _expanded,
+            isPending: widget.isPending,
             onToggle: () => setState(() => _expanded = !_expanded),
             projectedDiveNumber:
                 widget.selectedAction == DuplicateAction.importAsNew
@@ -115,6 +136,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
       selectedAction: widget.selectedAction,
       onActionChanged: widget.onActionChanged,
       availableActions: widget.availableActions,
+      isPending: widget.isPending,
     );
   }
 }
@@ -122,8 +144,12 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
 class _CollapsedHeader extends StatelessWidget {
   final EntityItem item;
   final DiveMatchResult matchResult;
-  final DuplicateAction selectedAction;
+
+  /// The action chosen for this row, or `null` when the user has not yet
+  /// decided. Null suppresses the trailing [_ActionBadge].
+  final DuplicateAction? selectedAction;
   final bool expanded;
+  final bool isPending;
   final VoidCallback onToggle;
   final int? projectedDiveNumber;
 
@@ -133,6 +159,7 @@ class _CollapsedHeader extends StatelessWidget {
     required this.selectedAction,
     required this.expanded,
     required this.onToggle,
+    this.isPending = false,
     this.projectedDiveNumber,
   });
 
@@ -226,11 +253,18 @@ class _CollapsedHeader extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 6),
-            // Action badge
-            _ActionBadge(action: selectedAction),
-            const SizedBox(width: 4),
-            // Expand/collapse chevron
+            // Needs-decision pill — only shown when this row is pending.
+            if (isPending) ...[
+              const SizedBox(width: 8),
+              NeedsDecisionPill(colorScheme: colorScheme),
+            ],
+            // Action badge — suppressed when no decision has been made yet.
+            if (selectedAction != null) ...[
+              const SizedBox(width: 6),
+              _ActionBadge(action: selectedAction!),
+            ],
+            // Breathing room before the expand/collapse chevron.
+            const SizedBox(width: 12),
             Icon(
               expanded ? Icons.expand_less : Icons.expand_more,
               size: 20,

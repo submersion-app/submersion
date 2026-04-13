@@ -683,6 +683,97 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
+  // Pending state / "Choose an action" label
+  // ---------------------------------------------------------------------------
+
+  group('DiveComparisonCard - pending state', () {
+    testWidgets(
+      'renders "Choose an action" label when isPending + null selectedAction',
+      (tester) async {
+        await tester.pumpWidget(
+          _buildCard(
+            card: DiveComparisonCard(
+              incoming: _testIncoming,
+              existingDiveId: _existingDiveId,
+              matchScore: 0.95,
+              selectedAction: null,
+              onActionChanged: (_) {},
+              isPending: true,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Choose an action'), findsOneWidget);
+      },
+    );
+
+    testWidgets('no button is pre-highlighted when selectedAction is null', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(
+          card: DiveComparisonCard(
+            incoming: _testIncoming,
+            existingDiveId: _existingDiveId,
+            matchScore: 0.95,
+            selectedAction: null,
+            onActionChanged: (_) {},
+            isPending: true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // No FilledButton should be present — all buttons remain outlined
+      // or text style because no action matches the null selection.
+      expect(find.byType(FilledButton), findsNothing);
+    });
+
+    testWidgets('does NOT render "Choose an action" when not pending', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(
+          card: DiveComparisonCard(
+            incoming: _testIncoming,
+            existingDiveId: _existingDiveId,
+            matchScore: 0.95,
+            selectedAction: DuplicateAction.skip,
+            onActionChanged: (_) {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Choose an action'), findsNothing);
+    });
+
+    testWidgets(
+      'does NOT render "Choose an action" when pending but action is set',
+      (tester) async {
+        await tester.pumpWidget(
+          _buildCard(
+            card: DiveComparisonCard(
+              incoming: _testIncoming,
+              existingDiveId: _existingDiveId,
+              matchScore: 0.95,
+              selectedAction: DuplicateAction.skip,
+              onActionChanged: (_) {},
+              isPending: true,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Once a decision is made the "Choose an action" prompt goes away
+        // even if the pending flag is still set momentarily.
+        expect(find.text('Choose an action'), findsNothing);
+      },
+    );
+  });
+
+  // ---------------------------------------------------------------------------
   // Loading / error states
   // ---------------------------------------------------------------------------
 

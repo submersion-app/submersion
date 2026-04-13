@@ -13875,8 +13875,31 @@ class AppLocalizationsHu extends AppLocalizations {
   String get universalImport_action_selectFile => 'Fájl kiválasztása';
 
   @override
+  String universalImport_bulk_consolidateMatched(int count) {
+    return 'Consolidate matched ($count)';
+  }
+
+  @override
+  String universalImport_bulk_importAll(int count) {
+    return 'Import all ($count)';
+  }
+
+  @override
+  String universalImport_bulk_importAllAsNew(int count) {
+    return 'Import all as new ($count)';
+  }
+
+  @override
+  String universalImport_bulk_skipAll(int count) {
+    return 'Skip all ($count)';
+  }
+
+  @override
   String get universalImport_description_supportedFormats =>
       'Válassz egy merülési napló fájlt az importáláshoz. Támogatott formátumok: CSV, UDDF, Subsurface XML és Garmin FIT.';
+
+  @override
+  String get universalImport_dive_decideAction => 'Decide';
 
   @override
   String get universalImport_error_unsupportedFormat =>
@@ -13889,6 +13912,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String universalImport_label_columnsMapped(Object mapped, Object total) {
     return '$mapped oszlop leképezve a(z) $total-ból';
   }
+
+  @override
+  String get universalImport_label_consolidate => 'Consolidate';
 
   @override
   String get universalImport_label_detecting => 'Észlelés...';
@@ -13905,6 +13931,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String universalImport_label_duplicatesFound(Object count) {
     return '$count duplikátum találva és automatikusan kijelölés törölve.';
   }
+
+  @override
+  String get universalImport_label_importAsNew => 'Import as New';
 
   @override
   String get universalImport_label_importComplete => 'Importálás kész';
@@ -13962,6 +13991,24 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get universalImport_pending_chooseAction => 'Choose an action';
+
+  @override
+  String universalImport_pending_gateHint(int count) {
+    return '$count duplicate(s) need a decision';
+  }
+
+  @override
+  String get universalImport_pending_needsDecision => 'Needs decision';
+
+  @override
+  String get universalImport_pending_reviewAction => 'Review';
+
+  @override
+  String get universalImport_rowHint_tapCompareToDecide =>
+      'Tap Decide to choose';
+
+  @override
   String universalImport_semantics_entitySelection(
     Object selected,
     Object total,
@@ -13984,6 +14031,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String universalImport_semantics_itemsSelected(Object count) {
     return '$count elem kiválasztva importálásra';
   }
+
+  @override
+  String get universalImport_semantics_needsDecision =>
+      'Suspected duplicate, needs decision';
 
   @override
   String get universalImport_semantics_possibleDuplicate =>
@@ -14009,6 +14060,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String universalImport_snackbar_bulkMarkedAs(int count, String action) {
+    return '$count marked as $action';
+  }
+
+  @override
+  String universalImport_snackbar_markedAs(String action) {
+    return 'Marked as $action';
+  }
+
+  @override
   String get universalImport_step_import => 'Importálás';
 
   @override
@@ -14019,6 +14080,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_step_select => 'Kiválasztás';
+
+  @override
+  String get universalImport_summary_decidesRequired =>
+      'Each needs a decision before importing.';
 
   @override
   String get universalImport_title => 'Adatok importálása';

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
@@ -7,6 +8,17 @@ import 'package:submersion/features/import_wizard/domain/models/import_phase.dar
 import 'package:submersion/features/import_wizard/domain/models/tag_selection.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+
+// ============================================================================
+// Public value types
+// ============================================================================
+
+/// A (type, index) pair identifying a pending-review row.
+class PendingLocation {
+  const PendingLocation({required this.type, required this.index});
+  final ImportEntityType type;
+  final int index;
+}
 
 // ============================================================================
 // State
@@ -19,6 +31,7 @@ class ImportWizardState {
     this.bundle,
     this.selections = const {},
     this.duplicateActions = const {},
+    this.pendingDuplicateReview = const {},
     this.retainSourceDiveNumbers = false,
     this.importTags = const [],
     this.importPhase,
@@ -40,6 +53,15 @@ class ImportWizardState {
 
   /// User-chosen action per duplicate item, keyed by entity type and index.
   final Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions;
+
+  /// Per-entity-type set of indices whose duplicate status is flagged but
+  /// whose resolution has not yet been explicitly chosen by the user.
+  ///
+  /// An index is present in this set when the row was flagged as a suspected
+  /// duplicate and the user has not yet explicitly acted on it. Per-row and
+  /// per-tab bulk actions remove indices from the relevant set. The Import
+  /// button is gated on this set being empty across all types.
+  final Map<ImportEntityType, Set<int>> pendingDuplicateReview;
 
   /// When true, imported dives keep their original dive numbers from the
   /// source file instead of being auto-assigned sequential numbers.
@@ -72,6 +94,7 @@ class ImportWizardState {
     bool clearBundle = false,
     Map<ImportEntityType, Set<int>>? selections,
     Map<ImportEntityType, Map<int, DuplicateAction>>? duplicateActions,
+    Map<ImportEntityType, Set<int>>? pendingDuplicateReview,
     bool? retainSourceDiveNumbers,
     List<TagSelection>? importTags,
     ImportPhase? importPhase,
@@ -89,6 +112,8 @@ class ImportWizardState {
       bundle: clearBundle ? null : (bundle ?? this.bundle),
       selections: selections ?? this.selections,
       duplicateActions: duplicateActions ?? this.duplicateActions,
+      pendingDuplicateReview:
+          pendingDuplicateReview ?? this.pendingDuplicateReview,
       retainSourceDiveNumbers:
           retainSourceDiveNumbers ?? this.retainSourceDiveNumbers,
       importTags: importTags ?? this.importTags,
@@ -102,6 +127,19 @@ class ImportWizardState {
       error: clearError ? null : (error ?? this.error),
     );
   }
+
+  /// Pending-review indices for a given entity type. Empty if none.
+  Set<int> pendingFor(ImportEntityType type) {
+    return pendingDuplicateReview[type] ?? const {};
+  }
+
+  /// Whether any entity type has at least one pending-review row.
+  bool get hasPendingReviews =>
+      pendingDuplicateReview.values.any((set) => set.isNotEmpty);
+
+  /// Total count of pending-review rows across all entity types.
+  int get totalPending =>
+      pendingDuplicateReview.values.fold(0, (sum, s) => sum + s.length);
 }
 
 // ============================================================================
@@ -140,52 +178,41 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   // setBundle
   // -------------------------------------------------------------------------
 
-  /// Store [bundle] and initialize selections and duplicate actions.
+  /// Store [bundle] and initialize selections and pending-review state.
   ///
   /// For each entity group:
   /// - All items are selected except those in [EntityGroup.duplicateIndices].
-  ///
-  /// For dives with [EntityGroup.matchResults]:
-  /// - score >= 0.7 → [DuplicateAction.skip]
-  /// - score >= 0.5 and < 0.7 → [DuplicateAction.importAsNew]
+  /// - Every suspected-duplicate index is recorded in
+  ///   [ImportWizardState.pendingDuplicateReview] so the user must explicitly
+  ///   choose an action before the row gets a recorded resolution.
+  /// - [ImportWizardState.duplicateActions] is left empty — no auto-defaults
+  ///   are written for probable or possible matches. The user drains the
+  ///   pending set via per-row ([setDuplicateAction]) or bulk actions.
   void setBundle(ImportBundle bundle) {
     final selections = <ImportEntityType, Set<int>>{};
-    final duplicateActions = <ImportEntityType, Map<int, DuplicateAction>>{};
+    final pendingReview = <ImportEntityType, Set<int>>{};
 
     for (final entry in bundle.groups.entries) {
       final type = entry.key;
       final group = entry.value;
 
-      // Build initial selection: all indices except duplicates.
       final allIndices = Set<int>.from(
         List.generate(group.items.length, (i) => i),
       );
       selections[type] = allIndices.difference(group.duplicateIndices);
 
-      // Build duplicate actions from match results.
-      final matchResults = group.matchResults;
-      if (matchResults != null && matchResults.isNotEmpty) {
-        final actionsForType = <int, DuplicateAction>{};
-        for (final matchEntry in matchResults.entries) {
-          final index = matchEntry.key;
-          final result = matchEntry.value;
-          if (result.isProbable) {
-            actionsForType[index] = DuplicateAction.skip;
-          } else if (result.score >= 0.5) {
-            // Possible but not probable — default to import as new.
-            actionsForType[index] = DuplicateAction.importAsNew;
-          }
-        }
-        if (actionsForType.isNotEmpty) {
-          duplicateActions[type] = actionsForType;
-        }
+      if (group.duplicateIndices.isNotEmpty) {
+        pendingReview[type] = Set<int>.from(group.duplicateIndices);
       }
     }
 
     state = state.copyWith(
       bundle: bundle,
       selections: selections,
-      duplicateActions: duplicateActions,
+      // Auto-default duplicateActions removed — pending indices are decided
+      // explicitly by the user via setDuplicateAction or applyBulkAction.
+      duplicateActions: const {},
+      pendingDuplicateReview: pendingReview,
       currentStep: 1,
       clearError: true,
     );
@@ -204,7 +231,13 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     } else {
       updated.add(index);
     }
-    state = state.copyWith(selections: {...state.selections, type: updated});
+
+    final updatedPending = _drainPending(type, {index});
+
+    state = state.copyWith(
+      selections: {...state.selections, type: updated},
+      pendingDuplicateReview: updatedPending,
+    );
   }
 
   /// Select all non-duplicate items for [type].
@@ -286,17 +319,140 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   // -------------------------------------------------------------------------
 
   /// Set the [action] for a specific duplicate item.
+  ///
+  /// In addition to recording the action, this also:
+  /// - Syncs [ImportWizardState.selections] for [type]: removes [index] when
+  ///   [action] is [DuplicateAction.skip]; adds [index] otherwise.
+  /// - Drains [index] from [ImportWizardState.pendingDuplicateReview] for
+  ///   [type] via [_drainPending].
   void setDuplicateAction(
     ImportEntityType type,
     int index,
     DuplicateAction action,
   ) {
-    final current =
-        state.duplicateActions[type] ?? const <int, DuplicateAction>{};
-    final updated = Map<int, DuplicateAction>.from(current)..[index] = action;
-    state = state.copyWith(
-      duplicateActions: {...state.duplicateActions, type: updated},
+    assert(
+      _adapter.supportedDuplicateActions.contains(action),
+      'DuplicateAction $action is not supported by adapter '
+      '${_adapter.runtimeType}',
     );
+    if (!_adapter.supportedDuplicateActions.contains(action)) return;
+
+    final actionsForType =
+        state.duplicateActions[type] ?? const <int, DuplicateAction>{};
+    final updatedActions = Map<int, DuplicateAction>.from(actionsForType)
+      ..[index] = action;
+
+    final currentSelection = Set<int>.from(
+      state.selections[type] ?? const <int>{},
+    );
+    if (action == DuplicateAction.skip) {
+      currentSelection.remove(index);
+    } else {
+      currentSelection.add(index);
+    }
+
+    final updatedPending = _drainPending(type, {index});
+
+    state = state.copyWith(
+      duplicateActions: {...state.duplicateActions, type: updatedActions},
+      selections: {...state.selections, type: currentSelection},
+      pendingDuplicateReview: updatedPending,
+    );
+  }
+
+  /// Returns a new pending-review map with the given indices removed from
+  /// the set for [type]. If the resulting set is empty, the type key is
+  /// removed from the map entirely (keeps `hasPendingReviews` fast).
+  Map<ImportEntityType, Set<int>> _drainPending(
+    ImportEntityType type,
+    Set<int> indices,
+  ) {
+    final current = state.pendingFor(type);
+    if (current.isEmpty) return state.pendingDuplicateReview;
+    final updated = current.difference(indices);
+    final newMap = Map<ImportEntityType, Set<int>>.from(
+      state.pendingDuplicateReview,
+    );
+    if (updated.isEmpty) {
+      newMap.remove(type);
+    } else {
+      newMap[type] = updated;
+    }
+    return newMap;
+  }
+
+  /// Apply [action] to every pending-review index for [type] in a single
+  /// state update.
+  ///
+  /// For [DuplicateAction.consolidate], only indices whose
+  /// `DiveMatchResult.score >= 0.7` are consolidated; weaker matches remain
+  /// pending. For other actions, every pending index is affected.
+  ///
+  /// No-op if the type has no pending indices or (for consolidate) no
+  /// probable matches.
+  void applyBulkAction(ImportEntityType type, DuplicateAction action) {
+    assert(
+      _adapter.supportedDuplicateActions.contains(action),
+      'DuplicateAction $action is not supported by adapter '
+      '${_adapter.runtimeType}',
+    );
+    if (!_adapter.supportedDuplicateActions.contains(action)) return;
+
+    final pending = state.pendingFor(type);
+    if (pending.isEmpty) return;
+
+    final Set<int> affected;
+    if (action == DuplicateAction.consolidate) {
+      final matchResults = state.bundle?.groups[type]?.matchResults;
+      if (matchResults == null) return;
+      affected = pending.where((i) {
+        final match = matchResults[i];
+        return match != null && match.score >= 0.7;
+      }).toSet();
+    } else {
+      affected = pending;
+    }
+
+    if (affected.isEmpty) return;
+
+    final actionsForType =
+        state.duplicateActions[type] ?? const <int, DuplicateAction>{};
+    final updatedActions = Map<int, DuplicateAction>.from(actionsForType);
+    final currentSelection = Set<int>.from(
+      state.selections[type] ?? const <int>{},
+    );
+    for (final i in affected) {
+      updatedActions[i] = action;
+      if (action == DuplicateAction.skip) {
+        currentSelection.remove(i);
+      } else {
+        currentSelection.add(i);
+      }
+    }
+
+    final updatedPending = _drainPending(type, affected);
+
+    state = state.copyWith(
+      duplicateActions: {...state.duplicateActions, type: updatedActions},
+      selections: {...state.selections, type: currentSelection},
+      pendingDuplicateReview: updatedPending,
+    );
+  }
+
+  /// Location of the first pending-review row across all entity tabs in
+  /// [ImportEntityType.values] enum order. Returns the smallest index within
+  /// the first non-empty pending set. Returns null if no pending rows exist.
+  ///
+  /// Used by the review step UI to jump the user to the first row that
+  /// still needs a decision when the Import button is gated.
+  PendingLocation? firstPendingLocation() {
+    for (final type in ImportEntityType.values) {
+      final pending = state.pendingFor(type);
+      if (pending.isEmpty) continue;
+      final sorted = pending.toList()..sort();
+      return PendingLocation(type: type, index: sorted.first);
+    }
+    return null;
   }
 
   // -------------------------------------------------------------------------
@@ -413,6 +569,14 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// Return to the initial state.
   void reset() {
     state = const ImportWizardState();
+  }
+
+  /// Replace the notifier's state directly. Intended for widget tests that
+  /// need to seed an arbitrary state (e.g. pending-review rows) without going
+  /// through the full [setBundle] flow.
+  @visibleForTesting
+  void debugSetState(ImportWizardState newState) {
+    state = newState;
   }
 }
 

@@ -13227,8 +13227,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_action_selectFile => '选择文件';
 
   @override
+  String universalImport_bulk_consolidateMatched(int count) {
+    return 'Consolidate matched ($count)';
+  }
+
+  @override
+  String universalImport_bulk_importAll(int count) {
+    return 'Import all ($count)';
+  }
+
+  @override
+  String universalImport_bulk_importAllAsNew(int count) {
+    return 'Import all as new ($count)';
+  }
+
+  @override
+  String universalImport_bulk_skipAll(int count) {
+    return 'Skip all ($count)';
+  }
+
+  @override
   String get universalImport_description_supportedFormats =>
       '选择一个潜水日志文件进行导入。支持的格式包括 CSV、UDDF、Subsurface XML 和 Garmin FIT。';
+
+  @override
+  String get universalImport_dive_decideAction => 'Decide';
 
   @override
   String get universalImport_error_unsupportedFormat =>
@@ -13241,6 +13264,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String universalImport_label_columnsMapped(Object mapped, Object total) {
     return '已映射 $mapped/$total 列';
   }
+
+  @override
+  String get universalImport_label_consolidate => 'Consolidate';
 
   @override
   String get universalImport_label_detecting => '检测中...';
@@ -13257,6 +13283,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String universalImport_label_duplicatesFound(Object count) {
     return '发现 $count 条重复记录并已自动取消选择。';
   }
+
+  @override
+  String get universalImport_label_importAsNew => 'Import as New';
 
   @override
   String get universalImport_label_importComplete => '导入完成';
@@ -13313,6 +13342,24 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get universalImport_pending_chooseAction => 'Choose an action';
+
+  @override
+  String universalImport_pending_gateHint(int count) {
+    return '$count duplicate(s) need a decision';
+  }
+
+  @override
+  String get universalImport_pending_needsDecision => 'Needs decision';
+
+  @override
+  String get universalImport_pending_reviewAction => 'Review';
+
+  @override
+  String get universalImport_rowHint_tapCompareToDecide =>
+      'Tap Decide to choose';
+
+  @override
   String universalImport_semantics_entitySelection(
     Object selected,
     Object total,
@@ -13337,6 +13384,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get universalImport_semantics_needsDecision =>
+      'Suspected duplicate, needs decision';
+
+  @override
   String get universalImport_semantics_possibleDuplicate => '可能重复';
 
   @override
@@ -13358,6 +13409,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String universalImport_snackbar_bulkMarkedAs(int count, String action) {
+    return '$count marked as $action';
+  }
+
+  @override
+  String universalImport_snackbar_markedAs(String action) {
+    return 'Marked as $action';
+  }
+
+  @override
   String get universalImport_step_import => '导入';
 
   @override
@@ -13368,6 +13429,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get universalImport_step_select => '选择';
+
+  @override
+  String get universalImport_summary_decidesRequired =>
+      'Each needs a decision before importing.';
 
   @override
   String get universalImport_title => '导入数据';

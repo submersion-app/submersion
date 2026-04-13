@@ -5,14 +5,17 @@ import 'package:submersion/features/import_wizard/domain/models/duplicate_action
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/duplicate_action_card.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/needs_decision_pill.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A scrollable review list for a single entity type.
 ///
 /// Displays non-duplicate items as selectable checkboxes and duplicate items
 /// as [DuplicateActionCard] widgets for per-item action selection.
 ///
-/// Order: non-duplicates first, then likely duplicates (score >= 0.7),
-/// then possible duplicates (score >= 0.5).
+/// Order: likely duplicates (score >= 0.7), then possible duplicates
+/// (score >= 0.5), then non-duplicates. Duplicates appear first so rows
+/// needing a user decision aren't buried beneath clean imports.
 class EntityReviewList extends StatelessWidget {
   /// The entity group containing items, duplicate indices, and match results.
   final EntityGroup group;
@@ -26,12 +29,22 @@ class EntityReviewList extends StatelessWidget {
   /// Which action buttons to show inside each [DuplicateActionCard].
   final Set<DuplicateAction> availableActions;
 
+  /// Indices of duplicate items still awaiting an explicit user decision.
+  ///
+  /// Drives pending-first sorting inside each duplicate section, visual
+  /// pending state on the duplicate cards, and the visibility of the bulk
+  /// action row.
+  final Set<int> pendingIndices;
+
   /// Called when the user toggles a non-duplicate item's checkbox.
   final ValueChanged<int> onToggleSelection;
 
   /// Called when the user changes the action for a duplicate item.
   final void Function(int index, DuplicateAction action)
   onDuplicateActionChanged;
+
+  /// Called when the user taps a bulk action button.
+  final void Function(DuplicateAction action) onBulkAction;
 
   /// Called when the user taps "Select All".
   final VoidCallback onSelectAll;
@@ -54,13 +67,17 @@ class EntityReviewList extends StatelessWidget {
     required this.selectedIndices,
     required this.duplicateActions,
     required this.availableActions,
+    this.pendingIndices = const {},
     required this.onToggleSelection,
     required this.onDuplicateActionChanged,
+    this.onBulkAction = _noopBulkAction,
     required this.onSelectAll,
     required this.onDeselectAll,
     required this.existingDiveIdForIndex,
     this.projectedDiveNumbers,
   });
+
+  static void _noopBulkAction(DuplicateAction _) {}
 
   @override
   Widget build(BuildContext context) {
@@ -120,19 +137,18 @@ class EntityReviewList extends StatelessWidget {
           ),
         ),
 
-        // Non-duplicate items
-        if (nonDuplicateIndices.isNotEmpty) ...[
-          for (final index in nonDuplicateIndices)
-            _NonDuplicateRow(
-              item: group.items[index],
-              index: index,
-              isSelected: selectedIndices.contains(index),
-              onToggle: () => onToggleSelection(index),
-              projectedDiveNumber: projectedDiveNumbers?[index],
-            ),
-        ],
+        // Bulk action row (only when there are pending duplicates).
+        if (pendingIndices.isNotEmpty)
+          _BulkActionRow(
+            isDiveTab: _isDiveTab(),
+            pendingCount: pendingIndices.length,
+            matchableConsolidateCount: _matchableConsolidateCount(),
+            availableActions: availableActions,
+            onBulkAction: onBulkAction,
+          ),
 
-        // Scored duplicates (dives with matchResults)
+        // Scored duplicates (dives with matchResults) appear first so rows
+        // that need user attention are at the top of the tab.
         if (likelyDuplicateIndices.isNotEmpty) ...[
           _SectionLabel(
             label: 'Potential Duplicates',
@@ -160,6 +176,19 @@ class EntityReviewList extends StatelessWidget {
           for (final index in _unscoredDuplicateIndices())
             _buildEntityDuplicateCard(index),
         ],
+
+        // Non-duplicate items (no conflicts — listed after duplicates so the
+        // rows requiring decisions aren't buried beneath clean imports).
+        if (nonDuplicateIndices.isNotEmpty) ...[
+          for (final index in nonDuplicateIndices)
+            _NonDuplicateRow(
+              item: group.items[index],
+              index: index,
+              isSelected: selectedIndices.contains(index),
+              onToggle: () => onToggleSelection(index),
+              projectedDiveNumber: projectedDiveNumbers?[index],
+            ),
+        ],
       ],
     );
   }
@@ -167,11 +196,11 @@ class EntityReviewList extends StatelessWidget {
   Widget _buildDuplicateCard(int index) {
     final item = group.items[index];
     final matchResult = group.matchResults![index]!;
-    final action =
-        duplicateActions[index] ??
-        (matchResult.isProbable
-            ? DuplicateAction.skip
-            : DuplicateAction.importAsNew);
+    // Pass the user's chosen action verbatim — including `null`, which means
+    // the user has not yet decided. Falling back to a default here would
+    // contradict the "Needs decision" pending state and pre-highlight a
+    // button the user did not pick.
+    final action = duplicateActions[index];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -183,6 +212,7 @@ class EntityReviewList extends StatelessWidget {
         onActionChanged: (a) => onDuplicateActionChanged(index, a),
         existingDiveId: existingDiveIdForIndex(index),
         projectedDiveNumber: projectedDiveNumbers?[index],
+        isPending: pendingIndices.contains(index),
       ),
     );
   }
@@ -194,46 +224,59 @@ class EntityReviewList extends StatelessWidget {
     ];
   }
 
-  /// Returns duplicate indices filtered by score range, sorted descending by
-  /// score.
+  /// Returns duplicate indices filtered by score range.
+  ///
+  /// Pending-review indices are emitted first (preserving their
+  /// enumeration order from [group.duplicateIndices]). The remaining
+  /// non-pending indices are then sorted descending by match score.
   List<int> _sortedDuplicateIndices({
     required double minScore,
     double maxScore = double.infinity,
   }) {
     final matchResults = group.matchResults;
-    if (matchResults == null) return [];
+    if (matchResults == null) return const [];
 
-    final indices = <int>[];
+    final all = <int>[];
     for (final index in group.duplicateIndices) {
       final result = matchResults[index];
       if (result == null) continue;
       if (result.score >= minScore && result.score < maxScore) {
-        indices.add(index);
+        all.add(index);
       }
     }
 
-    indices.sort((a, b) {
+    final pendingFirst = all.where(pendingIndices.contains).toList();
+    final rest = all.where((i) => !pendingIndices.contains(i)).toList();
+    rest.sort((a, b) {
       final scoreA = matchResults[a]?.score ?? 0;
       final scoreB = matchResults[b]?.score ?? 0;
       return scoreB.compareTo(scoreA);
     });
 
-    return indices;
+    return [...pendingFirst, ...rest];
   }
 
   /// Returns duplicate indices that have no match score (non-dive entities).
+  ///
+  /// Pending-review indices are emitted first, in ascending index order; the
+  /// remaining non-pending indices follow in ascending index order.
   List<int> _unscoredDuplicateIndices() {
     final matchResults = group.matchResults;
     if (matchResults != null) {
       // Entities with matchResults are handled by _sortedDuplicateIndices.
-      return [];
+      return const [];
     }
-    return group.duplicateIndices.toList()..sort();
+    final sorted = group.duplicateIndices.toList()..sort();
+    final pendingFirst = sorted.where(pendingIndices.contains).toList();
+    final rest = sorted.where((i) => !pendingIndices.contains(i)).toList();
+    return [...pendingFirst, ...rest];
   }
 
   Widget _buildEntityDuplicateCard(int index) {
     final item = group.items[index];
-    final action = duplicateActions[index] ?? DuplicateAction.skip;
+    // Pass the user's chosen action verbatim — `null` means "not yet decided"
+    // and is rendered as a pending row with no pre-selected button.
+    final action = duplicateActions[index];
     final entityMatch = group.entityMatches?[index];
 
     return _EntityDuplicateCard(
@@ -241,7 +284,27 @@ class EntityReviewList extends StatelessWidget {
       entityMatch: entityMatch,
       selectedAction: action,
       onActionChanged: (a) => onDuplicateActionChanged(index, a),
+      isPending: pendingIndices.contains(index),
     );
+  }
+
+  /// Whether this group represents the dive tab.
+  ///
+  /// A group is a "dive tab" if at least one item carries dive data. This
+  /// controls the bulk-action label variant (Import all as new vs Import all).
+  bool _isDiveTab() {
+    if (group.items.isEmpty) return false;
+    return group.items.any((item) => item.diveData != null);
+  }
+
+  /// Number of pending rows whose match score is high enough (>= 0.7) to
+  /// qualify for bulk consolidation.
+  int _matchableConsolidateCount() {
+    final matchResults = group.matchResults;
+    if (matchResults == null) return 0;
+    return pendingIndices
+        .where((i) => (matchResults[i]?.score ?? 0) >= 0.7)
+        .length;
   }
 
   String _itemCountText(int nonDuplicates, int duplicates, int selectedCount) {
@@ -393,14 +456,25 @@ class _NonDuplicateRow extends StatelessWidget {
 class _EntityDuplicateCard extends StatefulWidget {
   final EntityItem item;
   final EntityMatchResult? entityMatch;
-  final DuplicateAction selectedAction;
+
+  /// The action chosen for this row, or `null` when the user has not yet
+  /// decided. Null suppresses the action badge in the collapsed header and
+  /// leaves both action buttons outlined in the expanded panel.
+  final DuplicateAction? selectedAction;
   final ValueChanged<DuplicateAction> onActionChanged;
+
+  /// Whether this row still needs an explicit user decision.
+  ///
+  /// When true the card renders a warning-colored 1.5-px border and a
+  /// [NeedsDecisionPill] in its header.
+  final bool isPending;
 
   const _EntityDuplicateCard({
     required this.item,
     required this.entityMatch,
     required this.selectedAction,
     required this.onActionChanged,
+    this.isPending = false,
   });
 
   @override
@@ -416,7 +490,22 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
     final colorScheme = theme.colorScheme;
 
     final isImporting = widget.selectedAction == DuplicateAction.importAsNew;
-    final borderColor = isImporting ? Colors.green : colorScheme.error;
+    // When [selectedAction] is null (row pending a decision) we fall back to
+    // the tertiary warning colour so the border reads as "undecided" rather
+    // than implying a skip. The pending branch below also uses tertiary, so
+    // this fallback only matters for the rare non-pending-null case.
+    final Color borderColor;
+    if (widget.selectedAction == null) {
+      borderColor = colorScheme.tertiary;
+    } else if (isImporting) {
+      borderColor = Colors.green;
+    } else {
+      borderColor = colorScheme.error;
+    }
+
+    final BorderSide borderSide = widget.isPending
+        ? BorderSide(color: colorScheme.tertiary, width: 1.5)
+        : BorderSide(color: borderColor, width: 1.5);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -424,7 +513,7 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: borderColor, width: 1.5),
+          side: borderSide,
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -438,6 +527,8 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
               onTap: widget.entityMatch != null
                   ? () => setState(() => _expanded = !_expanded)
                   : () => widget.onActionChanged(
+                      // First tap on an undecided row (null) defaults to
+                      // importAsNew; otherwise toggle between the two states.
                       isImporting
                           ? DuplicateAction.skip
                           : DuplicateAction.importAsNew,
@@ -481,9 +572,16 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    // Action badge
-                    _SimpleActionBadge(isImporting: isImporting),
+                    // Needs-decision pill — only shown when this row is pending.
+                    if (widget.isPending) ...[
+                      const SizedBox(width: 8),
+                      NeedsDecisionPill(colorScheme: colorScheme),
+                    ],
+                    // Action badge — suppressed when no decision has been made.
+                    if (widget.selectedAction != null) ...[
+                      const SizedBox(width: 8),
+                      _SimpleActionBadge(isImporting: isImporting),
+                    ],
                     // Expand/collapse chevron (only when comparison data exists)
                     if (widget.entityMatch != null) ...[
                       const SizedBox(width: 4),
@@ -503,6 +601,7 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
                 entityMatch: widget.entityMatch!,
                 selectedAction: widget.selectedAction,
                 onActionChanged: widget.onActionChanged,
+                isPending: widget.isPending,
               ),
           ],
         ),
@@ -514,13 +613,23 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
 /// The expanded comparison panel showing existing vs incoming fields.
 class _EntityComparisonPanel extends StatelessWidget {
   final EntityMatchResult entityMatch;
-  final DuplicateAction selectedAction;
+
+  /// The currently selected action, or `null` when the row is still pending a
+  /// decision. Null leaves both action buttons outlined (no pre-highlight).
+  final DuplicateAction? selectedAction;
   final ValueChanged<DuplicateAction> onActionChanged;
+
+  /// Whether the enclosing row still needs an explicit user decision.
+  ///
+  /// When `true` AND [selectedAction] is `null`, a "Choose an action" label
+  /// is rendered above the action-button row.
+  final bool isPending;
 
   const _EntityComparisonPanel({
     required this.entityMatch,
     required this.selectedAction,
     required this.onActionChanged,
+    this.isPending = false,
   });
 
   @override
@@ -533,6 +642,8 @@ class _EntityComparisonPanel extends StatelessWidget {
       ...entityMatch.existingFields.keys,
       ...entityMatch.incomingFields.keys,
     };
+
+    final showChooseLabel = isPending && selectedAction == null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -577,24 +688,42 @@ class _EntityComparisonPanel extends StatelessWidget {
         // Action buttons — match dive card style
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Wrap(
-            alignment: WrapAlignment.start,
-            spacing: 8,
-            runSpacing: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              _EntityActionButton(
-                label: 'Skip',
-                subtitle: 'Discard this import',
-                isSelected: selectedAction == DuplicateAction.skip,
-                color: colorScheme.error,
-                onPressed: () => onActionChanged(DuplicateAction.skip),
-              ),
-              _EntityActionButton(
-                label: 'Import as New',
-                subtitle: 'Create separate entry',
-                isSelected: selectedAction == DuplicateAction.importAsNew,
-                color: Colors.green.shade700,
-                onPressed: () => onActionChanged(DuplicateAction.importAsNew),
+              if (showChooseLabel)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    context.l10n.universalImport_pending_chooseAction,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: colorScheme.tertiary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              Wrap(
+                alignment: WrapAlignment.start,
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  _EntityActionButton(
+                    label: 'Skip',
+                    subtitle: 'Discard this import',
+                    isSelected: selectedAction == DuplicateAction.skip,
+                    color: colorScheme.error,
+                    onPressed: () => onActionChanged(DuplicateAction.skip),
+                  ),
+                  _EntityActionButton(
+                    label: 'Import as New',
+                    subtitle: 'Create separate entry',
+                    isSelected: selectedAction == DuplicateAction.importAsNew,
+                    color: Colors.green.shade700,
+                    onPressed: () =>
+                        onActionChanged(DuplicateAction.importAsNew),
+                  ),
+                ],
               ),
             ],
           ),
@@ -732,7 +861,11 @@ class _EntityActionButton extends StatelessWidget {
 
     return OutlinedButton(
       onPressed: onPressed,
-      style: OutlinedButton.styleFrom(minimumSize: minSize),
+      style: OutlinedButton.styleFrom(
+        minimumSize: minSize,
+        foregroundColor: color,
+        side: BorderSide(color: color, width: 2.5),
+      ),
       child: child,
     );
   }
@@ -787,6 +920,71 @@ class _SectionLabel extends StatelessWidget {
           fontWeight: FontWeight.w700,
           letterSpacing: 0.5,
         ),
+      ),
+    );
+  }
+}
+
+/// Horizontal row of bulk-action buttons rendered above the duplicate list.
+///
+/// Visible only when at least one row is pending. The set of buttons is
+/// filtered by [availableActions] so adapters that don't support certain
+/// actions simply don't render the corresponding button.
+class _BulkActionRow extends StatelessWidget {
+  final bool isDiveTab;
+  final int pendingCount;
+  final int matchableConsolidateCount;
+  final Set<DuplicateAction> availableActions;
+  final void Function(DuplicateAction) onBulkAction;
+
+  const _BulkActionRow({
+    required this.isDiveTab,
+    required this.pendingCount,
+    required this.matchableConsolidateCount,
+    required this.availableActions,
+    required this.onBulkAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 4,
+        children: [
+          if (availableActions.contains(DuplicateAction.skip))
+            OutlinedButton.icon(
+              onPressed: () => onBulkAction(DuplicateAction.skip),
+              icon: const Icon(Icons.block, size: 16),
+              label: Text(
+                context.l10n.universalImport_bulk_skipAll(pendingCount),
+              ),
+            ),
+          if (availableActions.contains(DuplicateAction.importAsNew))
+            OutlinedButton.icon(
+              onPressed: () => onBulkAction(DuplicateAction.importAsNew),
+              icon: const Icon(Icons.add_circle_outline, size: 16),
+              label: Text(
+                isDiveTab
+                    ? context.l10n.universalImport_bulk_importAllAsNew(
+                        pendingCount,
+                      )
+                    : context.l10n.universalImport_bulk_importAll(pendingCount),
+              ),
+            ),
+          if (availableActions.contains(DuplicateAction.consolidate))
+            // TODO(#200): enable when bulk-consolidate is implemented end-to-end.
+            OutlinedButton.icon(
+              onPressed: null,
+              icon: const Icon(Icons.merge_type, size: 16),
+              label: Text(
+                context.l10n.universalImport_bulk_consolidateMatched(
+                  matchableConsolidateCount,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

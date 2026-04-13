@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shared comparison card for dive duplicate resolution.
 ///
@@ -57,6 +58,13 @@ class DiveComparisonCard extends ConsumerWidget {
   /// avoid a nested card outline (grey line artifact).
   final bool embedded;
 
+  /// Whether the enclosing row still needs an explicit user decision.
+  ///
+  /// When `true` AND [selectedAction] is `null`, a "Choose an action" label is
+  /// rendered above the action-button row to make the required decision
+  /// visually prominent. Has no effect in immediate-action mode.
+  final bool isPending;
+
   const DiveComparisonCard({
     super.key,
     required this.incoming,
@@ -71,6 +79,7 @@ class DiveComparisonCard extends ConsumerWidget {
     this.onActionChanged,
     this.availableActions,
     this.embedded = false,
+    this.isPending = false,
   });
 
   @override
@@ -354,8 +363,12 @@ class DiveComparisonCard extends ConsumerWidget {
   }
 
   Widget _buildActionButtons(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isTriState = selectedAction != null;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    // Tri-state selector mode is identified by the presence of an
+    // [onActionChanged] callback. A pending row legitimately passes a null
+    // [selectedAction] in this mode, so we cannot key off the action value.
+    final isTriState = onActionChanged != null;
 
     // In tri-state mode, limit buttons to availableActions (default: all).
     bool showAction(DuplicateAction action) {
@@ -374,7 +387,7 @@ class DiveComparisonCard extends ConsumerWidget {
     }
 
     Color? colorFor(DuplicateAction action) {
-      if (!isTriState || selectedAction != action) return null;
+      if (!isTriState) return null;
       return switch (action) {
         DuplicateAction.skip => colorScheme.error,
         DuplicateAction.importAsNew => Colors.green,
@@ -431,13 +444,35 @@ class DiveComparisonCard extends ConsumerWidget {
       );
     }
 
+    // Show a "Choose an action" label when the enclosing row is pending and
+    // no action has been selected yet — reinforces the pending visual cue and
+    // makes the required decision prominent.
+    final showChooseLabel = isPending && isTriState && selectedAction == null;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Wrap(
-        alignment: WrapAlignment.start,
-        spacing: 8,
-        runSpacing: 4,
-        children: buttons,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (showChooseLabel)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                context.l10n.universalImport_pending_chooseAction,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: colorScheme.tertiary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          Wrap(
+            alignment: WrapAlignment.start,
+            spacing: 8,
+            runSpacing: 4,
+            children: buttons,
+          ),
+        ],
       ),
     );
   }
@@ -518,17 +553,31 @@ class _ActionButton extends StatelessWidget {
 
     const minSize = Size(0, 48);
 
+    // When the button is disabled (onPressed == null), skip the semantic
+    // color/border so Material's default disabled styling takes over — keeps
+    // the "not clickable" affordance visually clear.
+    final isEnabled = onPressed != null;
+    final effectiveColor = isEnabled ? color : null;
     switch (style) {
       case _ActionButtonStyle.text:
         return TextButton(
           onPressed: onPressed,
-          style: TextButton.styleFrom(minimumSize: minSize),
+          style: TextButton.styleFrom(
+            minimumSize: minSize,
+            foregroundColor: effectiveColor,
+          ),
           child: child,
         );
       case _ActionButtonStyle.outlined:
         return OutlinedButton(
           onPressed: onPressed,
-          style: OutlinedButton.styleFrom(minimumSize: minSize),
+          style: OutlinedButton.styleFrom(
+            minimumSize: minSize,
+            foregroundColor: effectiveColor,
+            side: effectiveColor != null
+                ? BorderSide(color: effectiveColor, width: 2.5)
+                : null,
+          ),
           child: child,
         );
       case _ActionButtonStyle.filled:
@@ -536,8 +585,8 @@ class _ActionButton extends StatelessWidget {
           onPressed: onPressed,
           style: FilledButton.styleFrom(
             minimumSize: minSize,
-            backgroundColor: color,
-            foregroundColor: color != null ? Colors.white : null,
+            backgroundColor: effectiveColor,
+            foregroundColor: effectiveColor != null ? Colors.white : null,
           ),
           child: child,
         );

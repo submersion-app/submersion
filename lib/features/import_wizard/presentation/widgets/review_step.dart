@@ -10,6 +10,7 @@ import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_tags_field.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The review step of the import wizard.
 ///
@@ -149,18 +150,36 @@ class _MultiTypeLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final hasDives = bundle.groups.containsKey(ImportEntityType.dives);
 
     return DefaultTabController(
       length: types.length,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (hasDives)
             _RetainDiveNumbersToggle(state: state, notifier: notifier),
           TabBar(
+            labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+            indicatorWeight: 3,
+            indicatorSize: TabBarIndicatorSize.label,
+            indicatorColor: colorScheme.primary,
+            labelColor: colorScheme.primary,
+            unselectedLabelColor: colorScheme.onSurfaceVariant,
+            labelStyle: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+            unselectedLabelStyle: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
             tabs: [
               for (final type in types)
-                Tab(text: _tabLabel(type, bundle.groups[type]!.items.length)),
+                Tab(
+                  height: 36,
+                  text: _tabLabel(type, bundle.groups[type]!.items.length),
+                ),
             ],
           ),
           if (hasDives)
@@ -201,7 +220,22 @@ class _MultiTypeLayout extends StatelessWidget {
               ],
             ),
           ),
-          _BottomBar(counts: counts, onImport: onImport, onBack: onBack),
+          Builder(
+            builder: (ctx) => _BottomBar(
+              counts: counts,
+              onImport: onImport,
+              onBack: onBack,
+              hasPendingReviews: state.hasPendingReviews,
+              totalPending: state.totalPending,
+              onReviewPending: () {
+                final loc = notifier.firstPendingLocation();
+                if (loc == null) return;
+                final tabIdx = types.indexOf(loc.type);
+                if (tabIdx < 0) return;
+                DefaultTabController.maybeOf(ctx)?.animateTo(tabIdx);
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -272,9 +306,28 @@ class _EntityTab extends StatelessWidget {
         selectedIndices: selectedIndices,
         duplicateActions: duplicateActions,
         availableActions: availableActions,
+        pendingIndices: state.pendingFor(type),
         onToggleSelection: (i) => notifier.toggleSelection(type, i),
-        onDuplicateActionChanged: (i, a) =>
-            notifier.setDuplicateAction(type, i, a),
+        onDuplicateActionChanged: (i, a) {
+          notifier.setDuplicateAction(type, i, a);
+          _showActionSnackbar(
+            context,
+            context.l10n.universalImport_snackbar_markedAs(
+              _actionLabel(context, a),
+            ),
+          );
+        },
+        onBulkAction: (action) {
+          final count = state.pendingFor(type).length;
+          notifier.applyBulkAction(type, action);
+          _showActionSnackbar(
+            context,
+            context.l10n.universalImport_snackbar_bulkMarkedAs(
+              count,
+              _actionLabel(context, action),
+            ),
+          );
+        },
         onSelectAll: () => notifier.selectAll(type),
         onDeselectAll: () => notifier.deselectAll(type),
         existingDiveIdForIndex: (i) => group.matchResults?[i]?.diveId ?? '',
@@ -282,6 +335,29 @@ class _EntityTab extends StatelessWidget {
       ),
     );
   }
+}
+
+String _actionLabel(
+  BuildContext context,
+  DuplicateAction action,
+) => switch (action) {
+  DuplicateAction.skip => context.l10n.universalImport_label_skip,
+  DuplicateAction.importAsNew => context.l10n.universalImport_label_importAsNew,
+  DuplicateAction.consolidate => context.l10n.universalImport_label_consolidate,
+};
+
+void _showActionSnackbar(BuildContext context, String message) {
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  if (messenger == null) return;
+  messenger
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(milliseconds: 1500),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -315,8 +391,18 @@ class _BottomBar extends StatelessWidget {
   final _AggregateCounts counts;
   final VoidCallback onImport;
   final VoidCallback? onBack;
+  final bool hasPendingReviews;
+  final int totalPending;
+  final VoidCallback onReviewPending;
 
-  const _BottomBar({required this.counts, required this.onImport, this.onBack});
+  const _BottomBar({
+    required this.counts,
+    required this.onImport,
+    this.onBack,
+    required this.hasPendingReviews,
+    required this.totalPending,
+    required this.onReviewPending,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -337,22 +423,63 @@ class _BottomBar extends StatelessWidget {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            if (onBack != null)
-              TextButton(onPressed: onBack, child: const Text('Back')),
-            Expanded(
-              child: Text(
-                countsText,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+            if (hasPendingReviews) ...[
+              Semantics(
+                liveRegion: true,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: theme.colorScheme.tertiary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        context.l10n.universalImport_pending_gateHint(
+                          totalPending,
+                        ),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.tertiary,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: onReviewPending,
+                      child: Text(
+                        context.l10n.universalImport_pending_reviewAction,
+                      ),
+                    ),
+                  ],
                 ),
-                textAlign: TextAlign.center,
               ),
-            ),
-            FilledButton(
-              onPressed: onImport,
-              child: const Text('Import Selected'),
+              const SizedBox(height: 8),
+            ],
+            Row(
+              children: [
+                if (onBack != null)
+                  TextButton(onPressed: onBack, child: const Text('Back')),
+                Expanded(
+                  child: Text(
+                    countsText,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                FilledButton(
+                  onPressed:
+                      (hasPendingReviews ||
+                          (counts.importing + counts.consolidating) == 0)
+                      ? null
+                      : onImport,
+                  child: const Text('Import Selected'),
+                ),
+              ],
             ),
           ],
         ),
