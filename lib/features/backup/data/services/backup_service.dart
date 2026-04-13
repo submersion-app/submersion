@@ -378,6 +378,25 @@ class BackupService {
     _log.info('Backup deleted: ${record.filename}');
   }
 
+  /// Pin a backup record so it is excluded from automatic pruning.
+  Future<void> pinBackup(String id) => _setPinned(id, true);
+
+  /// Unpin a backup record so it is subject to automatic pruning again.
+  Future<void> unpinBackup(String id) => _setPinned(id, false);
+
+  Future<void> _setPinned(String id, bool pinned) async {
+    final history = _preferences.getHistory();
+    BackupRecord? match;
+    for (final r in history) {
+      if (r.id == id) {
+        match = r;
+        break;
+      }
+    }
+    if (match == null) return;
+    await _preferences.updateRecord(match.copyWith(pinned: pinned));
+  }
+
   /// Remove old backups beyond the retention count.
   ///
   /// Keeps the [keepCount] most recent backups and deletes the rest.

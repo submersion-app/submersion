@@ -903,6 +903,66 @@ void main() {
       });
     });
 
+    group('pinBackup / unpinBackup', () {
+      test('pinBackup flips pinned to true on the record', () async {
+        final record = BackupRecord(
+          id: 'pin-me',
+          filename: 'backup.db',
+          timestamp: DateTime(2025, 6, 15),
+          sizeBytes: 1000,
+          location: BackupLocation.local,
+          diveCount: 5,
+          siteCount: 2,
+        );
+        await preferences.addRecord(record);
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        await service.pinBackup('pin-me');
+
+        final history = preferences.getHistory();
+        expect(history.single.pinned, true);
+      });
+
+      test('unpinBackup flips pinned to false', () async {
+        final record = BackupRecord(
+          id: 'unpin-me',
+          filename: 'backup.db',
+          timestamp: DateTime(2025, 6, 15),
+          sizeBytes: 1000,
+          location: BackupLocation.local,
+          diveCount: 5,
+          siteCount: 2,
+          pinned: true,
+        );
+        await preferences.addRecord(record);
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        await service.unpinBackup('unpin-me');
+
+        final history = preferences.getHistory();
+        expect(history.single.pinned, false);
+      });
+
+      test('pinBackup is a no-op for unknown ids (does not throw)', () async {
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        await expectLater(service.pinBackup('unknown'), completes);
+
+        expect(preferences.getHistory(), isEmpty);
+      });
+    });
+
     group('BackupSettings integration', () {
       test('isBackupDue returns true when never backed up', () {
         const settings = BackupSettings(enabled: true);
