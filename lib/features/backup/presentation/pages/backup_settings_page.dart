@@ -322,7 +322,7 @@ class BackupSettingsPage extends ConsumerWidget {
           ),
           if (record.type == BackupType.preMigration) ...[
             const SizedBox(width: 8),
-            _PreMigrationBadge(
+            PreMigrationBadge(
               fromVersion: record.fromSchemaVersion ?? 0,
               toVersion: record.toSchemaVersion ?? 0,
             ),
@@ -344,7 +344,7 @@ class BackupSettingsPage extends ConsumerWidget {
               record.pinned ? Icons.push_pin : Icons.push_pin_outlined,
             ),
             tooltip: record.pinned ? 'Unpin backup' : 'Pin backup',
-            onPressed: () => _togglePin(ref, record),
+            onPressed: () => _togglePin(context, ref, record),
           ),
           PopupMenuButton<String>(
             onSelected: (action) =>
@@ -382,12 +382,23 @@ class BackupSettingsPage extends ConsumerWidget {
   // History Actions
   // ===========================================================================
 
-  Future<void> _togglePin(WidgetRef ref, BackupRecord record) async {
+  Future<void> _togglePin(
+    BuildContext context,
+    WidgetRef ref,
+    BackupRecord record,
+  ) async {
     final service = ref.read(backupServiceProvider);
-    if (record.pinned) {
-      await service.unpinBackup(record.id);
-    } else {
-      await service.pinBackup(record.id);
+    try {
+      if (record.pinned) {
+        await service.unpinBackup(record.id);
+      } else {
+        await service.pinBackup(record.id);
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Could not update pin state: $e')));
     }
   }
 
@@ -584,11 +595,12 @@ class BackupSettingsPage extends ConsumerWidget {
   }
 }
 
-class _PreMigrationBadge extends StatelessWidget {
+class PreMigrationBadge extends StatelessWidget {
   final int fromVersion;
   final int toVersion;
 
-  const _PreMigrationBadge({
+  const PreMigrationBadge({
+    super.key,
     required this.fromVersion,
     required this.toVersion,
   });
