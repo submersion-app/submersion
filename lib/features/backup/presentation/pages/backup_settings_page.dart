@@ -347,6 +347,9 @@ class BackupSettingsPage extends ConsumerWidget {
           IconButton(
             icon: Icon(
               record.pinned ? Icons.push_pin : Icons.push_pin_outlined,
+              color: record.pinned
+                  ? Theme.of(context).colorScheme.primary
+                  : null,
             ),
             tooltip: record.pinned ? 'Unpin backup' : 'Pin backup',
             onPressed: () => _togglePin(context, ref, record),
