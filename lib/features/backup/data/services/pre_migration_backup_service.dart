@@ -111,7 +111,7 @@ class PreMigrationBackupService {
       await for (final entity in dir.list(followLinks: false)) {
         if (entity is! File) continue;
         final name = p.basename(entity.path);
-        if (name.endsWith('.tmp')) {
+        if (name.startsWith('.') && name.endsWith('.db.tmp')) {
           await _safeDelete(entity.path);
         }
       }

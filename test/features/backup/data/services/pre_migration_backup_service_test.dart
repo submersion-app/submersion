@@ -197,5 +197,29 @@ void main() {
 
       expect(await keep.exists(), isTrue);
     });
+
+    test('does not delete .tmp files that are not our own form', () async {
+      final f = await _makeFixture();
+      addTearDown(f.dispose);
+      // User-dropped file that happens to end in .tmp - must NOT be deleted.
+      final notOurs = File(p.join(f.backupsDir, 'notes.tmp'));
+      await notOurs.writeAsBytes([1, 2, 3]);
+
+      final service = PreMigrationBackupService(
+        livePathProvider: () async => f.livePath,
+        backupsDirProvider: () async => f.backupsDir,
+        preferences: f.prefs,
+        clock: () => DateTime.utc(2026, 4, 12, 8, 12, 1),
+        idGenerator: () => 'id',
+      );
+
+      await service.backupIfMigrationPending(
+        stored: 63,
+        target: 64,
+        appVersion: '1.6.0.1241',
+      );
+
+      expect(await notOurs.exists(), isTrue);
+    });
   });
 }
