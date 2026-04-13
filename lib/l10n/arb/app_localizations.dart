@@ -2394,6 +2394,12 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get common_action_close;
 
+  /// Continue button used in confirmation dialogs
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get common_action_continue;
+
   /// Generic delete action
   ///
   /// In en, this message translates to:
@@ -24261,6 +24267,24 @@ abstract class AppLocalizations {
   /// **'Notes'**
   String get diveComputer_detail_notesTitle;
 
+  /// No description provided for @diveComputer_detail_reimportAllButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-import all dives'**
+  String get diveComputer_detail_reimportAllButton;
+
+  /// No description provided for @diveComputer_detail_reimportDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Download every dive from {computerName} and review them against your log. This may take several minutes.'**
+  String diveComputer_detail_reimportDialogBody(String computerName);
+
+  /// No description provided for @diveComputer_detail_reimportDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-import all dives?'**
+  String get diveComputer_detail_reimportDialogTitle;
+
   /// No description provided for @diveComputer_detail_statisticsTitle.
   ///
   /// In en, this message translates to:
@@ -24719,6 +24743,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{percent}%'**
   String diveComputer_download_progressPercent(Object percent);
+
+  /// No description provided for @diveComputer_download_reimportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for older or deleted dives? Re-import all'**
+  String get diveComputer_download_reimportHint;
 
   /// No description provided for @diveComputer_download_retry.
   ///
