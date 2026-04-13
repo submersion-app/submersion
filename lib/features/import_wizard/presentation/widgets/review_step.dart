@@ -150,6 +150,8 @@ class _MultiTypeLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final hasDives = bundle.groups.containsKey(ImportEntityType.dives);
 
     return DefaultTabController(
@@ -160,9 +162,24 @@ class _MultiTypeLayout extends StatelessWidget {
           if (hasDives)
             _RetainDiveNumbersToggle(state: state, notifier: notifier),
           TabBar(
+            labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+            indicatorWeight: 3,
+            indicatorSize: TabBarIndicatorSize.label,
+            indicatorColor: colorScheme.primary,
+            labelColor: colorScheme.primary,
+            unselectedLabelColor: colorScheme.onSurfaceVariant,
+            labelStyle: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+            unselectedLabelStyle: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
             tabs: [
               for (final type in types)
-                Tab(text: _tabLabel(type, bundle.groups[type]!.items.length)),
+                Tab(
+                  height: 36,
+                  text: _tabLabel(type, bundle.groups[type]!.items.length),
+                ),
             ],
           ),
           if (hasDives)
