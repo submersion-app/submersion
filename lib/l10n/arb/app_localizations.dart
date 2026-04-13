@@ -24141,6 +24141,144 @@ abstract class AppLocalizations {
   /// **'This certifies that'**
   String get certifications_certificate_thisCertifies;
 
+  /// No description provided for @diveComputer_connectionType_ble.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth LE'**
+  String get diveComputer_connectionType_ble;
+
+  /// No description provided for @diveComputer_connectionType_bluetooth.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth'**
+  String get diveComputer_connectionType_bluetooth;
+
+  /// No description provided for @diveComputer_connectionType_infrared.
+  ///
+  /// In en, this message translates to:
+  /// **'Infrared'**
+  String get diveComputer_connectionType_infrared;
+
+  /// No description provided for @diveComputer_connectionType_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get diveComputer_connectionType_unknown;
+
+  /// No description provided for @diveComputer_connectionType_usb.
+  ///
+  /// In en, this message translates to:
+  /// **'USB'**
+  String get diveComputer_connectionType_usb;
+
+  /// No description provided for @diveComputer_connectionType_wifi.
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi'**
+  String get diveComputer_connectionType_wifi;
+
+  /// No description provided for @diveComputer_detail_cannotFilterNoSerial.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot filter: no serial number for this computer.'**
+  String get diveComputer_detail_cannotFilterNoSerial;
+
+  /// No description provided for @diveComputer_detail_deleteDialogContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove \"{name}\"? This will not delete any dives that were imported from this computer.'**
+  String diveComputer_detail_deleteDialogContent(String name);
+
+  /// No description provided for @diveComputer_detail_deleteDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Computer?'**
+  String get diveComputer_detail_deleteDialogTitle;
+
+  /// No description provided for @diveComputer_detail_divesImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives Imported'**
+  String get diveComputer_detail_divesImported;
+
+  /// No description provided for @diveComputer_detail_downloadDivesButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Dives'**
+  String get diveComputer_detail_downloadDivesButton;
+
+  /// No description provided for @diveComputer_detail_editDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Computer'**
+  String get diveComputer_detail_editDialogTitle;
+
+  /// No description provided for @diveComputer_detail_editNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., My Perdix'**
+  String get diveComputer_detail_editNameHint;
+
+  /// No description provided for @diveComputer_detail_editNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional notes'**
+  String get diveComputer_detail_editNotesHint;
+
+  /// No description provided for @diveComputer_detail_labelConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection'**
+  String get diveComputer_detail_labelConnection;
+
+  /// No description provided for @diveComputer_detail_labelManufacturer.
+  ///
+  /// In en, this message translates to:
+  /// **'Manufacturer'**
+  String get diveComputer_detail_labelManufacturer;
+
+  /// No description provided for @diveComputer_detail_labelModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get diveComputer_detail_labelModel;
+
+  /// No description provided for @diveComputer_detail_labelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get diveComputer_detail_labelName;
+
+  /// No description provided for @diveComputer_detail_lastDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Download'**
+  String get diveComputer_detail_lastDownload;
+
+  /// No description provided for @diveComputer_detail_notesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get diveComputer_detail_notesTitle;
+
+  /// No description provided for @diveComputer_detail_statisticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics'**
+  String get diveComputer_detail_statisticsTitle;
+
+  /// No description provided for @diveComputer_detail_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get diveComputer_detail_unknown;
+
+  /// No description provided for @diveComputer_detail_viewDivesButton.
+  ///
+  /// In en, this message translates to:
+  /// **'View Dives from This Computer'**
+  String get diveComputer_detail_viewDivesButton;
+
   /// No description provided for @diveComputer_discovery_chooseDifferentDevice.
   ///
   /// In en, this message translates to:
@@ -24314,6 +24452,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search by manufacturer or model...'**
   String get diveComputer_discovery_usbSearchHint;
+
+  /// No description provided for @diveComputer_downloadExit_content.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaving will cancel the current download from your dive computer. Are you sure?'**
+  String get diveComputer_downloadExit_content;
+
+  /// No description provided for @diveComputer_downloadExit_leave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get diveComputer_downloadExit_leave;
+
+  /// No description provided for @diveComputer_downloadExit_stay.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay'**
+  String get diveComputer_downloadExit_stay;
+
+  /// No description provided for @diveComputer_downloadExit_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Download in Progress'**
+  String get diveComputer_downloadExit_title;
 
   /// No description provided for @diveComputer_downloadStep_andMoreDives.
   ///
@@ -24737,6 +24899,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive Computers'**
   String get diveComputer_list_title;
+
+  /// No description provided for @diveComputer_pinCode_instructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code displayed on your dive computer.'**
+  String get diveComputer_pinCode_instructions;
+
+  /// No description provided for @diveComputer_pinCode_label.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN Code'**
+  String get diveComputer_pinCode_label;
+
+  /// No description provided for @diveComputer_pinCode_submit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get diveComputer_pinCode_submit;
+
+  /// No description provided for @diveComputer_pinCode_title.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN Code Required'**
+  String get diveComputer_pinCode_title;
+
+  /// No description provided for @diveComputer_pinEntry_connectButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get diveComputer_pinEntry_connectButton;
+
+  /// No description provided for @diveComputer_pinEntry_helperText.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 4-6 digit PIN shown on your device'**
+  String get diveComputer_pinEntry_helperText;
+
+  /// No description provided for @diveComputer_pinEntry_instructionsGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your dive computer display for the PIN code.'**
+  String get diveComputer_pinEntry_instructionsGeneric;
+
+  /// No description provided for @diveComputer_pinEntry_instructionsWithDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your {deviceName} display for the PIN code.'**
+  String diveComputer_pinEntry_instructionsWithDevice(String deviceName);
+
+  /// No description provided for @diveComputer_pinEntry_semanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN code entry, 4 to 6 digits'**
+  String get diveComputer_pinEntry_semanticLabel;
+
+  /// No description provided for @diveComputer_pinEntry_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter PIN Code'**
+  String get diveComputer_pinEntry_title;
+
+  /// No description provided for @diveComputer_scan_bluetoothSemanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth device: {name}'**
+  String diveComputer_scan_bluetoothSemanticLabel(String name);
+
+  /// No description provided for @diveComputer_scan_emptyStateInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Make sure your dive computer is:\n• Turned on\n• In Bluetooth pairing mode\n• Close to your device'**
+  String get diveComputer_scan_emptyStateInstructions;
+
+  /// No description provided for @diveComputer_scan_knownBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Known'**
+  String get diveComputer_scan_knownBadge;
+
+  /// No description provided for @diveComputer_scan_lookingForDevicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for Devices'**
+  String get diveComputer_scan_lookingForDevicesTitle;
+
+  /// No description provided for @diveComputer_scan_noUsbDevicesAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No USB devices available'**
+  String get diveComputer_scan_noUsbDevicesAvailable;
+
+  /// No description provided for @diveComputer_scan_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get diveComputer_scan_retry;
+
+  /// No description provided for @diveComputer_scan_scanAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Again'**
+  String get diveComputer_scan_scanAgain;
+
+  /// No description provided for @diveComputer_scan_scanningStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning for dive computers...'**
+  String get diveComputer_scan_scanningStatus;
+
+  /// No description provided for @diveComputer_scan_stopScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop Scanning'**
+  String get diveComputer_scan_stopScanning;
+
+  /// No description provided for @diveComputer_scan_supportedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported'**
+  String get diveComputer_scan_supportedBadge;
+
+  /// No description provided for @diveComputer_scan_tabBluetooth.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth'**
+  String get diveComputer_scan_tabBluetooth;
+
+  /// No description provided for @diveComputer_scan_tabUsb.
+  ///
+  /// In en, this message translates to:
+  /// **'USB Cable'**
+  String get diveComputer_scan_tabUsb;
+
+  /// No description provided for @diveComputer_scan_usbCableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'USB Cable'**
+  String get diveComputer_scan_usbCableLabel;
+
+  /// No description provided for @diveComputer_scan_usbSemanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'USB device: {model}'**
+  String diveComputer_scan_usbSemanticLabel(String model);
 
   /// No description provided for @diveComputer_summary_diveComputer.
   ///

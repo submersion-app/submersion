@@ -8632,6 +8632,36 @@
     }
   },
   "certifications_certificate_thisCertifies": "This certifies that",
+  "diveComputer_connectionType_ble": "Bluetooth LE",
+  "diveComputer_connectionType_bluetooth": "Bluetooth",
+  "diveComputer_connectionType_infrared": "Infrared",
+  "diveComputer_connectionType_unknown": "Unknown",
+  "diveComputer_connectionType_usb": "USB",
+  "diveComputer_connectionType_wifi": "Wi-Fi",
+  "diveComputer_detail_cannotFilterNoSerial": "Cannot filter: no serial number for this computer.",
+  "diveComputer_detail_deleteDialogContent": "Are you sure you want to remove \"{name}\"? This will not delete any dives that were imported from this computer.",
+  "@diveComputer_detail_deleteDialogContent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "diveComputer_detail_deleteDialogTitle": "Delete Computer?",
+  "diveComputer_detail_divesImported": "Dives Imported",
+  "diveComputer_detail_downloadDivesButton": "Download Dives",
+  "diveComputer_detail_editDialogTitle": "Edit Computer",
+  "diveComputer_detail_editNameHint": "e.g., My Perdix",
+  "diveComputer_detail_editNotesHint": "Optional notes",
+  "diveComputer_detail_labelConnection": "Connection",
+  "diveComputer_detail_labelManufacturer": "Manufacturer",
+  "diveComputer_detail_labelModel": "Model",
+  "diveComputer_detail_labelName": "Name",
+  "diveComputer_detail_lastDownload": "Last Download",
+  "diveComputer_detail_notesTitle": "Notes",
+  "diveComputer_detail_statisticsTitle": "Statistics",
+  "diveComputer_detail_unknown": "Unknown",
+  "diveComputer_detail_viewDivesButton": "View Dives from This Computer",
   "diveComputer_discovery_chooseDifferentDevice": "Choose Different Device",
   "diveComputer_discovery_computer": "Computer",
   "diveComputer_discovery_connectAndDownload": "Connect & Download",
@@ -8675,6 +8705,10 @@
     }
   },
   "diveComputer_discovery_usbSearchHint": "Search by manufacturer or model...",
+  "diveComputer_downloadExit_content": "Leaving will cancel the current download from your dive computer. Are you sure?",
+  "diveComputer_downloadExit_leave": "Leave",
+  "diveComputer_downloadExit_stay": "Stay",
+  "diveComputer_downloadExit_title": "Download in Progress",
   "diveComputer_downloadStep_andMoreDives": "... and {count} more",
   "@diveComputer_downloadStep_andMoreDives": {
     "placeholders": {
@@ -8881,6 +8915,51 @@
   "diveComputer_list_loadFailed": "Failed to load dive computers",
   "diveComputer_list_retry": "Retry",
   "diveComputer_list_title": "Dive Computers",
+  "diveComputer_pinCode_instructions": "Enter the code displayed on your dive computer.",
+  "diveComputer_pinCode_label": "PIN Code",
+  "diveComputer_pinCode_submit": "Submit",
+  "diveComputer_pinCode_title": "PIN Code Required",
+  "diveComputer_pinEntry_connectButton": "Connect",
+  "diveComputer_pinEntry_helperText": "Enter the 4-6 digit PIN shown on your device",
+  "diveComputer_pinEntry_instructionsGeneric": "Check your dive computer display for the PIN code.",
+  "diveComputer_pinEntry_instructionsWithDevice": "Check your {deviceName} display for the PIN code.",
+  "@diveComputer_pinEntry_instructionsWithDevice": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
+  "diveComputer_pinEntry_semanticLabel": "PIN code entry, 4 to 6 digits",
+  "diveComputer_pinEntry_title": "Enter PIN Code",
+  "diveComputer_scan_bluetoothSemanticLabel": "Bluetooth device: {name}",
+  "@diveComputer_scan_bluetoothSemanticLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "diveComputer_scan_emptyStateInstructions": "Make sure your dive computer is:\n• Turned on\n• In Bluetooth pairing mode\n• Close to your device",
+  "diveComputer_scan_knownBadge": "Known",
+  "diveComputer_scan_lookingForDevicesTitle": "Looking for Devices",
+  "diveComputer_scan_noUsbDevicesAvailable": "No USB devices available",
+  "diveComputer_scan_retry": "Retry",
+  "diveComputer_scan_scanAgain": "Scan Again",
+  "diveComputer_scan_scanningStatus": "Scanning for dive computers...",
+  "diveComputer_scan_stopScanning": "Stop Scanning",
+  "diveComputer_scan_supportedBadge": "Supported",
+  "diveComputer_scan_tabBluetooth": "Bluetooth",
+  "diveComputer_scan_tabUsb": "USB Cable",
+  "diveComputer_scan_usbCableLabel": "USB Cable",
+  "diveComputer_scan_usbSemanticLabel": "USB device: {model}",
+  "@diveComputer_scan_usbSemanticLabel": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
   "diveComputer_summary_diveComputer": "dive computer",
   "diveComputer_summary_divesDownloaded": "{count} {count, plural, =1{dive} other{dives}} downloaded",
   "@diveComputer_summary_divesDownloaded": {

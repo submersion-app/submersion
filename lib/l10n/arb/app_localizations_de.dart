@@ -14219,6 +14219,79 @@ class AppLocalizationsDe extends AppLocalizations {
       'Hiermit wird bescheinigt, dass';
 
   @override
+  String get diveComputer_connectionType_ble => 'Bluetooth LE';
+
+  @override
+  String get diveComputer_connectionType_bluetooth => 'Bluetooth';
+
+  @override
+  String get diveComputer_connectionType_infrared => 'Infrared';
+
+  @override
+  String get diveComputer_connectionType_unknown => 'Unknown';
+
+  @override
+  String get diveComputer_connectionType_usb => 'USB';
+
+  @override
+  String get diveComputer_connectionType_wifi => 'Wi-Fi';
+
+  @override
+  String get diveComputer_detail_cannotFilterNoSerial =>
+      'Cannot filter: no serial number for this computer.';
+
+  @override
+  String diveComputer_detail_deleteDialogContent(String name) {
+    return 'Are you sure you want to remove \"$name\"? This will not delete any dives that were imported from this computer.';
+  }
+
+  @override
+  String get diveComputer_detail_deleteDialogTitle => 'Delete Computer?';
+
+  @override
+  String get diveComputer_detail_divesImported => 'Dives Imported';
+
+  @override
+  String get diveComputer_detail_downloadDivesButton => 'Download Dives';
+
+  @override
+  String get diveComputer_detail_editDialogTitle => 'Edit Computer';
+
+  @override
+  String get diveComputer_detail_editNameHint => 'e.g., My Perdix';
+
+  @override
+  String get diveComputer_detail_editNotesHint => 'Optional notes';
+
+  @override
+  String get diveComputer_detail_labelConnection => 'Connection';
+
+  @override
+  String get diveComputer_detail_labelManufacturer => 'Manufacturer';
+
+  @override
+  String get diveComputer_detail_labelModel => 'Model';
+
+  @override
+  String get diveComputer_detail_labelName => 'Name';
+
+  @override
+  String get diveComputer_detail_lastDownload => 'Last Download';
+
+  @override
+  String get diveComputer_detail_notesTitle => 'Notes';
+
+  @override
+  String get diveComputer_detail_statisticsTitle => 'Statistics';
+
+  @override
+  String get diveComputer_detail_unknown => 'Unknown';
+
+  @override
+  String get diveComputer_detail_viewDivesButton =>
+      'View Dives from This Computer';
+
+  @override
   String get diveComputer_discovery_chooseDifferentDevice =>
       'Anderes Geraet waehlen';
 
@@ -14319,6 +14392,19 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveComputer_discovery_usbSearchHint =>
       'Nach Hersteller oder Modell suchen...';
+
+  @override
+  String get diveComputer_downloadExit_content =>
+      'Leaving will cancel the current download from your dive computer. Are you sure?';
+
+  @override
+  String get diveComputer_downloadExit_leave => 'Leave';
+
+  @override
+  String get diveComputer_downloadExit_stay => 'Stay';
+
+  @override
+  String get diveComputer_downloadExit_title => 'Download in Progress';
 
   @override
   String diveComputer_downloadStep_andMoreDives(Object count) {
@@ -14593,6 +14679,91 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveComputer_list_title => 'Tauchcomputer';
+
+  @override
+  String get diveComputer_pinCode_instructions =>
+      'Enter the code displayed on your dive computer.';
+
+  @override
+  String get diveComputer_pinCode_label => 'PIN Code';
+
+  @override
+  String get diveComputer_pinCode_submit => 'Submit';
+
+  @override
+  String get diveComputer_pinCode_title => 'PIN Code Required';
+
+  @override
+  String get diveComputer_pinEntry_connectButton => 'Connect';
+
+  @override
+  String get diveComputer_pinEntry_helperText =>
+      'Enter the 4-6 digit PIN shown on your device';
+
+  @override
+  String get diveComputer_pinEntry_instructionsGeneric =>
+      'Check your dive computer display for the PIN code.';
+
+  @override
+  String diveComputer_pinEntry_instructionsWithDevice(String deviceName) {
+    return 'Check your $deviceName display for the PIN code.';
+  }
+
+  @override
+  String get diveComputer_pinEntry_semanticLabel =>
+      'PIN code entry, 4 to 6 digits';
+
+  @override
+  String get diveComputer_pinEntry_title => 'Enter PIN Code';
+
+  @override
+  String diveComputer_scan_bluetoothSemanticLabel(String name) {
+    return 'Bluetooth device: $name';
+  }
+
+  @override
+  String get diveComputer_scan_emptyStateInstructions =>
+      'Make sure your dive computer is:\n• Turned on\n• In Bluetooth pairing mode\n• Close to your device';
+
+  @override
+  String get diveComputer_scan_knownBadge => 'Known';
+
+  @override
+  String get diveComputer_scan_lookingForDevicesTitle => 'Looking for Devices';
+
+  @override
+  String get diveComputer_scan_noUsbDevicesAvailable =>
+      'No USB devices available';
+
+  @override
+  String get diveComputer_scan_retry => 'Retry';
+
+  @override
+  String get diveComputer_scan_scanAgain => 'Scan Again';
+
+  @override
+  String get diveComputer_scan_scanningStatus =>
+      'Scanning for dive computers...';
+
+  @override
+  String get diveComputer_scan_stopScanning => 'Stop Scanning';
+
+  @override
+  String get diveComputer_scan_supportedBadge => 'Supported';
+
+  @override
+  String get diveComputer_scan_tabBluetooth => 'Bluetooth';
+
+  @override
+  String get diveComputer_scan_tabUsb => 'USB Cable';
+
+  @override
+  String get diveComputer_scan_usbCableLabel => 'USB Cable';
+
+  @override
+  String diveComputer_scan_usbSemanticLabel(String model) {
+    return 'USB device: $model';
+  }
 
   @override
   String get diveComputer_summary_diveComputer => 'Tauchcomputer';
