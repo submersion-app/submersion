@@ -14,6 +14,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
+import 'package:submersion/features/backup/domain/exceptions/backup_failed_exception.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/main.dart' show SubmersionRestart;
@@ -32,7 +33,14 @@ typedef ServiceInitializer =
 typedef SchemaVersionProbe =
     ({bool needsMigration, int totalSteps}) Function(String dbPath);
 
-enum _StartupState { initializing, migrating, ready, error }
+enum _StartupState {
+  initializing,
+  backingUp,
+  migrating,
+  backupFailed,
+  ready,
+  error,
+}
 
 class StartupWrapper extends StatefulWidget {
   final SharedPreferences prefs;
@@ -76,6 +84,7 @@ class _StartupWrapperState extends State<StartupWrapper>
   bool _isVersionMismatch = false;
   int _dbVersion = 0;
   int _appVersion = 0;
+  BackupFailedException? _backupError;
 
   /// Drives the dissolve of the splash layer over the mounted app beneath.
   /// Forward-only; starts when _state first reaches ready.
