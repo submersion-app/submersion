@@ -336,7 +336,9 @@ class BackupSettingsPage extends ConsumerWidget {
       ),
       subtitle: Text(
         record.type == BackupType.preMigration
-            ? 'Pre-migration backup - ${record.formattedSize}'
+            ? context.l10n.backup_history_preMigrationSubtitle(
+                record.formattedSize,
+              )
             : '${record.diveCount ?? 0} dives, '
                   '${record.siteCount ?? 0} sites - ${record.formattedSize}'
                   '${record.isAutomatic ? ' (auto)' : ''}',
@@ -351,7 +353,9 @@ class BackupSettingsPage extends ConsumerWidget {
                   ? Theme.of(context).colorScheme.primary
                   : null,
             ),
-            tooltip: record.pinned ? 'Unpin backup' : 'Pin backup',
+            tooltip: record.pinned
+                ? context.l10n.backup_history_pinAction_unpin
+                : context.l10n.backup_history_pinAction_pin,
             onPressed: () => _togglePin(context, ref, record),
           ),
           PopupMenuButton<String>(
@@ -407,7 +411,7 @@ class BackupSettingsPage extends ConsumerWidget {
       debugPrint('Failed to update pin state: $e\n$stackTrace');
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not update pin state.')),
+        SnackBar(content: Text(context.l10n.backup_history_pinError)),
       );
     }
   }

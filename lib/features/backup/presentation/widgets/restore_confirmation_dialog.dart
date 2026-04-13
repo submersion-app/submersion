@@ -140,10 +140,31 @@ class RestoreConfirmationDialog extends StatelessWidget {
   Widget _buildPreMigration(BuildContext context) {
     final theme = Theme.of(context);
     final dateFormat = DateFormat.yMMMd().add_jm();
-    final fromV = record.fromSchemaVersion ?? 0;
-    final toV = record.toSchemaVersion ?? 0;
+    final fromSchemaVersion = record.fromSchemaVersion;
+    final toSchemaVersion = record.toSchemaVersion;
     final appVersion = record.appVersion ?? 'unknown version';
     final timestamp = dateFormat.format(record.timestamp);
+
+    if (fromSchemaVersion == null || toSchemaVersion == null) {
+      return AlertDialog(
+        title: const Text('Restore pre-migration backup'),
+        content: Text(
+          'This backup was made on $timestamp by app $appVersion, but its '
+          'database migration metadata is incomplete.\n\n'
+          'The app cannot verify whether restoring this backup is safe, '
+          'so restore is disabled.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+        ],
+      );
+    }
+
+    final fromV = fromSchemaVersion;
+    final toV = toSchemaVersion;
 
     if (currentSchemaVersion < fromV) {
       // Hard block: backup is from a newer app than currently installed.

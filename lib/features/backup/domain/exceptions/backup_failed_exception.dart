@@ -1,12 +1,6 @@
 import 'dart:io';
 
-enum BackupFailureCause {
-  diskFull,
-  permissionDenied,
-  sourceMissing,
-  renameFailed,
-  unknown,
-}
+enum BackupFailureCause { diskFull, permissionDenied, sourceMissing, unknown }
 
 /// Thrown by PreMigrationBackupService when a backup cannot be completed.
 ///

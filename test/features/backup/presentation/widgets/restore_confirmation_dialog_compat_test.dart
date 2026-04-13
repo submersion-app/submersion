@@ -81,6 +81,30 @@ void main() {
     expect(find.text('Restore anyway'), findsNothing);
   });
 
+  testWidgets('metadata incomplete: null schema versions — only Cancel', (
+    tester,
+  ) async {
+    final incomplete = BackupRecord(
+      id: 'incomplete',
+      filename: 'pre.db',
+      timestamp: DateTime(2026, 4, 12, 8, 12),
+      sizeBytes: 1024,
+      location: BackupLocation.local,
+      localPath: '/tmp/pre.db',
+      type: BackupType.preMigration,
+      appVersion: '1.5.9.1000',
+    );
+    await tester.pumpWidget(
+      _wrap(
+        RestoreConfirmationDialog(record: incomplete, currentSchemaVersion: 64),
+      ),
+    );
+    expect(find.textContaining('metadata is incomplete'), findsOneWidget);
+    expect(find.text('Cancel'), findsOneWidget);
+    expect(find.text('Restore'), findsNothing);
+    expect(find.text('Restore anyway'), findsNothing);
+  });
+
   testWidgets('manual record uses existing l10n-based dialog behaviour', (
     tester,
   ) async {

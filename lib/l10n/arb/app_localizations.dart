@@ -518,6 +518,30 @@ abstract class AppLocalizations {
   /// **'Failed to load history: {error}'**
   String backup_history_error(Object error);
 
+  /// No description provided for @backup_history_pinAction_pin.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin backup'**
+  String get backup_history_pinAction_pin;
+
+  /// No description provided for @backup_history_pinAction_unpin.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin backup'**
+  String get backup_history_pinAction_unpin;
+
+  /// No description provided for @backup_history_pinError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update pin state.'**
+  String get backup_history_pinError;
+
+  /// No description provided for @backup_history_preMigrationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-migration backup - {size}'**
+  String backup_history_preMigrationSubtitle(String size);
+
   /// No description provided for @backup_import_invalidFile.
   ///
   /// In en, this message translates to:

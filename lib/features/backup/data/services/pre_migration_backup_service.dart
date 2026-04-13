@@ -130,7 +130,13 @@ class PreMigrationBackupService {
     try {
       final f = File(path);
       if (await f.exists()) await f.delete();
-    } catch (_) {}
+    } catch (e, stack) {
+      _log.warning(
+        'Failed to delete backup file at $path (continuing)',
+        error: e,
+        stackTrace: stack,
+      );
+    }
   }
 
   Future<void> _pruneExcess() async {

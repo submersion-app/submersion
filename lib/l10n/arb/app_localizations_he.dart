@@ -230,6 +230,20 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get backup_history_pinAction_pin => 'Pin backup';
+
+  @override
+  String get backup_history_pinAction_unpin => 'Unpin backup';
+
+  @override
+  String get backup_history_pinError => 'Could not update pin state.';
+
+  @override
+  String backup_history_preMigrationSubtitle(String size) {
+    return 'Pre-migration backup - $size';
+  }
+
+  @override
   String get backup_import_invalidFile =>
       'נראה שקובץ זה אינו גיבוי תקין של Submersion';
 
