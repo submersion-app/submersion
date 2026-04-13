@@ -403,11 +403,12 @@ class BackupSettingsPage extends ConsumerWidget {
         await service.pinBackup(record.id);
       }
       ref.invalidate(backupHistoryProvider);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('Failed to update pin state: $e\n$stackTrace');
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Could not update pin state: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not update pin state.')),
+      );
     }
   }
 
