@@ -79,7 +79,12 @@ void main() {
       expect(find.text('Needs decision'), findsNothing);
     });
 
-    testWidgets('renders 4-px warning border when pending', (tester) async {
+    testWidgets('renders warning border at resting thickness when pending', (
+      tester,
+    ) async {
+      // Pending cards share the resting 1.5-px border width but carry the
+      // tertiary/warning color (asserted in the next test) so the row is
+      // flagged without visually out-weighting the surrounding cards.
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -90,7 +95,7 @@ void main() {
       final card = tester.widget<Card>(find.byType(Card).first);
       final shape = card.shape as RoundedRectangleBorder?;
       expect(shape, isNotNull);
-      expect(shape!.side.width, 4);
+      expect(shape!.side.width, 1.5);
     });
 
     testWidgets('uses warning tertiary color for border when pending', (

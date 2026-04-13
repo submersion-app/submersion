@@ -82,7 +82,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
     };
 
     final BorderSide borderSide = widget.isPending
-        ? BorderSide(color: colorScheme.tertiary, width: 4)
+        ? BorderSide(color: colorScheme.tertiary, width: 1.5)
         : BorderSide(color: borderColor, width: 1.5);
 
     return Card(
