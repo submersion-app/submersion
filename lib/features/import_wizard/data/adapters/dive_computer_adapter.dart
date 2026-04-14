@@ -68,12 +68,14 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     DiveComputer? knownComputer,
     String? displayName,
     WidgetRef? ref,
+    bool forceFullDownload = false,
   }) : _importService = importService,
        _computerRepository = computerRepository,
        _diveRepository = diveRepository,
        _diverId = diverId,
        _knownComputer = knownComputer,
        _ref = ref,
+       _forceFullDownload = forceFullDownload,
        _displayName =
            displayName ?? knownComputer?.displayName ?? 'Dive Computer';
 
@@ -83,7 +85,15 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   final String _diverId;
   final DiveComputer? _knownComputer;
   final WidgetRef? _ref;
+  final bool _forceFullDownload;
   final String _displayName;
+
+  /// Whether this import session should bypass the fingerprint and download
+  /// every dive on the device.
+  ///
+  /// Set by the route builder when the user triggers "Re-import all dives"
+  /// from the DC detail page (via `?forceFull=true` query parameter).
+  bool get forceFullDownload => _forceFullDownload;
 
   List<DownloadedDive> _downloadedDives = [];
   DiveComputer? _computer;

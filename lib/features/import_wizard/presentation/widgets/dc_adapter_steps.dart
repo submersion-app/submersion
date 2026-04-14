@@ -399,6 +399,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     return DownloadStepWidget(
       device: device,
       computer: computer,
+      forceFullDownload: widget.adapter.forceFullDownload,
       onComplete: () {
         // Handled by the state watcher above.
       },
@@ -475,6 +476,14 @@ class DcNoNewDivesView extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             FilledButton(onPressed: onDone, child: const Text('Done')),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: onDone,
+              child: Text(
+                context.l10n.diveComputer_download_reimportHint,
+                textAlign: TextAlign.center,
+              ),
+            ),
           ],
         ),
       ),

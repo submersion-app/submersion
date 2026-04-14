@@ -917,6 +917,7 @@
   "common_action_back": "Back",
   "common_action_cancel": "Cancel",
   "common_action_close": "Close",
+  "common_action_continue": "Continue",
   "common_action_delete": "Delete",
   "common_action_edit": "Edit",
   "common_action_ok": "OK",
@@ -933,6 +934,9 @@
   },
   "@common_action_close": {
     "description": "Generic close action used for dialogs, menus, etc."
+  },
+  "@common_action_continue": {
+    "description": "Continue button used in confirmation dialogs"
   },
   "@common_action_delete": {
     "description": "Generic delete action"
@@ -8670,6 +8674,17 @@
   "diveComputer_detail_labelName": "Name",
   "diveComputer_detail_lastDownload": "Last Download",
   "diveComputer_detail_notesTitle": "Notes",
+  "diveComputer_detail_reimportAllButton": "Re-import all dives",
+  "diveComputer_detail_reimportDialogBody": "Download every dive from {computerName} and review them against your log. This may take several minutes.",
+  "@diveComputer_detail_reimportDialogBody": {
+    "placeholders": {
+      "computerName": {
+        "type": "String",
+        "example": "Perdix 2"
+      }
+    }
+  },
+  "diveComputer_detail_reimportDialogTitle": "Re-import all dives?",
   "diveComputer_detail_statisticsTitle": "Statistics",
   "diveComputer_detail_unknown": "Unknown",
   "diveComputer_detail_viewDivesButton": "View Dives from This Computer",
@@ -8868,6 +8883,7 @@
       }
     }
   },
+  "diveComputer_download_reimportHint": "Looking for older or deleted dives? Re-import all",
   "diveComputer_download_retry": "Retry",
   "diveComputer_download_scanError": "Scan error: {error}",
   "@diveComputer_download_scanError": {

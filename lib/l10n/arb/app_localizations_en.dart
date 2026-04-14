@@ -1357,6 +1357,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_action_close => 'Close';
 
   @override
+  String get common_action_continue => 'Continue';
+
+  @override
   String get common_action_delete => 'Delete';
 
   @override
@@ -14070,6 +14073,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveComputer_detail_notesTitle => 'Notes';
 
   @override
+  String get diveComputer_detail_reimportAllButton => 'Re-import all dives';
+
+  @override
+  String diveComputer_detail_reimportDialogBody(String computerName) {
+    return 'Download every dive from $computerName and review them against your log. This may take several minutes.';
+  }
+
+  @override
+  String get diveComputer_detail_reimportDialogTitle => 'Re-import all dives?';
+
+  @override
   String get diveComputer_detail_statisticsTitle => 'Statistics';
 
   @override
@@ -14346,6 +14360,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String diveComputer_download_progressPercent(Object percent) {
     return '$percent%';
   }
+
+  @override
+  String get diveComputer_download_reimportHint =>
+      'Looking for older or deleted dives? Re-import all';
 
   @override
   String get diveComputer_download_retry => 'Retry';
