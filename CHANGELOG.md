@@ -3,6 +3,51 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.4.4 (2026-04-14)
+
+### Features
+
+- re-import all dives from dive computer (#206) (#216)
+- default detailed-card stat2 to runtime
+- pre-migration database backup (#210)
+- localize dive computer section
+- require explicit selection for import duplicates (#200) (#209)
+- show/hide tags toggle on detailed dive cards
+
+### Bug Fixes
+
+- dissolve splash into app UI instead of hard swap
+- Mares Puck 4 descriptor match + import-duplicates design spec (#204)
+- new dive center and trip now stick when created from dive form (#201)
+- per-diver computer records and cascade diver deletion (#199)
+- wrap release workflow expression in ${{ }} to avoid YAML tag parse error
+- clean stale native asset state before iOS/macOS CI builds
+- exclude appcast from beta releases
+- skip Claude Code Review on fork PRs
+
+### Documentation
+
+- spec for re-import all dives (#206)
+- added plans
+- spec for issue #200 - require explicit selection on duplicate imports
+- added plan
+
+### CI/CD
+
+- bump softprops/action-gh-release from 2 to 3 (#213)
+- bump actions/checkout from 4 to 6 (#212)
+
+### Chores
+
+- bump version to 1.4.4+89
+- upgrade 7 major dependencies with API migrations (#194)
+- upgrade 66 package dependencies (#192)
+
+### Other
+
+- i18n: translate 71 missing strings across 10 locales
+
+
 ## 1.4.3 (2026-04-09)
 
 ### Features
