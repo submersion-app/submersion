@@ -1160,5 +1160,4 @@ class _UniversalImportWizardRoute extends ConsumerWidget {
 /// Strict equality against `'true'` — any other value (null, empty, `'1'`,
 /// case variants, arbitrary strings) returns false. This conservative rule
 /// keeps the URL contract unambiguous for shareability and logging.
-@visibleForTesting
 bool parseForceFullQueryParam(String? value) => value == 'true';
