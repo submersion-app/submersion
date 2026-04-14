@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 
-import '../import_wizard/data/adapters/dive_computer_adapter_reimport_test.mocks.dart';
+import '../../helpers/fake_import_adapter_deps.dart';
 
 void main() {
   group(
@@ -16,25 +16,29 @@ void main() {
         //
         // Downstream coverage:
         // - dc_adapter_download_step_force_full_test.dart asserts the flag
-        //   flips setNewDivesOnly(false) in the download step.
+        //   threads through to DownloadStepWidget.
+        // - download_step_widget_force_full_test.dart asserts reset() does
+        //   not wipe newDivesOnly before startDownload runs.
         // - import_wizard_notifier_test.dart asserts duplicate dives from
         //   the full download land in the Review step as pending.
         //
         // If this test fails, the re-import entry point is broken.
 
+        final deps = FakeImportAdapterDeps();
+
         final reimportAdapter = DiveComputerAdapter(
-          importService: MockDiveImportService(),
-          computerRepository: MockDiveComputerRepository(),
-          diveRepository: MockDiveRepository(),
+          importService: deps.importService,
+          computerRepository: deps.computerRepo,
+          diveRepository: deps.diveRepo,
           diverId: 'diver-1',
           forceFullDownload: true,
         );
         expect(reimportAdapter.forceFullDownload, isTrue);
 
         final defaultAdapter = DiveComputerAdapter(
-          importService: MockDiveImportService(),
-          computerRepository: MockDiveComputerRepository(),
-          diveRepository: MockDiveRepository(),
+          importService: deps.importService,
+          computerRepository: deps.computerRepo,
+          diveRepository: deps.diveRepo,
           diverId: 'diver-1',
         );
         expect(defaultAdapter.forceFullDownload, isFalse);
