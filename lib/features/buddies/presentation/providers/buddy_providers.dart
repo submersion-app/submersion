@@ -395,7 +395,9 @@ final diveBuddiesNotifierProvider =
 // Buddy Highlighted ID (for table mode detail pane)
 // ============================================================================
 
-/// Tracks the currently highlighted buddy in table mode.
+/// Tracks the currently highlighted buddy. Used by the table's row highlight
+/// and by the phone-mode list to tint the last-visited buddy card on return
+/// from the detail page.
 final highlightedBuddyIdProvider = StateProvider<String?>((ref) => null);
 
 // ============================================================================

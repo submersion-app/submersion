@@ -132,6 +132,8 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
       return;
     }
 
+    ref.read(highlightedBuddyIdProvider.notifier).state = buddy.id;
+
     if (widget.onItemSelected != null) {
       _selectionFromList = true;
       widget.onItemSelected!(buddy.id);
@@ -754,7 +756,9 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
         itemBuilder: (context, index) {
           final buddyWithCount = buddies[index];
           final buddy = buddyWithCount.buddy;
-          final isSelected = widget.selectedId == buddy.id;
+          final highlightedId = ref.watch(highlightedBuddyIdProvider);
+          final isHighlighted = highlightedId == buddy.id;
+          final isSelected = widget.selectedId == buddy.id || isHighlighted;
           final isChecked = _selectedIds.contains(buddy.id);
           final viewMode = ref.watch(buddyListViewModeProvider);
           return switch (viewMode) {
@@ -778,8 +782,9 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
               child: DenseBuddyListTile(
                 buddy: buddy,
                 diveCount: buddyWithCount.diveCount,
-                isSelected: isSelected,
+                isSelected: isChecked,
                 isChecked: isChecked,
+                isHighlighted: !_isSelectionMode && isHighlighted,
                 isSelectionMode: _isSelectionMode,
                 onTap: () => _handleItemTap(buddy),
               ),

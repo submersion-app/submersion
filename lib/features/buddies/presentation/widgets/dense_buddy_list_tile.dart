@@ -11,6 +11,7 @@ class DenseBuddyListTile extends StatelessWidget {
   final int? diveCount;
   final bool isSelected;
   final bool isChecked;
+  final bool isHighlighted;
   final bool isSelectionMode;
   final VoidCallback? onTap;
 
@@ -20,6 +21,7 @@ class DenseBuddyListTile extends StatelessWidget {
     this.diveCount,
     this.isSelected = false,
     this.isChecked = false,
+    this.isHighlighted = false,
     this.isSelectionMode = false,
     this.onTap,
   });
@@ -29,7 +31,7 @@ class DenseBuddyListTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final rowColor = isChecked
         ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-        : isSelected
+        : (isSelected || isHighlighted)
         ? colorScheme.primaryContainer.withValues(alpha: 0.3)
         : null;
     final secondaryTextColor = colorScheme.onSurfaceVariant;

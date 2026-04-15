@@ -10,6 +10,7 @@ import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_list_content.dart';
+import 'package:submersion/features/buddies/presentation/widgets/dense_buddy_list_tile.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -90,6 +91,28 @@ Future<List<Override>> _buildOverrides({
     buddyTableConfigProvider.overrideWith(
       (ref) => _TestBuddyTableConfigNotifier(_testConfig),
     ),
+  ];
+}
+
+Future<List<Override>> _buildPhoneOverrides({
+  required List<BuddyWithDiveCount> buddies,
+  ListViewMode viewMode = ListViewMode.detailed,
+  String? highlightedBuddyId,
+}) async {
+  SharedPreferences.setMockInitialValues({});
+  final prefs = await SharedPreferences.getInstance();
+
+  return [
+    sharedPreferencesProvider.overrideWithValue(prefs),
+    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+    currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
+    allBuddiesWithDiveCountProvider.overrideWith((ref) => buddies),
+    buddyListNotifierProvider.overrideWith((ref) => _MockBuddyListNotifier()),
+    buddyListViewModeProvider.overrideWith((ref) => viewMode),
+    buddyTableConfigProvider.overrideWith(
+      (ref) => _TestBuddyTableConfigNotifier(_testConfig),
+    ),
+    highlightedBuddyIdProvider.overrideWith((ref) => highlightedBuddyId),
   ];
 }
 
@@ -333,6 +356,75 @@ void main() {
 
       // The tap should have set the highlighted buddy ID
       expect(container.read(highlightedBuddyIdProvider), 'b1');
+    });
+
+    group('phone-mode highlight', () {
+      testWidgets(
+        'phone detailed view highlights buddy when highlightedBuddyIdProvider is set',
+        (tester) async {
+          final buddies = [
+            _makeBuddy(id: 'b1', name: 'Alice'),
+            _makeBuddy(id: 'b2', name: 'Bob'),
+          ];
+
+          final overrides = await _buildPhoneOverrides(
+            buddies: buddies,
+            viewMode: ListViewMode.detailed,
+            highlightedBuddyId: 'b2',
+          );
+
+          await tester.pumpWidget(
+            testApp(
+              overrides: overrides,
+              child: const BuddyListContent(showAppBar: false),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          final tiles = tester
+              .widgetList<BuddyListTile>(find.byType(BuddyListTile))
+              .toList();
+          final alice = tiles.firstWhere((t) => t.buddy.id == 'b1');
+          final bob = tiles.firstWhere((t) => t.buddy.id == 'b2');
+
+          expect(alice.isSelected, isFalse);
+          expect(bob.isSelected, isTrue);
+        },
+      );
+
+      testWidgets('phone dense view highlights buddy via isHighlighted param', (
+        tester,
+      ) async {
+        final buddies = [
+          _makeBuddy(id: 'b1', name: 'Alice'),
+          _makeBuddy(id: 'b2', name: 'Bob'),
+        ];
+
+        final overrides = await _buildPhoneOverrides(
+          buddies: buddies,
+          viewMode: ListViewMode.dense,
+          highlightedBuddyId: 'b2',
+        );
+
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: const BuddyListContent(showAppBar: false),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final tiles = tester
+            .widgetList<DenseBuddyListTile>(find.byType(DenseBuddyListTile))
+            .toList();
+        final alice = tiles.firstWhere((t) => t.buddy.id == 'b1');
+        final bob = tiles.firstWhere((t) => t.buddy.id == 'b2');
+
+        expect(alice.isHighlighted, isFalse);
+        expect(bob.isHighlighted, isTrue);
+        expect(alice.isSelected, isFalse); // not bulk-checked
+        expect(bob.isSelected, isFalse);
+      });
     });
 
     testWidgets('double-tapping a row navigates to buddy detail', (
