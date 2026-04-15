@@ -40,11 +40,12 @@ import 'package:submersion/features/dive_log/presentation/providers/highlight_pr
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Compute a single OSM tile URL for the given lat/lng at [zoom].
+/// Compute a single map tile URL for the given lat/lng at [zoom].
 ///
 /// Converts WGS-84 coordinates to slippy map tile x/y using the standard
-/// Web Mercator projection formula, then returns the OSM raster tile URL.
-String _osmTileUrl(double lat, double lng, int zoom, MapStyle style) {
+/// Web Mercator projection formula, then returns the tile URL for the
+/// requested [style] (Street, Topo, or Satellite).
+String _tileUrl(double lat, double lng, int zoom, MapStyle style) {
   final n = 1 << zoom; // 2^zoom
   final x = ((lng + 180.0) / 360.0 * n).floor();
   final latRad = lat * math.pi / 180.0;
@@ -887,7 +888,7 @@ class DiveListTile extends ConsumerWidget {
 
     // Build the card with or without map background
     if (shouldShowMap) {
-      final tileUrl = _osmTileUrl(
+      final tileUrl = _tileUrl(
         siteLatitude!,
         siteLongitude!,
         13,
