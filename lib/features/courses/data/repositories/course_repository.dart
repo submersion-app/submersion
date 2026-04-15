@@ -338,18 +338,14 @@ class CourseRepository {
 
       // First, clear courseId from any linked dives
       await _db.customStatement(
-        '''
-        UPDATE dives SET course_id = NULL WHERE course_id = ?
-      ''',
-        [Variable.withString(id)],
+        'UPDATE dives SET course_id = NULL WHERE course_id = ?',
+        [id],
       );
 
       // Clear courseId from any linked certifications
       await _db.customStatement(
-        '''
-        UPDATE certifications SET course_id = NULL WHERE course_id = ?
-      ''',
-        [Variable.withString(id)],
+        'UPDATE certifications SET course_id = NULL WHERE course_id = ?',
+        [id],
       );
 
       // Delete the course
@@ -375,14 +371,8 @@ class CourseRepository {
       final now = DateTime.now().millisecondsSinceEpoch;
 
       await _db.customStatement(
-        '''
-        UPDATE dives SET course_id = ?, updated_at = ? WHERE id = ?
-      ''',
-        [
-          Variable.withString(courseId),
-          Variable.withInt(now),
-          Variable.withString(diveId),
-        ],
+        'UPDATE dives SET course_id = ?, updated_at = ? WHERE id = ?',
+        [courseId, now, diveId],
       );
 
       await _syncRepository.markRecordPending(
@@ -408,10 +398,8 @@ class CourseRepository {
       final now = DateTime.now().millisecondsSinceEpoch;
 
       await _db.customStatement(
-        '''
-        UPDATE dives SET course_id = NULL, updated_at = ? WHERE id = ?
-      ''',
-        [Variable.withInt(now), Variable.withString(diveId)],
+        'UPDATE dives SET course_id = NULL, updated_at = ? WHERE id = ?',
+        [now, diveId],
       );
 
       await _syncRepository.markRecordPending(
@@ -441,26 +429,14 @@ class CourseRepository {
 
       // Update course with certificationId
       await _db.customStatement(
-        '''
-        UPDATE courses SET certification_id = ?, updated_at = ? WHERE id = ?
-      ''',
-        [
-          Variable.withString(certificationId),
-          Variable.withInt(now),
-          Variable.withString(courseId),
-        ],
+        'UPDATE courses SET certification_id = ?, updated_at = ? WHERE id = ?',
+        [certificationId, now, courseId],
       );
 
       // Update certification with courseId
       await _db.customStatement(
-        '''
-        UPDATE certifications SET course_id = ?, updated_at = ? WHERE id = ?
-      ''',
-        [
-          Variable.withString(courseId),
-          Variable.withInt(now),
-          Variable.withString(certificationId),
-        ],
+        'UPDATE certifications SET course_id = ?, updated_at = ? WHERE id = ?',
+        [courseId, now, certificationId],
       );
 
       await _syncRepository.markRecordPending(
