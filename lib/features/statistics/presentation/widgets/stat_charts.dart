@@ -434,15 +434,25 @@ class CategoryBarChart extends StatelessWidget {
               leftTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
-                  reservedSize: 30,
+                  // Reserve room for formatted labels like "1200 min" (up to
+                  // ~8 chars). Shorter integer-only labels still right-align
+                  // into the same column.
+                  reservedSize: 52,
                   getTitlesWidget: (value, meta) {
-                    if (value == value.roundToDouble()) {
-                      return Text(
-                        value.toInt().toString(),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      );
+                    if (value != value.roundToDouble()) {
+                      return const Text('');
                     }
-                    return const Text('');
+                    final label =
+                        valueFormatter?.call(value.toInt()) ??
+                        value.toInt().toString();
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: Text(
+                        label,
+                        textAlign: TextAlign.right,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    );
                   },
                 ),
               ),
