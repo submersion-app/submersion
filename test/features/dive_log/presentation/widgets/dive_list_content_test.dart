@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.d
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compact_dive_list_tile.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_table_view.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -957,8 +958,53 @@ void main() {
         final tileOne = tiles.firstWhere((t) => t.diveId == 'd1');
         final tileTwo = tiles.firstWhere((t) => t.diveId == 'd2');
 
+        expect(tileOne.isHighlighted, isFalse);
+        expect(tileTwo.isHighlighted, isTrue);
         expect(tileOne.isSelected, isFalse);
-        expect(tileTwo.isSelected, isTrue);
+        expect(tileTwo.isSelected, isFalse);
+      },
+    );
+
+    testWidgets(
+      'phone compact view highlights dive when highlightedDiveIdProvider is set',
+      (tester) async {
+        final dives = [
+          _makeDive(
+            id: 'd1',
+            diveNumber: 1,
+            site: const DiveSite(id: 's1', name: 'Site One'),
+          ),
+          _makeDive(
+            id: 'd2',
+            diveNumber: 2,
+            site: const DiveSite(id: 's2', name: 'Site Two'),
+          ),
+        ];
+
+        final overrides = await _buildPhoneOverrides(
+          dives: dives,
+          viewMode: ListViewMode.compact,
+          highlightedDiveId: 'd2',
+        );
+
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: const DiveListContent(showAppBar: false),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final tiles = tester
+            .widgetList<CompactDiveListTile>(find.byType(CompactDiveListTile))
+            .toList();
+        final one = tiles.firstWhere((t) => t.diveId == 'd1');
+        final two = tiles.firstWhere((t) => t.diveId == 'd2');
+
+        expect(one.isHighlighted, isFalse);
+        expect(two.isHighlighted, isTrue);
+        expect(one.isSelected, isFalse);
+        expect(two.isSelected, isFalse);
       },
     );
   });
