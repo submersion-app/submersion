@@ -1375,8 +1375,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     isSelectionMode: _isSelectionMode,
                     isSelected: _isSelectionMode
                         ? isSelected
-                        : (isSelected || isMasterSelected),
-                    isHighlighted: !_isSelectionMode && isHighlighted,
+                        : (isSelected || isMasterSelected || isHighlighted),
                     colorValue: getCardColorValue(dive, colorAttribute),
                     minValueInList: minValue,
                     maxValueInList: maxValue,
@@ -1401,8 +1400,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     isSelectionMode: _isSelectionMode,
                     isSelected: _isSelectionMode
                         ? isSelected
-                        : (isSelected || isMasterSelected),
-                    isHighlighted: !_isSelectionMode && isHighlighted,
+                        : (isSelected || isMasterSelected || isHighlighted),
                     colorValue: getCardColorValue(dive, colorAttribute),
                     minValueInList: minValue,
                     maxValueInList: maxValue,
@@ -1451,8 +1449,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     isSelectionMode: _isSelectionMode,
                     isSelected: _isSelectionMode
                         ? isSelected
-                        : (isSelected || isMasterSelected),
-                    isHighlighted: !_isSelectionMode && isHighlighted,
+                        : (isSelected || isMasterSelected || isHighlighted),
                     colorValue: getCardColorValue(dive, colorAttribute),
                     minValueInList: minValue,
                     maxValueInList: maxValue,

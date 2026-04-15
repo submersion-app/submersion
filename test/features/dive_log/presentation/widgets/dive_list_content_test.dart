@@ -958,10 +958,8 @@ void main() {
         final tileOne = tiles.firstWhere((t) => t.diveId == 'd1');
         final tileTwo = tiles.firstWhere((t) => t.diveId == 'd2');
 
-        expect(tileOne.isHighlighted, isFalse);
-        expect(tileTwo.isHighlighted, isTrue);
         expect(tileOne.isSelected, isFalse);
-        expect(tileTwo.isSelected, isFalse);
+        expect(tileTwo.isSelected, isTrue);
       },
     );
 
@@ -1001,10 +999,8 @@ void main() {
         final one = tiles.firstWhere((t) => t.diveId == 'd1');
         final two = tiles.firstWhere((t) => t.diveId == 'd2');
 
-        expect(one.isHighlighted, isFalse);
-        expect(two.isHighlighted, isTrue);
         expect(one.isSelected, isFalse);
-        expect(two.isSelected, isFalse);
+        expect(two.isSelected, isTrue);
       },
     );
   });
