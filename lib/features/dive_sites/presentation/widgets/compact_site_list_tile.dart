@@ -12,6 +12,7 @@ class CompactSiteListTile extends StatelessWidget {
   final VoidCallback? onLongPress;
   final bool isSelectionMode;
   final bool isSelected;
+  final bool isHighlighted;
 
   const CompactSiteListTile({
     super.key,
@@ -22,12 +23,13 @@ class CompactSiteListTile extends StatelessWidget {
     this.onLongPress,
     this.isSelectionMode = false,
     this.isSelected = false,
+    this.isHighlighted = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final cardColor = isSelected
+    final cardColor = (isSelected || isHighlighted)
         ? colorScheme.primaryContainer.withValues(alpha: 0.3)
         : null;
     final secondaryTextColor = colorScheme.onSurfaceVariant;

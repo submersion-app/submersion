@@ -225,8 +225,10 @@ void main() {
         final alpha = tiles.firstWhere((t) => t.name == 'Alpha Site');
         final bravo = tiles.firstWhere((t) => t.name == 'Bravo Site');
 
+        expect(alpha.isHighlighted, isFalse);
+        expect(bravo.isHighlighted, isTrue);
         expect(alpha.isSelected, isFalse);
-        expect(bravo.isSelected, isTrue);
+        expect(bravo.isSelected, isFalse);
       },
     );
   });

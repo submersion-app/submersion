@@ -11,6 +11,7 @@ class DenseSiteListTile extends StatelessWidget {
   final VoidCallback? onLongPress;
   final bool isSelectionMode;
   final bool isSelected;
+  final bool isHighlighted;
 
   const DenseSiteListTile({
     super.key,
@@ -21,12 +22,13 @@ class DenseSiteListTile extends StatelessWidget {
     this.onLongPress,
     this.isSelectionMode = false,
     this.isSelected = false,
+    this.isHighlighted = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final rowColor = isSelected
+    final rowColor = (isSelected || isHighlighted)
         ? colorScheme.primaryContainer.withValues(alpha: 0.3)
         : null;
     final secondaryTextColor = colorScheme.onSurfaceVariant;

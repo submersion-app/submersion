@@ -813,7 +813,8 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               location: locationString,
               diveCount: siteData.diveCount,
               isSelectionMode: _isSelectionMode,
-              isSelected: isChecked || isSelected,
+              isSelected: isChecked,
+              isHighlighted: !_isSelectionMode && isSelected,
               onTap: () => _handleItemTap(site),
               onLongPress: _isSelectionMode
                   ? null
@@ -825,6 +826,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               diveCount: siteData.diveCount,
               isSelectionMode: _isSelectionMode,
               isSelected: isChecked,
+              isHighlighted: !_isSelectionMode && isSelected,
               onTap: () => _handleItemTap(site),
               onLongPress: _isSelectionMode
                   ? null
