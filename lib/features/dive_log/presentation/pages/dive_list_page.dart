@@ -615,7 +615,7 @@ class DiveListTile extends ConsumerWidget {
         ? _getAttributeBackgroundColor()
         : null;
     final cardColor = isSelected
-        ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+        ? colorScheme.primaryContainer.withValues(alpha: 0.5)
         : isHighlighted
         ? colorScheme.primaryContainer.withValues(alpha: 0.15)
         : attributeColor;

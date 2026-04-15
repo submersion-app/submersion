@@ -34,7 +34,9 @@ class CourseCard extends StatelessWidget {
           '${course.name}, ${course.agency.displayName}, ${context.l10n.courses_card_started(dateFormat.format(course.startDate))}, $statusStr$instructorStr',
       child: Card(
         elevation: isSelected ? 2 : 1,
-        color: isSelected ? colorScheme.primaryContainer : null,
+        color: isSelected
+            ? colorScheme.primaryContainer.withValues(alpha: 0.5)
+            : null,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),

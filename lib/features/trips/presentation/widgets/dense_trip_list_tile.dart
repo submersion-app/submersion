@@ -32,7 +32,7 @@ class DenseTripListTile extends StatelessWidget {
     final trip = tripWithStats.trip;
     final colorScheme = Theme.of(context).colorScheme;
     final rowColor = isSelected
-        ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+        ? colorScheme.primaryContainer.withValues(alpha: 0.5)
         : null;
     final secondaryTextColor = colorScheme.onSurfaceVariant;
 

@@ -32,7 +32,7 @@ class DenseBuddyListTile extends StatelessWidget {
     final rowColor = isChecked
         ? colorScheme.primaryContainer.withValues(alpha: 0.3)
         : (isSelected || isHighlighted)
-        ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+        ? colorScheme.primaryContainer.withValues(alpha: 0.5)
         : null;
     final secondaryTextColor = colorScheme.onSurfaceVariant;
 

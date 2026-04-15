@@ -25,7 +25,7 @@ class CompactTripListTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final cardColor = isSelected
-        ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+        ? colorScheme.primaryContainer.withValues(alpha: 0.5)
         : null;
     final secondaryTextColor = colorScheme.onSurfaceVariant;
     final dateFormat = DateFormat.yMMMd();
