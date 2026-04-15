@@ -26,10 +26,7 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: FlutterMap(
-            options: MapOptions(
-              initialCenter: LatLng(0, 0),
-              initialZoom: 2,
-            ),
+            options: MapOptions(initialCenter: LatLng(0, 0), initialZoom: 2),
             children: [MapAttribution()],
           ),
         ),
@@ -66,9 +63,7 @@ void main() {
       'attribution text updates when mapStyle switches to OpenTopoMap',
       (tester) async {
         final settings = MockSettingsNotifier();
-        final overrides = [
-          settingsProvider.overrideWith((ref) => settings),
-        ];
+        final overrides = [settingsProvider.overrideWith((ref) => settings)];
 
         await tester.pumpWidget(wrapInMap(overrides));
         await tester.pumpAndSettle();
@@ -102,31 +97,25 @@ void main() {
       },
     );
 
-    testWidgets(
-      'attribution text updates when mapStyle switches to Esri',
-      (tester) async {
-        final settings = MockSettingsNotifier();
-        final overrides = [
-          settingsProvider.overrideWith((ref) => settings),
-        ];
+    testWidgets('attribution text updates when mapStyle switches to Esri', (
+      tester,
+    ) async {
+      final settings = MockSettingsNotifier();
+      final overrides = [settingsProvider.overrideWith((ref) => settings)];
 
-        await tester.pumpWidget(wrapInMap(overrides));
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(wrapInMap(overrides));
+      await tester.pumpAndSettle();
 
-        await settings.setMapStyle(MapStyle.esriSatellite);
-        await tester.pumpAndSettle();
+      await settings.setMapStyle(MapStyle.esriSatellite);
+      await tester.pumpAndSettle();
 
-        final richWidget = tester.widget<RichAttributionWidget>(
-          find.byType(RichAttributionWidget),
-        );
-        expect(
-          richWidget.attributions
-              .whereType<TextSourceAttribution>()
-              .single
-              .text,
-          contains('Esri'),
-        );
-      },
-    );
+      final richWidget = tester.widget<RichAttributionWidget>(
+        find.byType(RichAttributionWidget),
+      );
+      expect(
+        richWidget.attributions.whereType<TextSourceAttribution>().single.text,
+        contains('Esri'),
+      );
+    });
   });
 }
