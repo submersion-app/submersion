@@ -68,17 +68,17 @@ class HeroHeader extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     // Headline stats
                     statsAsync.when(
                       data: (stats) {
                         final screenWidth = MediaQuery.sizeOf(context).width;
-                        final showHours = screenWidth >= 600;
+                        final isNarrow = screenWidth < 600;
                         return Text(
                           _buildHeadlineStats(
                             context,
                             stats,
-                            showHours: showHours,
+                            isNarrow: isNarrow,
                           ),
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: Colors.white.withValues(alpha: 0.9),
@@ -126,7 +126,7 @@ class HeroHeader extends ConsumerWidget {
   String _buildHeadlineStats(
     BuildContext context,
     DiveStatistics stats, {
-    bool showHours = true,
+    bool isNarrow = false,
   }) {
     if (stats.totalDives == 0) return context.l10n.dashboard_hero_noDives;
 
@@ -137,19 +137,17 @@ class HeroHeader extends ConsumerWidget {
         : context.l10n.dashboard_hero_divesLoggedOther(stats.totalDives);
     parts.add(diveText);
 
-    if (showHours) {
-      final hours = stats.totalTimeSeconds / 3600;
-      if (hours >= 1) {
-        final hoursStr = hours < 10
-            ? hours.toStringAsFixed(1)
-            : hours.round().toString();
-        parts.add(context.l10n.dashboard_hero_hoursUnderwater(hoursStr));
-      } else if (stats.totalTimeSeconds > 0) {
-        final minutes = stats.totalTimeSeconds ~/ 60;
-        parts.add(context.l10n.dashboard_hero_minutesUnderwater(minutes));
-      }
+    final hours = stats.totalTimeSeconds / 3600;
+    if (hours >= 1) {
+      final hoursStr = hours < 10
+          ? hours.toStringAsFixed(1)
+          : hours.round().toString();
+      parts.add(context.l10n.dashboard_hero_hoursUnderwater(hoursStr));
+    } else if (stats.totalTimeSeconds > 0) {
+      final minutes = stats.totalTimeSeconds ~/ 60;
+      parts.add(context.l10n.dashboard_hero_minutesUnderwater(minutes));
     }
 
-    return parts.join(' \u2022 ');
+    return parts.join(isNarrow ? '\n' : ' \u2022 ');
   }
 }
