@@ -9,6 +9,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
@@ -1363,6 +1364,7 @@ class SiteListTile extends ConsumerWidget {
                             ? TileCacheService.instance.getTileProvider()
                             : null,
                       ),
+                      const MapAttribution(),
                     ],
                   ),
                 ),

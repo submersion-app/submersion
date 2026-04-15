@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 
 class DiveCenterDetailPage extends ConsumerStatefulWidget {
   final String centerId;
@@ -644,6 +645,7 @@ class _MapSection extends ConsumerWidget {
                     ),
                   ],
                 ),
+                const MapAttribution(),
               ],
             ),
             Positioned(
@@ -737,6 +739,7 @@ class _MapSection extends ConsumerWidget {
                   ),
                 ],
               ),
+              const MapAttribution(),
             ],
           ),
         ),

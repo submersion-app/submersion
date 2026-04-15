@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 
 /// Result from the location picker
 class PickedLocation {
@@ -210,6 +211,7 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
                       ),
                     ],
                   ),
+                const MapAttribution(),
               ],
             ),
 
