@@ -21,16 +21,16 @@ void main() {
   Widget wrapInMap(List<Override> overrides) {
     return ProviderScope(
       overrides: overrides.cast(),
-      child: MaterialApp(
+      child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: FlutterMap(
-            options: const MapOptions(
+            options: MapOptions(
               initialCenter: LatLng(0, 0),
               initialZoom: 2,
             ),
-            children: const [MapAttribution()],
+            children: [MapAttribution()],
           ),
         ),
       ),
