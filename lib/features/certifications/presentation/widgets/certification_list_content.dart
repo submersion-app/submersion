@@ -103,6 +103,7 @@ class _CertificationListContentState
   }
 
   void _handleItemTap(Certification cert) {
+    ref.read(highlightedCertificationIdProvider.notifier).state = cert.id;
     if (widget.onItemSelected != null) {
       _selectionFromList = true;
       widget.onItemSelected!(cert.id);
@@ -342,6 +343,8 @@ class _CertificationListContentState
     WidgetRef ref,
     List<Certification> certifications,
   ) {
+    final highlightedId = ref.watch(highlightedCertificationIdProvider);
+
     // Group certifications by status
     final expired = <Certification>[];
     final expiringSoon = <Certification>[];
@@ -374,7 +377,8 @@ class _CertificationListContentState
             ...expired.map(
               (cert) => CertificationListTile(
                 certification: cert,
-                isSelected: widget.selectedId == cert.id,
+                isSelected:
+                    widget.selectedId == cert.id || highlightedId == cert.id,
                 onTap: () => _handleItemTap(cert),
               ),
             ),
@@ -388,7 +392,8 @@ class _CertificationListContentState
             ...expiringSoon.map(
               (cert) => CertificationListTile(
                 certification: cert,
-                isSelected: widget.selectedId == cert.id,
+                isSelected:
+                    widget.selectedId == cert.id || highlightedId == cert.id,
                 onTap: () => _handleItemTap(cert),
               ),
             ),
@@ -402,7 +407,8 @@ class _CertificationListContentState
             ...valid.map(
               (cert) => CertificationListTile(
                 certification: cert,
-                isSelected: widget.selectedId == cert.id,
+                isSelected:
+                    widget.selectedId == cert.id || highlightedId == cert.id,
                 onTap: () => _handleItemTap(cert),
               ),
             ),

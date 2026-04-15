@@ -94,6 +94,33 @@ Future<List<Override>> _buildOverrides({
   ];
 }
 
+Future<List<Override>> _buildPhoneOverrides({
+  required List<Certification> certs,
+  String? highlightedCertificationId,
+}) async {
+  SharedPreferences.setMockInitialValues({});
+  final prefs = await SharedPreferences.getInstance();
+
+  return [
+    sharedPreferencesProvider.overrideWithValue(prefs),
+    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+    currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
+    certificationListNotifierProvider.overrideWith(
+      (ref) => _MockCertListNotifier(certs),
+    ),
+    certificationListViewModeProvider.overrideWith(
+      (ref) => ListViewMode.detailed,
+    ),
+    certificationTableConfigProvider.overrideWith(
+      (ref) => _TestCertTableConfigNotifier(_testConfig),
+    ),
+    if (highlightedCertificationId != null)
+      highlightedCertificationIdProvider.overrideWith(
+        (ref) => highlightedCertificationId,
+      ),
+  ];
+}
+
 void main() {
   group('CertificationListContent in table mode', () {
     testWidgets('renders table with column headers', (tester) async {
@@ -392,5 +419,41 @@ void main() {
 
       expect(pushedPath, '/certifications/c1');
     });
+  });
+
+  group('phone-mode highlight', () {
+    testWidgets(
+      'phone view highlights certification when highlightedCertificationIdProvider is set',
+      (tester) async {
+        final certs = [
+          _makeCert(id: 'c1', name: 'Open Water'),
+          _makeCert(id: 'c2', name: 'Rescue Diver'),
+        ];
+
+        final overrides = await _buildPhoneOverrides(
+          certs: certs,
+          highlightedCertificationId: 'c2',
+        );
+
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: const CertificationListContent(showAppBar: false),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final tiles = tester
+            .widgetList<CertificationListTile>(
+              find.byType(CertificationListTile),
+            )
+            .toList();
+        final ow = tiles.firstWhere((t) => t.certification.id == 'c1');
+        final rescue = tiles.firstWhere((t) => t.certification.id == 'c2');
+
+        expect(ow.isSelected, isFalse);
+        expect(rescue.isSelected, isTrue);
+      },
+    );
   });
 }
