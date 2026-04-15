@@ -266,9 +266,12 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     final newDive = await _repository.createDive(diveWithDiver);
 
     // If the dive was created without a dive number, renumber all dives
-    // chronologically to ensure proper ordering
+    // chronologically to ensure proper ordering. Scope to this diver so
+    // we don't disturb other profiles' per-diver numbering.
     if (dive.diveNumber == null) {
-      await _repository.assignMissingDiveNumbers();
+      await _repository.assignMissingDiveNumbers(
+        diverId: newDive.diverId ?? _currentDiverId,
+      );
       _ref.invalidate(diveNumberingInfoProvider);
     }
 
@@ -299,6 +302,7 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     await _repository.deleteDive(id);
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);
+    _ref.invalidate(diveNumberingInfoProvider);
     if (dive != null) {
       _invalidateRelatedProviders(dive);
     }
@@ -312,6 +316,7 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     await _repository.bulkDeleteDives(ids);
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);
+    _ref.invalidate(diveNumberingInfoProvider);
     // Invalidate related providers for all deleted dives
     for (final dive in divesToDelete) {
       _invalidateRelatedProviders(dive);
@@ -326,6 +331,7 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     }
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);
+    _ref.invalidate(diveNumberingInfoProvider);
     // Invalidate related providers for all restored dives
     for (final dive in dives) {
       _invalidateRelatedProviders(dive);
@@ -573,7 +579,9 @@ class PaginatedDiveListNotifier
     final newDive = await _repository.createDive(diveWithDiver);
 
     if (dive.diveNumber == null) {
-      await _repository.assignMissingDiveNumbers();
+      await _repository.assignMissingDiveNumbers(
+        diverId: newDive.diverId ?? _currentDiverId,
+      );
       _ref.invalidate(diveNumberingInfoProvider);
     }
 
@@ -638,6 +646,7 @@ class PaginatedDiveListNotifier
     }
 
     _invalidateStatistics();
+    _ref.invalidate(diveNumberingInfoProvider);
     if (dive != null) _invalidateRelatedProviders(dive);
     _invalidateOldProvider();
   }
@@ -661,6 +670,7 @@ class PaginatedDiveListNotifier
     }
 
     _invalidateStatistics();
+    _ref.invalidate(diveNumberingInfoProvider);
     for (final dive in divesToDelete) {
       _invalidateRelatedProviders(dive);
     }
@@ -675,6 +685,7 @@ class PaginatedDiveListNotifier
     // Restore is complex (ordering), reload first page
     await loadFirstPage();
     _invalidateStatistics();
+    _ref.invalidate(diveNumberingInfoProvider);
     for (final dive in dives) {
       _invalidateRelatedProviders(dive);
     }

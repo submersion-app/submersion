@@ -3175,15 +3175,26 @@ class DiveRepository {
 
   /// Renumber all dives sequentially based on entry time
   /// [startFrom] - The starting dive number (default 1)
-  Future<void> renumberAllDives({int startFrom = 1}) async {
+  /// [diverId] - If non-null, only renumbers dives belonging to this diver.
+  /// Dive numbers are a per-diver lifetime counter, so callers editing a
+  /// single diver's numbering must pass their ID or the other diver's
+  /// sequence will be overwritten.
+  Future<void> renumberAllDives({int startFrom = 1, String? diverId}) async {
     try {
-      _log.info('Renumbering all dives starting from $startFrom');
+      _log.info(
+        'Renumbering dives starting from $startFrom'
+        '${diverId != null ? ' for diver $diverId' : ''}',
+      );
 
       final query = _db.select(_db.dives)
         ..orderBy([
           (t) => OrderingTerm.asc(t.entryTime),
           (t) => OrderingTerm.asc(t.diveDateTime),
         ]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await query.get();
 
@@ -3211,24 +3222,36 @@ class DiveRepository {
 
   /// Fill gaps in dive numbers by renumbering all dives chronologically
   /// This ensures dive numbers match chronological order
-  Future<void> assignMissingDiveNumbers() async {
+  /// [diverId] - If non-null, only operates on that diver's dives. The
+  /// MIN(dive_number) used as the starting point is also scoped, so each
+  /// diver preserves their own numbering baseline.
+  Future<void> assignMissingDiveNumbers({String? diverId}) async {
     try {
       _log.info(
-        'Assigning missing dive numbers by renumbering chronologically',
+        'Assigning missing dive numbers by renumbering chronologically'
+        '${diverId != null ? ' for diver $diverId' : ''}',
       );
 
-      // Find the minimum existing dive number to preserve as the starting point
-      // This respects the user's existing numbering scheme
-      final minResult = await _db
-          .customSelect(
-            'SELECT MIN(dive_number) as min_num FROM dives WHERE dive_number IS NOT NULL',
-          )
-          .getSingleOrNull();
+      // Find the minimum existing dive number to preserve as the starting point.
+      // Scope by diverId so one diver's baseline doesn't override another's.
+      final minResult = diverId != null
+          ? await _db
+                .customSelect(
+                  'SELECT MIN(dive_number) as min_num FROM dives '
+                  'WHERE dive_number IS NOT NULL AND diver_id = ?',
+                  variables: [Variable<String>(diverId)],
+                )
+                .getSingleOrNull()
+          : await _db
+                .customSelect(
+                  'SELECT MIN(dive_number) as min_num FROM dives '
+                  'WHERE dive_number IS NOT NULL',
+                )
+                .getSingleOrNull();
 
       final startFrom = (minResult?.data['min_num'] as int?) ?? 1;
 
-      // Renumber all dives chronologically starting from the minimum existing number
-      await renumberAllDives(startFrom: startFrom);
+      await renumberAllDives(startFrom: startFrom, diverId: diverId);
 
       _log.info(
         'Dive numbers assigned chronologically starting from $startFrom',
