@@ -23735,6 +23735,12 @@ abstract class AppLocalizations {
   /// **'Skip all ({count})'**
   String universalImport_bulk_skipAll(int count);
 
+  /// Bulk action button to replace source data for all pending duplicates
+  ///
+  /// In en, this message translates to:
+  /// **'Replace all ({count})'**
+  String universalImport_bulk_replaceSourceAll(int count);
+
   /// Description text on the file selection step listing supported formats
   ///
   /// In en, this message translates to:
@@ -27373,6 +27379,160 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Display dive profile chart above the table by default'**
   String get settings_appearance_showProfilePanel_subtitle;
+
+  /// Generic re-parse action label
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse'**
+  String get common_action_reparse;
+
+  /// Button to re-parse all dives from a computer
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse all dives'**
+  String get diveComputer_detail_reparseAllButton;
+
+  /// Dialog title for batch re-parse confirmation
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse all dives'**
+  String get diveComputer_detail_reparseAllTitle;
+
+  /// No description provided for @diveComputer_detail_reparseAllMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-run the dive parser on {count} dives that have stored raw data. This updates profile and sensor data but preserves your notes, sites, buddies, and other edits.'**
+  String diveComputer_detail_reparseAllMessage(int count);
+
+  /// No description provided for @diveComputer_detail_reparseAllProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parsing {count} dives...'**
+  String diveComputer_detail_reparseAllProgress(int count);
+
+  /// No description provided for @diveComputer_detail_reparseAllSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parsed {count} dives successfully'**
+  String diveComputer_detail_reparseAllSuccess(int count);
+
+  /// No description provided for @diveComputer_detail_reparseAllPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parsed {succeeded} of {total} dives. {failed} failed.'**
+  String diveComputer_detail_reparseAllPartial(
+    int succeeded,
+    int total,
+    int failed,
+  );
+
+  /// No description provided for @diveComputer_detail_reparseRawDataCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives with raw data'**
+  String diveComputer_detail_reparseRawDataCount(int count);
+
+  /// No description provided for @diveComputer_detail_reparseRawDataCountWithout.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives with raw data ({without} without)'**
+  String diveComputer_detail_reparseRawDataCountWithout(int count, int without);
+
+  /// Menu item to re-parse raw dive data
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse raw data'**
+  String get diveLog_detail_menu_reparseRawData;
+
+  /// Snackbar message after successful re-parse
+  ///
+  /// In en, this message translates to:
+  /// **'Dive re-parsed successfully'**
+  String get diveLog_detail_reparseSuccess;
+
+  /// No description provided for @diveLog_detail_reparseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse failed: {error}'**
+  String diveLog_detail_reparseFailed(String error);
+
+  /// Label for the replace source duplicate action
+  ///
+  /// In en, this message translates to:
+  /// **'Replace Source'**
+  String get universalImport_label_replaceSource;
+
+  /// Subtitle for the replace source button in the duplicate review step
+  ///
+  /// In en, this message translates to:
+  /// **'Update from same computer'**
+  String get universalImport_label_replaceSourceSubtitle;
+
+  /// Title for the import options bottom sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Import Options'**
+  String get universalImport_title_importOptions;
+
+  /// Label for the import options button
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get universalImport_label_options;
+
+  /// Switch title for retaining dive numbers from source
+  ///
+  /// In en, this message translates to:
+  /// **'Retain source dive numbers'**
+  String get universalImport_label_retainDiveNumbers;
+
+  /// Switch subtitle for retaining dive numbers
+  ///
+  /// In en, this message translates to:
+  /// **'Use dive numbers from the imported file instead of auto-assigning'**
+  String get universalImport_label_retainDiveNumbersSubtitle;
+
+  /// Title shown when dives are successfully imported
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully Imported'**
+  String get universalImport_title_successImported;
+
+  /// Title shown when existing dives are successfully updated
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully Updated'**
+  String get universalImport_title_successUpdated;
+
+  /// Title shown when dives are successfully consolidated
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully Consolidated'**
+  String get universalImport_title_successConsolidated;
+
+  /// Title shown when no dives were imported
+  ///
+  /// In en, this message translates to:
+  /// **'No Dives Imported'**
+  String get universalImport_title_noDivesImported;
+
+  /// Message shown when all dives were skipped during import
+  ///
+  /// In en, this message translates to:
+  /// **'All dives were skipped.'**
+  String get universalImport_label_allDivesSkipped;
+
+  /// Label for the count of dives whose source data was replaced
+  ///
+  /// In en, this message translates to:
+  /// **'Replaced source data'**
+  String get universalImport_label_replacedSourceData;
+
+  /// Label for the count of consolidated dives in summary
+  ///
+  /// In en, this message translates to:
+  /// **'Consolidated'**
+  String get universalImport_label_consolidated;
 }
 
 class _AppLocalizationsDelegate

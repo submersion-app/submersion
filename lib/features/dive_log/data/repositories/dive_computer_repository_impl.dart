@@ -762,6 +762,42 @@ class DiveComputerRepository {
     }
   }
 
+  /// Remove existing profiles, derived rows, and data source for a
+  /// dive+computer pair.
+  ///
+  /// Used by the replaceSource path so that a subsequent [importProfile] call
+  /// inserts fresh data instead of short-circuiting. Also clears per-dive
+  /// derived tables (events, gas switches, tank pressure profiles) that lack
+  /// a computer_id column and would otherwise accumulate stale rows.
+  Future<void> clearSourceAndProfiles({
+    required String diveId,
+    required String computerId,
+  }) async {
+    // Delete per-dive derived rows that importProfile will re-create.
+    // These tables lack a computer_id column, so we clear by dive_id.
+    await _db.customStatement(
+      'DELETE FROM dive_profile_events WHERE dive_id = ?',
+      [diveId],
+    );
+    await _db.customStatement(
+      'DELETE FROM tank_pressure_profiles WHERE dive_id = ?',
+      [diveId],
+    );
+    await _db.customStatement('DELETE FROM gas_switches WHERE dive_id = ?', [
+      diveId,
+    ]);
+    // Delete profile points for this computer+dive
+    await _db.customStatement(
+      'DELETE FROM dive_profiles WHERE dive_id = ? AND computer_id = ?',
+      [diveId, computerId],
+    );
+    // Delete the data source row for this computer+dive
+    await _db.customStatement(
+      'DELETE FROM dive_data_sources WHERE dive_id = ? AND computer_id = ?',
+      [diveId, computerId],
+    );
+  }
+
   /// Import a profile and associate it with a dive (creating one if needed).
   ///
   /// Returns the dive ID the profile was associated with.
@@ -782,6 +818,12 @@ class DiveComputerRepository {
     List<EventData>? events,
     int? diveNumber,
     bool forceNew = false,
+    Uint8List? rawData,
+    Uint8List? rawFingerprint,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) async {
     try {
       _log.info('Importing profile from computer $computerId');
@@ -892,6 +934,13 @@ class DiveComputerRepository {
                 decoAlgorithm: Value(decoAlgorithm),
                 gradientFactorLow: Value(gfLow),
                 gradientFactorHigh: Value(gfHigh),
+                rawData: Value(rawData),
+                rawFingerprint: Value(rawFingerprint),
+                descriptorVendor: Value(descriptorVendor),
+                descriptorProduct: Value(descriptorProduct),
+                descriptorModel: Value(descriptorModel),
+                libdivecomputerVersion: Value(libdivecomputerVersion),
+                lastParsedAt: Value(rawData != null ? DateTime.now() : null),
                 importedAt: nowDt,
                 createdAt: nowDt,
               ),

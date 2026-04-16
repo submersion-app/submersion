@@ -7787,6 +7787,7 @@
   "universalImport_bulk_importAll": "Import all ({count})",
   "universalImport_bulk_importAllAsNew": "Import all as new ({count})",
   "universalImport_bulk_skipAll": "Skip all ({count})",
+  "universalImport_bulk_replaceSourceAll": "Replace all ({count})",
   "universalImport_description_supportedFormats": "Select a dive log file to import. Supported formats include CSV, UDDF, Subsurface XML, Garmin FIT, and Shearwater Cloud databases.",
   "universalImport_dive_decideAction": "Decide",
   "universalImport_error_unsupportedFormat": "This format is not yet supported. Please export as UDDF or CSV.",
@@ -7883,6 +7884,14 @@
   },
   "@universalImport_bulk_skipAll": {
     "description": "Bulk action button that skips all items in the current tab",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@universalImport_bulk_replaceSourceAll": {
+    "description": "Bulk action button to replace source data for all pending duplicates",
     "placeholders": {
       "count": {
         "type": "int"
@@ -9859,5 +9868,152 @@
   "settings_appearance_showDetailsPane": "Show Details Pane",
   "settings_appearance_showDetailsPane_subtitle": "Display details pane alongside table",
   "settings_appearance_showProfilePanel": "Show Profile Panel in Table View",
-  "settings_appearance_showProfilePanel_subtitle": "Display dive profile chart above the table by default"
+  "settings_appearance_showProfilePanel_subtitle": "Display dive profile chart above the table by default",
+  "common_action_reparse": "Re-parse",
+  "@common_action_reparse": {
+    "description": "Generic re-parse action label"
+  },
+  "diveComputer_detail_reparseAllButton": "Re-parse all dives",
+  "@diveComputer_detail_reparseAllButton": {
+    "description": "Button to re-parse all dives from a computer"
+  },
+  "diveComputer_detail_reparseAllTitle": "Re-parse all dives",
+  "@diveComputer_detail_reparseAllTitle": {
+    "description": "Dialog title for batch re-parse confirmation"
+  },
+  "diveComputer_detail_reparseAllMessage": "Re-run the dive parser on {count} dives that have stored raw data. This updates profile and sensor data but preserves your notes, sites, buddies, and other edits.",
+  "@diveComputer_detail_reparseAllMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "diveComputer_detail_reparseAllProgress": "Re-parsing {count} dives...",
+  "@diveComputer_detail_reparseAllProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "diveComputer_detail_reparseAllSuccess": "Re-parsed {count} dives successfully",
+  "@diveComputer_detail_reparseAllSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "diveComputer_detail_reparseAllPartial": "Re-parsed {succeeded} of {total} dives. {failed} failed.",
+  "@diveComputer_detail_reparseAllPartial": {
+    "placeholders": {
+      "succeeded": {
+        "type": "int",
+        "example": "10"
+      },
+      "total": {
+        "type": "int",
+        "example": "12"
+      },
+      "failed": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "diveComputer_detail_reparseRawDataCount": "{count} dives with raw data",
+  "@diveComputer_detail_reparseRawDataCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "diveComputer_detail_reparseRawDataCountWithout": "{count} dives with raw data ({without} without)",
+  "@diveComputer_detail_reparseRawDataCountWithout": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      },
+      "without": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "diveLog_detail_menu_reparseRawData": "Re-parse raw data",
+  "@diveLog_detail_menu_reparseRawData": {
+    "description": "Menu item to re-parse raw dive data"
+  },
+  "diveLog_detail_reparseSuccess": "Dive re-parsed successfully",
+  "@diveLog_detail_reparseSuccess": {
+    "description": "Snackbar message after successful re-parse"
+  },
+  "diveLog_detail_reparseFailed": "Re-parse failed: {error}",
+  "@diveLog_detail_reparseFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Parse error"
+      }
+    }
+  },
+  "universalImport_label_replaceSource": "Replace Source",
+  "@universalImport_label_replaceSource": {
+    "description": "Label for the replace source duplicate action"
+  },
+  "universalImport_label_replaceSourceSubtitle": "Update from same computer",
+  "@universalImport_label_replaceSourceSubtitle": {
+    "description": "Subtitle for the replace source button in the duplicate review step"
+  },
+  "universalImport_title_importOptions": "Import Options",
+  "@universalImport_title_importOptions": {
+    "description": "Title for the import options bottom sheet"
+  },
+  "universalImport_label_options": "Options",
+  "@universalImport_label_options": {
+    "description": "Label for the import options button"
+  },
+  "universalImport_label_retainDiveNumbers": "Retain source dive numbers",
+  "@universalImport_label_retainDiveNumbers": {
+    "description": "Switch title for retaining dive numbers from source"
+  },
+  "universalImport_label_retainDiveNumbersSubtitle": "Use dive numbers from the imported file instead of auto-assigning",
+  "@universalImport_label_retainDiveNumbersSubtitle": {
+    "description": "Switch subtitle for retaining dive numbers"
+  },
+  "universalImport_title_successImported": "Successfully Imported",
+  "@universalImport_title_successImported": {
+    "description": "Title shown when dives are successfully imported"
+  },
+  "universalImport_title_successUpdated": "Successfully Updated",
+  "@universalImport_title_successUpdated": {
+    "description": "Title shown when existing dives are successfully updated"
+  },
+  "universalImport_title_successConsolidated": "Successfully Consolidated",
+  "@universalImport_title_successConsolidated": {
+    "description": "Title shown when dives are successfully consolidated"
+  },
+  "universalImport_title_noDivesImported": "No Dives Imported",
+  "@universalImport_title_noDivesImported": {
+    "description": "Title shown when no dives were imported"
+  },
+  "universalImport_label_allDivesSkipped": "All dives were skipped.",
+  "@universalImport_label_allDivesSkipped": {
+    "description": "Message shown when all dives were skipped during import"
+  },
+  "universalImport_label_replacedSourceData": "Replaced source data",
+  "@universalImport_label_replacedSourceData": {
+    "description": "Label for the count of dives whose source data was replaced"
+  },
+  "universalImport_label_consolidated": "Consolidated",
+  "@universalImport_label_consolidated": {
+    "description": "Label for the count of consolidated dives in summary"
+  }
 }

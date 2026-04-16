@@ -238,6 +238,17 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
             : std::optional<int64_t>(
                   static_cast<int64_t>(dive.deco_conservatism));
 
+    // Copy raw dive data bytes if available.
+    std::optional<std::vector<uint8_t>> raw_data;
+    if (dive.raw_data != nullptr && dive.raw_data_size > 0) {
+        raw_data.emplace(dive.raw_data, dive.raw_data + dive.raw_data_size);
+    }
+    std::optional<std::vector<uint8_t>> raw_fp;
+    if (dive.raw_fingerprint != nullptr && dive.raw_fingerprint_size > 0) {
+        raw_fp.emplace(dive.raw_fingerprint,
+                       dive.raw_fingerprint + dive.raw_fingerprint_size);
+    }
+
     return ParsedDive(
         std::string(hex),
         dt_year,
@@ -260,7 +271,9 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
         deco_algorithm ? &*deco_algorithm : nullptr,
         gf_low ? &*gf_low : nullptr,
         gf_high ? &*gf_high : nullptr,
-        deco_conservatism ? &*deco_conservatism : nullptr);
+        deco_conservatism ? &*deco_conservatism : nullptr,
+        raw_data ? &*raw_data : nullptr,
+        raw_fp ? &*raw_fp : nullptr);
 }
 
 }  // namespace libdivecomputer_plugin

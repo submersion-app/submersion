@@ -302,6 +302,8 @@ class ParsedDive {
     this.gfLow,
     this.gfHigh,
     this.decoConservatism,
+    this.rawData,
+    this.rawFingerprint,
   });
 
   String fingerprint;
@@ -348,6 +350,10 @@ class ParsedDive {
 
   int? decoConservatism;
 
+  Uint8List? rawData;
+
+  Uint8List? rawFingerprint;
+
   Object encode() {
     return <Object?>[
       fingerprint,
@@ -372,6 +378,8 @@ class ParsedDive {
       gfLow,
       gfHigh,
       decoConservatism,
+      rawData,
+      rawFingerprint,
     ];
   }
 
@@ -400,6 +408,8 @@ class ParsedDive {
       gfLow: result[19] as int?,
       gfHigh: result[20] as int?,
       decoConservatism: result[21] as int?,
+      rawData: result[22] as Uint8List?,
+      rawFingerprint: result[23] as Uint8List?,
     );
   }
 }

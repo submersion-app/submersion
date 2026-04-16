@@ -776,7 +776,9 @@ ParsedDive::ParsedDive(
   const std::string* deco_algorithm,
   const int64_t* gf_low,
   const int64_t* gf_high,
-  const int64_t* deco_conservatism)
+  const int64_t* deco_conservatism,
+  const std::vector<uint8_t>* raw_data,
+  const std::vector<uint8_t>* raw_fingerprint)
  : fingerprint_(fingerprint),
     date_time_year_(date_time_year),
     date_time_month_(date_time_month),
@@ -798,7 +800,9 @@ ParsedDive::ParsedDive(
     deco_algorithm_(deco_algorithm ? std::optional<std::string>(*deco_algorithm) : std::nullopt),
     gf_low_(gf_low ? std::optional<int64_t>(*gf_low) : std::nullopt),
     gf_high_(gf_high ? std::optional<int64_t>(*gf_high) : std::nullopt),
-    deco_conservatism_(deco_conservatism ? std::optional<int64_t>(*deco_conservatism) : std::nullopt) {}
+    deco_conservatism_(deco_conservatism ? std::optional<int64_t>(*deco_conservatism) : std::nullopt),
+    raw_data_(raw_data ? std::optional<std::vector<uint8_t>>(*raw_data) : std::nullopt),
+    raw_fingerprint_(raw_fingerprint ? std::optional<std::vector<uint8_t>>(*raw_fingerprint) : std::nullopt) {}
 
 const std::string& ParsedDive::fingerprint() const {
   return fingerprint_;
@@ -1030,9 +1034,35 @@ void ParsedDive::set_deco_conservatism(int64_t value_arg) {
 }
 
 
+const std::vector<uint8_t>* ParsedDive::raw_data() const {
+  return raw_data_ ? &(*raw_data_) : nullptr;
+}
+
+void ParsedDive::set_raw_data(const std::vector<uint8_t>* value_arg) {
+  raw_data_ = value_arg ? std::optional<std::vector<uint8_t>>(*value_arg) : std::nullopt;
+}
+
+void ParsedDive::set_raw_data(const std::vector<uint8_t>& value_arg) {
+  raw_data_ = value_arg;
+}
+
+
+const std::vector<uint8_t>* ParsedDive::raw_fingerprint() const {
+  return raw_fingerprint_ ? &(*raw_fingerprint_) : nullptr;
+}
+
+void ParsedDive::set_raw_fingerprint(const std::vector<uint8_t>* value_arg) {
+  raw_fingerprint_ = value_arg ? std::optional<std::vector<uint8_t>>(*value_arg) : std::nullopt;
+}
+
+void ParsedDive::set_raw_fingerprint(const std::vector<uint8_t>& value_arg) {
+  raw_fingerprint_ = value_arg;
+}
+
+
 EncodableList ParsedDive::ToEncodableList() const {
   EncodableList list;
-  list.reserve(22);
+  list.reserve(24);
   list.push_back(EncodableValue(fingerprint_));
   list.push_back(EncodableValue(date_time_year_));
   list.push_back(EncodableValue(date_time_month_));
@@ -1055,6 +1085,8 @@ EncodableList ParsedDive::ToEncodableList() const {
   list.push_back(gf_low_ ? EncodableValue(*gf_low_) : EncodableValue());
   list.push_back(gf_high_ ? EncodableValue(*gf_high_) : EncodableValue());
   list.push_back(deco_conservatism_ ? EncodableValue(*deco_conservatism_) : EncodableValue());
+  list.push_back(raw_data_ ? EncodableValue(*raw_data_) : EncodableValue());
+  list.push_back(raw_fingerprint_ ? EncodableValue(*raw_fingerprint_) : EncodableValue());
   return list;
 }
 
@@ -1105,6 +1137,14 @@ ParsedDive ParsedDive::FromEncodableList(const EncodableList& list) {
   auto& encodable_deco_conservatism = list[21];
   if (!encodable_deco_conservatism.IsNull()) {
     decoded.set_deco_conservatism(std::get<int64_t>(encodable_deco_conservatism));
+  }
+  auto& encodable_raw_data = list[22];
+  if (!encodable_raw_data.IsNull()) {
+    decoded.set_raw_data(std::get<std::vector<uint8_t>>(encodable_raw_data));
+  }
+  auto& encodable_raw_fingerprint = list[23];
+  if (!encodable_raw_fingerprint.IsNull()) {
+    decoded.set_raw_fingerprint(std::get<std::vector<uint8_t>>(encodable_raw_fingerprint));
   }
   return decoded;
 }

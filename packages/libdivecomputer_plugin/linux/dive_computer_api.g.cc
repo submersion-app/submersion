@@ -780,6 +780,10 @@ struct _LibdivecomputerPluginParsedDive {
   int64_t* gf_low;
   int64_t* gf_high;
   int64_t* deco_conservatism;
+  uint8_t* raw_data;
+  size_t raw_data_length;
+  uint8_t* raw_fingerprint;
+  size_t raw_fingerprint_length;
 };
 
 G_DEFINE_TYPE(LibdivecomputerPluginParsedDive, libdivecomputer_plugin_parsed_dive, G_TYPE_OBJECT)
@@ -799,6 +803,10 @@ static void libdivecomputer_plugin_parsed_dive_dispose(GObject* object) {
   g_clear_pointer(&self->gf_low, g_free);
   g_clear_pointer(&self->gf_high, g_free);
   g_clear_pointer(&self->deco_conservatism, g_free);
+  g_clear_pointer(&self->raw_data, g_free);
+  self->raw_data_length = 0;
+  g_clear_pointer(&self->raw_fingerprint, g_free);
+  self->raw_fingerprint_length = 0;
   G_OBJECT_CLASS(libdivecomputer_plugin_parsed_dive_parent_class)->dispose(object);
 }
 
@@ -809,7 +817,7 @@ static void libdivecomputer_plugin_parsed_dive_class_init(LibdivecomputerPluginP
   G_OBJECT_CLASS(klass)->dispose = libdivecomputer_plugin_parsed_dive_dispose;
 }
 
-LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new(const gchar* fingerprint, int64_t date_time_year, int64_t date_time_month, int64_t date_time_day, int64_t date_time_hour, int64_t date_time_minute, int64_t date_time_second, int64_t* date_time_timezone_offset, double max_depth_meters, double avg_depth_meters, int64_t duration_seconds, double* min_temperature_celsius, double* max_temperature_celsius, FlValue* samples, FlValue* tanks, FlValue* gas_mixes, FlValue* events, const gchar* dive_mode, const gchar* deco_algorithm, int64_t* gf_low, int64_t* gf_high, int64_t* deco_conservatism) {
+LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new(const gchar* fingerprint, int64_t date_time_year, int64_t date_time_month, int64_t date_time_day, int64_t date_time_hour, int64_t date_time_minute, int64_t date_time_second, int64_t* date_time_timezone_offset, double max_depth_meters, double avg_depth_meters, int64_t duration_seconds, double* min_temperature_celsius, double* max_temperature_celsius, FlValue* samples, FlValue* tanks, FlValue* gas_mixes, FlValue* events, const gchar* dive_mode, const gchar* deco_algorithm, int64_t* gf_low, int64_t* gf_high, int64_t* deco_conservatism, const uint8_t* raw_data, size_t raw_data_length, const uint8_t* raw_fingerprint, size_t raw_fingerprint_length) {
   LibdivecomputerPluginParsedDive* self = LIBDIVECOMPUTER_PLUGIN_PARSED_DIVE(g_object_new(libdivecomputer_plugin_parsed_dive_get_type(), nullptr));
   self->fingerprint = g_strdup(fingerprint);
   self->date_time_year = date_time_year;
@@ -878,6 +886,22 @@ LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new(const gc
   }
   else {
     self->deco_conservatism = nullptr;
+  }
+  if (raw_data != nullptr) {
+    self->raw_data = static_cast<uint8_t*>(memcpy(malloc(raw_data_length), raw_data, raw_data_length));
+    self->raw_data_length = raw_data_length;
+  }
+  else {
+    self->raw_data = nullptr;
+    self->raw_data_length = 0;
+  }
+  if (raw_fingerprint != nullptr) {
+    self->raw_fingerprint = static_cast<uint8_t*>(memcpy(malloc(raw_fingerprint_length), raw_fingerprint, raw_fingerprint_length));
+    self->raw_fingerprint_length = raw_fingerprint_length;
+  }
+  else {
+    self->raw_fingerprint = nullptr;
+    self->raw_fingerprint_length = 0;
   }
   return self;
 }
@@ -992,6 +1016,18 @@ int64_t* libdivecomputer_plugin_parsed_dive_get_deco_conservatism(Libdivecompute
   return self->deco_conservatism;
 }
 
+const uint8_t* libdivecomputer_plugin_parsed_dive_get_raw_data(LibdivecomputerPluginParsedDive* self, size_t* length) {
+  g_return_val_if_fail(LIBDIVECOMPUTER_PLUGIN_IS_PARSED_DIVE(self), nullptr);
+  *length = self->raw_data_length;
+  return self->raw_data;
+}
+
+const uint8_t* libdivecomputer_plugin_parsed_dive_get_raw_fingerprint(LibdivecomputerPluginParsedDive* self, size_t* length) {
+  g_return_val_if_fail(LIBDIVECOMPUTER_PLUGIN_IS_PARSED_DIVE(self), nullptr);
+  *length = self->raw_fingerprint_length;
+  return self->raw_fingerprint;
+}
+
 static FlValue* libdivecomputer_plugin_parsed_dive_to_list(LibdivecomputerPluginParsedDive* self) {
   FlValue* values = fl_value_new_list();
   fl_value_append_take(values, fl_value_new_string(self->fingerprint));
@@ -1016,6 +1052,8 @@ static FlValue* libdivecomputer_plugin_parsed_dive_to_list(LibdivecomputerPlugin
   fl_value_append_take(values, self->gf_low != nullptr ? fl_value_new_int(*self->gf_low) : fl_value_new_null());
   fl_value_append_take(values, self->gf_high != nullptr ? fl_value_new_int(*self->gf_high) : fl_value_new_null());
   fl_value_append_take(values, self->deco_conservatism != nullptr ? fl_value_new_int(*self->deco_conservatism) : fl_value_new_null());
+  fl_value_append_take(values, self->raw_data != nullptr ? fl_value_new_uint8_list(self->raw_data, self->raw_data_length) : fl_value_new_null());
+  fl_value_append_take(values, self->raw_fingerprint != nullptr ? fl_value_new_uint8_list(self->raw_fingerprint, self->raw_fingerprint_length) : fl_value_new_null());
   return values;
 }
 
@@ -1100,7 +1138,21 @@ static LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new_f
     deco_conservatism_value = fl_value_get_int(value21);
     deco_conservatism = &deco_conservatism_value;
   }
-  return libdivecomputer_plugin_parsed_dive_new(fingerprint, date_time_year, date_time_month, date_time_day, date_time_hour, date_time_minute, date_time_second, date_time_timezone_offset, max_depth_meters, avg_depth_meters, duration_seconds, min_temperature_celsius, max_temperature_celsius, samples, tanks, gas_mixes, events, dive_mode, deco_algorithm, gf_low, gf_high, deco_conservatism);
+  FlValue* value22 = fl_value_get_list_value(values, 22);
+  const uint8_t* raw_data = nullptr;
+  size_t raw_data_length = 0;
+  if (fl_value_get_type(value22) != FL_VALUE_TYPE_NULL) {
+    raw_data = fl_value_get_uint8_list(value22);
+    raw_data_length = fl_value_get_length(value22);
+  }
+  FlValue* value23 = fl_value_get_list_value(values, 23);
+  const uint8_t* raw_fingerprint = nullptr;
+  size_t raw_fingerprint_length = 0;
+  if (fl_value_get_type(value23) != FL_VALUE_TYPE_NULL) {
+    raw_fingerprint = fl_value_get_uint8_list(value23);
+    raw_fingerprint_length = fl_value_get_length(value23);
+  }
+  return libdivecomputer_plugin_parsed_dive_new(fingerprint, date_time_year, date_time_month, date_time_day, date_time_hour, date_time_minute, date_time_second, date_time_timezone_offset, max_depth_meters, avg_depth_meters, duration_seconds, min_temperature_celsius, max_temperature_celsius, samples, tanks, gas_mixes, events, dive_mode, deco_algorithm, gf_low, gf_high, deco_conservatism, raw_data, raw_data_length, raw_fingerprint, raw_fingerprint_length);
 }
 
 struct _LibdivecomputerPluginDownloadProgress {

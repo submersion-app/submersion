@@ -66,6 +66,15 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
   bool _expanded = false;
 
   @override
+  void didUpdateWidget(DuplicateActionCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Auto-collapse when an action is selected (user made their decision).
+    if (oldWidget.selectedAction == null && widget.selectedAction != null) {
+      setState(() => _expanded = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -78,6 +87,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
       DuplicateAction.importAsNew => Colors.green,
       DuplicateAction.consolidate => colorScheme.primary,
       DuplicateAction.skip => score >= 0.7 ? colorScheme.error : Colors.orange,
+      DuplicateAction.replaceSource => Colors.blue.shade700,
       null => colorScheme.tertiary,
     };
 
@@ -189,86 +199,95 @@ class _CollapsedHeader extends StatelessWidget {
       onTap: onToggle,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Dive number badge (centered vertically between title + subtitle)
-            if (projectedDiveNumber != null) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '#$projectedDiveNumber',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-            ],
-            // Title + subtitle column
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.title,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
+            // Top row: dive number + title/subtitle + chevron
+            Row(
+              children: [
+                if (projectedDiveNumber != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 2,
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (effectiveSubtitle.isNotEmpty)
-                    Text(
-                      effectiveSubtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '#$projectedDiveNumber',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
+                  ),
+                  const SizedBox(width: 8),
                 ],
-              ),
-            ),
-            // Dive profile sparkline (only when profile data exists)
-            if (item.diveData != null && item.diveData!.profile.isNotEmpty) ...[
-              const SizedBox(width: 4),
-              DiveSparkline(profile: item.diveData!.profile),
-            ],
-            const SizedBox(width: 8),
-            // Match % badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                border: Border.all(color: badgeBorderColor, width: 1.5),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '$percent% match',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: badgeBorderColor,
-                  fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.title,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (effectiveSubtitle.isNotEmpty)
+                        Text(
+                          effectiveSubtitle,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Icon(
+                  expanded ? Icons.expand_less : Icons.expand_more,
+                  size: 20,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ],
             ),
-            // Needs-decision pill — only shown when this row is pending.
-            if (isPending) ...[
-              const SizedBox(width: 8),
-              NeedsDecisionPill(colorScheme: colorScheme),
-            ],
-            // Action badge — suppressed when no decision has been made yet.
-            if (selectedAction != null) ...[
-              const SizedBox(width: 6),
-              _ActionBadge(action: selectedAction!),
-            ],
-            // Breathing room before the expand/collapse chevron.
-            const SizedBox(width: 12),
-            Icon(
-              expanded ? Icons.expand_less : Icons.expand_more,
-              size: 20,
-              color: colorScheme.onSurfaceVariant,
+            const SizedBox(height: 6),
+            // Bottom row: sparkline + badges (wraps on narrow screens)
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (!expanded &&
+                    item.diveData != null &&
+                    item.diveData!.profile.isNotEmpty)
+                  DiveSparkline(profile: item.diveData!.profile),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: badgeBorderColor, width: 1.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '$percent% match',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: badgeBorderColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                if (isPending) NeedsDecisionPill(colorScheme: colorScheme),
+                if (selectedAction != null)
+                  _ActionBadge(action: selectedAction!),
+              ],
             ),
           ],
         ),
@@ -289,6 +308,7 @@ class _ActionBadge extends StatelessWidget {
       DuplicateAction.skip => ('SKIP', theme.colorScheme.error),
       DuplicateAction.importAsNew => ('IMPORT', Colors.green.shade700),
       DuplicateAction.consolidate => ('CONSOLIDATE', Colors.green.shade700),
+      DuplicateAction.replaceSource => ('REPLACE', Colors.blue.shade700),
     };
 
     return Container(

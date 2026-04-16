@@ -335,6 +335,8 @@ struct ParsedDive {
   var gfLow: Int64? = nil
   var gfHigh: Int64? = nil
   var decoConservatism: Int64? = nil
+  var rawData: FlutterStandardTypedData? = nil
+  var rawFingerprint: FlutterStandardTypedData? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -361,6 +363,8 @@ struct ParsedDive {
     let gfLow: Int64? = nilOrValue(pigeonVar_list[19])
     let gfHigh: Int64? = nilOrValue(pigeonVar_list[20])
     let decoConservatism: Int64? = nilOrValue(pigeonVar_list[21])
+    let rawData: FlutterStandardTypedData? = nilOrValue(pigeonVar_list[22])
+    let rawFingerprint: FlutterStandardTypedData? = nilOrValue(pigeonVar_list[23])
 
     return ParsedDive(
       fingerprint: fingerprint,
@@ -384,7 +388,9 @@ struct ParsedDive {
       decoAlgorithm: decoAlgorithm,
       gfLow: gfLow,
       gfHigh: gfHigh,
-      decoConservatism: decoConservatism
+      decoConservatism: decoConservatism,
+      rawData: rawData,
+      rawFingerprint: rawFingerprint
     )
   }
   func toList() -> [Any?] {
@@ -411,6 +417,8 @@ struct ParsedDive {
       gfLow,
       gfHigh,
       decoConservatism,
+      rawData,
+      rawFingerprint,
     ]
   }
 }

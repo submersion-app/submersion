@@ -186,7 +186,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // The selected button (Consolidate) renders as FilledButton.tonal.
-      // Inactive buttons (Skip, Import as New) render as OutlinedButton.
+      // Inactive buttons (Skip, Import as New, Replace Source) render as
+      // OutlinedButton.
       final filledButtons = tester
           .widgetList<FilledButton>(find.byType(FilledButton))
           .toList();
@@ -196,8 +197,8 @@ void main() {
 
       // Exactly one filled button (the selected one).
       expect(filledButtons.length, 1);
-      // Two outlined buttons (the inactive ones).
-      expect(outlinedButtons.length, 2);
+      // Three outlined buttons (the inactive ones).
+      expect(outlinedButtons.length, 3);
     });
 
     testWidgets(

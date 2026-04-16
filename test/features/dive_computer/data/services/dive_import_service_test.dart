@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -62,6 +64,12 @@ void main() {
         events: anyNamed('events'),
         diveNumber: anyNamed('diveNumber'),
         forceNew: anyNamed('forceNew'),
+        rawData: anyNamed('rawData'),
+        rawFingerprint: anyNamed('rawFingerprint'),
+        descriptorVendor: anyNamed('descriptorVendor'),
+        descriptorProduct: anyNamed('descriptorProduct'),
+        descriptorModel: anyNamed('descriptorModel'),
+        libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
       ),
     ).thenAnswer((_) async => 'dive-id');
   });
@@ -139,6 +147,12 @@ void main() {
           decoConservatism: anyNamed('decoConservatism'),
           events: anyNamed('events'),
           diveNumber: 1,
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
         ),
       ).called(1);
 
@@ -159,6 +173,12 @@ void main() {
           decoConservatism: anyNamed('decoConservatism'),
           events: anyNamed('events'),
           diveNumber: 2,
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
         ),
       ).called(1);
 
@@ -179,6 +199,12 @@ void main() {
           decoConservatism: anyNamed('decoConservatism'),
           events: anyNamed('events'),
           diveNumber: 3,
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
         ),
       ).called(1);
     });
@@ -243,6 +269,12 @@ void main() {
             decoConservatism: anyNamed('decoConservatism'),
             events: anyNamed('events'),
             diveNumber: 1,
+            rawData: anyNamed('rawData'),
+            rawFingerprint: anyNamed('rawFingerprint'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
           ),
         ).called(1);
 
@@ -264,6 +296,12 @@ void main() {
             decoConservatism: anyNamed('decoConservatism'),
             events: anyNamed('events'),
             diveNumber: 2,
+            rawData: anyNamed('rawData'),
+            rawFingerprint: anyNamed('rawFingerprint'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
           ),
         ).called(1);
       },
@@ -309,6 +347,12 @@ void main() {
             decoConservatism: anyNamed('decoConservatism'),
             events: anyNamed('events'),
             diveNumber: 6,
+            rawData: anyNamed('rawData'),
+            rawFingerprint: anyNamed('rawFingerprint'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
           ),
         ).called(1);
       },
@@ -376,6 +420,12 @@ void main() {
             events: anyNamed('events'),
             diveNumber: anyNamed('diveNumber'),
             forceNew: true,
+            rawData: anyNamed('rawData'),
+            rawFingerprint: anyNamed('rawFingerprint'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
           ),
         ).called(1);
       },
@@ -420,6 +470,12 @@ void main() {
           events: anyNamed('events'),
           diveNumber: anyNamed('diveNumber'),
           forceNew: true,
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
         ),
       ).called(1);
     });
@@ -477,8 +533,139 @@ void main() {
           decoConservatism: anyNamed('decoConservatism'),
           events: anyNamed('events'),
           diveNumber: 4,
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
         ),
       ).called(1);
+    });
+
+    test(
+      'resolveConflict with replaceSource calls clearSourceAndProfiles then importProfile',
+      () async {
+        final dive = DownloadedDive(
+          fingerprint: 'fp-replace',
+          startTime: DateTime(2026, 4, 5, 8, 30),
+          durationSeconds: 3000,
+          maxDepth: 22.0,
+          avgDepth: 14.5,
+          profile: const [],
+          tanks: const [],
+          events: const [],
+          rawData: Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEF]),
+          rawFingerprint: Uint8List.fromList([0x01, 0x02, 0x03]),
+        );
+
+        final conflict = ImportConflict(
+          downloaded: dive,
+          existingDiveId: 'existing-dive-42',
+          duplicateResult: const DuplicateResult(
+            matchingDiveId: 'existing-dive-42',
+            confidence: DuplicateConfidence.exact,
+            score: 0.95,
+          ),
+        );
+
+        // Stub clearSourceAndProfiles
+        when(
+          mockComputerRepo.clearSourceAndProfiles(
+            diveId: anyNamed('diveId'),
+            computerId: anyNamed('computerId'),
+          ),
+        ).thenAnswer((_) async {});
+
+        final result = await service.resolveConflict(
+          conflict,
+          ConflictResolution.replaceSource,
+          computer.id,
+          descriptorVendor: 'Shearwater',
+          descriptorProduct: 'Perdix',
+          descriptorModel: 42,
+          libdivecomputerVersion: '0.8.0',
+        );
+
+        // Returns the existing dive ID
+        expect(result, equals('existing-dive-42'));
+
+        // Verify clearSourceAndProfiles was called with correct IDs
+        verify(
+          mockComputerRepo.clearSourceAndProfiles(
+            diveId: 'existing-dive-42',
+            computerId: computer.id,
+          ),
+        ).called(1);
+
+        // Verify importProfile was called with isPrimary: true, descriptor
+        // fields, rawData, rawFingerprint, and avgDepth
+        verify(
+          mockComputerRepo.importProfile(
+            computerId: computer.id,
+            profileStartTime: DateTime(2026, 4, 5, 8, 30),
+            points: anyNamed('points'),
+            durationSeconds: 3000,
+            maxDepth: 22.0,
+            avgDepth: 14.5,
+            isPrimary: true,
+            diverId: anyNamed('diverId'),
+            tanks: anyNamed('tanks'),
+            decoAlgorithm: anyNamed('decoAlgorithm'),
+            gfLow: anyNamed('gfLow'),
+            gfHigh: anyNamed('gfHigh'),
+            decoConservatism: anyNamed('decoConservatism'),
+            events: anyNamed('events'),
+            diveNumber: anyNamed('diveNumber'),
+            forceNew: anyNamed('forceNew'),
+            rawData: anyNamed('rawData'),
+            rawFingerprint: anyNamed('rawFingerprint'),
+            descriptorVendor: 'Shearwater',
+            descriptorProduct: 'Perdix',
+            descriptorModel: 42,
+            libdivecomputerVersion: '0.8.0',
+          ),
+        ).called(1);
+      },
+    );
+
+    test('resolveConflict with consolidate returns null', () async {
+      final dive = DownloadedDive(
+        fingerprint: 'fp-consolidate',
+        startTime: DateTime(2026, 4, 10, 11, 0),
+        durationSeconds: 2400,
+        maxDepth: 18.0,
+        profile: const [],
+        tanks: const [],
+        events: const [],
+      );
+
+      final conflict = ImportConflict(
+        downloaded: dive,
+        existingDiveId: 'existing-dive-99',
+        duplicateResult: const DuplicateResult(
+          matchingDiveId: 'existing-dive-99',
+          confidence: DuplicateConfidence.likely,
+          score: 0.80,
+        ),
+      );
+
+      final result = await service.resolveConflict(
+        conflict,
+        ConflictResolution.consolidate,
+        computer.id,
+      );
+
+      expect(result, isNull);
+      expect(conflict.resolution, ConflictResolution.consolidate);
+
+      // Neither clearSourceAndProfiles nor importProfile should be called
+      verifyNever(
+        mockComputerRepo.clearSourceAndProfiles(
+          diveId: anyNamed('diveId'),
+          computerId: anyNamed('computerId'),
+        ),
+      );
     });
   });
 }

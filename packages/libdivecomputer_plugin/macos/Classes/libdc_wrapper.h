@@ -213,6 +213,12 @@ typedef struct {
     libdc_event_t *events;
     unsigned int event_count;
     unsigned int event_capacity;
+
+    // Raw dive data for archival (not malloc'd — valid only during callback)
+    const unsigned char *raw_data;
+    unsigned int raw_data_size;
+    const unsigned char *raw_fingerprint;
+    unsigned int raw_fingerprint_size;
 } libdc_parsed_dive_t;
 
 // Free a parsed dive (frees the samples array).

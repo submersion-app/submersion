@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 /// Phases of the download process.
 enum DownloadPhase {
   initializing,
@@ -132,6 +134,12 @@ class DownloadedDive {
   /// Dive events from the computer
   final List<DownloadedEvent> events;
 
+  /// Raw dive data bytes from libdivecomputer (for re-parse)
+  final Uint8List? rawData;
+
+  /// Raw fingerprint bytes from libdivecomputer
+  final Uint8List? rawFingerprint;
+
   const DownloadedDive({
     this.diveNumber,
     required this.startTime,
@@ -149,6 +157,8 @@ class DownloadedDive {
     this.gfHigh,
     this.decoConservatism,
     this.events = const [],
+    this.rawData,
+    this.rawFingerprint,
   });
 
   /// Duration as a Duration object

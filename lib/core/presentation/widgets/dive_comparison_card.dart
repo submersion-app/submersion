@@ -392,6 +392,7 @@ class DiveComparisonCard extends ConsumerWidget {
         DuplicateAction.skip => colorScheme.error,
         DuplicateAction.importAsNew => Colors.green,
         DuplicateAction.consolidate => colorScheme.primary,
+        DuplicateAction.replaceSource => Colors.orange,
       };
     }
 
@@ -425,6 +426,21 @@ class DiveComparisonCard extends ConsumerWidget {
             _ActionButtonStyle.outlined,
           ),
           color: colorFor(DuplicateAction.importAsNew),
+        ),
+      );
+    }
+
+    if (showAction(DuplicateAction.replaceSource)) {
+      buttons.add(
+        _ActionButton(
+          label: context.l10n.universalImport_label_replaceSource,
+          subtitle: context.l10n.universalImport_label_replaceSourceSubtitle,
+          onPressed: callbackFor(DuplicateAction.replaceSource, null),
+          style: styleFor(
+            DuplicateAction.replaceSource,
+            _ActionButtonStyle.outlined,
+          ),
+          color: colorFor(DuplicateAction.replaceSource),
         ),
       );
     }

@@ -973,6 +973,16 @@ class _BulkActionRow extends StatelessWidget {
                     : context.l10n.universalImport_bulk_importAll(pendingCount),
               ),
             ),
+          if (availableActions.contains(DuplicateAction.replaceSource))
+            OutlinedButton.icon(
+              onPressed: () => onBulkAction(DuplicateAction.replaceSource),
+              icon: const Icon(Icons.sync, size: 16),
+              label: Text(
+                context.l10n.universalImport_bulk_replaceSourceAll(
+                  pendingCount,
+                ),
+              ),
+            ),
           if (availableActions.contains(DuplicateAction.consolidate))
             // TODO(#200): enable when bulk-consolidate is implemented end-to-end.
             OutlinedButton.icon(

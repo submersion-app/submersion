@@ -12,8 +12,8 @@ enum ImportMode {
   /// Import all dives, skipping exact duplicates
   all,
 
-  /// Replace existing dives with downloaded versions
-  replace,
+  /// Replace existing dive's source data with the downloaded version
+  replaceSource,
 }
 
 /// How to resolve conflicts when a duplicate is detected.
@@ -21,8 +21,8 @@ enum ConflictResolution {
   /// Skip the downloaded dive, keep the existing one
   skip,
 
-  /// Replace the existing dive with the downloaded one
-  replace,
+  /// Replace the existing dive's source data with the downloaded version
+  replaceSource,
 
   /// Import as a new dive (creates duplicate)
   importAsNew,
@@ -246,6 +246,10 @@ class DiveImportService {
     ImportMode mode = ImportMode.newOnly,
     ConflictResolution defaultResolution = ConflictResolution.skip,
     String? diverId,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) async {
     int imported = 0;
     int skipped = 0;
@@ -289,12 +293,16 @@ class DiveImportService {
                   confidence: duplicateResult.confidence,
                 ),
               );
-            } else if (defaultResolution == ConflictResolution.replace) {
+            } else if (defaultResolution == ConflictResolution.replaceSource) {
               // Update existing dive
               await _updateExistingDive(
                 dive,
                 duplicateResult.matchingDiveId!,
                 computer.id,
+                descriptorVendor: descriptorVendor,
+                descriptorProduct: descriptorProduct,
+                descriptorModel: descriptorModel,
+                libdivecomputerVersion: libdivecomputerVersion,
               );
               updated++;
             } else {
@@ -306,17 +314,25 @@ class DiveImportService {
                 computer.id,
                 diverId,
                 forceNew: true,
+                descriptorVendor: descriptorVendor,
+                descriptorProduct: descriptorProduct,
+                descriptorModel: descriptorModel,
+                libdivecomputerVersion: libdivecomputerVersion,
               );
               importedDiveIds.add(diveId);
               importedDives.add(dive);
               imported++;
             }
-          } else if (mode == ImportMode.replace) {
+          } else if (mode == ImportMode.replaceSource) {
             // Replace existing
             await _updateExistingDive(
               dive,
               duplicateResult.matchingDiveId!,
               computer.id,
+              descriptorVendor: descriptorVendor,
+              descriptorProduct: descriptorProduct,
+              descriptorModel: descriptorModel,
+              libdivecomputerVersion: libdivecomputerVersion,
             );
             updated++;
           } else {
@@ -327,6 +343,10 @@ class DiveImportService {
               computer.id,
               diverId,
               forceNew: true,
+              descriptorVendor: descriptorVendor,
+              descriptorProduct: descriptorProduct,
+              descriptorModel: descriptorModel,
+              libdivecomputerVersion: libdivecomputerVersion,
             );
             importedDiveIds.add(diveId);
             importedDives.add(dive);
@@ -334,7 +354,15 @@ class DiveImportService {
           }
         } else {
           // No duplicate - import as new
-          final diveId = await _importNewDive(dive, computer.id, diverId);
+          final diveId = await _importNewDive(
+            dive,
+            computer.id,
+            diverId,
+            descriptorVendor: descriptorVendor,
+            descriptorProduct: descriptorProduct,
+            descriptorModel: descriptorModel,
+            libdivecomputerVersion: libdivecomputerVersion,
+          );
           importedDiveIds.add(diveId);
           importedDives.add(dive);
           imported++;
@@ -406,6 +434,10 @@ class DiveImportService {
     String computerId,
     String? diverId, {
     bool forceNew = false,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) async {
     // Calculate chronological dive number
     int? diveNumber;
@@ -443,6 +475,12 @@ class DiveImportService {
       events: events,
       diveNumber: diveNumber,
       forceNew: forceNew,
+      rawData: dive.rawData,
+      rawFingerprint: dive.rawFingerprint,
+      descriptorVendor: descriptorVendor,
+      descriptorProduct: descriptorProduct,
+      descriptorModel: descriptorModel,
+      libdivecomputerVersion: libdivecomputerVersion,
     );
 
     return diveId;
@@ -456,39 +494,67 @@ class DiveImportService {
     DownloadedDive dive, {
     required String computerId,
     String? diverId,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) async {
-    return _importNewDive(dive, computerId, diverId, forceNew: true);
+    return _importNewDive(
+      dive,
+      computerId,
+      diverId,
+      forceNew: true,
+      descriptorVendor: descriptorVendor,
+      descriptorProduct: descriptorProduct,
+      descriptorModel: descriptorModel,
+      libdivecomputerVersion: libdivecomputerVersion,
+    );
   }
 
-  /// Update an existing dive with downloaded data.
+  /// Replace an existing dive's source data with a fresh download.
+  ///
+  /// Clears the old profile and data source rows for this computer, then
+  /// re-imports so the new raw bytes and parsed data are stored.
   Future<void> _updateExistingDive(
     DownloadedDive dive,
     String existingDiveId,
-    String computerId,
-  ) async {
-    // Parse profile data
-    final profilePoints = _parser.parseProfile(dive);
+    String computerId, {
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
+  }) async {
+    // Remove the existing profile + source row so importProfile won't
+    // short-circuit on the "already exists" check.
+    await _repository.clearSourceAndProfiles(
+      diveId: existingDiveId,
+      computerId: computerId,
+    );
 
-    // Convert events to EventData
+    final profilePoints = _parser.parseProfile(dive);
     final events = _convertEvents(dive.events);
 
-    // Clear existing profile for this computer and add new one
-    // Note: This is a simplified implementation
-    // A full implementation would update dive metadata as well
-
-    // Import the profile (will associate with existing dive)
+    // Re-import using the existing dive's start time so that importProfile
+    // matches it back to the same dive row.
     await _repository.importProfile(
       computerId: computerId,
       profileStartTime: dive.startTime,
       points: profilePoints,
       durationSeconds: dive.durationSeconds,
       maxDepth: dive.maxDepth,
-      isPrimary: false, // Keep existing primary
+      avgDepth: dive.avgDepth,
+      isPrimary: true,
       decoAlgorithm: dive.decoAlgorithm,
       gfLow: dive.gfLow,
       gfHigh: dive.gfHigh,
       decoConservatism: dive.decoConservatism,
       events: events,
+      rawData: dive.rawData,
+      rawFingerprint: dive.rawFingerprint,
+      descriptorVendor: descriptorVendor,
+      descriptorProduct: descriptorProduct,
+      descriptorModel: descriptorModel,
+      libdivecomputerVersion: libdivecomputerVersion,
     );
   }
 
@@ -498,6 +564,10 @@ class DiveImportService {
     ConflictResolution resolution,
     String computerId, {
     String? diverId,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) async {
     conflict.resolution = resolution;
 
@@ -505,16 +575,28 @@ class DiveImportService {
       case ConflictResolution.skip:
         return null;
 
-      case ConflictResolution.replace:
+      case ConflictResolution.replaceSource:
         await _updateExistingDive(
           conflict.downloaded,
           conflict.existingDiveId,
           computerId,
+          descriptorVendor: descriptorVendor,
+          descriptorProduct: descriptorProduct,
+          descriptorModel: descriptorModel,
+          libdivecomputerVersion: libdivecomputerVersion,
         );
         return conflict.existingDiveId;
 
       case ConflictResolution.importAsNew:
-        return await _importNewDive(conflict.downloaded, computerId, diverId);
+        return await _importNewDive(
+          conflict.downloaded,
+          computerId,
+          diverId,
+          descriptorVendor: descriptorVendor,
+          descriptorProduct: descriptorProduct,
+          descriptorModel: descriptorModel,
+          libdivecomputerVersion: libdivecomputerVersion,
+        );
 
       case ConflictResolution.askUser:
         // This shouldn't be called with askUser

@@ -275,6 +275,46 @@ void main() {
       expect(find.text('Consolidate matched (2)'), findsOneWidget);
     });
 
+    testWidgets('Replace Source bulk button shown when action is available', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final group = EntityGroup(
+        items: [_dup0, _dup1],
+        duplicateIndices: const {0, 1},
+        matchResults: const {0: _highMatch, 1: _midMatch},
+      );
+
+      DuplicateAction? firedAction;
+
+      await tester.pumpWidget(
+        _pumpList(
+          group: group,
+          pendingIndices: const {0, 1},
+          availableActions: const {
+            DuplicateAction.skip,
+            DuplicateAction.importAsNew,
+            DuplicateAction.replaceSource,
+            DuplicateAction.consolidate,
+          },
+          onBulkAction: (a) => firedAction = a,
+        ),
+      );
+      await tester.pump();
+
+      // The Replace Source bulk button should be visible
+      expect(find.text('Replace all (2)'), findsOneWidget);
+
+      // Tapping it fires onBulkAction with replaceSource
+      await tester.tap(find.text('Replace all (2)'));
+      await tester.pump();
+
+      expect(firedAction, DuplicateAction.replaceSource);
+    });
+
     testWidgets('tapping bulk Skip button fires onBulkAction with skip', (
       tester,
     ) async {

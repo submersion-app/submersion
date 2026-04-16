@@ -134,45 +134,34 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            // Scrollable content area
+            // Fixed progress area (never scrolls)
+            ExcludeSemantics(
+              child: _buildProgressIndicator(downloadState, colorScheme),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              statusText,
+              style: theme.textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            if (showPercent)
+              Text(
+                context.l10n.diveComputer_downloadStep_progressPercent(
+                  (downloadState.progress!.percentage * 100).toStringAsFixed(0),
+                ),
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
+              ),
+            const SizedBox(height: 16),
+
+            // Scrollable dives list (fills remaining space)
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Progress indicator
-                    ExcludeSemantics(
-                      child: _buildProgressIndicator(
-                        downloadState,
-                        colorScheme,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Status text
-                    Text(
-                      statusText,
-                      style: theme.textTheme.titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Progress percentage
-                    if (showPercent)
-                      Text(
-                        context.l10n.diveComputer_downloadStep_progressPercent(
-                          (downloadState.progress!.percentage * 100)
-                              .toStringAsFixed(0),
-                        ),
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-
-                    const SizedBox(height: 32),
-
-                    // Downloaded dives list
                     if (downloadState.downloadedDives.isNotEmpty)
                       _buildDivesList(context, downloadState),
                   ],
@@ -374,17 +363,15 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
               ],
             ),
             const SizedBox(height: 12),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 300),
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: state.downloadedDives.length,
-                separatorBuilder: (_, _) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final dive = state.downloadedDives[index];
-                  return _buildDiveRow(context, dive, theme, colorScheme);
-                },
-              ),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: state.downloadedDives.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final dive = state.downloadedDives[index];
+                return _buildDiveRow(context, dive, theme, colorScheme);
+              },
             ),
           ],
         ),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -308,6 +310,48 @@ class DeviceDetailPage extends ConsumerWidget {
                 label: Text(context.l10n.diveComputer_detail_reimportAllButton),
               ),
             ],
+            Consumer(
+              builder: (context, ref, _) {
+                final counts = ref.watch(rawDataCountProvider(computer.id));
+                return counts.when(
+                  data: (c) {
+                    if (c.withRawData == 0) return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: () =>
+                              _confirmReparseAll(context, ref, computer, c),
+                          icon: const Icon(Icons.refresh),
+                          label: Text(
+                            context.l10n.diveComputer_detail_reparseAllButton,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            c.withoutRawData > 0
+                                ? context.l10n
+                                      .diveComputer_detail_reparseRawDataCountWithout(
+                                        c.withRawData,
+                                        c.withoutRawData,
+                                      )
+                                : context.l10n
+                                      .diveComputer_detail_reparseRawDataCount(
+                                        c.withRawData,
+                                      ),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (err, stack) => const SizedBox.shrink(),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -389,6 +433,84 @@ class DeviceDetailPage extends ConsumerWidget {
     if (confirmed == true && context.mounted) {
       context.push('/dive-computers/${computer.id}/download?forceFull=true');
     }
+  }
+
+  Future<void> _confirmReparseAll(
+    BuildContext context,
+    WidgetRef ref,
+    DiveComputer computer,
+    ({int withRawData, int withoutRawData}) counts,
+  ) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.diveComputer_detail_reparseAllTitle),
+        content: Text(
+          l10n.diveComputer_detail_reparseAllMessage(counts.withRawData),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.common_action_reparse),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await _executeReparseAll(context, ref, computer.id);
+    }
+  }
+
+  Future<void> _executeReparseAll(
+    BuildContext context,
+    WidgetRef ref,
+    String computerId,
+  ) async {
+    final service = ref.read(reparseServiceProvider);
+    final l10n = context.l10n;
+
+    final counts = await service.getRawDataCounts(computerId);
+    if (counts.withRawData == 0) return;
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.diveComputer_detail_reparseAllProgress(counts.withRawData),
+          ),
+        ),
+      );
+    }
+
+    final result = await service.reparseAllForComputer(
+      computerId,
+      parseFn: pigeon.DiveComputerHostApi().parseRawDiveData,
+    );
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.failed == 0
+                ? l10n.diveComputer_detail_reparseAllSuccess(result.succeeded)
+                : l10n.diveComputer_detail_reparseAllPartial(
+                    result.succeeded,
+                    result.succeeded + result.failed,
+                    result.failed,
+                  ),
+          ),
+        ),
+      );
+    }
+
+    ref.invalidate(rawDataCountProvider(computerId));
   }
 
   void _handleMenuAction(
