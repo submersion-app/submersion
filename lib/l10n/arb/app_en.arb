@@ -9950,5 +9950,9 @@
   "universalImport_label_replaceSource": "Replace Source",
   "@universalImport_label_replaceSource": {
     "description": "Label for the replace source duplicate action"
+  },
+  "universalImport_label_replaceSourceSubtitle": "Update from same computer",
+  "@universalImport_label_replaceSourceSubtitle": {
+    "description": "Subtitle for the replace source button in the duplicate review step"
   }
 }

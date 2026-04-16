@@ -16117,4 +16117,8 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_label_replaceSource => 'Replace Source';
+
+  @override
+  String get universalImport_label_replaceSourceSubtitle =>
+      'Update from same computer';
 }

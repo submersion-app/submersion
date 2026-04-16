@@ -27443,6 +27443,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Replace Source'**
   String get universalImport_label_replaceSource;
+
+  /// Subtitle for the replace source button in the duplicate review step
+  ///
+  /// In en, this message translates to:
+  /// **'Update from same computer'**
+  String get universalImport_label_replaceSourceSubtitle;
 }
 
 class _AppLocalizationsDelegate

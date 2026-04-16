@@ -430,6 +430,21 @@ class DiveComparisonCard extends ConsumerWidget {
       );
     }
 
+    if (showAction(DuplicateAction.replaceSource)) {
+      buttons.add(
+        _ActionButton(
+          label: context.l10n.universalImport_label_replaceSource,
+          subtitle: context.l10n.universalImport_label_replaceSourceSubtitle,
+          onPressed: callbackFor(DuplicateAction.replaceSource, null),
+          style: styleFor(
+            DuplicateAction.replaceSource,
+            _ActionButtonStyle.outlined,
+          ),
+          color: colorFor(DuplicateAction.replaceSource),
+        ),
+      );
+    }
+
     if (showAction(DuplicateAction.consolidate)) {
       buttons.add(
         _ActionButton(
