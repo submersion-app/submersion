@@ -66,6 +66,15 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
   bool _expanded = false;
 
   @override
+  void didUpdateWidget(DuplicateActionCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Auto-collapse when an action is selected (user made their decision).
+    if (oldWidget.selectedAction == null && widget.selectedAction != null) {
+      setState(() => _expanded = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -254,7 +263,9 @@ class _CollapsedHeader extends StatelessWidget {
               runSpacing: 4,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                if (item.diveData != null && item.diveData!.profile.isNotEmpty)
+                if (!expanded &&
+                    item.diveData != null &&
+                    item.diveData!.profile.isNotEmpty)
                   DiveSparkline(profile: item.diveData!.profile),
                 Container(
                   padding: const EdgeInsets.symmetric(
