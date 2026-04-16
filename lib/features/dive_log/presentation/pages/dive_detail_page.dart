@@ -4613,6 +4613,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       parseFn: pigeon.DiveComputerHostApi().parseRawDiveData,
     );
 
+    // Invalidate providers so the UI reflects the re-parsed data.
+    ref.invalidate(diveProvider(dive.id));
+    ref.invalidate(diveProfileProvider(dive.id));
+    ref.invalidate(profilesBySourceProvider(dive.id));
+    ref.invalidate(diveDataSourcesProvider(dive.id));
+
     if (context.mounted) {
       if (errors.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(

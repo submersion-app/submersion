@@ -1828,4 +1828,308 @@ void main() {
       },
     );
   });
+
+  // ---------------------------------------------------------------------------
+  // Coverage gap tests
+  // ---------------------------------------------------------------------------
+
+  group('Coverage: _updateSourceRow rawData/rawFingerprint branches', () {
+    test('rawData and rawFingerprint are stored when provided', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+
+      final blob = Uint8List.fromList([10, 20, 30]);
+      final fp = Uint8List.fromList([0xAA, 0xBB]);
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: makeParsedDive(),
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+        rawData: blob,
+        rawFingerprint: fp,
+      );
+
+      final src = await getSource('src-1');
+      expect(src.rawData, isNotNull);
+      expect(src.rawData!, equals(blob));
+      expect(src.rawFingerprint, isNotNull);
+      expect(src.rawFingerprint!, equals(fp));
+    });
+  });
+
+  group('Coverage: _replaceDiveProfiles with null computerId', () {
+    test('deletes and replaces profiles where computerId is null', () async {
+      await insertDive('dive-1');
+      // Source without a computerId (manual import, etc.)
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: null,
+        isPrimary: true,
+      );
+
+      // Pre-existing profile with null computerId
+      await insertProfile(
+        id: 'prof-old-1',
+        diveId: 'dive-1',
+        computerId: null,
+        timestamp: 0,
+        depth: 0.0,
+      );
+      await insertProfile(
+        id: 'prof-old-2',
+        diveId: 'dive-1',
+        computerId: null,
+        timestamp: 60,
+        depth: 15.0,
+      );
+
+      final parsed = makeParsedDive(
+        samples: [
+          pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0.0),
+          pigeon.ProfileSample(timeSeconds: 30, depthMeters: 8.0),
+          pigeon.ProfileSample(timeSeconds: 60, depthMeters: 20.0),
+        ],
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parsed,
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      // Old profiles should be replaced by the 3 new samples
+      final profiles =
+          await (db.select(db.diveProfiles)
+                ..where((t) => t.diveId.equals('dive-1'))
+                ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+              .get();
+
+      expect(profiles.length, 3);
+      expect(profiles[0].depth, 0.0);
+      expect(profiles[1].depth, 8.0);
+      expect(profiles[2].depth, 20.0);
+      // All should have null computerId
+      for (final p in profiles) {
+        expect(p.computerId, isNull);
+      }
+    });
+  });
+
+  group('Coverage: _insertEvents with data map', () {
+    test(
+      'event with data map containing value populates value column',
+      () async {
+        await insertDive('dive-1');
+        await insertComputer('comp-1');
+        await insertSource(
+          id: 'src-1',
+          diveId: 'dive-1',
+          computerId: 'comp-1',
+          isPrimary: true,
+        );
+
+        final parsed = makeParsedDive(
+          events: [
+            pigeon.DiveEvent(
+              timeSeconds: 60,
+              type: 'gaschange',
+              data: {'value': '42.5'},
+            ),
+          ],
+        );
+
+        await service.applyParsedUpdate(
+          diveId: 'dive-1',
+          sourceRowId: 'src-1',
+          parsed: parsed,
+          descriptorVendor: null,
+          descriptorProduct: null,
+          descriptorModel: null,
+          libdivecomputerVersion: null,
+        );
+
+        final events = await (db.select(
+          db.diveProfileEvents,
+        )..where((t) => t.diveId.equals('dive-1'))).get();
+        expect(events.length, 1);
+        expect(events.first.value, 42.5);
+      },
+    );
+
+    test('event with null data has null value column', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+
+      final parsed = makeParsedDive(
+        events: [
+          pigeon.DiveEvent(timeSeconds: 60, type: 'bookmark', data: null),
+        ],
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parsed,
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final events = await (db.select(
+        db.diveProfileEvents,
+      )..where((t) => t.diveId.equals('dive-1'))).get();
+      expect(events.length, 1);
+      expect(events.first.value, isNull);
+    });
+  });
+
+  group('Coverage: _carryOverTanks gas mix fallback', () {
+    test('unmatched gasMixIndex falls back to 21% O2 and 0% He', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+
+      // Tank with gasMixIndex 99, which does not match any gas mix
+      final parsed = makeParsedDive(
+        tanks: [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: 99,
+            volumeLiters: 12.0,
+            startPressureBar: 200.0,
+            endPressureBar: 50.0,
+          ),
+        ],
+        gasMixes: [
+          // Only gas mix at index 0 -- tank references index 99
+          pigeon.GasMix(index: 0, o2Percent: 36.0, hePercent: 10.0),
+        ],
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parsed,
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final tanks = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('dive-1'))).get();
+      expect(tanks.length, 1);
+      // Fallback: 21% O2, 0% He
+      expect(tanks.first.o2Percent, 21.0);
+      expect(tanks.first.hePercent, 0.0);
+    });
+  });
+
+  group('Coverage: _calculateBottomTimeFromSamples successful computation', () {
+    test('returns positive bottom time for a normal dive profile', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+
+      // Profile with a clear bottom phase: descent to 30m, plateau, ascent.
+      // 85% of 30m = 25.5m. Samples at/above 25.5m: t=120 (26m), t=180 (30m),
+      // t=240 (28m). descentEnd=120, ascentStart=240, bottom time = 120s.
+      final parsed = makeParsedDive(
+        maxDepthMeters: 30.0,
+        durationSeconds: 360,
+        samples: [
+          pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0.0),
+          pigeon.ProfileSample(timeSeconds: 60, depthMeters: 15.0),
+          pigeon.ProfileSample(timeSeconds: 120, depthMeters: 26.0),
+          pigeon.ProfileSample(timeSeconds: 180, depthMeters: 30.0),
+          pigeon.ProfileSample(timeSeconds: 240, depthMeters: 28.0),
+          pigeon.ProfileSample(timeSeconds: 300, depthMeters: 10.0),
+          pigeon.ProfileSample(timeSeconds: 360, depthMeters: 0.0),
+        ],
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parsed,
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final dive = await getDive('dive-1');
+      // Bottom time should be 240 - 120 = 120 seconds
+      expect(dive.bottomTime, 120);
+    });
+  });
+
+  group('Coverage: _extractMaxCns', () {
+    test('cnsEnd reflects maximum CNS from samples', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+
+      final parsed = makeParsedDive(
+        samples: [
+          pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0.0, cns: 10.0),
+          pigeon.ProfileSample(timeSeconds: 60, depthMeters: 20.0, cns: 25.0),
+          pigeon.ProfileSample(timeSeconds: 120, depthMeters: 30.0, cns: 45.0),
+          pigeon.ProfileSample(timeSeconds: 180, depthMeters: 10.0, cns: 30.0),
+        ],
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parsed,
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final dive = await getDive('dive-1');
+      // Maximum CNS across all samples is 45.0
+      expect(dive.cnsEnd, 45.0);
+    });
+  });
 }
