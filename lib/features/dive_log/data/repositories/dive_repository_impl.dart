@@ -3978,6 +3978,9 @@ class DiveStatistics {
     return '${hours}h ${minutes}m';
   }
 
+  // Gregorian average days per month (365.25 / 12).
+  static const double _daysPerMonth = 30.44;
+
   /// Lifetime tenure in months since the diver's first dive.
   /// Returns null if no dives, firstDiveDate is in the future, or tenure < 1 month.
   double? get monthsSinceFirstDive {
@@ -3985,7 +3988,7 @@ class DiveStatistics {
     if (first == null) return null;
     final now = DateTime.now();
     if (first.isAfter(now)) return null;
-    final months = now.difference(first).inDays / 30.44;
+    final months = now.difference(first).inDays / _daysPerMonth;
     return months < 1 ? null : months;
   }
 
