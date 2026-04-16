@@ -1745,7 +1745,7 @@ class DiveRepository {
       final firstDiveEpochMs = stats.data['first_dive_date'] as int?;
       final firstDiveDate = firstDiveEpochMs == null
           ? null
-          : DateTime.fromMillisecondsSinceEpoch(firstDiveEpochMs);
+          : DateTime.fromMillisecondsSinceEpoch(firstDiveEpochMs, isUtc: true);
 
       return DiveStatistics(
         totalDives: stats.data['total_dives'] as int? ?? 0,
