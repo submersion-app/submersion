@@ -10813,6 +10813,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statistics_category_marineLife_title => '海洋生物';
 
   @override
+  String get statistics_category_overview_title => 'Overview';
+
+  @override
+  String get statistics_category_overview_subtitle =>
+      'Totals, records, and breakdowns at a glance';
+
+  @override
   String get statistics_category_profile_subtitle => '上升速率与减压';
 
   @override

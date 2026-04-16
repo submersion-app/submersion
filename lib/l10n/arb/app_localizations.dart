@@ -19413,6 +19413,18 @@ abstract class AppLocalizations {
   /// **'Marine Life'**
   String get statistics_category_marineLife_title;
 
+  /// Title for the Overview entry in the Statistics category list
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get statistics_category_overview_title;
+
+  /// Subtitle for the Overview entry in the Statistics category list
+  ///
+  /// In en, this message translates to:
+  /// **'Totals, records, and breakdowns at a glance'**
+  String get statistics_category_overview_subtitle;
+
   /// No description provided for @statistics_category_profile_subtitle.
   ///
   /// In en, this message translates to:

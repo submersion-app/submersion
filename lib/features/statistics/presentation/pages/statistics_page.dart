@@ -16,6 +16,7 @@ import 'package:submersion/features/statistics/presentation/pages/statistics_mar
 import 'package:submersion/features/statistics/presentation/pages/statistics_profile_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_progression_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_social_page.dart';
+import 'package:submersion/features/statistics/presentation/pages/statistics_overview_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_time_patterns_page.dart';
 
 /// Main statistics page with master-detail layout on desktop.
@@ -50,6 +51,8 @@ class StatisticsPage extends ConsumerWidget {
   /// Builds the appropriate statistics page based on category ID.
   Widget _buildCategoryPage(String categoryId) {
     switch (categoryId) {
+      case 'overview':
+        return const StatisticsOverviewPage(embedded: true);
       case 'gas':
         return const StatisticsGasPage(embedded: true);
       case 'progression':
@@ -94,7 +97,12 @@ class StatisticsMobileContent extends StatelessWidget {
       body: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: statisticsCategoriesOf(context).length,
-        separatorBuilder: (context, index) => const Divider(height: 1),
+        separatorBuilder: (context, index) {
+          if (index == 0) {
+            return const Divider(height: 16, thickness: 1);
+          }
+          return const Divider(height: 1);
+        },
         itemBuilder: (context, index) {
           final category = statisticsCategoriesOf(context)[index];
           return _StatisticsCategoryTile(

@@ -11051,6 +11051,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get statistics_category_marineLife_title => 'חיים ימיים';
 
   @override
+  String get statistics_category_overview_title => 'Overview';
+
+  @override
+  String get statistics_category_overview_subtitle =>
+      'Totals, records, and breakdowns at a glance';
+
+  @override
   String get statistics_category_profile_subtitle => 'קצבי עלייה ודקו';
 
   @override

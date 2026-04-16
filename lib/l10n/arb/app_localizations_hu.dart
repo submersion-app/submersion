@@ -11321,6 +11321,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get statistics_category_marineLife_title => 'Tengeri elet';
 
   @override
+  String get statistics_category_overview_title => 'Overview';
+
+  @override
+  String get statistics_category_overview_subtitle =>
+      'Totals, records, and breakdowns at a glance';
+
+  @override
   String get statistics_category_profile_subtitle =>
       'Felszallasi sebessg es deko';
 

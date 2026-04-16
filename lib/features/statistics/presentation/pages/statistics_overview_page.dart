@@ -28,7 +28,9 @@ class StatisticsOverviewPage extends ConsumerWidget {
 
     if (embedded) return body;
     return Scaffold(
-      appBar: AppBar(title: const Text('Overview')),
+      appBar: AppBar(
+        title: Text(context.l10n.statistics_category_overview_title),
+      ),
       body: body,
     );
   }

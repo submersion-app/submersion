@@ -6142,6 +6142,14 @@
   "statistics_category_geographic_title": "Geographic",
   "statistics_category_marineLife_subtitle": "Species sightings",
   "statistics_category_marineLife_title": "Marine Life",
+  "statistics_category_overview_title": "Overview",
+  "@statistics_category_overview_title": {
+    "description": "Title for the Overview entry in the Statistics category list"
+  },
+  "statistics_category_overview_subtitle": "Totals, records, and breakdowns at a glance",
+  "@statistics_category_overview_subtitle": {
+    "description": "Subtitle for the Overview entry in the Statistics category list"
+  },
   "statistics_category_profile_subtitle": "Ascent rates & deco",
   "statistics_category_profile_title": "Profile Analysis",
   "statistics_category_progression_subtitle": "Depth & time trends",

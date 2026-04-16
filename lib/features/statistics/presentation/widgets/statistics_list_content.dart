@@ -24,6 +24,13 @@ class StatisticsCategory {
 /// List of all statistics categories (static structure, titles filled at build time).
 List<StatisticsCategory> statisticsCategoriesOf(BuildContext context) => [
   StatisticsCategory(
+    id: 'overview',
+    icon: Icons.dashboard_outlined,
+    title: context.l10n.statistics_category_overview_title,
+    subtitle: context.l10n.statistics_category_overview_subtitle,
+    color: Colors.blueGrey,
+  ),
+  StatisticsCategory(
     id: 'gas',
     icon: Icons.air,
     title: context.l10n.statistics_category_gas_title,
