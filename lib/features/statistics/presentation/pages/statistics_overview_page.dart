@@ -40,6 +40,10 @@ class _OverviewBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (stats.totalDives == 0) {
+      return const _EmptyState();
+    }
+
     final settings = ref.watch(settingsProvider);
     final fmt = UnitFormatter(settings);
     final recordsAsync = ref.watch(diveRecordsProvider);
@@ -64,6 +68,42 @@ class _OverviewBody extends ConsumerWidget {
             _DistributionsSection(stats: stats),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.water_drop_outlined, size: 48),
+            const SizedBox(height: 12),
+            const Text('No dives logged yet'),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () => context.push('/dives/new'),
+                  child: const Text('Log a Dive'),
+                ),
+                const SizedBox(width: 12),
+                OutlinedButton(
+                  onPressed: () => context.push('/transfer/import-wizard'),
+                  child: const Text('Import Dives'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

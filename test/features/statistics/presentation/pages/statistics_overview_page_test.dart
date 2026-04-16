@@ -616,6 +616,119 @@ void main() {
     });
   });
 
+  group('StatisticsOverviewPage edge cases', () {
+    late SharedPreferences prefs;
+
+    setUpAll(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+    });
+
+    testWidgets('zero dives shows empty state with action buttons', (
+      tester,
+    ) async {
+      final stats = DiveStatistics(
+        totalDives: 0,
+        totalTimeSeconds: 0,
+        maxDepth: 0,
+        avgMaxDepth: 0,
+        totalSites: 0,
+      );
+
+      String? navigatedTo;
+      final router = GoRouter(
+        initialLocation: '/statistics/overview',
+        routes: [
+          GoRoute(
+            path: '/statistics/overview',
+            builder: (ctx, s) => const StatisticsOverviewPage(embedded: true),
+          ),
+          GoRoute(
+            path: '/dives/new',
+            builder: (ctx, state) {
+              navigatedTo = '/dives/new';
+              return const Scaffold(body: Text('New Dive'));
+            },
+          ),
+          GoRoute(
+            path: '/transfer/import-wizard',
+            builder: (ctx, state) {
+              navigatedTo = '/transfer/import-wizard';
+              return const Scaffold(body: Text('Import Wizard'));
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('No dives logged yet'), findsOneWidget);
+      expect(find.text('Log a Dive'), findsOneWidget);
+      expect(find.text('Import Dives'), findsOneWidget);
+      expect(find.text('Total Dives'), findsNothing);
+
+      await tester.tap(find.text('Log a Dive'));
+      await tester.pumpAndSettle();
+      expect(navigatedTo, equals('/dives/new'));
+    });
+
+    testWidgets('tenure under 1 month hides Dives/Month and Dives/Year cards', (
+      tester,
+    ) async {
+      final stats = DiveStatistics(
+        totalDives: 3,
+        totalTimeSeconds: 5400,
+        maxDepth: 18.0,
+        avgMaxDepth: 12.0,
+        totalSites: 1,
+        firstDiveDate: DateTime.now().subtract(const Duration(days: 10)),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: StatisticsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Total Dives'), findsOneWidget);
+      expect(find.text('Dives / Month'), findsNothing);
+      expect(find.text('Dives / Year'), findsNothing);
+    });
+  });
+
   group('StatisticsOverviewPage Distributions', () {
     late SharedPreferences prefs;
 
