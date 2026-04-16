@@ -275,20 +275,18 @@ class _RecordsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Single-dive collapse: if all records point to the same dive, show one row.
-    final allRecordIds = [
-      records.deepestDive?.diveId,
-      records.longestDive?.diveId,
-      records.coldestDive?.diveId,
-      records.warmestDive?.diveId,
-    ].whereType<String>().toSet();
+    // Single-dive collapse: if multiple record slots all point to the same
+    // dive, show one summary row instead of repeating the same dive.
+    final nonNullRecords = [
+      records.deepestDive,
+      records.longestDive,
+      records.coldestDive,
+      records.warmestDive,
+    ].whereType<DiveRecord>().toList();
+    final uniqueIds = nonNullRecords.map((r) => r.diveId).toSet();
 
-    if (allRecordIds.length == 1) {
-      final record =
-          records.deepestDive ??
-          records.longestDive ??
-          records.coldestDive ??
-          records.warmestDive!;
+    if (nonNullRecords.length >= 2 && uniqueIds.length == 1) {
+      final record = nonNullRecords.first;
       return Card(
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -526,7 +524,7 @@ class _DistributionsSection extends ConsumerWidget {
         height: 160,
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (_, _) => const SizedBox.shrink(),
+      error: (_, _) => const _InlineError(message: 'Dive types unavailable'),
       data: (diveTypes) => _TypePieCard(diveTypes: diveTypes),
     );
 
