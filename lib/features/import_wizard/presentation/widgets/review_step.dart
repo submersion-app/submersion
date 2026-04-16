@@ -123,7 +123,7 @@ class ReviewStep extends ConsumerWidget {
 // Multi-type layout (tab bar)
 // ---------------------------------------------------------------------------
 
-class _MultiTypeLayout extends StatelessWidget {
+class _MultiTypeLayout extends StatefulWidget {
   final List<ImportEntityType> types;
   final ImportBundle bundle;
   final ImportWizardState state;
@@ -149,72 +149,119 @@ class _MultiTypeLayout extends StatelessWidget {
   });
 
   @override
+  State<_MultiTypeLayout> createState() => _MultiTypeLayoutState();
+}
+
+class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
+  void _showImportOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Import Options',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            _RetainDiveNumbersToggle(
+              state: widget.state,
+              notifier: widget.notifier,
+            ),
+            const Divider(),
+            ImportTagsField(
+              tags: widget.state.importTags,
+              existingTags: widget.existingTags,
+              onAdd: (tag) => widget.notifier.addImportTag(tag),
+              onRemove: (index) => widget.notifier.removeImportTag(index),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final hasDives = bundle.groups.containsKey(ImportEntityType.dives);
+    final hasDives = widget.bundle.groups.containsKey(ImportEntityType.dives);
 
     return DefaultTabController(
-      length: types.length,
+      length: widget.types.length,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (hasDives)
-            _RetainDiveNumbersToggle(state: state, notifier: notifier),
-          TabBar(
-            labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-            indicatorWeight: 3,
-            indicatorSize: TabBarIndicatorSize.label,
-            indicatorColor: colorScheme.primary,
-            labelColor: colorScheme.primary,
-            unselectedLabelColor: colorScheme.onSurfaceVariant,
-            labelStyle: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-            unselectedLabelStyle: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
-            tabs: [
-              for (final type in types)
-                Tab(
-                  height: 36,
-                  text: _tabLabel(type, bundle.groups[type]!.items.length),
-                ),
-            ],
+          Builder(
+            builder: (context) {
+              final tabController = DefaultTabController.of(context);
+              return ListenableBuilder(
+                listenable: tabController,
+                builder: (context, _) {
+                  final showOptionsButton =
+                      hasDives &&
+                      (widget.types.length == 1 ||
+                          tabController.index ==
+                              widget.types.indexOf(ImportEntityType.dives));
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: TabBar(
+                          labelPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                          ),
+                          indicatorWeight: 3,
+                          indicatorSize: TabBarIndicatorSize.label,
+                          indicatorColor: colorScheme.primary,
+                          labelColor: colorScheme.primary,
+                          unselectedLabelColor: colorScheme.onSurfaceVariant,
+                          labelStyle: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                          unselectedLabelStyle: theme.textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w500),
+                          tabs: [
+                            for (final type in widget.types)
+                              Tab(
+                                height: 36,
+                                text: _tabLabel(
+                                  type,
+                                  widget.bundle.groups[type]!.items.length,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      if (showOptionsButton)
+                        IconButton(
+                          icon: const Icon(Icons.tune),
+                          tooltip: 'Import options',
+                          onPressed: () => _showImportOptions(context),
+                        ),
+                    ],
+                  );
+                },
+              );
+            },
           ),
-          if (hasDives)
-            Builder(
-              builder: (context) {
-                final tabController = DefaultTabController.of(context);
-                final divesIndex = types.indexOf(ImportEntityType.dives);
-                return ListenableBuilder(
-                  listenable: tabController,
-                  builder: (context, _) {
-                    if (tabController.index != divesIndex) {
-                      return const SizedBox.shrink();
-                    }
-                    return ImportTagsField(
-                      tags: state.importTags,
-                      existingTags: existingTags,
-                      onAdd: (tag) => notifier.addImportTag(tag),
-                      onRemove: (index) => notifier.removeImportTag(index),
-                    );
-                  },
-                );
-              },
-            ),
           Expanded(
             child: TabBarView(
               children: [
-                for (final type in types)
+                for (final type in widget.types)
                   _EntityTab(
                     type: type,
-                    bundle: bundle,
-                    state: state,
-                    notifier: notifier,
-                    availableActions: availableActions,
+                    bundle: widget.bundle,
+                    state: widget.state,
+                    notifier: widget.notifier,
+                    availableActions: widget.availableActions,
                     projectedDiveNumbers: type == ImportEntityType.dives
-                        ? projectedDiveNumbers
+                        ? widget.projectedDiveNumbers
                         : null,
                   ),
               ],
@@ -222,15 +269,15 @@ class _MultiTypeLayout extends StatelessWidget {
           ),
           Builder(
             builder: (ctx) => _BottomBar(
-              counts: counts,
-              onImport: onImport,
-              onBack: onBack,
-              hasPendingReviews: state.hasPendingReviews,
-              totalPending: state.totalPending,
+              counts: widget.counts,
+              onImport: widget.onImport,
+              onBack: widget.onBack,
+              hasPendingReviews: widget.state.hasPendingReviews,
+              totalPending: widget.state.totalPending,
               onReviewPending: () {
-                final loc = notifier.firstPendingLocation();
+                final loc = widget.notifier.firstPendingLocation();
                 if (loc == null) return;
-                final tabIdx = types.indexOf(loc.type);
+                final tabIdx = widget.types.indexOf(loc.type);
                 if (tabIdx < 0) return;
                 DefaultTabController.maybeOf(ctx)?.animateTo(tabIdx);
               },

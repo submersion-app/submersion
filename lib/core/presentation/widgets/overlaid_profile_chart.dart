@@ -163,27 +163,24 @@ class _OverlaidProfileChartState extends State<OverlaidProfileChart> {
         // Legend with checkboxes
         Padding(
           padding: const EdgeInsets.only(top: 4),
-          child: Row(
+          child: Wrap(
+            spacing: 12,
+            runSpacing: 4,
             children: [
-              if (widget.existingProfile.isNotEmpty) ...[
+              if (widget.existingProfile.isNotEmpty)
                 _LegendCheckbox(
                   color: _existingColor,
                   label: 'Existing: ${widget.existingLabel ?? "Unknown"}',
                   checked: !existingHidden,
                   onTap: () => _toggleSeries(_existingKey),
                 ),
-              ],
-              if (widget.existingProfile.isNotEmpty &&
-                  widget.incomingProfile.isNotEmpty)
-                const SizedBox(width: 12),
-              if (widget.incomingProfile.isNotEmpty) ...[
+              if (widget.incomingProfile.isNotEmpty)
                 _LegendCheckbox(
                   color: _incomingColor,
                   label: 'Incoming: ${widget.incomingLabel ?? "Unknown"}',
                   checked: !incomingHidden,
                   onTap: () => _toggleSeries(_incomingKey),
                 ),
-              ],
             ],
           ),
         ),
