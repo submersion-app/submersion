@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -711,38 +709,38 @@ void main() {
       await db
           .into(db.diveTanks)
           .insert(
-            DiveTanksCompanion(
-              id: const Value('tank-0'),
-              diveId: const Value('dive-1'),
-              volume: const Value(12.0),
-              workingPressure: const Value(200.0),
-              startPressure: const Value(200.0),
-              endPressure: const Value(50.0),
-              o2Percent: const Value(32.0),
-              hePercent: const Value(0.0),
-              tankOrder: const Value(0),
-              tankName: const Value('My Primary AL80'),
-              presetName: const Value('al80'),
-              tankRole: const Value('backGas'),
-              tankMaterial: const Value('aluminum'),
+            const DiveTanksCompanion(
+              id: Value('tank-0'),
+              diveId: Value('dive-1'),
+              volume: Value(12.0),
+              workingPressure: Value(200.0),
+              startPressure: Value(200.0),
+              endPressure: Value(50.0),
+              o2Percent: Value(32.0),
+              hePercent: Value(0.0),
+              tankOrder: Value(0),
+              tankName: Value('My Primary AL80'),
+              presetName: Value('al80'),
+              tankRole: Value('backGas'),
+              tankMaterial: Value('aluminum'),
             ),
           );
       await db
           .into(db.diveTanks)
           .insert(
-            DiveTanksCompanion(
-              id: const Value('tank-1'),
-              diveId: const Value('dive-1'),
-              volume: const Value(7.0),
-              startPressure: const Value(200.0),
-              endPressure: const Value(150.0),
-              o2Percent: const Value(50.0),
-              hePercent: const Value(0.0),
-              tankOrder: const Value(1),
-              tankName: const Value('Deco Stage'),
-              presetName: const Value('al40'),
-              tankRole: const Value('deco'),
-              tankMaterial: const Value('aluminum'),
+            const DiveTanksCompanion(
+              id: Value('tank-1'),
+              diveId: Value('dive-1'),
+              volume: Value(7.0),
+              startPressure: Value(200.0),
+              endPressure: Value(150.0),
+              o2Percent: Value(50.0),
+              hePercent: Value(0.0),
+              tankOrder: Value(1),
+              tankName: Value('Deco Stage'),
+              presetName: Value('al40'),
+              tankRole: Value('deco'),
+              tankMaterial: Value('aluminum'),
             ),
           );
 
