@@ -16,24 +16,27 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
 
     private static let preferredServiceUUIDs: Set<CBUUID> = [
         CBUUID(string: "CB3C4555-D670-4670-BC20-B61DBC851E9A"),
-        CBUUID(string: "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"),
     ]
 
     private static let preferredWriteUUIDs: Set<CBUUID> = [
         CBUUID(string: "6606AB42-89D5-4A00-A8CE-4EB5E1414EE0"),
-        CBUUID(string: "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"),
     ]
 
     private static let preferredNotifyUUIDs: Set<CBUUID> = [
         CBUUID(string: "A60B8E5C-B267-44D7-9764-837CAF96489E"),
-        CBUUID(string: "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"),
     ]
 
     private static let pelagicGen1TxCharacteristic = CBUUID(
         string: "6606AB42-89D5-4A00-A8CE-4EB5E1414EE0"
     )
-    private static let crestCr5lTxCharacteristic = CBUUID(
+    private static let nordicUartServiceUUID = CBUUID(
+        string: "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
+    )
+    private static let nordicUartServiceRxCharacteristic = CBUUID(
         string: "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
+    )
+    private static let nordicUartServiceNotifyCharacteristic = CBUUID(
+        string: "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
     )
     private static let notifySettleDelaySeconds: TimeInterval = 0.3
     private static let bleIoctlType: UInt32 = UInt32(Character("b").asciiValue!)
@@ -50,6 +53,7 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
     private let centralManager: CBCentralManager
 
     private var writeCharacteristic: CBCharacteristic?
+    // Kept only for the "Discovery ready" log message.
     private var notifyCharacteristic: CBCharacteristic?
     private var subscribedCharacteristics: [CBCharacteristic] = []
     private var bestCandidate: CharacteristicCandidate?
@@ -81,6 +85,11 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
     /// Callback invoked on the main thread when a PIN code is needed.
     /// Set by DiveComputerHostApiImpl before download starts.
     var onPinCodeRequired: ((String) -> Void)?
+
+    private var isLikelyCrestDevice: Bool {
+        let name = peripheral.name?.uppercased() ?? ""
+        return name.hasPrefix("CREST")
+    }
 
     init(peripheral: CBPeripheral, centralManager: CBCentralManager) {
         self.peripheral = peripheral
@@ -298,6 +307,16 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             if partialReadBuffer.isEmpty, !readPackets.isEmpty {
                 partialReadBuffer = readPackets.removeFirst()
             }
+            if partialReadBuffer.count > size {
+                let packetSize = partialReadBuffer.count
+                partialReadBuffer.removeAll(keepingCapacity: true)
+                readLock.unlock()
+                actual.pointee = 0
+                NativeLogger.e("BleIoStream", category: "BLE",
+                    "Received BLE packet larger than requested read size"
+                        + " (packet=\(packetSize) requested=\(size)); dropping packet")
+                return Int32(LIBDC_STATUS_IO)
+            }
             if !partialReadBuffer.isEmpty {
                 let bytesToRead = min(size, partialReadBuffer.count)
                 _ = partialReadBuffer.withUnsafeBytes { ptr in
@@ -443,7 +462,9 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
 
     private func initialWriteWithoutResponsePreference(for characteristic: CBCharacteristic) -> Bool {
         let properties = characteristic.properties
-        if characteristic.uuid == Self.crestCr5lTxCharacteristic {
+        // CR5L needs the NUS path to stay Crest-gated. If we later want to
+        // generalize support for more NUS devices, start by widening this gate.
+        if isLikelyCrestDevice && characteristic.uuid == Self.nordicUartServiceRxCharacteristic {
             return false
         }
         if characteristic.uuid == Self.pelagicGen1TxCharacteristic {
@@ -642,9 +663,16 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             return
         }
         guard subscribedCharacteristics.contains(where: { $0.uuid == characteristic.uuid }) else {
+            NativeLogger.w("BleIoStream", category: "BLE",
+                "Ignoring notify from \(characteristic.uuid.uuidString)"
+                    + " (subscribed count=\(subscribedCharacteristics.count))")
             return
         }
-        guard let value = characteristic.value else { return }
+        guard let value = characteristic.value, !value.isEmpty else {
+            NativeLogger.w("BleIoStream", category: "BLE",
+                "Ignoring empty notify from \(characteristic.uuid.uuidString)")
+            return
+        }
         hasSeenNotify = true
         consecutiveReadTimeouts = 0
         NativeLogger.d("BleIoStream", category: "BLE",
@@ -681,15 +709,21 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         guard waitingForNotifyEnable else { return }
 
         if let error {
+            let pendingCount = subscribedCharacteristics.filter { !$0.isNotifying }.count
             NativeLogger.e("BleIoStream", category: "BLE",
                 "Failed enabling notify for \(characteristic.uuid.uuidString):"
-                    + " \(error.localizedDescription)")
+                    + " \(error.localizedDescription)"
+                    + " (pending=\(pendingCount))")
+            waitingForNotifyEnable = false
             signalDiscoveryReady()
             return
         }
         if !characteristic.isNotifying {
+            let pendingCount = subscribedCharacteristics.filter { !$0.isNotifying }.count
             NativeLogger.w("BleIoStream", category: "BLE",
-                "Notify not active for \(characteristic.uuid.uuidString)")
+                "Notify not active for \(characteristic.uuid.uuidString)"
+                    + " (pending=\(pendingCount))")
+            waitingForNotifyEnable = false
             signalDiscoveryReady()
             return
         }
@@ -720,6 +754,9 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                 if props.contains(.writeWithoutResponse) { writeScore += 4 }
                 if props.contains(.write) { writeScore += 2 }
                 if Self.preferredWriteUUIDs.contains(characteristic.uuid) { writeScore += 1000 }
+                if isLikelyCrestDevice && characteristic.uuid == Self.nordicUartServiceRxCharacteristic {
+                    writeScore += 1000
+                }
                 if bestWrite == nil || writeScore > bestWrite!.score {
                     bestWrite = (characteristic, writeScore)
                 }
@@ -730,6 +767,11 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                 if props.contains(.notify) { notifyScore += 4 }
                 if props.contains(.indicate) { notifyScore += 2 }
                 if Self.preferredNotifyUUIDs.contains(characteristic.uuid) { notifyScore += 1000 }
+                if isLikelyCrestDevice &&
+                    characteristic.uuid == Self.nordicUartServiceNotifyCharacteristic
+                {
+                    notifyScore += 1000
+                }
                 if bestNotify == nil || notifyScore > bestNotify!.score {
                     bestNotify = (characteristic, notifyScore)
                 }
@@ -742,6 +784,9 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
 
         var serviceScore = write.score + notify.score
         if Self.preferredServiceUUIDs.contains(service.uuid) {
+            serviceScore += 1000
+        }
+        if isLikelyCrestDevice && service.uuid == Self.nordicUartServiceUUID {
             serviceScore += 1000
         }
 
@@ -767,12 +812,28 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         writeCharacteristic = candidate.write
         notifyCharacteristic = candidate.notify
         let serviceCharacteristics = candidate.write.service?.characteristics ?? []
-        if candidate.write.uuid == Self.crestCr5lTxCharacteristic {
+        if isLikelyCrestDevice && candidate.write.uuid == Self.nordicUartServiceRxCharacteristic {
             subscribedCharacteristics = serviceCharacteristics.filter {
                 $0.properties.contains(.notify) || $0.properties.contains(.indicate)
             }
             if subscribedCharacteristics.isEmpty {
+                let writeService = candidate.write.service?.uuid.uuidString ?? "nil"
+                let notifyService = candidate.notify.service?.uuid.uuidString ?? "nil"
+                NativeLogger.w("BleIoStream", category: "BLE",
+                    "NUS write characteristic found but no notify/indicate characteristics"
+                        + " on its service (writeService=\(writeService));"
+                        + " falling back to candidate.notify=\(candidate.notify.uuid.uuidString)"
+                        + " (notifyService=\(notifyService))")
                 subscribedCharacteristics = [candidate.notify]
+            }
+            if candidate.notify.service !== candidate.write.service {
+                let writeService = candidate.write.service?.uuid.uuidString ?? "nil"
+                let notifyService = candidate.notify.service?.uuid.uuidString ?? "nil"
+                NativeLogger.w("BleIoStream", category: "BLE",
+                    "Selected write/notify characteristics from different services"
+                        + " for Crest/NUS path"
+                        + " (writeService=\(writeService)"
+                        + " notifyService=\(notifyService))")
             }
         } else {
             subscribedCharacteristics = [candidate.notify]
