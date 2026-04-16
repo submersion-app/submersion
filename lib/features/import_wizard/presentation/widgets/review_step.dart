@@ -156,44 +156,9 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
   void _showImportOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      builder: (sheetContext) => Consumer(
-        builder: (context, ref, _) {
-          final state = ref.watch(importWizardNotifierProvider);
-          final notifier = ref.read(importWizardNotifierProvider.notifier);
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Import Options',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SwitchListTile(
-                  title: const Text('Retain source dive numbers'),
-                  subtitle: const Text(
-                    'Use dive numbers from the imported file instead of auto-assigning',
-                  ),
-                  value: state.retainSourceDiveNumbers,
-                  onChanged: (value) =>
-                      notifier.setRetainSourceDiveNumbers(value),
-                ),
-                const Divider(),
-                ImportTagsField(
-                  tags: state.importTags,
-                  existingTags: widget.existingTags,
-                  onAdd: (tag) => notifier.addImportTag(tag),
-                  onRemove: (index) => notifier.removeImportTag(index),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          );
-        },
+      builder: (_) => _ImportOptionsSheet(
+        notifier: widget.notifier,
+        existingTags: widget.existingTags,
       ),
     );
   }
@@ -622,5 +587,85 @@ class _AggregateCounts {
     return result.isProbable
         ? DuplicateAction.skip
         : DuplicateAction.importAsNew;
+  }
+}
+
+/// Bottom sheet content for import options (retain dive numbers + tags).
+///
+/// Uses [StateNotifier.addListener] to reactively rebuild when the notifier's
+/// state changes, avoiding the need for a [ProviderScope] in the overlay tree.
+class _ImportOptionsSheet extends StatefulWidget {
+  final ImportWizardNotifier notifier;
+  final List<Tag> existingTags;
+
+  const _ImportOptionsSheet({
+    required this.notifier,
+    required this.existingTags,
+  });
+
+  @override
+  State<_ImportOptionsSheet> createState() => _ImportOptionsSheetState();
+}
+
+class _ImportOptionsSheetState extends State<_ImportOptionsSheet> {
+  ImportWizardState? _currentState;
+  late final Function() _removeListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _removeListener = widget.notifier.addListener((state) {
+      if (mounted) {
+        setState(() => _currentState = state);
+      } else {
+        _currentState = state;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _removeListener();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = _currentState;
+    if (state == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Import Options',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          SwitchListTile(
+            title: const Text('Retain source dive numbers'),
+            subtitle: const Text(
+              'Use dive numbers from the imported file instead of auto-assigning',
+            ),
+            value: state.retainSourceDiveNumbers,
+            onChanged: (value) =>
+                widget.notifier.setRetainSourceDiveNumbers(value),
+          ),
+          const Divider(),
+          ImportTagsField(
+            tags: state.importTags,
+            existingTags: widget.existingTags,
+            onAdd: (tag) => widget.notifier.addImportTag(tag),
+            onRemove: (index) => widget.notifier.removeImportTag(index),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
   }
 }
