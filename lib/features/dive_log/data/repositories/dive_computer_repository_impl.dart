@@ -762,14 +762,30 @@ class DiveComputerRepository {
     }
   }
 
-  /// Remove existing profiles and data source rows for a dive+computer pair.
+  /// Remove existing profiles, derived rows, and data source for a
+  /// dive+computer pair.
   ///
   /// Used by the replaceSource path so that a subsequent [importProfile] call
-  /// inserts fresh data instead of short-circuiting.
+  /// inserts fresh data instead of short-circuiting. Also clears per-dive
+  /// derived tables (events, gas switches, tank pressure profiles) that lack
+  /// a computer_id column and would otherwise accumulate stale rows.
   Future<void> clearSourceAndProfiles({
     required String diveId,
     required String computerId,
   }) async {
+    // Delete per-dive derived rows that importProfile will re-create.
+    // These tables lack a computer_id column, so we clear by dive_id.
+    await _db.customStatement(
+      'DELETE FROM dive_profile_events WHERE dive_id = ?',
+      [diveId],
+    );
+    await _db.customStatement(
+      'DELETE FROM tank_pressure_profiles WHERE dive_id = ?',
+      [diveId],
+    );
+    await _db.customStatement('DELETE FROM gas_switches WHERE dive_id = ?', [
+      diveId,
+    ]);
     // Delete profile points for this computer+dive
     await _db.customStatement(
       'DELETE FROM dive_profiles WHERE dive_id = ? AND computer_id = ?',
