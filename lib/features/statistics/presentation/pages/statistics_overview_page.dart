@@ -54,6 +54,8 @@ class _OverviewBody extends ConsumerWidget {
                 const _InlineError(message: 'Records unavailable'),
             data: (records) => _RecordsSection(records: records, fmt: fmt),
           ),
+          const SizedBox(height: 16),
+          _TopSitesSection(sites: stats.topSites),
         ],
       ),
     );
@@ -280,6 +282,44 @@ class _InlineError extends StatelessWidget {
       child: Text(
         message,
         style: TextStyle(color: Theme.of(context).colorScheme.error),
+      ),
+    );
+  }
+}
+
+class _TopSitesSection extends StatelessWidget {
+  final List<TopSiteStat> sites;
+  const _TopSitesSection({required this.sites});
+
+  @override
+  Widget build(BuildContext context) {
+    if (sites.isEmpty) return const SizedBox.shrink();
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              child: Text(
+                'Most Visited Sites',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+            for (final site in sites.take(5))
+              ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text(site.siteName),
+                subtitle: Text('${site.diveCount} dives'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/sites/${site.siteId}'),
+              ),
+          ],
+        ),
       ),
     );
   }

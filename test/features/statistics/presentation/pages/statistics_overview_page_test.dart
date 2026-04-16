@@ -464,4 +464,143 @@ void main() {
       expect(navigatedTo, equals('/dives/dive-xyz'));
     });
   });
+
+  group('StatisticsOverviewPage Most Visited Sites', () {
+    late SharedPreferences prefs;
+
+    setUpAll(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+    });
+
+    testWidgets('renders top sites from stats.topSites', (tester) async {
+      final stats = DiveStatistics(
+        totalDives: 20,
+        totalTimeSeconds: 36000,
+        maxDepth: 30.0,
+        avgMaxDepth: 18.0,
+        totalSites: 3,
+        firstDiveDate: DateTime.now().subtract(const Duration(days: 365)),
+        topSites: [
+          TopSiteStat(siteId: 'site-1', siteName: 'Blue Hole', diveCount: 10),
+          TopSiteStat(siteId: 'site-2', siteName: 'Coral Garden', diveCount: 7),
+          TopSiteStat(siteId: 'site-3', siteName: 'The Wall', diveCount: 3),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: StatisticsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Most Visited Sites'), findsOneWidget);
+      expect(find.text('Blue Hole'), findsOneWidget);
+      expect(find.text('Coral Garden'), findsOneWidget);
+      expect(find.text('The Wall'), findsOneWidget);
+    });
+
+    testWidgets('hides section when topSites is empty', (tester) async {
+      final stats = DiveStatistics(
+        totalDives: 5,
+        totalTimeSeconds: 9000,
+        maxDepth: 20.0,
+        avgMaxDepth: 15.0,
+        totalSites: 0,
+        topSites: const [],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: StatisticsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Most Visited Sites'), findsNothing);
+    });
+
+    testWidgets('tapping a site navigates to site detail', (tester) async {
+      final stats = DiveStatistics(
+        totalDives: 10,
+        totalTimeSeconds: 18000,
+        maxDepth: 25.0,
+        avgMaxDepth: 15.0,
+        totalSites: 1,
+        topSites: [
+          TopSiteStat(
+            siteId: 'site-abc',
+            siteName: 'Mystery Cave',
+            diveCount: 10,
+          ),
+        ],
+      );
+
+      String? navigatedTo;
+      final router = GoRouter(
+        initialLocation: '/statistics/overview',
+        routes: [
+          GoRoute(
+            path: '/statistics/overview',
+            builder: (ctx, s) => const StatisticsOverviewPage(embedded: true),
+          ),
+          GoRoute(
+            path: '/sites/:siteId',
+            builder: (ctx, state) {
+              navigatedTo = '/sites/${state.pathParameters['siteId']}';
+              return const Scaffold(body: Text('Site Detail'));
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Mystery Cave'));
+      await tester.pumpAndSettle();
+
+      expect(navigatedTo, equals('/sites/site-abc'));
+    });
+  });
 }
