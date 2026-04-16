@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/l10n/l10n_extension.dart';
 
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -308,6 +311,37 @@ class DeviceDetailPage extends ConsumerWidget {
                 label: Text(context.l10n.diveComputer_detail_reimportAllButton),
               ),
             ],
+            Consumer(
+              builder: (context, ref, _) {
+                final counts = ref.watch(rawDataCountProvider(computer.id));
+                return counts.when(
+                  data: (c) {
+                    if (c.withRawData == 0) return const SizedBox.shrink();
+                    return Column(
+                      children: [
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: () =>
+                              _confirmReparseAll(context, ref, computer, c),
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Re-parse all dives'),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            '${c.withRawData} dives with raw data'
+                            '${c.withoutRawData > 0 ? ' (${c.withoutRawData} without)' : ''}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (err, stack) => const SizedBox.shrink(),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -389,6 +423,103 @@ class DeviceDetailPage extends ConsumerWidget {
     if (confirmed == true && context.mounted) {
       context.push('/dive-computers/${computer.id}/download?forceFull=true');
     }
+  }
+
+  Future<void> _confirmReparseAll(
+    BuildContext context,
+    WidgetRef ref,
+    DiveComputer computer,
+    ({int withRawData, int withoutRawData}) counts,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Re-parse all dives'),
+        content: Text(
+          'Re-run the dive parser on ${counts.withRawData} dives that have '
+          'stored raw data. This updates profile and sensor data but preserves '
+          'your notes, sites, buddies, and other edits.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Re-parse'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await _executeReparseAll(context, ref, computer.id);
+    }
+  }
+
+  Future<void> _executeReparseAll(
+    BuildContext context,
+    WidgetRef ref,
+    String computerId,
+  ) async {
+    final service = ref.read(reparseServiceProvider);
+    final db = DatabaseService.instance.database;
+
+    final sources =
+        await (db.select(db.diveDataSources)
+              ..where((t) => t.computerId.equals(computerId))
+              ..where((t) => t.rawData.isNotNull()))
+            .get();
+
+    if (sources.isEmpty) return;
+
+    int succeeded = 0;
+    int failed = 0;
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Re-parsing ${sources.length} dives...')),
+      );
+    }
+
+    for (final source in sources) {
+      try {
+        final parsed = await pigeon.DiveComputerHostApi().parseRawDiveData(
+          source.descriptorVendor!,
+          source.descriptorProduct!,
+          source.descriptorModel!,
+          source.rawData!,
+        );
+        await service.applyParsedUpdate(
+          diveId: source.diveId,
+          sourceRowId: source.id,
+          parsed: parsed,
+          descriptorVendor: source.descriptorVendor,
+          descriptorProduct: source.descriptorProduct,
+          descriptorModel: source.descriptorModel,
+          libdivecomputerVersion: source.libdivecomputerVersion,
+        );
+        succeeded++;
+      } catch (e) {
+        failed++;
+      }
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            failed == 0
+                ? 'Re-parsed $succeeded dives successfully'
+                : 'Re-parsed $succeeded of ${succeeded + failed} dives. $failed failed.',
+          ),
+        ),
+      );
+    }
+
+    ref.invalidate(rawDataCountProvider(computerId));
   }
 
   void _handleMenuAction(
