@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// ignore: implementation_imports
-import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
@@ -19,8 +17,6 @@ import 'package:submersion/features/statistics/data/repositories/statistics_repo
 import 'package:submersion/features/statistics/presentation/pages/statistics_overview_page.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-
-typedef Override = riverpod.Override;
 
 /// Mock SettingsNotifier that does not access the database.
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
@@ -334,6 +330,8 @@ void main() {
         ProviderScope(
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => fixture),
+            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
             currentDiverIdProvider.overrideWith(
@@ -396,6 +394,7 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             diveRecordsProvider.overrideWith((ref) async => records),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
             currentDiverIdProvider.overrideWith(
@@ -570,6 +569,7 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
             currentDiverIdProvider.overrideWith(
@@ -606,6 +606,7 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
             currentDiverIdProvider.overrideWith(
@@ -778,6 +779,7 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
             currentDiverIdProvider.overrideWith(

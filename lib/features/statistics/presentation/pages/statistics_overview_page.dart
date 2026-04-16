@@ -65,10 +65,8 @@ class _OverviewBody extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           _TopSitesSection(sites: stats.topSites),
-          if (stats.totalDives > 0) ...[
-            const SizedBox(height: 16),
-            _DistributionsSection(stats: stats, fmt: fmt),
-          ],
+          const SizedBox(height: 16),
+          _DistributionsSection(stats: stats, fmt: fmt),
         ],
       ),
     );
@@ -286,7 +284,11 @@ class _RecordsSection extends StatelessWidget {
     ].whereType<String>().toSet();
 
     if (allRecordIds.length == 1) {
-      final record = records.deepestDive ?? records.longestDive!;
+      final record =
+          records.deepestDive ??
+          records.longestDive ??
+          records.coldestDive ??
+          records.warmestDive!;
       return Card(
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -519,56 +521,49 @@ class _DistributionsSection extends ConsumerWidget {
       fmt: fmt,
     );
 
-    return diveTypesAsync.when(
-      loading: () => depthChart,
-      error: (_, _) => depthChart,
-      data: (diveTypes) {
-        final typeChart = _TypePieCard(diveTypes: diveTypes);
-        final wide = MediaQuery.of(context).size.width >= 600;
+    final typeChart = diveTypesAsync.when(
+      loading: () => const SizedBox(
+        height: 160,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (diveTypes) => _TypePieCard(diveTypes: diveTypes),
+    );
 
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 4,
-                  ),
-                  child: Text(
-                    'Distributions',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                if (wide)
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: depthChart),
-                        const SizedBox(width: 8),
-                        Expanded(child: typeChart),
-                      ],
-                    ),
-                  )
-                else
-                  Column(
-                    children: [
-                      depthChart,
-                      const SizedBox(height: 8),
-                      typeChart,
-                    ],
-                  ),
-              ],
+    final wide = MediaQuery.of(context).size.width >= 600;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              child: Text(
+                'Distributions',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-        );
-      },
+            const SizedBox(height: 8),
+            if (wide)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: depthChart),
+                  const SizedBox(width: 8),
+                  Expanded(child: typeChart),
+                ],
+              )
+            else
+              Column(
+                children: [depthChart, const SizedBox(height: 8), typeChart],
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
