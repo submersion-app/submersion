@@ -382,7 +382,14 @@ void main() {
         maxDepth: 35.0,
         bottomTime: const Duration(minutes: 40),
       );
-      final records = DiveRecords(deepestDive: deepest, longestDive: deepest);
+      final longest = DiveRecord(
+        diveId: 'd2',
+        diveNumber: 3,
+        dateTime: DateTime(2025, 2, 15),
+        maxDepth: 20.0,
+        bottomTime: const Duration(minutes: 60),
+      );
+      final records = DiveRecords(deepestDive: deepest, longestDive: longest);
 
       await tester.pumpWidget(
         ProviderScope(
@@ -409,22 +416,85 @@ void main() {
       expect(find.text('Longest Dive'), findsOneWidget);
     });
 
-    testWidgets('tapping a record navigates to dive detail', (tester) async {
+    testWidgets('collapses to First Dive when all records are the same dive', (
+      tester,
+    ) async {
       final stats = DiveStatistics(
         totalDives: 1,
-        totalTimeSeconds: 3000,
-        maxDepth: 20,
-        avgMaxDepth: 20,
+        totalTimeSeconds: 2400,
+        maxDepth: 15.0,
+        avgMaxDepth: 15.0,
         totalSites: 1,
+      );
+      final singleDive = DiveRecord(
+        diveId: 'only-dive',
+        diveNumber: 1,
+        dateTime: DateTime(2025, 6, 1),
+        maxDepth: 15.0,
+        bottomTime: const Duration(minutes: 40),
+        waterTemp: 22.0,
+      );
+      // All four record slots point to the same dive.
+      final records = DiveRecords(
+        deepestDive: singleDive,
+        longestDive: singleDive,
+        coldestDive: singleDive,
+        warmestDive: singleDive,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            diveRecordsProvider.overrideWith((ref) async => records),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: StatisticsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Personal Records'), findsOneWidget);
+      expect(find.text('First Dive'), findsOneWidget);
+      expect(find.text('Deepest Dive'), findsNothing);
+      expect(find.text('Longest Dive'), findsNothing);
+      expect(find.text('Coldest Dive'), findsNothing);
+      expect(find.text('Warmest Dive'), findsNothing);
+    });
+
+    testWidgets('tapping a record navigates to dive detail', (tester) async {
+      final stats = DiveStatistics(
+        totalDives: 2,
+        totalTimeSeconds: 6000,
+        maxDepth: 20,
+        avgMaxDepth: 18,
+        totalSites: 1,
+        firstDiveDate: DateTime.now().subtract(const Duration(days: 60)),
       );
       final deepest = DiveRecord(
         diveId: 'dive-xyz',
-        diveNumber: 1,
+        diveNumber: 2,
         dateTime: DateTime(2025, 3, 1),
         maxDepth: 20,
         bottomTime: const Duration(seconds: 3000),
       );
-      final records = DiveRecords(deepestDive: deepest);
+      final longest = DiveRecord(
+        diveId: 'dive-abc',
+        diveNumber: 1,
+        dateTime: DateTime(2025, 2, 1),
+        maxDepth: 16,
+        bottomTime: const Duration(seconds: 3600),
+      );
+      final records = DiveRecords(deepestDive: deepest, longestDive: longest);
 
       String? navigatedTo;
       final router = GoRouter(

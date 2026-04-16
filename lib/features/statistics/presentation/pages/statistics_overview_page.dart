@@ -67,7 +67,7 @@ class _OverviewBody extends ConsumerWidget {
           _TopSitesSection(sites: stats.topSites),
           if (stats.totalDives > 0) ...[
             const SizedBox(height: 16),
-            _DistributionsSection(stats: stats),
+            _DistributionsSection(stats: stats, fmt: fmt),
           ],
         ],
       ),
@@ -225,6 +225,43 @@ class _RecordsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Single-dive collapse: if all records point to the same dive, show one row.
+    final allRecordIds = [
+      records.deepestDive?.diveId,
+      records.longestDive?.diveId,
+      records.coldestDive?.diveId,
+      records.warmestDive?.diveId,
+    ].whereType<String>().toSet();
+
+    if (allRecordIds.length == 1) {
+      final record = records.deepestDive ?? records.longestDive!;
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                child: Text(
+                  'Personal Records',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              _RecordTile(
+                label: 'First Dive',
+                value: fmt.formatDepth(record.maxDepth),
+                subtitle: fmt.formatDate(record.dateTime),
+                onTap: () => context.push('/dives/${record.diveId}'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final rows = <Widget>[];
     if (records.deepestDive != null) {
       rows.add(
@@ -395,12 +432,11 @@ const _typeColors = [
 
 class _DistributionsSection extends ConsumerWidget {
   final DiveStatistics stats;
-  const _DistributionsSection({required this.stats});
+  final UnitFormatter fmt;
+  const _DistributionsSection({required this.stats, required this.fmt});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final fmt = UnitFormatter(settings);
     final diveTypesAsync = ref.watch(diveTypeDistributionProvider);
 
     final depthChart = _DepthPieCard(
@@ -522,47 +558,56 @@ class _DepthPieCard extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: List.generate(depthDistribution.length, (
-                          index,
-                        ) {
-                          final data = depthDistribution[index];
-                          final minDisplay = fmt
-                              .convertDepth(data.minDepth.toDouble())
-                              .round();
-                          final maxDisplay = fmt
-                              .convertDepth(data.maxDepth.toDouble())
-                              .round();
-                          final label = data.maxDepth >= 100
-                              ? '$minDisplay${fmt.depthSymbol}+'
-                              : '$minDisplay-$maxDisplay${fmt.depthSymbol}';
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 2),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color:
-                                        _depthColors[index %
-                                            _depthColors.length],
-                                    borderRadius: BorderRadius.circular(2),
+                        children: () {
+                          final nonEmptyEntries = <(int, DepthRangeStat)>[];
+                          for (var i = 0; i < depthDistribution.length; i++) {
+                            if (depthDistribution[i].count > 0) {
+                              nonEmptyEntries.add((i, depthDistribution[i]));
+                            }
+                          }
+                          return nonEmptyEntries.map((
+                            (int, DepthRangeStat) entry,
+                          ) {
+                            final index = entry.$1;
+                            final data = entry.$2;
+                            final minDisplay = fmt
+                                .convertDepth(data.minDepth.toDouble())
+                                .round();
+                            final maxDisplay = fmt
+                                .convertDepth(data.maxDepth.toDouble())
+                                .round();
+                            final label = data.maxDepth >= 100
+                                ? '$minDisplay${fmt.depthSymbol}+'
+                                : '$minDisplay-$maxDisplay${fmt.depthSymbol}';
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          _depthColors[index %
+                                              _depthColors.length],
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(
-                                    label,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                    overflow: TextOverflow.ellipsis,
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      label,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
+                                ],
+                              ),
+                            );
+                          }).toList();
+                        }(),
                       ),
                     ),
                   ],

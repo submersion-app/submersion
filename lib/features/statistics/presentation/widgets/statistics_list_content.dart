@@ -113,7 +113,12 @@ class StatisticsListContent extends StatelessWidget {
     final listContent = ListView.separated(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: statisticsCategoriesOf(context).length,
-      separatorBuilder: (context, index) => const Divider(height: 1),
+      separatorBuilder: (context, index) {
+        if (index == 0) {
+          return const Divider(height: 16, thickness: 1);
+        }
+        return const Divider(height: 1);
+      },
       itemBuilder: (context, index) {
         final category = statisticsCategoriesOf(context)[index];
         final isSelected = selectedId == category.id;
