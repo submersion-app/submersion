@@ -1639,7 +1639,8 @@ class DiveRepository {
         MAX(max_depth) as max_depth,
         AVG(max_depth) as avg_max_depth,
         AVG(water_temp) as avg_temp,
-        COUNT(DISTINCT site_id) as total_sites
+        COUNT(DISTINCT site_id) as total_sites,
+        MIN(dive_date_time) as first_dive_date
       FROM dives
       $whereClause
     ''', variables: vars).getSingle();
@@ -1741,6 +1742,11 @@ class DiveRepository {
           )
           .toList();
 
+      final firstDiveEpochMs = stats.data['first_dive_date'] as int?;
+      final firstDiveDate = firstDiveEpochMs == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(firstDiveEpochMs);
+
       return DiveStatistics(
         totalDives: stats.data['total_dives'] as int? ?? 0,
         totalTimeSeconds: stats.data['total_time'] as int? ?? 0,
@@ -1748,6 +1754,7 @@ class DiveRepository {
         avgMaxDepth: stats.data['avg_max_depth'] as double? ?? 0,
         avgTemperature: stats.data['avg_temp'] as double?,
         totalSites: stats.data['total_sites'] as int? ?? 0,
+        firstDiveDate: firstDiveDate,
         divesByMonth: divesByMonth,
         depthDistribution: depthDistribution,
         topSites: topSites,
@@ -3945,6 +3952,7 @@ class DiveStatistics {
   final double avgMaxDepth;
   final double? avgTemperature;
   final int totalSites;
+  final DateTime? firstDiveDate;
   final List<MonthlyDiveCount> divesByMonth;
   final List<DepthRangeStat> depthDistribution;
   final List<TopSiteStat> topSites;
@@ -3956,6 +3964,7 @@ class DiveStatistics {
     required this.avgMaxDepth,
     this.avgTemperature,
     required this.totalSites,
+    this.firstDiveDate,
     this.divesByMonth = const [],
     this.depthDistribution = const [],
     this.topSites = const [],
