@@ -172,6 +172,108 @@ class ReparseService {
     )..where((t) => t.diveId.equals(diveId) & t.rawData.isNotNull())).get();
   }
 
+  /// Re-parse all sources with raw data for a given computer.
+  ///
+  /// [parseFn] is the function that calls the native Pigeon API to parse raw
+  /// bytes. Accepting it as a parameter makes this method testable without
+  /// requiring a live native bridge.
+  ///
+  /// Returns a record with the count of succeeded and failed re-parses.
+  Future<({int succeeded, int failed})> reparseAllForComputer(
+    String computerId, {
+    required Future<pigeon.ParsedDive> Function(
+      String vendor,
+      String product,
+      int model,
+      Uint8List rawData,
+    )
+    parseFn,
+  }) async {
+    final sources = await getSourcesForComputerReparse(computerId);
+
+    int succeeded = 0;
+    int failed = 0;
+
+    for (final source in sources) {
+      if (source.descriptorVendor == null ||
+          source.descriptorProduct == null ||
+          source.descriptorModel == null) {
+        failed++;
+        continue;
+      }
+      try {
+        final parsed = await parseFn(
+          source.descriptorVendor!,
+          source.descriptorProduct!,
+          source.descriptorModel!,
+          source.rawData!,
+        );
+        await applyParsedUpdate(
+          diveId: source.diveId,
+          sourceRowId: source.id,
+          parsed: parsed,
+          descriptorVendor: source.descriptorVendor,
+          descriptorProduct: source.descriptorProduct,
+          descriptorModel: source.descriptorModel,
+          libdivecomputerVersion: source.libdivecomputerVersion,
+        );
+        succeeded++;
+      } catch (e) {
+        failed++;
+      }
+    }
+
+    return (succeeded: succeeded, failed: failed);
+  }
+
+  /// Re-parse all sources with raw data for a single dive.
+  ///
+  /// [parseFn] is the function that calls the native Pigeon API.
+  ///
+  /// Returns a list of error messages (empty on full success).
+  Future<List<String>> reparseDive(
+    String diveId, {
+    required Future<pigeon.ParsedDive> Function(
+      String vendor,
+      String product,
+      int model,
+      Uint8List rawData,
+    )
+    parseFn,
+  }) async {
+    final sources = await getSourcesForDiveReparse(diveId);
+    final errors = <String>[];
+
+    for (final source in sources) {
+      if (source.descriptorVendor == null ||
+          source.descriptorProduct == null ||
+          source.descriptorModel == null) {
+        continue;
+      }
+      try {
+        final parsed = await parseFn(
+          source.descriptorVendor!,
+          source.descriptorProduct!,
+          source.descriptorModel!,
+          source.rawData!,
+        );
+        await applyParsedUpdate(
+          diveId: diveId,
+          sourceRowId: source.id,
+          parsed: parsed,
+          descriptorVendor: source.descriptorVendor,
+          descriptorProduct: source.descriptorProduct,
+          descriptorModel: source.descriptorModel,
+          libdivecomputerVersion: source.libdivecomputerVersion,
+        );
+      } catch (e) {
+        errors.add(e.toString());
+      }
+    }
+
+    return errors;
+  }
+
   // ==========================================================================
   // Private helpers
   // ==========================================================================

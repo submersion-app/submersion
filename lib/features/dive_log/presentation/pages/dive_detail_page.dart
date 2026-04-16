@@ -4608,38 +4608,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final service = ref.read(reparseServiceProvider);
     final l10n = context.l10n;
 
-    final sources = await service.getSourcesForDiveReparse(dive.id);
-
-    if (sources.isEmpty) return;
-
-    final errors = <String>[];
-
-    for (final source in sources) {
-      if (source.descriptorVendor == null ||
-          source.descriptorProduct == null ||
-          source.descriptorModel == null) {
-        continue;
-      }
-      try {
-        final parsed = await pigeon.DiveComputerHostApi().parseRawDiveData(
-          source.descriptorVendor!,
-          source.descriptorProduct!,
-          source.descriptorModel!,
-          source.rawData!,
-        );
-        await service.applyParsedUpdate(
-          diveId: dive.id,
-          sourceRowId: source.id,
-          parsed: parsed,
-          descriptorVendor: source.descriptorVendor,
-          descriptorProduct: source.descriptorProduct,
-          descriptorModel: source.descriptorModel,
-          libdivecomputerVersion: source.libdivecomputerVersion,
-        );
-      } catch (e) {
-        errors.add(e.toString());
-      }
-    }
+    final errors = await service.reparseDive(
+      dive.id,
+      parseFn: pigeon.DiveComputerHostApi().parseRawDiveData,
+    );
 
     if (context.mounted) {
       if (errors.isEmpty) {

@@ -1481,4 +1481,351 @@ void main() {
       },
     );
   });
+
+  // ---------------------------------------------------------------------------
+  // reparseAllForComputer
+  // ---------------------------------------------------------------------------
+
+  group('ReparseService.reparseAllForComputer', () {
+    Future<pigeon.ParsedDive> fakeParseFn(
+      String vendor,
+      String product,
+      int model,
+      Uint8List rawData,
+    ) async {
+      return makeParsedDive();
+    }
+
+    Future<void> insertSourceWithRawData({
+      required String id,
+      required String diveId,
+      required String computerId,
+      bool isPrimary = true,
+      String? descriptorVendor = 'Shearwater',
+      String? descriptorProduct = 'Perdix',
+      int? descriptorModel = 42,
+    }) async {
+      final now = DateTime.fromMillisecondsSinceEpoch(nowMs);
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: Value(id),
+              diveId: Value(diveId),
+              computerId: Value(computerId),
+              isPrimary: Value(isPrimary),
+              sourceFormat: const Value('dive_computer'),
+              rawData: Value(Uint8List.fromList([1, 2, 3])),
+              descriptorVendor: Value(descriptorVendor),
+              descriptorProduct: Value(descriptorProduct),
+              descriptorModel: Value(descriptorModel),
+              importedAt: Value(now),
+              createdAt: Value(now),
+            ),
+          );
+    }
+
+    test(
+      'successfully re-parses all sources with raw data for a computer',
+      () async {
+        await insertComputer('comp-1');
+        await insertDive('dive-1');
+        await insertDive('dive-2');
+        await insertSourceWithRawData(
+          id: 'src-1',
+          diveId: 'dive-1',
+          computerId: 'comp-1',
+        );
+        await insertSourceWithRawData(
+          id: 'src-2',
+          diveId: 'dive-2',
+          computerId: 'comp-1',
+        );
+
+        final result = await service.reparseAllForComputer(
+          'comp-1',
+          parseFn: fakeParseFn,
+        );
+
+        expect(result.succeeded, 2);
+        expect(result.failed, 0);
+      },
+    );
+
+    test('sources without descriptor fields are counted as failed', () async {
+      await insertComputer('comp-1');
+      await insertDive('dive-1');
+      await insertSourceWithRawData(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+      );
+
+      final result = await service.reparseAllForComputer(
+        'comp-1',
+        parseFn: fakeParseFn,
+      );
+
+      expect(result.succeeded, 0);
+      expect(result.failed, 1);
+    });
+
+    test('parseFn throwing an exception counts as failed', () async {
+      await insertComputer('comp-1');
+      await insertDive('dive-1');
+      await insertSourceWithRawData(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+      );
+
+      final result = await service.reparseAllForComputer(
+        'comp-1',
+        parseFn: (vendor, product, model, rawData) async {
+          throw Exception('native bridge error');
+        },
+      );
+
+      expect(result.succeeded, 0);
+      expect(result.failed, 1);
+    });
+
+    test('mixed results: some succeed, some fail', () async {
+      await insertComputer('comp-1');
+      await insertDive('dive-1');
+      await insertDive('dive-2');
+      await insertDive('dive-3');
+
+      // Source with valid descriptors -- will succeed
+      await insertSourceWithRawData(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+      );
+      // Source missing descriptors -- will fail
+      await insertSourceWithRawData(
+        id: 'src-2',
+        diveId: 'dive-2',
+        computerId: 'comp-1',
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+      );
+      // Source with valid descriptors but parseFn will throw
+      await insertSourceWithRawData(
+        id: 'src-3',
+        diveId: 'dive-3',
+        computerId: 'comp-1',
+        descriptorVendor: 'Suunto',
+        descriptorProduct: 'EON Core',
+        descriptorModel: 99,
+      );
+
+      final result = await service.reparseAllForComputer(
+        'comp-1',
+        parseFn: (vendor, product, model, rawData) async {
+          if (vendor == 'Suunto') {
+            throw Exception('parse failure');
+          }
+          return makeParsedDive();
+        },
+      );
+
+      expect(result.succeeded, 1);
+      expect(result.failed, 2);
+    });
+
+    test(
+      'returns (succeeded: 0, failed: 0) when no sources have raw data',
+      () async {
+        await insertComputer('comp-1');
+        await insertDive('dive-1');
+
+        // Source without rawData
+        final now = DateTime.fromMillisecondsSinceEpoch(nowMs);
+        await db
+            .into(db.diveDataSources)
+            .insert(
+              DiveDataSourcesCompanion(
+                id: const Value('src-1'),
+                diveId: const Value('dive-1'),
+                computerId: const Value('comp-1'),
+                isPrimary: const Value(true),
+                importedAt: Value(now),
+                createdAt: Value(now),
+              ),
+            );
+
+        final result = await service.reparseAllForComputer(
+          'comp-1',
+          parseFn: fakeParseFn,
+        );
+
+        expect(result.succeeded, 0);
+        expect(result.failed, 0);
+      },
+    );
+  });
+
+  // ---------------------------------------------------------------------------
+  // reparseDive
+  // ---------------------------------------------------------------------------
+
+  group('ReparseService.reparseDive', () {
+    Future<pigeon.ParsedDive> fakeParseFn(
+      String vendor,
+      String product,
+      int model,
+      Uint8List rawData,
+    ) async {
+      return makeParsedDive();
+    }
+
+    Future<void> insertSourceWithRawData({
+      required String id,
+      required String diveId,
+      String? computerId,
+      bool isPrimary = true,
+      String? descriptorVendor = 'Shearwater',
+      String? descriptorProduct = 'Perdix',
+      int? descriptorModel = 42,
+    }) async {
+      final now = DateTime.fromMillisecondsSinceEpoch(nowMs);
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: Value(id),
+              diveId: Value(diveId),
+              computerId: Value(computerId),
+              isPrimary: Value(isPrimary),
+              sourceFormat: const Value('dive_computer'),
+              rawData: Value(Uint8List.fromList([1, 2, 3])),
+              descriptorVendor: Value(descriptorVendor),
+              descriptorProduct: Value(descriptorProduct),
+              descriptorModel: Value(descriptorModel),
+              importedAt: Value(now),
+              createdAt: Value(now),
+            ),
+          );
+    }
+
+    test('successfully re-parses all sources for a dive', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSourceWithRawData(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+      );
+
+      final errors = await service.reparseDive('dive-1', parseFn: fakeParseFn);
+
+      expect(errors, isEmpty);
+    });
+
+    test('sources without descriptor fields are silently skipped', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSourceWithRawData(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+      );
+
+      final errors = await service.reparseDive('dive-1', parseFn: fakeParseFn);
+
+      expect(errors, isEmpty);
+    });
+
+    test('parseFn throwing adds error message to returned list', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSourceWithRawData(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+      );
+
+      final errors = await service.reparseDive(
+        'dive-1',
+        parseFn: (vendor, product, model, rawData) async {
+          throw Exception('native bridge error');
+        },
+      );
+
+      expect(errors.length, 1);
+      expect(errors.first, contains('native bridge error'));
+    });
+
+    test('returns empty list when no sources have raw data', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+
+      // Source without rawData
+      final now = DateTime.fromMillisecondsSinceEpoch(nowMs);
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: const Value('src-1'),
+              diveId: const Value('dive-1'),
+              computerId: const Value('comp-1'),
+              isPrimary: const Value(true),
+              importedAt: Value(now),
+              createdAt: Value(now),
+            ),
+          );
+
+      final errors = await service.reparseDive('dive-1', parseFn: fakeParseFn);
+
+      expect(errors, isEmpty);
+    });
+
+    test(
+      'multiple sources: one succeeds, one throws -- returns one error',
+      () async {
+        await insertDive('dive-1');
+        await insertComputer('comp-1');
+        await insertComputer('comp-2');
+
+        await insertSourceWithRawData(
+          id: 'src-1',
+          diveId: 'dive-1',
+          computerId: 'comp-1',
+          descriptorVendor: 'Shearwater',
+          descriptorProduct: 'Perdix',
+          descriptorModel: 42,
+        );
+        await insertSourceWithRawData(
+          id: 'src-2',
+          diveId: 'dive-1',
+          computerId: 'comp-2',
+          isPrimary: false,
+          descriptorVendor: 'Suunto',
+          descriptorProduct: 'EON Core',
+          descriptorModel: 99,
+        );
+
+        final errors = await service.reparseDive(
+          'dive-1',
+          parseFn: (vendor, product, model, rawData) async {
+            if (vendor == 'Suunto') {
+              throw Exception('Suunto parse failure');
+            }
+            return makeParsedDive();
+          },
+        );
+
+        expect(errors.length, 1);
+        expect(errors.first, contains('Suunto parse failure'));
+      },
+    );
+  });
 }

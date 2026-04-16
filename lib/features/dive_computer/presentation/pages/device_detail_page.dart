@@ -475,64 +475,35 @@ class DeviceDetailPage extends ConsumerWidget {
     final service = ref.read(reparseServiceProvider);
     final l10n = context.l10n;
 
-    final sources = await service.getSourcesForComputerReparse(computerId);
-
-    if (sources.isEmpty) return;
-
-    int succeeded = 0;
-    int failed = 0;
+    final counts = await service.getRawDataCounts(computerId);
+    if (counts.withRawData == 0) return;
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            l10n.diveComputer_detail_reparseAllProgress(sources.length),
+            l10n.diveComputer_detail_reparseAllProgress(counts.withRawData),
           ),
         ),
       );
     }
 
-    for (final source in sources) {
-      if (source.descriptorVendor == null ||
-          source.descriptorProduct == null ||
-          source.descriptorModel == null) {
-        failed++;
-        continue;
-      }
-      try {
-        final parsed = await pigeon.DiveComputerHostApi().parseRawDiveData(
-          source.descriptorVendor!,
-          source.descriptorProduct!,
-          source.descriptorModel!,
-          source.rawData!,
-        );
-        await service.applyParsedUpdate(
-          diveId: source.diveId,
-          sourceRowId: source.id,
-          parsed: parsed,
-          descriptorVendor: source.descriptorVendor,
-          descriptorProduct: source.descriptorProduct,
-          descriptorModel: source.descriptorModel,
-          libdivecomputerVersion: source.libdivecomputerVersion,
-        );
-        succeeded++;
-      } catch (e) {
-        debugPrint('Re-parse failed for source ${source.id}: $e');
-        failed++;
-      }
-    }
+    final result = await service.reparseAllForComputer(
+      computerId,
+      parseFn: pigeon.DiveComputerHostApi().parseRawDiveData,
+    );
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            failed == 0
-                ? l10n.diveComputer_detail_reparseAllSuccess(succeeded)
+            result.failed == 0
+                ? l10n.diveComputer_detail_reparseAllSuccess(result.succeeded)
                 : l10n.diveComputer_detail_reparseAllPartial(
-                    succeeded,
-                    succeeded + failed,
-                    failed,
+                    result.succeeded,
+                    result.succeeded + result.failed,
+                    result.failed,
                   ),
           ),
         ),
