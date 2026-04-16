@@ -7,7 +7,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/statistics/presentation/widgets/statistics_list_content.dart';
-import 'package:submersion/features/statistics/presentation/widgets/statistics_summary_widget.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_conditions_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_equipment_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_gas_page.dart';
@@ -39,7 +38,8 @@ class StatisticsPage extends ConsumerWidget {
               showAppBar: false,
             ),
         detailBuilder: (context, categoryId) => _buildCategoryPage(categoryId),
-        summaryBuilder: (context) => const StatisticsSummaryWidget(),
+        summaryBuilder: (context) =>
+            const StatisticsOverviewPage(embedded: true),
         mobileDetailRoute: (id) => '/statistics/$id',
       );
     }
