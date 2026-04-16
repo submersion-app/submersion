@@ -121,25 +121,56 @@ class _AggregateGrid extends StatelessWidget {
     final wide = MediaQuery.of(context).size.width >= 600;
     final crossAxis = wide ? 4 : 2;
     final cards = <_StatCard>[
-      _StatCard(label: 'Total Dives', value: '${stats.totalDives}'),
-      _StatCard(label: 'Total Time', value: stats.totalTimeFormatted),
-      _StatCard(label: 'Max Depth', value: fmt.formatDepth(stats.maxDepth)),
-      _StatCard(label: 'Avg Depth', value: fmt.formatDepth(stats.avgMaxDepth)),
+      _StatCard(
+        icon: Icons.waves,
+        label: 'Total Dives',
+        value: '${stats.totalDives}',
+        color: Colors.blue,
+      ),
+      _StatCard(
+        icon: Icons.timer,
+        label: 'Total Time',
+        value: stats.totalTimeFormatted,
+        color: Colors.teal,
+      ),
+      _StatCard(
+        icon: Icons.arrow_downward,
+        label: 'Max Depth',
+        value: fmt.formatDepth(stats.maxDepth),
+        color: Colors.indigo,
+      ),
+      _StatCard(
+        icon: Icons.straighten,
+        label: 'Avg Depth',
+        value: fmt.formatDepth(stats.avgMaxDepth),
+        color: Colors.purple,
+      ),
       if (stats.divesPerMonth != null)
         _StatCard(
+          icon: Icons.calendar_month,
           label: 'Dives / Month',
           value: stats.divesPerMonth!.toStringAsFixed(1),
+          color: Colors.green,
         ),
       if (stats.divesPerYear != null)
         _StatCard(
+          icon: Icons.date_range,
           label: 'Dives / Year',
           value: stats.divesPerYear!.toStringAsFixed(1),
+          color: Colors.green.shade700,
         ),
-      _StatCard(label: 'Sites Visited', value: '${stats.totalSites}'),
+      _StatCard(
+        icon: Icons.location_on,
+        label: 'Sites Visited',
+        value: '${stats.totalSites}',
+        color: Colors.orange,
+      ),
       if (stats.avgTemperature != null)
         _StatCard(
+          icon: Icons.thermostat,
           label: 'Avg Water Temp',
           value: fmt.formatTemperature(stats.avgTemperature!),
+          color: Colors.cyan,
         ),
     ];
 
@@ -147,7 +178,7 @@ class _AggregateGrid extends StatelessWidget {
       crossAxisCount: crossAxis,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 1.6,
+      childAspectRatio: 1.0,
       mainAxisSpacing: 8,
       crossAxisSpacing: 8,
       children: cards,
@@ -156,9 +187,16 @@ class _AggregateGrid extends StatelessWidget {
 }
 
 class _StatCard extends StatelessWidget {
+  final IconData icon;
   final String label;
   final String value;
-  const _StatCard({required this.label, required this.value});
+  final Color color;
+  const _StatCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -169,20 +207,34 @@ class _StatCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(height: 8),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 2),
             Text(
               label,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -251,9 +303,11 @@ class _RecordsSection extends StatelessWidget {
                 ),
               ),
               _RecordTile(
+                icon: Icons.flag,
                 label: 'First Dive',
                 value: fmt.formatDepth(record.maxDepth),
                 subtitle: fmt.formatDate(record.dateTime),
+                color: Colors.blue,
                 onTap: () => context.push('/dives/${record.diveId}'),
               ),
             ],
@@ -266,9 +320,11 @@ class _RecordsSection extends StatelessWidget {
     if (records.deepestDive != null) {
       rows.add(
         _RecordTile(
+          icon: Icons.arrow_downward,
           label: 'Deepest Dive',
           value: fmt.formatDepth(records.deepestDive!.maxDepth),
           subtitle: fmt.formatDate(records.deepestDive!.dateTime),
+          color: Colors.indigo,
           onTap: () => context.push('/dives/${records.deepestDive!.diveId}'),
         ),
       );
@@ -277,9 +333,11 @@ class _RecordsSection extends StatelessWidget {
       final minutes = records.longestDive!.effectiveRuntime?.inMinutes ?? 0;
       rows.add(
         _RecordTile(
+          icon: Icons.timer,
           label: 'Longest Dive',
           value: context.l10n.statistics_records_longestDiveValue(minutes),
           subtitle: fmt.formatDate(records.longestDive!.dateTime),
+          color: Colors.teal,
           onTap: () => context.push('/dives/${records.longestDive!.diveId}'),
         ),
       );
@@ -287,9 +345,11 @@ class _RecordsSection extends StatelessWidget {
     if (records.coldestDive != null) {
       rows.add(
         _RecordTile(
+          icon: Icons.ac_unit,
           label: 'Coldest Dive',
           value: fmt.formatTemperature(records.coldestDive!.waterTemp),
           subtitle: fmt.formatDate(records.coldestDive!.dateTime),
+          color: Colors.blue,
           onTap: () => context.push('/dives/${records.coldestDive!.diveId}'),
         ),
       );
@@ -297,9 +357,11 @@ class _RecordsSection extends StatelessWidget {
     if (records.warmestDive != null) {
       rows.add(
         _RecordTile(
+          icon: Icons.whatshot,
           label: 'Warmest Dive',
           value: fmt.formatTemperature(records.warmestDive!.waterTemp),
           subtitle: fmt.formatDate(records.warmestDive!.dateTime),
+          color: Colors.orange,
           onTap: () => context.push('/dives/${records.warmestDive!.diveId}'),
         ),
       );
@@ -330,14 +392,18 @@ class _RecordsSection extends StatelessWidget {
 }
 
 class _RecordTile extends StatelessWidget {
+  final IconData icon;
   final String label;
   final String value;
   final String subtitle;
+  final Color color;
   final VoidCallback onTap;
   const _RecordTile({
+    required this.icon,
     required this.label,
     required this.value,
     required this.subtitle,
+    required this.color,
     required this.onTap,
   });
 
@@ -346,11 +412,20 @@ class _RecordTile extends StatelessWidget {
     return ListTile(
       dense: true,
       contentPadding: EdgeInsets.zero,
+      leading: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, color: color, size: 18),
+      ),
       title: Text(label),
       subtitle: Text(subtitle),
       trailing: Text(
         value,
-        style: const TextStyle(fontWeight: FontWeight.w600),
+        style: TextStyle(fontWeight: FontWeight.w600, color: color),
       ),
       onTap: onTap,
     );
