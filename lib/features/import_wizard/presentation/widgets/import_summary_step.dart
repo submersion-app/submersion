@@ -45,6 +45,7 @@ class ImportSummaryStep extends ConsumerWidget {
     return _SuccessView(
       importedCounts: result.importedCounts,
       consolidatedCount: result.consolidatedCount,
+      updatedCount: result.updatedCount,
       skippedCount: result.skippedCount,
       onDone: onDone,
       onViewDives: onViewDives,
@@ -59,6 +60,7 @@ class ImportSummaryStep extends ConsumerWidget {
 class _SuccessView extends StatelessWidget {
   final Map<ImportEntityType, int> importedCounts;
   final int consolidatedCount;
+  final int updatedCount;
   final int skippedCount;
   final VoidCallback onDone;
   final VoidCallback onViewDives;
@@ -66,6 +68,7 @@ class _SuccessView extends StatelessWidget {
   const _SuccessView({
     required this.importedCounts,
     required this.consolidatedCount,
+    this.updatedCount = 0,
     required this.skippedCount,
     required this.onDone,
     required this.onViewDives,
@@ -78,14 +81,21 @@ class _SuccessView extends StatelessWidget {
       0,
       (sum, v) => sum + v,
     );
-    final hasNewDives = totalImported > 0 || consolidatedCount > 0;
+    final hasActivity =
+        totalImported > 0 || consolidatedCount > 0 || updatedCount > 0;
 
     final String title;
     final IconData icon;
     final Color iconColor;
     final Color iconBg;
-    if (hasNewDives) {
-      title = 'Successfully Imported';
+    if (hasActivity) {
+      if (totalImported > 0) {
+        title = 'Successfully Imported';
+      } else if (updatedCount > 0) {
+        title = 'Successfully Updated';
+      } else {
+        title = 'Successfully Consolidated';
+      }
       icon = Icons.check;
       iconColor = theme.colorScheme.onPrimaryContainer;
       iconBg = theme.colorScheme.primaryContainer;
@@ -115,7 +125,7 @@ class _SuccessView extends StatelessWidget {
               style: theme.textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
-            if (!hasNewDives && skippedCount > 0) ...[
+            if (!hasActivity && skippedCount > 0) ...[
               const SizedBox(height: 8),
               Text(
                 'All dives were skipped.',
@@ -133,6 +143,13 @@ class _SuccessView extends StatelessWidget {
                   label: _labelForType(entry.key),
                   count: entry.value,
                 ),
+            if (updatedCount > 0)
+              _CountRow(
+                icon: Icons.sync,
+                label: 'Replaced source data',
+                count: updatedCount,
+                key: const Key('import_summary_updated_row'),
+              ),
             if (consolidatedCount > 0)
               _CountRow(
                 icon: Icons.merge,
@@ -152,7 +169,7 @@ class _SuccessView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 OutlinedButton(onPressed: onDone, child: const Text('Done')),
-                if (hasNewDives) ...[
+                if (hasActivity) ...[
                   const SizedBox(width: 16),
                   FilledButton(
                     onPressed: onViewDives,
