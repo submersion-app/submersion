@@ -78,6 +78,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
       DuplicateAction.importAsNew => Colors.green,
       DuplicateAction.consolidate => colorScheme.primary,
       DuplicateAction.skip => score >= 0.7 ? colorScheme.error : Colors.orange,
+      DuplicateAction.replaceSource => Colors.orange,
       null => colorScheme.tertiary,
     };
 
@@ -289,6 +290,7 @@ class _ActionBadge extends StatelessWidget {
       DuplicateAction.skip => ('SKIP', theme.colorScheme.error),
       DuplicateAction.importAsNew => ('IMPORT', Colors.green.shade700),
       DuplicateAction.consolidate => ('CONSOLIDATE', Colors.green.shade700),
+      DuplicateAction.replaceSource => ('REPLACE', Colors.orange.shade700),
     };
 
     return Container(

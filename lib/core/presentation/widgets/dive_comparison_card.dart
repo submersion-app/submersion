@@ -392,6 +392,7 @@ class DiveComparisonCard extends ConsumerWidget {
         DuplicateAction.skip => colorScheme.error,
         DuplicateAction.importAsNew => Colors.green,
         DuplicateAction.consolidate => colorScheme.primary,
+        DuplicateAction.replaceSource => Colors.orange,
       };
     }
 

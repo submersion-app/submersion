@@ -782,6 +782,12 @@ class DiveComputerRepository {
     List<EventData>? events,
     int? diveNumber,
     bool forceNew = false,
+    Uint8List? rawData,
+    Uint8List? rawFingerprint,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) async {
     try {
       _log.info('Importing profile from computer $computerId');
@@ -892,6 +898,13 @@ class DiveComputerRepository {
                 decoAlgorithm: Value(decoAlgorithm),
                 gradientFactorLow: Value(gfLow),
                 gradientFactorHigh: Value(gfHigh),
+                rawData: Value(rawData),
+                rawFingerprint: Value(rawFingerprint),
+                descriptorVendor: Value(descriptorVendor),
+                descriptorProduct: Value(descriptorProduct),
+                descriptorModel: Value(descriptorModel),
+                libdivecomputerVersion: Value(libdivecomputerVersion),
+                lastParsedAt: Value(rawData != null ? DateTime.now() : null),
                 importedAt: nowDt,
                 createdAt: nowDt,
               ),

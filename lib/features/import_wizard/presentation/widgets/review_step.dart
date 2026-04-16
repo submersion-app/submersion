@@ -344,6 +344,7 @@ String _actionLabel(
   DuplicateAction.skip => context.l10n.universalImport_label_skip,
   DuplicateAction.importAsNew => context.l10n.universalImport_label_importAsNew,
   DuplicateAction.consolidate => context.l10n.universalImport_label_consolidate,
+  DuplicateAction.replaceSource => 'Replace Source',
 };
 
 void _showActionSnackbar(BuildContext context, String message) {
@@ -554,6 +555,8 @@ class _AggregateCounts {
             consolidating++;
           case DuplicateAction.skip:
             skipping++;
+          case DuplicateAction.replaceSource:
+            importing++;
         }
       }
     }

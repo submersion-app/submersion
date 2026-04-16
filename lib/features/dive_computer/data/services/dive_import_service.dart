@@ -12,8 +12,8 @@ enum ImportMode {
   /// Import all dives, skipping exact duplicates
   all,
 
-  /// Replace existing dives with downloaded versions
-  replace,
+  /// Replace existing dive's source data with the downloaded version
+  replaceSource,
 }
 
 /// How to resolve conflicts when a duplicate is detected.
@@ -21,8 +21,8 @@ enum ConflictResolution {
   /// Skip the downloaded dive, keep the existing one
   skip,
 
-  /// Replace the existing dive with the downloaded one
-  replace,
+  /// Replace the existing dive's source data with the downloaded version
+  replaceSource,
 
   /// Import as a new dive (creates duplicate)
   importAsNew,
@@ -221,6 +221,13 @@ class DiveImportService {
   final DiveRepository? _diveRepository;
   final DiveParser _parser;
 
+  /// Session-level descriptor fields set by the adapter before import.
+  /// These are written onto each [DiveDataSources] row created during import.
+  String? descriptorVendor;
+  String? descriptorProduct;
+  int? descriptorModel;
+  String? libdivecomputerVersion;
+
   DiveImportService({
     required DiveComputerRepository repository,
     DiveRepository? diveRepository,
@@ -289,7 +296,7 @@ class DiveImportService {
                   confidence: duplicateResult.confidence,
                 ),
               );
-            } else if (defaultResolution == ConflictResolution.replace) {
+            } else if (defaultResolution == ConflictResolution.replaceSource) {
               // Update existing dive
               await _updateExistingDive(
                 dive,
@@ -311,7 +318,7 @@ class DiveImportService {
               importedDives.add(dive);
               imported++;
             }
-          } else if (mode == ImportMode.replace) {
+          } else if (mode == ImportMode.replaceSource) {
             // Replace existing
             await _updateExistingDive(
               dive,
@@ -443,6 +450,12 @@ class DiveImportService {
       events: events,
       diveNumber: diveNumber,
       forceNew: forceNew,
+      rawData: dive.rawData,
+      rawFingerprint: dive.rawFingerprint,
+      descriptorVendor: descriptorVendor,
+      descriptorProduct: descriptorProduct,
+      descriptorModel: descriptorModel,
+      libdivecomputerVersion: libdivecomputerVersion,
     );
 
     return diveId;
@@ -505,7 +518,7 @@ class DiveImportService {
       case ConflictResolution.skip:
         return null;
 
-      case ConflictResolution.replace:
+      case ConflictResolution.replaceSource:
         await _updateExistingDive(
           conflict.downloaded,
           conflict.existingDiveId,

@@ -4,12 +4,13 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i7;
+import 'dart:typed_data' as _i12;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i9;
-import 'package:submersion/core/constants/sort_options.dart' as _i15;
+import 'package:submersion/core/constants/sort_options.dart' as _i16;
 import 'package:submersion/core/database/database.dart' as _i11;
-import 'package:submersion/core/models/sort_state.dart' as _i14;
+import 'package:submersion/core/models/sort_state.dart' as _i15;
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart'
     as _i2;
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart'
@@ -22,13 +23,13 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart' as _i4;
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as _i3;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart'
-    as _i16;
+    as _i17;
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart'
-    as _i12;
+    as _i13;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart'
     as _i6;
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart'
-    as _i13;
+    as _i14;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -95,6 +96,30 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
   MockDiveImportService() {
     _i1.throwOnMissingStub(this);
   }
+
+  @override
+  set descriptorVendor(String? value) => super.noSuchMethod(
+    Invocation.setter(#descriptorVendor, value),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  set descriptorProduct(String? value) => super.noSuchMethod(
+    Invocation.setter(#descriptorProduct, value),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  set descriptorModel(int? value) => super.noSuchMethod(
+    Invocation.setter(#descriptorModel, value),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  set libdivecomputerVersion(String? value) => super.noSuchMethod(
+    Invocation.setter(#libdivecomputerVersion, value),
+    returnValueForMissingStub: null,
+  );
 
   @override
   _i7.Future<_i2.ImportResult> importDives({
@@ -446,6 +471,12 @@ class MockDiveComputerRepository extends _i1.Mock
     List<_i10.EventData>? events,
     int? diveNumber,
     bool? forceNew = false,
+    _i12.Uint8List? rawData,
+    _i12.Uint8List? rawFingerprint,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#importProfile, [], {
@@ -465,6 +496,12 @@ class MockDiveComputerRepository extends _i1.Mock
               #events: events,
               #diveNumber: diveNumber,
               #forceNew: forceNew,
+              #rawData: rawData,
+              #rawFingerprint: rawFingerprint,
+              #descriptorVendor: descriptorVendor,
+              #descriptorProduct: descriptorProduct,
+              #descriptorModel: descriptorModel,
+              #libdivecomputerVersion: libdivecomputerVersion,
             }),
             returnValue: _i7.Future<String>.value(
               _i9.dummyValue<String>(
@@ -486,6 +523,12 @@ class MockDiveComputerRepository extends _i1.Mock
                   #events: events,
                   #diveNumber: diveNumber,
                   #forceNew: forceNew,
+                  #rawData: rawData,
+                  #rawFingerprint: rawFingerprint,
+                  #descriptorVendor: descriptorVendor,
+                  #descriptorProduct: descriptorProduct,
+                  #descriptorModel: descriptorModel,
+                  #libdivecomputerVersion: libdivecomputerVersion,
                 }),
               ),
             ),
@@ -701,13 +744,13 @@ class MockDiveRepository extends _i1.Mock implements _i5.DiveRepository {
           as _i7.Future<List<_i4.Dive>>);
 
   @override
-  _i7.Future<List<_i12.DiveSummary>> getDiveSummaries({
+  _i7.Future<List<_i13.DiveSummary>> getDiveSummaries({
     String? diverId,
-    _i13.DiveFilterState? filter = const _i13.DiveFilterState(),
-    _i12.DiveSummaryCursor? cursor,
+    _i14.DiveFilterState? filter = const _i14.DiveFilterState(),
+    _i13.DiveSummaryCursor? cursor,
     int? offset,
     int? limit = 50,
-    _i14.SortState<_i15.DiveSortField>? sort,
+    _i15.SortState<_i16.DiveSortField>? sort,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#getDiveSummaries, [], {
@@ -718,16 +761,16 @@ class MockDiveRepository extends _i1.Mock implements _i5.DiveRepository {
               #limit: limit,
               #sort: sort,
             }),
-            returnValue: _i7.Future<List<_i12.DiveSummary>>.value(
-              <_i12.DiveSummary>[],
+            returnValue: _i7.Future<List<_i13.DiveSummary>>.value(
+              <_i13.DiveSummary>[],
             ),
           )
-          as _i7.Future<List<_i12.DiveSummary>>);
+          as _i7.Future<List<_i13.DiveSummary>>);
 
   @override
   _i7.Future<int> getDiveCount({
     String? diverId,
-    _i13.DiveFilterState? filter = const _i13.DiveFilterState(),
+    _i14.DiveFilterState? filter = const _i14.DiveFilterState(),
   }) =>
       (super.noSuchMethod(
             Invocation.method(#getDiveCount, [], {
@@ -1050,14 +1093,14 @@ class MockDiveRepository extends _i1.Mock implements _i5.DiveRepository {
           as _i7.Future<void>);
 
   @override
-  _i7.Future<List<_i16.DiveDataSource>> getDataSources(String? diveId) =>
+  _i7.Future<List<_i17.DiveDataSource>> getDataSources(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#getDataSources, [diveId]),
-            returnValue: _i7.Future<List<_i16.DiveDataSource>>.value(
-              <_i16.DiveDataSource>[],
+            returnValue: _i7.Future<List<_i17.DiveDataSource>>.value(
+              <_i17.DiveDataSource>[],
             ),
           )
-          as _i7.Future<List<_i16.DiveDataSource>>);
+          as _i7.Future<List<_i17.DiveDataSource>>);
 
   @override
   _i7.Future<bool> hasMultipleDataSources(String? diveId) =>
