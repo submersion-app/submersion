@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -6,6 +7,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsOverviewPage extends ConsumerWidget {
@@ -56,6 +59,10 @@ class _OverviewBody extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           _TopSitesSection(sites: stats.topSites),
+          if (stats.totalDives > 0) ...[
+            const SizedBox(height: 16),
+            _DistributionsSection(stats: stats),
+          ],
         ],
       ),
     );
@@ -321,6 +328,311 @@ class _TopSitesSection extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// Color palettes matching statistics_summary_widget.dart
+const _depthColors = [
+  Color(0xFF81D4FA), // lightBlue.shade300
+  Color(0xFF42A5F5), // blue.shade400
+  Color(0xFF1E88E5), // blue.shade600
+  Color(0xFF3949AB), // indigo.shade600
+  Color(0xFF1A237E), // indigo.shade900
+];
+
+const _typeColors = [
+  Color(0xFF42A5F5), // blue.shade400
+  Color(0xFF26A69A), // teal.shade400
+  Color(0xFFFFA726), // orange.shade400
+  Color(0xFFAB47BC), // purple.shade400
+  Color(0xFF66BB6A), // green.shade400
+  Color(0xFFEF5350), // red.shade400
+  Color(0xFF5C6BC0), // indigo.shade400
+  Color(0xFFFFCA28), // amber.shade400
+];
+
+class _DistributionsSection extends ConsumerWidget {
+  final DiveStatistics stats;
+  const _DistributionsSection({required this.stats});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final fmt = UnitFormatter(settings);
+    final diveTypesAsync = ref.watch(diveTypeDistributionProvider);
+
+    final depthChart = _DepthPieCard(
+      depthDistribution: stats.depthDistribution,
+      fmt: fmt,
+    );
+
+    return diveTypesAsync.when(
+      loading: () => depthChart,
+      error: (_, _) => depthChart,
+      data: (diveTypes) {
+        final typeChart = _TypePieCard(diveTypes: diveTypes);
+        final wide = MediaQuery.of(context).size.width >= 600;
+
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 4,
+                  ),
+                  child: Text(
+                    'Distributions',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (wide)
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: depthChart),
+                        const SizedBox(width: 8),
+                        Expanded(child: typeChart),
+                      ],
+                    ),
+                  )
+                else
+                  Column(
+                    children: [
+                      depthChart,
+                      const SizedBox(height: 8),
+                      typeChart,
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _DepthPieCard extends StatelessWidget {
+  final List<DepthRangeStat> depthDistribution;
+  final UnitFormatter fmt;
+  const _DepthPieCard({required this.depthDistribution, required this.fmt});
+
+  @override
+  Widget build(BuildContext context) {
+    final nonEmpty = depthDistribution.where((d) => d.count > 0).toList();
+    final hasData = nonEmpty.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.l10n.statistics_summary_depthDistribution_title,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 160,
+          child: hasData
+              ? Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: PieChart(
+                        PieChartData(
+                          sectionsSpace: 2,
+                          centerSpaceRadius: 24,
+                          sections: List.generate(depthDistribution.length, (
+                            index,
+                          ) {
+                            final data = depthDistribution[index];
+                            if (data.count == 0) return null;
+                            return PieChartSectionData(
+                              value: data.count.toDouble(),
+                              title: '${data.count}',
+                              color: _depthColors[index % _depthColors.length],
+                              radius: 50,
+                              titleStyle: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
+                            );
+                          }).whereType<PieChartSectionData>().toList(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: List.generate(depthDistribution.length, (
+                          index,
+                        ) {
+                          final data = depthDistribution[index];
+                          final minDisplay = fmt
+                              .convertDepth(data.minDepth.toDouble())
+                              .round();
+                          final maxDisplay = fmt
+                              .convertDepth(data.maxDepth.toDouble())
+                              .round();
+                          final label = data.maxDepth >= 100
+                              ? '$minDisplay${fmt.depthSymbol}+'
+                              : '$minDisplay-$maxDisplay${fmt.depthSymbol}';
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color:
+                                        _depthColors[index %
+                                            _depthColors.length],
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    label,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                )
+              : Center(
+                  child: Icon(
+                    Icons.pie_chart_outline,
+                    size: 40,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.4),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TypePieCard extends StatelessWidget {
+  final List<DistributionSegment> diveTypes;
+  const _TypePieCard({required this.diveTypes});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasData = diveTypes.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.l10n.statistics_summary_diveTypes_title,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 160,
+          child: hasData
+              ? Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: PieChart(
+                        PieChartData(
+                          sectionsSpace: 2,
+                          centerSpaceRadius: 24,
+                          sections: List.generate(diveTypes.length, (index) {
+                            final segment = diveTypes[index];
+                            return PieChartSectionData(
+                              value: segment.count.toDouble(),
+                              title:
+                                  '${segment.percentage.toStringAsFixed(0)}%',
+                              color: _typeColors[index % _typeColors.length],
+                              radius: 50,
+                              titleStyle: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: List.generate(
+                          diveTypes.length > 6 ? 6 : diveTypes.length,
+                          (index) {
+                            final segment = diveTypes[index];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          _typeColors[index %
+                                              _typeColors.length],
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      segment.label,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Center(
+                  child: Icon(
+                    Icons.pie_chart_outline,
+                    size: 40,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.4),
+                  ),
+                ),
+        ),
+      ],
     );
   }
 }

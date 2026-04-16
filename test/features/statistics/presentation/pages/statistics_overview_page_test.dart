@@ -15,7 +15,9 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_overview_page.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 typedef Override = riverpod.Override;
@@ -601,6 +603,94 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(navigatedTo, equals('/sites/site-abc'));
+    });
+  });
+
+  group('StatisticsOverviewPage Distributions', () {
+    late SharedPreferences prefs;
+
+    setUpAll(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+    });
+
+    testWidgets('renders depth and type pies when data is present', (
+      tester,
+    ) async {
+      final stats = DiveStatistics(
+        totalDives: 15,
+        totalTimeSeconds: 27000,
+        maxDepth: 30.0,
+        avgMaxDepth: 18.0,
+        totalSites: 2,
+        firstDiveDate: DateTime.now().subtract(const Duration(days: 365)),
+        depthDistribution: [
+          DepthRangeStat(label: '0-10m', minDepth: 0, maxDepth: 10, count: 5),
+          DepthRangeStat(label: '10-20m', minDepth: 10, maxDepth: 20, count: 7),
+          DepthRangeStat(label: '20-30m', minDepth: 20, maxDepth: 30, count: 3),
+        ],
+      );
+
+      final diveTypes = [
+        DistributionSegment(label: 'Recreational', count: 10, percentage: 66.7),
+        DistributionSegment(label: 'Technical', count: 5, percentage: 33.3),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            diveTypeDistributionProvider.overrideWith((ref) async => diveTypes),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: StatisticsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Distributions'), findsOneWidget);
+    });
+
+    testWidgets('hides Distributions when totalDives is 0', (tester) async {
+      final stats = DiveStatistics(
+        totalDives: 0,
+        totalTimeSeconds: 0,
+        maxDepth: 0,
+        avgMaxDepth: 0,
+        totalSites: 0,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: StatisticsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Distributions'), findsNothing);
     });
   });
 }
