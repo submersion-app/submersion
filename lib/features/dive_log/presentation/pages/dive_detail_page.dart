@@ -71,9 +71,9 @@ import 'package:submersion/features/signatures/presentation/providers/signature_
 import 'package:submersion/features/signatures/presentation/widgets/signature_capture_widget.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
 import 'package:submersion/features/signatures/presentation/widgets/buddy_signatures_section.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
-import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 
 /// Calculate normalization factor to align profile-based SAC with tank-based SAC.
@@ -540,11 +540,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 ),
               ),
               if (hasRawData)
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'reparse',
                   child: ListTile(
-                    leading: Icon(Icons.refresh),
-                    title: Text('Re-parse raw data'),
+                    leading: const Icon(Icons.refresh),
+                    title: Text(
+                      context.l10n.diveLog_detail_menu_reparseRawData,
+                    ),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -703,11 +705,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 ),
               ),
               if (hasRawData)
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'reparse',
                   child: ListTile(
-                    leading: Icon(Icons.refresh),
-                    title: Text('Re-parse raw data'),
+                    leading: const Icon(Icons.refresh),
+                    title: Text(
+                      context.l10n.diveLog_detail_menu_reparseRawData,
+                    ),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -4602,18 +4606,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     Dive dive,
   ) async {
     final service = ref.read(reparseServiceProvider);
-    final db = DatabaseService.instance.database;
+    final l10n = context.l10n;
 
-    final sources =
-        await (db.select(db.diveDataSources)
-              ..where((t) => t.diveId.equals(dive.id))
-              ..where((t) => t.rawData.isNotNull()))
-            .get();
+    final sources = await service.getSourcesForDiveReparse(dive.id);
 
     if (sources.isEmpty) return;
 
     try {
       for (final source in sources) {
+        if (source.descriptorVendor == null ||
+            source.descriptorProduct == null ||
+            source.descriptorModel == null) {
+          continue;
+        }
         final parsed = await pigeon.DiveComputerHostApi().parseRawDiveData(
           source.descriptorVendor!,
           source.descriptorProduct!,
@@ -4632,14 +4637,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       }
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Dive re-parsed successfully')),
+          SnackBar(content: Text(l10n.diveLog_detail_reparseSuccess)),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Re-parse failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.diveLog_detail_reparseFailed(e.toString())),
+          ),
+        );
       }
     }
   }

@@ -27361,6 +27361,88 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Display dive profile chart above the table by default'**
   String get settings_appearance_showProfilePanel_subtitle;
+
+  /// Generic re-parse action label
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse'**
+  String get common_action_reparse;
+
+  /// Button to re-parse all dives from a computer
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse all dives'**
+  String get diveComputer_detail_reparseAllButton;
+
+  /// Dialog title for batch re-parse confirmation
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse all dives'**
+  String get diveComputer_detail_reparseAllTitle;
+
+  /// No description provided for @diveComputer_detail_reparseAllMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-run the dive parser on {count} dives that have stored raw data. This updates profile and sensor data but preserves your notes, sites, buddies, and other edits.'**
+  String diveComputer_detail_reparseAllMessage(int count);
+
+  /// No description provided for @diveComputer_detail_reparseAllProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parsing {count} dives...'**
+  String diveComputer_detail_reparseAllProgress(int count);
+
+  /// No description provided for @diveComputer_detail_reparseAllSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parsed {count} dives successfully'**
+  String diveComputer_detail_reparseAllSuccess(int count);
+
+  /// No description provided for @diveComputer_detail_reparseAllPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parsed {succeeded} of {total} dives. {failed} failed.'**
+  String diveComputer_detail_reparseAllPartial(
+    int succeeded,
+    int total,
+    int failed,
+  );
+
+  /// No description provided for @diveComputer_detail_reparseRawDataCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives with raw data'**
+  String diveComputer_detail_reparseRawDataCount(int count);
+
+  /// No description provided for @diveComputer_detail_reparseRawDataCountWithout.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives with raw data ({without} without)'**
+  String diveComputer_detail_reparseRawDataCountWithout(int count, int without);
+
+  /// Menu item to re-parse raw dive data
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse raw data'**
+  String get diveLog_detail_menu_reparseRawData;
+
+  /// Snackbar message after successful re-parse
+  ///
+  /// In en, this message translates to:
+  /// **'Dive re-parsed successfully'**
+  String get diveLog_detail_reparseSuccess;
+
+  /// No description provided for @diveLog_detail_reparseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse failed: {error}'**
+  String diveLog_detail_reparseFailed(String error);
+
+  /// Label for the replace source duplicate action
+  ///
+  /// In en, this message translates to:
+  /// **'Replace Source'**
+  String get universalImport_label_replaceSource;
 }
 
 class _AppLocalizationsDelegate

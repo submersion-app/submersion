@@ -344,7 +344,8 @@ String _actionLabel(
   DuplicateAction.skip => context.l10n.universalImport_label_skip,
   DuplicateAction.importAsNew => context.l10n.universalImport_label_importAsNew,
   DuplicateAction.consolidate => context.l10n.universalImport_label_consolidate,
-  DuplicateAction.replaceSource => 'Replace Source',
+  DuplicateAction.replaceSource =>
+    context.l10n.universalImport_label_replaceSource,
 };
 
 void _showActionSnackbar(BuildContext context, String message) {
@@ -415,6 +416,9 @@ class _BottomBar extends StatelessWidget {
     if (counts.consolidating > 0) {
       parts.add('${counts.consolidating} merging');
     }
+    if (counts.replacing > 0) {
+      parts.add('${counts.replacing} replacing');
+    }
     if (counts.skipping > 0) {
       parts.add('${counts.skipping} skipped');
     }
@@ -475,7 +479,10 @@ class _BottomBar extends StatelessWidget {
                 FilledButton(
                   onPressed:
                       (hasPendingReviews ||
-                          (counts.importing + counts.consolidating) == 0)
+                          (counts.importing +
+                                  counts.consolidating +
+                                  counts.replacing) ==
+                              0)
                       ? null
                       : onImport,
                   child: const Text('Import Selected'),
@@ -498,11 +505,13 @@ class _AggregateCounts {
   final int importing;
   final int consolidating;
   final int skipping;
+  final int replacing;
 
   const _AggregateCounts({
     required this.importing,
     required this.consolidating,
     required this.skipping,
+    required this.replacing,
   });
 
   /// Compute counts from [ImportWizardState].
@@ -512,6 +521,7 @@ class _AggregateCounts {
   /// - consolidating: duplicates with [DuplicateAction.consolidate]
   /// - skipping: duplicates with [DuplicateAction.skip] + non-selected
   ///   non-duplicate items
+  /// - replacing: duplicates with [DuplicateAction.replaceSource]
   static _AggregateCounts compute(ImportWizardState state) {
     final bundle = state.bundle;
     if (bundle == null) {
@@ -519,12 +529,14 @@ class _AggregateCounts {
         importing: 0,
         consolidating: 0,
         skipping: 0,
+        replacing: 0,
       );
     }
 
     var importing = 0;
     var consolidating = 0;
     var skipping = 0;
+    var replacing = 0;
 
     for (final entry in bundle.groups.entries) {
       final type = entry.key;
@@ -556,7 +568,7 @@ class _AggregateCounts {
           case DuplicateAction.skip:
             skipping++;
           case DuplicateAction.replaceSource:
-            importing++;
+            replacing++;
         }
       }
     }
@@ -565,6 +577,7 @@ class _AggregateCounts {
       importing: importing,
       consolidating: consolidating,
       skipping: skipping,
+      replacing: replacing,
     );
   }
 

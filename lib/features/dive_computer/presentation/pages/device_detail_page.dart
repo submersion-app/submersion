@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -324,13 +323,23 @@ class DeviceDetailPage extends ConsumerWidget {
                           onPressed: () =>
                               _confirmReparseAll(context, ref, computer, c),
                           icon: const Icon(Icons.refresh),
-                          label: const Text('Re-parse all dives'),
+                          label: Text(
+                            context.l10n.diveComputer_detail_reparseAllButton,
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
-                            '${c.withRawData} dives with raw data'
-                            '${c.withoutRawData > 0 ? ' (${c.withoutRawData} without)' : ''}',
+                            c.withoutRawData > 0
+                                ? context.l10n
+                                      .diveComputer_detail_reparseRawDataCountWithout(
+                                        c.withRawData,
+                                        c.withoutRawData,
+                                      )
+                                : context.l10n
+                                      .diveComputer_detail_reparseRawDataCount(
+                                        c.withRawData,
+                                      ),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ),
@@ -431,23 +440,22 @@ class DeviceDetailPage extends ConsumerWidget {
     DiveComputer computer,
     ({int withRawData, int withoutRawData}) counts,
   ) async {
+    final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Re-parse all dives'),
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.diveComputer_detail_reparseAllTitle),
         content: Text(
-          'Re-run the dive parser on ${counts.withRawData} dives that have '
-          'stored raw data. This updates profile and sensor data but preserves '
-          'your notes, sites, buddies, and other edits.',
+          l10n.diveComputer_detail_reparseAllMessage(counts.withRawData),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.common_action_cancel),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Re-parse'),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.common_action_reparse),
           ),
         ],
       ),
@@ -464,13 +472,9 @@ class DeviceDetailPage extends ConsumerWidget {
     String computerId,
   ) async {
     final service = ref.read(reparseServiceProvider);
-    final db = DatabaseService.instance.database;
+    final l10n = context.l10n;
 
-    final sources =
-        await (db.select(db.diveDataSources)
-              ..where((t) => t.computerId.equals(computerId))
-              ..where((t) => t.rawData.isNotNull()))
-            .get();
+    final sources = await service.getSourcesForComputerReparse(computerId);
 
     if (sources.isEmpty) return;
 
@@ -479,11 +483,21 @@ class DeviceDetailPage extends ConsumerWidget {
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Re-parsing ${sources.length} dives...')),
+        SnackBar(
+          content: Text(
+            l10n.diveComputer_detail_reparseAllProgress(sources.length),
+          ),
+        ),
       );
     }
 
     for (final source in sources) {
+      if (source.descriptorVendor == null ||
+          source.descriptorProduct == null ||
+          source.descriptorModel == null) {
+        failed++;
+        continue;
+      }
       try {
         final parsed = await pigeon.DiveComputerHostApi().parseRawDiveData(
           source.descriptorVendor!,
@@ -502,6 +516,7 @@ class DeviceDetailPage extends ConsumerWidget {
         );
         succeeded++;
       } catch (e) {
+        debugPrint('Re-parse failed for source ${source.id}: $e');
         failed++;
       }
     }
@@ -512,8 +527,12 @@ class DeviceDetailPage extends ConsumerWidget {
         SnackBar(
           content: Text(
             failed == 0
-                ? 'Re-parsed $succeeded dives successfully'
-                : 'Re-parsed $succeeded of ${succeeded + failed} dives. $failed failed.',
+                ? l10n.diveComputer_detail_reparseAllSuccess(succeeded)
+                : l10n.diveComputer_detail_reparseAllPartial(
+                    succeeded,
+                    succeeded + failed,
+                    failed,
+                  ),
           ),
         ),
       );
