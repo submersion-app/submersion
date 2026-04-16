@@ -334,7 +334,7 @@ class _TopSitesSection extends StatelessWidget {
 
 // Color palettes matching statistics_summary_widget.dart
 const _depthColors = [
-  Color(0xFF81D4FA), // lightBlue.shade300
+  Color(0xFF4FC3F7), // lightBlue.shade300
   Color(0xFF42A5F5), // blue.shade400
   Color(0xFF1E88E5), // blue.shade600
   Color(0xFF3949AB), // indigo.shade600
@@ -446,27 +446,33 @@ class _DepthPieCard extends StatelessWidget {
                   children: [
                     Expanded(
                       flex: 2,
-                      child: PieChart(
-                        PieChartData(
-                          sectionsSpace: 2,
-                          centerSpaceRadius: 24,
-                          sections: List.generate(depthDistribution.length, (
-                            index,
-                          ) {
-                            final data = depthDistribution[index];
-                            if (data.count == 0) return null;
-                            return PieChartSectionData(
-                              value: data.count.toDouble(),
-                              title: '${data.count}',
-                              color: _depthColors[index % _depthColors.length],
-                              radius: 50,
-                              titleStyle: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 11,
-                              ),
-                            );
-                          }).whereType<PieChartSectionData>().toList(),
+                      child: Semantics(
+                        label: context
+                            .l10n
+                            .statistics_summary_depthDistribution_semanticLabel,
+                        child: PieChart(
+                          PieChartData(
+                            sectionsSpace: 2,
+                            centerSpaceRadius: 24,
+                            sections: List.generate(depthDistribution.length, (
+                              index,
+                            ) {
+                              final data = depthDistribution[index];
+                              if (data.count == 0) return null;
+                              return PieChartSectionData(
+                                value: data.count.toDouble(),
+                                title: '${data.count}',
+                                color:
+                                    _depthColors[index % _depthColors.length],
+                                radius: 50,
+                                titleStyle: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                ),
+                              );
+                            }).whereType<PieChartSectionData>().toList(),
+                          ),
                         ),
                       ),
                     ),
@@ -558,25 +564,30 @@ class _TypePieCard extends StatelessWidget {
                   children: [
                     Expanded(
                       flex: 2,
-                      child: PieChart(
-                        PieChartData(
-                          sectionsSpace: 2,
-                          centerSpaceRadius: 24,
-                          sections: List.generate(diveTypes.length, (index) {
-                            final segment = diveTypes[index];
-                            return PieChartSectionData(
-                              value: segment.count.toDouble(),
-                              title:
-                                  '${segment.percentage.toStringAsFixed(0)}%',
-                              color: _typeColors[index % _typeColors.length],
-                              radius: 50,
-                              titleStyle: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 11,
-                              ),
-                            );
-                          }),
+                      child: Semantics(
+                        label: context
+                            .l10n
+                            .statistics_summary_diveTypes_semanticLabel,
+                        child: PieChart(
+                          PieChartData(
+                            sectionsSpace: 2,
+                            centerSpaceRadius: 24,
+                            sections: List.generate(diveTypes.length, (index) {
+                              final segment = diveTypes[index];
+                              return PieChartSectionData(
+                                value: segment.count.toDouble(),
+                                title:
+                                    '${segment.percentage.toStringAsFixed(0)}%',
+                                color: _typeColors[index % _typeColors.length],
+                                radius: 50,
+                                titleStyle: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                ),
+                              );
+                            }),
+                          ),
                         ),
                       ),
                     ),

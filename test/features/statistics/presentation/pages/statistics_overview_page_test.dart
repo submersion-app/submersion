@@ -668,6 +668,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Distributions'), findsOneWidget);
+      // Depth range legend labels should contain depth values.
+      expect(find.textContaining('10'), findsWidgets);
     });
 
     testWidgets('hides Distributions when totalDives is 0', (tester) async {
