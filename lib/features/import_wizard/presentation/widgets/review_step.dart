@@ -217,7 +217,9 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
                       if (showOptionsButton)
                         TextButton.icon(
                           icon: const Icon(Icons.tune, size: 18),
-                          label: const Text('Options'),
+                          label: Text(
+                            context.l10n.universalImport_label_options,
+                          ),
                           onPressed: () => _showImportOptions(context),
                         ),
                     ],
@@ -641,16 +643,16 @@ class _ImportOptionsSheetState extends State<_ImportOptionsSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Import Options',
+            context.l10n.universalImport_title_importOptions,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           SwitchListTile(
-            title: const Text('Retain source dive numbers'),
-            subtitle: const Text(
-              'Use dive numbers from the imported file instead of auto-assigning',
+            title: Text(context.l10n.universalImport_label_retainDiveNumbers),
+            subtitle: Text(
+              context.l10n.universalImport_label_retainDiveNumbersSubtitle,
             ),
             value: state.retainSourceDiveNumbers,
             onChanged: (value) =>

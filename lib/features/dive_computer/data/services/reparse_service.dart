@@ -106,9 +106,13 @@ class ReparseService {
       }
 
       // ------------------------------------------------------------------
-      // 6. DiveTanks carry-over
+      // 6. DiveTanks carry-over (primary + single-source only)
+      //    dive_tanks has no computerId, so skip for non-primary or
+      //    multi-source dives to avoid overwriting data from other sources.
       // ------------------------------------------------------------------
-      await _carryOverTanks(diveId: diveId, parsed: parsed);
+      if (sourceRow.isPrimary && !isMultiSource) {
+        await _carryOverTanks(diveId: diveId, parsed: parsed);
+      }
     });
   }
 

@@ -3059,27 +3059,115 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 65) await reportProgress();
         if (from < 66) {
-          await customStatement(
-            'ALTER TABLE dive_data_sources ADD COLUMN raw_data BLOB',
-          );
-          await customStatement(
-            'ALTER TABLE dive_data_sources ADD COLUMN raw_fingerprint BLOB',
-          );
-          await customStatement(
-            'ALTER TABLE dive_data_sources ADD COLUMN descriptor_vendor TEXT',
-          );
-          await customStatement(
-            'ALTER TABLE dive_data_sources ADD COLUMN descriptor_product TEXT',
-          );
-          await customStatement(
-            'ALTER TABLE dive_data_sources ADD COLUMN descriptor_model INTEGER',
-          );
-          await customStatement(
-            'ALTER TABLE dive_data_sources ADD COLUMN libdivecomputer_version TEXT',
-          );
-          await customStatement(
-            'ALTER TABLE dive_data_sources ADD COLUMN last_parsed_at INTEGER',
-          );
+          // Guard: dive_data_sources may not exist in older migration tests.
+          final ddsColumns = await customSelect(
+            "PRAGMA table_info('dive_data_sources')",
+          ).get();
+          if (ddsColumns.isNotEmpty) {
+            final existing = ddsColumns
+                .map((c) => c.read<String>('name'))
+                .toSet();
+            if (!existing.contains('raw_data')) {
+              await customStatement(
+                'ALTER TABLE dive_data_sources ADD COLUMN raw_data BLOB',
+              );
+            }
+            if (!existing.contains('raw_fingerprint')) {
+              await customStatement(
+                'ALTER TABLE dive_data_sources ADD COLUMN raw_fingerprint BLOB',
+              );
+            }
+            if (!existing.contains('descriptor_vendor')) {
+              await customStatement(
+                'ALTER TABLE dive_data_sources ADD COLUMN descriptor_vendor TEXT',
+              );
+            }
+            if (!existing.contains('descriptor_product')) {
+              await customStatement(
+                'ALTER TABLE dive_data_sources ADD COLUMN descriptor_product TEXT',
+              );
+            }
+            if (!existing.contains('descriptor_model')) {
+              await customStatement(
+                'ALTER TABLE dive_data_sources ADD COLUMN descriptor_model INTEGER',
+              );
+            }
+            if (!existing.contains('libdivecomputer_version')) {
+              await customStatement(
+                'ALTER TABLE dive_data_sources ADD COLUMN libdivecomputer_version TEXT',
+              );
+            }
+            if (!existing.contains('last_parsed_at')) {
+              await customStatement(
+                'ALTER TABLE dive_data_sources ADD COLUMN last_parsed_at INTEGER',
+              );
+            }
+
+            // Rebuild the table to update the computer_id FK from the
+            // original NO ACTION to ON DELETE SET NULL. SQLite cannot
+            // alter constraints in place, so we create → copy → swap.
+            await customStatement('PRAGMA foreign_keys = OFF');
+            await customStatement('''
+              CREATE TABLE dive_data_sources_new (
+                id TEXT NOT NULL PRIMARY KEY,
+                dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+                computer_id TEXT REFERENCES dive_computers(id) ON DELETE SET NULL,
+                is_primary INTEGER NOT NULL DEFAULT 0,
+                computer_model TEXT,
+                computer_serial TEXT,
+                source_format TEXT,
+                source_file_name TEXT,
+                source_file_format TEXT,
+                max_depth REAL,
+                avg_depth REAL,
+                duration INTEGER,
+                water_temp REAL,
+                entry_time INTEGER,
+                exit_time INTEGER,
+                max_ascent_rate REAL,
+                max_descent_rate REAL,
+                surface_interval INTEGER,
+                cns REAL,
+                otu REAL,
+                deco_algorithm TEXT,
+                gradient_factor_low INTEGER,
+                gradient_factor_high INTEGER,
+                imported_at INTEGER NOT NULL,
+                created_at INTEGER NOT NULL,
+                raw_data BLOB,
+                raw_fingerprint BLOB,
+                descriptor_vendor TEXT,
+                descriptor_product TEXT,
+                descriptor_model INTEGER,
+                libdivecomputer_version TEXT,
+                last_parsed_at INTEGER
+              )
+            ''');
+            await customStatement('''
+              INSERT INTO dive_data_sources_new
+              SELECT id, dive_id, computer_id, is_primary,
+                     computer_model, computer_serial, source_format,
+                     source_file_name, source_file_format,
+                     max_depth, avg_depth, duration, water_temp,
+                     entry_time, exit_time, max_ascent_rate, max_descent_rate,
+                     surface_interval, cns, otu, deco_algorithm,
+                     gradient_factor_low, gradient_factor_high,
+                     imported_at, created_at,
+                     raw_data, raw_fingerprint,
+                     descriptor_vendor, descriptor_product, descriptor_model,
+                     libdivecomputer_version, last_parsed_at
+              FROM dive_data_sources
+            ''');
+            await customStatement('DROP TABLE dive_data_sources');
+            await customStatement(
+              'ALTER TABLE dive_data_sources_new RENAME TO dive_data_sources',
+            );
+            await customStatement('''
+              CREATE INDEX IF NOT EXISTS idx_dive_data_sources_dive_id
+              ON dive_data_sources(dive_id)
+            ''');
+            await customStatement('PRAGMA foreign_keys = ON');
+          }
         }
         if (from < 66) await reportProgress();
       },

@@ -4612,13 +4612,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     if (sources.isEmpty) return;
 
-    try {
-      for (final source in sources) {
-        if (source.descriptorVendor == null ||
-            source.descriptorProduct == null ||
-            source.descriptorModel == null) {
-          continue;
-        }
+    final errors = <String>[];
+
+    for (final source in sources) {
+      if (source.descriptorVendor == null ||
+          source.descriptorProduct == null ||
+          source.descriptorModel == null) {
+        continue;
+      }
+      try {
         final parsed = await pigeon.DiveComputerHostApi().parseRawDiveData(
           source.descriptorVendor!,
           source.descriptorProduct!,
@@ -4634,17 +4636,20 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           descriptorModel: source.descriptorModel,
           libdivecomputerVersion: source.libdivecomputerVersion,
         );
+      } catch (e) {
+        errors.add(e.toString());
       }
-      if (context.mounted) {
+    }
+
+    if (context.mounted) {
+      if (errors.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.diveLog_detail_reparseSuccess)),
         );
-      }
-    } catch (e) {
-      if (context.mounted) {
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n.diveLog_detail_reparseFailed(e.toString())),
+            content: Text(l10n.diveLog_detail_reparseFailed(errors.first)),
           ),
         );
       }

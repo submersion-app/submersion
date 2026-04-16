@@ -803,6 +803,10 @@ static void libdivecomputer_plugin_parsed_dive_dispose(GObject* object) {
   g_clear_pointer(&self->gf_low, g_free);
   g_clear_pointer(&self->gf_high, g_free);
   g_clear_pointer(&self->deco_conservatism, g_free);
+  g_clear_pointer(&self->raw_data, g_free);
+  self->raw_data_length = 0;
+  g_clear_pointer(&self->raw_fingerprint, g_free);
+  self->raw_fingerprint_length = 0;
   G_OBJECT_CLASS(libdivecomputer_plugin_parsed_dive_parent_class)->dispose(object);
 }
 

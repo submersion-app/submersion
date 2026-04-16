@@ -15476,4 +15476,40 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get universalImport_label_replaceSourceSubtitle =>
       'Update from same computer';
+
+  @override
+  String get universalImport_title_importOptions => 'Import Options';
+
+  @override
+  String get universalImport_label_options => 'Options';
+
+  @override
+  String get universalImport_label_retainDiveNumbers =>
+      'Retain source dive numbers';
+
+  @override
+  String get universalImport_label_retainDiveNumbersSubtitle =>
+      'Use dive numbers from the imported file instead of auto-assigning';
+
+  @override
+  String get universalImport_title_successImported => 'Successfully Imported';
+
+  @override
+  String get universalImport_title_successUpdated => 'Successfully Updated';
+
+  @override
+  String get universalImport_title_successConsolidated =>
+      'Successfully Consolidated';
+
+  @override
+  String get universalImport_title_noDivesImported => 'No Dives Imported';
+
+  @override
+  String get universalImport_label_allDivesSkipped => 'All dives were skipped.';
+
+  @override
+  String get universalImport_label_replacedSourceData => 'Replaced source data';
+
+  @override
+  String get universalImport_label_consolidated => 'Consolidated';
 }

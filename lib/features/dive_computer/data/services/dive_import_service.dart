@@ -511,7 +511,10 @@ class DiveImportService {
     );
   }
 
-  /// Update an existing dive with downloaded data.
+  /// Replace an existing dive's source data with a fresh download.
+  ///
+  /// Clears the old profile and data source rows for this computer, then
+  /// re-imports so the new raw bytes and parsed data are stored.
   Future<void> _updateExistingDive(
     DownloadedDive dive,
     String existingDiveId,
@@ -521,24 +524,26 @@ class DiveImportService {
     int? descriptorModel,
     String? libdivecomputerVersion,
   }) async {
-    // Parse profile data
-    final profilePoints = _parser.parseProfile(dive);
+    // Remove the existing profile + source row so importProfile won't
+    // short-circuit on the "already exists" check.
+    await _repository.clearSourceAndProfiles(
+      diveId: existingDiveId,
+      computerId: computerId,
+    );
 
-    // Convert events to EventData
+    final profilePoints = _parser.parseProfile(dive);
     final events = _convertEvents(dive.events);
 
-    // Clear existing profile for this computer and add new one
-    // Note: This is a simplified implementation
-    // A full implementation would update dive metadata as well
-
-    // Import the profile (will associate with existing dive)
+    // Re-import using the existing dive's start time so that importProfile
+    // matches it back to the same dive row.
     await _repository.importProfile(
       computerId: computerId,
       profileStartTime: dive.startTime,
       points: profilePoints,
       durationSeconds: dive.durationSeconds,
       maxDepth: dive.maxDepth,
-      isPrimary: false, // Keep existing primary
+      avgDepth: dive.avgDepth,
+      isPrimary: true,
       decoAlgorithm: dive.decoAlgorithm,
       gfLow: dive.gfLow,
       gfHigh: dive.gfHigh,

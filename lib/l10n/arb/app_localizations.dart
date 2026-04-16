@@ -27455,6 +27455,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Update from same computer'**
   String get universalImport_label_replaceSourceSubtitle;
+
+  /// Title for the import options bottom sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Import Options'**
+  String get universalImport_title_importOptions;
+
+  /// Label for the import options button
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get universalImport_label_options;
+
+  /// Switch title for retaining dive numbers from source
+  ///
+  /// In en, this message translates to:
+  /// **'Retain source dive numbers'**
+  String get universalImport_label_retainDiveNumbers;
+
+  /// Switch subtitle for retaining dive numbers
+  ///
+  /// In en, this message translates to:
+  /// **'Use dive numbers from the imported file instead of auto-assigning'**
+  String get universalImport_label_retainDiveNumbersSubtitle;
+
+  /// Title shown when dives are successfully imported
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully Imported'**
+  String get universalImport_title_successImported;
+
+  /// Title shown when existing dives are successfully updated
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully Updated'**
+  String get universalImport_title_successUpdated;
+
+  /// Title shown when dives are successfully consolidated
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully Consolidated'**
+  String get universalImport_title_successConsolidated;
+
+  /// Title shown when no dives were imported
+  ///
+  /// In en, this message translates to:
+  /// **'No Dives Imported'**
+  String get universalImport_title_noDivesImported;
+
+  /// Message shown when all dives were skipped during import
+  ///
+  /// In en, this message translates to:
+  /// **'All dives were skipped.'**
+  String get universalImport_label_allDivesSkipped;
+
+  /// Label for the count of dives whose source data was replaced
+  ///
+  /// In en, this message translates to:
+  /// **'Replaced source data'**
+  String get universalImport_label_replacedSourceData;
+
+  /// Label for the count of consolidated dives in summary
+  ///
+  /// In en, this message translates to:
+  /// **'Consolidated'**
+  String get universalImport_label_consolidated;
 }
 
 class _AppLocalizationsDelegate

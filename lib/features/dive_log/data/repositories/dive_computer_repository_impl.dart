@@ -762,6 +762,26 @@ class DiveComputerRepository {
     }
   }
 
+  /// Remove existing profiles and data source rows for a dive+computer pair.
+  ///
+  /// Used by the replaceSource path so that a subsequent [importProfile] call
+  /// inserts fresh data instead of short-circuiting.
+  Future<void> clearSourceAndProfiles({
+    required String diveId,
+    required String computerId,
+  }) async {
+    // Delete profile points for this computer+dive
+    await _db.customStatement(
+      'DELETE FROM dive_profiles WHERE dive_id = ? AND computer_id = ?',
+      [diveId, computerId],
+    );
+    // Delete the data source row for this computer+dive
+    await _db.customStatement(
+      'DELETE FROM dive_data_sources WHERE dive_id = ? AND computer_id = ?',
+      [diveId, computerId],
+    );
+  }
+
   /// Import a profile and associate it with a dive (creating one if needed).
   ///
   /// Returns the dive ID the profile was associated with.

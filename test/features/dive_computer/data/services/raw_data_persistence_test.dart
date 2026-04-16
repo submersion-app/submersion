@@ -141,14 +141,11 @@ void main() {
       )..where((t) => t.id.equals('src-1'))).getSingle();
       expect(row.computerId, equals('comp-1'));
 
+      // Verify foreign keys are enabled
+      final fkResult = await db.customSelect('PRAGMA foreign_keys').getSingle();
+      expect(fkResult.data['foreign_keys'], 1);
+
       // Delete the computer -- FK ON DELETE SET NULL should fire.
-      // The repository uses manual nulling + delete; in a direct-db test
-      // we need to do the same because Drift/SQLite may not have the FK
-      // pragma enabled by default in all configurations.
-      await db.customStatement(
-        'UPDATE dive_data_sources SET computer_id = NULL WHERE computer_id = ?',
-        ['comp-1'],
-      );
       await (db.delete(
         db.diveComputers,
       )..where((t) => t.id.equals('comp-1'))).go();

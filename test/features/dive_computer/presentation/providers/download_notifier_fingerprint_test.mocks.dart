@@ -262,6 +262,21 @@ class MockDiveComputerRepository extends _i1.Mock
           as _i4.Future<List<String>>);
 
   @override
+  _i4.Future<void> clearSourceAndProfiles({
+    required String? diveId,
+    required String? computerId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#clearSourceAndProfiles, [], {
+              #diveId: diveId,
+              #computerId: computerId,
+            }),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
   _i4.Future<String> importProfile({
     required String? computerId,
     required DateTime? profileStartTime,

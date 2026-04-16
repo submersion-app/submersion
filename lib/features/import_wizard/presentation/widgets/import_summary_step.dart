@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The summary step shown after the import completes.
 ///
@@ -88,19 +89,20 @@ class _SuccessView extends StatelessWidget {
     final IconData icon;
     final Color iconColor;
     final Color iconBg;
+    final l10n = context.l10n;
     if (hasActivity) {
       if (totalImported > 0) {
-        title = 'Successfully Imported';
+        title = l10n.universalImport_title_successImported;
       } else if (updatedCount > 0) {
-        title = 'Successfully Updated';
+        title = l10n.universalImport_title_successUpdated;
       } else {
-        title = 'Successfully Consolidated';
+        title = l10n.universalImport_title_successConsolidated;
       }
       icon = Icons.check;
       iconColor = theme.colorScheme.onPrimaryContainer;
       iconBg = theme.colorScheme.primaryContainer;
     } else {
-      title = 'No Dives Imported';
+      title = l10n.universalImport_title_noDivesImported;
       icon = Icons.info_outline;
       iconColor = theme.colorScheme.onSurfaceVariant;
       iconBg = theme.colorScheme.surfaceContainerHighest;
@@ -128,7 +130,7 @@ class _SuccessView extends StatelessWidget {
             if (!hasActivity && skippedCount > 0) ...[
               const SizedBox(height: 8),
               Text(
-                'All dives were skipped.',
+                l10n.universalImport_label_allDivesSkipped,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -146,14 +148,14 @@ class _SuccessView extends StatelessWidget {
             if (updatedCount > 0)
               _CountRow(
                 icon: Icons.sync,
-                label: 'Replaced source data',
+                label: l10n.universalImport_label_replacedSourceData,
                 count: updatedCount,
                 key: const Key('import_summary_updated_row'),
               ),
             if (consolidatedCount > 0)
               _CountRow(
                 icon: Icons.merge,
-                label: 'Consolidated',
+                label: l10n.universalImport_label_consolidated,
                 count: consolidatedCount,
                 key: const Key('import_summary_consolidated_row'),
               ),

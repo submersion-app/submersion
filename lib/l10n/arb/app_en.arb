@@ -9963,5 +9963,49 @@
   "universalImport_label_replaceSourceSubtitle": "Update from same computer",
   "@universalImport_label_replaceSourceSubtitle": {
     "description": "Subtitle for the replace source button in the duplicate review step"
+  },
+  "universalImport_title_importOptions": "Import Options",
+  "@universalImport_title_importOptions": {
+    "description": "Title for the import options bottom sheet"
+  },
+  "universalImport_label_options": "Options",
+  "@universalImport_label_options": {
+    "description": "Label for the import options button"
+  },
+  "universalImport_label_retainDiveNumbers": "Retain source dive numbers",
+  "@universalImport_label_retainDiveNumbers": {
+    "description": "Switch title for retaining dive numbers from source"
+  },
+  "universalImport_label_retainDiveNumbersSubtitle": "Use dive numbers from the imported file instead of auto-assigning",
+  "@universalImport_label_retainDiveNumbersSubtitle": {
+    "description": "Switch subtitle for retaining dive numbers"
+  },
+  "universalImport_title_successImported": "Successfully Imported",
+  "@universalImport_title_successImported": {
+    "description": "Title shown when dives are successfully imported"
+  },
+  "universalImport_title_successUpdated": "Successfully Updated",
+  "@universalImport_title_successUpdated": {
+    "description": "Title shown when existing dives are successfully updated"
+  },
+  "universalImport_title_successConsolidated": "Successfully Consolidated",
+  "@universalImport_title_successConsolidated": {
+    "description": "Title shown when dives are successfully consolidated"
+  },
+  "universalImport_title_noDivesImported": "No Dives Imported",
+  "@universalImport_title_noDivesImported": {
+    "description": "Title shown when no dives were imported"
+  },
+  "universalImport_label_allDivesSkipped": "All dives were skipped.",
+  "@universalImport_label_allDivesSkipped": {
+    "description": "Message shown when all dives were skipped during import"
+  },
+  "universalImport_label_replacedSourceData": "Replaced source data",
+  "@universalImport_label_replacedSourceData": {
+    "description": "Label for the count of dives whose source data was replaced"
+  },
+  "universalImport_label_consolidated": "Consolidated",
+  "@universalImport_label_consolidated": {
+    "description": "Label for the count of consolidated dives in summary"
   }
 }

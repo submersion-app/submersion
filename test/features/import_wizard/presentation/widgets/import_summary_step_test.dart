@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
@@ -66,6 +67,8 @@ Widget _buildWidget(
   return ProviderScope(
     overrides: [importWizardNotifierProvider.overrideWith((_) => notifier)],
     child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         body: ImportSummaryStep(
           onDone: onDone ?? () {},
@@ -686,8 +689,8 @@ void main() {
       await tester.pumpWidget(_buildWidget(notifier));
       await tester.pump();
 
-      // consolidatedCount > 0 means hasNewDives is true
-      expect(find.text('Successfully Imported'), findsOneWidget);
+      // consolidatedCount > 0 means hasActivity is true
+      expect(find.text('Successfully Consolidated'), findsOneWidget);
       expect(find.text('View Dives'), findsOneWidget);
     });
   });
