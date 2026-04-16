@@ -376,13 +376,6 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       );
     }
 
-    // Pass session-level descriptor fields to the import service so they are
-    // written onto every DiveDataSources row created during this import.
-    _importService.descriptorVendor = _descriptorVendor;
-    _importService.descriptorProduct = _descriptorProduct;
-    _importService.descriptorModel = _descriptorModel;
-    _importService.libdivecomputerVersion = _libdivecomputerVersion;
-
     final baseSelections = Set<int>.from(
       selections[ImportEntityType.dives] ?? <int>{},
     );
@@ -475,6 +468,10 @@ class DiveComputerAdapter implements ImportSourceAdapter {
             ConflictResolution.replaceSource,
             comp.id,
             diverId: _diverId,
+            descriptorVendor: _descriptorVendor,
+            descriptorProduct: _descriptorProduct,
+            descriptorModel: _descriptorModel,
+            libdivecomputerVersion: _libdivecomputerVersion,
           );
           updated++;
         }
@@ -486,6 +483,10 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           dive,
           computerId: comp.id,
           diverId: _diverId,
+          descriptorVendor: _descriptorVendor,
+          descriptorProduct: _descriptorProduct,
+          descriptorModel: _descriptorModel,
+          libdivecomputerVersion: _libdivecomputerVersion,
         );
         imported++;
         importedDives.add(dive);
@@ -559,6 +560,13 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       waterTemp: Value(dive.minTemperature),
       entryTime: Value(dive.startTime),
       exitTime: Value(dive.endTime),
+      rawData: Value(dive.rawData),
+      rawFingerprint: Value(dive.rawFingerprint),
+      descriptorVendor: Value(_descriptorVendor),
+      descriptorProduct: Value(_descriptorProduct),
+      descriptorModel: Value(_descriptorModel),
+      libdivecomputerVersion: Value(_libdivecomputerVersion),
+      lastParsedAt: Value(dive.rawData != null ? DateTime.now() : null),
       importedAt: now,
       createdAt: now,
     );

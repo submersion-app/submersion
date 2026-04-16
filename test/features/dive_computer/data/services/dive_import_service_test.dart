@@ -62,6 +62,12 @@ void main() {
         events: anyNamed('events'),
         diveNumber: anyNamed('diveNumber'),
         forceNew: anyNamed('forceNew'),
+        rawData: anyNamed('rawData'),
+        rawFingerprint: anyNamed('rawFingerprint'),
+        descriptorVendor: anyNamed('descriptorVendor'),
+        descriptorProduct: anyNamed('descriptorProduct'),
+        descriptorModel: anyNamed('descriptorModel'),
+        libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
       ),
     ).thenAnswer((_) async => 'dive-id');
   });
@@ -139,6 +145,12 @@ void main() {
           decoConservatism: anyNamed('decoConservatism'),
           events: anyNamed('events'),
           diveNumber: 1,
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
         ),
       ).called(1);
 
@@ -159,6 +171,12 @@ void main() {
           decoConservatism: anyNamed('decoConservatism'),
           events: anyNamed('events'),
           diveNumber: 2,
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
         ),
       ).called(1);
 
@@ -179,6 +197,12 @@ void main() {
           decoConservatism: anyNamed('decoConservatism'),
           events: anyNamed('events'),
           diveNumber: 3,
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
         ),
       ).called(1);
     });
@@ -243,6 +267,12 @@ void main() {
             decoConservatism: anyNamed('decoConservatism'),
             events: anyNamed('events'),
             diveNumber: 1,
+            rawData: anyNamed('rawData'),
+            rawFingerprint: anyNamed('rawFingerprint'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
           ),
         ).called(1);
 
@@ -264,6 +294,12 @@ void main() {
             decoConservatism: anyNamed('decoConservatism'),
             events: anyNamed('events'),
             diveNumber: 2,
+            rawData: anyNamed('rawData'),
+            rawFingerprint: anyNamed('rawFingerprint'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
           ),
         ).called(1);
       },
@@ -309,6 +345,12 @@ void main() {
             decoConservatism: anyNamed('decoConservatism'),
             events: anyNamed('events'),
             diveNumber: 6,
+            rawData: anyNamed('rawData'),
+            rawFingerprint: anyNamed('rawFingerprint'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
           ),
         ).called(1);
       },
@@ -376,6 +418,12 @@ void main() {
             events: anyNamed('events'),
             diveNumber: anyNamed('diveNumber'),
             forceNew: true,
+            rawData: anyNamed('rawData'),
+            rawFingerprint: anyNamed('rawFingerprint'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
           ),
         ).called(1);
       },
@@ -420,6 +468,12 @@ void main() {
           events: anyNamed('events'),
           diveNumber: anyNamed('diveNumber'),
           forceNew: true,
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
         ),
       ).called(1);
     });
@@ -477,6 +531,12 @@ void main() {
           decoConservatism: anyNamed('decoConservatism'),
           events: anyNamed('events'),
           diveNumber: 4,
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
         ),
       ).called(1);
     });

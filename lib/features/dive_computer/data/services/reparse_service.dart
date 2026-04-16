@@ -79,18 +79,31 @@ class ReparseService {
       // 5. Replace DiveProfileEvents, GasSwitches, TankPressureProfiles
       //    These tables have no computerId column, so delete by diveId.
       // ------------------------------------------------------------------
-      await (db.delete(
-        db.diveProfileEvents,
-      )..where((t) => t.diveId.equals(diveId))).go();
-      await (db.delete(
-        db.gasSwitches,
-      )..where((t) => t.diveId.equals(diveId))).go();
-      await (db.delete(
-        db.tankPressureProfiles,
-      )..where((t) => t.diveId.equals(diveId))).go();
 
-      // Re-insert events from parsed data
-      await _insertEvents(diveId: diveId, parsed: parsed, now: now);
+      // Check if this is a multi-source dive
+      final sourceRows = await (db.select(
+        db.diveDataSources,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      final isMultiSource = sourceRows.length > 1;
+
+      // Only replace events/switches/pressure for single-source dives.
+      // Multi-source dives skip this to avoid destroying data from other
+      // sources (these tables lack a computerId column for per-source
+      // scoping).
+      if (!isMultiSource) {
+        await (db.delete(
+          db.diveProfileEvents,
+        )..where((t) => t.diveId.equals(diveId))).go();
+        await (db.delete(
+          db.gasSwitches,
+        )..where((t) => t.diveId.equals(diveId))).go();
+        await (db.delete(
+          db.tankPressureProfiles,
+        )..where((t) => t.diveId.equals(diveId))).go();
+
+        // Re-insert events from parsed data
+        await _insertEvents(diveId: diveId, parsed: parsed, now: now);
+      }
 
       // ------------------------------------------------------------------
       // 6. DiveTanks carry-over
@@ -134,6 +147,25 @@ class ReparseService {
         )
         .getSingle();
     return (result.data['cnt'] as int) > 0;
+  }
+
+  /// Get all DiveDataSources rows with raw data for a given computer.
+  Future<List<DiveDataSourcesData>> getSourcesForComputerReparse(
+    String computerId,
+  ) async {
+    return (db.select(db.diveDataSources)..where(
+          (t) => t.computerId.equals(computerId) & t.rawData.isNotNull(),
+        ))
+        .get();
+  }
+
+  /// Get all DiveDataSources rows with raw data for a given dive.
+  Future<List<DiveDataSourcesData>> getSourcesForDiveReparse(
+    String diveId,
+  ) async {
+    return (db.select(
+      db.diveDataSources,
+    )..where((t) => t.diveId.equals(diveId) & t.rawData.isNotNull())).get();
   }
 
   // ==========================================================================
@@ -194,6 +226,8 @@ class ReparseService {
       parsed.dateTimeSecond,
     );
     final diveDateTimeMs = diveDateTime.millisecondsSinceEpoch;
+    final exitTimeMs = diveDateTimeMs + (parsed.durationSeconds * 1000);
+    final bottomTimeSeconds = _calculateBottomTimeFromSamples(parsed.samples);
 
     await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
       DivesCompanion(
@@ -203,6 +237,9 @@ class ReparseService {
         ),
         runtime: Value(parsed.durationSeconds),
         diveDateTime: Value(diveDateTimeMs),
+        entryTime: Value(diveDateTimeMs),
+        exitTime: Value(exitTimeMs),
+        bottomTime: Value(bottomTimeSeconds ?? parsed.durationSeconds),
         waterTemp: Value(parsed.minTemperatureCelsius),
         diveMode: Value(_mapDiveMode(parsed.diveMode)),
         cnsEnd: Value(_extractMaxCns(parsed.samples)),
@@ -373,6 +410,57 @@ class ReparseService {
   // ==========================================================================
   // Static helpers
   // ==========================================================================
+
+  /// Calculate bottom time from profile samples using the 85% depth threshold.
+  ///
+  /// Mirrors the logic in DiveComputerRepositoryImpl._calculateBottomTimeFromPoints:
+  /// bottom time = time between first sample at 85% of max depth and the last
+  /// sample at that depth. Returns null if insufficient data.
+  static int? _calculateBottomTimeFromSamples(
+    List<pigeon.ProfileSample> samples, {
+    double depthThresholdPercent = 0.85,
+  }) {
+    if (samples.length < 3) return null;
+
+    final sorted = List<pigeon.ProfileSample>.from(samples)
+      ..sort((a, b) => a.timeSeconds.compareTo(b.timeSeconds));
+
+    double maxDepth = 0;
+    for (final s in sorted) {
+      if (s.depthMeters > maxDepth) {
+        maxDepth = s.depthMeters;
+      }
+    }
+
+    if (maxDepth <= 0) return null;
+
+    final bottomThreshold = maxDepth * depthThresholdPercent;
+
+    // First sample at or above threshold = descent end
+    int? descentEndTimestamp;
+    for (final s in sorted) {
+      if (s.depthMeters >= bottomThreshold) {
+        descentEndTimestamp = s.timeSeconds;
+        break;
+      }
+    }
+
+    // Last sample at or above threshold = ascent start
+    int? ascentStartTimestamp;
+    for (int i = sorted.length - 1; i >= 0; i--) {
+      if (sorted[i].depthMeters >= bottomThreshold) {
+        ascentStartTimestamp = sorted[i].timeSeconds;
+        break;
+      }
+    }
+
+    if (descentEndTimestamp == null || ascentStartTimestamp == null) {
+      return null;
+    }
+    if (ascentStartTimestamp <= descentEndTimestamp) return null;
+
+    return ascentStartTimestamp - descentEndTimestamp;
+  }
 
   /// Map dive mode strings from libdivecomputer to the app's enum values.
   static String _mapDiveMode(String? mode) {

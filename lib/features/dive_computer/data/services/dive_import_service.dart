@@ -221,13 +221,6 @@ class DiveImportService {
   final DiveRepository? _diveRepository;
   final DiveParser _parser;
 
-  /// Session-level descriptor fields set by the adapter before import.
-  /// These are written onto each [DiveDataSources] row created during import.
-  String? descriptorVendor;
-  String? descriptorProduct;
-  int? descriptorModel;
-  String? libdivecomputerVersion;
-
   DiveImportService({
     required DiveComputerRepository repository,
     DiveRepository? diveRepository,
@@ -253,6 +246,10 @@ class DiveImportService {
     ImportMode mode = ImportMode.newOnly,
     ConflictResolution defaultResolution = ConflictResolution.skip,
     String? diverId,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) async {
     int imported = 0;
     int skipped = 0;
@@ -302,6 +299,10 @@ class DiveImportService {
                 dive,
                 duplicateResult.matchingDiveId!,
                 computer.id,
+                descriptorVendor: descriptorVendor,
+                descriptorProduct: descriptorProduct,
+                descriptorModel: descriptorModel,
+                libdivecomputerVersion: libdivecomputerVersion,
               );
               updated++;
             } else {
@@ -313,6 +314,10 @@ class DiveImportService {
                 computer.id,
                 diverId,
                 forceNew: true,
+                descriptorVendor: descriptorVendor,
+                descriptorProduct: descriptorProduct,
+                descriptorModel: descriptorModel,
+                libdivecomputerVersion: libdivecomputerVersion,
               );
               importedDiveIds.add(diveId);
               importedDives.add(dive);
@@ -324,6 +329,10 @@ class DiveImportService {
               dive,
               duplicateResult.matchingDiveId!,
               computer.id,
+              descriptorVendor: descriptorVendor,
+              descriptorProduct: descriptorProduct,
+              descriptorModel: descriptorModel,
+              libdivecomputerVersion: libdivecomputerVersion,
             );
             updated++;
           } else {
@@ -334,6 +343,10 @@ class DiveImportService {
               computer.id,
               diverId,
               forceNew: true,
+              descriptorVendor: descriptorVendor,
+              descriptorProduct: descriptorProduct,
+              descriptorModel: descriptorModel,
+              libdivecomputerVersion: libdivecomputerVersion,
             );
             importedDiveIds.add(diveId);
             importedDives.add(dive);
@@ -341,7 +354,15 @@ class DiveImportService {
           }
         } else {
           // No duplicate - import as new
-          final diveId = await _importNewDive(dive, computer.id, diverId);
+          final diveId = await _importNewDive(
+            dive,
+            computer.id,
+            diverId,
+            descriptorVendor: descriptorVendor,
+            descriptorProduct: descriptorProduct,
+            descriptorModel: descriptorModel,
+            libdivecomputerVersion: libdivecomputerVersion,
+          );
           importedDiveIds.add(diveId);
           importedDives.add(dive);
           imported++;
@@ -413,6 +434,10 @@ class DiveImportService {
     String computerId,
     String? diverId, {
     bool forceNew = false,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) async {
     // Calculate chronological dive number
     int? diveNumber;
@@ -469,16 +494,33 @@ class DiveImportService {
     DownloadedDive dive, {
     required String computerId,
     String? diverId,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) async {
-    return _importNewDive(dive, computerId, diverId, forceNew: true);
+    return _importNewDive(
+      dive,
+      computerId,
+      diverId,
+      forceNew: true,
+      descriptorVendor: descriptorVendor,
+      descriptorProduct: descriptorProduct,
+      descriptorModel: descriptorModel,
+      libdivecomputerVersion: libdivecomputerVersion,
+    );
   }
 
   /// Update an existing dive with downloaded data.
   Future<void> _updateExistingDive(
     DownloadedDive dive,
     String existingDiveId,
-    String computerId,
-  ) async {
+    String computerId, {
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
+  }) async {
     // Parse profile data
     final profilePoints = _parser.parseProfile(dive);
 
@@ -502,6 +544,12 @@ class DiveImportService {
       gfHigh: dive.gfHigh,
       decoConservatism: dive.decoConservatism,
       events: events,
+      rawData: dive.rawData,
+      rawFingerprint: dive.rawFingerprint,
+      descriptorVendor: descriptorVendor,
+      descriptorProduct: descriptorProduct,
+      descriptorModel: descriptorModel,
+      libdivecomputerVersion: libdivecomputerVersion,
     );
   }
 
@@ -511,6 +559,10 @@ class DiveImportService {
     ConflictResolution resolution,
     String computerId, {
     String? diverId,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) async {
     conflict.resolution = resolution;
 
@@ -523,11 +575,23 @@ class DiveImportService {
           conflict.downloaded,
           conflict.existingDiveId,
           computerId,
+          descriptorVendor: descriptorVendor,
+          descriptorProduct: descriptorProduct,
+          descriptorModel: descriptorModel,
+          libdivecomputerVersion: libdivecomputerVersion,
         );
         return conflict.existingDiveId;
 
       case ConflictResolution.importAsNew:
-        return await _importNewDive(conflict.downloaded, computerId, diverId);
+        return await _importNewDive(
+          conflict.downloaded,
+          computerId,
+          diverId,
+          descriptorVendor: descriptorVendor,
+          descriptorProduct: descriptorProduct,
+          descriptorModel: descriptorModel,
+          libdivecomputerVersion: libdivecomputerVersion,
+        );
 
       case ConflictResolution.askUser:
         // This shouldn't be called with askUser
