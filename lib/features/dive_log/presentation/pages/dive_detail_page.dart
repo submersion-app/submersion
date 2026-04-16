@@ -72,6 +72,9 @@ import 'package:submersion/features/signatures/presentation/widgets/signature_ca
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
 import 'package:submersion/features/signatures/presentation/widgets/buddy_signatures_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 
 /// Calculate normalization factor to align profile-based SAC with tank-based SAC.
 /// The segments are calculated from profile pressure data, but dive.sacPressure
@@ -414,6 +417,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final computerReadingsAsync = ref.watch(diveDataSourcesProvider(dive.id));
+    final hasRawData =
+        ref.watch(diveHasRawDataProvider(dive.id)).valueOrNull ?? false;
 
     final builders = _sectionBuilders(
       context: context,
@@ -469,7 +474,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     if (widget.embedded) {
       return Column(
         children: [
-          _buildEmbeddedHeader(context, ref, dive),
+          _buildEmbeddedHeader(context, ref, dive, hasRawData: hasRawData),
           Expanded(child: body),
         ],
       );
@@ -508,6 +513,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'merge':
                   _showMergeDiveDialog(context, ref, dive);
                   break;
+                case 'reparse':
+                  _reparseDive(context, ref, dive);
+                  break;
                 case 'delete':
                   _showDeleteConfirmation(context, ref);
                   break;
@@ -531,6 +539,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
+              if (hasRawData)
+                const PopupMenuItem(
+                  value: 'reparse',
+                  child: ListTile(
+                    leading: Icon(Icons.refresh),
+                    title: Text('Re-parse raw data'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
               PopupMenuItem(
                 value: 'delete',
                 child: ListTile(
@@ -551,7 +568,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   /// Compact header bar for embedded mode in master-detail layout.
-  Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref, Dive dive) {
+  Widget _buildEmbeddedHeader(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive, {
+    bool hasRawData = false,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -642,6 +664,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'merge':
                   _showMergeDiveDialog(context, ref, dive);
                   break;
+                case 'reparse':
+                  _reparseDive(context, ref, dive);
+                  break;
                 case 'delete':
                   _showDeleteConfirmation(context, ref);
                   break;
@@ -677,6 +702,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
+              if (hasRawData)
+                const PopupMenuItem(
+                  value: 'reparse',
+                  child: ListTile(
+                    leading: Icon(Icons.refresh),
+                    title: Text('Re-parse raw data'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
               PopupMenuItem(
                 value: 'delete',
                 child: ListTile(
@@ -4560,6 +4594,54 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         }
       },
     );
+  }
+
+  Future<void> _reparseDive(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+  ) async {
+    final service = ref.read(reparseServiceProvider);
+    final db = DatabaseService.instance.database;
+
+    final sources =
+        await (db.select(db.diveDataSources)
+              ..where((t) => t.diveId.equals(dive.id))
+              ..where((t) => t.rawData.isNotNull()))
+            .get();
+
+    if (sources.isEmpty) return;
+
+    try {
+      for (final source in sources) {
+        final parsed = await pigeon.DiveComputerHostApi().parseRawDiveData(
+          source.descriptorVendor!,
+          source.descriptorProduct!,
+          source.descriptorModel!,
+          source.rawData!,
+        );
+        await service.applyParsedUpdate(
+          diveId: dive.id,
+          sourceRowId: source.id,
+          parsed: parsed,
+          descriptorVendor: source.descriptorVendor,
+          descriptorProduct: source.descriptorProduct,
+          descriptorModel: source.descriptorModel,
+          libdivecomputerVersion: source.libdivecomputerVersion,
+        );
+      }
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Dive re-parsed successfully')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Re-parse failed: $e')));
+      }
+    }
   }
 
   void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
