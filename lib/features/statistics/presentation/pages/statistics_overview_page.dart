@@ -374,7 +374,6 @@ class _TopSitesSection extends StatelessWidget {
   }
 }
 
-// Color palettes matching statistics_summary_widget.dart
 const _depthColors = [
   Color(0xFF4FC3F7), // lightBlue.shade300
   Color(0xFF42A5F5), // blue.shade400
