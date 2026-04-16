@@ -881,3 +881,29 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveDecoModel(
     env->SetIntArrayRegion(result, 0, 4, values);
     return result;
 }
+
+// ============================================================
+// Raw Dive Data Access
+// ============================================================
+
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveRawData(
+    JNIEnv *env, jclass, jlong divePtr) {
+    auto *dive = reinterpret_cast<const libdc_parsed_dive_t *>(divePtr);
+    if (dive->raw_data == nullptr || dive->raw_data_size == 0) return nullptr;
+    jbyteArray arr = env->NewByteArray(static_cast<jint>(dive->raw_data_size));
+    env->SetByteArrayRegion(arr, 0, static_cast<jint>(dive->raw_data_size),
+        reinterpret_cast<const jbyte *>(dive->raw_data));
+    return arr;
+}
+
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveRawFingerprint(
+    JNIEnv *env, jclass, jlong divePtr) {
+    auto *dive = reinterpret_cast<const libdc_parsed_dive_t *>(divePtr);
+    if (dive->raw_fingerprint == nullptr || dive->raw_fingerprint_size == 0) return nullptr;
+    jbyteArray arr = env->NewByteArray(static_cast<jint>(dive->raw_fingerprint_size));
+    env->SetByteArrayRegion(arr, 0, static_cast<jint>(dive->raw_fingerprint_size),
+        reinterpret_cast<const jbyte *>(dive->raw_fingerprint));
+    return arr;
+}

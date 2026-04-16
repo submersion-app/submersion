@@ -372,6 +372,10 @@ class DiveComputerHostApiImpl(
         val gfHigh = decoInfo?.let { if (it[3] == 0) null else it[3].toLong() }
         val decoConservatism = decoInfo?.let { if (it[1] == 0) null else it[1].toLong() }
 
+        // Copy raw dive data bytes if available.
+        val rawData = LibdcWrapper.nativeGetDiveRawData(divePtr)
+        val rawFingerprint = LibdcWrapper.nativeGetDiveRawFingerprint(divePtr)
+
         return ParsedDive(
             fingerprint = fingerprint,
             dateTimeYear = LibdcWrapper.nativeGetDiveYear(divePtr).toLong(),
@@ -394,7 +398,9 @@ class DiveComputerHostApiImpl(
             decoAlgorithm = decoAlgorithm,
             gfLow = gfLow,
             gfHigh = gfHigh,
-            decoConservatism = decoConservatism
+            decoConservatism = decoConservatism,
+            rawData = rawData,
+            rawFingerprint = rawFingerprint
         )
     }
 

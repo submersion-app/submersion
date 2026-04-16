@@ -528,6 +528,21 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         default: decoAlgorithm = nil
         }
 
+        // Copy raw dive data bytes if available.
+        let rawData: FlutterStandardTypedData?
+        if dive.raw_data != nil && dive.raw_data_size > 0 {
+            rawData = FlutterStandardTypedData(bytes: Data(bytes: dive.raw_data, count: Int(dive.raw_data_size)))
+        } else {
+            rawData = nil
+        }
+
+        let rawFingerprint: FlutterStandardTypedData?
+        if dive.raw_fingerprint != nil && dive.raw_fingerprint_size > 0 {
+            rawFingerprint = FlutterStandardTypedData(bytes: Data(bytes: dive.raw_fingerprint, count: Int(dive.raw_fingerprint_size)))
+        } else {
+            rawFingerprint = nil
+        }
+
         return ParsedDive(
             fingerprint: fingerprintHex,
             dateTimeYear: Int64(dive.year),
@@ -554,7 +569,9 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             gfHigh: dive.gf_high == 0 ? nil : Int64(dive.gf_high),
             // Note: deco_conservatism uses 0 for both "neutral" and "not reported".
             // Cannot distinguish these without a C layer change.
-            decoConservatism: dive.deco_conservatism == 0 ? nil : Int64(dive.deco_conservatism)
+            decoConservatism: dive.deco_conservatism == 0 ? nil : Int64(dive.deco_conservatism),
+            rawData: rawData,
+            rawFingerprint: rawFingerprint
         )
     }
 

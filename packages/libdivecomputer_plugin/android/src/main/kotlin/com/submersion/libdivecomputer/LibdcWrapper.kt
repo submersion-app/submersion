@@ -67,6 +67,10 @@ object LibdcWrapper {
 
     // Decompression model access
     external fun nativeGetDiveDecoModel(divePtr: Long): IntArray?
+
+    // Raw dive data access
+    external fun nativeGetDiveRawData(divePtr: Long): ByteArray?
+    external fun nativeGetDiveRawFingerprint(divePtr: Long): ByteArray?
 }
 
 // Mutable data class for receiving descriptor info from JNI.

@@ -232,13 +232,26 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
     int64_t* conservatism =
         (dive->deco_conservatism == 0) ? NULL : &conserv_val;
 
+    // Raw dive data: pass pointer and length (NULL/0 if not available).
+    const uint8_t* raw_data =
+        (dive->raw_data != NULL && dive->raw_data_size > 0)
+            ? dive->raw_data : NULL;
+    size_t raw_data_length =
+        (raw_data != NULL) ? (size_t)dive->raw_data_size : 0;
+
+    const uint8_t* raw_fp =
+        (dive->raw_fingerprint != NULL && dive->raw_fingerprint_size > 0)
+            ? dive->raw_fingerprint : NULL;
+    size_t raw_fp_length =
+        (raw_fp != NULL) ? (size_t)dive->raw_fingerprint_size : 0;
+
     LibdivecomputerPluginParsedDive* result =
         libdivecomputer_plugin_parsed_dive_new(
             hex, dt_year, dt_month, dt_day, dt_hour, dt_minute, dt_second,
             tz_offset, dive->max_depth, dive->avg_depth,
             (int64_t)dive->duration, min_temp, max_temp, samples, tanks,
             gas_mixes, events, dive_mode, deco_algorithm, gf_low, gf_high,
-            conservatism);
+            conservatism, raw_data, raw_data_length, raw_fp, raw_fp_length);
 
     fl_value_unref(samples);
     fl_value_unref(gas_mixes);
