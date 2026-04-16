@@ -180,18 +180,19 @@ class _RecordsSection extends StatelessWidget {
         _RecordTile(
           label: 'Deepest Dive',
           value: fmt.formatDepth(records.deepestDive!.maxDepth),
-          subtitle: _dateLabel(records.deepestDive!.dateTime),
-          onTap: () => context.go('/dives/${records.deepestDive!.diveId}'),
+          subtitle: fmt.formatDate(records.deepestDive!.dateTime),
+          onTap: () => context.push('/dives/${records.deepestDive!.diveId}'),
         ),
       );
     }
     if (records.longestDive != null) {
+      final minutes = records.longestDive!.effectiveRuntime?.inMinutes ?? 0;
       rows.add(
         _RecordTile(
           label: 'Longest Dive',
-          value: _formatDuration(records.longestDive!.effectiveRuntime),
-          subtitle: _dateLabel(records.longestDive!.dateTime),
-          onTap: () => context.go('/dives/${records.longestDive!.diveId}'),
+          value: context.l10n.statistics_records_longestDiveValue(minutes),
+          subtitle: fmt.formatDate(records.longestDive!.dateTime),
+          onTap: () => context.push('/dives/${records.longestDive!.diveId}'),
         ),
       );
     }
@@ -199,9 +200,9 @@ class _RecordsSection extends StatelessWidget {
       rows.add(
         _RecordTile(
           label: 'Coldest Dive',
-          value: fmt.formatTemperature(records.coldestDive!.waterTemp ?? 0),
-          subtitle: _dateLabel(records.coldestDive!.dateTime),
-          onTap: () => context.go('/dives/${records.coldestDive!.diveId}'),
+          value: fmt.formatTemperature(records.coldestDive!.waterTemp),
+          subtitle: fmt.formatDate(records.coldestDive!.dateTime),
+          onTap: () => context.push('/dives/${records.coldestDive!.diveId}'),
         ),
       );
     }
@@ -209,9 +210,9 @@ class _RecordsSection extends StatelessWidget {
       rows.add(
         _RecordTile(
           label: 'Warmest Dive',
-          value: fmt.formatTemperature(records.warmestDive!.waterTemp ?? 0),
-          subtitle: _dateLabel(records.warmestDive!.dateTime),
-          onTap: () => context.go('/dives/${records.warmestDive!.diveId}'),
+          value: fmt.formatTemperature(records.warmestDive!.waterTemp),
+          subtitle: fmt.formatDate(records.warmestDive!.dateTime),
+          onTap: () => context.push('/dives/${records.warmestDive!.diveId}'),
         ),
       );
     }
@@ -223,11 +224,13 @@ class _RecordsSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               child: Text(
                 'Personal Records',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
             ...rows,
@@ -235,17 +238,6 @@ class _RecordsSection extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _dateLabel(DateTime dt) {
-    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
-  }
-
-  String _formatDuration(Duration? duration) {
-    if (duration == null) return '--';
-    final h = duration.inHours;
-    final m = duration.inMinutes % 60;
-    return h > 0 ? '${h}h ${m}m' : '${m}m';
   }
 }
 
