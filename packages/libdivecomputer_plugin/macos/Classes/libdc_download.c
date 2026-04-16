@@ -333,6 +333,10 @@ static int parse_dive(download_state_t *state,
     dive->events = NULL;
     dive->event_count = 0;
     dive->event_capacity = 0;
+    dive->raw_data = NULL;
+    dive->raw_data_size = 0;
+    dive->raw_fingerprint = NULL;
+    dive->raw_fingerprint_size = 0;
 
     // Store fingerprint.
     if (fingerprint != NULL && fsize > 0) {
@@ -366,6 +370,12 @@ static int dive_callback(const unsigned char *data, unsigned int size,
 
     libdc_parsed_dive_t dive;
     if (parse_dive(state, data, size, fingerprint, fsize, &dive) == 0) {
+        // Retain raw bytes for archival (pointers valid for this callback scope)
+        dive.raw_data = data;
+        dive.raw_data_size = size;
+        dive.raw_fingerprint = fingerprint;
+        dive.raw_fingerprint_size = fsize;
+
         if (state->callbacks->on_dive != NULL) {
             state->callbacks->on_dive(&dive, state->callbacks->userdata);
         }
