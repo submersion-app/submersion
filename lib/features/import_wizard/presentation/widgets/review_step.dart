@@ -215,9 +215,9 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
                         ),
                       ),
                       if (showOptionsButton)
-                        IconButton(
-                          icon: const Icon(Icons.tune),
-                          tooltip: 'Import options',
+                        TextButton.icon(
+                          icon: const Icon(Icons.tune, size: 18),
+                          label: const Text('Options'),
                           onPressed: () => _showImportOptions(context),
                         ),
                     ],
