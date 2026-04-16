@@ -58,6 +58,7 @@ import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_gallery_page.dart';
+import 'package:submersion/features/statistics/presentation/pages/statistics_overview_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/records_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_gas_page.dart';
@@ -643,6 +644,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               child: const StatisticsPage(),
             ),
             routes: [
+              GoRoute(
+                path: 'overview',
+                name: 'statisticsOverview',
+                builder: (context, state) => const StatisticsOverviewPage(),
+              ),
               GoRoute(
                 path: 'gas',
                 name: 'statisticsGas',
