@@ -156,33 +156,44 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
   void _showImportOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Import Options',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+      builder: (sheetContext) => Consumer(
+        builder: (context, ref, _) {
+          final state = ref.watch(importWizardNotifierProvider);
+          final notifier = ref.read(importWizardNotifierProvider.notifier);
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Import Options',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  title: const Text('Retain source dive numbers'),
+                  subtitle: const Text(
+                    'Use dive numbers from the imported file instead of auto-assigning',
+                  ),
+                  value: state.retainSourceDiveNumbers,
+                  onChanged: (value) =>
+                      notifier.setRetainSourceDiveNumbers(value),
+                ),
+                const Divider(),
+                ImportTagsField(
+                  tags: state.importTags,
+                  existingTags: widget.existingTags,
+                  onAdd: (tag) => notifier.addImportTag(tag),
+                  onRemove: (index) => notifier.removeImportTag(index),
+                ),
+                const SizedBox(height: 16),
+              ],
             ),
-            const SizedBox(height: 8),
-            _RetainDiveNumbersToggle(
-              state: widget.state,
-              notifier: widget.notifier,
-            ),
-            const Divider(),
-            ImportTagsField(
-              tags: widget.state.importTags,
-              existingTags: widget.existingTags,
-              onAdd: (tag) => widget.notifier.addImportTag(tag),
-              onRemove: (index) => widget.notifier.removeImportTag(index),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -407,29 +418,6 @@ void _showActionSnackbar(BuildContext context, String message) {
         behavior: SnackBarBehavior.floating,
       ),
     );
-}
-
-// ---------------------------------------------------------------------------
-// Retain dive numbers toggle
-// ---------------------------------------------------------------------------
-
-class _RetainDiveNumbersToggle extends StatelessWidget {
-  final ImportWizardState state;
-  final ImportWizardNotifier notifier;
-
-  const _RetainDiveNumbersToggle({required this.state, required this.notifier});
-
-  @override
-  Widget build(BuildContext context) {
-    return SwitchListTile(
-      title: const Text('Retain source dive numbers'),
-      subtitle: const Text(
-        'Use dive numbers from the imported file instead of auto-assigning',
-      ),
-      value: state.retainSourceDiveNumbers,
-      onChanged: (value) => notifier.setRetainSourceDiveNumbers(value),
-    );
-  }
 }
 
 // ---------------------------------------------------------------------------

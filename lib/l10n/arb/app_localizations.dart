@@ -23723,6 +23723,12 @@ abstract class AppLocalizations {
   /// **'Skip all ({count})'**
   String universalImport_bulk_skipAll(int count);
 
+  /// Bulk action button to replace source data for all pending duplicates
+  ///
+  /// In en, this message translates to:
+  /// **'Replace all ({count})'**
+  String universalImport_bulk_replaceSourceAll(int count);
+
   /// Description text on the file selection step listing supported formats
   ///
   /// In en, this message translates to:
