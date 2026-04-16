@@ -317,6 +317,7 @@ class DeviceDetailPage extends ConsumerWidget {
                   data: (c) {
                     if (c.withRawData == 0) return const SizedBox.shrink();
                     return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const SizedBox(height: 12),
                         OutlinedButton.icon(
