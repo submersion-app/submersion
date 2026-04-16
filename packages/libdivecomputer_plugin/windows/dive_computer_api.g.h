@@ -425,7 +425,9 @@ class ParsedDive {
     const std::string* deco_algorithm,
     const int64_t* gf_low,
     const int64_t* gf_high,
-    const int64_t* deco_conservatism);
+    const int64_t* deco_conservatism,
+    const std::vector<uint8_t>* raw_data,
+    const std::vector<uint8_t>* raw_fingerprint);
 
   const std::string& fingerprint() const;
   void set_fingerprint(std::string_view value_arg);
@@ -501,6 +503,14 @@ class ParsedDive {
   void set_deco_conservatism(const int64_t* value_arg);
   void set_deco_conservatism(int64_t value_arg);
 
+  const std::vector<uint8_t>* raw_data() const;
+  void set_raw_data(const std::vector<uint8_t>* value_arg);
+  void set_raw_data(const std::vector<uint8_t>& value_arg);
+
+  const std::vector<uint8_t>* raw_fingerprint() const;
+  void set_raw_fingerprint(const std::vector<uint8_t>* value_arg);
+  void set_raw_fingerprint(const std::vector<uint8_t>& value_arg);
+
 
  private:
   static ParsedDive FromEncodableList(const flutter::EncodableList& list);
@@ -530,6 +540,8 @@ class ParsedDive {
   std::optional<int64_t> gf_low_;
   std::optional<int64_t> gf_high_;
   std::optional<int64_t> deco_conservatism_;
+  std::optional<std::vector<uint8_t>> raw_data_;
+  std::optional<std::vector<uint8_t>> raw_fingerprint_;
 
 };
 

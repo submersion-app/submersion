@@ -535,12 +535,16 @@ G_DECLARE_FINAL_TYPE(LibdivecomputerPluginParsedDive, libdivecomputer_plugin_par
  * gf_low: field in this object.
  * gf_high: field in this object.
  * deco_conservatism: field in this object.
+ * raw_data: field in this object.
+ * raw_data_length: length of @raw_data.
+ * raw_fingerprint: field in this object.
+ * raw_fingerprint_length: length of @raw_fingerprint.
  *
  * Creates a new #ParsedDive object.
  *
  * Returns: a new #LibdivecomputerPluginParsedDive
  */
-LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new(const gchar* fingerprint, int64_t date_time_year, int64_t date_time_month, int64_t date_time_day, int64_t date_time_hour, int64_t date_time_minute, int64_t date_time_second, int64_t* date_time_timezone_offset, double max_depth_meters, double avg_depth_meters, int64_t duration_seconds, double* min_temperature_celsius, double* max_temperature_celsius, FlValue* samples, FlValue* tanks, FlValue* gas_mixes, FlValue* events, const gchar* dive_mode, const gchar* deco_algorithm, int64_t* gf_low, int64_t* gf_high, int64_t* deco_conservatism);
+LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new(const gchar* fingerprint, int64_t date_time_year, int64_t date_time_month, int64_t date_time_day, int64_t date_time_hour, int64_t date_time_minute, int64_t date_time_second, int64_t* date_time_timezone_offset, double max_depth_meters, double avg_depth_meters, int64_t duration_seconds, double* min_temperature_celsius, double* max_temperature_celsius, FlValue* samples, FlValue* tanks, FlValue* gas_mixes, FlValue* events, const gchar* dive_mode, const gchar* deco_algorithm, int64_t* gf_low, int64_t* gf_high, int64_t* deco_conservatism, const uint8_t* raw_data, size_t raw_data_length, const uint8_t* raw_fingerprint, size_t raw_fingerprint_length);
 
 /**
  * libdivecomputer_plugin_parsed_dive_get_fingerprint
@@ -761,6 +765,28 @@ int64_t* libdivecomputer_plugin_parsed_dive_get_gf_high(LibdivecomputerPluginPar
  * Returns: the field value.
  */
 int64_t* libdivecomputer_plugin_parsed_dive_get_deco_conservatism(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_raw_data
+ * @object: a #LibdivecomputerPluginParsedDive.
+ * @length: location to write the length of this value.
+ *
+ * Gets the value of the rawData field of @object.
+ *
+ * Returns: the field value.
+ */
+const uint8_t* libdivecomputer_plugin_parsed_dive_get_raw_data(LibdivecomputerPluginParsedDive* object, size_t* length);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_raw_fingerprint
+ * @object: a #LibdivecomputerPluginParsedDive.
+ * @length: location to write the length of this value.
+ *
+ * Gets the value of the rawFingerprint field of @object.
+ *
+ * Returns: the field value.
+ */
+const uint8_t* libdivecomputer_plugin_parsed_dive_get_raw_fingerprint(LibdivecomputerPluginParsedDive* object, size_t* length);
 
 /**
  * LibdivecomputerPluginDownloadProgress:

@@ -140,6 +140,8 @@ class ParsedDive {
     this.gfLow,
     this.gfHigh,
     this.decoConservatism,
+    this.rawData,
+    this.rawFingerprint,
   });
   final String fingerprint;
   final int dateTimeYear;
@@ -163,6 +165,8 @@ class ParsedDive {
   final int? gfLow;
   final int? gfHigh;
   final int? decoConservatism;
+  final Uint8List? rawData;
+  final Uint8List? rawFingerprint;
 }
 
 class DownloadProgress {
