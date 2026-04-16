@@ -3458,6 +3458,8 @@
     "statistics_category_social_title": "Sociale",
     "statistics_category_timePatterns_subtitle": "Quando ti immergi",
     "statistics_category_timePatterns_title": "Distribuzioni temporali",
+    "statistics_category_overview_title": "Overview",
+    "statistics_category_overview_subtitle": "Totals, records, and breakdowns at a glance",
     "statistics_chart_barSemanticLabel": "Grafico a barre con {count} categorie",
     "statistics_chart_distributionSemanticLabel": "Grafico a torta con {count} segmenti",
     "statistics_chart_multiTrendSemanticLabel": "Grafico a linee multiple che confronta {seriesNames}",

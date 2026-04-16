@@ -524,7 +524,8 @@ class _DistributionsSection extends ConsumerWidget {
         height: 160,
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (_, _) => const _InlineError(message: 'Dive types unavailable'),
+      error: (_, _) =>
+          const _InlineError(message: 'Unable to load dive type data'),
       data: (diveTypes) => _TypePieCard(diveTypes: diveTypes),
     );
 

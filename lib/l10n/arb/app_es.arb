@@ -3496,6 +3496,8 @@
     "statistics_category_social_title": "Social",
     "statistics_category_timePatterns_subtitle": "Cuando buceas",
     "statistics_category_timePatterns_title": "Patrones de tiempo",
+    "statistics_category_overview_title": "Overview",
+    "statistics_category_overview_subtitle": "Totals, records, and breakdowns at a glance",
     "statistics_chart_barSemanticLabel": "Grafico de barras con {count} categorias",
     "statistics_chart_distributionSemanticLabel": "Grafico circular de distribucion con {count} segmentos",
     "statistics_chart_multiTrendSemanticLabel": "Grafico de lineas multitendencia comparando {seriesNames}",

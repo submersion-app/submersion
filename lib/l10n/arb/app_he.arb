@@ -3496,6 +3496,8 @@
     "statistics_category_social_title": "חברתי",
     "statistics_category_timePatterns_subtitle": "מתי אתה צולל",
     "statistics_category_timePatterns_title": "דפוסי זמן",
+    "statistics_category_overview_title": "Overview",
+    "statistics_category_overview_subtitle": "Totals, records, and breakdowns at a glance",
     "statistics_chart_barSemanticLabel": "תרשים עמודות עם {count} קטגוריות",
     "statistics_chart_distributionSemanticLabel": "תרשים עוגה עם {count} מקטעים",
     "statistics_chart_multiTrendSemanticLabel": "תרשים מגמה רב-קווי המשווה {seriesNames}",

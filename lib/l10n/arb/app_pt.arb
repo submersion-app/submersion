@@ -3496,6 +3496,8 @@
     "statistics_category_social_title": "Social",
     "statistics_category_timePatterns_subtitle": "Quando voce mergulha",
     "statistics_category_timePatterns_title": "Padroes de Horario",
+    "statistics_category_overview_title": "Overview",
+    "statistics_category_overview_subtitle": "Totals, records, and breakdowns at a glance",
     "statistics_chart_barSemanticLabel": "Grafico de barras com {count} categorias",
     "statistics_chart_distributionSemanticLabel": "Grafico de pizza de distribuicao com {count} segmentos",
     "statistics_chart_multiTrendSemanticLabel": "Grafico de linhas multi-tendencia comparando {seriesNames}",

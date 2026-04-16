@@ -3462,6 +3462,8 @@
     "statistics_category_social_title": "Social",
     "statistics_category_timePatterns_subtitle": "Quand tu plonges",
     "statistics_category_timePatterns_title": "Repartition temporelle",
+    "statistics_category_overview_title": "Overview",
+    "statistics_category_overview_subtitle": "Totals, records, and breakdowns at a glance",
     "statistics_chart_barSemanticLabel": "Diagramme en barres avec {count} categories",
     "statistics_chart_distributionSemanticLabel": "Diagramme circulaire de distribution avec {count} segments",
     "statistics_chart_multiTrendSemanticLabel": "Graphique de tendances multiples comparant {seriesNames}",

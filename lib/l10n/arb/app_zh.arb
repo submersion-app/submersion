@@ -3664,6 +3664,8 @@
     "statistics_category_social_title": "社交",
     "statistics_category_timePatterns_subtitle": "您的潜水时间规律",
     "statistics_category_timePatterns_title": "时间模式",
+    "statistics_category_overview_title": "Overview",
+    "statistics_category_overview_subtitle": "Totals, records, and breakdowns at a glance",
     "statistics_chart_barSemanticLabel": "包含 {count} 个类别的柱状图",
     "statistics_chart_distributionSemanticLabel": "包含 {count} 个扇区的分布饼图",
     "statistics_chart_multiTrendSemanticLabel": "比较 {seriesNames} 的多趋势折线图",

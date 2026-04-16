@@ -3462,6 +3462,8 @@
     "statistics_category_social_title": "Kozossegi",
     "statistics_category_timePatterns_subtitle": "Mikor merul",
     "statistics_category_timePatterns_title": "Idomintak",
+    "statistics_category_overview_title": "Overview",
+    "statistics_category_overview_subtitle": "Totals, records, and breakdowns at a glance",
     "statistics_chart_barSemanticLabel": "Oszlopdiagram {count} kategoriaval",
     "statistics_chart_distributionSemanticLabel": "Megoszlasi kordiagram {count} szegmenssel",
     "statistics_chart_multiTrendSemanticLabel": "Tobbszoros trend vonaldiagram, {seriesNames} osszehasonlitasa",

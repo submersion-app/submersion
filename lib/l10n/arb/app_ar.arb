@@ -3496,6 +3496,8 @@
     "statistics_category_social_title": "اجتماعي",
     "statistics_category_timePatterns_subtitle": "متى تغوص",
     "statistics_category_timePatterns_title": "أنماط الوقت",
+    "statistics_category_overview_title": "Overview",
+    "statistics_category_overview_subtitle": "Totals, records, and breakdowns at a glance",
     "statistics_chart_barSemanticLabel": "مخطط أعمدة بـ {count} فئات",
     "statistics_chart_distributionSemanticLabel": "مخطط دائري للتوزيع بـ {count} شرائح",
     "statistics_chart_multiTrendSemanticLabel": "مخطط خطوط متعددة الاتجاهات يقارن {seriesNames}",

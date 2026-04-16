@@ -3496,6 +3496,8 @@
     "statistics_category_social_title": "Soziales",
     "statistics_category_timePatterns_subtitle": "Wann Sie tauchen",
     "statistics_category_timePatterns_title": "Zeitmuster",
+    "statistics_category_overview_title": "Overview",
+    "statistics_category_overview_subtitle": "Totals, records, and breakdowns at a glance",
     "statistics_chart_barSemanticLabel": "Balkendiagramm mit {count} Kategorien",
     "statistics_chart_distributionSemanticLabel": "Kreisdiagramm mit {count} Segmenten",
     "statistics_chart_multiTrendSemanticLabel": "Mehrzeiliges Trenddiagramm zum Vergleich von {seriesNames}",
