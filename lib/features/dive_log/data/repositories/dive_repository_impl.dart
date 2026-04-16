@@ -3977,6 +3977,29 @@ class DiveStatistics {
     final minutes = totalTime.inMinutes % 60;
     return '${hours}h ${minutes}m';
   }
+
+  /// Lifetime tenure in months since the diver's first dive.
+  /// Returns null if no dives, firstDiveDate is in the future, or tenure < 1 month.
+  double? get monthsSinceFirstDive {
+    final first = firstDiveDate;
+    if (first == null) return null;
+    final now = DateTime.now();
+    if (first.isAfter(now)) return null;
+    final months = now.difference(first).inDays / 30.44;
+    return months < 1 ? null : months;
+  }
+
+  /// Lifetime average dives per month. Returns null when tenure is unavailable.
+  double? get divesPerMonth {
+    final months = monthsSinceFirstDive;
+    return months == null ? null : totalDives / months;
+  }
+
+  /// Lifetime average dives per year. Returns null when tenure is unavailable.
+  double? get divesPerYear {
+    final months = monthsSinceFirstDive;
+    return months == null ? null : totalDives / (months / 12);
+  }
 }
 
 /// Monthly dive count for bar chart
