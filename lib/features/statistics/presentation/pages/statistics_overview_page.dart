@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsOverviewPage extends ConsumerWidget {
   final bool embedded;
@@ -59,10 +60,7 @@ class _AggregateGrid extends StatelessWidget {
     final crossAxis = wide ? 4 : 2;
     final cards = <_StatCard>[
       _StatCard(label: 'Total Dives', value: '${stats.totalDives}'),
-      _StatCard(
-        label: 'Total Time',
-        value: _formatDuration(stats.totalTimeSeconds),
-      ),
+      _StatCard(label: 'Total Time', value: stats.totalTimeFormatted),
       _StatCard(label: 'Max Depth', value: fmt.formatDepth(stats.maxDepth)),
       _StatCard(label: 'Avg Depth', value: fmt.formatDepth(stats.avgMaxDepth)),
       if (stats.divesPerMonth != null)
@@ -92,12 +90,6 @@ class _AggregateGrid extends StatelessWidget {
       crossAxisSpacing: 8,
       children: cards,
     );
-  }
-
-  String _formatDuration(int seconds) {
-    final hours = seconds ~/ 3600;
-    final minutes = (seconds % 3600) ~/ 60;
-    return hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
   }
 }
 
@@ -151,9 +143,12 @@ class _ErrorCard extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline, size: 48),
             const SizedBox(height: 12),
-            const Text("Couldn't load statistics"),
+            Text(context.l10n.statistics_error_loadingStatistics),
             const SizedBox(height: 12),
-            ElevatedButton(onPressed: onRetry, child: const Text('Try again')),
+            FilledButton(
+              onPressed: onRetry,
+              child: Text(context.l10n.statistics_records_retry),
+            ),
           ],
         ),
       ),
