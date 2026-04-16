@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
@@ -352,6 +353,115 @@ void main() {
         find.textContaining('7'),
         findsWidgets,
       ); // sites (may appear elsewhere)
+    });
+  });
+
+  group('StatisticsOverviewPage Personal Records', () {
+    late SharedPreferences prefs;
+
+    setUpAll(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+    });
+
+    testWidgets('renders deepest and longest records', (tester) async {
+      final stats = DiveStatistics(
+        totalDives: 10,
+        totalTimeSeconds: 18000,
+        maxDepth: 35.0,
+        avgMaxDepth: 20.0,
+        totalSites: 3,
+        firstDiveDate: DateTime.now().subtract(const Duration(days: 365)),
+      );
+      final deepest = DiveRecord(
+        diveId: 'd1',
+        diveNumber: 5,
+        dateTime: DateTime(2025, 1, 10),
+        maxDepth: 35.0,
+        bottomTime: const Duration(minutes: 40),
+      );
+      final records = DiveRecords(deepestDive: deepest, longestDive: deepest);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            diveRecordsProvider.overrideWith((ref) async => records),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: StatisticsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Personal Records'), findsOneWidget);
+      expect(find.text('Deepest Dive'), findsOneWidget);
+      expect(find.text('Longest Dive'), findsOneWidget);
+    });
+
+    testWidgets('tapping a record navigates to dive detail', (tester) async {
+      final stats = DiveStatistics(
+        totalDives: 1,
+        totalTimeSeconds: 3000,
+        maxDepth: 20,
+        avgMaxDepth: 20,
+        totalSites: 1,
+      );
+      final deepest = DiveRecord(
+        diveId: 'dive-xyz',
+        diveNumber: 1,
+        dateTime: DateTime(2025, 3, 1),
+        maxDepth: 20,
+        bottomTime: const Duration(seconds: 3000),
+      );
+      final records = DiveRecords(deepestDive: deepest);
+
+      String? navigatedTo;
+      final router = GoRouter(
+        initialLocation: '/statistics/overview',
+        routes: [
+          GoRoute(
+            path: '/statistics/overview',
+            builder: (ctx, s) => const StatisticsOverviewPage(embedded: true),
+          ),
+          GoRoute(
+            path: '/dives/:id',
+            builder: (ctx, state) {
+              navigatedTo = '/dives/${state.pathParameters['id']}';
+              return const Scaffold(body: Text('Dive Detail'));
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            diveRecordsProvider.overrideWith((ref) async => records),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Deepest Dive'));
+      await tester.pumpAndSettle();
+
+      expect(navigatedTo, equals('/dives/dive-xyz'));
     });
   });
 }

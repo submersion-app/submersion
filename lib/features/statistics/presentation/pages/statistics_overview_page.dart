@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -38,12 +39,22 @@ class _OverviewBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final fmt = UnitFormatter(settings);
+    final recordsAsync = ref.watch(diveRecordsProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [_AggregateGrid(stats: stats, fmt: fmt)],
+        children: [
+          _AggregateGrid(stats: stats, fmt: fmt),
+          const SizedBox(height: 16),
+          recordsAsync.when(
+            loading: () => const SizedBox.shrink(),
+            error: (e, st) =>
+                const _InlineError(message: 'Records unavailable'),
+            data: (records) => _RecordsSection(records: records, fmt: fmt),
+          ),
+        ],
       ),
     );
   }
@@ -151,6 +162,132 @@ class _ErrorCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _RecordsSection extends StatelessWidget {
+  final DiveRecords records;
+  final UnitFormatter fmt;
+  const _RecordsSection({required this.records, required this.fmt});
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = <Widget>[];
+    if (records.deepestDive != null) {
+      rows.add(
+        _RecordTile(
+          label: 'Deepest Dive',
+          value: fmt.formatDepth(records.deepestDive!.maxDepth),
+          subtitle: _dateLabel(records.deepestDive!.dateTime),
+          onTap: () => context.go('/dives/${records.deepestDive!.diveId}'),
+        ),
+      );
+    }
+    if (records.longestDive != null) {
+      rows.add(
+        _RecordTile(
+          label: 'Longest Dive',
+          value: _formatDuration(records.longestDive!.effectiveRuntime),
+          subtitle: _dateLabel(records.longestDive!.dateTime),
+          onTap: () => context.go('/dives/${records.longestDive!.diveId}'),
+        ),
+      );
+    }
+    if (records.coldestDive != null) {
+      rows.add(
+        _RecordTile(
+          label: 'Coldest Dive',
+          value: fmt.formatTemperature(records.coldestDive!.waterTemp ?? 0),
+          subtitle: _dateLabel(records.coldestDive!.dateTime),
+          onTap: () => context.go('/dives/${records.coldestDive!.diveId}'),
+        ),
+      );
+    }
+    if (records.warmestDive != null) {
+      rows.add(
+        _RecordTile(
+          label: 'Warmest Dive',
+          value: fmt.formatTemperature(records.warmestDive!.waterTemp ?? 0),
+          subtitle: _dateLabel(records.warmestDive!.dateTime),
+          onTap: () => context.go('/dives/${records.warmestDive!.diveId}'),
+        ),
+      );
+    }
+    if (rows.isEmpty) return const SizedBox.shrink();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              child: Text(
+                'Personal Records',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              ),
+            ),
+            ...rows,
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _dateLabel(DateTime dt) {
+    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+  }
+
+  String _formatDuration(Duration? duration) {
+    if (duration == null) return '--';
+    final h = duration.inHours;
+    final m = duration.inMinutes % 60;
+    return h > 0 ? '${h}h ${m}m' : '${m}m';
+  }
+}
+
+class _RecordTile extends StatelessWidget {
+  final String label;
+  final String value;
+  final String subtitle;
+  final VoidCallback onTap;
+  const _RecordTile({
+    required this.label,
+    required this.value,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      title: Text(label),
+      subtitle: Text(subtitle),
+      trailing: Text(
+        value,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+      onTap: onTap,
+    );
+  }
+}
+
+class _InlineError extends StatelessWidget {
+  final String message;
+  const _InlineError({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Text(
+        message,
+        style: TextStyle(color: Theme.of(context).colorScheme.error),
       ),
     );
   }
