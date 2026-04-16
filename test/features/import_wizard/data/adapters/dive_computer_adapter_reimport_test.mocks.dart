@@ -98,36 +98,16 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
   }
 
   @override
-  set descriptorVendor(String? value) => super.noSuchMethod(
-    Invocation.setter(#descriptorVendor, value),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  set descriptorProduct(String? value) => super.noSuchMethod(
-    Invocation.setter(#descriptorProduct, value),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  set descriptorModel(int? value) => super.noSuchMethod(
-    Invocation.setter(#descriptorModel, value),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  set libdivecomputerVersion(String? value) => super.noSuchMethod(
-    Invocation.setter(#libdivecomputerVersion, value),
-    returnValueForMissingStub: null,
-  );
-
-  @override
   _i7.Future<_i2.ImportResult> importDives({
     required List<_i8.DownloadedDive>? dives,
     required _i3.DiveComputer? computer,
     _i2.ImportMode? mode = _i2.ImportMode.newOnly,
     _i2.ConflictResolution? defaultResolution = _i2.ConflictResolution.skip,
     String? diverId,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#importDives, [], {
@@ -136,6 +116,10 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
               #mode: mode,
               #defaultResolution: defaultResolution,
               #diverId: diverId,
+              #descriptorVendor: descriptorVendor,
+              #descriptorProduct: descriptorProduct,
+              #descriptorModel: descriptorModel,
+              #libdivecomputerVersion: libdivecomputerVersion,
             }),
             returnValue: _i7.Future<_i2.ImportResult>.value(
               _FakeImportResult_0(
@@ -146,6 +130,10 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
                   #mode: mode,
                   #defaultResolution: defaultResolution,
                   #diverId: diverId,
+                  #descriptorVendor: descriptorVendor,
+                  #descriptorProduct: descriptorProduct,
+                  #descriptorModel: descriptorModel,
+                  #libdivecomputerVersion: libdivecomputerVersion,
                 }),
               ),
             ),
@@ -191,12 +179,23 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
     _i8.DownloadedDive? dive, {
     required String? computerId,
     String? diverId,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
               #importSingleDiveAsNew,
               [dive],
-              {#computerId: computerId, #diverId: diverId},
+              {
+                #computerId: computerId,
+                #diverId: diverId,
+                #descriptorVendor: descriptorVendor,
+                #descriptorProduct: descriptorProduct,
+                #descriptorModel: descriptorModel,
+                #libdivecomputerVersion: libdivecomputerVersion,
+              },
             ),
             returnValue: _i7.Future<String>.value(
               _i9.dummyValue<String>(
@@ -204,7 +203,14 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
                 Invocation.method(
                   #importSingleDiveAsNew,
                   [dive],
-                  {#computerId: computerId, #diverId: diverId},
+                  {
+                    #computerId: computerId,
+                    #diverId: diverId,
+                    #descriptorVendor: descriptorVendor,
+                    #descriptorProduct: descriptorProduct,
+                    #descriptorModel: descriptorModel,
+                    #libdivecomputerVersion: libdivecomputerVersion,
+                  },
                 ),
               ),
             ),
@@ -217,12 +223,22 @@ class MockDiveImportService extends _i1.Mock implements _i2.DiveImportService {
     _i2.ConflictResolution? resolution,
     String? computerId, {
     String? diverId,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
               #resolveConflict,
               [conflict, resolution, computerId],
-              {#diverId: diverId},
+              {
+                #diverId: diverId,
+                #descriptorVendor: descriptorVendor,
+                #descriptorProduct: descriptorProduct,
+                #descriptorModel: descriptorModel,
+                #libdivecomputerVersion: libdivecomputerVersion,
+              },
             ),
             returnValue: _i7.Future<String?>.value(),
           )
