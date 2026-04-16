@@ -949,8 +949,11 @@ class DiveDataSources extends Table {
   TextColumn get id => text()();
   TextColumn get diveId =>
       text().references(Dives, #id, onDelete: KeyAction.cascade)();
-  TextColumn get computerId =>
-      text().nullable().references(DiveComputers, #id)();
+  TextColumn get computerId => text().nullable().references(
+    DiveComputers,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   BoolColumn get isPrimary => boolean().withDefault(const Constant(false))();
   TextColumn get computerModel => text().nullable()();
   TextColumn get computerSerial => text().nullable()();
@@ -973,6 +976,13 @@ class DiveDataSources extends Table {
   IntColumn get gradientFactorHigh => integer().nullable()();
   DateTimeColumn get importedAt => dateTime()();
   DateTimeColumn get createdAt => dateTime()();
+  BlobColumn get rawData => blob().nullable()();
+  BlobColumn get rawFingerprint => blob().nullable()();
+  TextColumn get descriptorVendor => text().nullable()();
+  TextColumn get descriptorProduct => text().nullable()();
+  IntColumn get descriptorModel => integer().nullable()();
+  TextColumn get libdivecomputerVersion => text().nullable()();
+  DateTimeColumn get lastParsedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1309,7 +1319,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 65;
+  static const int currentSchemaVersion = 66;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1378,6 +1388,7 @@ class AppDatabase extends _$AppDatabase {
     63,
     64,
     65,
+    66,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -3047,6 +3058,30 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 65) await reportProgress();
+        if (from < 66) {
+          await customStatement(
+            'ALTER TABLE dive_data_sources ADD COLUMN raw_data BLOB',
+          );
+          await customStatement(
+            'ALTER TABLE dive_data_sources ADD COLUMN raw_fingerprint BLOB',
+          );
+          await customStatement(
+            'ALTER TABLE dive_data_sources ADD COLUMN descriptor_vendor TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dive_data_sources ADD COLUMN descriptor_product TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dive_data_sources ADD COLUMN descriptor_model INTEGER',
+          );
+          await customStatement(
+            'ALTER TABLE dive_data_sources ADD COLUMN libdivecomputer_version TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dive_data_sources ADD COLUMN last_parsed_at INTEGER',
+          );
+        }
+        if (from < 66) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
