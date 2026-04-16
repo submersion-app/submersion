@@ -449,13 +449,18 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             diveRecordsProvider.overrideWith((ref) async => records),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
             currentDiverIdProvider.overrideWith(
               (ref) => _MockCurrentDiverIdNotifier(),
             ),
           ],
-          child: MaterialApp.router(routerConfig: router),
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -588,13 +593,18 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
             currentDiverIdProvider.overrideWith(
               (ref) => _MockCurrentDiverIdNotifier(),
             ),
           ],
-          child: MaterialApp.router(routerConfig: router),
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
         ),
       );
       await tester.pumpAndSettle();
