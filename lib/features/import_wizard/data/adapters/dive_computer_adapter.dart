@@ -99,6 +99,12 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   DiveComputer? _computer;
   String? _customDeviceName;
 
+  // Session-level descriptor fields captured from the discovered device.
+  String? _descriptorVendor;
+  String? _descriptorProduct;
+  int? _descriptorModel;
+  String? _libdivecomputerVersion;
+
   /// Set by the wizard so the confirm step can navigate back to scan.
   VoidCallback? goBackFromConfirm;
 
@@ -152,11 +158,36 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   ///
   /// Called by the download step after a successful download in discovery mode.
   /// In known-computer mode this is a no-op.
+  ///
+  /// Also captures the session-level descriptor fields (vendor, product, model,
+  /// and libdivecomputer version) so they can be passed to the import service
+  /// before dives are written to the database.
   Future<void> ensureComputer({
     required DiscoveredDevice device,
     String? serialNumber,
     String? firmwareVersion,
   }) async {
+    // Capture descriptor fields regardless of whether a computer record already
+    // exists — these are always needed for the import service.
+    final model = device.recognizedModel;
+    if (model != null) {
+      _descriptorVendor = model.manufacturer;
+      _descriptorProduct = model.model;
+      _descriptorModel = model.dcModel;
+    }
+
+    // Fetch the libdivecomputer version string once per session.
+    if (_libdivecomputerVersion == null) {
+      final dcService = _ref?.read(diveComputerServiceProvider);
+      if (dcService != null) {
+        try {
+          _libdivecomputerVersion = await dcService.getVersion();
+        } catch (_) {
+          // Non-fatal — version metadata is best-effort.
+        }
+      }
+    }
+
     if (computer != null) return;
 
     // Create a new computer record from the discovered device.
@@ -227,6 +258,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     DuplicateAction.skip,
     DuplicateAction.importAsNew,
     DuplicateAction.consolidate,
+    DuplicateAction.replaceSource,
   };
 
   @override
@@ -344,6 +376,13 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       );
     }
 
+    // Pass session-level descriptor fields to the import service so they are
+    // written onto every DiveDataSources row created during this import.
+    _importService.descriptorVendor = _descriptorVendor;
+    _importService.descriptorProduct = _descriptorProduct;
+    _importService.descriptorModel = _descriptorModel;
+    _importService.libdivecomputerVersion = _libdivecomputerVersion;
+
     final baseSelections = Set<int>.from(
       selections[ImportEntityType.dives] ?? <int>{},
     );
@@ -352,6 +391,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // Build the final set of indices and track actions.
     final indicesToImport = <int>{};
     final indicesToConsolidate = <int>{};
+    final indicesToReplaceSource = <int>{};
     var skipped = 0;
 
     for (final index in baseSelections) {
@@ -360,6 +400,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         skipped++;
       } else if (action == DuplicateAction.consolidate) {
         indicesToConsolidate.add(index);
+      } else if (action == DuplicateAction.replaceSource) {
+        indicesToReplaceSource.add(index);
       } else {
         indicesToImport.add(index);
       }
@@ -371,6 +413,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       } else if (entry.value == DuplicateAction.consolidate &&
           !baseSelections.contains(entry.key)) {
         indicesToConsolidate.add(entry.key);
+      } else if (entry.value == DuplicateAction.replaceSource &&
+          !baseSelections.contains(entry.key)) {
+        indicesToReplaceSource.add(entry.key);
       } else if (entry.value == DuplicateAction.skip &&
           !baseSelections.contains(entry.key)) {
         skipped++;
@@ -379,15 +424,20 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
     // Merge and sort indices by startTime (oldest first) so sequential
     // dive number assignment produces correct chronological numbering.
-    final allIndices = {...indicesToImport, ...indicesToConsolidate}.toList()
-      ..sort((a, b) {
-        final aTime = _downloadedDives[a].startTime;
-        final bTime = _downloadedDives[b].startTime;
-        return aTime.compareTo(bTime);
-      });
+    final allIndices =
+        {
+          ...indicesToImport,
+          ...indicesToConsolidate,
+          ...indicesToReplaceSource,
+        }.toList()..sort((a, b) {
+          final aTime = _downloadedDives[a].startTime;
+          final bTime = _downloadedDives[b].startTime;
+          return aTime.compareTo(bTime);
+        });
     final total = allIndices.length;
     var imported = 0;
     var consolidated = 0;
+    var updated = 0;
     final importedDives = <DownloadedDive>[];
     final importedDiveIds = <String>[];
 
@@ -404,6 +454,29 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         if (matchResult != null) {
           await _consolidateDive(dive, matchResult.diveId, comp);
           consolidated++;
+        }
+      } else if (indicesToReplaceSource.contains(index)) {
+        // Replace source: update the matched dive's source data with the
+        // freshly downloaded version.
+        final diveGroup = bundle.groups[ImportEntityType.dives];
+        final matchResult = diveGroup?.matchResults?[index];
+        if (matchResult != null) {
+          final conflict = ImportConflict(
+            downloaded: dive,
+            existingDiveId: matchResult.diveId,
+            duplicateResult: DuplicateResult(
+              matchingDiveId: matchResult.diveId,
+              confidence: DuplicateConfidence.exact,
+              score: matchResult.score,
+            ),
+          );
+          await _importService.resolveConflict(
+            conflict,
+            ConflictResolution.replaceSource,
+            comp.id,
+            diverId: _diverId,
+          );
+          updated++;
         }
       } else {
         // Import as new dive. Use importSingleDiveAsNew to bypass the
@@ -429,6 +502,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},
       consolidatedCount: consolidated,
+      updatedCount: updated,
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
     );
