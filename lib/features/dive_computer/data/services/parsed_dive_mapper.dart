@@ -86,5 +86,7 @@ DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
           ),
         )
         .toList(),
+    rawData: parsed.rawData,
+    rawFingerprint: parsed.rawFingerprint,
   );
 }
