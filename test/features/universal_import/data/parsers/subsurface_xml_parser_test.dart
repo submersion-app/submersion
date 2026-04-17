@@ -960,69 +960,18 @@ $diveXml
   });
 
   group('sample setpoint', () {
-    test('forward-fills setpoint from SP change events', () async {
-      final result = await parser.parse(
-        xmlBytes('''
-<divelog program='subsurface' version='3'>
-<dives>
-<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
-  <divecomputer model='Test' dctype='CCR'>
-  <depth max='30.0 m' mean='15.0 m' />
-  <event time='0:00 min' name='SP change' value='700' />
-  <event time='25:00 min' name='SP change' value='1300' />
-  <sample time='0:10 min' depth='5.0 m' />
-  <sample time='10:00 min' depth='20.0 m' />
-  <sample time='24:59 min' depth='20.0 m' />
-  <sample time='25:00 min' depth='20.0 m' />
-  <sample time='26:00 min' depth='15.0 m' />
-  </divecomputer>
-</dive>
-</dives>
-</divelog>
-'''),
-      );
-      final dive = result.entitiesOf(ImportEntityType.dives).first;
-      final profile = dive['profile'] as List<Map<String, dynamic>>;
-      expect(
-        profile[0]['setpoint'],
-        0.7,
-        reason: 'sample at 0:10 after t=0 event',
-      );
-      expect(
-        profile[1]['setpoint'],
-        0.7,
-        reason: 'sample at 10:00 after t=0 event',
-      );
-      expect(
-        profile[2]['setpoint'],
-        0.7,
-        reason: 'sample at 24:59 still below 25:00 event',
-      );
-      expect(
-        profile[3]['setpoint'],
-        1.3,
-        reason: 'sample at 25:00 at/after 25:00 event',
-      );
-      expect(
-        profile[4]['setpoint'],
-        1.3,
-        reason: 'sample at 26:00 after 25:00 event',
-      );
-    });
-
     test(
-      'direct sample setpoint attribute is not overwritten by SP change events',
+      'direct sample setpoint attribute is parsed into profile samples',
       () async {
         final result = await parser.parse(
           xmlBytes('''
 <divelog program='subsurface' version='3'>
 <dives>
-<dive number='1' date='2025-01-15' time='10:00:00' duration='15:00 min'>
-  <divecomputer model='Test' dctype='CCR'>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test'>
   <depth max='20.0 m' mean='10.0 m' />
-  <event time='10:00 min' name='SP change' value='700' />
   <sample time='1:00 min' depth='10.0 m' setpoint='1.2' />
-  <sample time='10:30 min' depth='15.0 m' />
+  <sample time='2:00 min' depth='15.0 m' />
   </divecomputer>
 </dive>
 </dives>
@@ -1034,126 +983,19 @@ $diveXml
         expect(
           profile[0]['setpoint'],
           1.2,
-          reason: 'direct sample attribute preserved',
+          reason:
+              'direct sample attribute is persisted into the profile sample',
         );
         expect(
-          profile[1]['setpoint'],
-          0.7,
-          reason: 'event fills sample that had no direct attribute',
+          profile[1].containsKey('setpoint'),
+          isFalse,
+          reason:
+              'samples without the direct attribute stay untouched '
+              '(SP change event forward-fill is intentionally not implemented; '
+              'that belongs to Slice C via a derive-at-read helper over persisted events)',
         );
       },
     );
-
-    test('direct sample setpoint survives an earlier SP change event', () async {
-      final result = await parser.parse(
-        xmlBytes('''
-<divelog program='subsurface' version='3'>
-<dives>
-<dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
-  <divecomputer model='Test' dctype='CCR'>
-  <depth max='20.0 m' mean='10.0 m' />
-  <event time='0:30 min' name='SP change' value='700' />
-  <sample time='1:00 min' depth='10.0 m' setpoint='1.2' />
-  <sample time='2:00 min' depth='15.0 m' />
-  </divecomputer>
-</dive>
-</dives>
-</divelog>
-'''),
-      );
-      final dive = result.entitiesOf(ImportEntityType.dives).first;
-      final profile = dive['profile'] as List<Map<String, dynamic>>;
-      expect(
-        profile[0]['setpoint'],
-        1.2,
-        reason:
-            'direct attribute preserved even though an earlier event would have filled it',
-      );
-      expect(
-        profile[1]['setpoint'],
-        0.7,
-        reason:
-            'subsequent sample without a direct attribute gets the event value',
-      );
-    });
-
-    test('decimal bar value is used as-is (no divide by 1000)', () async {
-      final result = await parser.parse(
-        xmlBytes('''
-<divelog program='subsurface' version='3'>
-<dives>
-<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
-  <divecomputer model='Test' dctype='CCR'>
-  <depth max='10.0 m' mean='5.0 m' />
-  <event time='0:00 min' name='SP change' value='1.2' />
-  <sample time='0:30 min' depth='5.0 m' />
-  </divecomputer>
-</dive>
-</dives>
-</divelog>
-'''),
-      );
-      final dive = result.entitiesOf(ImportEntityType.dives).first;
-      final profile = dive['profile'] as List<Map<String, dynamic>>;
-      expect(
-        profile[0]['setpoint'],
-        1.2,
-        reason:
-            'decimal bar values below 10 pass through the <=10 arm untouched',
-      );
-    });
-
-    test('setpoint value of exactly 10 is not divided by 1000', () async {
-      final result = await parser.parse(
-        xmlBytes('''
-<divelog program='subsurface' version='3'>
-<dives>
-<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
-  <divecomputer model='Test' dctype='CCR'>
-  <depth max='10.0 m' mean='5.0 m' />
-  <event time='0:00 min' name='SP change' value='10' />
-  <sample time='0:30 min' depth='5.0 m' />
-  </divecomputer>
-</dive>
-</dives>
-</divelog>
-'''),
-      );
-      final dive = result.entitiesOf(ImportEntityType.dives).first;
-      final profile = dive['profile'] as List<Map<String, dynamic>>;
-      expect(
-        profile[0]['setpoint'],
-        10.0,
-        reason:
-            'the > 10 threshold is exclusive; value=10 stays as 10.0 bar per _parseSetpointEvents doc comment',
-      );
-    });
-
-    test('implausible setpoint values are dropped', () async {
-      final result = await parser.parse(
-        xmlBytes('''
-<divelog program='subsurface' version='3'>
-<dives>
-<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
-  <divecomputer model='Test' dctype='CCR'>
-  <depth max='10.0 m' mean='5.0 m' />
-  <event time='0:00 min' name='SP change' value='0' />
-  <event time='1:00 min' name='SP change' value='-100' />
-  <sample time='2:00 min' depth='5.0 m' />
-  </divecomputer>
-</dive>
-</dives>
-</divelog>
-'''),
-      );
-      final dive = result.entitiesOf(ImportEntityType.dives).first;
-      final profile = dive['profile'] as List<Map<String, dynamic>>;
-      expect(
-        profile[0].containsKey('setpoint'),
-        isFalse,
-        reason: 'both events dropped as implausible',
-      );
-    });
   });
 
   group('cylinder partial preservation', () {
