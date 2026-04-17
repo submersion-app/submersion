@@ -737,6 +737,13 @@ class SubsurfaceXmlParser implements ImportParser {
         final timestamp = _parseDurationSeconds(event.getAttribute('time'));
         if (timestamp == null) continue;
         final value = _parseDouble(event.getAttribute('value'));
+        // Flat mapping to `ascentRateWarning`: Subsurface emits a single
+        // `name='ascent'` for all ascent alarms. The `ascentRateCritical`
+        // enum variant is not produced here because the critical-vs-warning
+        // threshold (typically 18 m/min recreational / 9 m/min technical) is
+        // diver-configurable and not accessible from the parser layer.
+        // A future enrichment slice may add threshold-based variant selection
+        // once the setting is plumbed through.
         events.add({
           'eventType': 'ascentRateWarning',
           'timestamp': timestamp,
@@ -754,9 +761,11 @@ class SubsurfaceXmlParser implements ImportParser {
         });
       }
       // Unrecognized names (e.g., `gaschange` which has a separate pipeline,
-      // DC metadata like `low battery`, `heading`) fall through silently.
-      // The `_importDives` switch's `default:` case logs truly unknown event
-      // types at that layer.
+      // DC metadata like `low battery`, `heading`) fall through silently. The
+      // import pipeline that consumes `result['events']` is responsible for
+      // logging truly unknown event types — this parser stays quiet because
+      // the full set of names Subsurface can emit is broader than what we
+      // persist (Slice C.2 handles 7 types; future slices may add more).
     }
     return events;
   }

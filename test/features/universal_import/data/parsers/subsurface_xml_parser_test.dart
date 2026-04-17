@@ -1268,6 +1268,37 @@ $diveXml
       expect(events[0]['description'], 'cool fish');
     });
 
+    test(
+      'bookmark event without description attribute omits description key',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <event time='1:00 min' name='bookmark' />
+  <sample time='1:30 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final events = dive['events'] as List<Map<String, dynamic>>;
+        expect(events.length, 1);
+        expect(events[0]['eventType'], 'bookmark');
+        expect(events[0]['timestamp'], 60);
+        expect(
+          events[0].containsKey('description'),
+          isFalse,
+          reason: 'null-aware `?description` should omit the key entirely',
+        );
+      },
+    );
+
     test('emits safetyStopStart event from safety stop', () async {
       final result = await parser.parse(
         xmlBytes('''
@@ -1365,6 +1396,44 @@ $diveXml
         reason: 'no value attribute -> no value field',
       );
     });
+
+    test(
+      'ceiling and violation at same timestamp both produce decoViolation events',
+      () async {
+        // Subsurface can emit both `ceiling` and `violation` for the same moment.
+        // Spec-approved flat mapping: preserve both. Dedup (if needed) is a
+        // downstream concern, not a parser concern. This test pins that contract.
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'>
+  <depth max='40.0 m' mean='20.0 m' />
+  <event time='25:00 min' name='ceiling' value='18.0' />
+  <event time='25:00 min' name='violation' />
+  <sample time='25:30 min' depth='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final events = dive['events'] as List<Map<String, dynamic>>;
+        expect(
+          events.length,
+          2,
+          reason: 'both ceiling and violation preserved',
+        );
+        expect(events[0]['eventType'], 'decoViolation');
+        expect(events[1]['eventType'], 'decoViolation');
+        expect(events[0]['timestamp'], 1500);
+        expect(events[1]['timestamp'], 1500);
+        expect(events[0]['value'], 18.0);
+        expect(events[1].containsKey('value'), isFalse);
+      },
+    );
 
     test('emits ascentRateWarning from ascent event with rate value', () async {
       final result = await parser.parse(
