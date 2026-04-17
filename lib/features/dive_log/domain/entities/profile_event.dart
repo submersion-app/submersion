@@ -50,6 +50,13 @@ class ProfileEvent extends Equatable {
     this.depth,
     this.value,
     this.tankId,
+    // Default intentionally biased toward `imported` — the most common case
+    // for direct-constructor callers is DB read-back, where the value is
+    // being reconstituted from a persisted row. Callers that construct
+    // events from in-app analysis MUST explicitly pass
+    // `source: EventSource.computed`; user-authored events MUST pass
+    // `source: EventSource.user`. Factories enforce the correct default per
+    // event type — prefer factories over direct construction.
     this.source = EventSource.imported,
     required this.createdAt,
   });

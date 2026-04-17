@@ -406,6 +406,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
         if (eventRows.isNotEmpty) {
           diveProfileEvents[dive.id] = eventRows
               .map(
+                // TODO(slice-c-task-4): route through mapDiveProfileEventToProfileEvent once
+                // the mapper propagates source. Until then, preserve current behavior by
+                // explicitly marking these as imported (all DB-persisted events are imports
+                // today).
                 (row) => ProfileEvent(
                   id: row.id,
                   diveId: row.diveId,
@@ -422,6 +426,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
                   depth: row.depth,
                   value: row.value,
                   tankId: row.tankId,
+                  source: EventSource.imported,
                   createdAt: DateTime.fromMillisecondsSinceEpoch(
                     row.createdAt * 1000,
                   ),
@@ -895,6 +900,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
         if (eventRows.isNotEmpty) {
           diveProfileEvents[dive.id] = eventRows
               .map(
+                // TODO(slice-c-task-4): route through mapDiveProfileEventToProfileEvent once
+                // the mapper propagates source. Until then, preserve current behavior by
+                // explicitly marking these as imported (all DB-persisted events are imports
+                // today).
                 (row) => ProfileEvent(
                   id: row.id,
                   diveId: row.diveId,
@@ -911,6 +920,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
                   depth: row.depth,
                   value: row.value,
                   tankId: row.tankId,
+                  source: EventSource.imported,
                   createdAt: DateTime.fromMillisecondsSinceEpoch(
                     row.createdAt * 1000,
                   ),
