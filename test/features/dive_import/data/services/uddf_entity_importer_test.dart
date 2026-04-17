@@ -2107,5 +2107,133 @@ void main() {
         verifyNever(mockDiveRepo.insertProfileEvents(any));
       },
     );
+
+    test('UDDF severity overrides factory default via copyWith', () async {
+      // ascentRateWarning factory default: warning -> UDDF says: alert
+      // decoViolation factory default: alert -> UDDF says: warning
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 30.0,
+            'events': [
+              {
+                'eventType': 'ascentRateWarning',
+                'timestamp': 120,
+                'value': 18.0,
+                'severity': 'alert',
+                'depth': 15.0,
+              },
+              {
+                'eventType': 'decoViolation',
+                'timestamp': 240,
+                'severity': 'warning',
+                'depth': 12.0,
+              },
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final captured = verify(
+        mockDiveRepo.insertProfileEvents(captureAny),
+      ).captured;
+      final events = captured.first as List<ProfileEvent>;
+      expect(events, hasLength(2));
+
+      expect(events[0].eventType, ProfileEventType.ascentRateWarning);
+      expect(events[0].severity, EventSeverity.alert); // overridden
+      expect(events[0].depth, 15.0);
+      expect(events[0].source, EventSource.imported);
+
+      expect(events[1].eventType, ProfileEventType.decoViolation);
+      expect(events[1].severity, EventSeverity.warning); // overridden
+      expect(events[1].depth, 12.0);
+      expect(events[1].source, EventSource.imported);
+    });
+
+    test(
+      'SSRF path continues to use factory default severity (no regression)',
+      () async {
+        // SSRF-shape: no `severity` key in event map. Factory default applies.
+        // decoViolation factory default severity = alert.
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 25.0,
+              'events': [
+                // No 'severity' or 'depth' keys — SSRF shape
+                {'eventType': 'decoViolation', 'timestamp': 180},
+              ],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: UddfImportSelections.selectAll(data),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        final captured = verify(
+          mockDiveRepo.insertProfileEvents(captureAny),
+        ).captured;
+        final events = captured.first as List<ProfileEvent>;
+        expect(events, hasLength(1));
+        expect(
+          events[0].severity,
+          EventSeverity.alert,
+        ); // factory default preserved
+        expect(events[0].depth, isNull); // factory received no depth
+      },
+    );
+
+    test('unknown severity string falls through to factory default', () async {
+      // UDDF event with a malformed severity string -> _parseSeverity returns null.
+      // No override applied. Factory default wins.
+      // ppO2High factory default severity = warning.
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 20.0,
+            'events': [
+              {
+                'eventType': 'ppO2High',
+                'timestamp': 90,
+                'value': 1.8,
+                'severity': 'catastrophic', // unknown value
+              },
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final captured = verify(
+        mockDiveRepo.insertProfileEvents(captureAny),
+      ).captured;
+      final events = captured.first as List<ProfileEvent>;
+      expect(events, hasLength(1));
+      expect(
+        events[0].severity,
+        EventSeverity.warning,
+      ); // factory default, not overridden
+    });
   });
 }

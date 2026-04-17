@@ -177,6 +177,20 @@ class UddfEntityImportResult {
   }
 }
 
+/// Parse an [EventSeverity] from its string name.
+///
+/// Returns null for unknown/absent values so callers can fall back to the
+/// factory-default severity. Mirrors the pattern used by
+/// `profile_event_mapper._parseSeverity` — duplicated here rather than
+/// extracted to a shared location to keep Slice C.3's scope bounded.
+EventSeverity? _parseSeverity(String? raw) {
+  if (raw == null) return null;
+  for (final value in EventSeverity.values) {
+    if (value.name == raw) return value;
+  }
+  return null;
+}
+
 /// Stateless service that creates entities from parsed UDDF data.
 ///
 /// Takes repository instances directly (not Riverpod Ref) for testability.
@@ -1234,13 +1248,12 @@ class UddfEntityImporter {
       // ascentRateWarning, ppO2High, ppO2Low. Future slices may add more types as
       // real SSRF exports surface additional event names.
       //
-      // NOTE ON UDDF DIVERGENCE: SSRF's subsurface_xml_parser emits events under
-      // `diveData['events']` (read here). The UDDF path in
-      // `uddf_full_import_service.dart` emits events under
-      // `diveData['profileEvents']` — a pre-existing key mismatch. UDDF-side
-      // event persistence is intentionally out of scope for Slice C; when a
-      // future slice adds UDDF event import, unify the keys or add a second
-      // consumer block here.
+      // UDDF vs SSRF event shape: SSRF-shape events supply `eventType`,
+      // `timestamp`, `value`, `description`. UDDF-shape events additionally
+      // supply `severity` and `depth` at the map level. Both paths write to
+      // `diveData['events']` since Slice C.3 unified the keys. Severity is
+      // applied as a post-construction override; depth is passed to factories
+      // when available, falling back to 0.0 for SSRF.
       final eventMaps = (diveData['events'] as List?)
           ?.cast<Map<String, dynamic>>();
       if (eventMaps != null && eventMaps.isNotEmpty) {
@@ -1254,73 +1267,99 @@ class UddfEntityImporter {
           if (timestamp == null) continue;
           final value = m['value'] as double?;
           final description = m['description'] as String?;
+          final severity = m['severity'] as String?;
+          final depth = m['depth'] as double?;
+
+          // Apply UDDF-provided severity override when present. SSRF-shape
+          // events don't supply severity, so the closure is a pass-through
+          // for them.
+          ProfileEvent applyOverrides(ProfileEvent event) {
+            final severityOverride = _parseSeverity(severity);
+            if (severityOverride != null) {
+              return event.copyWith(severity: severityOverride);
+            }
+            return event;
+          }
+
           switch (eventTypeStr) {
             case 'setpointChange':
               if (value == null) continue;
               events.add(
-                ProfileEvent.setpointChange(
-                  id: _uuid.v4(),
-                  diveId: diveId,
-                  timestamp: timestamp,
-                  setpoint: value,
-                  createdAt: now,
+                applyOverrides(
+                  ProfileEvent.setpointChange(
+                    id: _uuid.v4(),
+                    diveId: diveId,
+                    timestamp: timestamp,
+                    setpoint: value,
+                    depth: depth,
+                    createdAt: now,
+                  ),
                 ),
               );
               break;
 
             case 'bookmark':
               events.add(
-                ProfileEvent.bookmark(
-                  id: _uuid.v4(),
-                  diveId: diveId,
-                  timestamp: timestamp,
-                  note: description,
-                  createdAt: now,
-                  source:
-                      EventSource.imported, // override `user` factory default
+                applyOverrides(
+                  ProfileEvent.bookmark(
+                    id: _uuid.v4(),
+                    diveId: diveId,
+                    timestamp: timestamp,
+                    note: description,
+                    depth: depth,
+                    createdAt: now,
+                    source:
+                        EventSource.imported, // override `user` factory default
+                  ),
                 ),
               );
               break;
 
             case 'safetyStopStart':
               events.add(
-                ProfileEvent.safetyStop(
-                  id: _uuid.v4(),
-                  diveId: diveId,
-                  timestamp: timestamp,
-                  depth:
-                      0.0, // parser does not emit depth on event elements; placeholder used across safety/deco/ascent cases. Future enrichment slice may interpolate from samples.
-                  createdAt: now,
-                  isStart: true,
-                  source: EventSource
-                      .imported, // override `computed` factory default
+                applyOverrides(
+                  ProfileEvent.safetyStop(
+                    id: _uuid.v4(),
+                    diveId: diveId,
+                    timestamp: timestamp,
+                    depth: depth ?? 0.0,
+                    createdAt: now,
+                    isStart: true,
+                    source: EventSource
+                        .imported, // override `computed` factory default
+                  ),
                 ),
               );
               break;
 
             case 'decoStopStart':
               events.add(
-                ProfileEvent.decoStop(
-                  id: _uuid.v4(),
-                  diveId: diveId,
-                  timestamp: timestamp,
-                  depth: 0.0,
-                  createdAt: now,
-                  isStart: true,
-                  // factory default is already `imported`; no override needed
+                applyOverrides(
+                  ProfileEvent.decoStop(
+                    id: _uuid.v4(),
+                    diveId: diveId,
+                    timestamp: timestamp,
+                    depth: depth ?? 0.0,
+                    createdAt: now,
+                    isStart: true,
+                    // factory default is already `imported`; no override needed
+                  ),
                 ),
               );
               break;
 
             case 'decoViolation':
               events.add(
-                ProfileEvent.decoViolation(
-                  id: _uuid.v4(),
-                  diveId: diveId,
-                  timestamp: timestamp,
-                  value: value,
-                  createdAt: now,
-                  // factory default is already `imported`; no override needed
+                applyOverrides(
+                  ProfileEvent.decoViolation(
+                    id: _uuid.v4(),
+                    diveId: diveId,
+                    timestamp: timestamp,
+                    depth: depth,
+                    value: value,
+                    createdAt: now,
+                    // factory default is already `imported`; no override needed
+                  ),
                 ),
               );
               break;
@@ -1333,15 +1372,17 @@ class UddfEntityImporter {
                 continue; // match setpointChange/ppO2 null-guard pattern
               }
               events.add(
-                ProfileEvent.ascentRateWarning(
-                  id: _uuid.v4(),
-                  diveId: diveId,
-                  timestamp: timestamp,
-                  depth: 0.0,
-                  rate: value,
-                  createdAt: now,
-                  source: EventSource
-                      .imported, // override `computed` factory default
+                applyOverrides(
+                  ProfileEvent.ascentRateWarning(
+                    id: _uuid.v4(),
+                    diveId: diveId,
+                    timestamp: timestamp,
+                    depth: depth ?? 0.0,
+                    rate: value,
+                    createdAt: now,
+                    source: EventSource
+                        .imported, // override `computed` factory default
+                  ),
                 ),
               );
               break;
@@ -1352,12 +1393,15 @@ class UddfEntityImporter {
                 continue; // match setpointChange null-guard pattern
               }
               events.add(
-                ProfileEvent.ppO2High(
-                  id: _uuid.v4(),
-                  diveId: diveId,
-                  timestamp: timestamp,
-                  value: value,
-                  createdAt: now,
+                applyOverrides(
+                  ProfileEvent.ppO2High(
+                    id: _uuid.v4(),
+                    diveId: diveId,
+                    timestamp: timestamp,
+                    value: value,
+                    depth: depth,
+                    createdAt: now,
+                  ),
                 ),
               );
               break;
@@ -1368,12 +1412,15 @@ class UddfEntityImporter {
                 continue; // match setpointChange null-guard pattern
               }
               events.add(
-                ProfileEvent.ppO2Low(
-                  id: _uuid.v4(),
-                  diveId: diveId,
-                  timestamp: timestamp,
-                  value: value,
-                  createdAt: now,
+                applyOverrides(
+                  ProfileEvent.ppO2Low(
+                    id: _uuid.v4(),
+                    diveId: diveId,
+                    timestamp: timestamp,
+                    value: value,
+                    depth: depth,
+                    createdAt: now,
+                  ),
                 ),
               );
               break;
