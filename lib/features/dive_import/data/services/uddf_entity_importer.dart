@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
@@ -18,6 +20,7 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_rep
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
@@ -1223,6 +1226,45 @@ class UddfEntityImporter {
             .toList();
         if (switches.isNotEmpty) {
           await repos.diveRepository.insertGasSwitches(switches);
+        }
+      }
+
+      // Persist profile events emitted by the parser (currently: setpointChange
+      // from SSRF SP change events; future slices may add more types).
+      final eventMaps = (diveData['events'] as List?)
+          ?.cast<Map<String, dynamic>>();
+      if (eventMaps != null && eventMaps.isNotEmpty) {
+        final events = <ProfileEvent>[];
+        for (final m in eventMaps) {
+          final eventTypeStr = m['eventType'] as String;
+          final timestamp = m['timestamp'] as int;
+          final value = m['value'] as double?;
+          switch (eventTypeStr) {
+            case 'setpointChange':
+              if (value == null) continue;
+              events.add(
+                ProfileEvent.setpointChange(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  setpoint: value,
+                  createdAt: now,
+                ),
+              );
+              break;
+            default:
+              // Unknown event type — skip with a log line so future types can
+              // be tracked. Do not throw: unknown types are forward-compat
+              // noise, not errors.
+              developer.log(
+                'Skipping unknown profile event type from parser: $eventTypeStr',
+                name: 'uddf_entity_importer',
+              );
+              break;
+          }
+        }
+        if (events.isNotEmpty) {
+          await repos.diveRepository.insertProfileEvents(events);
         }
       }
 
