@@ -4,7 +4,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -35,6 +34,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 
 /// Load per-tank pressure data for a list of dives.
@@ -405,33 +405,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         );
         if (eventRows.isNotEmpty) {
           diveProfileEvents[dive.id] = eventRows
-              .map(
-                // TODO(slice-c-task-4): route through mapDiveProfileEventToProfileEvent once
-                // the mapper propagates source. Until then, preserve current behavior by
-                // explicitly marking these as imported (all DB-persisted events are imports
-                // today).
-                (row) => ProfileEvent(
-                  id: row.id,
-                  diveId: row.diveId,
-                  timestamp: row.timestamp,
-                  eventType: ProfileEventType.values.firstWhere(
-                    (e) => e.name == row.eventType,
-                    orElse: () => ProfileEventType.note,
-                  ),
-                  severity: EventSeverity.values.firstWhere(
-                    (e) => e.name == row.severity,
-                    orElse: () => EventSeverity.info,
-                  ),
-                  description: row.description,
-                  depth: row.depth,
-                  value: row.value,
-                  tankId: row.tankId,
-                  source: EventSource.imported,
-                  createdAt: DateTime.fromMillisecondsSinceEpoch(
-                    row.createdAt * 1000,
-                  ),
-                ),
-              )
+              .map(mapDiveProfileEventToProfileEvent)
               .toList();
         }
       }
@@ -899,33 +873,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         );
         if (eventRows.isNotEmpty) {
           diveProfileEvents[dive.id] = eventRows
-              .map(
-                // TODO(slice-c-task-4): route through mapDiveProfileEventToProfileEvent once
-                // the mapper propagates source. Until then, preserve current behavior by
-                // explicitly marking these as imported (all DB-persisted events are imports
-                // today).
-                (row) => ProfileEvent(
-                  id: row.id,
-                  diveId: row.diveId,
-                  timestamp: row.timestamp,
-                  eventType: ProfileEventType.values.firstWhere(
-                    (e) => e.name == row.eventType,
-                    orElse: () => ProfileEventType.note,
-                  ),
-                  severity: EventSeverity.values.firstWhere(
-                    (e) => e.name == row.severity,
-                    orElse: () => EventSeverity.info,
-                  ),
-                  description: row.description,
-                  depth: row.depth,
-                  value: row.value,
-                  tankId: row.tankId,
-                  source: EventSource.imported,
-                  createdAt: DateTime.fromMillisecondsSinceEpoch(
-                    row.createdAt * 1000,
-                  ),
-                ),
-              )
+              .map(mapDiveProfileEventToProfileEvent)
               .toList();
         }
       }
