@@ -34,6 +34,9 @@ class ProfileEvent extends Equatable {
   /// Associated tank ID (for gas switches)
   final String? tankId;
 
+  /// Provenance of this event (imported, computed, or user-authored).
+  final EventSource source;
+
   /// When this event was created
   final DateTime createdAt;
 
@@ -47,6 +50,7 @@ class ProfileEvent extends Equatable {
     this.depth,
     this.value,
     this.tankId,
+    this.source = EventSource.imported,
     required this.createdAt,
   });
 
@@ -100,6 +104,7 @@ class ProfileEvent extends Equatable {
     required int timestamp,
     double? depth,
     required DateTime createdAt,
+    EventSource source = EventSource.computed,
   }) {
     return ProfileEvent(
       id: id,
@@ -108,6 +113,7 @@ class ProfileEvent extends Equatable {
       eventType: ProfileEventType.ascentStart,
       depth: depth,
       createdAt: createdAt,
+      source: source,
     );
   }
 
@@ -119,6 +125,7 @@ class ProfileEvent extends Equatable {
     required double depth,
     required DateTime createdAt,
     bool isStart = true,
+    EventSource source = EventSource.computed,
   }) {
     return ProfileEvent(
       id: id,
@@ -129,6 +136,7 @@ class ProfileEvent extends Equatable {
           : ProfileEventType.safetyStopEnd,
       depth: depth,
       createdAt: createdAt,
+      source: source,
     );
   }
 
@@ -139,6 +147,7 @@ class ProfileEvent extends Equatable {
     required int timestamp,
     required double depth,
     required DateTime createdAt,
+    EventSource source = EventSource.computed,
   }) {
     return ProfileEvent(
       id: id,
@@ -147,6 +156,7 @@ class ProfileEvent extends Equatable {
       eventType: ProfileEventType.maxDepth,
       depth: depth,
       createdAt: createdAt,
+      source: source,
     );
   }
 
@@ -159,6 +169,7 @@ class ProfileEvent extends Equatable {
     required double rate,
     required DateTime createdAt,
     bool isCritical = false,
+    EventSource source = EventSource.computed,
   }) {
     return ProfileEvent(
       id: id,
@@ -171,6 +182,7 @@ class ProfileEvent extends Equatable {
       depth: depth,
       value: rate,
       createdAt: createdAt,
+      source: source,
     );
   }
 
@@ -183,6 +195,7 @@ class ProfileEvent extends Equatable {
     required String tankId,
     String? gasName,
     required DateTime createdAt,
+    EventSource source = EventSource.imported,
   }) {
     return ProfileEvent(
       id: id,
@@ -193,6 +206,7 @@ class ProfileEvent extends Equatable {
       tankId: tankId,
       description: gasName,
       createdAt: createdAt,
+      source: source,
     );
   }
 
@@ -204,6 +218,7 @@ class ProfileEvent extends Equatable {
     double? depth,
     String? note,
     required DateTime createdAt,
+    EventSource source = EventSource.user,
   }) {
     return ProfileEvent(
       id: id,
@@ -213,6 +228,7 @@ class ProfileEvent extends Equatable {
       depth: depth,
       description: note,
       createdAt: createdAt,
+      source: source,
     );
   }
 
@@ -224,6 +240,7 @@ class ProfileEvent extends Equatable {
     required double setpoint,
     double? depth,
     required DateTime createdAt,
+    EventSource source = EventSource.imported,
   }) {
     return ProfileEvent(
       id: id,
@@ -233,6 +250,7 @@ class ProfileEvent extends Equatable {
       value: setpoint,
       depth: depth,
       createdAt: createdAt,
+      source: source,
     );
   }
 
@@ -246,6 +264,7 @@ class ProfileEvent extends Equatable {
     double? depth,
     double? value,
     String? tankId,
+    EventSource? source,
     DateTime? createdAt,
   }) {
     return ProfileEvent(
@@ -258,6 +277,7 @@ class ProfileEvent extends Equatable {
       depth: depth ?? this.depth,
       value: value ?? this.value,
       tankId: tankId ?? this.tankId,
+      source: source ?? this.source,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -273,6 +293,7 @@ class ProfileEvent extends Equatable {
     depth,
     value,
     tankId,
+    source,
     createdAt,
   ];
 }
