@@ -53,15 +53,15 @@ Use the `Fixed` column as a working checkbox:
 | Sample heart rate | [x] | High | Yes | Yes | Yes |
 | Dive mode (`oc` / `ccr` / `scr`) | [x] | High | Yes | Yes | Yes |
 | Rebreather dive fields (`setpointLow/High/Deco`, `SCR` config, diluent gas, loop O2, scrubber, loop volume) | [ ] | High | Yes | Yes | No |
-| Tank role / material metadata | [ ] | High | Yes | No | No |
+| Tank role / material metadata | [ ] | High | Yes | Yes[^1] | No |
 | Dive-level `cns` / `otu` | [x] | Medium | Yes | Yes | Yes |
 | Dive-level deco metadata (`decoAlgorithm`, `GF low/high`, conservatism) | [ ] | Medium | Yes | No | No |
 | Profile events / markers | [ ] | Medium | Yes | No | No |
 | Source provenance snapshot (`DiveDataSources`) | [ ] | Medium | Yes | No | No |
 | Surface pressure / altitude / surface interval | [ ] | Medium | Yes | No | No |
-| Sample `setpoint` | [ ] | Medium | Yes | Yes | No |
+| Sample `setpoint` | [x] | Medium | Yes | Yes | Yes |
 | Sample `ppO2` | [x] | Medium | Yes | Yes | Yes |
-| Multi-tank definitions | [ ] | Medium | Yes | Yes | No |
+| Multi-tank definitions | [ ] | Medium | Yes | Yes | Partial |
 | Per-tank pressure time series |  | Low | Yes | Yes | Yes |
 | Gas switches |  | Low | Yes | Yes | Yes |
 | Sample ascent rate |  | Low | Yes | N/A | N/A |
@@ -78,7 +78,7 @@ Use the `Fixed` column as a working checkbox:
 | Sample next stop | [ ] | Medium | UDDF exposes stop/deco-stop style data, but our backend does not currently have a dedicated sample next-stop field |
 | Sample deco state (`decoType`) | [x] | High | UDDF `decostop@kind` now maps `safetystop` directly and treats any other decostop kind as the app's `deco` bucket |
 | Sample heart rate | [x] | High | Already parsed in the UDDF path, but currently dropped during persistence |
-| Tank role / material metadata | [ ] | High | Backend supports richer tank semantics and UDDF already carries some of it |
+| Tank role / material metadata | [x] | High | Already supported end-to-end — role via `<tankrole>` to `TankRole`, material via `<tankmaterial>` to `TankMaterial` |
 | Dive-level `cns` / `otu` | [x] | Medium | Useful summary metadata for imported technical dives |
 | Dive-level deco metadata (`decoAlgorithm`, `GF low/high`, conservatism) | [ ] | Medium | Important provenance/context, but less critical than sample deco fields |
 | Profile events / markers | [ ] | Medium | Parser can produce them, but importer does not persist them |
@@ -100,15 +100,15 @@ Use the `Fixed` column as a working checkbox:
 | Sample next stop | [ ] | Medium | SSRF exposes stop-depth-style data, but our backend does not currently have a dedicated sample next-stop field |
 | Sample deco state (`decoType`) | [x] | High | `in_deco=1` now maps directly to the app's `deco` bucket, while non-deco samples remain `null` |
 | Sample heart rate | [x] | High | Real `.ssrf` uses `heartbeat`; parser now preserves it directly into profile samples |
-| Tank role / material metadata | [x] | High | Real `.ssrf` has `use='diluent'`; direct role mapping is now preserved, while richer material metadata remains open |
+| Tank role / material metadata | [x] | High | Tank role mapping via `use` is preserved. SSRF cylinder elements expose no direct material field; description-based inference (e.g., `AL80 -> aluminum`) is intentionally deferred as a separate preset-matcher feature |
 | Dive-level `cns` / `otu` | [x] | Medium | Real dive attributes exist and now persist through the shared import snapshot path |
 | Dive-level deco metadata (`decoAlgorithm`, `GF low/high`, conservatism) | [ ] | Medium | Often available via `extradata`, but not mapped |
-| Sample `setpoint` | [ ] | Medium | Real SSRF exports can imply it indirectly, but the parser does not currently map sample setpoint directly |
+| Sample `setpoint` | [x] | Medium | Direct sample `setpoint` attribute and `SP change` events (mbar or bar) now map to profile sample setpoint |
 | Sample `ppO2` | [x] | Medium | Real SSRF `po2` now maps directly into sample `ppO2` |
 | Profile events / markers | [ ] | Medium | Gas changes are imported, but bookmarks and other events are dropped |
 | Source provenance snapshot (`DiveDataSources`) | [ ] | Medium | SSRF provenance is much thinner than backend support |
 | Surface pressure / altitude / surface interval | [ ] | Medium | Real surface pressure exists in the corpus, but parser does not import it |
-| Multi-tank definitions | [ ] | Medium | Multi-cylinder and `pressureN` are present, but richer semantics are incomplete |
+| Multi-tank definitions | [ ] | Medium | Partial cylinders (gas-only / role-only) are now preserved. Active-tank-per-sample is deferred to Slice A.2 because it requires a new `DiveProfiles` column |
 | Sample ascent rate |  | Low | Lower value than the deco/CCR gaps |
 | Per-tank pressure time series |  | Low | Already supported well enough |
 | Gas switches |  | Low | Already supported well enough |
@@ -173,3 +173,6 @@ If we start with the safest, most direct wins, the first slice should be:
 - Current SSRF `decoType` uses a narrow direct mapping: `in_deco=1 -> 2`, while `in_deco=0` remains `null` instead of forcing an explicit non-deco enum value.
 - In the combined table, `Fixed` means the gap is effectively closed across the compared import paths, not merely improved for one format.
 - This tracker is intended to evolve as fixes land. Update the `Fixed` column in place rather than duplicating rows elsewhere.
+- Slice A (2026-04-17) closes sample `setpoint` and partial cylinder preservation for SSRF, and corrects the UDDF tank role/material entries to reflect existing end-to-end support. Active-tank-per-sample, which requires a new `DiveProfiles` column, is split out as Slice A.2. See `docs/superpowers/specs/2026-04-17-ssrf-direct-field-mappings-slice-a-design.md`.
+
+[^1]: UDDF already supports both tank role and tank material end-to-end via `<tankrole>` -> `TankRole` and `<tankmaterial>` -> `TankMaterial` mappings in the UDDF importer. The unchecked `Fixed` column reflects only the SSRF-side material gap, which is intentionally not closed by description-based inference.
