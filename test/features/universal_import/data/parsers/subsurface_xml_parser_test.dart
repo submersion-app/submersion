@@ -1155,4 +1155,40 @@ $diveXml
       );
     });
   });
+
+  group('cylinder partial preservation', () {
+    test('preserves a cylinder with only a gas mix and role', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <cylinder size='11.1 l' workpressure='207.0 bar' description='AL80' o2='21.0%' start='200.0 bar' end='100.0 bar' />
+  <cylinder o2='98.0%' use='oxygen' />
+  <divecomputer model='Test'>
+  <depth max='30.0 m' mean='15.0 m' />
+  <sample time='0:10 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final tanks = dive['tanks'] as List<Map<String, dynamic>>;
+      expect(tanks.length, 2, reason: 'gas-only cylinder is preserved');
+
+      final gasOnly = tanks[1];
+      final gasMix = gasOnly['gasMix'] as GasMix;
+      expect(gasMix.o2, 98.0);
+      expect(gasOnly['role'], TankRole.oxygenSupply);
+      expect(
+        gasOnly.containsKey('volume'),
+        isFalse,
+        reason: 'no size attribute, so no volume',
+      );
+      expect(gasOnly.containsKey('startPressure'), isFalse);
+      expect(gasOnly.containsKey('endPressure'), isFalse);
+    });
+  });
 }

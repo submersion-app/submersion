@@ -615,9 +615,23 @@ class SubsurfaceXmlParser implements ImportParser {
     for (final cyl in dive.findElements('cylinder')) {
       final size = cyl.getAttribute('size');
       final description = cyl.getAttribute('description');
-      // Skip empty cylinder elements
-      if ((size == null || size.isEmpty) &&
-          (description == null || description.isEmpty)) {
+      // Skip cylinders that carry no meaningful cylinder-property signal.
+      // Cylinder *properties* (size, description, gas mix, role, rated
+      // pressure, max depth) mean the author intended a real cylinder.
+      // Pressure *readings* (`start`, `end`) are sensor artifacts that
+      // Subsurface dive computers can emit for phantom cylinder slots
+      // (see the `does not invent extra tanks from placeholder cylinders`
+      // regression test using subsurface_export.ssrf) — these are excluded
+      // from the preservation signal on purpose.
+      final hasAnyCylinderProperty =
+          (size != null && size.isNotEmpty) ||
+          (description != null && description.isNotEmpty) ||
+          cyl.getAttribute('o2') != null ||
+          cyl.getAttribute('he') != null ||
+          cyl.getAttribute('workpressure') != null ||
+          cyl.getAttribute('use') != null ||
+          cyl.getAttribute('depth') != null;
+      if (!hasAnyCylinderProperty) {
         cylinderIndex++;
         continue;
       }
