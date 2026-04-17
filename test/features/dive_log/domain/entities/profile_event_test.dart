@@ -113,4 +113,72 @@ void main() {
       expect(imported == user, isFalse);
     });
   });
+
+  group('ProfileEvent new factories (Slice C.2)', () {
+    final now = DateTime.utc(2026, 1, 1);
+
+    test('decoStop defaults to decoStopStart with source=imported', () {
+      final e = ProfileEvent.decoStop(
+        id: 'e1',
+        diveId: 'd1',
+        timestamp: 100,
+        depth: 6.0,
+        createdAt: now,
+      );
+      expect(e.eventType, ProfileEventType.decoStopStart);
+      expect(e.source, EventSource.imported);
+      expect(e.depth, 6.0);
+    });
+
+    test('decoStop isStart=false produces decoStopEnd', () {
+      final e = ProfileEvent.decoStop(
+        id: 'e1',
+        diveId: 'd1',
+        timestamp: 500,
+        depth: 3.0,
+        createdAt: now,
+        isStart: false,
+      );
+      expect(e.eventType, ProfileEventType.decoStopEnd);
+    });
+
+    test('decoViolation defaults to alert severity + source=imported', () {
+      final e = ProfileEvent.decoViolation(
+        id: 'e1',
+        diveId: 'd1',
+        timestamp: 100,
+        value: 18.0,
+        createdAt: now,
+      );
+      expect(e.eventType, ProfileEventType.decoViolation);
+      expect(e.severity, EventSeverity.alert);
+      expect(e.source, EventSource.imported);
+      expect(e.value, 18.0);
+    });
+
+    test('ppO2High defaults to warning severity + source=imported', () {
+      final e = ProfileEvent.ppO2High(
+        id: 'e1',
+        diveId: 'd1',
+        timestamp: 100,
+        value: 1.65,
+        createdAt: now,
+      );
+      expect(e.eventType, ProfileEventType.ppO2High);
+      expect(e.severity, EventSeverity.warning);
+      expect(e.source, EventSource.imported);
+      expect(e.value, 1.65);
+    });
+
+    test('explicit source overrides factory default on new factories', () {
+      final dv = ProfileEvent.decoViolation(
+        id: 'e1',
+        diveId: 'd1',
+        timestamp: 100,
+        createdAt: now,
+        source: EventSource.computed,
+      );
+      expect(dv.source, EventSource.computed);
+    });
+  });
 }
