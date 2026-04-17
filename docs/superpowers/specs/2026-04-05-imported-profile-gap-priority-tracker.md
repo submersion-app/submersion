@@ -22,6 +22,7 @@ This document is intended to guide implementation sequencing, with a bias toward
 | `Yes` | Supported end-to-end in the current import path |
 | `No` | Representable in our app model, but not fully supported end-to-end in the current import path |
 | `N/A` | No direct field/concept support here, so importing it would require inference or a different model |
+| `Partial` | The format carries the relevant data and some of the import path is implemented, but the end-to-end mapping is incomplete — the gap is not fully closed |
 
 ### Priority Values
 
@@ -53,7 +54,7 @@ Use the `Fixed` column as a working checkbox:
 | Sample heart rate | [x] | High | Yes | Yes | Yes |
 | Dive mode (`oc` / `ccr` / `scr`) | [x] | High | Yes | Yes | Yes |
 | Rebreather dive fields (`setpointLow/High/Deco`, `SCR` config, diluent gas, loop O2, scrubber, loop volume) | [ ] | High | Yes | Yes | No |
-| Tank role / material metadata | [ ] | High | Yes | Yes[^1] | No |
+| Tank role / material metadata | [ ] | High | Yes | Yes | No[^1] |
 | Dive-level `cns` / `otu` | [x] | Medium | Yes | Yes | Yes |
 | Dive-level deco metadata (`decoAlgorithm`, `GF low/high`, conservatism) | [ ] | Medium | Yes | No | No |
 | Profile events / markers | [ ] | Medium | Yes | No | No |
@@ -108,7 +109,7 @@ Use the `Fixed` column as a working checkbox:
 | Profile events / markers | [ ] | Medium | Gas changes are imported, but bookmarks and other events are dropped |
 | Source provenance snapshot (`DiveDataSources`) | [ ] | Medium | SSRF provenance is much thinner than backend support |
 | Surface pressure / altitude / surface interval | [ ] | Medium | Real surface pressure exists in the corpus, but parser does not import it |
-| Multi-tank definitions | [ ] | Medium | Partial cylinders (gas-only / role-only) are now preserved. Active-tank-per-sample is deferred to Slice A.2 because it requires a new `DiveProfiles` column |
+| Multi-tank definitions | [ ] | Medium | Partial cylinders (gas-only / role-only) are now preserved. `Active-tank-per-sample` is deferred to Slice A.2 (a follow-up task scoped in the Slice A design doc) because it requires a new `DiveProfiles` column |
 | Sample ascent rate |  | Low | Lower value than the deco/CCR gaps |
 | Per-tank pressure time series |  | Low | Already supported well enough |
 | Gas switches |  | Low | Already supported well enough |
@@ -173,6 +174,6 @@ If we start with the safest, most direct wins, the first slice should be:
 - Current SSRF `decoType` uses a narrow direct mapping: `in_deco=1 -> 2`, while `in_deco=0` remains `null` instead of forcing an explicit non-deco enum value.
 - In the combined table, `Fixed` means the gap is effectively closed across the compared import paths, not merely improved for one format.
 - This tracker is intended to evolve as fixes land. Update the `Fixed` column in place rather than duplicating rows elsewhere.
-- Slice A (2026-04-17) closes sample `setpoint` and partial cylinder preservation for SSRF, and corrects the UDDF tank role/material entries to reflect existing end-to-end support. Active-tank-per-sample, which requires a new `DiveProfiles` column, is split out as Slice A.2. See `docs/superpowers/specs/2026-04-17-ssrf-direct-field-mappings-slice-a-design.md`.
+- Slice A (2026-04-17) closes sample `setpoint` and partial cylinder preservation for SSRF, and corrects the UDDF tank role/material entries to reflect existing end-to-end support. `Active-tank-per-sample`, which requires a new `DiveProfiles.activeTankIndex` column, is split out as Slice A.2 — a follow-up task scoped in the [Slice A design doc](2026-04-17-ssrf-direct-field-mappings-slice-a-design.md).
 
-[^1]: UDDF already supports both tank role and tank material end-to-end via `<tankrole>` -> `TankRole` and `<tankmaterial>` -> `TankMaterial` mappings in the UDDF importer. The unchecked `Fixed` column reflects only the SSRF-side material gap, which is intentionally not closed by description-based inference.
+[^1]: SSRF tank role mapping via the `use` attribute is supported, but no direct material field exists in the SSRF cylinder element. Description-based inference (e.g., `AL80` -> aluminum) is intentionally deferred as a separate preset-matcher feature. For context: UDDF already supports both tank role and tank material end-to-end via `<tankrole>` -> `TankRole` and `<tankmaterial>` -> `TankMaterial`.
