@@ -869,7 +869,7 @@ class UddfFullImportService {
           eventsList.add(event);
         }
         if (eventsList.isNotEmpty) {
-          diveData['profileEvents'] = eventsList;
+          diveData['events'] = eventsList;
         }
       }
 
