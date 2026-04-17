@@ -502,3 +502,16 @@ enum WeatherSource {
   final String displayName;
   const WeatherSource(this.displayName);
 }
+
+/// Provenance of a [ProfileEvent]. Used for source-aware merge rules and
+/// diagnostic display.
+enum EventSource {
+  /// Came from outside the app: file import (SSRF, UDDF) or native DC download.
+  imported,
+
+  /// Auto-detected by in-app analysis (ascent rate, CNS, ppO2 thresholds, etc.).
+  computed,
+
+  /// User-authored in the app (bookmarks, notes).
+  user,
+}
