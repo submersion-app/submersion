@@ -2444,5 +2444,56 @@ void main() {
         expect(persistedEvents[7].source, EventSource.imported);
       },
     );
+
+    test(
+      'stop-end event types silently drop on UDDF round-trip (known gap)',
+      () async {
+        // safetyStopEnd and decoStopEnd are produced by profile_analysis_service
+        // with isStart: false. The exporter writes them to UDDF verbatim, but
+        // the importer's _importDives switch only handles the *Start variants —
+        // the End variants fall through the default: log-and-skip branch.
+        //
+        // This test pins that behavior so it can't regress silently, and so a
+        // future developer who adds handling for stop-end events updates this
+        // test + the round-trip coverage. Not a bug to fix today — Slice C.3
+        // deliberately kept the 8-type scope from Slice C.2.
+        //
+        // TODO-IF-EXTENDED: when a future slice adds safetyStopEnd/decoStopEnd
+        // handling, this test should be updated: either delete it, or change
+        // the assertion to verify(insertProfileEvents(captureAny)).captured
+        // contains two events with the correct eventTypes.
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 20.0,
+              'events': [
+                {
+                  'eventType': 'safetyStopEnd',
+                  'timestamp': 2700,
+                  'depth': 5.0,
+                  'severity': 'info',
+                },
+                {
+                  'eventType': 'decoStopEnd',
+                  'timestamp': 2400,
+                  'depth': 6.0,
+                  'severity': 'info',
+                },
+              ],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: UddfImportSelections.selectAll(data),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        verifyNever(mockDiveRepo.insertProfileEvents(any));
+      },
+    );
   });
 }

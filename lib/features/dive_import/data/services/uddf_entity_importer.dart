@@ -1273,6 +1273,14 @@ class UddfEntityImporter {
           // Apply UDDF-provided severity override when present. SSRF-shape
           // events don't supply severity, so the closure is a pass-through
           // for them.
+          //
+          // Severity uses copyWith rather than being passed to factories
+          // because ProfileEvent factories don't expose a severity parameter —
+          // each factory sets the severity implicitly based on the event type
+          // (e.g., decoViolation → alert, ppO2High → warning). The copyWith
+          // override is the only way to preserve a UDDF-provided severity
+          // without changing factory signatures. depth and value, by contrast,
+          // ARE factory parameters, so they're passed directly above.
           ProfileEvent applyOverrides(ProfileEvent event) {
             final severityOverride = _parseSeverity(severity);
             if (severityOverride != null) {
