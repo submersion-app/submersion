@@ -1204,6 +1204,9 @@ $diveXml
   <cylinder size='11.1 l' workpressure='207.0 bar' description='DECO50' o2='50.0%' />
   <divecomputer model='Test'>
   <depth max='20.0 m' mean='10.0 m' />
+  <!-- pressure1 is intentionally absent: if cylinderIndex fails to advance past
+       the empty slot above, DECO50 would look up pressure1 (missing) instead of
+       pressure2 (present), and startPressure/endPressure would end up null. -->
   <sample time='0:10 min' depth='5.0 m' pressure0='200.0 bar' pressure2='150.0 bar' />
   <sample time='5:00 min' depth='20.0 m' pressure0='150.0 bar' pressure2='120.0 bar' />
   </divecomputer>
@@ -1216,7 +1219,12 @@ $diveXml
         final tanks = dive['tanks'] as List<Map<String, dynamic>>;
 
         // Two emitted tanks (the truly-empty one is skipped).
-        expect(tanks.length, 2);
+        expect(
+          tanks.length,
+          2,
+          reason:
+              'truly-empty cylinder is filtered out, leaving AL80 and DECO50',
+        );
 
         // The second emitted tank must have derived its start/end pressure from
         // the sample-level pressure2 attributes, which requires the source-index
@@ -1225,12 +1233,22 @@ $diveXml
         expect(
           secondTank['startPressure'],
           150.0,
-          reason: 'first pressure2 value becomes startPressure fallback',
+          reason:
+              'DECO50 is at SSRF source-index 2 and must read pressure2; '
+              'if cylinderIndex did not advance past the empty slot it would '
+              'look up pressure1, find nothing, and leave startPressure null',
         );
         expect(
           secondTank['endPressure'],
           120.0,
-          reason: 'last pressure2 value becomes endPressure fallback',
+          reason:
+              'endPressure fallback draws the last pressure2 value; '
+              'a wrong cylinderIndex would leave this null as well',
+        );
+        expect(
+          secondTank['uddfTankId'],
+          '2:DECO50',
+          reason: 'DECO50 must be labeled with SSRF source-index 2, not 1',
         );
       },
     );
