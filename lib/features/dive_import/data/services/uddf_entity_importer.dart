@@ -1251,6 +1251,7 @@ class UddfEntityImporter {
           final timestamp = m['timestamp'] as int?;
           if (timestamp == null) continue;
           final value = m['value'] as double?;
+          final description = m['description'] as String?;
           switch (eventTypeStr) {
             case 'setpointChange':
               if (value == null) continue;
@@ -1264,6 +1265,108 @@ class UddfEntityImporter {
                 ),
               );
               break;
+
+            case 'bookmark':
+              events.add(
+                ProfileEvent.bookmark(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  note: description,
+                  createdAt: now,
+                  source:
+                      EventSource.imported, // override `user` factory default
+                ),
+              );
+              break;
+
+            case 'safetyStopStart':
+              events.add(
+                ProfileEvent.safetyStop(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  depth: 0.0,
+                  createdAt: now,
+                  isStart: true,
+                  source: EventSource
+                      .imported, // override `computed` factory default
+                ),
+              );
+              break;
+
+            case 'decoStopStart':
+              events.add(
+                ProfileEvent.decoStop(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  depth: 0.0,
+                  createdAt: now,
+                  isStart: true,
+                ),
+              );
+              break;
+
+            case 'decoViolation':
+              events.add(
+                ProfileEvent.decoViolation(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  value: value,
+                  createdAt: now,
+                ),
+              );
+              break;
+
+            case 'ascentRateWarning':
+              events.add(
+                ProfileEvent.ascentRateWarning(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  depth: 0.0,
+                  rate: value ?? 0.0,
+                  createdAt: now,
+                  source: EventSource
+                      .imported, // override `computed` factory default
+                ),
+              );
+              break;
+
+            case 'ppO2High':
+              if (value == null) {
+                _log.warning('Skipping ppO2High event with missing value');
+                break;
+              }
+              events.add(
+                ProfileEvent.ppO2High(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  value: value,
+                  createdAt: now,
+                ),
+              );
+              break;
+
+            case 'ppO2Low':
+              if (value == null) {
+                _log.warning('Skipping ppO2Low event with missing value');
+                break;
+              }
+              events.add(
+                ProfileEvent.ppO2Low(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  value: value,
+                  createdAt: now,
+                ),
+              );
+              break;
+
             default:
               // Unknown event type — skip with a log line so future types can
               // be tracked. Do not throw: unknown types are forward-compat
