@@ -162,7 +162,7 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
                 initialCenter: initialCenter,
                 initialZoom: initialZoom,
                 minZoom: 2.0,
-                maxZoom: 18.0,
+                maxZoom: ref.watch(mapTileMaxZoomProvider),
                 onTap: _onMapTap,
                 interactionOptions: const InteractionOptions(
                   flags: InteractiveFlag.all & ~InteractiveFlag.rotate,

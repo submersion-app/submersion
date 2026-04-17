@@ -674,7 +674,7 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('detailed'))();
   TextColumn get diveCenterListViewMode =>
       text().withDefault(const Constant('detailed'))();
-  // Map style (v64)
+  // Map style (v67)
   TextColumn get mapStyle =>
       text().withDefault(const Constant('openStreetMap'))();
   // Dive profile chart defaults

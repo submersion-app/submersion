@@ -27386,12 +27386,6 @@ abstract class AppLocalizations {
   /// **'Map Style'**
   String get settings_appearance_mapStyle;
 
-  /// No description provided for @settings_appearance_mapStyle_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose map tile appearance'**
-  String get settings_appearance_mapStyle_subtitle;
-
   /// No description provided for @settings_appearance_mapStyle_openStreetMap.
   ///
   /// In en, this message translates to:

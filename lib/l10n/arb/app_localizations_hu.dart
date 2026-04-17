@@ -16159,10 +16159,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_appearance_mapStyle => 'Map Style';
 
   @override
-  String get settings_appearance_mapStyle_subtitle =>
-      'Choose map tile appearance';
-
-  @override
   String get settings_appearance_mapStyle_openStreetMap => 'Street Map';
 
   @override

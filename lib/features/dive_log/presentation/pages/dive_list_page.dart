@@ -892,7 +892,7 @@ class DiveListTile extends ConsumerWidget {
         siteLatitude!,
         siteLongitude!,
         13,
-        ref.watch(settingsProvider).mapStyle,
+        ref.watch(settingsProvider.select((s) => s.mapStyle)),
       );
       return Card(
         margin:
