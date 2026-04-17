@@ -1095,7 +1095,38 @@ $diveXml
       );
       final dive = result.entitiesOf(ImportEntityType.dives).first;
       final profile = dive['profile'] as List<Map<String, dynamic>>;
-      expect(profile[0]['setpoint'], 1.2);
+      expect(
+        profile[0]['setpoint'],
+        1.2,
+        reason:
+            'decimal bar values below 10 pass through the <=10 arm untouched',
+      );
+    });
+
+    test('setpoint value of exactly 10 is not divided by 1000', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <event time='0:00 min' name='SP change' value='10' />
+  <sample time='0:30 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final profile = dive['profile'] as List<Map<String, dynamic>>;
+      expect(
+        profile[0]['setpoint'],
+        10.0,
+        reason:
+            'the > 10 threshold is exclusive; value=10 stays as 10.0 bar per _parseSetpointEvents doc comment',
+      );
     });
 
     test('implausible setpoint values are dropped', () async {
