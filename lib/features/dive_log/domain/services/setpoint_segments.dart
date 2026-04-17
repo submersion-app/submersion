@@ -18,6 +18,11 @@ class SetpointSegment extends Equatable {
     required this.setpoint,
   });
 
+  /// Returns true if [t] falls within this segment.
+  ///
+  /// Start is inclusive, end is exclusive — this matches segment-adjacency
+  /// convention so the event at a boundary timestamp is attributed to the
+  /// new segment, not the closing one.
   bool containsTimestamp(int t) =>
       t >= startTimestamp && (endTimestamp == null || t < endTimestamp!);
 
@@ -29,6 +34,11 @@ class SetpointSegment extends Equatable {
 ///
 /// Filters to `setpointChange` events, sorts defensively by timestamp,
 /// and coalesces consecutive events that repeat the same setpoint value.
+///
+/// If two `setpointChange` events share the same timestamp, their relative
+/// ordering after sort is unspecified (Dart `List.sort` is not guaranteed
+/// stable); only one will form the active segment. This is acceptable because
+/// dive computers do not produce two SP-change events at the same second.
 ///
 /// Returns an empty list when the input contains no setpointChange events.
 /// The final segment is open-ended ([endTimestamp] is null).
@@ -62,6 +72,10 @@ List<SetpointSegment> buildSetpointSegments(List<ProfileEvent> events) {
 
   final coalesced = <SetpointSegment>[];
   for (final segment in raw) {
+    // Exact equality is intentional: both values originate from string-parsed
+    // sources (UDDF / SSRF `double.tryParse`), so bit-identical doubles indicate
+    // a genuine duplicate event. Any future importer that derives setpoint via
+    // arithmetic (e.g., unit conversion) will need an epsilon comparison here.
     if (coalesced.isNotEmpty && coalesced.last.setpoint == segment.setpoint) {
       final prev = coalesced.removeLast();
       coalesced.add(

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/services/setpoint_segments.dart';
 
@@ -76,6 +77,18 @@ void main() {
         sp('e2', 1500, 1.3),
       ]);
       expect(segments.length, 2);
+    });
+
+    test('setpointChange with null value is filtered out', () {
+      final nullValueEvent = ProfileEvent(
+        id: 'e_null',
+        diveId: 'd1',
+        timestamp: 0,
+        eventType: ProfileEventType.setpointChange,
+        createdAt: now,
+        // value intentionally omitted — defaults to null
+      );
+      expect(buildSetpointSegments([nullValueEvent]), isEmpty);
     });
   });
 
