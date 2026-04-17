@@ -1577,5 +1577,66 @@ $diveXml
             'po2=0 is implausible -> dropped; no other events -> no events key',
       );
     });
+
+    test(
+      'po2 value exactly 0.18 maps to ppO2Low (hypoxia boundary is inclusive)',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='50.0 m' mean='30.0 m' />
+  <event time='5:00 min' name='po2' value='0.18' />
+  <sample time='5:30 min' depth='45.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final events = dive['events'] as List<Map<String, dynamic>>;
+        expect(events.length, 1);
+        expect(
+          events[0]['eventType'],
+          'ppO2Low',
+          reason: '<= 0.18 threshold is INCLUSIVE; do not change to < 0.18',
+        );
+        expect(events[0]['value'], 0.18);
+      },
+    );
+
+    test(
+      'po2 value exactly 1.4 maps to ppO2High (toxicity boundary sits in high range)',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='50.0 m' mean='30.0 m' />
+  <event time='5:00 min' name='po2' value='1.4' />
+  <sample time='5:30 min' depth='45.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final events = dive['events'] as List<Map<String, dynamic>>;
+        expect(events.length, 1);
+        expect(
+          events[0]['eventType'],
+          'ppO2High',
+          reason:
+              'value 1.4 is NOT below 0.18, so it falls into the ppO2High default',
+        );
+        expect(events[0]['value'], 1.4);
+      },
+    );
   });
 }

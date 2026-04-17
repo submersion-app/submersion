@@ -1229,8 +1229,10 @@ class UddfEntityImporter {
         }
       }
 
-      // Persist profile events emitted by the parser (currently: setpointChange
-      // from SSRF SP change events; future slices may add more types).
+      // Persist profile events emitted by the parser. Currently supported (Slice C + C.2):
+      // setpointChange, bookmark, safetyStopStart, decoStopStart, decoViolation,
+      // ascentRateWarning, ppO2High, ppO2Low. Future slices may add more types as
+      // real SSRF exports surface additional event names.
       //
       // NOTE ON UDDF DIVERGENCE: SSRF's subsurface_xml_parser emits events under
       // `diveData['events']` (read here). The UDDF path in
