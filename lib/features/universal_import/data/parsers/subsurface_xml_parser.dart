@@ -600,11 +600,23 @@ class SubsurfaceXmlParser implements ImportParser {
     }
   }
 
+  /// Returns true when the element has a non-null, non-empty attribute value
+  /// for [name]. Empty-string attribute values (`<cylinder o2='' />`) count as
+  /// absent, which matches the surrounding import contract.
+  static bool _hasNonEmptyAttribute(XmlElement element, String name) {
+    final value = element.getAttribute(name);
+    return value != null && value.isNotEmpty;
+  }
+
   /// Parses `<cylinder>` elements into tank maps with [GasMix] objects.
   ///
-  /// Empty cylinders (no size and no description) are skipped. The first
-  /// cylinder uses profile sample pressures as a fallback when `start`/`end`
-  /// attributes are absent.
+  /// A cylinder is preserved when it carries any cylinder-property attribute:
+  /// `size`, `description`, `o2`, `he`, `workpressure`, `use`, or `depth`.
+  /// Cylinders with only pressure-reading attributes (`start`, `end`) are
+  /// skipped — these are dive-computer sensor artifacts, not real cylinders.
+  ///
+  /// The first emitted cylinder uses profile sample pressures as a fallback
+  /// when `start`/`end` attributes are absent on the cylinder itself.
   List<Map<String, dynamic>> _parseCylinders(
     XmlElement dive,
     List<Map<String, dynamic>>? profilePoints,
@@ -622,15 +634,16 @@ class SubsurfaceXmlParser implements ImportParser {
       // Subsurface dive computers can emit for phantom cylinder slots
       // (see the `does not invent extra tanks from placeholder cylinders`
       // regression test using subsurface_export.ssrf) — these are excluded
-      // from the preservation signal on purpose.
+      // from the preservation signal on purpose. Empty-string attribute
+      // values (e.g., `<cylinder o2='' />`) also count as absent.
       final hasAnyCylinderProperty =
-          (size != null && size.isNotEmpty) ||
-          (description != null && description.isNotEmpty) ||
-          cyl.getAttribute('o2') != null ||
-          cyl.getAttribute('he') != null ||
-          cyl.getAttribute('workpressure') != null ||
-          cyl.getAttribute('use') != null ||
-          cyl.getAttribute('depth') != null;
+          _hasNonEmptyAttribute(cyl, 'size') ||
+          _hasNonEmptyAttribute(cyl, 'description') ||
+          _hasNonEmptyAttribute(cyl, 'o2') ||
+          _hasNonEmptyAttribute(cyl, 'he') ||
+          _hasNonEmptyAttribute(cyl, 'workpressure') ||
+          _hasNonEmptyAttribute(cyl, 'use') ||
+          _hasNonEmptyAttribute(cyl, 'depth');
       if (!hasAnyCylinderProperty) {
         cylinderIndex++;
         continue;
