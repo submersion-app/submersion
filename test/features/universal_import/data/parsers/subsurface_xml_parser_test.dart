@@ -958,4 +958,56 @@ $diveXml
       expect(dive11.containsKey('tanks'), isFalse);
     });
   });
+
+  group('sample setpoint', () {
+    test('forward-fills setpoint from SP change events', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='30.0 m' mean='15.0 m' />
+  <event time='0:00 min' name='SP change' value='700' />
+  <event time='25:00 min' name='SP change' value='1300' />
+  <sample time='0:10 min' depth='5.0 m' />
+  <sample time='10:00 min' depth='20.0 m' />
+  <sample time='24:59 min' depth='20.0 m' />
+  <sample time='25:00 min' depth='20.0 m' />
+  <sample time='26:00 min' depth='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final profile = dive['profile'] as List<Map<String, dynamic>>;
+      expect(
+        profile[0]['setpoint'],
+        0.7,
+        reason: 'sample at 0:10 after t=0 event',
+      );
+      expect(
+        profile[1]['setpoint'],
+        0.7,
+        reason: 'sample at 10:00 after t=0 event',
+      );
+      expect(
+        profile[2]['setpoint'],
+        0.7,
+        reason: 'sample at 24:59 still below 25:00 event',
+      );
+      expect(
+        profile[3]['setpoint'],
+        1.3,
+        reason: 'sample at 25:00 at/after 25:00 event',
+      );
+      expect(
+        profile[4]['setpoint'],
+        1.3,
+        reason: 'sample at 26:00 after 25:00 event',
+      );
+    });
+  });
 }

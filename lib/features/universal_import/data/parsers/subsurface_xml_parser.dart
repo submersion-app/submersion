@@ -499,6 +499,12 @@ class SubsurfaceXmlParser implements ImportParser {
       }
     }
 
+    _applyEventFillOntoSamples<double>(
+      samples: points,
+      events: _parseSetpointEvents(divecomputer),
+      sampleField: 'setpoint',
+    );
+
     return points;
   }
 
@@ -555,6 +561,35 @@ class SubsurfaceXmlParser implements ImportParser {
     final lastValue = points[lastKnown][field] as double;
     for (var i = lastKnown + 1; i < points.length; i++) {
       points[i][field] = lastValue;
+    }
+  }
+
+  /// Forward-fills a field on each sample from timestamped events.
+  ///
+  /// For each sample, finds the last event with timestamp <= sample.timestamp
+  /// and sets sample[sampleField] = event.value. If the sample already has a
+  /// non-null value at sampleField, it is preserved so direct sample
+  /// attributes take precedence over event-derived values.
+  static void _applyEventFillOntoSamples<T>({
+    required List<Map<String, dynamic>> samples,
+    required List<({int timestamp, T value})> events,
+    required String sampleField,
+  }) {
+    if (events.isEmpty || samples.isEmpty) return;
+    final sortedEvents = [...events]
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    var eventIdx = 0;
+    T? current;
+    for (final sample in samples) {
+      final sampleTime = sample['timestamp'] as int;
+      while (eventIdx < sortedEvents.length &&
+          sortedEvents[eventIdx].timestamp <= sampleTime) {
+        current = sortedEvents[eventIdx].value;
+        eventIdx++;
+      }
+      if (current != null && sample[sampleField] == null) {
+        sample[sampleField] = current;
+      }
     }
   }
 
@@ -662,6 +697,30 @@ class SubsurfaceXmlParser implements ImportParser {
         ? 'tank'
         : cleanedDescription;
     return '$cylinderIndex:$safeDescription';
+  }
+
+  /// Parses `SP change` events from a `<divecomputer>` into
+  /// timestamped setpoint values in bar.
+  ///
+  /// Subsurface typically emits `value` in mbar (e.g., 1200), but third-party
+  /// exporters sometimes use bar (e.g., 1.2). Normalization: if the parsed
+  /// value is greater than 10, divide by 1000. Implausible values (non-
+  /// positive) are dropped.
+  List<({int timestamp, double value})> _parseSetpointEvents(
+    XmlElement divecomputer,
+  ) {
+    final events = <({int timestamp, double value})>[];
+    for (final event in divecomputer.findElements('event')) {
+      final name = event.getAttribute('name')?.trim().toLowerCase();
+      if (name != 'sp change') continue;
+      final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+      if (timestamp == null) continue;
+      final raw = _parseDouble(event.getAttribute('value'));
+      if (raw == null || raw <= 0) continue;
+      final bar = raw > 10 ? raw / 1000 : raw;
+      events.add((timestamp: timestamp, value: bar));
+    }
+    return events;
   }
 
   /// Parses `<weightsystem>` elements into weight maps with [WeightType] values.
