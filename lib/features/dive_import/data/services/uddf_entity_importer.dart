@@ -1,11 +1,10 @@
-import 'dart:developer' as developer;
-
 import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -185,6 +184,7 @@ class UddfEntityImportResult {
 /// cross-references between entity types.
 class UddfEntityImporter {
   static const _uuid = Uuid();
+  final _log = LoggerService.forClass(UddfEntityImporter);
 
   final TankPresetEntity? _defaultTankPreset;
   final int _defaultStartPressure;
@@ -1237,7 +1237,8 @@ class UddfEntityImporter {
         final events = <ProfileEvent>[];
         for (final m in eventMaps) {
           final eventTypeStr = m['eventType'] as String;
-          final timestamp = m['timestamp'] as int;
+          final timestamp = m['timestamp'] as int?;
+          if (timestamp == null) continue;
           final value = m['value'] as double?;
           switch (eventTypeStr) {
             case 'setpointChange':
@@ -1256,9 +1257,8 @@ class UddfEntityImporter {
               // Unknown event type — skip with a log line so future types can
               // be tracked. Do not throw: unknown types are forward-compat
               // noise, not errors.
-              developer.log(
+              _log.warning(
                 'Skipping unknown profile event type from parser: $eventTypeStr',
-                name: 'uddf_entity_importer',
               );
               break;
           }

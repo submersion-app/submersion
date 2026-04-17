@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
@@ -1856,6 +1857,69 @@ void main() {
       final buddy = captured[0] as Buddy;
       expect(buddy.certificationLevel, isNull);
       expect(buddy.certificationAgency, isNull);
+    });
+  });
+
+  group('Profile events persistence', () {
+    setUp(() {
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+      when(mockDiveRepo.insertProfileEvents(any)).thenAnswer((_) async {});
+    });
+
+    test('persists setpointChange event with correct fields', () async {
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 30.0,
+            'events': [
+              {'eventType': 'setpointChange', 'timestamp': 300, 'value': 1.2},
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final captured = verify(
+        mockDiveRepo.insertProfileEvents(captureAny),
+      ).captured;
+      final events = captured.first as List<ProfileEvent>;
+      expect(events, hasLength(1));
+      expect(events[0].eventType, ProfileEventType.setpointChange);
+      expect(events[0].timestamp, 300);
+      expect(events[0].value, 1.2);
+      expect(events[0].source, EventSource.imported);
+    });
+
+    test('does not call insertProfileEvents for unknown event type', () async {
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 20.0,
+            'events': [
+              {'eventType': 'unknownType', 'timestamp': 100},
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      verifyNever(mockDiveRepo.insertProfileEvents(any));
     });
   });
 }
