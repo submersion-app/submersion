@@ -460,6 +460,8 @@ class SubsurfaceXmlParser implements ImportParser {
       if (cns != null) point['cns'] = cns;
       final ppo2 = _parseDouble(sample.getAttribute('po2'));
       if (ppo2 != null) point['ppO2'] = ppo2;
+      final setpoint = _parseDouble(sample.getAttribute('setpoint'));
+      if (setpoint != null) point['setpoint'] = setpoint;
       if (_parseInt(sample.getAttribute('in_deco')) == 1) {
         point['decoType'] = 2;
       }
