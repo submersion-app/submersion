@@ -57,7 +57,7 @@ Use the `Fixed` column as a working checkbox:
 | Tank role / material metadata | [ ] | High | Yes | Yes | No[^1] |
 | Dive-level `cns` / `otu` | [x] | Medium | Yes | Yes | Yes |
 | Dive-level deco metadata (`decoAlgorithm`, `GF low/high`, conservatism) | [ ] | Medium | Yes | No | No |
-| Profile events / markers | [ ] | Medium | Yes | Partial | Partial |
+| Profile events / markers | [ ] | Medium | Yes | Yes | Partial |
 | Source provenance snapshot (`DiveDataSources`) | [ ] | Medium | Yes | No | No |
 | Surface pressure / altitude / surface interval | [ ] | Medium | Yes | No | No |
 | Sample `setpoint` | [x] | Medium | Yes | Yes | Yes |
@@ -82,7 +82,7 @@ Use the `Fixed` column as a working checkbox:
 | Tank role / material metadata | [x] | High | Already supported end-to-end — role via `<tankrole>` to `TankRole`, material via `<tankmaterial>` to `TankMaterial` |
 | Dive-level `cns` / `otu` | [x] | Medium | Useful summary metadata for imported technical dives |
 | Dive-level deco metadata (`decoAlgorithm`, `GF low/high`, conservatism) | [ ] | Medium | Important provenance/context, but less critical than sample deco fields |
-| Profile events / markers | [ ] | Medium | Parser can produce them, but importer does not persist them |
+| Profile events / markers | [x] | Medium | Submersion-authored UDDF round-trip preserves all 8 event types via the `<profileevents>` element. `diveData['events']` key unified with SSRF path (Slice C.3). Third-party UDDF parsers that don't emit `<profileevents>` remain out of scope |
 | Source provenance snapshot (`DiveDataSources`) | [ ] | Medium | Current UDDF provenance row is under-filled |
 | Surface pressure / altitude / surface interval | [ ] | Medium | Helps reproduce altitude/weather/computer context |
 | Sample ascent rate |  | Low | Nice to have, but lower value than the core deco fields |
@@ -179,5 +179,6 @@ If we start with the safest, most direct wins, the first slice should be:
 - Slice A (2026-04-17) closes SSRF partial cylinder preservation and corrects the UDDF tank role/material entries to reflect existing end-to-end support. Direct `<sample setpoint=...>` attribute parsing was added too. `SP change` event-based setpoint handling is intentionally deferred to Slice C (rationale: avoid the denormalization stopgap of forward-filling events into `DiveProfiles.setpoint` at import time; Slice C will persist events and derive per-sample setpoint at read time, consistent with PR #137's `ProfileGasSegment` pattern). `Active-tank-per-sample`, which requires a new `DiveProfiles.activeTankIndex` column, is split out as Slice A.2 — a follow-up task scoped in the [Slice A design doc](2026-04-17-ssrf-direct-field-mappings-slice-a-design.md).
 - Slice C (2026-04-17) adds source tagging to `DiveProfileEvents` (new `source` column) and closes SSRF `SP change` event persistence via a `setpointChange` event type, consumed by a `SetpointSegment` derivation helper parallel to PR #137's `ProfileGasSegment`. Further SSRF event types (bookmarks, alarms) remain open. See `docs/superpowers/specs/2026-04-17-ssrf-slice-c-profile-events-design.md`.
 - Slice C.2 (2026-04-17) extends SSRF `_parseProfileEvents` with 6 additional event names (`bookmark`, `safety stop`, `deco stop`, `ceiling`, `violation`, `ascent`, `po2`), mostly flat one-to-one mapping to existing `ProfileEventType` values. Deliberate exception: `po2` is threshold-split at 1.4 / 0.18 bar into `ppO2High` / `ppO2Low` for CCR safety correctness. Four new factory constructors on `ProfileEvent` (`decoStop`, `decoViolation`, `ppO2High`, `ppO2Low`). One synthetic compound fixture `profile-events-variety.ssrf`. No schema change. Mapping is based on Subsurface's documented event vocabulary — not verified against real-world exports. See `docs/superpowers/specs/2026-04-17-ssrf-slice-c2-profile-events-level2-design.md`.
+- Slice C.3 (2026-04-17) fixes the UDDF-vs-SSRF event-key mismatch — the UDDF parser now writes `diveData['events']` instead of `diveData['profileEvents']`. Extends `_importDives` to consume UDDF's richer event shape (severity, depth) via post-construction `copyWith` overrides, while keeping the SSRF path unchanged. Round-trip test confirms Submersion-authored UDDF exports preserve all 8 event types end-to-end. Third-party UDDF event parsing remains a separate future slice. See `docs/superpowers/specs/2026-04-17-ssrf-slice-c3-uddf-event-parity-design.md`.
 
 [^1]: SSRF tank role mapping via the `use` attribute is supported, but no direct material field exists in the SSRF cylinder element. Description-based inference (e.g., `AL80` -> aluminum) is intentionally deferred as a separate preset-matcher feature. For context: UDDF already supports both tank role and tank material end-to-end via `<tankrole>` -> `TankRole` and `<tankmaterial>` -> `TankMaterial`.
