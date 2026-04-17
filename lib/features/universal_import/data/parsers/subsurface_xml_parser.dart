@@ -460,6 +460,14 @@ class SubsurfaceXmlParser implements ImportParser {
       if (cns != null) point['cns'] = cns;
       final ppo2 = _parseDouble(sample.getAttribute('po2'));
       if (ppo2 != null) point['ppO2'] = ppo2;
+      // Direct sample `setpoint` attribute is treated as bar — Subsurface
+      // emits it in bar for its own exports. `_parseDouble` already strips
+      // unit suffixes, so a value like `setpoint='1.2 bar'` parses as 1.2.
+      // This path does NOT run the mbar/bar heuristic that `SP change`
+      // events go through; if a third-party exporter emits direct setpoint
+      // in mbar (rare), the normalization should be added here explicitly
+      // rather than silently applied. Deliberately left asymmetric to
+      // keep the direct-attribute path predictable.
       final setpoint = _parseDouble(sample.getAttribute('setpoint'));
       if (setpoint != null) point['setpoint'] = setpoint;
       if (_parseInt(sample.getAttribute('in_deco')) == 1) {
@@ -501,6 +509,10 @@ class SubsurfaceXmlParser implements ImportParser {
       }
     }
 
+    // setpoint is step-filled from SP-change events: the value changes
+    // discretely at each event and holds until the next. Do NOT run
+    // _fillSparseField on setpoint — interpolation between discrete
+    // setpoint events would produce non-physical intermediate values.
     _applyEventFillOntoSamples<double>(
       samples: points,
       events: _parseSetpointEvents(divecomputer),

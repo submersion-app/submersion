@@ -151,6 +151,8 @@ These are still high-priority, but likely require interpretation rules, broader 
 
 ## Suggested First Implementation Slice
 
+**Status (2026-04-17):** This planning section is historical. All items listed below were completed as part of PR #170 (the initial Slice) and Slice A (2026-04-17, see `2026-04-17-ssrf-direct-field-mappings-slice-a-design.md`). Row-level `Fixed` status in the tables above is authoritative. Kept here for context on how the import-gap work was sequenced.
+
 If we start with the safest, most direct wins, the first slice should be:
 
 | Order | Format | Gap / Field Area |
