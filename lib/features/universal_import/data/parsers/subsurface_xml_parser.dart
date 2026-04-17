@@ -310,6 +310,11 @@ class SubsurfaceXmlParser implements ImportParser {
       result['gasSwitches'] = gasSwitches;
     }
 
+    final events = divecomputer != null
+        ? _parseProfileEvents(divecomputer)
+        : const <Map<String, dynamic>>[];
+    if (events.isNotEmpty) result['events'] = events;
+
     // Weights
     final weights = _parseWeights(dive);
     if (weights.isNotEmpty) result['weights'] = weights;
@@ -664,6 +669,43 @@ class SubsurfaceXmlParser implements ImportParser {
       cylinderIndex++;
     }
     return tanks;
+  }
+
+  /// Parses `<event>` children of a `<divecomputer>` into typed profile-event
+  /// maps.
+  ///
+  /// Currently emits only `SP change` events as `setpointChange`. Gas-change
+  /// events remain handled by `_parseGasSwitches` (persisted via the distinct
+  /// `GasSwitches` table). Future slices may extend this method to cover
+  /// bookmarks, alarms, ceiling violations, ascent-rate warnings, etc.
+  ///
+  /// Setpoint value normalization: Subsurface typically emits `value` in mbar
+  /// (e.g., 1200 for 1.2 bar) but some third-party exporters use bar (1.2).
+  /// The `> 10` threshold is exclusive: realistic setpoints are 0.2-1.6 bar
+  /// (200-1600 mbar), so 10 is unreachable in either unit.
+  ///
+  /// Implausible values (non-positive) and unparseable timestamps are dropped.
+  static List<Map<String, dynamic>> _parseProfileEvents(
+    XmlElement divecomputer,
+  ) {
+    final events = <Map<String, dynamic>>[];
+    for (final event in divecomputer.findElements('event')) {
+      final name = event.getAttribute('name')?.trim().toLowerCase();
+      if (name == 'sp change') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final raw = _parseDouble(event.getAttribute('value'));
+        if (raw == null || raw <= 0) continue;
+        final bar = raw > 10 ? raw / 1000 : raw;
+        events.add({
+          'eventType': 'setpointChange',
+          'timestamp': timestamp,
+          'value': bar,
+        });
+      }
+      // Future: bookmarks, alarms, ceiling violations — one `if` block per name
+    }
+    return events;
   }
 
   List<Map<String, dynamic>> _parseGasSwitches(XmlElement divecomputer) {

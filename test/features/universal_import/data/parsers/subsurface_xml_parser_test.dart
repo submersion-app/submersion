@@ -1095,4 +1095,122 @@ $diveXml
       },
     );
   });
+
+  group('profile events - setpointChange', () {
+    test('emits setpointChange from SP change event with mbar value', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='20.0 m' mean='10.0 m' />
+  <event time='5:00 min' name='SP change' value='1200' />
+  <sample time='0:30 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final events = dive['events'] as List<Map<String, dynamic>>;
+      expect(events.length, 1);
+      expect(events[0]['eventType'], 'setpointChange');
+      expect(events[0]['timestamp'], 300);
+      expect(events[0]['value'], 1.2);
+    });
+
+    test('emits setpointChange from SP change event with bar value', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <event time='1:00 min' name='SP change' value='1.2' />
+  <sample time='1:30 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final events = dive['events'] as List<Map<String, dynamic>>;
+      expect(events.length, 1);
+      expect(events[0]['value'], 1.2);
+    });
+
+    test('drops SP change events with non-positive value', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <event time='0:00 min' name='SP change' value='0' />
+  <event time='1:00 min' name='SP change' value='-100' />
+  <sample time='2:00 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(
+        dive.containsKey('events'),
+        isFalse,
+        reason: 'both events dropped; result has no events key',
+      );
+    });
+
+    test('emits multiple SP change events in document order', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='30.0 m' mean='15.0 m' />
+  <event time='0:00 min' name='SP change' value='700' />
+  <event time='25:00 min' name='SP change' value='1300' />
+  <sample time='0:30 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final events = dive['events'] as List<Map<String, dynamic>>;
+      expect(events.length, 2);
+      expect(events[0]['timestamp'], 0);
+      expect(events[0]['value'], 0.7);
+      expect(events[1]['timestamp'], 1500);
+      expect(events[1]['value'], 1.3);
+    });
+
+    test('no events key on dive without SP change events', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <sample time='1:00 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(dive.containsKey('events'), isFalse);
+    });
+  });
 }
