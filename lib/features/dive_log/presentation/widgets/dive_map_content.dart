@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
+import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.dart';
@@ -306,9 +307,9 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
           ),
           children: [
             TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              urlTemplate: ref.watch(mapTileUrlProvider),
               userAgentPackageName: 'app.submersion',
-              maxZoom: 19,
+              maxZoom: ref.watch(mapTileMaxZoomProvider),
               tileProvider: TileCacheService.instance.isInitialized
                   ? TileCacheService.instance.getTileProvider()
                   : null,

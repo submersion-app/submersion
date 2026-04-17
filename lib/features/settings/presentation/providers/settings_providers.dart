@@ -3,6 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_preset.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
@@ -154,6 +155,9 @@ class AppSettings {
 
   /// Which layout to use for the dive center list
   final ListViewMode diveCenterListViewMode;
+
+  /// Which map tile style to use
+  final MapStyle mapStyle;
 
   /// Name of the selected gradient preset ('ocean', 'thermal', etc.)
   final String cardColorGradientPreset;
@@ -308,6 +312,7 @@ class AppSettings {
     this.equipmentListViewMode = ListViewMode.detailed,
     this.buddyListViewMode = ListViewMode.detailed,
     this.diveCenterListViewMode = ListViewMode.detailed,
+    this.mapStyle = MapStyle.openStreetMap,
     this.cardColorGradientPreset = 'ocean',
     this.cardColorGradientStart,
     this.cardColorGradientEnd,
@@ -430,6 +435,7 @@ class AppSettings {
     ListViewMode? equipmentListViewMode,
     ListViewMode? buddyListViewMode,
     ListViewMode? diveCenterListViewMode,
+    MapStyle? mapStyle,
     String? cardColorGradientPreset,
     int? cardColorGradientStart,
     int? cardColorGradientEnd,
@@ -522,6 +528,7 @@ class AppSettings {
       buddyListViewMode: buddyListViewMode ?? this.buddyListViewMode,
       diveCenterListViewMode:
           diveCenterListViewMode ?? this.diveCenterListViewMode,
+      mapStyle: mapStyle ?? this.mapStyle,
       cardColorGradientPreset:
           cardColorGradientPreset ?? this.cardColorGradientPreset,
       cardColorGradientStart: clearCardColorGradientStart
@@ -935,6 +942,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setDiveCenterListViewMode(ListViewMode mode) async {
     state = state.copyWith(diveCenterListViewMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setMapStyle(MapStyle style) async {
+    state = state.copyWith(mapStyle: style);
     await _saveSettings();
   }
 

@@ -14,6 +14,7 @@ import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
+import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 
 /// Map content widget for displaying dive sites on a map.
@@ -262,9 +263,9 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
           ),
           children: [
             TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              urlTemplate: ref.watch(mapTileUrlProvider),
               userAgentPackageName: 'app.submersion',
-              maxZoom: 19,
+              maxZoom: ref.watch(mapTileMaxZoomProvider),
               tileProvider: TileCacheService.instance.isInitialized
                   ? TileCacheService.instance.getTileProvider()
                   : null,

@@ -14,6 +14,7 @@ import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
+import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/shared/providers/map_list_selection_provider.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_list_scaffold.dart';
@@ -235,9 +236,9 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
           ),
           children: [
             TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              urlTemplate: ref.watch(mapTileUrlProvider),
               userAgentPackageName: 'app.submersion',
-              maxZoom: 19,
+              maxZoom: ref.watch(mapTileMaxZoomProvider),
               tileProvider: TileCacheService.instance.isInitialized
                   ? TileCacheService.instance.getTileProvider()
                   : null,

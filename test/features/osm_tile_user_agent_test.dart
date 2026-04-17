@@ -133,11 +133,16 @@ void main() {
   // -- LocationPickerMap (covers 1 patch line: location_picker_map.dart:171) --
   group('LocationPickerMap TileLayer', () {
     testWidgets('renders TileLayer for OSM tiles', (tester) async {
+      final overrides = await getBaseOverrides();
+
       await tester.pumpWidget(
-        const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: LocationPickerMap(initialLocation: LatLng(17.3161, -87.5347)),
+        ProviderScope(
+          overrides: [...overrides].cast(),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: LocationPickerMap(initialLocation: LatLng(17.3161, -87.5347)),
+          ),
         ),
       );
       await tester.pumpAndSettle();

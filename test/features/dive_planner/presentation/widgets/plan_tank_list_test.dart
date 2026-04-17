@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -15,6 +16,10 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
     PressureUnit pressureUnit = PressureUnit.bar,
     VolumeUnit volumeUnit = VolumeUnit.liters,
   }) : super(AppSettings(pressureUnit: pressureUnit, volumeUnit: volumeUnit));
+
+  @override
+  Future<void> setMapStyle(MapStyle style) async =>
+      state = state.copyWith(mapStyle: style);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

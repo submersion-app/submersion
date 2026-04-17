@@ -3,8 +3,10 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
+import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 
 /// Result from the location picker
 class PickedLocation {
@@ -24,17 +26,17 @@ class PickedLocation {
 }
 
 /// A full-screen map for picking a location
-class LocationPickerMap extends StatefulWidget {
+class LocationPickerMap extends ConsumerStatefulWidget {
   /// Initial location to center the map on (optional)
   final LatLng? initialLocation;
 
   const LocationPickerMap({super.key, this.initialLocation});
 
   @override
-  State<LocationPickerMap> createState() => _LocationPickerMapState();
+  ConsumerState<LocationPickerMap> createState() => _LocationPickerMapState();
 }
 
-class _LocationPickerMapState extends State<LocationPickerMap> {
+class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
   final MapController _mapController = MapController();
   LatLng? _selectedLocation;
   bool _isGeocoding = false;
@@ -167,9 +169,9 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
               ),
               children: [
                 TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  urlTemplate: ref.watch(mapTileUrlProvider),
                   userAgentPackageName: 'app.submersion',
-                  maxZoom: 19,
+                  maxZoom: ref.watch(mapTileMaxZoomProvider),
                   tileProvider: TileCacheService.instance.isInitialized
                       ? TileCacheService.instance.getTileProvider()
                       : null,
