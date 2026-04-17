@@ -1407,5 +1407,22 @@ void main() {
       expect(loaded.source, EventSource.user);
       expect(loaded.description, 'cool fish');
     });
+
+    test('ascentStart event persists with source=computed', () async {
+      final diveId = await insertTestDive(id: 'dive-pe-computed');
+      final now = DateTime.utc(2026, 1, 1);
+      await repository.insertProfileEvents([
+        ProfileEvent.ascentStart(
+          id: 'c1',
+          diveId: diveId,
+          timestamp: 300,
+          depth: 5.0,
+          createdAt: now,
+        ),
+      ]);
+      final loaded = (await repository.getProfileEventsForDive(diveId)).single;
+      expect(loaded.source, EventSource.computed);
+      expect(loaded.eventType, ProfileEventType.ascentStart);
+    });
   });
 }

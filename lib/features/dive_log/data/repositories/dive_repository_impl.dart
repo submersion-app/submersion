@@ -3061,6 +3061,9 @@ class DiveRepository {
                 value: Value(event.value),
                 tankId: Value(event.tankId),
                 source: Value(event.source.name),
+                // Preserve the domain entity's own createdAt (e.g., from dive computer
+                // clock) rather than substituting wall-clock `now` — unlike GasSwitches,
+                // profile events carry meaningful source timestamps used for sync dedup.
                 createdAt: Value(event.createdAt.millisecondsSinceEpoch),
               ),
             );
