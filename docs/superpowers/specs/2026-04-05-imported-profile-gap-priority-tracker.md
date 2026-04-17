@@ -60,7 +60,7 @@ Use the `Fixed` column as a working checkbox:
 | Profile events / markers | [ ] | Medium | Yes | No | No |
 | Source provenance snapshot (`DiveDataSources`) | [ ] | Medium | Yes | No | No |
 | Surface pressure / altitude / surface interval | [ ] | Medium | Yes | No | No |
-| Sample `setpoint` | [x] | Medium | Yes | Yes | Yes |
+| Sample `setpoint` | [ ] | Medium | Yes | Yes | Partial |
 | Sample `ppO2` | [x] | Medium | Yes | Yes | Yes |
 | Multi-tank definitions | [ ] | Medium | Yes | Yes | Partial |
 | Per-tank pressure time series |  | Low | Yes | Yes | Yes |
@@ -104,7 +104,7 @@ Use the `Fixed` column as a working checkbox:
 | Tank role / material metadata | [x] | High | Tank role mapping via `use` is preserved. SSRF cylinder elements expose no direct material field; description-based inference (e.g., `AL80 -> aluminum`) is intentionally deferred as a separate preset-matcher feature |
 | Dive-level `cns` / `otu` | [x] | Medium | Real dive attributes exist and now persist through the shared import snapshot path |
 | Dive-level deco metadata (`decoAlgorithm`, `GF low/high`, conservatism) | [ ] | Medium | Often available via `extradata`, but not mapped |
-| Sample `setpoint` | [x] | Medium | Direct sample `setpoint` attribute and `SP change` events (mbar or bar) now map to profile sample setpoint |
+| Sample `setpoint` | [ ] | Medium | Direct `<sample setpoint=...>` attribute is parsed. `SP change` events are intentionally deferred to Slice C, which will persist them and derive per-sample setpoint at read time rather than forward-fill at import |
 | Sample `ppO2` | [x] | Medium | Real SSRF `po2` now maps directly into sample `ppO2` |
 | Profile events / markers | [ ] | Medium | Gas changes are imported, but bookmarks and other events are dropped |
 | Source provenance snapshot (`DiveDataSources`) | [ ] | Medium | SSRF provenance is much thinner than backend support |
@@ -176,6 +176,6 @@ If we start with the safest, most direct wins, the first slice should be:
 - Current SSRF `decoType` uses a narrow direct mapping: `in_deco=1 -> 2`, while `in_deco=0` remains `null` instead of forcing an explicit non-deco enum value.
 - In the combined table, `Fixed` means the gap is effectively closed across the compared import paths, not merely improved for one format.
 - This tracker is intended to evolve as fixes land. Update the `Fixed` column in place rather than duplicating rows elsewhere.
-- Slice A (2026-04-17) closes sample `setpoint` and partial cylinder preservation for SSRF, and corrects the UDDF tank role/material entries to reflect existing end-to-end support. `Active-tank-per-sample`, which requires a new `DiveProfiles.activeTankIndex` column, is split out as Slice A.2 — a follow-up task scoped in the [Slice A design doc](2026-04-17-ssrf-direct-field-mappings-slice-a-design.md).
+- Slice A (2026-04-17) closes SSRF partial cylinder preservation and corrects the UDDF tank role/material entries to reflect existing end-to-end support. Direct `<sample setpoint=...>` attribute parsing was added too. `SP change` event-based setpoint handling is intentionally deferred to Slice C (rationale: avoid the denormalization stopgap of forward-filling events into `DiveProfiles.setpoint` at import time; Slice C will persist events and derive per-sample setpoint at read time, consistent with PR #137's `ProfileGasSegment` pattern). `Active-tank-per-sample`, which requires a new `DiveProfiles.activeTankIndex` column, is split out as Slice A.2 — a follow-up task scoped in the [Slice A design doc](2026-04-17-ssrf-direct-field-mappings-slice-a-design.md).
 
 [^1]: SSRF tank role mapping via the `use` attribute is supported, but no direct material field exists in the SSRF cylinder element. Description-based inference (e.g., `AL80` -> aluminum) is intentionally deferred as a separate preset-matcher feature. For context: UDDF already supports both tank role and tank material end-to-end via `<tankrole>` -> `TankRole` and `<tankmaterial>` -> `TankMaterial`.
