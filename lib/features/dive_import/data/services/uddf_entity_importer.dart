@@ -1231,6 +1231,14 @@ class UddfEntityImporter {
 
       // Persist profile events emitted by the parser (currently: setpointChange
       // from SSRF SP change events; future slices may add more types).
+      //
+      // NOTE ON UDDF DIVERGENCE: SSRF's subsurface_xml_parser emits events under
+      // `diveData['events']` (read here). The UDDF path in
+      // `uddf_full_import_service.dart` emits events under
+      // `diveData['profileEvents']` — a pre-existing key mismatch. UDDF-side
+      // event persistence is intentionally out of scope for Slice C; when a
+      // future slice adds UDDF event import, unify the keys or add a second
+      // consumer block here.
       final eventMaps = (diveData['events'] as List?)
           ?.cast<Map<String, dynamic>>();
       if (eventMaps != null && eventMaps.isNotEmpty) {

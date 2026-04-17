@@ -3047,6 +3047,11 @@ class DiveRepository {
       for (final event in events) {
         final id = event.id.isEmpty ? _uuid.v4() : event.id;
         diveIds.add(event.diveId);
+        // Drift's default conflict mode is `insertOrFail` — duplicate IDs
+        // throw. Callers are expected to pass unique IDs (either freshly
+        // generated via _uuid.v4() or from domain entities that assigned them);
+        // the `event.id.isEmpty ? _uuid.v4()` guard above covers the most
+        // common case where the caller hasn't assigned an ID yet.
         await _db
             .into(_db.diveProfileEvents)
             .insert(
