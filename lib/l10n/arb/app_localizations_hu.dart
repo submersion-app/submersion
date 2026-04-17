@@ -16166,6 +16166,8 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_appearance_mapStyle_esriSatellite => 'Satellite';
+
+  @override
   String get common_action_reparse => 'Re-parse';
 
   @override
