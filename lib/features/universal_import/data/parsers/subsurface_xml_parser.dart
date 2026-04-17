@@ -570,6 +570,11 @@ class SubsurfaceXmlParser implements ImportParser {
   /// and sets sample[sampleField] = event.value. If the sample already has a
   /// non-null value at sampleField, it is preserved so direct sample
   /// attributes take precedence over event-derived values.
+  ///
+  /// Samples must be in non-decreasing timestamp order. This is always true
+  /// for Subsurface XML (samples appear chronologically) but is not enforced
+  /// by a defensive sort since sample maps are larger than events and the
+  /// caller knows their order. Events are sorted defensively before use.
   static void _applyEventFillOntoSamples<T>({
     required List<Map<String, dynamic>> samples,
     required List<({int timestamp, T value})> events,
@@ -706,7 +711,15 @@ class SubsurfaceXmlParser implements ImportParser {
   /// exporters sometimes use bar (e.g., 1.2). Normalization: if the parsed
   /// value is greater than 10, divide by 1000. Implausible values (non-
   /// positive) are dropped.
-  List<({int timestamp, double value})> _parseSetpointEvents(
+  ///
+  /// The `> 10` threshold is exclusive: realistic setpoints are 0.2-1.6 bar
+  /// (200-1600 mbar), so 10 is unreachable in either unit. A literal value
+  /// of 10 would fall through as 10 bar and stay implausible; it is not
+  /// silently "corrected" to 0.01 bar. Do not change this to `>= 10`.
+  ///
+  /// The `name` match is case-insensitive and trimmed, so exporters that
+  /// emit `SP Change`, `sp change`, or `SP change` all match.
+  static List<({int timestamp, double value})> _parseSetpointEvents(
     XmlElement divecomputer,
   ) {
     final events = <({int timestamp, double value})>[];
