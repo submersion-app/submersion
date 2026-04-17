@@ -1212,5 +1212,36 @@ $diveXml
       final dive = result.entitiesOf(ImportEntityType.dives).first;
       expect(dive.containsKey('events'), isFalse);
     });
+
+    test(
+      'value exactly 10 passes through unchanged (> 10 boundary is exclusive)',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <event time='0:00 min' name='SP change' value='10' />
+  <sample time='0:30 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final events = dive['events'] as List<Map<String, dynamic>>;
+        expect(events.length, 1);
+        expect(
+          events[0]['value'],
+          10.0,
+          reason:
+              'the > 10 threshold is exclusive; value=10 stays as 10.0 bar per '
+              '_parseProfileEvents doc comment. Do NOT change the heuristic to >= 10.',
+        );
+      },
+    );
   });
 }
