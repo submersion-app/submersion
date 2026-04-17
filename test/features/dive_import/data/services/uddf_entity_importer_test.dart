@@ -3,8 +3,12 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
+import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:xml/xml.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
@@ -2235,5 +2239,210 @@ void main() {
         EventSeverity.warning,
       ); // factory default, not overridden
     });
+
+    test(
+      'UDDF round-trip preserves all 8 event types with severity and depth',
+      () async {
+        final roundTripNow = DateTime.utc(2026, 3, 15, 10, 0, 0);
+        const diveId = 'roundtrip-dive';
+
+        // 1. Build source events covering all 8 types, each with a distinctive
+        //    (timestamp, eventType, severity, value, depth) tuple.
+        final sourceEvents = <ProfileEvent>[
+          ProfileEvent.setpointChange(
+            id: 'e1',
+            diveId: diveId,
+            timestamp: 0,
+            setpoint: 0.7,
+            depth: 0.0,
+            createdAt: roundTripNow,
+          ),
+          ProfileEvent.bookmark(
+            id: 'e2',
+            diveId: diveId,
+            timestamp: 120,
+            depth: 5.0,
+            note: 'cool fish',
+            createdAt: roundTripNow,
+            source: EventSource.imported,
+          ),
+          ProfileEvent.ascentRateWarning(
+            id: 'e3',
+            diveId: diveId,
+            timestamp: 300,
+            depth: 10.0,
+            rate: 12.5,
+            createdAt: roundTripNow,
+          ),
+          ProfileEvent.ppO2High(
+            id: 'e4',
+            diveId: diveId,
+            timestamp: 600,
+            value: 1.65,
+            depth: 20.0,
+            createdAt: roundTripNow,
+          ),
+          ProfileEvent.ppO2Low(
+            id: 'e5',
+            diveId: diveId,
+            timestamp: 700,
+            value: 0.15,
+            depth: 25.0,
+            createdAt: roundTripNow,
+          ),
+          ProfileEvent.decoViolation(
+            id: 'e6',
+            diveId: diveId,
+            timestamp: 1500,
+            value: 18.0,
+            depth: 15.0,
+            createdAt: roundTripNow,
+          ),
+          ProfileEvent.decoStop(
+            id: 'e7',
+            diveId: diveId,
+            timestamp: 2100,
+            depth: 6.0,
+            createdAt: roundTripNow,
+          ),
+          ProfileEvent.safetyStop(
+            id: 'e8',
+            diveId: diveId,
+            timestamp: 2400,
+            depth: 5.0,
+            createdAt: roundTripNow,
+          ),
+        ];
+
+        // 2. Build a minimal Dive entity mirroring the export-builders test.
+        final dive = Dive(
+          id: diveId,
+          diveNumber: 1,
+          dateTime: DateTime(2026, 3, 15, 10, 0),
+          bottomTime: const Duration(minutes: 40),
+          maxDepth: 30.0,
+          profile: const [],
+          tanks: const [],
+          equipment: const [],
+          notes: '',
+          photoIds: const [],
+          sightings: const [],
+          weights: const [],
+          tags: const [],
+        );
+
+        // 3. Export via buildDiveElement with POSITIONAL args per Discovery.
+        final builder = XmlBuilder();
+        builder.processing('xml', 'version="1.0" encoding="UTF-8"');
+        builder.element(
+          'uddf',
+          nest: () {
+            builder.element(
+              'profiledata',
+              nest: () {
+                builder.element(
+                  'repetitiongroup',
+                  nest: () {
+                    UddfExportBuilders.buildDiveElement(
+                      builder,
+                      dive,
+                      null, // buddies
+                      const <BuddyWithRole>[],
+                      const <Tag>[],
+                      sourceEvents,
+                      const <DiveWeight>[],
+                      null, // trips
+                      const <GasSwitchWithTank>[],
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+        final uddfXml = builder.buildDocument().toXmlString();
+
+        // 4. Parse back via UddfFullImportService.
+        final importService = UddfFullImportService();
+        final importResult = await importService.importAllDataFromUddf(uddfXml);
+
+        // 5. Verify the parser produced exactly 8 events in the dives list.
+        expect(importResult.dives, hasLength(1));
+        final parsedDiveData = importResult.dives[0];
+        final parsedEvents =
+            parsedDiveData['events'] as List<Map<String, dynamic>>;
+        expect(parsedEvents, hasLength(8));
+
+        // 6. Feed parsed data through the importer to verify full
+        //    _importDives -> insertProfileEvents path.
+        await importer.import(
+          data: importResult,
+          selections: UddfImportSelections.selectAll(importResult),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        final captured = verify(
+          mockDiveRepo.insertProfileEvents(captureAny),
+        ).captured;
+        final persistedEvents = captured.first as List<ProfileEvent>;
+
+        // 7. Assert on the persisted ProfileEvent list.
+        expect(persistedEvents, hasLength(8));
+
+        // setpointChange
+        expect(persistedEvents[0].eventType, ProfileEventType.setpointChange);
+        expect(persistedEvents[0].value, closeTo(0.7, 0.001));
+        expect(persistedEvents[0].depth, closeTo(0.0, 0.001));
+        expect(persistedEvents[0].source, EventSource.imported);
+
+        // bookmark
+        expect(persistedEvents[1].eventType, ProfileEventType.bookmark);
+        expect(persistedEvents[1].depth, closeTo(5.0, 0.001));
+        expect(persistedEvents[1].description, 'cool fish');
+        expect(persistedEvents[1].source, EventSource.imported);
+
+        // ascentRateWarning — severity exported as 'warning', round-trips
+        expect(
+          persistedEvents[2].eventType,
+          ProfileEventType.ascentRateWarning,
+        );
+        expect(persistedEvents[2].severity, EventSeverity.warning);
+        expect(persistedEvents[2].depth, closeTo(10.0, 0.001));
+        expect(persistedEvents[2].value, closeTo(12.5, 0.001));
+        expect(persistedEvents[2].source, EventSource.imported);
+
+        // ppO2High — severity exported as 'warning', round-trips
+        expect(persistedEvents[3].eventType, ProfileEventType.ppO2High);
+        expect(persistedEvents[3].severity, EventSeverity.warning);
+        expect(persistedEvents[3].value, closeTo(1.65, 0.001));
+        expect(persistedEvents[3].depth, closeTo(20.0, 0.001));
+        expect(persistedEvents[3].source, EventSource.imported);
+
+        // ppO2Low — severity exported as 'warning', round-trips
+        expect(persistedEvents[4].eventType, ProfileEventType.ppO2Low);
+        expect(persistedEvents[4].severity, EventSeverity.warning);
+        expect(persistedEvents[4].value, closeTo(0.15, 0.001));
+        expect(persistedEvents[4].depth, closeTo(25.0, 0.001));
+        expect(persistedEvents[4].source, EventSource.imported);
+
+        // decoViolation — severity exported as 'alert', round-trips
+        expect(persistedEvents[5].eventType, ProfileEventType.decoViolation);
+        expect(persistedEvents[5].severity, EventSeverity.alert);
+        expect(persistedEvents[5].value, closeTo(18.0, 0.001));
+        expect(persistedEvents[5].depth, closeTo(15.0, 0.001));
+        expect(persistedEvents[5].source, EventSource.imported);
+
+        // decoStopStart (decoStop factory with isStart=true)
+        expect(persistedEvents[6].eventType, ProfileEventType.decoStopStart);
+        expect(persistedEvents[6].depth, closeTo(6.0, 0.001));
+        expect(persistedEvents[6].source, EventSource.imported);
+
+        // safetyStopStart (safetyStop factory with isStart=true)
+        expect(persistedEvents[7].eventType, ProfileEventType.safetyStopStart);
+        expect(persistedEvents[7].depth, closeTo(5.0, 0.001));
+        expect(persistedEvents[7].source, EventSource.imported);
+      },
+    );
   });
 }
