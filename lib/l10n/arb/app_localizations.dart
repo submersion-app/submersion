@@ -27380,36 +27380,6 @@ abstract class AppLocalizations {
   /// **'Display dive profile chart above the table by default'**
   String get settings_appearance_showProfilePanel_subtitle;
 
-  /// No description provided for @settings_appearance_mapStyle.
-  ///
-  /// In en, this message translates to:
-  /// **'Map Style'**
-  String get settings_appearance_mapStyle;
-
-  /// No description provided for @settings_appearance_mapStyle_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose map tile appearance'**
-  String get settings_appearance_mapStyle_subtitle;
-
-  /// No description provided for @settings_appearance_mapStyle_openStreetMap.
-  ///
-  /// In en, this message translates to:
-  /// **'Street Map'**
-  String get settings_appearance_mapStyle_openStreetMap;
-
-  /// No description provided for @settings_appearance_mapStyle_openTopoMap.
-  ///
-  /// In en, this message translates to:
-  /// **'Topographic'**
-  String get settings_appearance_mapStyle_openTopoMap;
-
-  /// No description provided for @settings_appearance_mapStyle_esriSatellite.
-  ///
-  /// In en, this message translates to:
-  /// **'Satellite'**
-  String get settings_appearance_mapStyle_esriSatellite;
-
   /// Generic re-parse action label
   ///
   /// In en, this message translates to:

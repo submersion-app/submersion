@@ -5,7 +5,6 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
-import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -99,7 +98,6 @@ class DiverSettingsRepository {
               equipmentListViewMode: Value(s.equipmentListViewMode.name),
               buddyListViewMode: Value(s.buddyListViewMode.name),
               diveCenterListViewMode: Value(s.diveCenterListViewMode.name),
-              mapStyle: Value(s.mapStyle.name),
               cardColorGradientPreset: Value(s.cardColorGradientPreset),
               cardColorGradientStart: Value(s.cardColorGradientStart),
               cardColorGradientEnd: Value(s.cardColorGradientEnd),
@@ -231,7 +229,6 @@ class DiverSettingsRepository {
           equipmentListViewMode: Value(settings.equipmentListViewMode.name),
           buddyListViewMode: Value(settings.buddyListViewMode.name),
           diveCenterListViewMode: Value(settings.diveCenterListViewMode.name),
-          mapStyle: Value(settings.mapStyle.name),
           cardColorGradientPreset: Value(settings.cardColorGradientPreset),
           cardColorGradientStart: Value(settings.cardColorGradientStart),
           cardColorGradientEnd: Value(settings.cardColorGradientEnd),
@@ -402,7 +399,6 @@ class DiverSettingsRepository {
       equipmentListViewMode: ListViewMode.fromName(row.equipmentListViewMode),
       buddyListViewMode: ListViewMode.fromName(row.buddyListViewMode),
       diveCenterListViewMode: ListViewMode.fromName(row.diveCenterListViewMode),
-      mapStyle: MapStyle.fromName(row.mapStyle),
       cardColorGradientPreset: row.cardColorGradientPreset,
       cardColorGradientStart: row.cardColorGradientStart,
       cardColorGradientEnd: row.cardColorGradientEnd,

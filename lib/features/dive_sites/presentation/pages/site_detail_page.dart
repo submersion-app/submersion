@@ -14,7 +14,6 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/site_marine_life_section.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_section.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -135,7 +134,7 @@ class _SiteDetailContent extends ConsumerWidget {
         children: [
           // Map Section (if coordinates exist)
           if (site.hasCoordinates) ...[
-            _buildMapSection(context, ref, site),
+            _buildMapSection(context, site),
             const SizedBox(height: 16),
           ],
 
@@ -356,7 +355,7 @@ class _SiteDetailContent extends ConsumerWidget {
     }
   }
 
-  Widget _buildMapSection(BuildContext context, WidgetRef ref, DiveSite site) {
+  Widget _buildMapSection(BuildContext context, DiveSite site) {
     final colorScheme = Theme.of(context).colorScheme;
     final siteLocation = LatLng(
       site.location!.latitude,
@@ -384,9 +383,9 @@ class _SiteDetailContent extends ConsumerWidget {
               ),
               children: [
                 TileLayer(
-                  urlTemplate: ref.watch(mapTileUrlProvider),
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'app.submersion',
-                  maxZoom: ref.watch(mapTileMaxZoomProvider),
+                  maxZoom: 19,
                   tileProvider: TileCacheService.instance.isInitialized
                       ? TileCacheService.instance.getTileProvider()
                       : null,
@@ -438,7 +437,7 @@ class _SiteDetailContent extends ConsumerWidget {
                       context.l10n.diveSites_detail_semantics_viewFullscreenMap,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(4),
-                    onTap: () => _showFullscreenMap(context, ref, site),
+                    onTap: () => _showFullscreenMap(context, site),
                     child: Padding(
                       padding: const EdgeInsets.all(6),
                       child: Icon(
@@ -457,7 +456,7 @@ class _SiteDetailContent extends ConsumerWidget {
     );
   }
 
-  void _showFullscreenMap(BuildContext context, WidgetRef ref, DiveSite site) {
+  void _showFullscreenMap(BuildContext context, DiveSite site) {
     final colorScheme = Theme.of(context).colorScheme;
     final siteLocation = LatLng(
       site.location!.latitude,
@@ -480,9 +479,9 @@ class _SiteDetailContent extends ConsumerWidget {
             ),
             children: [
               TileLayer(
-                urlTemplate: ref.watch(mapTileUrlProvider),
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'app.submersion',
-                maxZoom: ref.watch(mapTileMaxZoomProvider),
+                maxZoom: 19,
                 tileProvider: TileCacheService.instance.isInitialized
                     ? TileCacheService.instance.getTileProvider()
                     : null,

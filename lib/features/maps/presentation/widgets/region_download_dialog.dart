@@ -3,7 +3,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/location_service.dart';
-import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/providers/offline_map_providers.dart';
 
 /// Dialog for configuring and starting a region download.
@@ -36,11 +35,11 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
   bool _isLoadingName = false;
   int? _estimatedTiles;
 
-  /// Default tile layer options using the selected map style.
+  /// Default tile layer options for OpenStreetMap.
   TileLayer get _tileLayerOptions => TileLayer(
-    urlTemplate: ref.watch(mapTileUrlProvider),
+    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     userAgentPackageName: 'app.submersion',
-    maxZoom: ref.watch(mapTileMaxZoomProvider),
+    maxZoom: 19,
   );
 
   @override

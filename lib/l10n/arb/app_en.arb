@@ -9869,11 +9869,6 @@
   "settings_appearance_showDetailsPane_subtitle": "Display details pane alongside table",
   "settings_appearance_showProfilePanel": "Show Profile Panel in Table View",
   "settings_appearance_showProfilePanel_subtitle": "Display dive profile chart above the table by default",
-  "settings_appearance_mapStyle": "Map Style",
-  "settings_appearance_mapStyle_subtitle": "Choose map tile appearance",
-  "settings_appearance_mapStyle_openStreetMap": "Street Map",
-  "settings_appearance_mapStyle_openTopoMap": "Topographic",
-  "settings_appearance_mapStyle_esriSatellite": "Satellite",
   "common_action_reparse": "Re-parse",
   "@common_action_reparse": {
     "description": "Generic re-parse action label"

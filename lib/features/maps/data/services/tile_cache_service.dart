@@ -144,7 +144,7 @@ class TileCacheService {
   /// Example:
   /// ```dart
   /// TileLayer(
-  ///   urlTemplate: ref.watch(mapTileUrlProvider), // URL from selected map style
+  ///   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   ///   tileProvider: TileCacheService.instance.getTileProvider(),
   /// )
   /// ```
