@@ -2026,5 +2026,32 @@ void main() {
       expect(events[0].source, EventSource.imported);
       expect(events[0].description, 'cool fish');
     });
+
+    test(
+      'ppO2High event with missing value is skipped at importer level',
+      () async {
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 20.0,
+              'events': [
+                // No 'value' key — simulates parser malfunction or malformed event
+                {'eventType': 'ppO2High', 'timestamp': 300},
+              ],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: UddfImportSelections.selectAll(data),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        verifyNever(mockDiveRepo.insertProfileEvents(any));
+      },
+    );
   });
 }

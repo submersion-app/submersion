@@ -1286,7 +1286,8 @@ class UddfEntityImporter {
                   id: _uuid.v4(),
                   diveId: diveId,
                   timestamp: timestamp,
-                  depth: 0.0,
+                  depth:
+                      0.0, // parser does not emit depth on event elements; placeholder used across safety/deco/ascent cases. Future enrichment slice may interpolate from samples.
                   createdAt: now,
                   isStart: true,
                   source: EventSource
@@ -1304,6 +1305,7 @@ class UddfEntityImporter {
                   depth: 0.0,
                   createdAt: now,
                   isStart: true,
+                  // factory default is already `imported`; no override needed
                 ),
               );
               break;
@@ -1316,6 +1318,7 @@ class UddfEntityImporter {
                   timestamp: timestamp,
                   value: value,
                   createdAt: now,
+                  // factory default is already `imported`; no override needed
                 ),
               );
               break;
@@ -1338,7 +1341,7 @@ class UddfEntityImporter {
             case 'ppO2High':
               if (value == null) {
                 _log.warning('Skipping ppO2High event with missing value');
-                break;
+                continue; // match setpointChange null-guard pattern
               }
               events.add(
                 ProfileEvent.ppO2High(
@@ -1354,7 +1357,7 @@ class UddfEntityImporter {
             case 'ppO2Low':
               if (value == null) {
                 _log.warning('Skipping ppO2Low event with missing value');
-                break;
+                continue; // match setpointChange null-guard pattern
               }
               events.add(
                 ProfileEvent.ppO2Low(
