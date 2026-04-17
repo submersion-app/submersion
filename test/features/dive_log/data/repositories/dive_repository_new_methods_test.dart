@@ -1,9 +1,11 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -1293,6 +1295,117 @@ void main() {
       for (final p in profiles) {
         expect(p.isPrimary, isFalse);
       }
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // ProfileEvent CRUD
+  // ---------------------------------------------------------------------------
+
+  group('ProfileEvent CRUD', () {
+    test(
+      'insertProfileEvents persists and getProfileEventsForDive reads',
+      () async {
+        final diveId = await insertTestDive(id: 'dive-pe-insert');
+        final now = DateTime.utc(2026, 1, 1);
+        final events = [
+          ProfileEvent.setpointChange(
+            id: 'e1',
+            diveId: diveId,
+            timestamp: 0,
+            setpoint: 0.7,
+            createdAt: now,
+          ),
+          ProfileEvent.setpointChange(
+            id: 'e2',
+            diveId: diveId,
+            timestamp: 1500,
+            setpoint: 1.3,
+            createdAt: now,
+          ),
+        ];
+
+        await repository.insertProfileEvents(events);
+        final loaded = await repository.getProfileEventsForDive(diveId);
+
+        expect(loaded.length, 2);
+        expect(loaded[0].eventType, ProfileEventType.setpointChange);
+        expect(loaded[0].timestamp, 0);
+        expect(loaded[0].value, 0.7);
+        expect(loaded[0].source, EventSource.imported);
+        expect(loaded[1].timestamp, 1500);
+        expect(loaded[1].value, 1.3);
+      },
+    );
+
+    test(
+      'getProfileEventsForDive returns events ordered by timestamp',
+      () async {
+        final diveId = await insertTestDive(id: 'dive-pe-order');
+        final now = DateTime.utc(2026, 1, 1);
+        // Insert in reverse order.
+        await repository.insertProfileEvents([
+          ProfileEvent.setpointChange(
+            id: 'e2',
+            diveId: diveId,
+            timestamp: 1500,
+            setpoint: 1.3,
+            createdAt: now,
+          ),
+          ProfileEvent.setpointChange(
+            id: 'e1',
+            diveId: diveId,
+            timestamp: 0,
+            setpoint: 0.7,
+            createdAt: now,
+          ),
+        ]);
+        final loaded = await repository.getProfileEventsForDive(diveId);
+        expect(loaded.map((e) => e.timestamp).toList(), [0, 1500]);
+      },
+    );
+
+    test('deleteProfileEventsForDive removes only that dive events', () async {
+      final diveAId = await insertTestDive(id: 'dive-pe-del-a');
+      final diveBId = await insertTestDive(id: 'dive-pe-del-b');
+      final now = DateTime.utc(2026, 1, 1);
+      await repository.insertProfileEvents([
+        ProfileEvent.setpointChange(
+          id: 'a1',
+          diveId: diveAId,
+          timestamp: 0,
+          setpoint: 1.0,
+          createdAt: now,
+        ),
+        ProfileEvent.setpointChange(
+          id: 'b1',
+          diveId: diveBId,
+          timestamp: 0,
+          setpoint: 1.2,
+          createdAt: now,
+        ),
+      ]);
+      await repository.deleteProfileEventsForDive(diveAId);
+      expect(await repository.getProfileEventsForDive(diveAId), isEmpty);
+      expect((await repository.getProfileEventsForDive(diveBId)).length, 1);
+    });
+
+    test('bookmark event persists with source=user', () async {
+      final diveId = await insertTestDive(id: 'dive-pe-bookmark');
+      final now = DateTime.utc(2026, 1, 1);
+      await repository.insertProfileEvents([
+        ProfileEvent.bookmark(
+          id: 'b1',
+          diveId: diveId,
+          timestamp: 500,
+          depth: 10.0,
+          note: 'cool fish',
+          createdAt: now,
+        ),
+      ]);
+      final loaded = (await repository.getProfileEventsForDive(diveId)).single;
+      expect(loaded.source, EventSource.user);
+      expect(loaded.description, 'cool fish');
     });
   });
 }

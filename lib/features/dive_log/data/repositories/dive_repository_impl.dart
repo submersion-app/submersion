@@ -15,6 +15,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -3024,6 +3026,120 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to bulk insert gas switches',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  // ============================================================================
+  // Profile Event Operations
+  // ============================================================================
+
+  /// Bulk insert profile events (for dive computer imports and analysis results)
+  Future<void> insertProfileEvents(List<ProfileEvent> events) async {
+    if (events.isEmpty) return;
+
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final diveIds = <String>{};
+      for (final event in events) {
+        final id = event.id.isEmpty ? _uuid.v4() : event.id;
+        diveIds.add(event.diveId);
+        await _db
+            .into(_db.diveProfileEvents)
+            .insert(
+              DiveProfileEventsCompanion(
+                id: Value(id),
+                diveId: Value(event.diveId),
+                timestamp: Value(event.timestamp),
+                eventType: Value(event.eventType.name),
+                severity: Value(event.severity.name),
+                description: Value(event.description),
+                depth: Value(event.depth),
+                value: Value(event.value),
+                tankId: Value(event.tankId),
+                source: Value(event.source.name),
+                createdAt: Value(event.createdAt.millisecondsSinceEpoch),
+              ),
+            );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveProfileEvents',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+      for (final diveId in diveIds) {
+        await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+          DivesCompanion(updatedAt: Value(now)),
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: diveId,
+          localUpdatedAt: now,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
+      _log.info('Inserted ${events.length} profile events');
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to bulk insert profile events',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Get all profile events for a dive, ordered by timestamp ascending
+  Future<List<ProfileEvent>> getProfileEventsForDive(String diveId) async {
+    try {
+      final rows =
+          await (_db.select(_db.diveProfileEvents)
+                ..where((t) => t.diveId.equals(diveId))
+                ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+              .get();
+      return rows.map(mapDiveProfileEventToProfileEvent).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get profile events for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
+  }
+
+  /// Delete all profile events for a dive
+  Future<void> deleteProfileEventsForDive(String diveId) async {
+    try {
+      final existing = await (_db.select(
+        _db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      await (_db.delete(
+        _db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).go();
+      for (final row in existing) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveProfileEvents',
+          recordId: row.id,
+        );
+      }
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        DivesCompanion(updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+      _log.info('Deleted profile events for dive: $diveId');
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to delete profile events for dive: $diveId',
         error: e,
         stackTrace: stackTrace,
       );
