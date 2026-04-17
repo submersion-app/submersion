@@ -1190,5 +1190,49 @@ $diveXml
       expect(gasOnly.containsKey('startPressure'), isFalse);
       expect(gasOnly.containsKey('endPressure'), isFalse);
     });
+
+    test(
+      'truly-empty cylinder still advances the source index for pressureN',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
+  <cylinder size='11.1 l' workpressure='207.0 bar' description='AL80' o2='21.0%' />
+  <cylinder />
+  <cylinder size='11.1 l' workpressure='207.0 bar' description='DECO50' o2='50.0%' />
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='10.0 m' />
+  <sample time='0:10 min' depth='5.0 m' pressure0='200.0 bar' pressure2='150.0 bar' />
+  <sample time='5:00 min' depth='20.0 m' pressure0='150.0 bar' pressure2='120.0 bar' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final tanks = dive['tanks'] as List<Map<String, dynamic>>;
+
+        // Two emitted tanks (the truly-empty one is skipped).
+        expect(tanks.length, 2);
+
+        // The second emitted tank must have derived its start/end pressure from
+        // the sample-level pressure2 attributes, which requires the source-index
+        // counter to have stepped past the empty cylinder.
+        final secondTank = tanks[1];
+        expect(
+          secondTank['startPressure'],
+          150.0,
+          reason: 'first pressure2 value becomes startPressure fallback',
+        );
+        expect(
+          secondTank['endPressure'],
+          120.0,
+          reason: 'last pressure2 value becomes endPressure fallback',
+        );
+      },
+    );
   });
 }
