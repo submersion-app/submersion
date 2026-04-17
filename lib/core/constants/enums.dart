@@ -505,6 +505,11 @@ enum WeatherSource {
 
 /// Provenance of a [ProfileEvent]. Used for source-aware merge rules and
 /// diagnostic display.
+///
+/// Members are ordered so that the default (`imported`) comes first. This
+/// matters because the Drift `source` column has a DB-level default of
+/// `'imported'`, and `EventSource.values.first.name` would produce the
+/// default-equivalent if any future code uses it.
 enum EventSource {
   /// Came from outside the app: file import (SSRF, UDDF) or native DC download.
   imported,

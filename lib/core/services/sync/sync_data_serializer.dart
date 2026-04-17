@@ -1868,6 +1868,7 @@ class SyncDataSerializer {
     'depth': r.depth,
     'value': r.value,
     'tankId': r.tankId,
+    'source': r.source,
     'createdAt': r.createdAt,
   };
 
