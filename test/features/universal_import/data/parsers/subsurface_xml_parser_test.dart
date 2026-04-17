@@ -1010,9 +1010,11 @@ $diveXml
       );
     });
 
-    test('direct sample setpoint attribute wins over later events', () async {
-      final result = await parser.parse(
-        xmlBytes('''
+    test(
+      'direct sample setpoint attribute is not overwritten by SP change events',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
 <divelog program='subsurface' version='3'>
 <dives>
 <dive number='1' date='2025-01-15' time='10:00:00' duration='15:00 min'>
@@ -1026,18 +1028,52 @@ $diveXml
 </dives>
 </divelog>
 '''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final profile = dive['profile'] as List<Map<String, dynamic>>;
+        expect(
+          profile[0]['setpoint'],
+          1.2,
+          reason: 'direct sample attribute preserved',
+        );
+        expect(
+          profile[1]['setpoint'],
+          0.7,
+          reason: 'event fills sample that had no direct attribute',
+        );
+      },
+    );
+
+    test('direct sample setpoint survives an earlier SP change event', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='20.0 m' mean='10.0 m' />
+  <event time='0:30 min' name='SP change' value='700' />
+  <sample time='1:00 min' depth='10.0 m' setpoint='1.2' />
+  <sample time='2:00 min' depth='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
       );
       final dive = result.entitiesOf(ImportEntityType.dives).first;
       final profile = dive['profile'] as List<Map<String, dynamic>>;
       expect(
         profile[0]['setpoint'],
         1.2,
-        reason: 'direct sample attribute preserved',
+        reason:
+            'direct attribute preserved even though an earlier event would have filled it',
       );
       expect(
         profile[1]['setpoint'],
         0.7,
-        reason: 'event fills sample that had no direct attribute',
+        reason:
+            'subsequent sample without a direct attribute gets the event value',
       );
     });
   });
