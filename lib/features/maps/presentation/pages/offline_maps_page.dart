@@ -3,6 +3,7 @@ import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/domain/entities/cached_region.dart';
+import 'package:submersion/features/maps/presentation/pages/region_picker_page.dart';
 import 'package:submersion/features/maps/presentation/providers/offline_map_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -30,6 +31,14 @@ class OfflineMapsPage extends ConsumerWidget {
             onPressed: () => _showClearCacheDialog(context, ref),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const RegionPickerPage()),
+        ),
+        tooltip: context.l10n.maps_offline_downloadNewRegion,
+        icon: const Icon(Icons.add),
+        label: Text(context.l10n.maps_offline_downloadNewRegion),
       ),
       body: RefreshIndicator(
         onRefresh: () async {

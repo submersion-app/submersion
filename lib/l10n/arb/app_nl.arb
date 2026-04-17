@@ -2754,6 +2754,7 @@
     "maps_offline_deleteRegion": "Regio {name} verwijderen",
     "maps_offline_deleteRegionMessage": "\"{name}\" en de {count} gecachte tegels verwijderen?\n\nDit maakt {size} opslagruimte vrij.",
     "maps_offline_deleteRegionTitle": "Regio verwijderen?",
+    "maps_offline_downloadNewRegion": "Nieuwe regio downloaden",
     "maps_offline_downloadedRegions": "Gedownloade regio's",
     "maps_offline_downloading": "Downloaden: {regionName}",
     "maps_offline_downloadingAccessibility": "{regionName} downloaden, {percent} procent voltooid, {downloaded} van {total} tegels",

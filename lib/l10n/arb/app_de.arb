@@ -2754,6 +2754,7 @@
     "maps_offline_deleteRegion": "Region {name} loeschen",
     "maps_offline_deleteRegionMessage": "\"{name}\" und die {count} zwischengespeicherten Kacheln loeschen?\n\nDies gibt {size} Speicherplatz frei.",
     "maps_offline_deleteRegionTitle": "Region loeschen?",
+    "maps_offline_downloadNewRegion": "Neue Region herunterladen",
     "maps_offline_downloadedRegions": "Heruntergeladene Regionen",
     "maps_offline_downloading": "Wird heruntergeladen: {regionName}",
     "maps_offline_downloadingAccessibility": "{regionName} wird heruntergeladen, {percent} Prozent abgeschlossen, {downloaded} von {total} Kacheln",

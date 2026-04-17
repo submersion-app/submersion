@@ -9455,6 +9455,7 @@
     }
   },
   "maps_offline_deleteRegionTitle": "Delete Region?",
+  "maps_offline_downloadNewRegion": "Download new region",
   "maps_offline_downloadedRegions": "Downloaded Regions",
   "maps_offline_downloading": "Downloading: {regionName}",
   "@maps_offline_downloading": {

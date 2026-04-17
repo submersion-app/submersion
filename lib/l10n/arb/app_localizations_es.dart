@@ -15502,6 +15502,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get maps_offline_deleteRegionTitle => 'Eliminar region?';
 
   @override
+  String get maps_offline_downloadNewRegion => 'Descargar nueva region';
+
+  @override
   String get maps_offline_downloadedRegions => 'Regiones descargadas';
 
   @override

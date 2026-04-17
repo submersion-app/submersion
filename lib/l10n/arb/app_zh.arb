@@ -2896,6 +2896,7 @@
     "maps_offline_deleteRegion": "删除 {name} 区域",
     "maps_offline_deleteRegionMessage": "删除 \"{name}\" 及其 {count} 个缓存瓦片吗？\n\n这将释放 {size} 的存储空间。",
     "maps_offline_deleteRegionTitle": "删除地区?",
+    "maps_offline_downloadNewRegion": "下载新区域",
     "maps_offline_downloadedRegions": "已下载区域",
     "maps_offline_downloading": "正在下载：{regionName}",
     "maps_offline_downloadingAccessibility": "正在下载 {regionName}，已完成 {percent}%，{downloaded}/{total} 个瓦片",

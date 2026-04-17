@@ -144,7 +144,7 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
       return;
     }
 
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(true);
 
     // Start the download using the provider
     await ref

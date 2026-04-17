@@ -26171,6 +26171,12 @@ abstract class AppLocalizations {
   /// **'Delete Region?'**
   String get maps_offline_deleteRegionTitle;
 
+  /// No description provided for @maps_offline_downloadNewRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'Download new region'**
+  String get maps_offline_downloadNewRegion;
+
   /// No description provided for @maps_offline_downloadedRegions.
   ///
   /// In en, this message translates to:

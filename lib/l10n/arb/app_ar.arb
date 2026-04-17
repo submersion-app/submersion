@@ -2754,6 +2754,7 @@
     "maps_offline_deleteRegion": "حذف منطقة {name}",
     "maps_offline_deleteRegionMessage": "حذف \"{name}\" و{count} بلاطة مخزنة مؤقتًا؟\n\nسيؤدي ذلك إلى تحرير {size} من التخزين.",
     "maps_offline_deleteRegionTitle": "حذف المنطقة؟",
+    "maps_offline_downloadNewRegion": "تنزيل منطقة جديدة",
     "maps_offline_downloadedRegions": "المناطق المنزّلة",
     "maps_offline_downloading": "جارٍ التنزيل: {regionName}",
     "maps_offline_downloadingAccessibility": "جارٍ تنزيل {regionName}، {percent} بالمئة مكتمل، {downloaded} من {total} بلاطة",

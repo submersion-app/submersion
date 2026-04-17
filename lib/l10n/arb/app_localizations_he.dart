@@ -15088,6 +15088,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps_offline_deleteRegionTitle => 'למחוק אזור?';
 
   @override
+  String get maps_offline_downloadNewRegion => 'הורד אזור חדש';
+
+  @override
   String get maps_offline_downloadedRegions => 'אזורים שהורדו';
 
   @override

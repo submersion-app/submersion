@@ -2720,6 +2720,7 @@
     "maps_offline_deleteRegion": "מחק אזור {name}",
     "maps_offline_deleteRegionMessage": "למחוק את \"{name}\" ואת {count} האריחים שלו?\n\nפעולה זו תפנה {size} של אחסון.",
     "maps_offline_deleteRegionTitle": "למחוק אזור?",
+    "maps_offline_downloadNewRegion": "הורד אזור חדש",
     "maps_offline_downloadedRegions": "אזורים שהורדו",
     "maps_offline_downloading": "מוריד: {regionName}",
     "maps_offline_downloadingAccessibility": "מוריד {regionName}, {percent} אחוז הושלם, {downloaded} מתוך {total} אריחים",

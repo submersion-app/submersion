@@ -15451,6 +15451,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get maps_offline_deleteRegionTitle => 'Regio torlese?';
 
   @override
+  String get maps_offline_downloadNewRegion => 'Uj regio letoltese';
+
+  @override
   String get maps_offline_downloadedRegions => 'Letoltott regiok';
 
   @override

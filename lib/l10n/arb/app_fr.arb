@@ -2720,6 +2720,7 @@
     "maps_offline_deleteRegion": "Supprimer la region {name}",
     "maps_offline_deleteRegionMessage": "Supprimer \"{name}\" et ses {count} tuiles en cache ?\n\nCela liberera {size} d'espace de stockage.",
     "maps_offline_deleteRegionTitle": "Supprimer la region ?",
+    "maps_offline_downloadNewRegion": "Telecharger une nouvelle region",
     "maps_offline_downloadedRegions": "Regions telechargees",
     "maps_offline_downloading": "Telechargement : {regionName}",
     "maps_offline_downloadingAccessibility": "Telechargement de {regionName}, {percent} pour cent termine, {downloaded} sur {total} tuiles",

@@ -14743,6 +14743,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maps_offline_deleteRegionTitle => '删除地区?';
 
   @override
+  String get maps_offline_downloadNewRegion => '下载新区域';
+
+  @override
   String get maps_offline_downloadedRegions => '已下载区域';
 
   @override

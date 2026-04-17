@@ -15497,6 +15497,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get maps_offline_deleteRegionTitle => 'Excluir Regiao?';
 
   @override
+  String get maps_offline_downloadNewRegion => 'Baixar nova regiao';
+
+  @override
   String get maps_offline_downloadedRegions => 'Regioes Baixadas';
 
   @override

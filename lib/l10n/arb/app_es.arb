@@ -2754,6 +2754,7 @@
     "maps_offline_deleteRegion": "Eliminar region {name}",
     "maps_offline_deleteRegionMessage": "Eliminar \"{name}\" y sus {count} teselas en cache?\n\nEsto liberara {size} de almacenamiento.",
     "maps_offline_deleteRegionTitle": "Eliminar region?",
+    "maps_offline_downloadNewRegion": "Descargar nueva region",
     "maps_offline_downloadedRegions": "Regiones descargadas",
     "maps_offline_downloading": "Descargando: {regionName}",
     "maps_offline_downloadingAccessibility": "Descargando {regionName}, {percent} por ciento completado, {downloaded} de {total} teselas",

@@ -2754,6 +2754,7 @@
     "maps_offline_deleteRegion": "Excluir regiao {name}",
     "maps_offline_deleteRegionMessage": "Excluir \"{name}\" e seus {count} tiles em cache?\n\nIsto liberara {size} de armazenamento.",
     "maps_offline_deleteRegionTitle": "Excluir Regiao?",
+    "maps_offline_downloadNewRegion": "Baixar nova regiao",
     "maps_offline_downloadedRegions": "Regioes Baixadas",
     "maps_offline_downloading": "Baixando: {regionName}",
     "maps_offline_downloadingAccessibility": "Baixando {regionName}, {percent} por cento concluido, {downloaded} de {total} tiles",

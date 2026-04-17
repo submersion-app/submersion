@@ -2720,6 +2720,7 @@
     "maps_offline_deleteRegion": "{name} regio torlese",
     "maps_offline_deleteRegionMessage": "Torli a(z) \"{name}\" regiot es a(z) {count} gyorsitott csempejeet?\n\nEz {size} tarolot szabadit fel.",
     "maps_offline_deleteRegionTitle": "Regio torlese?",
+    "maps_offline_downloadNewRegion": "Uj regio letoltese",
     "maps_offline_downloadedRegions": "Letoltott regiok",
     "maps_offline_downloading": "Letoltes: {regionName}",
     "maps_offline_downloadingAccessibility": "{regionName} letoltese, {percent} szazalek kesz, {downloaded} / {total} csempe",

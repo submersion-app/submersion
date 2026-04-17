@@ -15486,6 +15486,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get maps_offline_deleteRegionTitle => 'Region loeschen?';
 
   @override
+  String get maps_offline_downloadNewRegion => 'Neue Region herunterladen';
+
+  @override
   String get maps_offline_downloadedRegions => 'Heruntergeladene Regionen';
 
   @override
