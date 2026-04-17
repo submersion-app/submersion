@@ -1151,6 +1151,7 @@ class DiveComputerRepository {
                 timestamp: Value(event.timestamp),
                 eventType: Value(eventType),
                 severity: Value(_eventSeverity(eventType)),
+                source: const Value('imported'), // native DC events are imports
                 depth: Value(depthAtEvent),
                 value: Value(event.value?.toDouble()),
                 createdAt: Value(now),
@@ -1287,6 +1288,7 @@ class DiveComputerRepository {
               timestamp: Value(timestamp),
               eventType: Value(eventType),
               severity: Value(severity),
+              source: const Value('user'), // manual UI-added event
               description: Value(description),
               depth: Value(depth),
               value: Value(value),
