@@ -674,10 +674,14 @@ class SubsurfaceXmlParser implements ImportParser {
   /// Parses `<event>` children of a `<divecomputer>` into typed profile-event
   /// maps.
   ///
-  /// Currently emits only `SP change` events as `setpointChange`. Gas-change
-  /// events remain handled by `_parseGasSwitches` (persisted via the distinct
-  /// `GasSwitches` table). Future slices may extend this method to cover
-  /// bookmarks, alarms, ceiling violations, ascent-rate warnings, etc.
+  /// Currently emits: `setpointChange` (from `SP change`), `bookmark`,
+  /// `safetyStopStart` (from `safety stop`), `decoStopStart` (from `deco stop`),
+  /// `decoViolation` (from `ceiling` or `violation`), `ascentRateWarning`
+  /// (from `ascent`), and `ppO2High` (from `po2`).
+  ///
+  /// Gas-change events remain handled by `_parseGasSwitches` (persisted via
+  /// the distinct `GasSwitches` table). Future slices may extend this method
+  /// to cover additional types.
   ///
   /// Setpoint value normalization: Subsurface typically emits `value` in mbar
   /// (e.g., 1200 for 1.2 bar) but some third-party exporters use bar (1.2).
@@ -691,6 +695,7 @@ class SubsurfaceXmlParser implements ImportParser {
     final events = <Map<String, dynamic>>[];
     for (final event in divecomputer.findElements('event')) {
       final name = event.getAttribute('name')?.trim().toLowerCase();
+
       if (name == 'sp change') {
         final timestamp = _parseDurationSeconds(event.getAttribute('time'));
         if (timestamp == null) continue;
@@ -702,8 +707,56 @@ class SubsurfaceXmlParser implements ImportParser {
           'timestamp': timestamp,
           'value': bar,
         });
+      } else if (name == 'bookmark') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final description = event.getAttribute('description');
+        events.add({
+          'eventType': 'bookmark',
+          'timestamp': timestamp,
+          'description': ?description,
+        });
+      } else if (name == 'safety stop') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        events.add({'eventType': 'safetyStopStart', 'timestamp': timestamp});
+      } else if (name == 'deco stop') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        events.add({'eventType': 'decoStopStart', 'timestamp': timestamp});
+      } else if (name == 'ceiling' || name == 'violation') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final value = _parseDouble(event.getAttribute('value'));
+        events.add({
+          'eventType': 'decoViolation',
+          'timestamp': timestamp,
+          'value': ?value,
+        });
+      } else if (name == 'ascent') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final value = _parseDouble(event.getAttribute('value'));
+        events.add({
+          'eventType': 'ascentRateWarning',
+          'timestamp': timestamp,
+          'value': ?value,
+        });
+      } else if (name == 'po2') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final value = _parseDouble(event.getAttribute('value'));
+        if (value == null || value <= 0) continue;
+        events.add({
+          'eventType': 'ppO2High',
+          'timestamp': timestamp,
+          'value': value,
+        });
       }
-      // Future: bookmarks, alarms, ceiling violations — one `if` block per name
+      // Unrecognized names (e.g., `gaschange` which has a separate pipeline,
+      // DC metadata like `low battery`, `heading`) fall through silently.
+      // The `_importDives` switch's `default:` case logs truly unknown event
+      // types at that layer.
     }
     return events;
   }
