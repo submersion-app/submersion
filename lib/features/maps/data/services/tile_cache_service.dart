@@ -139,14 +139,21 @@ class TileCacheService {
 
   /// Get a tile provider that caches tiles.
   ///
-  /// This provider can be used with FlutterMap's TileLayer.
+  /// This provider can be used with FlutterMap's TileLayer. Read
+  /// `mapTileUrlProvider` inside a `ConsumerWidget`/`ConsumerState` so the
+  /// URL tracks the user's selected map style.
   ///
   /// Example:
   /// ```dart
-  /// TileLayer(
-  ///   urlTemplate: ref.watch(mapTileUrlProvider), // URL from selected map style
-  ///   tileProvider: TileCacheService.instance.getTileProvider(),
-  /// )
+  /// class MyMap extends ConsumerWidget {
+  ///   @override
+  ///   Widget build(BuildContext context, WidgetRef ref) {
+  ///     return TileLayer(
+  ///       urlTemplate: ref.watch(mapTileUrlProvider),
+  ///       tileProvider: TileCacheService.instance.getTileProvider(),
+  ///     );
+  ///   }
+  /// }
   /// ```
   FMTCTileProvider getTileProvider({
     BrowseLoadingStrategy loadingStrategy = BrowseLoadingStrategy.cacheFirst,
