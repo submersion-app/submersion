@@ -16071,6 +16071,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Duikprofielgrafiek standaard boven de tabel weergeven';
 
   @override
+  String get settings_appearance_mapStyle => 'Map Style';
+
+  @override
+  String get settings_appearance_mapStyle_openStreetMap => 'Street Map';
+
+  @override
+  String get settings_appearance_mapStyle_openTopoMap => 'Topographic';
+
+  @override
+  String get settings_appearance_mapStyle_esriSatellite => 'Satellite';
+
+  @override
   String get common_action_reparse => 'Re-parse';
 
   @override

@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/constants/map_tile_config.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -38,11 +40,12 @@ import 'package:submersion/features/dive_log/presentation/providers/highlight_pr
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Compute a single OSM tile URL for the given lat/lng at [zoom].
+/// Compute a single map tile URL for the given lat/lng at [zoom].
 ///
 /// Converts WGS-84 coordinates to slippy map tile x/y using the standard
-/// Web Mercator projection formula, then returns the OSM raster tile URL.
-String _osmTileUrl(double lat, double lng, int zoom) {
+/// Web Mercator projection formula, then returns the tile URL for the
+/// requested [style] (Street, Topo, or Satellite).
+String _tileUrl(double lat, double lng, int zoom, MapStyle style) {
   final n = 1 << zoom; // 2^zoom
   final x = ((lng + 180.0) / 360.0 * n).floor();
   final latRad = lat * math.pi / 180.0;
@@ -51,7 +54,7 @@ String _osmTileUrl(double lat, double lng, int zoom) {
               2.0 *
               n)
           .floor();
-  return 'https://tile.openstreetmap.org/$zoom/$x/$y.png';
+  return MapTileConfig.tileUrl(style, zoom, x, y);
 }
 
 /// Main dive list page with master-detail layout on desktop.
@@ -885,7 +888,12 @@ class DiveListTile extends ConsumerWidget {
 
     // Build the card with or without map background
     if (shouldShowMap) {
-      final tileUrl = _osmTileUrl(siteLatitude!, siteLongitude!, 13);
+      final tileUrl = _tileUrl(
+        siteLatitude!,
+        siteLongitude!,
+        13,
+        ref.watch(settingsProvider.select((s) => s.mapStyle)),
+      );
       return Card(
         margin:
             margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

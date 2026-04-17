@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
@@ -1221,6 +1222,29 @@ class _AppearanceSectionContentState
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => setState(() => _showLanguageList = true),
                 ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.map_outlined),
+                  title: Text(context.l10n.settings_appearance_mapStyle),
+                  subtitle: Text(
+                    _getMapStyleDisplayName(context, settings.mapStyle),
+                  ),
+                  trailing: DropdownButton<MapStyle>(
+                    value: settings.mapStyle,
+                    underline: const SizedBox.shrink(),
+                    onChanged: (style) {
+                      if (style != null) {
+                        ref.read(settingsProvider.notifier).setMapStyle(style);
+                      }
+                    },
+                    items: MapStyle.values.map((style) {
+                      return DropdownMenuItem(
+                        value: style,
+                        child: Text(_getMapStyleDisplayName(context, style)),
+                      );
+                    }).toList(),
+                  ),
+                ),
               ],
             ),
           ),
@@ -1265,6 +1289,17 @@ class _AppearanceSectionContentState
       default:
         return preset.nameKey;
     }
+  }
+
+  String _getMapStyleDisplayName(BuildContext context, MapStyle style) {
+    return switch (style) {
+      MapStyle.openStreetMap =>
+        context.l10n.settings_appearance_mapStyle_openStreetMap,
+      MapStyle.openTopoMap =>
+        context.l10n.settings_appearance_mapStyle_openTopoMap,
+      MapStyle.esriSatellite =>
+        context.l10n.settings_appearance_mapStyle_esriSatellite,
+    };
   }
 
   Widget _buildLanguageSubPage(BuildContext context, AppSettings settings) {

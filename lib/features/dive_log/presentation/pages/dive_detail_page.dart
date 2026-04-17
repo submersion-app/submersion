@@ -16,6 +16,8 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
+import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
 import 'package:submersion/core/services/export/export_service.dart';
@@ -885,10 +887,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate:
-                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      urlTemplate: ref.watch(mapTileUrlProvider),
                       userAgentPackageName: 'app.submersion',
-                      maxZoom: 19,
+                      maxZoom: ref.watch(mapTileMaxZoomProvider),
                       tileProvider: TileCacheService.instance.isInitialized
                           ? TileCacheService.instance.getTileProvider()
                           : null,
@@ -919,6 +920,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         ),
                       ],
                     ),
+                    const MapAttribution(),
                   ],
                 ),
               ),

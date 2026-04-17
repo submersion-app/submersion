@@ -8,6 +8,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 
@@ -215,9 +217,9 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
           ),
           children: [
             TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              urlTemplate: ref.watch(mapTileUrlProvider),
               userAgentPackageName: 'app.submersion',
-              maxZoom: 19,
+              maxZoom: ref.watch(mapTileMaxZoomProvider),
               tileProvider: TileCacheService.instance.isInitialized
                   ? TileCacheService.instance.getTileProvider()
                   : null,
@@ -253,6 +255,7 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
                 },
               ),
             ),
+            const MapAttribution(),
           ],
         ),
 

@@ -674,6 +674,9 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('detailed'))();
   TextColumn get diveCenterListViewMode =>
       text().withDefault(const Constant('detailed'))();
+  // Map style (v67)
+  TextColumn get mapStyle =>
+      text().withDefault(const Constant('openStreetMap'))();
   // Dive profile chart defaults
   TextColumn get defaultRightAxisMetric =>
       text().withDefault(const Constant('temperature'))();
@@ -1319,7 +1322,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 66;
+  static const int currentSchemaVersion = 67;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1389,6 +1392,7 @@ class AppDatabase extends _$AppDatabase {
     64,
     65,
     66,
+    67,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -3170,6 +3174,21 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 66) await reportProgress();
+
+        if (from < 67) {
+          final cols = await customSelect(
+            "PRAGMA table_info('diver_settings')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('map_style')) {
+              await customStatement(
+                "ALTER TABLE diver_settings ADD COLUMN map_style TEXT NOT NULL DEFAULT 'openStreetMap'",
+              );
+            }
+          }
+        }
+        if (from < 67) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
