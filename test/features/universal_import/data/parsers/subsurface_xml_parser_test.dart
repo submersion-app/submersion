@@ -1459,9 +1459,11 @@ $diveXml
       expect(events[0]['value'], 12.5);
     });
 
-    test('emits ppO2High from po2 event with value', () async {
-      final result = await parser.parse(
-        xmlBytes('''
+    test(
+      'emits ppO2High from po2 event with value >= 1.4 (toxicity threshold)',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
 <divelog program='subsurface' version='3'>
 <dives>
 <dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
@@ -1474,14 +1476,82 @@ $diveXml
 </dives>
 </divelog>
 '''),
-      );
-      final dive = result.entitiesOf(ImportEntityType.dives).first;
-      final events = dive['events'] as List<Map<String, dynamic>>;
-      expect(events.length, 1);
-      expect(events[0]['eventType'], 'ppO2High');
-      expect(events[0]['timestamp'], 600);
-      expect(events[0]['value'], 1.65);
-    });
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final events = dive['events'] as List<Map<String, dynamic>>;
+        expect(events.length, 1);
+        expect(events[0]['eventType'], 'ppO2High');
+        expect(events[0]['timestamp'], 600);
+        expect(
+          events[0]['value'],
+          1.65,
+          reason: '>= 1.4 bar crosses the toxicity threshold -> ppO2High',
+        );
+      },
+    );
+
+    test(
+      'emits ppO2Low from po2 event with value <= 0.18 (hypoxia threshold)',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='50.0 m' mean='30.0 m' />
+  <event time='5:00 min' name='po2' value='0.15' />
+  <sample time='5:30 min' depth='45.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final events = dive['events'] as List<Map<String, dynamic>>;
+        expect(events.length, 1);
+        expect(
+          events[0]['eventType'],
+          'ppO2Low',
+          reason: '<= 0.18 bar crosses the hypoxia threshold -> ppO2Low',
+        );
+        expect(events[0]['timestamp'], 300);
+        expect(events[0]['value'], 0.15);
+      },
+    );
+
+    test(
+      'po2 value in normal range (0.18 < v < 1.4) defaults to ppO2High',
+      () async {
+        // Subsurface shouldn't emit po2 events in the normal breathing range,
+        // but if it does, preserve the event as ppO2High rather than drop it.
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='20.0 m' mean='10.0 m' />
+  <event time='5:00 min' name='po2' value='1.0' />
+  <sample time='5:30 min' depth='10.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final events = dive['events'] as List<Map<String, dynamic>>;
+        expect(events.length, 1);
+        expect(
+          events[0]['eventType'],
+          'ppO2High',
+          reason: 'mid-range default preserves the anomaly for surfacing',
+        );
+        expect(events[0]['value'], 1.0);
+      },
+    );
 
     test('drops po2 event with non-positive value', () async {
       final result = await parser.parse(

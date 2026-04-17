@@ -332,6 +332,29 @@ class ProfileEvent extends Equatable {
     );
   }
 
+  /// Create a low ppO2 warning event (hypoxia risk, typically CCR).
+  factory ProfileEvent.ppO2Low({
+    required String id,
+    required String diveId,
+    required int timestamp,
+    required double value,
+    double? depth,
+    required DateTime createdAt,
+    EventSource source = EventSource.imported,
+  }) {
+    return ProfileEvent(
+      id: id,
+      diveId: diveId,
+      timestamp: timestamp,
+      eventType: ProfileEventType.ppO2Low,
+      severity: EventSeverity.warning,
+      value: value,
+      depth: depth,
+      createdAt: createdAt,
+      source: source,
+    );
+  }
+
   ProfileEvent copyWith({
     String? id,
     String? diveId,

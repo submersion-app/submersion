@@ -170,6 +170,20 @@ void main() {
       expect(e.value, 1.65);
     });
 
+    test('ppO2Low defaults to warning severity + source=imported', () {
+      final e = ProfileEvent.ppO2Low(
+        id: 'e1',
+        diveId: 'd1',
+        timestamp: 100,
+        value: 0.15,
+        createdAt: now,
+      );
+      expect(e.eventType, ProfileEventType.ppO2Low);
+      expect(e.severity, EventSeverity.warning);
+      expect(e.source, EventSource.imported);
+      expect(e.value, 0.15);
+    });
+
     test('explicit source overrides factory default on new factories', () {
       final dv = ProfileEvent.decoViolation(
         id: 'e1',

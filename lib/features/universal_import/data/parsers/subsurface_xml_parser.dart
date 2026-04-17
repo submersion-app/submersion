@@ -677,7 +677,8 @@ class SubsurfaceXmlParser implements ImportParser {
   /// Currently emits: `setpointChange` (from `SP change`), `bookmark`,
   /// `safetyStopStart` (from `safety stop`), `decoStopStart` (from `deco stop`),
   /// `decoViolation` (from `ceiling` or `violation`), `ascentRateWarning`
-  /// (from `ascent`), and `ppO2High` (from `po2`).
+  /// (from `ascent`), and `ppO2High` / `ppO2Low`
+  /// (from `po2`, split by `value` threshold: >= 1.4 → high, <= 0.18 → low).
   ///
   /// Gas-change events remain handled by `_parseGasSwitches` (persisted via
   /// the distinct `GasSwitches` table). Future slices may extend this method
@@ -754,8 +755,17 @@ class SubsurfaceXmlParser implements ImportParser {
         if (timestamp == null) continue;
         final value = _parseDouble(event.getAttribute('value'));
         if (value == null || value <= 0) continue;
+        // Subsurface emits a single `po2` event name for both high- and
+        // low-ppO2 alarms; the `value` attribute tells us which direction
+        // the ppO2 crossed. Threshold choices match typical CCR alarm config:
+        //   >= 1.4 bar → ppO2High (toxicity warning)
+        //   <= 0.18 bar → ppO2Low (hypoxia warning)
+        // Values in the "normal" range (0.18 < v < 1.4) default to ppO2High;
+        // Subsurface shouldn't emit an event in that range, but if it does,
+        // ppO2High surfaces the anomaly rather than silently dropping it.
+        final eventType = value <= 0.18 ? 'ppO2Low' : 'ppO2High';
         events.add({
-          'eventType': 'ppO2High',
+          'eventType': eventType,
           'timestamp': timestamp,
           'value': value,
         });
