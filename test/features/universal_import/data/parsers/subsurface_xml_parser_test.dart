@@ -958,4 +958,141 @@ $diveXml
       expect(dive11.containsKey('tanks'), isFalse);
     });
   });
+
+  group('sample setpoint', () {
+    test(
+      'direct sample setpoint attribute is parsed into profile samples',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='10.0 m' />
+  <sample time='1:00 min' depth='10.0 m' setpoint='1.2' />
+  <sample time='2:00 min' depth='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final profile = dive['profile'] as List<Map<String, dynamic>>;
+        expect(
+          profile[0]['setpoint'],
+          1.2,
+          reason:
+              'direct sample attribute is persisted into the profile sample',
+        );
+        expect(
+          profile[1].containsKey('setpoint'),
+          isFalse,
+          reason:
+              'samples without the direct attribute stay untouched '
+              '(SP change event forward-fill is intentionally not implemented; '
+              'that belongs to Slice C via a derive-at-read helper over persisted events)',
+        );
+      },
+    );
+  });
+
+  group('cylinder partial preservation', () {
+    test('preserves a cylinder with only a gas mix and role', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <cylinder size='11.1 l' workpressure='207.0 bar' description='AL80' o2='21.0%' start='200.0 bar' end='100.0 bar' />
+  <cylinder o2='98.0%' use='oxygen' />
+  <divecomputer model='Test'>
+  <depth max='30.0 m' mean='15.0 m' />
+  <sample time='0:10 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final tanks = dive['tanks'] as List<Map<String, dynamic>>;
+      expect(tanks.length, 2, reason: 'gas-only cylinder is preserved');
+
+      final gasOnly = tanks[1];
+      final gasMix = gasOnly['gasMix'] as GasMix;
+      expect(gasMix.o2, 98.0);
+      expect(gasOnly['role'], TankRole.oxygenSupply);
+      expect(
+        gasOnly.containsKey('volume'),
+        isFalse,
+        reason: 'no size attribute, so no volume',
+      );
+      expect(gasOnly.containsKey('startPressure'), isFalse);
+      expect(gasOnly.containsKey('endPressure'), isFalse);
+    });
+
+    test(
+      'truly-empty cylinder still advances the source index for pressureN',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
+  <cylinder size='11.1 l' workpressure='207.0 bar' description='AL80' o2='21.0%' />
+  <cylinder />
+  <cylinder size='11.1 l' workpressure='207.0 bar' description='DECO50' o2='50.0%' />
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='10.0 m' />
+  <!-- pressure1 is intentionally absent: if cylinderIndex fails to advance past
+       the empty slot above, DECO50 would look up pressure1 (missing) instead of
+       pressure2 (present), and startPressure/endPressure would end up null. -->
+  <sample time='0:10 min' depth='5.0 m' pressure0='200.0 bar' pressure2='150.0 bar' />
+  <sample time='5:00 min' depth='20.0 m' pressure0='150.0 bar' pressure2='120.0 bar' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final tanks = dive['tanks'] as List<Map<String, dynamic>>;
+
+        // Two emitted tanks (the truly-empty one is skipped).
+        expect(
+          tanks.length,
+          2,
+          reason:
+              'truly-empty cylinder is filtered out, leaving AL80 and DECO50',
+        );
+
+        // The second emitted tank must have derived its start/end pressure from
+        // the sample-level pressure2 attributes, which requires the source-index
+        // counter to have stepped past the empty cylinder.
+        final secondTank = tanks[1];
+        expect(
+          secondTank['startPressure'],
+          150.0,
+          reason:
+              'DECO50 is at SSRF source-index 2 and must read pressure2; '
+              'if cylinderIndex did not advance past the empty slot it would '
+              'look up pressure1, find nothing, and leave startPressure null',
+        );
+        expect(
+          secondTank['endPressure'],
+          120.0,
+          reason:
+              'endPressure fallback draws the last pressure2 value; '
+              'a wrong cylinderIndex would leave this null as well',
+        );
+        expect(
+          secondTank['uddfTankId'],
+          '2:DECO50',
+          reason: 'DECO50 must be labeled with SSRF source-index 2, not 1',
+        );
+      },
+    );
+  });
 }
