@@ -1229,8 +1229,10 @@ class UddfEntityImporter {
         }
       }
 
-      // Persist profile events emitted by the parser (currently: setpointChange
-      // from SSRF SP change events; future slices may add more types).
+      // Persist profile events emitted by the parser. Currently supported (Slice C + C.2):
+      // setpointChange, bookmark, safetyStopStart, decoStopStart, decoViolation,
+      // ascentRateWarning, ppO2High, ppO2Low. Future slices may add more types as
+      // real SSRF exports surface additional event names.
       //
       // NOTE ON UDDF DIVERGENCE: SSRF's subsurface_xml_parser emits events under
       // `diveData['events']` (read here). The UDDF path in
@@ -1251,6 +1253,7 @@ class UddfEntityImporter {
           final timestamp = m['timestamp'] as int?;
           if (timestamp == null) continue;
           final value = m['value'] as double?;
+          final description = m['description'] as String?;
           switch (eventTypeStr) {
             case 'setpointChange':
               if (value == null) continue;
@@ -1264,6 +1267,117 @@ class UddfEntityImporter {
                 ),
               );
               break;
+
+            case 'bookmark':
+              events.add(
+                ProfileEvent.bookmark(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  note: description,
+                  createdAt: now,
+                  source:
+                      EventSource.imported, // override `user` factory default
+                ),
+              );
+              break;
+
+            case 'safetyStopStart':
+              events.add(
+                ProfileEvent.safetyStop(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  depth:
+                      0.0, // parser does not emit depth on event elements; placeholder used across safety/deco/ascent cases. Future enrichment slice may interpolate from samples.
+                  createdAt: now,
+                  isStart: true,
+                  source: EventSource
+                      .imported, // override `computed` factory default
+                ),
+              );
+              break;
+
+            case 'decoStopStart':
+              events.add(
+                ProfileEvent.decoStop(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  depth: 0.0,
+                  createdAt: now,
+                  isStart: true,
+                  // factory default is already `imported`; no override needed
+                ),
+              );
+              break;
+
+            case 'decoViolation':
+              events.add(
+                ProfileEvent.decoViolation(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  value: value,
+                  createdAt: now,
+                  // factory default is already `imported`; no override needed
+                ),
+              );
+              break;
+
+            case 'ascentRateWarning':
+              if (value == null) {
+                _log.warning(
+                  'Skipping ascentRateWarning event with missing value',
+                );
+                continue; // match setpointChange/ppO2 null-guard pattern
+              }
+              events.add(
+                ProfileEvent.ascentRateWarning(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  depth: 0.0,
+                  rate: value,
+                  createdAt: now,
+                  source: EventSource
+                      .imported, // override `computed` factory default
+                ),
+              );
+              break;
+
+            case 'ppO2High':
+              if (value == null) {
+                _log.warning('Skipping ppO2High event with missing value');
+                continue; // match setpointChange null-guard pattern
+              }
+              events.add(
+                ProfileEvent.ppO2High(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  value: value,
+                  createdAt: now,
+                ),
+              );
+              break;
+
+            case 'ppO2Low':
+              if (value == null) {
+                _log.warning('Skipping ppO2Low event with missing value');
+                continue; // match setpointChange null-guard pattern
+              }
+              events.add(
+                ProfileEvent.ppO2Low(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  value: value,
+                  createdAt: now,
+                ),
+              );
+              break;
+
             default:
               // Unknown event type — skip with a log line so future types can
               // be tracked. Do not throw: unknown types are forward-compat

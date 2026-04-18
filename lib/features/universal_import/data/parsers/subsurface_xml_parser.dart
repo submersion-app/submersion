@@ -674,10 +674,15 @@ class SubsurfaceXmlParser implements ImportParser {
   /// Parses `<event>` children of a `<divecomputer>` into typed profile-event
   /// maps.
   ///
-  /// Currently emits only `SP change` events as `setpointChange`. Gas-change
-  /// events remain handled by `_parseGasSwitches` (persisted via the distinct
-  /// `GasSwitches` table). Future slices may extend this method to cover
-  /// bookmarks, alarms, ceiling violations, ascent-rate warnings, etc.
+  /// Currently emits: `setpointChange` (from `SP change`), `bookmark`,
+  /// `safetyStopStart` (from `safety stop`), `decoStopStart` (from `deco stop`),
+  /// `decoViolation` (from `ceiling` or `violation`), `ascentRateWarning`
+  /// (from `ascent`), and `ppO2High` / `ppO2Low`
+  /// (from `po2`, split by `value` threshold: >= 1.4 → high, <= 0.18 → low).
+  ///
+  /// Gas-change events remain handled by `_parseGasSwitches` (persisted via
+  /// the distinct `GasSwitches` table). Future slices may extend this method
+  /// to cover additional types.
   ///
   /// Setpoint value normalization: Subsurface typically emits `value` in mbar
   /// (e.g., 1200 for 1.2 bar) but some third-party exporters use bar (1.2).
@@ -691,6 +696,7 @@ class SubsurfaceXmlParser implements ImportParser {
     final events = <Map<String, dynamic>>[];
     for (final event in divecomputer.findElements('event')) {
       final name = event.getAttribute('name')?.trim().toLowerCase();
+
       if (name == 'sp change') {
         final timestamp = _parseDurationSeconds(event.getAttribute('time'));
         if (timestamp == null) continue;
@@ -702,8 +708,74 @@ class SubsurfaceXmlParser implements ImportParser {
           'timestamp': timestamp,
           'value': bar,
         });
+      } else if (name == 'bookmark') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final description = event.getAttribute('description');
+        events.add({
+          'eventType': 'bookmark',
+          'timestamp': timestamp,
+          'description': ?description,
+        });
+      } else if (name == 'safety stop') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        events.add({'eventType': 'safetyStopStart', 'timestamp': timestamp});
+      } else if (name == 'deco stop') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        events.add({'eventType': 'decoStopStart', 'timestamp': timestamp});
+      } else if (name == 'ceiling' || name == 'violation') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final value = _parseDouble(event.getAttribute('value'));
+        events.add({
+          'eventType': 'decoViolation',
+          'timestamp': timestamp,
+          'value': ?value,
+        });
+      } else if (name == 'ascent') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final value = _parseDouble(event.getAttribute('value'));
+        // Flat mapping to `ascentRateWarning`: Subsurface emits a single
+        // `name='ascent'` for all ascent alarms. The `ascentRateCritical`
+        // enum variant is not produced here because the critical-vs-warning
+        // threshold (typically 18 m/min recreational / 9 m/min technical) is
+        // diver-configurable and not accessible from the parser layer.
+        // A future enrichment slice may add threshold-based variant selection
+        // once the setting is plumbed through.
+        events.add({
+          'eventType': 'ascentRateWarning',
+          'timestamp': timestamp,
+          'value': ?value,
+        });
+      } else if (name == 'po2') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final value = _parseDouble(event.getAttribute('value'));
+        if (value == null || value <= 0) continue;
+        // Subsurface emits a single `po2` event name for both high- and
+        // low-ppO2 alarms; the `value` attribute tells us which direction
+        // the ppO2 crossed. Threshold choices match typical CCR alarm config:
+        //   >= 1.4 bar → ppO2High (toxicity warning)
+        //   <= 0.18 bar → ppO2Low (hypoxia warning)
+        // Values in the "normal" range (0.18 < v < 1.4) default to ppO2High;
+        // Subsurface shouldn't emit an event in that range, but if it does,
+        // ppO2High surfaces the anomaly rather than silently dropping it.
+        final eventType = value <= 0.18 ? 'ppO2Low' : 'ppO2High';
+        events.add({
+          'eventType': eventType,
+          'timestamp': timestamp,
+          'value': value,
+        });
       }
-      // Future: bookmarks, alarms, ceiling violations — one `if` block per name
+      // Unrecognized names (e.g., `gaschange` which has a separate pipeline,
+      // DC metadata like `low battery`, `heading`) fall through silently. The
+      // import pipeline that consumes `result['events']` is responsible for
+      // logging truly unknown event types — this parser stays quiet because
+      // the full set of names Subsurface can emit is broader than what we
+      // persist (Slice C.2 handles 7 types; future slices may add more).
     }
     return events;
   }

@@ -1096,7 +1096,7 @@ $diveXml
     );
   });
 
-  group('profile events - setpointChange', () {
+  group('profile events', () {
     test('emits setpointChange from SP change event with mbar value', () async {
       final result = await parser.parse(
         xmlBytes('''
@@ -1241,6 +1241,401 @@ $diveXml
               'the > 10 threshold is exclusive; value=10 stays as 10.0 bar per '
               '_parseProfileEvents doc comment. Do NOT change the heuristic to >= 10.',
         );
+      },
+    );
+
+    test('emits bookmark event', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <event time='2:00 min' name='bookmark' description='cool fish' />
+  <sample time='2:30 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final events = dive['events'] as List<Map<String, dynamic>>;
+      expect(events.length, 1);
+      expect(events[0]['eventType'], 'bookmark');
+      expect(events[0]['timestamp'], 120);
+      expect(events[0]['description'], 'cool fish');
+    });
+
+    test(
+      'bookmark event without description attribute omits description key',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <event time='1:00 min' name='bookmark' />
+  <sample time='1:30 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final events = dive['events'] as List<Map<String, dynamic>>;
+        expect(events.length, 1);
+        expect(events[0]['eventType'], 'bookmark');
+        expect(events[0]['timestamp'], 60);
+        expect(
+          events[0].containsKey('description'),
+          isFalse,
+          reason: 'null-aware `?description` should omit the key entirely',
+        );
+      },
+    );
+
+    test('emits safetyStopStart event from safety stop', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='45:00 min'>
+  <divecomputer model='Test'>
+  <depth max='30.0 m' mean='15.0 m' />
+  <event time='40:00 min' name='safety stop' />
+  <sample time='40:30 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final events = dive['events'] as List<Map<String, dynamic>>;
+      expect(events.length, 1);
+      expect(events[0]['eventType'], 'safetyStopStart');
+      expect(events[0]['timestamp'], 2400);
+    });
+
+    test('emits decoStopStart event from deco stop', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='45:00 min'>
+  <divecomputer model='Test'>
+  <depth max='60.0 m' mean='30.0 m' />
+  <event time='35:00 min' name='deco stop' />
+  <sample time='35:30 min' depth='9.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final events = dive['events'] as List<Map<String, dynamic>>;
+      expect(events.length, 1);
+      expect(events[0]['eventType'], 'decoStopStart');
+      expect(events[0]['timestamp'], 2100);
+    });
+
+    test('emits decoViolation from ceiling event with value', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'>
+  <depth max='40.0 m' mean='20.0 m' />
+  <event time='25:00 min' name='ceiling' value='18.0' />
+  <sample time='25:30 min' depth='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final events = dive['events'] as List<Map<String, dynamic>>;
+      expect(events.length, 1);
+      expect(events[0]['eventType'], 'decoViolation');
+      expect(events[0]['timestamp'], 1500);
+      expect(events[0]['value'], 18.0);
+    });
+
+    test('emits decoViolation from generic violation event', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'>
+  <depth max='40.0 m' mean='20.0 m' />
+  <event time='30:00 min' name='violation' />
+  <sample time='30:30 min' depth='10.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final events = dive['events'] as List<Map<String, dynamic>>;
+      expect(events.length, 1);
+      expect(events[0]['eventType'], 'decoViolation');
+      expect(events[0]['timestamp'], 1800);
+      expect(
+        events[0].containsKey('value'),
+        isFalse,
+        reason: 'no value attribute -> no value field',
+      );
+    });
+
+    test(
+      'ceiling and violation at same timestamp both produce decoViolation events',
+      () async {
+        // Subsurface can emit both `ceiling` and `violation` for the same moment.
+        // Spec-approved flat mapping: preserve both. Dedup (if needed) is a
+        // downstream concern, not a parser concern. This test pins that contract.
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'>
+  <depth max='40.0 m' mean='20.0 m' />
+  <event time='25:00 min' name='ceiling' value='18.0' />
+  <event time='25:00 min' name='violation' />
+  <sample time='25:30 min' depth='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final events = dive['events'] as List<Map<String, dynamic>>;
+        expect(
+          events.length,
+          2,
+          reason: 'both ceiling and violation preserved',
+        );
+        expect(events[0]['eventType'], 'decoViolation');
+        expect(events[1]['eventType'], 'decoViolation');
+        expect(events[0]['timestamp'], 1500);
+        expect(events[1]['timestamp'], 1500);
+        expect(events[0]['value'], 18.0);
+        expect(events[1].containsKey('value'), isFalse);
+      },
+    );
+
+    test('emits ascentRateWarning from ascent event with rate value', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'>
+  <depth max='30.0 m' mean='15.0 m' />
+  <event time='5:00 min' name='ascent' value='12.5' />
+  <sample time='5:30 min' depth='20.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final events = dive['events'] as List<Map<String, dynamic>>;
+      expect(events.length, 1);
+      expect(events[0]['eventType'], 'ascentRateWarning');
+      expect(events[0]['timestamp'], 300);
+      expect(events[0]['value'], 12.5);
+    });
+
+    test(
+      'emits ppO2High from po2 event with value >= 1.4 (toxicity threshold)',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='50.0 m' mean='30.0 m' />
+  <event time='10:00 min' name='po2' value='1.65' />
+  <sample time='10:30 min' depth='45.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final events = dive['events'] as List<Map<String, dynamic>>;
+        expect(events.length, 1);
+        expect(events[0]['eventType'], 'ppO2High');
+        expect(events[0]['timestamp'], 600);
+        expect(
+          events[0]['value'],
+          1.65,
+          reason: '>= 1.4 bar crosses the toxicity threshold -> ppO2High',
+        );
+      },
+    );
+
+    test(
+      'emits ppO2Low from po2 event with value <= 0.18 (hypoxia threshold)',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='50.0 m' mean='30.0 m' />
+  <event time='5:00 min' name='po2' value='0.15' />
+  <sample time='5:30 min' depth='45.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final events = dive['events'] as List<Map<String, dynamic>>;
+        expect(events.length, 1);
+        expect(
+          events[0]['eventType'],
+          'ppO2Low',
+          reason: '<= 0.18 bar crosses the hypoxia threshold -> ppO2Low',
+        );
+        expect(events[0]['timestamp'], 300);
+        expect(events[0]['value'], 0.15);
+      },
+    );
+
+    test(
+      'po2 value in normal range (0.18 < v < 1.4) defaults to ppO2High',
+      () async {
+        // Subsurface shouldn't emit po2 events in the normal breathing range,
+        // but if it does, preserve the event as ppO2High rather than drop it.
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='20.0 m' mean='10.0 m' />
+  <event time='5:00 min' name='po2' value='1.0' />
+  <sample time='5:30 min' depth='10.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final events = dive['events'] as List<Map<String, dynamic>>;
+        expect(events.length, 1);
+        expect(
+          events[0]['eventType'],
+          'ppO2High',
+          reason: 'mid-range default preserves the anomaly for surfacing',
+        );
+        expect(events[0]['value'], 1.0);
+      },
+    );
+
+    test('drops po2 event with non-positive value', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
+  <divecomputer model='Test'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <event time='5:00 min' name='po2' value='0' />
+  <sample time='5:30 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(
+        dive.containsKey('events'),
+        isFalse,
+        reason:
+            'po2=0 is implausible -> dropped; no other events -> no events key',
+      );
+    });
+
+    test(
+      'po2 value exactly 0.18 maps to ppO2Low (hypoxia boundary is inclusive)',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='50.0 m' mean='30.0 m' />
+  <event time='5:00 min' name='po2' value='0.18' />
+  <sample time='5:30 min' depth='45.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final events = dive['events'] as List<Map<String, dynamic>>;
+        expect(events.length, 1);
+        expect(
+          events[0]['eventType'],
+          'ppO2Low',
+          reason: '<= 0.18 threshold is INCLUSIVE; do not change to < 0.18',
+        );
+        expect(events[0]['value'], 0.18);
+      },
+    );
+
+    test(
+      'po2 value exactly 1.4 maps to ppO2High (toxicity boundary sits in high range)',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
+  <divecomputer model='Test' dctype='CCR'>
+  <depth max='50.0 m' mean='30.0 m' />
+  <event time='5:00 min' name='po2' value='1.4' />
+  <sample time='5:30 min' depth='45.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final events = dive['events'] as List<Map<String, dynamic>>;
+        expect(events.length, 1);
+        expect(
+          events[0]['eventType'],
+          'ppO2High',
+          reason:
+              'value 1.4 is NOT below 0.18, so it falls into the ppO2High default',
+        );
+        expect(events[0]['value'], 1.4);
       },
     );
   });

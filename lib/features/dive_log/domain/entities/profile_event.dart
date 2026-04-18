@@ -261,6 +261,100 @@ class ProfileEvent extends Equatable {
     );
   }
 
+  /// Create a deco stop event (CCR/technical dives).
+  factory ProfileEvent.decoStop({
+    required String id,
+    required String diveId,
+    required int timestamp,
+    required double depth,
+    required DateTime createdAt,
+    bool isStart = true,
+    EventSource source = EventSource.imported,
+  }) {
+    return ProfileEvent(
+      id: id,
+      diveId: diveId,
+      timestamp: timestamp,
+      eventType: isStart
+          ? ProfileEventType.decoStopStart
+          : ProfileEventType.decoStopEnd,
+      depth: depth,
+      createdAt: createdAt,
+      source: source,
+    );
+  }
+
+  /// Create a deco violation event (ceiling exceeded, generic violation).
+  factory ProfileEvent.decoViolation({
+    required String id,
+    required String diveId,
+    required int timestamp,
+    double? depth,
+    double? value,
+    String? description,
+    required DateTime createdAt,
+    EventSource source = EventSource.imported,
+  }) {
+    return ProfileEvent(
+      id: id,
+      diveId: diveId,
+      timestamp: timestamp,
+      eventType: ProfileEventType.decoViolation,
+      severity: EventSeverity.alert,
+      depth: depth,
+      value: value,
+      description: description,
+      createdAt: createdAt,
+      source: source,
+    );
+  }
+
+  /// Create a high ppO2 warning event.
+  factory ProfileEvent.ppO2High({
+    required String id,
+    required String diveId,
+    required int timestamp,
+    required double value,
+    double? depth,
+    required DateTime createdAt,
+    EventSource source = EventSource.imported,
+  }) {
+    return ProfileEvent(
+      id: id,
+      diveId: diveId,
+      timestamp: timestamp,
+      eventType: ProfileEventType.ppO2High,
+      severity: EventSeverity.warning,
+      value: value,
+      depth: depth,
+      createdAt: createdAt,
+      source: source,
+    );
+  }
+
+  /// Create a low ppO2 warning event (hypoxia risk, typically CCR).
+  factory ProfileEvent.ppO2Low({
+    required String id,
+    required String diveId,
+    required int timestamp,
+    required double value,
+    double? depth,
+    required DateTime createdAt,
+    EventSource source = EventSource.imported,
+  }) {
+    return ProfileEvent(
+      id: id,
+      diveId: diveId,
+      timestamp: timestamp,
+      eventType: ProfileEventType.ppO2Low,
+      severity: EventSeverity.warning,
+      value: value,
+      depth: depth,
+      createdAt: createdAt,
+      source: source,
+    );
+  }
+
   ProfileEvent copyWith({
     String? id,
     String? diveId,

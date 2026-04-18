@@ -1921,5 +1921,191 @@ void main() {
 
       verifyNever(mockDiveRepo.insertProfileEvents(any));
     });
+
+    test(
+      'persists all 8 event types from profile-events-variety-style diveData',
+      () async {
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 40.0,
+              'events': [
+                {'eventType': 'setpointChange', 'timestamp': 60, 'value': 0.7},
+                {
+                  'eventType': 'bookmark',
+                  'timestamp': 120,
+                  'description': 'nice spot',
+                },
+                {
+                  'eventType': 'ascentRateWarning',
+                  'timestamp': 180,
+                  'value': 12.5,
+                },
+                {'eventType': 'ppO2High', 'timestamp': 240, 'value': 1.7},
+                {'eventType': 'decoViolation', 'timestamp': 300},
+                {'eventType': 'decoViolation', 'timestamp': 360, 'value': 0.5},
+                {'eventType': 'decoStopStart', 'timestamp': 420},
+                {'eventType': 'safetyStopStart', 'timestamp': 480},
+              ],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: UddfImportSelections.selectAll(data),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        final captured = verify(
+          mockDiveRepo.insertProfileEvents(captureAny),
+        ).captured;
+        final events = captured.first as List<ProfileEvent>;
+        expect(events, hasLength(8));
+
+        expect(events[0].eventType, ProfileEventType.setpointChange);
+        expect(events[0].source, EventSource.imported);
+
+        expect(events[1].eventType, ProfileEventType.bookmark);
+        expect(events[1].source, EventSource.imported);
+        expect(events[1].description, 'nice spot');
+
+        expect(events[2].eventType, ProfileEventType.ascentRateWarning);
+        expect(events[2].source, EventSource.imported);
+
+        expect(events[3].eventType, ProfileEventType.ppO2High);
+        expect(events[3].source, EventSource.imported);
+        expect(events[3].value, 1.7);
+
+        expect(events[4].eventType, ProfileEventType.decoViolation);
+        expect(events[4].source, EventSource.imported);
+
+        expect(events[5].eventType, ProfileEventType.decoViolation);
+        expect(events[5].value, 0.5);
+
+        expect(events[6].eventType, ProfileEventType.decoStopStart);
+        expect(events[6].source, EventSource.imported);
+
+        expect(events[7].eventType, ProfileEventType.safetyStopStart);
+        expect(events[7].source, EventSource.imported);
+      },
+    );
+
+    test('bookmark event from import uses source=imported, not user', () async {
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 18.0,
+            'events': [
+              {
+                'eventType': 'bookmark',
+                'timestamp': 90,
+                'description': 'cool fish',
+              },
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final captured = verify(
+        mockDiveRepo.insertProfileEvents(captureAny),
+      ).captured;
+      final events = captured.first as List<ProfileEvent>;
+      expect(events, hasLength(1));
+      expect(events[0].eventType, ProfileEventType.bookmark);
+      expect(events[0].source, EventSource.imported);
+      expect(events[0].description, 'cool fish');
+    });
+
+    test(
+      'ppO2High event with missing value is skipped at importer level',
+      () async {
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 20.0,
+              'events': [
+                // No 'value' key — simulates parser malfunction or malformed event
+                {'eventType': 'ppO2High', 'timestamp': 300},
+              ],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: UddfImportSelections.selectAll(data),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        verifyNever(mockDiveRepo.insertProfileEvents(any));
+      },
+    );
+
+    test(
+      'ppO2Low event with missing value is skipped at importer level',
+      () async {
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 20.0,
+              'events': [
+                // No 'value' key — simulates parser malfunction or malformed event
+                {'eventType': 'ppO2Low', 'timestamp': 300},
+              ],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: UddfImportSelections.selectAll(data),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        verifyNever(mockDiveRepo.insertProfileEvents(any));
+      },
+    );
+
+    test(
+      'ascentRateWarning event with missing value is skipped at importer level',
+      () async {
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 20.0,
+              'events': [
+                // No 'value' key — avoid persisting a misleading 0 m/min rate
+                {'eventType': 'ascentRateWarning', 'timestamp': 300},
+              ],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: UddfImportSelections.selectAll(data),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        verifyNever(mockDiveRepo.insertProfileEvents(any));
+      },
+    );
   });
 }
