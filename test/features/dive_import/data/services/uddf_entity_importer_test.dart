@@ -2163,6 +2163,43 @@ void main() {
       expect(events[1].source, EventSource.imported);
     });
 
+    test('decoViolation preserves description from UDDF event', () async {
+      // decoViolation factory accepts `description`; the switch case now
+      // passes it through rather than dropping it. Pins end-to-end fidelity
+      // of free-text notes on ceiling/violation events.
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 40.0,
+            'events': [
+              {
+                'eventType': 'decoViolation',
+                'timestamp': 200,
+                'description': 'ceiling broken by 1.2 m',
+                'depth': 12.0,
+              },
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final captured = verify(
+        mockDiveRepo.insertProfileEvents(captureAny),
+      ).captured;
+      final events = captured.first as List<ProfileEvent>;
+      expect(events, hasLength(1));
+      expect(events[0].eventType, ProfileEventType.decoViolation);
+      expect(events[0].description, 'ceiling broken by 1.2 m');
+    });
+
     test(
       'SSRF path continues to use factory default severity (no regression)',
       () async {

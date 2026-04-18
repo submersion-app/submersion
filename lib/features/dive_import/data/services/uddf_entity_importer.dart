@@ -1365,6 +1365,7 @@ class UddfEntityImporter {
                     timestamp: timestamp,
                     depth: depth,
                     value: value,
+                    description: description,
                     createdAt: now,
                     // factory default is already `imported`; no override needed
                   ),
