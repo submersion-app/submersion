@@ -841,44 +841,89 @@ class DiveRepository {
         localUpdatedAt: now,
       );
 
-      // Update tanks: delete and re-insert
-      final existingTanks = await (_db.select(
+      // Update tanks:
+      // Try to match existing tanks by ID to do updates instead of delete+insert when possible,
+      // to preserve sync records and avoid unnecessary deletions/insertions in the sync engine.
+      // Delete tanks that are no longer present.
+      // This is more complex but should result in better sync behavior and performance when tanks
+      // are edited but not completely changed (which is more likely).
+
+      // Get existing tank IDs for this dive
+      final existingTankRows = await (_db.select(
         _db.diveTanks,
       )..where((t) => t.diveId.equals(dive.id))).get();
-      await (_db.delete(
-        _db.diveTanks,
-      )..where((t) => t.diveId.equals(dive.id))).go();
-      for (final tank in existingTanks) {
-        await _syncRepository.logDeletion(
-          entityType: 'diveTanks',
-          recordId: tank.id,
-        );
-      }
+      final existingTankIds = existingTankRows.map((t) => t.id).toSet();
+      final updatedTankIds = <String>{};
+
+      // Update or insert tanks
       for (final tank in dive.tanks) {
         final tankId = tank.id.isNotEmpty ? tank.id : _uuid.v4();
-        await _db
-            .into(_db.diveTanks)
-            .insert(
-              DiveTanksCompanion(
-                id: Value(tankId),
-                diveId: Value(dive.id),
-                volume: Value(tank.volume),
-                workingPressure: Value(tank.workingPressure),
-                startPressure: Value(tank.startPressure),
-                endPressure: Value(tank.endPressure),
-                o2Percent: Value(tank.gasMix.o2),
-                hePercent: Value(tank.gasMix.he),
-                tankOrder: Value(tank.order),
-                tankRole: Value(tank.role.name),
-                tankMaterial: Value(tank.material?.name),
-                tankName: Value(tank.name),
-                presetName: Value(tank.presetName),
-              ),
-            );
-        await _syncRepository.markRecordPending(
+        updatedTankIds.add(tankId);
+
+        if (existingTankIds.contains(tankId)) {
+          // Update existing tank
+          await (_db.update(
+            _db.diveTanks,
+          )..where((t) => t.id.equals(tankId))).write(
+            DiveTanksCompanion(
+              volume: Value(tank.volume),
+              workingPressure: Value(tank.workingPressure),
+              startPressure: Value(tank.startPressure),
+              endPressure: Value(tank.endPressure),
+              o2Percent: Value(tank.gasMix.o2),
+              hePercent: Value(tank.gasMix.he),
+              tankOrder: Value(tank.order),
+              tankRole: Value(tank.role.name),
+              tankMaterial: Value(tank.material?.name),
+              tankName: Value(tank.name),
+              presetName: Value(tank.presetName),
+            ),
+          );
+          // Log as pending update (assuming sync handles updates)
+          await _syncRepository.markRecordPending(
+            entityType: 'diveTanks',
+            recordId: tankId,
+            localUpdatedAt: now,
+          );
+        } else {
+          // Insert new tank
+          await _db
+              .into(_db.diveTanks)
+              .insert(
+                DiveTanksCompanion(
+                  id: Value(tankId),
+                  diveId: Value(dive.id),
+                  volume: Value(tank.volume),
+                  workingPressure: Value(tank.workingPressure),
+                  startPressure: Value(tank.startPressure),
+                  endPressure: Value(tank.endPressure),
+                  o2Percent: Value(tank.gasMix.o2),
+                  hePercent: Value(tank.gasMix.he),
+                  tankOrder: Value(tank.order),
+                  tankRole: Value(tank.role.name),
+                  tankMaterial: Value(tank.material?.name),
+                  tankName: Value(tank.name),
+                  presetName: Value(tank.presetName),
+                ),
+              );
+          await _syncRepository.markRecordPending(
+            entityType: 'diveTanks',
+            recordId: tankId,
+            localUpdatedAt: now,
+          );
+        }
+      }
+
+      // Delete tanks that are no longer present
+      // This will cascade to both tank_pressure_profiles and gas_switches for removed tanks
+      final tanksToDelete = existingTankIds.difference(updatedTankIds);
+      for (final tankId in tanksToDelete) {
+        await (_db.delete(
+          _db.diveTanks,
+        )..where((t) => t.id.equals(tankId))).go();
+        await _syncRepository.logDeletion(
           entityType: 'diveTanks',
           recordId: tankId,
-          localUpdatedAt: now,
         );
       }
 
