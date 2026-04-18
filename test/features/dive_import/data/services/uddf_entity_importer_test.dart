@@ -1,8 +1,15 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
+import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
@@ -2105,6 +2112,75 @@ void main() {
         );
 
         verifyNever(mockDiveRepo.insertProfileEvents(any));
+      },
+    );
+  });
+
+  group('dive-level metadata persistence (Slice D)', () {
+    test(
+      'dual-cylinder.ssrf populates Dives + DiveDataSources metadata fields',
+      () async {
+        // 1. Load fixture bytes and wrap in required <divelog> envelope.
+        const fixturePath =
+            'test/features/universal_import/data/parsers/fixtures/dual-cylinder.ssrf';
+        final diveXml = await File(fixturePath).readAsString();
+        final wrapped =
+            "<divelog program='subsurface' version='3'><dives>$diveXml</dives></divelog>";
+        final bytes = Uint8List.fromList(wrapped.codeUnits);
+
+        // 2. Parse via SubsurfaceXmlParser.
+        final parsePayload = await SubsurfaceXmlParser().parse(bytes);
+        final diveDataList = parsePayload.entitiesOf(ImportEntityType.dives);
+        expect(diveDataList.length, 1);
+        final diveData = diveDataList.first;
+
+        // 3. Parser-level assertions — metadata keys populated.
+        expect(diveData['diveComputerModel'], 'Shearwater Peregrine');
+        expect(diveData['diveComputerSerial'], '98d09a47');
+        expect(diveData['diveComputerFirmware'], '86');
+        expect(diveData['decoAlgorithm'], 'buhlmann');
+        expect(diveData['gradientFactorLow'], 40);
+        expect(diveData['gradientFactorHigh'], 85);
+        expect(diveData['surfacePressure'], closeTo(1.012, 0.0001));
+
+        // 4. Build UddfImportResult from parsed dives and run the importer.
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+        when(mockDiveRepo.saveComputerReading(any)).thenAnswer((_) async {});
+
+        final data = UddfImportResult(dives: diveDataList);
+
+        await importer.import(
+          data: data,
+          selections: UddfImportSelections.selectAll(data),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        // 5. Verify captured Dive entity — assert dive-level metadata fields.
+        final capturedDives = verify(
+          mockDiveRepo.createDive(captureAny),
+        ).captured;
+        final dive = capturedDives.single as Dive;
+        expect(dive.diveComputerModel, 'Shearwater Peregrine');
+        expect(dive.diveComputerSerial, '98d09a47');
+        expect(dive.diveComputerFirmware, '86');
+        expect(dive.decoAlgorithm, 'buhlmann');
+        expect(dive.gradientFactorLow, 40);
+        expect(dive.gradientFactorHigh, 85);
+        expect(dive.surfacePressure, closeTo(1.012, 0.0001));
+
+        // 6. Verify captured DiveDataSourcesCompanion — assert data-source fields.
+        final capturedReadings = verify(
+          mockDiveRepo.saveComputerReading(captureAny),
+        ).captured;
+        final reading = capturedReadings.single;
+        expect(reading.computerModel.value, 'Shearwater Peregrine');
+        expect(reading.computerSerial.value, '98d09a47');
+        expect(reading.decoAlgorithm.value, 'buhlmann');
+        expect(reading.gradientFactorLow.value, 40);
+        expect(reading.gradientFactorHigh.value, 85);
       },
     );
   });
