@@ -1096,6 +1096,185 @@ $diveXml
     );
   });
 
+  group('dive-level metadata', () {
+    test('parses divecomputer model attribute', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Shearwater Peregrine'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <sample time='1:00 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(dive['diveComputerModel'], 'Shearwater Peregrine');
+    });
+
+    test('parses Serial extradata into diveComputerSerial', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <extradata key='Serial' value='98d09a47' />
+  <sample time='1:00 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(dive['diveComputerSerial'], '98d09a47');
+    });
+
+    test('parses FW Version extradata into diveComputerFirmware', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <extradata key='FW Version' value='86' />
+  <sample time='1:00 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(dive['diveComputerFirmware'], '86');
+    });
+
+    test(
+      'parses Deco model "GF 40/85" into buhlmann + gradient factors',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <extradata key='Deco model' value='GF 40/85' />
+  <sample time='1:00 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        expect(dive['decoAlgorithm'], 'buhlmann');
+        expect(dive['gradientFactorLow'], 40);
+        expect(dive['gradientFactorHigh'], 85);
+      },
+    );
+
+    test(
+      'parses Deco model non-GF format as lowercased algo string without GFs',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <extradata key='Deco model' value='VPM-B +2' />
+  <sample time='1:00 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        expect(dive['decoAlgorithm'], 'vpm-b +2');
+        expect(dive.containsKey('gradientFactorLow'), isFalse);
+        expect(dive.containsKey('gradientFactorHigh'), isFalse);
+      },
+    );
+
+    test('parses surface pressure attribute', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <surface pressure='1.012 bar' />
+  <sample time='1:00 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(dive['surfacePressure'], 1.012);
+    });
+
+    test('ignores unrelated extradata keys', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <extradata key='Logversion' value='13(PNF)' />
+  <extradata key='Battery type' value='3.7V Li-Ion' />
+  <extradata key='Battery at end' value='4.0 V' />
+  <sample time='1:00 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(dive.containsKey('diveComputerSerial'), isFalse);
+      expect(dive.containsKey('diveComputerFirmware'), isFalse);
+      expect(dive.containsKey('decoAlgorithm'), isFalse);
+      expect(dive.containsKey('gradientFactorLow'), isFalse);
+    });
+
+    test('no metadata present yields no metadata keys', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer>
+  <depth max='10.0 m' mean='5.0 m' />
+  <sample time='1:00 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(dive.containsKey('diveComputerModel'), isFalse);
+      expect(dive.containsKey('diveComputerSerial'), isFalse);
+      expect(dive.containsKey('diveComputerFirmware'), isFalse);
+      expect(dive.containsKey('decoAlgorithm'), isFalse);
+      expect(dive.containsKey('surfacePressure'), isFalse);
+    });
+  });
+
   group('profile events', () {
     test('emits setpointChange from SP change event with mbar value', () async {
       final result = await parser.parse(
