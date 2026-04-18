@@ -1326,13 +1326,19 @@ class UddfEntityImporter {
               break;
 
             case 'ascentRateWarning':
+              if (value == null) {
+                _log.warning(
+                  'Skipping ascentRateWarning event with missing value',
+                );
+                continue; // match setpointChange/ppO2 null-guard pattern
+              }
               events.add(
                 ProfileEvent.ascentRateWarning(
                   id: _uuid.v4(),
                   diveId: diveId,
                   timestamp: timestamp,
                   depth: 0.0,
-                  rate: value ?? 0.0,
+                  rate: value,
                   createdAt: now,
                   source: EventSource
                       .imported, // override `computed` factory default
