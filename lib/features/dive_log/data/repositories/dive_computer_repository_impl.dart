@@ -1293,6 +1293,7 @@ class DiveComputerRepository {
               depth: Value(depth),
               value: Value(value),
               tankId: Value(tankId),
+              createdAt: Value(now),
             ),
           );
       await _syncRepository.markRecordPending(

@@ -1244,7 +1244,10 @@ class UddfEntityImporter {
       if (eventMaps != null && eventMaps.isNotEmpty) {
         final events = <ProfileEvent>[];
         for (final m in eventMaps) {
-          final eventTypeStr = m['eventType'] as String;
+          // Defensive cast: malformed/partial events (missing/non-string
+          // eventType) are forward-compat noise, not errors. Skip quietly.
+          final eventTypeStr = m['eventType'] as String?;
+          if (eventTypeStr == null || eventTypeStr.isEmpty) continue;
           final timestamp = m['timestamp'] as int?;
           if (timestamp == null) continue;
           final value = m['value'] as double?;
