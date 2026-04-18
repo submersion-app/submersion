@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -18,6 +19,7 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_rep
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
@@ -182,6 +184,7 @@ class UddfEntityImportResult {
 /// cross-references between entity types.
 class UddfEntityImporter {
   static const _uuid = Uuid();
+  final _log = LoggerService.forClass(UddfEntityImporter);
 
   final TankPresetEntity? _defaultTankPreset;
   final int _defaultStartPressure;
@@ -1223,6 +1226,56 @@ class UddfEntityImporter {
             .toList();
         if (switches.isNotEmpty) {
           await repos.diveRepository.insertGasSwitches(switches);
+        }
+      }
+
+      // Persist profile events emitted by the parser (currently: setpointChange
+      // from SSRF SP change events; future slices may add more types).
+      //
+      // NOTE ON UDDF DIVERGENCE: SSRF's subsurface_xml_parser emits events under
+      // `diveData['events']` (read here). The UDDF path in
+      // `uddf_full_import_service.dart` emits events under
+      // `diveData['profileEvents']` — a pre-existing key mismatch. UDDF-side
+      // event persistence is intentionally out of scope for Slice C; when a
+      // future slice adds UDDF event import, unify the keys or add a second
+      // consumer block here.
+      final eventMaps = (diveData['events'] as List?)
+          ?.cast<Map<String, dynamic>>();
+      if (eventMaps != null && eventMaps.isNotEmpty) {
+        final events = <ProfileEvent>[];
+        for (final m in eventMaps) {
+          // Defensive cast: malformed/partial events (missing/non-string
+          // eventType) are forward-compat noise, not errors. Skip quietly.
+          final eventTypeStr = m['eventType'] as String?;
+          if (eventTypeStr == null || eventTypeStr.isEmpty) continue;
+          final timestamp = m['timestamp'] as int?;
+          if (timestamp == null) continue;
+          final value = m['value'] as double?;
+          switch (eventTypeStr) {
+            case 'setpointChange':
+              if (value == null) continue;
+              events.add(
+                ProfileEvent.setpointChange(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  setpoint: value,
+                  createdAt: now,
+                ),
+              );
+              break;
+            default:
+              // Unknown event type — skip with a log line so future types can
+              // be tracked. Do not throw: unknown types are forward-compat
+              // noise, not errors.
+              _log.warning(
+                'Skipping unknown profile event type from parser: $eventTypeStr',
+              );
+              break;
+          }
+        }
+        if (events.isNotEmpty) {
+          await repos.diveRepository.insertProfileEvents(events);
         }
       }
 

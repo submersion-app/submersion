@@ -1005,6 +1005,8 @@ class DiveProfileEvents extends Table {
   RealColumn get value =>
       real().nullable()(); // event-specific value (e.g., ascent rate)
   TextColumn get tankId => text().nullable()(); // for gas switch events
+  TextColumn get source =>
+      text().withDefault(const Constant('imported'))(); // EventSource.name
   IntColumn get createdAt => integer()();
 
   @override
@@ -1322,7 +1324,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 67;
+  static const int currentSchemaVersion = 68;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1393,6 +1395,7 @@ class AppDatabase extends _$AppDatabase {
     65,
     66,
     67,
+    68,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -3189,6 +3192,24 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 67) await reportProgress();
+
+        if (from < 68) {
+          // Guard: dive_profile_events may not exist in older migration tests.
+          final dpeColumns = await customSelect(
+            "PRAGMA table_info('dive_profile_events')",
+          ).get();
+          if (dpeColumns.isNotEmpty) {
+            final existing = dpeColumns
+                .map((c) => c.read<String>('name'))
+                .toSet();
+            if (!existing.contains('source')) {
+              await customStatement(
+                "ALTER TABLE dive_profile_events ADD COLUMN source TEXT NOT NULL DEFAULT 'imported'",
+              );
+            }
+          }
+        }
+        if (from < 68) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys

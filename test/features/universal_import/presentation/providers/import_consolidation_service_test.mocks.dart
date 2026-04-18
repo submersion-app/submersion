@@ -8,17 +8,19 @@ import 'dart:async' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i10;
 import 'package:submersion/core/constants/sort_options.dart' as _i9;
-import 'package:submersion/core/database/database.dart' as _i12;
+import 'package:submersion/core/database/database.dart' as _i13;
 import 'package:submersion/core/models/sort_state.dart' as _i8;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart'
     as _i3;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart' as _i2;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart'
-    as _i11;
+    as _i12;
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart'
     as _i6;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart'
     as _i4;
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
+    as _i11;
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart'
     as _i7;
 
@@ -460,6 +462,34 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
           as _i5.Future<void>);
 
   @override
+  _i5.Future<void> insertProfileEvents(List<_i11.ProfileEvent>? events) =>
+      (super.noSuchMethod(
+            Invocation.method(#insertProfileEvents, [events]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<List<_i11.ProfileEvent>> getProfileEventsForDive(String? diveId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getProfileEventsForDive, [diveId]),
+            returnValue: _i5.Future<List<_i11.ProfileEvent>>.value(
+              <_i11.ProfileEvent>[],
+            ),
+          )
+          as _i5.Future<List<_i11.ProfileEvent>>);
+
+  @override
+  _i5.Future<void> deleteProfileEventsForDive(String? diveId) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteProfileEventsForDive, [diveId]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
   _i5.Future<_i2.Dive?> getPreviousDive(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#getPreviousDive, [diveId]),
@@ -544,14 +574,14 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
           as _i5.Future<void>);
 
   @override
-  _i5.Future<List<_i11.DiveDataSource>> getDataSources(String? diveId) =>
+  _i5.Future<List<_i12.DiveDataSource>> getDataSources(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#getDataSources, [diveId]),
-            returnValue: _i5.Future<List<_i11.DiveDataSource>>.value(
-              <_i11.DiveDataSource>[],
+            returnValue: _i5.Future<List<_i12.DiveDataSource>>.value(
+              <_i12.DiveDataSource>[],
             ),
           )
-          as _i5.Future<List<_i11.DiveDataSource>>);
+          as _i5.Future<List<_i12.DiveDataSource>>);
 
   @override
   _i5.Future<bool> hasMultipleDataSources(String? diveId) =>
@@ -563,7 +593,7 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
 
   @override
   _i5.Future<void> saveComputerReading(
-    _i12.DiveDataSourcesCompanion? reading,
+    _i13.DiveDataSourcesCompanion? reading,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#saveComputerReading, [reading]),
@@ -593,8 +623,8 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
   @override
   _i5.Future<void> consolidateComputer({
     required String? targetDiveId,
-    required _i12.DiveDataSourcesCompanion? secondaryReading,
-    required List<_i12.DiveProfilesCompanion>? secondaryProfile,
+    required _i13.DiveDataSourcesCompanion? secondaryReading,
+    required List<_i13.DiveProfilesCompanion>? secondaryProfile,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#consolidateComputer, [], {

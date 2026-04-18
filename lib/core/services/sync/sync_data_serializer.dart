@@ -778,9 +778,16 @@ class SyncDataSerializer {
             .insertOnConflictUpdate(Sighting.fromJson(data));
         return;
       case 'diveProfileEvents':
+        // Back-compat: payloads from pre-v68 peers lack `source`. Default to
+        // 'imported' to match the v67→v68 migration's DEFAULT for existing rows.
+        final diveProfileEventData = data['source'] == null
+            ? {...data, 'source': 'imported'}
+            : data;
         await _db
             .into(_db.diveProfileEvents)
-            .insertOnConflictUpdate(DiveProfileEvent.fromJson(data));
+            .insertOnConflictUpdate(
+              DiveProfileEvent.fromJson(diveProfileEventData),
+            );
         return;
       case 'gasSwitches':
         await _db
@@ -1868,6 +1875,7 @@ class SyncDataSerializer {
     'depth': r.depth,
     'value': r.value,
     'tankId': r.tankId,
+    'source': r.source,
     'createdAt': r.createdAt,
   };
 
