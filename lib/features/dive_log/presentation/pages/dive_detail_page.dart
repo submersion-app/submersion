@@ -3824,8 +3824,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     if (tankPressures != null && tankPressures.containsKey(tank.id)) {
       final points = tankPressures[tank.id]!;
       if (points.isNotEmpty) {
-        final startPressure = tank.startPressure ?? points.first.pressure; // Only use time series if metadata is null
-        final endPressure = tank.endPressure ?? points.last.pressure;      // Only use time series if metadata is null
+        final startPressure =
+            tank.startPressure ??
+            points.first.pressure; // Only use time series if metadata is null
+        final endPressure =
+            tank.endPressure ??
+            points.last.pressure; // Only use time series if metadata is null
         return (startPressure, endPressure);
       }
     }
