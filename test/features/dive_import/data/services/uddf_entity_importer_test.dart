@@ -2120,6 +2120,15 @@ void main() {
     test(
       'dual-cylinder.ssrf populates Dives + DiveDataSources metadata fields',
       () async {
+        // This test asserts specific values from dual-cylinder.ssrf:
+        // - divecomputer model: 'Shearwater Peregrine'
+        // - Serial: '98d09a47'
+        // - FW Version: '86'
+        // - Deco model: 'GF 40/85'
+        // - Surface pressure: '1.012 bar'
+        // If dual-cylinder.ssrf is ever edited (e.g., sanitized for privacy),
+        // update the expectations below to match.
+
         // 1. Load fixture bytes and wrap in required <divelog> envelope.
         const fixturePath =
             'test/features/universal_import/data/parsers/fixtures/dual-cylinder.ssrf';

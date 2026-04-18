@@ -1182,6 +1182,31 @@ $diveXml
     );
 
     test(
+      'parses Deco model "GF40/85" (no space) into buhlmann + gradient factors',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='5:00 min'>
+  <divecomputer model='Test'>
+  <depth max='10.0 m' mean='5.0 m' />
+  <extradata key='Deco model' value='GF40/85' />
+  <sample time='1:00 min' depth='5.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        expect(dive['decoAlgorithm'], 'buhlmann');
+        expect(dive['gradientFactorLow'], 40);
+        expect(dive['gradientFactorHigh'], 85);
+      },
+    );
+
+    test(
       'parses Deco model non-GF format as lowercased algo string without GFs',
       () async {
         final result = await parser.parse(

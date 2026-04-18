@@ -591,7 +591,7 @@ class SubsurfaceXmlParser implements ImportParser {
   static Map<String, dynamic> _parseDecoModel(String? value) {
     if (value == null || value.trim().isEmpty) return const {};
     final trimmed = value.trim();
-    final gfMatch = RegExp(r'^GF\s+(\d+)\s*/\s*(\d+)$').firstMatch(trimmed);
+    final gfMatch = RegExp(r'^GF\s*(\d+)\s*/\s*(\d+)$').firstMatch(trimmed);
     if (gfMatch != null) {
       return {
         'decoAlgorithm': 'buhlmann',
