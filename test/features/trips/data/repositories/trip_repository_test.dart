@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart' hide Trip;
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
@@ -454,6 +456,105 @@ void main() {
 
         final readBack = await repository.getTripById(created.id);
         expect(readBack!.isShared, isTrue);
+      });
+    });
+
+    group('visibility filter', () {
+      late AppDatabase db;
+      const ts = 1700000000000;
+
+      setUp(() async {
+        db = DatabaseService.instance.database;
+        for (final id in ['A', 'B', 'C']) {
+          await db
+              .into(db.divers)
+              .insert(
+                DiversCompanion.insert(
+                  id: id,
+                  name: id,
+                  createdAt: ts,
+                  updatedAt: ts,
+                ),
+              );
+        }
+      });
+
+      test('getAllTrips returns owner + shared for a given diver', () async {
+        await repository.createTrip(
+          createTestTrip(name: 'Owned by A').copyWith(diverId: 'A'),
+        );
+        await repository.createTrip(
+          createTestTrip(name: 'Owned by B').copyWith(diverId: 'B'),
+        );
+        await repository.createTrip(
+          createTestTrip(
+            name: 'Shared from B',
+          ).copyWith(diverId: 'B', isShared: true),
+        );
+
+        final names = (await repository.getAllTrips(
+          diverId: 'A',
+        )).map((t) => t.name).toSet();
+        expect(names, equals({'Owned by A', 'Shared from B'}));
+      });
+
+      test('getAllTrips with null diverId returns everything', () async {
+        await repository.createTrip(
+          createTestTrip(name: 'One').copyWith(diverId: 'A'),
+        );
+        await repository.createTrip(
+          createTestTrip(name: 'Two').copyWith(diverId: 'B'),
+        );
+
+        final trips = await repository.getAllTrips();
+        expect(trips.length, equals(2));
+      });
+
+      test('searchTrips honors visibility filter', () async {
+        await repository.createTrip(
+          createTestTrip(name: 'Bonaire A').copyWith(diverId: 'A'),
+        );
+        await repository.createTrip(
+          createTestTrip(
+            name: 'Bonaire B',
+          ).copyWith(diverId: 'B', isShared: true),
+        );
+        await repository.createTrip(
+          createTestTrip(name: 'Bonaire C').copyWith(diverId: 'C'),
+        );
+
+        final results = await repository.searchTrips('Bonaire', diverId: 'A');
+        final names = results.map((t) => t.name).toSet();
+        expect(names, equals({'Bonaire A', 'Bonaire B'}));
+      });
+
+      test('findTripForDate honors visibility filter', () async {
+        final day = DateTime(2024, 6, 15);
+        await repository.createTrip(
+          createTestTrip(
+            name: 'A trip',
+            startDate: day,
+            endDate: day,
+          ).copyWith(diverId: 'B', isShared: true),
+        );
+        final trip = await repository.findTripForDate(day, diverId: 'A');
+        expect(trip, isNotNull);
+        expect(trip!.name, equals('A trip'));
+      });
+
+      test('getAllTripsWithStats honors visibility filter', () async {
+        await repository.createTrip(
+          createTestTrip(
+            name: 'Shared X',
+          ).copyWith(diverId: 'B', isShared: true),
+        );
+        await repository.createTrip(
+          createTestTrip(name: 'Private Y').copyWith(diverId: 'B'),
+        );
+
+        final all = await repository.getAllTripsWithStats(diverId: 'A');
+        final names = all.map((t) => t.trip.name).toSet();
+        expect(names, equals({'Shared X'}));
       });
     });
   });

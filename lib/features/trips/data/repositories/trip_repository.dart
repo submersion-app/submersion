@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -25,9 +26,7 @@ class TripRepository {
       final query = _db.select(_db.trips)
         ..orderBy([(t) => OrderingTerm.desc(t.startDate)]);
 
-      if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
-      }
+      VisibilityFilter.applyToTrips(query, diverId);
 
       final rows = await query.get();
       return rows.map(_mapRowToTrip).toList();
@@ -57,13 +56,17 @@ class TripRepository {
   /// Search trips by name or location
   Future<List<domain.Trip>> searchTrips(String query, {String? diverId}) async {
     final searchTerm = '%${query.toLowerCase()}%';
-    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final vis = VisibilityFilter.sqlFragment(
+      tableAlias: 'trips',
+      diverId: diverId,
+      conjunction: 'AND',
+    );
     final variables = [
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
-      if (diverId != null) Variable.withString(diverId),
+      ...vis.variables,
     ];
 
     final results = await _db.customSelect('''
@@ -72,7 +75,7 @@ class TripRepository {
          OR LOWER(location) LIKE ?
          OR LOWER(resort_name) LIKE ?
          OR LOWER(liveaboard_name) LIKE ?)
-      $diverFilter
+      ${vis.whereClause}
       ORDER BY start_date DESC
     ''', variables: variables).get();
 
@@ -442,17 +445,21 @@ class TripRepository {
   /// Find trip that contains a specific date
   Future<domain.Trip?> findTripForDate(DateTime date, {String? diverId}) async {
     final dateMs = date.millisecondsSinceEpoch;
-    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final vis = VisibilityFilter.sqlFragment(
+      tableAlias: 'trips',
+      diverId: diverId,
+      conjunction: 'AND',
+    );
     final variables = [
       Variable.withInt(dateMs),
       Variable.withInt(dateMs),
-      if (diverId != null) Variable.withString(diverId),
+      ...vis.variables,
     ];
 
     final result = await _db.customSelect('''
       SELECT * FROM trips
       WHERE start_date <= ? AND end_date >= ?
-      $diverFilter
+      ${vis.whereClause}
       ORDER BY start_date DESC
       LIMIT 1
     ''', variables: variables).getSingleOrNull();
@@ -490,10 +497,11 @@ class TripRepository {
   Future<List<domain.TripWithStats>> getAllTripsWithStats({
     String? diverId,
   }) async {
-    final diverFilter = diverId != null ? 'WHERE t.diver_id = ?' : '';
-    final variables = diverId != null
-        ? [Variable.withString(diverId)]
-        : <Variable<Object>>[];
+    final vis = VisibilityFilter.sqlFragment(
+      tableAlias: 't',
+      diverId: diverId,
+      conjunction: 'WHERE',
+    );
 
     final rows = await _db.customSelect('''
       SELECT
@@ -504,10 +512,10 @@ class TripRepository {
         AVG(d.avg_depth) AS avg_depth
       FROM trips t
       LEFT JOIN dives d ON d.trip_id = t.id
-      $diverFilter
+      ${vis.whereClause}
       GROUP BY t.id
       ORDER BY t.start_date DESC
-    ''', variables: variables).get();
+    ''', variables: vis.variables).get();
 
     return rows.map((row) {
       final trip = domain.Trip(
