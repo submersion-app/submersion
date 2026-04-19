@@ -56,6 +56,7 @@ class Trips extends Table {
   TextColumn get liveaboardName => text().nullable()();
   TextColumn get tripType => text().withDefault(const Constant('shore'))();
   TextColumn get notes => text().withDefault(const Constant(''))();
+  BoolColumn get isShared => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -313,6 +314,7 @@ class DiveSites extends Table {
       text().nullable()(); // Parking availability and tips
   RealColumn get altitude => real()
       .nullable()(); // Altitude above sea level in meters (for altitude diving)
+  BoolColumn get isShared => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -1324,7 +1326,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 68;
+  static const int currentSchemaVersion = 69;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1396,6 +1398,7 @@ class AppDatabase extends _$AppDatabase {
     66,
     67,
     68,
+    69,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -3210,6 +3213,37 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 68) await reportProgress();
+        if (from < 69) {
+          // Guard: trips may not exist in older migration test schemas.
+          final tripColumns = await customSelect(
+            "PRAGMA table_info('trips')",
+          ).get();
+          if (tripColumns.isNotEmpty) {
+            final existing = tripColumns
+                .map((c) => c.read<String>('name'))
+                .toSet();
+            if (!existing.contains('is_shared')) {
+              await customStatement(
+                'ALTER TABLE trips ADD COLUMN is_shared INTEGER NOT NULL DEFAULT 0',
+              );
+            }
+          }
+          // Guard: dive_sites may not exist in older migration test schemas.
+          final siteColumns = await customSelect(
+            "PRAGMA table_info('dive_sites')",
+          ).get();
+          if (siteColumns.isNotEmpty) {
+            final existing = siteColumns
+                .map((c) => c.read<String>('name'))
+                .toSet();
+            if (!existing.contains('is_shared')) {
+              await customStatement(
+                'ALTER TABLE dive_sites ADD COLUMN is_shared INTEGER NOT NULL DEFAULT 0',
+              );
+            }
+          }
+        }
+        if (from < 69) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
