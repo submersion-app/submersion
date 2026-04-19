@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -6,8 +7,6 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/export_service.dart';
-import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
-import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -2135,7 +2134,9 @@ void main() {
         final diveXml = await File(fixturePath).readAsString();
         final wrapped =
             "<divelog program='subsurface' version='3'><dives>$diveXml</dives></divelog>";
-        final bytes = Uint8List.fromList(wrapped.codeUnits);
+        // Encode as UTF-8 to match SubsurfaceXmlParser.parse() decoding;
+        // codeUnits would produce UTF-16 and break on non-ASCII fixtures.
+        final bytes = Uint8List.fromList(utf8.encode(wrapped));
 
         // 2. Parse via SubsurfaceXmlParser.
         final parsePayload = await SubsurfaceXmlParser().parse(bytes);
