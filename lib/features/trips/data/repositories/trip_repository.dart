@@ -191,6 +191,73 @@ class TripRepository {
     }
   }
 
+  /// Flip the shared state of a single trip. Marks it pending for sync.
+  Future<void> setShared(String id, bool isShared) async {
+    try {
+      _log.info('Setting trip $id isShared=$isShared');
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.trips)..where((t) => t.id.equals(id))).write(
+        TripsCompanion(isShared: Value(isShared), updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'trips',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set shared flag on trip $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Mark every private trip owned by [diverId] as shared. Returns the
+  /// count of rows updated. All updated rows are marked pending for sync.
+  Future<int> shareAllForDiver(String diverId) async {
+    try {
+      _log.info('Bulk sharing all private trips for diver $diverId');
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      return await _db.transaction(() async {
+        final toShare =
+            await (_db.select(_db.trips)..where(
+                  (t) => t.diverId.equals(diverId) & t.isShared.equals(false),
+                ))
+                .get();
+
+        if (toShare.isEmpty) return 0;
+
+        await _db.customUpdate(
+          'UPDATE trips SET is_shared = 1, updated_at = ? '
+          'WHERE diver_id = ? AND is_shared = 0',
+          variables: [Variable.withInt(now), Variable.withString(diverId)],
+          updates: {_db.trips},
+        );
+
+        for (final row in toShare) {
+          await _syncRepository.markRecordPending(
+            entityType: 'trips',
+            recordId: row.id,
+            localUpdatedAt: now,
+          );
+        }
+        SyncEventBus.notifyLocalChange();
+        return toShare.length;
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to bulk-share trips for diver $diverId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Delete a trip and all associated child records.
   /// Removes liveaboard details, itinerary days, and dive associations
   /// before deleting the trip itself.

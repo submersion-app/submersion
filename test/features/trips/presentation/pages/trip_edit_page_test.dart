@@ -392,6 +392,12 @@ class _MockTripRepository implements TripRepository {
 
   @override
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
+
+  @override
+  Future<void> setShared(String id, bool isShared) async {}
+
+  @override
+  Future<int> shareAllForDiver(String diverId) async => 0;
 }
 
 /// Mock repository that returns a test trip
@@ -458,6 +464,12 @@ class _MockTripRepositoryWithTrip implements TripRepository {
 
   @override
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
+
+  @override
+  Future<void> setShared(String id, bool isShared) async {}
+
+  @override
+  Future<int> shareAllForDiver(String diverId) async => 0;
 }
 
 /// Mock notifier

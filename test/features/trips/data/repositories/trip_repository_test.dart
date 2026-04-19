@@ -459,6 +459,83 @@ void main() {
       });
     });
 
+    group('sharing actions', () {
+      late AppDatabase db;
+      const ts = 1700000000000;
+
+      setUp(() async {
+        db = DatabaseService.instance.database;
+        for (final id in ['A', 'B']) {
+          await db
+              .into(db.divers)
+              .insert(
+                DiversCompanion.insert(
+                  id: id,
+                  name: id,
+                  createdAt: ts,
+                  updatedAt: ts,
+                ),
+              );
+        }
+      });
+
+      test('setShared toggles the field on a single trip', () async {
+        final created = await repository.createTrip(
+          createTestTrip(name: 'Flip me').copyWith(diverId: 'A'),
+        );
+
+        await repository.setShared(created.id, true);
+        final readShared = await repository.getTripById(created.id);
+        expect(readShared!.isShared, isTrue);
+
+        await repository.setShared(created.id, false);
+        final readBack = await repository.getTripById(created.id);
+        expect(readBack!.isShared, isFalse);
+      });
+
+      test(
+        'shareAllForDiver marks only that diver\'s private trips shared',
+        () async {
+          await repository.createTrip(
+            createTestTrip(name: 'A1').copyWith(diverId: 'A'),
+          );
+          await repository.createTrip(
+            createTestTrip(name: 'A2').copyWith(diverId: 'A'),
+          );
+          await repository.createTrip(
+            createTestTrip(name: 'B1').copyWith(diverId: 'B'),
+          );
+          await repository.createTrip(
+            createTestTrip(
+              name: 'A3-already',
+            ).copyWith(diverId: 'A', isShared: true),
+          );
+
+          final updatedCount = await repository.shareAllForDiver('A');
+          expect(updatedCount, equals(2));
+
+          final aTrips = await repository.getAllTrips(diverId: 'A');
+          final aShared = {for (final t in aTrips) t.name: t.isShared};
+          expect(aShared['A1'], isTrue);
+          expect(aShared['A2'], isTrue);
+          expect(aShared['A3-already'], isTrue);
+
+          // B's trip remains private.
+          final bTrips = await repository.getAllTrips(diverId: 'B');
+          expect(bTrips.singleWhere((t) => t.name == 'B1').isShared, isFalse);
+        },
+      );
+
+      test('shareAllForDiver returns 0 when nothing to share', () async {
+        await repository.createTrip(
+          createTestTrip(
+            name: 'Already',
+          ).copyWith(diverId: 'A', isShared: true),
+        );
+        expect(await repository.shareAllForDiver('A'), equals(0));
+      });
+    });
+
     group('visibility filter', () {
       late AppDatabase db;
       const ts = 1700000000000;
