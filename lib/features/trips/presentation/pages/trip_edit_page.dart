@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
@@ -55,6 +56,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   bool _isLoading = false;
   bool _isSaving = false;
   bool _hasChanges = false;
+  bool _isShared = false;
   Trip? _originalTrip;
 
   bool get isEditing => widget.tripId != null;
@@ -64,6 +66,12 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     super.initState();
     if (isEditing) {
       _loadTrip();
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final shareByDefault = await ref.read(shareByDefaultProvider.future);
+        if (!mounted) return;
+        setState(() => _isShared = shareByDefault);
+      });
     }
     _nameController.addListener(_onFieldChanged);
     _locationController.addListener(_onFieldChanged);
@@ -118,6 +126,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         setState(() {
           _startDate = trip.startDate;
           _endDate = trip.endDate;
+          _isShared = trip.isShared;
           _isLoading = false;
           _hasChanges = false;
         });
@@ -472,7 +481,29 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                     ),
                     maxLines: 4,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 16),
+
+                  // Share toggle — only shown when multiple diver profiles exist
+                  ref
+                      .watch(allDiversProvider)
+                      .maybeWhen(
+                        data: (divers) => divers.length >= 2
+                            ? SwitchListTile(
+                                title: Text(
+                                  context
+                                      .l10n
+                                      .common_label_shareWithAllProfiles,
+                                ),
+                                value: _isShared,
+                                onChanged: (v) => setState(() {
+                                  _isShared = v;
+                                  _hasChanges = true;
+                                }),
+                              )
+                            : const SizedBox.shrink(),
+                        orElse: () => const SizedBox.shrink(),
+                      ),
+                  const SizedBox(height: 16),
 
                   if (!widget.embedded) ...[
                     // Save button
@@ -726,6 +757,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
             : _liveaboardController.text.trim(),
         tripType: _tripType,
         notes: _notesController.text.trim(),
+        isShared: _isShared,
         createdAt: _originalTrip?.createdAt ?? now,
         updatedAt: now,
       );

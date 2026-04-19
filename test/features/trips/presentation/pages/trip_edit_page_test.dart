@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -334,6 +337,97 @@ void main() {
 
       await tester.pumpAndSettle();
       expect(find.text('Existing Trip'), findsOneWidget);
+    });
+  });
+
+  group('share toggle', () {
+    testWidgets('hides the toggle when only one diver exists', (tester) async {
+      final oneDiver = [
+        Diver(
+          id: 'd1',
+          name: 'One',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(_MockTripRepository()),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+            allDiversProvider.overrideWith((_) async => oneDiver),
+            shareByDefaultProvider.overrideWith((_) async => false),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is SwitchListTile &&
+              w.title is Text &&
+              (w.title as Text).data == 'Share with all dive profiles',
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('shows toggle with default from AppSettings when 2+ divers', (
+      tester,
+    ) async {
+      final twoDivers = [
+        Diver(
+          id: 'd1',
+          name: 'One',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+        Diver(
+          id: 'd2',
+          name: 'Two',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(_MockTripRepository()),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+            allDiversProvider.overrideWith((_) async => twoDivers),
+            shareByDefaultProvider.overrideWith((_) async => true),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      final switchFinder = find.byWidgetPredicate(
+        (w) =>
+            w is SwitchListTile &&
+            w.title is Text &&
+            (w.title as Text).data == 'Share with all dive profiles',
+      );
+      expect(switchFinder, findsOneWidget);
+      expect(tester.widget<SwitchListTile>(switchFinder).value, isTrue);
     });
   });
 }
