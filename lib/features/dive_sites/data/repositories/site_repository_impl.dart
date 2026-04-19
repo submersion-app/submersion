@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -23,9 +24,7 @@ class SiteRepository {
         final query = _db.select(_db.diveSites)
           ..orderBy([(t) => OrderingTerm.asc(t.name)]);
 
-        if (diverId != null) {
-          query.where((t) => t.diverId.equals(diverId));
-        }
+        VisibilityFilter.applyToDiveSites(query, diverId);
 
         final rows = await query.get();
         return rows.map(_mapRowToSite).toList();
@@ -510,9 +509,7 @@ class SiteRepository {
           )
           ..orderBy([(t) => OrderingTerm.asc(t.name)]);
 
-        if (diverId != null) {
-          searchQuery.where((t) => t.diverId.equals(diverId));
-        }
+        VisibilityFilter.applyToDiveSites(searchQuery, diverId);
 
         final rows = await searchQuery.get();
         return rows.map(_mapRowToSite).toList();
