@@ -149,4 +149,44 @@ void main() {
       expect(updated.tripType, TripType.liveaboard);
     });
   });
+
+  group('isShared', () {
+    test('defaults to false', () {
+      final trip = Trip(
+        id: 't1',
+        name: 'Test',
+        startDate: DateTime(2024),
+        endDate: DateTime(2024),
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      expect(trip.isShared, isFalse);
+    });
+
+    test('copyWith sets isShared', () {
+      final trip = Trip(
+        id: 't1',
+        name: 'Test',
+        startDate: DateTime(2024),
+        endDate: DateTime(2024),
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      final shared = trip.copyWith(isShared: true);
+      expect(shared.isShared, isTrue);
+      expect(trip.isShared, isFalse);
+    });
+
+    test('props include isShared so equality distinguishes shared state', () {
+      final base = Trip(
+        id: 't1',
+        name: 'Test',
+        startDate: DateTime(2024),
+        endDate: DateTime(2024),
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      expect(base == base.copyWith(isShared: true), isFalse);
+    });
+  });
 }
