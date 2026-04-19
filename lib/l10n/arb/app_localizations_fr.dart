@@ -1408,6 +1408,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get common_action_search => 'Rechercher';
 
   @override
+  String get common_action_share => 'Share';
+
+  @override
   String get common_label_error => 'Erreur';
 
   @override
@@ -1415,6 +1418,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get common_placeholder_noValue => '--';
+
+  @override
+  String get common_error_tryAgain => 'Something went wrong. Please try again.';
 
   @override
   String get courses_action_add => 'Ajouter un cours';

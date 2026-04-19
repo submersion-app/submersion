@@ -2454,6 +2454,12 @@ abstract class AppLocalizations {
   /// **'Search'**
   String get common_action_search;
 
+  /// Confirmation button label for actions that share a record with other dive profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get common_action_share;
+
   /// Generic error label
   ///
   /// In en, this message translates to:
@@ -2471,6 +2477,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'--'**
   String get common_placeholder_noValue;
+
+  /// Generic error snackbar shown when an action fails and the user should retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get common_error_tryAgain;
 
   /// No description provided for @courses_action_add.
   ///

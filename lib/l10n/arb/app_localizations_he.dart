@@ -1354,6 +1354,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_search => 'חיפוש';
 
   @override
+  String get common_action_share => 'Share';
+
+  @override
   String get common_label_error => 'שגיאה';
 
   @override
@@ -1361,6 +1364,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get common_placeholder_noValue => '--';
+
+  @override
+  String get common_error_tryAgain => 'Something went wrong. Please try again.';
 
   @override
   String get courses_action_add => 'הוסף קורס';

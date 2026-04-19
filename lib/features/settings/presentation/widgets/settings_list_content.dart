@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -81,6 +82,13 @@ const settingsSections = [
     color: Colors.orange,
   ),
   SettingsSection(
+    id: 'sharedData',
+    icon: Icons.share,
+    title: 'Shared data',
+    subtitle: 'Share sites and trips across profiles',
+    color: Colors.cyan,
+  ),
+  SettingsSection(
     id: 'units',
     icon: Icons.straighten,
     title: 'Units',
@@ -105,8 +113,12 @@ class SettingsListContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final debugEnabled = ref.watch(debugModeNotifierProvider);
+    final allDiversAsync = ref.watch(allDiversProvider);
+    final diverCount = allDiversAsync.valueOrNull?.length ?? 0;
+
     final sections = settingsSections
         .where((s) => s.id != 'dataSources' || Platform.isIOS)
+        .where((s) => s.id != 'sharedData' || diverCount >= 2)
         .toList();
 
     // Insert Debug section just before About when debug mode is enabled
@@ -263,6 +275,8 @@ class _SettingsSectionTile extends StatelessWidget {
         return context.l10n.settings_section_about_title;
       case 'dataSources':
         return context.l10n.settings_section_dataSources_title;
+      case 'sharedData':
+        return context.l10n.settings_sharedData_sectionTitle;
       case 'debug':
         return 'Debug';
       default:
@@ -290,6 +304,8 @@ class _SettingsSectionTile extends StatelessWidget {
         return context.l10n.settings_section_about_subtitle;
       case 'dataSources':
         return context.l10n.settings_section_dataSources_subtitle;
+      case 'sharedData':
+        return section.subtitle;
       case 'debug':
         return 'Logs & diagnostics';
       default:

@@ -1394,6 +1394,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get common_action_search => 'Kereses';
 
   @override
+  String get common_action_share => 'Share';
+
+  @override
   String get common_label_error => 'Hiba';
 
   @override
@@ -1401,6 +1404,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get common_placeholder_noValue => '--';
+
+  @override
+  String get common_error_tryAgain => 'Something went wrong. Please try again.';
 
   @override
   String get courses_action_add => 'Tanfolyam hozzáadása';

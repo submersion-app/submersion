@@ -923,6 +923,7 @@
   "common_action_ok": "OK",
   "common_action_save": "Save",
   "common_action_search": "Search",
+  "common_action_share": "Share",
   "common_label_error": "Error",
   "common_label_loading": "Loading",
   "common_placeholder_noValue": "--",
@@ -950,6 +951,9 @@
   "@common_action_save": {
     "description": "Generic save action"
   },
+  "@common_action_share": {
+    "description": "Confirmation button label for actions that share a record with other dive profiles."
+  },
   "@common_action_search": {
     "description": "Generic search action"
   },
@@ -961,6 +965,10 @@
   },
   "@common_placeholder_noValue": {
     "description": "Placeholder shown when a value is null or unavailable"
+  },
+  "common_error_tryAgain": "Something went wrong. Please try again.",
+  "@common_error_tryAgain": {
+    "description": "Generic error snackbar shown when an action fails and the user should retry."
   },
   "courses_action_add": "Add Course",
   "courses_action_create": "Create Course",
