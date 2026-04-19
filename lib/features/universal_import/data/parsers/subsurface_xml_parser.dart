@@ -315,6 +315,10 @@ class SubsurfaceXmlParser implements ImportParser {
         : const <Map<String, dynamic>>[];
     if (events.isNotEmpty) result['events'] = events;
 
+    if (divecomputer != null) {
+      result.addAll(_parseDiveComputerMetadata(divecomputer));
+    }
+
     // Weights
     final weights = _parseWeights(dive);
     if (weights.isNotEmpty) result['weights'] = weights;
@@ -571,6 +575,79 @@ class SubsurfaceXmlParser implements ImportParser {
     for (var i = lastKnown + 1; i < points.length; i++) {
       points[i][field] = lastValue;
     }
+  }
+
+  /// Parses a Subsurface `Deco model` extradata value into algorithm + gradient
+  /// factors. Subsurface emits strings like `'GF 40/85'` for Bühlmann with
+  /// gradient factors. Non-GF formats (e.g., `'VPM-B +2'`) are preserved as
+  /// the raw lowercased algorithm string with no gradient-factor extraction.
+  ///
+  /// Returns a map with optional keys:
+  ///   - `'decoAlgorithm'`: String
+  ///   - `'gradientFactorLow'`: int
+  ///   - `'gradientFactorHigh'`: int
+  ///
+  /// Returns an empty map when the input is null or empty.
+  static Map<String, dynamic> _parseDecoModel(String? value) {
+    if (value == null || value.trim().isEmpty) return const {};
+    final trimmed = value.trim();
+    final gfMatch = RegExp(r'^GF\s*(\d+)\s*/\s*(\d+)$').firstMatch(trimmed);
+    if (gfMatch != null) {
+      return {
+        'decoAlgorithm': 'buhlmann',
+        'gradientFactorLow': int.parse(gfMatch.group(1)!),
+        'gradientFactorHigh': int.parse(gfMatch.group(2)!),
+      };
+    }
+    return {'decoAlgorithm': trimmed.toLowerCase()};
+  }
+
+  /// Extracts dive-level metadata from a `<divecomputer>` element:
+  /// model attribute, serial/firmware from extradata, deco algorithm and
+  /// gradient factors parsed from the `Deco model` extradata string, and
+  /// surface pressure from the `<surface>` child element.
+  ///
+  /// Returns a map with only the keys that had values. Absent fields are
+  /// omitted (no null-value noise).
+  static Map<String, dynamic> _parseDiveComputerMetadata(
+    XmlElement divecomputer,
+  ) {
+    final result = <String, dynamic>{};
+
+    final model = divecomputer.getAttribute('model');
+    if (model != null && model.isNotEmpty) {
+      result['diveComputerModel'] = model;
+    }
+
+    final surface = divecomputer.findElements('surface').firstOrNull;
+    if (surface != null) {
+      final pressure = _parseDouble(surface.getAttribute('pressure'));
+      if (pressure != null) result['surfacePressure'] = pressure;
+    }
+
+    final extradata = <String, String>{};
+    for (final ed in divecomputer.findElements('extradata')) {
+      final key = ed.getAttribute('key');
+      final value = ed.getAttribute('value');
+      if (key != null && value != null) extradata[key] = value;
+    }
+
+    final serial = extradata['Serial'];
+    if (serial != null && serial.isNotEmpty) {
+      result['diveComputerSerial'] = serial;
+    }
+
+    final fwVersion = extradata['FW Version'];
+    if (fwVersion != null && fwVersion.isNotEmpty) {
+      result['diveComputerFirmware'] = fwVersion;
+    }
+
+    final decoModel = extradata['Deco model'];
+    if (decoModel != null) {
+      result.addAll(_parseDecoModel(decoModel));
+    }
+
+    return result;
   }
 
   /// Returns true when the element has a non-null, non-empty attribute value
