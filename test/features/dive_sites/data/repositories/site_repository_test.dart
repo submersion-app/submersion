@@ -763,6 +763,83 @@ void main() {
       });
     });
 
+    group('sharing actions', () {
+      late db.AppDatabase dbInstance;
+      const ts = 1700000000000;
+
+      setUp(() async {
+        dbInstance = DatabaseService.instance.database;
+        for (final id in ['A', 'B']) {
+          await dbInstance
+              .into(dbInstance.divers)
+              .insert(
+                db.DiversCompanion.insert(
+                  id: id,
+                  name: id,
+                  createdAt: ts,
+                  updatedAt: ts,
+                ),
+              );
+        }
+      });
+
+      test('setShared toggles the field on a single site', () async {
+        final created = await repository.createSite(
+          const DiveSite(id: '', name: 'Flip', diverId: 'A'),
+        );
+
+        await repository.setShared(created.id, true);
+        final readShared = await repository.getSiteById(created.id);
+        expect(readShared!.isShared, isTrue);
+
+        await repository.setShared(created.id, false);
+        final readBack = await repository.getSiteById(created.id);
+        expect(readBack!.isShared, isFalse);
+      });
+
+      test(
+        'shareAllForDiver shares only that diver\'s private sites',
+        () async {
+          await repository.createSite(
+            const DiveSite(id: '', name: 'A1', diverId: 'A'),
+          );
+          await repository.createSite(
+            const DiveSite(id: '', name: 'A2', diverId: 'A'),
+          );
+          await repository.createSite(
+            const DiveSite(id: '', name: 'B1', diverId: 'B'),
+          );
+          await repository.createSite(
+            const DiveSite(
+              id: '',
+              name: 'A3-already',
+              diverId: 'A',
+              isShared: true,
+            ),
+          );
+
+          final count = await repository.shareAllForDiver('A');
+          expect(count, equals(2));
+
+          final aSites = await repository.getAllSites(diverId: 'A');
+          final aMap = {for (final s in aSites) s.name: s.isShared};
+          expect(aMap['A1'], isTrue);
+          expect(aMap['A2'], isTrue);
+          expect(aMap['A3-already'], isTrue);
+
+          final bSites = await repository.getAllSites(diverId: 'B');
+          expect(bSites.singleWhere((s) => s.name == 'B1').isShared, isFalse);
+        },
+      );
+
+      test('shareAllForDiver returns 0 when nothing to share', () async {
+        await repository.createSite(
+          const DiveSite(id: '', name: 'Already', diverId: 'A', isShared: true),
+        );
+        expect(await repository.shareAllForDiver('A'), equals(0));
+      });
+    });
+
     group('visibility filter', () {
       late db.AppDatabase dbInstance;
       const ts = 1700000000000;
