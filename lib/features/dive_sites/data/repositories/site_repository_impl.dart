@@ -82,6 +82,7 @@ class SiteRepository {
               mooringNumber: Value(site.mooringNumber),
               parkingInfo: Value(site.parkingInfo),
               altitude: Value(site.altitude),
+              isShared: Value(site.isShared),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -132,6 +133,7 @@ class SiteRepository {
           mooringNumber: Value(site.mooringNumber),
           parkingInfo: Value(site.parkingInfo),
           altitude: Value(site.altitude),
+          isShared: Value(site.isShared),
           updatedAt: Value(now),
         ),
       );
@@ -406,6 +408,7 @@ class SiteRepository {
                   mooringNumber: Value(site.mooringNumber),
                   parkingInfo: Value(site.parkingInfo),
                   altitude: Value(site.altitude),
+                  isShared: Value(site.isShared),
                   createdAt: Value(ts?.createdAt ?? now),
                   updatedAt: Value(ts?.updatedAt ?? now),
                 ),
@@ -598,6 +601,7 @@ class SiteRepository {
       mooringNumber: row.mooringNumber,
       parkingInfo: row.parkingInfo,
       altitude: row.altitude,
+      isShared: row.isShared,
     );
   }
 
@@ -620,6 +624,7 @@ class SiteRepository {
         mooringNumber: Value(site.mooringNumber),
         parkingInfo: Value(site.parkingInfo),
         altitude: Value(site.altitude),
+        isShared: Value(site.isShared),
         updatedAt: Value(now),
       ),
     );

@@ -733,6 +733,35 @@ void main() {
         },
       );
     });
+
+    group('isShared persistence', () {
+      test('createSite persists isShared=true', () async {
+        const site = DiveSite(id: '', name: 'Shared Reef', isShared: true);
+        final created = await repository.createSite(site);
+
+        final readBack = await repository.getSiteById(created.id);
+        expect(readBack, isNotNull);
+        expect(readBack!.isShared, isTrue);
+      });
+
+      test('createSite defaults isShared to false', () async {
+        const site = DiveSite(id: '', name: 'Default Reef');
+        final created = await repository.createSite(site);
+
+        final readBack = await repository.getSiteById(created.id);
+        expect(readBack!.isShared, isFalse);
+      });
+
+      test('updateSite persists isShared changes', () async {
+        const site = DiveSite(id: '', name: 'Toggle');
+        final created = await repository.createSite(site);
+
+        await repository.updateSite(created.copyWith(isShared: true));
+
+        final readBack = await repository.getSiteById(created.id);
+        expect(readBack!.isShared, isTrue);
+      });
+    });
   });
 
   group('Performance smoke tests (light preset)', () {
