@@ -11,12 +11,14 @@ class CompactTripListTile extends StatelessWidget {
   final TripWithStats tripWithStats;
   final bool isSelected;
   final VoidCallback? onTap;
+  final bool showSharedBadge;
 
   const CompactTripListTile({
     super.key,
     required this.tripWithStats,
     this.isSelected = false,
     this.onTap,
+    this.showSharedBadge = false,
   });
 
   @override
@@ -58,6 +60,14 @@ class CompactTripListTile extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    if (showSharedBadge) ...[
+                      const SizedBox(width: 6),
+                      Icon(
+                        Icons.people_outline,
+                        size: 16,
+                        color: colorScheme.primary,
+                      ),
+                    ],
                     const SizedBox(width: 8),
                     Text(
                       dateRangeStr,

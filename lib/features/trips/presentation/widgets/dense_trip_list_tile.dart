@@ -10,12 +10,14 @@ class DenseTripListTile extends StatelessWidget {
   final TripWithStats tripWithStats;
   final bool isSelected;
   final VoidCallback? onTap;
+  final bool showSharedBadge;
 
   const DenseTripListTile({
     super.key,
     required this.tripWithStats,
     this.isSelected = false,
     this.onTap,
+    this.showSharedBadge = false,
   });
 
   /// Formats a date as "MMM d", adding the year if it is not the current year.
@@ -69,6 +71,14 @@ class DenseTripListTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (showSharedBadge) ...[
+                  const SizedBox(width: 6),
+                  Icon(
+                    Icons.people_outline,
+                    size: 16,
+                    color: colorScheme.primary,
+                  ),
+                ],
                 const SizedBox(width: 8),
                 // Abbreviated date range (~100px)
                 SizedBox(
