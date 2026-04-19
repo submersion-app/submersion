@@ -16326,4 +16326,56 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_sharedData_sectionSubtitle =>
       'Share sites and trips across profiles';
+
+  @override
+  String get common_action_unshare => 'Unshare';
+
+  @override
+  String get trips_unshareConfirm_title => 'Unshare this trip?';
+
+  @override
+  String trips_unshareConfirm_body(String name) {
+    return 'This will remove \'$name\' from other dive profiles\' views. You can re-share it later.';
+  }
+
+  @override
+  String get sites_unshareConfirm_title => 'Unshare this site?';
+
+  @override
+  String sites_unshareConfirm_body(String name) {
+    return 'This will remove \'$name\' from other dive profiles\' views. You can re-share it later.';
+  }
+
+  @override
+  String get trips_deleteShared_title => 'Delete shared trip?';
+
+  @override
+  String trips_deleteShared_body(String name) {
+    return '\'$name\' is shared with other dive profiles. Deleting it here removes it for everyone.';
+  }
+
+  @override
+  String get sites_deleteShared_title => 'Delete shared site?';
+
+  @override
+  String sites_deleteShared_body(String name) {
+    return '\'$name\' is shared with other dive profiles. Deleting it here removes it for everyone.';
+  }
+
+  @override
+  String divers_delete_reassigned_snackbar(int trips, int sites, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      trips,
+      locale: localeName,
+      other: 'trips',
+      one: 'trip',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: 'sites',
+      one: 'site',
+    );
+    return 'Diver deleted. $trips shared $_temp0 and $sites shared $_temp1 reassigned to $name.';
+  }
 }

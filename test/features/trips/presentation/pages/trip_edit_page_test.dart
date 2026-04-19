@@ -429,6 +429,71 @@ void main() {
       expect(switchFinder, findsOneWidget);
       expect(tester.widget<SwitchListTile>(switchFinder).value, isTrue);
     });
+
+    testWidgets('un-share on existing shared trip shows confirmation dialog', (
+      tester,
+    ) async {
+      final twoDivers = [
+        Diver(
+          id: 'd1',
+          name: 'One',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+        Diver(
+          id: 'd2',
+          name: 'Two',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+      ];
+
+      // TripEditPage with a SHARED existing trip loaded.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithSharedTrip(),
+            ),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+            allDiversProvider.overrideWith((_) async => twoDivers),
+            shareByDefaultProvider.overrideWith((_) async => true),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-shared'),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Scroll until the share toggle is visible.
+      await tester.scrollUntilVisible(
+        find.text('Share with all dive profiles'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      final switchFinder = find.byWidgetPredicate(
+        (w) =>
+            w is SwitchListTile &&
+            w.title is Text &&
+            (w.title as Text).data == 'Share with all dive profiles',
+      );
+      // Confirm toggle starts in the ON position.
+      expect(tester.widget<SwitchListTile>(switchFinder).value, isTrue);
+
+      // Tap to turn OFF — should show the unshare confirm dialog.
+      await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Unshare this trip?'), findsOneWidget);
+    });
   });
 }
 
@@ -513,6 +578,78 @@ class _MockTripRepositoryWithTrip implements TripRepository {
       startDate: DateTime(2024, 1, 15),
       endDate: DateTime(2024, 1, 22),
       location: 'Test Location',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  @override
+  Future<List<Trip>> getAllTrips({String? diverId}) async => [];
+
+  @override
+  Future<List<Trip>> searchTrips(String query, {String? diverId}) async => [];
+
+  @override
+  Future<List<TripWithStats>> getAllTripsWithStats({String? diverId}) async =>
+      [];
+
+  @override
+  Future<TripWithStats> getTripWithStats(String tripId) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<String>> getDiveIdsForTrip(String tripId) async => [];
+
+  @override
+  Future<void> assignDiveToTrip(String diveId, String tripId) async {}
+
+  @override
+  Future<void> removeDiveFromTrip(String diveId) async {}
+
+  @override
+  Future<Trip?> findTripForDate(DateTime date, {String? diverId}) async => null;
+
+  @override
+  Future<int> getDiveCountForTrip(String tripId) async => 0;
+
+  @override
+  Future<List<DiveCandidate>> findCandidateDivesForTrip({
+    required String tripId,
+    required DateTime startDate,
+    required DateTime endDate,
+    required String diverId,
+  }) async => [];
+
+  @override
+  Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
+
+  @override
+  Future<void> setShared(String id, bool isShared) async {}
+
+  @override
+  Future<int> shareAllForDiver(String diverId) async => 0;
+}
+
+/// Mock repository that returns a SHARED test trip (for unshare confirmation tests).
+class _MockTripRepositoryWithSharedTrip implements TripRepository {
+  @override
+  Future<Trip> createTrip(Trip trip) async => trip;
+
+  @override
+  Future<void> updateTrip(Trip trip) async {}
+
+  @override
+  Future<void> deleteTrip(String id) async {}
+
+  @override
+  Future<Trip?> getTripById(String id) async {
+    return Trip(
+      id: 'test-shared',
+      name: 'Shared Trip',
+      startDate: DateTime(2024, 1, 15),
+      endDate: DateTime(2024, 1, 22),
+      isShared: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );

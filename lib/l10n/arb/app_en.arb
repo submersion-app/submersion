@@ -10092,5 +10092,83 @@
   "settings_sharedData_sectionSubtitle": "Share sites and trips across profiles",
   "@settings_sharedData_sectionSubtitle": {
     "description": "Subtitle for the 'Shared data' section in Settings — short description of the section's purpose."
+  },
+  "common_action_unshare": "Unshare",
+  "@common_action_unshare": {
+    "description": "Button label to remove sharing from a record that was previously shared with all dive profiles."
+  },
+  "trips_unshareConfirm_title": "Unshare this trip?",
+  "@trips_unshareConfirm_title": {
+    "description": "Title of the confirmation dialog shown before un-sharing a trip that is currently shared with all profiles."
+  },
+  "trips_unshareConfirm_body": "This will remove '{name}' from other dive profiles' views. You can re-share it later.",
+  "@trips_unshareConfirm_body": {
+    "description": "Body of the confirmation dialog shown before un-sharing a trip.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Red Sea Liveaboard"
+      }
+    }
+  },
+  "sites_unshareConfirm_title": "Unshare this site?",
+  "@sites_unshareConfirm_title": {
+    "description": "Title of the confirmation dialog shown before un-sharing a dive site that is currently shared with all profiles."
+  },
+  "sites_unshareConfirm_body": "This will remove '{name}' from other dive profiles' views. You can re-share it later.",
+  "@sites_unshareConfirm_body": {
+    "description": "Body of the confirmation dialog shown before un-sharing a dive site.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Salt Pier"
+      }
+    }
+  },
+  "trips_deleteShared_title": "Delete shared trip?",
+  "@trips_deleteShared_title": {
+    "description": "Title of the strengthened delete confirmation dialog shown when the trip being deleted is shared with other dive profiles."
+  },
+  "trips_deleteShared_body": "'{name}' is shared with other dive profiles. Deleting it here removes it for everyone.",
+  "@trips_deleteShared_body": {
+    "description": "Body of the delete confirmation dialog for a shared trip.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Red Sea Liveaboard"
+      }
+    }
+  },
+  "sites_deleteShared_title": "Delete shared site?",
+  "@sites_deleteShared_title": {
+    "description": "Title of the strengthened delete confirmation dialog shown when the dive site being deleted is shared with other dive profiles."
+  },
+  "sites_deleteShared_body": "'{name}' is shared with other dive profiles. Deleting it here removes it for everyone.",
+  "@sites_deleteShared_body": {
+    "description": "Body of the delete confirmation dialog for a shared dive site.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Salt Pier"
+      }
+    }
+  },
+  "divers_delete_reassigned_snackbar": "Diver deleted. {trips} shared {trips, plural, one{trip} other{trips}} and {sites} shared {sites, plural, one{site} other{sites}} reassigned to {name}.",
+  "@divers_delete_reassigned_snackbar": {
+    "description": "Snackbar shown after deleting a diver when shared trips/sites were reassigned to a surviving diver instead of deleted.",
+    "placeholders": {
+      "trips": {
+        "type": "int",
+        "example": "2"
+      },
+      "sites": {
+        "type": "int",
+        "example": "1"
+      },
+      "name": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
   }
 }

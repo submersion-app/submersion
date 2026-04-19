@@ -7,6 +7,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -131,6 +132,73 @@ void main() {
       );
       expect(switchFinder, findsOneWidget);
       expect(tester.widget<SwitchListTile>(switchFinder).value, isTrue);
+    });
+  });
+
+  group('unshare confirmation', () {
+    testWidgets('un-share on existing shared site shows confirmation dialog', (
+      tester,
+    ) async {
+      final twoDivers = [
+        Diver(
+          id: 'd1',
+          name: 'One',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+        Diver(
+          id: 'd2',
+          name: 'Two',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+      ];
+
+      const sharedSite = DiveSite(
+        id: 'site-shared',
+        name: 'Salt Pier',
+        isShared: true,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            allDiversProvider.overrideWith((_) async => twoDivers),
+            shareByDefaultProvider.overrideWith((_) async => true),
+            siteProvider('site-shared').overrideWith((_) async => sharedSite),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteEditPage(siteId: 'site-shared'),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Scroll until the share toggle is visible.
+      await tester.scrollUntilVisible(
+        find.text('Share with all dive profiles'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      final switchFinder = find.byWidgetPredicate(
+        (w) =>
+            w is SwitchListTile &&
+            w.title is Text &&
+            (w.title as Text).data == 'Share with all dive profiles',
+      );
+      expect(tester.widget<SwitchListTile>(switchFinder).value, isTrue);
+
+      // Tapping OFF should present the unshare confirmation dialog.
+      await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Unshare this site?'), findsOneWidget);
     });
   });
 

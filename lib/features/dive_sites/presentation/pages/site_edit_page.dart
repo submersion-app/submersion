@@ -603,10 +603,21 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                           context.l10n.common_label_shareWithAllProfiles,
                         ),
                         value: _isShared,
-                        onChanged: (v) => setState(() {
-                          _isShared = v;
-                          _hasChanges = true;
-                        }),
+                        onChanged: (v) async {
+                          if (!v &&
+                              widget.isEditing &&
+                              (_originalSite?.isShared ?? false)) {
+                            final confirmed = await _showUnshareConfirmDialog(
+                              context,
+                            );
+                            if (!mounted) return;
+                            if (confirmed != true) return;
+                          }
+                          setState(() {
+                            _isShared = v;
+                            _hasChanges = true;
+                          });
+                        },
                       )
                     : const SizedBox.shrink(),
                 orElse: () => const SizedBox.shrink(),
@@ -798,6 +809,31 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(context.l10n.diveSites_edit_discardDialog_discard),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Asks the user to confirm un-sharing an existing shared site.
+  /// Returns [true] if confirmed, [false] or [null] to cancel.
+  Future<bool?> _showUnshareConfirmDialog(BuildContext ctx) {
+    final siteName = _nameController.text.trim().isNotEmpty
+        ? _nameController.text.trim()
+        : (_originalSite?.name ?? '');
+    return showDialog<bool>(
+      context: ctx,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text(dialogCtx.l10n.sites_unshareConfirm_title),
+        content: Text(dialogCtx.l10n.sites_unshareConfirm_body(siteName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: Text(MaterialLocalizations.of(dialogCtx).cancelButtonLabel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: Text(dialogCtx.l10n.common_action_unshare),
           ),
         ],
       ),

@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart'
+    show DeleteDiverResult;
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -405,7 +407,13 @@ class _MockDiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>>
   @override
   Future<void> updateDiver(Diver diver) async {}
   @override
-  Future<void> deleteDiver(String id) async {}
+  Future<DeleteDiverResult> deleteDiver(String id) async {
+    return const DeleteDiverResult(
+      reassignedTripsCount: 0,
+      reassignedSitesCount: 0,
+    );
+  }
+
   @override
   Future<void> setAsDefault(String id) async {}
 }

@@ -6,6 +6,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
@@ -697,6 +699,80 @@ void main() {
       // Should show bottomTime formatted as minutes
       expect(find.text('45min'), findsOneWidget);
     });
+  });
+
+  group('delete confirmation on shared trip', () {
+    testWidgets(
+      'shows strengthened dialog when deleting a shared trip with 2+ divers',
+      (tester) async {
+        _setMobileTestSurfaceSize(tester);
+
+        final sharedTrip = Trip(
+          id: 'shared-trip',
+          name: 'Salt Pier Getaway',
+          startDate: DateTime(2024, 1, 15),
+          endDate: DateTime(2024, 1, 22),
+          isShared: true,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        final sharedTripWithStats = TripWithStats(
+          trip: sharedTrip,
+          diveCount: 3,
+          totalBottomTime: 3600,
+        );
+        final twoDivers = [
+          Diver(
+            id: 'd1',
+            name: 'Alice',
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+          Diver(
+            id: 'd2',
+            name: 'Bob',
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+        ];
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              tripWithStatsProvider(sharedTrip.id).overrideWith((ref) {
+                return Future.value(sharedTripWithStats);
+              }),
+              diveIdsForTripProvider(sharedTrip.id).overrideWith((ref) {
+                return Future.value(<String>[]);
+              }),
+              tripListNotifierProvider.overrideWith((ref) {
+                return _MockTripListNotifier([]);
+              }),
+              settingsProvider.overrideWith((ref) {
+                return _MockSettingsNotifier();
+              }),
+              allDiversProvider.overrideWith((_) async => twoDivers),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: TripDetailPage(tripId: sharedTrip.id),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        // Open the more menu and tap Delete.
+        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+
+        // The strengthened shared-trip dialog title should appear.
+        expect(find.text('Delete shared trip?'), findsOneWidget);
+      },
+    );
   });
 
   group('TripDetailPage desktop redirect', () {

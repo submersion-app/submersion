@@ -27641,6 +27641,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share sites and trips across profiles'**
   String get settings_sharedData_sectionSubtitle;
+
+  /// Button label to remove sharing from a record that was previously shared with all dive profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Unshare'**
+  String get common_action_unshare;
+
+  /// Title of the confirmation dialog shown before un-sharing a trip that is currently shared with all profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Unshare this trip?'**
+  String get trips_unshareConfirm_title;
+
+  /// Body of the confirmation dialog shown before un-sharing a trip.
+  ///
+  /// In en, this message translates to:
+  /// **'This will remove \'{name}\' from other dive profiles\' views. You can re-share it later.'**
+  String trips_unshareConfirm_body(String name);
+
+  /// Title of the confirmation dialog shown before un-sharing a dive site that is currently shared with all profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Unshare this site?'**
+  String get sites_unshareConfirm_title;
+
+  /// Body of the confirmation dialog shown before un-sharing a dive site.
+  ///
+  /// In en, this message translates to:
+  /// **'This will remove \'{name}\' from other dive profiles\' views. You can re-share it later.'**
+  String sites_unshareConfirm_body(String name);
+
+  /// Title of the strengthened delete confirmation dialog shown when the trip being deleted is shared with other dive profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete shared trip?'**
+  String get trips_deleteShared_title;
+
+  /// Body of the delete confirmation dialog for a shared trip.
+  ///
+  /// In en, this message translates to:
+  /// **'\'{name}\' is shared with other dive profiles. Deleting it here removes it for everyone.'**
+  String trips_deleteShared_body(String name);
+
+  /// Title of the strengthened delete confirmation dialog shown when the dive site being deleted is shared with other dive profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete shared site?'**
+  String get sites_deleteShared_title;
+
+  /// Body of the delete confirmation dialog for a shared dive site.
+  ///
+  /// In en, this message translates to:
+  /// **'\'{name}\' is shared with other dive profiles. Deleting it here removes it for everyone.'**
+  String sites_deleteShared_body(String name);
+
+  /// Snackbar shown after deleting a diver when shared trips/sites were reassigned to a surviving diver instead of deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Diver deleted. {trips} shared {trips, plural, one{trip} other{trips}} and {sites} shared {sites, plural, one{site} other{sites}} reassigned to {name}.'**
+  String divers_delete_reassigned_snackbar(int trips, int sites, String name);
 }
 
 class _AppLocalizationsDelegate

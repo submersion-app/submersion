@@ -10,6 +10,27 @@ import 'package:submersion/features/settings/data/repositories/diver_settings_re
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
 
+/// Result returned by [DiverRepository.deleteDiverWithReassignment].
+///
+/// When shared trips/sites are reassigned to a surviving diver before
+/// deletion, [hasReassignments] is true and the counts/target are populated.
+class DeleteDiverResult {
+  final int reassignedTripsCount;
+  final int reassignedSitesCount;
+  final String? reassignedToDiverId;
+  final String? reassignedToDiverName;
+
+  const DeleteDiverResult({
+    required this.reassignedTripsCount,
+    required this.reassignedSitesCount,
+    this.reassignedToDiverId,
+    this.reassignedToDiverName,
+  });
+
+  bool get hasReassignments =>
+      reassignedTripsCount > 0 || reassignedSitesCount > 0;
+}
+
 class DiverRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final DiverSettingsRepository _settingsRepository = DiverSettingsRepository();
@@ -192,16 +213,119 @@ class DiverRepository {
     }
   }
 
-  /// Delete a diver
+  /// Delete a diver.
+  ///
+  /// Delegates to [deleteDiverWithReassignment] so that shared trips and
+  /// sites owned by the deleted diver are preserved by reassigning them
+  /// to a surviving diver before the delete cascade runs. Use
+  /// [deleteDiverWithReassignment] directly if you need the reassignment
+  /// counts for user feedback.
+  @Deprecated(
+    'Use deleteDiverWithReassignment to get reassignment counts; '
+    'this wrapper is kept for backwards compatibility.',
+  )
   Future<void> deleteDiver(String id) async {
+    await deleteDiverWithReassignment(id);
+  }
+
+  /// Delete a diver, reassigning shared trips/sites to a surviving diver first.
+  ///
+  /// - If surviving divers exist, shared trips and sites owned by [id] are
+  ///   reassigned to the current default diver (if not the one being deleted)
+  ///   or to the oldest surviving diver by [createdAt].
+  /// - Private (non-shared) records are deleted as usual.
+  /// - If no surviving diver exists, all records are deleted (same as
+  ///   [deleteDiver]).
+  ///
+  /// Returns a [DeleteDiverResult] describing what was reassigned.
+  Future<DeleteDiverResult> deleteDiverWithReassignment(String id) async {
     try {
-      _log.info('Deleting diver: $id');
+      _log.info('Deleting diver with reassignment: $id');
+
+      // Find surviving divers (all except the one being deleted), ordered so
+      // that the default diver comes first, then oldest by createdAt.
+      final allDiversRows =
+          await (_db.select(_db.divers)
+                ..where((t) => t.id.isNotValue(id))
+                ..orderBy([
+                  (t) => OrderingTerm.desc(t.isDefault),
+                  (t) => OrderingTerm.asc(t.createdAt),
+                ]))
+              .get();
+
+      String? targetId;
+      String? targetName;
+      int reassignedTrips = 0;
+      int reassignedSites = 0;
+
+      if (allDiversRows.isNotEmpty) {
+        targetId = allDiversRows.first.id;
+        targetName = allDiversRows.first.name;
+      }
 
       await _db.transaction(() async {
+        // Step 0: Reassign shared records to the surviving diver (if any).
+        if (targetId != null) {
+          final now = DateTime.now().millisecondsSinceEpoch;
+
+          // Collect shared trip IDs before reassignment for sync marking.
+          final sharedTripRows = await _db
+              .customSelect(
+                'SELECT id FROM trips WHERE diver_id = ? AND is_shared = 1',
+                variables: [Variable.withString(id)],
+              )
+              .get();
+          final sharedTripIds = sharedTripRows
+              .map((r) => r.data['id'] as String)
+              .toList();
+
+          if (sharedTripIds.isNotEmpty) {
+            await _db.customStatement(
+              'UPDATE trips SET diver_id = ?, updated_at = ? '
+              'WHERE diver_id = ? AND is_shared = 1',
+              [targetId, now, id],
+            );
+            reassignedTrips = sharedTripIds.length;
+          }
+
+          // Collect shared site IDs before reassignment for sync marking.
+          final sharedSiteRows = await _db
+              .customSelect(
+                'SELECT id FROM dive_sites WHERE diver_id = ? AND is_shared = 1',
+                variables: [Variable.withString(id)],
+              )
+              .get();
+          final sharedSiteIds = sharedSiteRows
+              .map((r) => r.data['id'] as String)
+              .toList();
+
+          if (sharedSiteIds.isNotEmpty) {
+            await _db.customStatement(
+              'UPDATE dive_sites SET diver_id = ?, updated_at = ? '
+              'WHERE diver_id = ? AND is_shared = 1',
+              [targetId, now, id],
+            );
+            reassignedSites = sharedSiteIds.length;
+          }
+
+          // Mark reassigned records pending for sync.
+          for (final tripId in sharedTripIds) {
+            await _syncRepository.markRecordPending(
+              entityType: 'trips',
+              recordId: tripId,
+              localUpdatedAt: now,
+            );
+          }
+          for (final siteId in sharedSiteIds) {
+            await _syncRepository.markRecordPending(
+              entityType: 'diveSites',
+              recordId: siteId,
+              localUpdatedAt: now,
+            );
+          }
+        }
+
         // Step 1: Null out cross-diver FK references to this diver's computers.
-        // Other divers' dives/profiles/data_sources may reference this diver's
-        // dive_computers (from multi-computer consolidation). These nullable FKs
-        // have no CASCADE, so null them before deleting the computers.
         await _db.customStatement(
           'UPDATE dives SET computer_id = NULL '
           'WHERE computer_id IN '
@@ -224,13 +348,11 @@ class DiverRepository {
           [id, id],
         );
 
-        // Step 2: Delete dives (cascades: profiles, tanks, data_sources,
-        // equipment, weights, sightings, tags, buddies, events, photos,
-        // pressure profiles, gas switches, tide records, custom fields,
-        // pending photo suggestions)
+        // Step 2: Delete dives (cascades: profiles, tanks, data_sources, etc.)
         await _db.customStatement('DELETE FROM dives WHERE diver_id = ?', [id]);
 
-        // Step 3: Delete trip children that lack CASCADE on trip FK
+        // Step 3: Delete trip children for remaining (non-reassigned) trips.
+        // Shared trips were reassigned out so their children survive with them.
         await _db.customStatement(
           'DELETE FROM liveaboard_detail_records WHERE trip_id IN '
           '(SELECT id FROM trips WHERE diver_id = ?)',
@@ -242,7 +364,8 @@ class DiverRepository {
           [id],
         );
 
-        // Step 4: Delete remaining per-diver entities
+        // Step 4: Delete remaining per-diver entities (private records only,
+        // since shared ones were reassigned in Step 0).
         await _db.customStatement('DELETE FROM trips WHERE diver_id = ?', [id]);
         await _db.customStatement('DELETE FROM dive_sites WHERE diver_id = ?', [
           id,
@@ -279,7 +402,7 @@ class DiverRepository {
           [id],
         );
 
-        // Delete diver settings (not nullable, so delete instead of nullify)
+        // Delete diver settings (not nullable, so delete instead of nullify).
         final settingsRows = await (_db.select(
           _db.diverSettings,
         )..where((t) => t.diverId.equals(id))).get();
@@ -293,16 +416,27 @@ class DiverRepository {
           );
         }
 
-        // Now delete the diver
+        // Delete the diver record.
         await (_db.delete(_db.divers)..where((t) => t.id.equals(id))).go();
         await _syncRepository.logDeletion(entityType: 'divers', recordId: id);
       });
 
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted diver: $id');
+
+      return DeleteDiverResult(
+        reassignedTripsCount: reassignedTrips,
+        reassignedSitesCount: reassignedSites,
+        reassignedToDiverId: reassignedTrips > 0 || reassignedSites > 0
+            ? targetId
+            : null,
+        reassignedToDiverName: reassignedTrips > 0 || reassignedSites > 0
+            ? targetName
+            : null,
+      );
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to delete diver: $id',
+        'Failed to delete diver with reassignment: $id',
         error: e,
         stackTrace: stackTrace,
       );
