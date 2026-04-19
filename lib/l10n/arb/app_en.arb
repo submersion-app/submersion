@@ -10088,5 +10088,9 @@
   "settings_sharedData_sectionTitle": "Shared data",
   "@settings_sharedData_sectionTitle": {
     "description": "Section header for shared data controls"
+  },
+  "settings_sharedData_sectionSubtitle": "Share sites and trips across profiles",
+  "@settings_sharedData_sectionSubtitle": {
+    "description": "Subtitle for the 'Shared data' section in Settings — short description of the section's purpose."
   }
 }

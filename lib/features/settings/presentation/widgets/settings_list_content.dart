@@ -305,7 +305,7 @@ class _SettingsSectionTile extends StatelessWidget {
       case 'dataSources':
         return context.l10n.settings_section_dataSources_subtitle;
       case 'sharedData':
-        return section.subtitle;
+        return context.l10n.settings_sharedData_sectionSubtitle;
       case 'debug':
         return 'Logs & diagnostics';
       default:

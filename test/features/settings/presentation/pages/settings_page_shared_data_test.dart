@@ -9,6 +9,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
+    as domain;
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
@@ -20,9 +24,64 @@ import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_s
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart' as trips;
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 typedef Override = riverpod.Override;
+
+/// Minimal fake SiteRepository for bulk-share smoke tests.
+class _FakeSiteRepository implements SiteRepository {
+  final List<domain.DiveSite> _sites;
+  String? shareAllForDiverCalledFor;
+  int shareAllForDiverResult;
+
+  _FakeSiteRepository({
+    required List<domain.DiveSite> sites,
+    this.shareAllForDiverResult = 0,
+  }) : _sites = sites;
+
+  @override
+  Future<List<domain.DiveSite>> getAllSites({String? diverId}) async => _sites;
+
+  @override
+  Future<int> shareAllForDiver(String diverId) async {
+    shareAllForDiverCalledFor = diverId;
+    return shareAllForDiverResult;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError(
+    '${invocation.memberName} is not implemented in _FakeSiteRepository',
+  );
+}
+
+/// Minimal fake TripRepository for bulk-share smoke tests.
+class _FakeTripRepository implements TripRepository {
+  final List<trips.Trip> _trips;
+  String? shareAllForDiverCalledFor;
+  int shareAllForDiverResult;
+
+  _FakeTripRepository({
+    required List<trips.Trip> tripList,
+    this.shareAllForDiverResult = 0,
+  }) : _trips = tripList;
+
+  @override
+  Future<List<trips.Trip>> getAllTrips({String? diverId}) async => _trips;
+
+  @override
+  Future<int> shareAllForDiver(String diverId) async {
+    shareAllForDiverCalledFor = diverId;
+    return shareAllForDiverResult;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError(
+    '${invocation.memberName} is not implemented in _FakeTripRepository',
+  );
+}
 
 /// Fake AppSettingsRepository that tracks writes without DB access.
 class _FakeAppSettingsRepository implements AppSettingsRepository {
@@ -509,5 +568,175 @@ void main() {
         expect(fakeAppSettings.lastSetValue, isTrue);
       },
     );
+
+    testWidgets('bulk-share sites: tap, confirm, see snackbar with count', (
+      tester,
+    ) async {
+      final twoDivers = [_makeDiver('diver-1'), _makeDiver('diver-2')];
+
+      // Three private sites owned by diver-1.
+      final fakeSiteRepo = _FakeSiteRepository(
+        sites: [
+          const domain.DiveSite(id: 's1', name: 'Site 1', isShared: false),
+          const domain.DiveSite(id: 's2', name: 'Site 2', isShared: false),
+          const domain.DiveSite(id: 's3', name: 'Site 3', isShared: false),
+        ],
+        shareAllForDiverResult: 3,
+      );
+
+      Widget buildWithBulkShare(Widget child) {
+        fakeAppSettings = _FakeAppSettingsRepository();
+        return MediaQuery(
+          data: const MediaQueryData(size: Size(400, 800)),
+          child: ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              logFileServiceProvider.overrideWithValue(logFileService),
+              settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+              currentDiverIdProvider.overrideWith(
+                (ref) =>
+                    _MockCurrentDiverIdNotifier()..setCurrentDiver('diver-1'),
+              ),
+              currentDiverProvider.overrideWith((ref) async => null),
+              diverListNotifierProvider.overrideWith(
+                (ref) => _MockDiverListNotifier(),
+              ),
+              allDiversProvider.overrideWith((ref) async => twoDivers),
+              appSettingsRepositoryProvider.overrideWithValue(fakeAppSettings),
+              shareByDefaultProvider.overrideWith(
+                (ref) async => fakeAppSettings.getShareByDefault(),
+              ),
+              siteRepositoryProvider.overrideWithValue(fakeSiteRepo),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: child,
+            ),
+          ),
+        );
+      }
+
+      await tester.pumpWidget(
+        buildWithBulkShare(const Scaffold(body: SharedDataSectionContent())),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap "Share all my sites".
+      final siteTile = find.text('Share all my sites');
+      expect(siteTile, findsOneWidget);
+      await tester.tap(siteTile);
+      await tester.pumpAndSettle();
+
+      // Confirmation dialog should appear with the private count (3).
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.textContaining('3'), findsWidgets);
+
+      // Tap the Share button.
+      final shareButton = find.text('Share');
+      expect(shareButton, findsOneWidget);
+      await tester.tap(shareButton);
+      await tester.pumpAndSettle();
+
+      // Success snackbar should appear.
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.textContaining('3'), findsWidgets);
+
+      // Repository action was called for diver-1.
+      expect(fakeSiteRepo.shareAllForDiverCalledFor, equals('diver-1'));
+    });
+
+    testWidgets('bulk-share trips: tap, confirm, see snackbar with count', (
+      tester,
+    ) async {
+      final twoDivers = [_makeDiver('diver-1'), _makeDiver('diver-2')];
+      final now = DateTime(2024);
+
+      // Two private trips owned by diver-1.
+      final fakeTripRepo = _FakeTripRepository(
+        tripList: [
+          trips.Trip(
+            id: 't1',
+            name: 'Trip 1',
+            startDate: now,
+            endDate: now,
+            createdAt: now,
+            updatedAt: now,
+            isShared: false,
+          ),
+          trips.Trip(
+            id: 't2',
+            name: 'Trip 2',
+            startDate: now,
+            endDate: now,
+            createdAt: now,
+            updatedAt: now,
+            isShared: false,
+          ),
+        ],
+        shareAllForDiverResult: 2,
+      );
+
+      Widget buildWithBulkShare(Widget child) {
+        fakeAppSettings = _FakeAppSettingsRepository();
+        return MediaQuery(
+          data: const MediaQueryData(size: Size(400, 800)),
+          child: ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              logFileServiceProvider.overrideWithValue(logFileService),
+              settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+              currentDiverIdProvider.overrideWith(
+                (ref) =>
+                    _MockCurrentDiverIdNotifier()..setCurrentDiver('diver-1'),
+              ),
+              currentDiverProvider.overrideWith((ref) async => null),
+              diverListNotifierProvider.overrideWith(
+                (ref) => _MockDiverListNotifier(),
+              ),
+              allDiversProvider.overrideWith((ref) async => twoDivers),
+              appSettingsRepositoryProvider.overrideWithValue(fakeAppSettings),
+              shareByDefaultProvider.overrideWith(
+                (ref) async => fakeAppSettings.getShareByDefault(),
+              ),
+              tripRepositoryProvider.overrideWithValue(fakeTripRepo),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: child,
+            ),
+          ),
+        );
+      }
+
+      await tester.pumpWidget(
+        buildWithBulkShare(const Scaffold(body: SharedDataSectionContent())),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap "Share all my trips".
+      final tripTile = find.text('Share all my trips');
+      expect(tripTile, findsOneWidget);
+      await tester.tap(tripTile);
+      await tester.pumpAndSettle();
+
+      // Confirmation dialog should appear with the private count (2).
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.textContaining('2'), findsWidgets);
+
+      // Tap the Share button.
+      final shareButton = find.text('Share');
+      expect(shareButton, findsOneWidget);
+      await tester.tap(shareButton);
+      await tester.pumpAndSettle();
+
+      // Success snackbar should appear.
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.textContaining('2'), findsWidgets);
+
+      // Repository action was called for diver-1.
+      expect(fakeTripRepo.shareAllForDiverCalledFor, equals('diver-1'));
+    });
   });
 }

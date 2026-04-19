@@ -16056,4 +16056,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_sharedData_sectionTitle => 'Shared data';
+
+  @override
+  String get settings_sharedData_sectionSubtitle =>
+      'Share sites and trips across profiles';
 }

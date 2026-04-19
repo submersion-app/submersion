@@ -27635,6 +27635,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shared data'**
   String get settings_sharedData_sectionTitle;
+
+  /// Subtitle for the 'Shared data' section in Settings — short description of the section's purpose.
+  ///
+  /// In en, this message translates to:
+  /// **'Share sites and trips across profiles'**
+  String get settings_sharedData_sectionSubtitle;
 }
 
 class _AppLocalizationsDelegate

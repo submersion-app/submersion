@@ -14,6 +14,11 @@ class AppSettingsRepository {
 
   /// Whether newly created sites and trips default to shared.
   /// Returns `false` when the key has never been set.
+  ///
+  /// Reads are intentionally non-throwing: a failed read degrades to the
+  /// safe default (not shared) so the UI can render without blocking on
+  /// a transient DB error. Writes (via [setShareByDefault]) do rethrow so
+  /// the user sees when a toggle change did not take.
   Future<bool> getShareByDefault() async {
     try {
       final row = await (_db.select(
