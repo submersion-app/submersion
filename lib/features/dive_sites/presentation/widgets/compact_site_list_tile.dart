@@ -13,6 +13,7 @@ class CompactSiteListTile extends StatelessWidget {
   final bool isSelectionMode;
   final bool isSelected;
   final bool isHighlighted;
+  final bool showSharedBadge;
 
   const CompactSiteListTile({
     super.key,
@@ -24,6 +25,7 @@ class CompactSiteListTile extends StatelessWidget {
     this.isSelectionMode = false,
     this.isSelected = false,
     this.isHighlighted = false,
+    this.showSharedBadge = false,
   });
 
   @override
@@ -69,7 +71,7 @@ class CompactSiteListTile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Line 1: site name, dive count, chevron
+                      // Line 1: site name, shared badge, dive count, chevron
                       Row(
                         children: [
                           Expanded(
@@ -80,6 +82,14 @@ class CompactSiteListTile extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          if (showSharedBadge) ...[
+                            const SizedBox(width: 6),
+                            Icon(
+                              Icons.people_outline,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ],
                           const SizedBox(width: 8),
                           Text(
                             '$diveCount dives',

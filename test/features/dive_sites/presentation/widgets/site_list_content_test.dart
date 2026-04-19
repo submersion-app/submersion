@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/compact_site_list_tile.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/dense_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -27,21 +29,29 @@ void _setMobileTestSurfaceSize(WidgetTester tester) {
   });
 }
 
+final _now = DateTime.now();
+
 SiteWithDiveCount _makeSite({
   required String id,
   required String name,
   int diveCount = 0,
+  bool isShared = false,
 }) {
   return SiteWithDiveCount(
-    site: DiveSite(id: id, name: name),
+    site: DiveSite(id: id, name: name, isShared: isShared),
     diveCount: diveCount,
   );
+}
+
+Diver _makeDiver(String id) {
+  return Diver(id: id, name: 'Diver $id', createdAt: _now, updatedAt: _now);
 }
 
 Future<List<Override>> _buildPhoneOverrides({
   required List<SiteWithDiveCount> sites,
   required ListViewMode viewMode,
   String? highlightedSiteId,
+  List<Diver>? divers,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -54,6 +64,7 @@ Future<List<Override>> _buildPhoneOverrides({
     siteListNotifierProvider.overrideWith((ref) => _MockSiteListNotifier()),
     siteListViewModeProvider.overrideWith((ref) => viewMode),
     highlightedSiteIdProvider.overrideWith((ref) => highlightedSiteId),
+    if (divers != null) allDiversProvider.overrideWith((ref) async => divers),
   ];
 }
 
@@ -231,6 +242,191 @@ void main() {
         expect(bravo.isSelected, isFalse);
       },
     );
+  });
+
+  // ---------------------------------------------------------------------------
+  // Shared icon tests — exercises detailed, compact, and dense view modes.
+  // ---------------------------------------------------------------------------
+  group('shared icon', () {
+    testWidgets(
+      'detailed view: renders people_outline icon for shared site when 2+ divers',
+      (tester) async {
+        final sites = [
+          _makeSite(id: 's1', name: 'Shared Reef', isShared: true),
+          _makeSite(id: 's2', name: 'Private Reef', isShared: false),
+        ];
+
+        final overrides = await _buildPhoneOverrides(
+          sites: sites,
+          viewMode: ListViewMode.detailed,
+          divers: [_makeDiver('d1'), _makeDiver('d2')],
+        );
+
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: const SiteListContent(showAppBar: false),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byIcon(Icons.people_outline), findsOneWidget);
+
+        final sharedTile = find.ancestor(
+          of: find.text('Shared Reef'),
+          matching: find.byType(SiteListTile),
+        );
+        expect(
+          find.descendant(
+            of: sharedTile,
+            matching: find.byIcon(Icons.people_outline),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'compact view: renders people_outline icon for shared site when 2+ divers',
+      (tester) async {
+        final sites = [
+          _makeSite(id: 's1', name: 'Shared Reef', isShared: true),
+          _makeSite(id: 's2', name: 'Private Reef', isShared: false),
+        ];
+
+        final overrides = await _buildPhoneOverrides(
+          sites: sites,
+          viewMode: ListViewMode.compact,
+          divers: [_makeDiver('d1'), _makeDiver('d2')],
+        );
+
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: const SiteListContent(showAppBar: false),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byIcon(Icons.people_outline), findsOneWidget);
+
+        final sharedTile = find.ancestor(
+          of: find.text('Shared Reef'),
+          matching: find.byType(CompactSiteListTile),
+        );
+        expect(
+          find.descendant(
+            of: sharedTile,
+            matching: find.byIcon(Icons.people_outline),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'dense view: renders people_outline icon for shared site when 2+ divers',
+      (tester) async {
+        final sites = [
+          _makeSite(id: 's1', name: 'Shared Reef', isShared: true),
+          _makeSite(id: 's2', name: 'Private Reef', isShared: false),
+        ];
+
+        final overrides = await _buildPhoneOverrides(
+          sites: sites,
+          viewMode: ListViewMode.dense,
+          divers: [_makeDiver('d1'), _makeDiver('d2')],
+        );
+
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: const SiteListContent(showAppBar: false),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byIcon(Icons.people_outline), findsOneWidget);
+
+        final sharedTile = find.ancestor(
+          of: find.text('Shared Reef'),
+          matching: find.byType(DenseSiteListTile),
+        );
+        expect(
+          find.descendant(
+            of: sharedTile,
+            matching: find.byIcon(Icons.people_outline),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('does not render icon when only one diver (detailed view)', (
+      tester,
+    ) async {
+      final sites = [_makeSite(id: 's1', name: 'Shared Reef', isShared: true)];
+
+      final overrides = await _buildPhoneOverrides(
+        sites: sites,
+        viewMode: ListViewMode.detailed,
+        divers: [_makeDiver('d1')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.people_outline), findsNothing);
+    });
+
+    testWidgets('does not render icon when only one diver (compact view)', (
+      tester,
+    ) async {
+      final sites = [_makeSite(id: 's1', name: 'Shared Reef', isShared: true)];
+
+      final overrides = await _buildPhoneOverrides(
+        sites: sites,
+        viewMode: ListViewMode.compact,
+        divers: [_makeDiver('d1')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.people_outline), findsNothing);
+    });
+
+    testWidgets('does not render icon when only one diver (dense view)', (
+      tester,
+    ) async {
+      final sites = [_makeSite(id: 's1', name: 'Shared Reef', isShared: true)];
+
+      final overrides = await _buildPhoneOverrides(
+        sites: sites,
+        viewMode: ListViewMode.dense,
+        divers: [_makeDiver('d1')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.people_outline), findsNothing);
+    });
   });
 }
 
