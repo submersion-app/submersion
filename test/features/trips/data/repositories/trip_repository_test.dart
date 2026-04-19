@@ -425,5 +425,36 @@ void main() {
         expect(diveIds, isEmpty);
       });
     });
+
+    group('isShared persistence', () {
+      test('createTrip persists isShared when set on entity', () async {
+        final trip = createTestTrip(
+          name: 'Shared Trip',
+        ).copyWith(isShared: true);
+        final created = await repository.createTrip(trip);
+
+        final readBack = await repository.getTripById(created.id);
+        expect(readBack, isNotNull);
+        expect(readBack!.isShared, isTrue);
+      });
+
+      test('createTrip defaults isShared to false when not set', () async {
+        final trip = createTestTrip(name: 'Default Trip');
+        final created = await repository.createTrip(trip);
+
+        final readBack = await repository.getTripById(created.id);
+        expect(readBack!.isShared, isFalse);
+      });
+
+      test('updateTrip persists isShared changes', () async {
+        final trip = createTestTrip(name: 'Toggle');
+        final created = await repository.createTrip(trip);
+
+        await repository.updateTrip(created.copyWith(isShared: true));
+
+        final readBack = await repository.getTripById(created.id);
+        expect(readBack!.isShared, isTrue);
+      });
+    });
   });
 }

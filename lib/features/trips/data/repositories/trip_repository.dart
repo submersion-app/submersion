@@ -94,6 +94,7 @@ class TripRepository {
         tripType: TripType.fromName(
           (row.data['trip_type'] as String?) ?? 'shore',
         ),
+        isShared: (row.data['is_shared'] as int? ?? 0) != 0,
         createdAt: DateTime.fromMillisecondsSinceEpoch(
           row.data['created_at'] as int,
         ),
@@ -125,6 +126,7 @@ class TripRepository {
               liveaboardName: Value(trip.liveaboardName),
               notes: Value(trip.notes),
               tripType: Value(trip.tripType.name),
+              isShared: Value(trip.isShared),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -165,6 +167,7 @@ class TripRepository {
           liveaboardName: Value(trip.liveaboardName),
           notes: Value(trip.notes),
           tripType: Value(trip.tripType.name),
+          isShared: Value(trip.isShared),
           updatedAt: Value(now),
         ),
       );
@@ -473,6 +476,7 @@ class TripRepository {
       tripType: TripType.fromName(
         (result.data['trip_type'] as String?) ?? 'shore',
       ),
+      isShared: (result.data['is_shared'] as int? ?? 0) != 0,
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         result.data['created_at'] as int,
       ),
@@ -523,6 +527,7 @@ class TripRepository {
         tripType: TripType.fromName(
           (row.data['trip_type'] as String?) ?? 'shore',
         ),
+        isShared: (row.data['is_shared'] as int? ?? 0) != 0,
         createdAt: DateTime.fromMillisecondsSinceEpoch(
           row.data['created_at'] as int,
         ),
@@ -552,6 +557,7 @@ class TripRepository {
       liveaboardName: row.liveaboardName,
       notes: row.notes,
       tripType: TripType.fromName(row.tripType),
+      isShared: row.isShared,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );
