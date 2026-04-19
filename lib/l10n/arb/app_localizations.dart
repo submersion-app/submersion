@@ -27563,6 +27563,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Consolidated'**
   String get universalImport_label_consolidated;
+
+  /// Switch on trip/site edit pages that makes the record visible to all local dive profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with all dive profiles'**
+  String get common_label_shareWithAllProfiles;
+
+  /// Global setting: when ON, newly created trips and sites are shared with all dive profiles by default.
+  ///
+  /// In en, this message translates to:
+  /// **'Share new sites and trips by default'**
+  String get settings_shareByDefault_title;
+
+  /// Button/menu item to share all sites at once
+  ///
+  /// In en, this message translates to:
+  /// **'Share all my sites'**
+  String get settings_shareAllSites_title;
+
+  /// Button/menu item to share all trips at once
+  ///
+  /// In en, this message translates to:
+  /// **'Share all my trips'**
+  String get settings_shareAllTrips_title;
+
+  /// No description provided for @settings_shareAllSites_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Make all {count} of your sites visible to every dive profile in this app? You can unshare individual sites later.'**
+  String settings_shareAllSites_confirm(int count);
+
+  /// No description provided for @settings_shareAllTrips_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Make all {count} of your trips visible to every dive profile in this app? You can unshare individual trips later.'**
+  String settings_shareAllTrips_confirm(int count);
+
+  /// No description provided for @settings_shareAllSites_snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared {count} sites with all dive profiles.'**
+  String settings_shareAllSites_snackbar(int count);
+
+  /// No description provided for @settings_shareAllTrips_snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared {count} trips with all dive profiles.'**
+  String settings_shareAllTrips_snackbar(int count);
+
+  /// Message shown when there are no sites/trips to share
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to share.'**
+  String get settings_shareAll_noneToShare;
+
+  /// Section header for shared data controls
+  ///
+  /// In en, this message translates to:
+  /// **'Shared data'**
+  String get settings_sharedData_sectionTitle;
 }
 
 class _AppLocalizationsDelegate

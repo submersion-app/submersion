@@ -10020,5 +10020,65 @@
   "universalImport_label_consolidated": "Consolidated",
   "@universalImport_label_consolidated": {
     "description": "Label for the count of consolidated dives in summary"
+  },
+  "common_label_shareWithAllProfiles": "Share with all dive profiles",
+  "@common_label_shareWithAllProfiles": {
+    "description": "Switch on trip/site edit pages that makes the record visible to all local dive profiles."
+  },
+  "settings_shareByDefault_title": "Share new sites and trips by default",
+  "@settings_shareByDefault_title": {
+    "description": "Global setting: when ON, newly created trips and sites are shared with all dive profiles by default."
+  },
+  "settings_shareAllSites_title": "Share all my sites",
+  "@settings_shareAllSites_title": {
+    "description": "Button/menu item to share all sites at once"
+  },
+  "settings_shareAllTrips_title": "Share all my trips",
+  "@settings_shareAllTrips_title": {
+    "description": "Button/menu item to share all trips at once"
+  },
+  "settings_shareAllSites_confirm": "Make all {count} of your sites visible to every dive profile in this app? You can unshare individual sites later.",
+  "@settings_shareAllSites_confirm": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "settings_shareAllTrips_confirm": "Make all {count} of your trips visible to every dive profile in this app? You can unshare individual trips later.",
+  "@settings_shareAllTrips_confirm": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "settings_shareAllSites_snackbar": "Shared {count} sites with all dive profiles.",
+  "@settings_shareAllSites_snackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "settings_shareAllTrips_snackbar": "Shared {count} trips with all dive profiles.",
+  "@settings_shareAllTrips_snackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "settings_shareAll_noneToShare": "Nothing to share.",
+  "@settings_shareAll_noneToShare": {
+    "description": "Message shown when there are no sites/trips to share"
+  },
+  "settings_sharedData_sectionTitle": "Shared data",
+  "@settings_sharedData_sectionTitle": {
+    "description": "Section header for shared data controls"
   }
 }

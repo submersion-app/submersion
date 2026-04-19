@@ -16385,4 +16385,44 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get universalImport_label_consolidated => 'Consolidées';
+
+  @override
+  String get common_label_shareWithAllProfiles =>
+      'Share with all dive profiles';
+
+  @override
+  String get settings_shareByDefault_title =>
+      'Share new sites and trips by default';
+
+  @override
+  String get settings_shareAllSites_title => 'Share all my sites';
+
+  @override
+  String get settings_shareAllTrips_title => 'Share all my trips';
+
+  @override
+  String settings_shareAllSites_confirm(int count) {
+    return 'Make all $count of your sites visible to every dive profile in this app? You can unshare individual sites later.';
+  }
+
+  @override
+  String settings_shareAllTrips_confirm(int count) {
+    return 'Make all $count of your trips visible to every dive profile in this app? You can unshare individual trips later.';
+  }
+
+  @override
+  String settings_shareAllSites_snackbar(int count) {
+    return 'Shared $count sites with all dive profiles.';
+  }
+
+  @override
+  String settings_shareAllTrips_snackbar(int count) {
+    return 'Shared $count trips with all dive profiles.';
+  }
+
+  @override
+  String get settings_shareAll_noneToShare => 'Nothing to share.';
+
+  @override
+  String get settings_sharedData_sectionTitle => 'Shared data';
 }
