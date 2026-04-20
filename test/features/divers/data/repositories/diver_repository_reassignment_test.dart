@@ -226,4 +226,118 @@ void main() {
       },
     );
   });
+
+  // ---------------------------------------------------------------------------
+  // deleteDiverWithReassignment — cross-diver FK nullification
+  // ---------------------------------------------------------------------------
+
+  Future<String> insertDive(
+    String id, {
+    required String diverId,
+    String? siteId,
+    String? tripId,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: id,
+            diverId: Value(diverId),
+            diveDateTime: now,
+            siteId: Value(siteId),
+            tripId: Value(tripId),
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    return id;
+  }
+
+  group('deleteDiverWithReassignment — cross-diver FK nullification', () {
+    test(
+      'nulls out other divers dive.site_id referencing deleted private sites',
+      () async {
+        // Scenario: site was shared at one point (so B's dive could
+        // reference it), then unshared back to private. Now A is being
+        // deleted; B's dive still references the now-private site.
+        // Without cross-diver FK null-out, the DELETE would violate the
+        // dives.site_id FK.
+        await insertDiver('diver-a', name: 'Alice');
+        await insertDiver('diver-b', name: 'Bob');
+        await insertDiverSettings('diver-a');
+        await insertDiverSettings('diver-b');
+
+        await insertSite('site-orphan', diverId: 'diver-a', isShared: false);
+        await insertDive('dive-b1', diverId: 'diver-b', siteId: 'site-orphan');
+
+        // Should complete without FK violation.
+        final result = await repository.deleteDiverWithReassignment('diver-a');
+        expect(result.reassignedSitesCount, equals(0));
+
+        // Site is gone.
+        final sites = await getSites();
+        expect(sites.map((s) => s.id).toList(), isNot(contains('site-orphan')));
+
+        // B's dive survives with site_id nulled out.
+        final dives = await db.select(db.dives).get();
+        final bDive = dives.singleWhere((d) => d.id == 'dive-b1');
+        expect(bDive.diverId, equals('diver-b'));
+        expect(bDive.siteId, isNull);
+      },
+    );
+
+    test(
+      'nulls out other divers dive.trip_id referencing deleted private trips',
+      () async {
+        await insertDiver('diver-a', name: 'Alice');
+        await insertDiver('diver-b', name: 'Bob');
+        await insertDiverSettings('diver-a');
+        await insertDiverSettings('diver-b');
+
+        await insertTrip('trip-orphan', diverId: 'diver-a', isShared: false);
+        await insertDive('dive-b1', diverId: 'diver-b', tripId: 'trip-orphan');
+
+        final result = await repository.deleteDiverWithReassignment('diver-a');
+        expect(result.reassignedTripsCount, equals(0));
+
+        final trips = await getTrips();
+        expect(trips.map((t) => t.id).toList(), isNot(contains('trip-orphan')));
+
+        final dives = await db.select(db.dives).get();
+        final bDive = dives.singleWhere((d) => d.id == 'dive-b1');
+        expect(bDive.tripId, isNull);
+      },
+    );
+
+    test(
+      'cross-diver reference to a shared site that gets reassigned preserves linkage',
+      () async {
+        // When the site is shared, it's reassigned to the surviving diver
+        // (not deleted). B's dive reference should therefore stay intact
+        // and now point at a site owned by B.
+        await insertDiver('diver-a', name: 'Alice');
+        await insertDiver('diver-b', name: 'Bob');
+        await insertDiverSettings('diver-a');
+        await insertDiverSettings('diver-b');
+
+        await insertSite('site-shared', diverId: 'diver-a', isShared: true);
+        await insertDive('dive-b1', diverId: 'diver-b', siteId: 'site-shared');
+
+        final result = await repository.deleteDiverWithReassignment('diver-a');
+        expect(result.reassignedSitesCount, equals(1));
+        expect(result.reassignedToDiverId, equals('diver-b'));
+
+        // Site survives, now owned by B.
+        final sites = await getSites();
+        final site = sites.singleWhere((s) => s.id == 'site-shared');
+        expect(site.diverId, equals('diver-b'));
+
+        // B's dive still references the (now-B-owned) site.
+        final dives = await db.select(db.dives).get();
+        final bDive = dives.singleWhere((d) => d.id == 'dive-b1');
+        expect(bDive.siteId, equals('site-shared'));
+      },
+    );
+  });
 }

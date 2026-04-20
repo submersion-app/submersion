@@ -351,6 +351,59 @@ class DiverRepository {
         // Step 2: Delete dives (cascades: profiles, tanks, data_sources, etc.)
         await _db.customStatement('DELETE FROM dives WHERE diver_id = ?', [id]);
 
+        // Step 2b: Null out cross-diver FK references to sites/trips we're
+        // about to delete. Other divers may hold dives whose site_id or
+        // trip_id points at this diver's private (non-reassigned) records,
+        // typically because those records were shared at one point before
+        // being unshared. The schema does not cascade SET NULL on these
+        // FKs, so without this step the upcoming DELETEs would violate the
+        // foreign-key constraint.
+        final nullifyNow = DateTime.now().millisecondsSinceEpoch;
+
+        final divesLosingSite = await _db
+            .customSelect(
+              'SELECT id FROM dives WHERE site_id IN '
+              '(SELECT id FROM dive_sites WHERE diver_id = ?)',
+              variables: [Variable.withString(id)],
+            )
+            .get();
+        if (divesLosingSite.isNotEmpty) {
+          await _db.customStatement(
+            'UPDATE dives SET site_id = NULL, updated_at = ? '
+            'WHERE site_id IN (SELECT id FROM dive_sites WHERE diver_id = ?)',
+            [nullifyNow, id],
+          );
+          for (final row in divesLosingSite) {
+            await _syncRepository.markRecordPending(
+              entityType: 'dives',
+              recordId: row.data['id'] as String,
+              localUpdatedAt: nullifyNow,
+            );
+          }
+        }
+
+        final divesLosingTrip = await _db
+            .customSelect(
+              'SELECT id FROM dives WHERE trip_id IN '
+              '(SELECT id FROM trips WHERE diver_id = ?)',
+              variables: [Variable.withString(id)],
+            )
+            .get();
+        if (divesLosingTrip.isNotEmpty) {
+          await _db.customStatement(
+            'UPDATE dives SET trip_id = NULL, updated_at = ? '
+            'WHERE trip_id IN (SELECT id FROM trips WHERE diver_id = ?)',
+            [nullifyNow, id],
+          );
+          for (final row in divesLosingTrip) {
+            await _syncRepository.markRecordPending(
+              entityType: 'dives',
+              recordId: row.data['id'] as String,
+              localUpdatedAt: nullifyNow,
+            );
+          }
+        }
+
         // Step 3: Delete trip children for remaining (non-reassigned) trips.
         // Shared trips were reassigned out so their children survive with them.
         await _db.customStatement(
