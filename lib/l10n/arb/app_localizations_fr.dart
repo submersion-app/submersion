@@ -69,6 +69,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get accessibility_label_sharedWithAllProfiles =>
+      'Shared with all dive profiles';
+
+  @override
   String get accessibility_label_showList => 'Afficher la liste';
 
   @override
@@ -1408,6 +1412,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get common_action_search => 'Rechercher';
 
   @override
+  String get common_action_share => 'Share';
+
+  @override
   String get common_label_error => 'Erreur';
 
   @override
@@ -1415,6 +1422,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get common_placeholder_noValue => '--';
+
+  @override
+  String get common_error_tryAgain => 'Something went wrong. Please try again.';
 
   @override
   String get courses_action_add => 'Ajouter un cours';
@@ -16385,4 +16395,100 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get universalImport_label_consolidated => 'Consolidées';
+
+  @override
+  String get common_label_shareWithAllProfiles =>
+      'Share with all dive profiles';
+
+  @override
+  String get settings_shareByDefault_title =>
+      'Share new sites and trips by default';
+
+  @override
+  String get settings_shareAllSites_title => 'Share all my sites';
+
+  @override
+  String get settings_shareAllTrips_title => 'Share all my trips';
+
+  @override
+  String settings_shareAllSites_confirm(int count) {
+    return 'Make all $count of your sites visible to every dive profile in this app? You can unshare individual sites later.';
+  }
+
+  @override
+  String settings_shareAllTrips_confirm(int count) {
+    return 'Make all $count of your trips visible to every dive profile in this app? You can unshare individual trips later.';
+  }
+
+  @override
+  String settings_shareAllSites_snackbar(int count) {
+    return 'Shared $count sites with all dive profiles.';
+  }
+
+  @override
+  String settings_shareAllTrips_snackbar(int count) {
+    return 'Shared $count trips with all dive profiles.';
+  }
+
+  @override
+  String get settings_shareAll_noneToShare => 'Nothing to share.';
+
+  @override
+  String get settings_sharedData_sectionTitle => 'Shared data';
+
+  @override
+  String get settings_sharedData_sectionSubtitle =>
+      'Share sites and trips across profiles';
+
+  @override
+  String get common_action_unshare => 'Unshare';
+
+  @override
+  String get trips_unshareConfirm_title => 'Unshare this trip?';
+
+  @override
+  String trips_unshareConfirm_body(String name) {
+    return 'This will remove \'$name\' from other dive profiles\' views. You can re-share it later.';
+  }
+
+  @override
+  String get sites_unshareConfirm_title => 'Unshare this site?';
+
+  @override
+  String sites_unshareConfirm_body(String name) {
+    return 'This will remove \'$name\' from other dive profiles\' views. You can re-share it later.';
+  }
+
+  @override
+  String get trips_deleteShared_title => 'Delete shared trip?';
+
+  @override
+  String trips_deleteShared_body(String name) {
+    return '\'$name\' is shared with other dive profiles. Deleting it here removes it for everyone.';
+  }
+
+  @override
+  String get sites_deleteShared_title => 'Delete shared site?';
+
+  @override
+  String sites_deleteShared_body(String name) {
+    return '\'$name\' is shared with other dive profiles. Deleting it here removes it for everyone.';
+  }
+
+  @override
+  String divers_delete_reassigned_snackbar(int trips, int sites, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      trips,
+      locale: localeName,
+      other: 'trips',
+      one: 'trip',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: 'sites',
+      one: 'site',
+    );
+    return 'Diver deleted. $trips shared $_temp0 and $sites shared $_temp1 reassigned to $name.';
+  }
 }

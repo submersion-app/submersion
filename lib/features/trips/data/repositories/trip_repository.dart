@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -25,9 +26,7 @@ class TripRepository {
       final query = _db.select(_db.trips)
         ..orderBy([(t) => OrderingTerm.desc(t.startDate)]);
 
-      if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
-      }
+      VisibilityFilter.applyToTrips(query, diverId);
 
       final rows = await query.get();
       return rows.map(_mapRowToTrip).toList();
@@ -57,13 +56,17 @@ class TripRepository {
   /// Search trips by name or location
   Future<List<domain.Trip>> searchTrips(String query, {String? diverId}) async {
     final searchTerm = '%${query.toLowerCase()}%';
-    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final vis = VisibilityFilter.sqlFragment(
+      tableAlias: 'trips',
+      diverId: diverId,
+      conjunction: 'AND',
+    );
     final variables = [
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
-      if (diverId != null) Variable.withString(diverId),
+      ...vis.variables,
     ];
 
     final results = await _db.customSelect('''
@@ -72,7 +75,7 @@ class TripRepository {
          OR LOWER(location) LIKE ?
          OR LOWER(resort_name) LIKE ?
          OR LOWER(liveaboard_name) LIKE ?)
-      $diverFilter
+      ${vis.whereClause}
       ORDER BY start_date DESC
     ''', variables: variables).get();
 
@@ -94,6 +97,7 @@ class TripRepository {
         tripType: TripType.fromName(
           (row.data['trip_type'] as String?) ?? 'shore',
         ),
+        isShared: (row.data['is_shared'] as int? ?? 0) != 0,
         createdAt: DateTime.fromMillisecondsSinceEpoch(
           row.data['created_at'] as int,
         ),
@@ -125,6 +129,7 @@ class TripRepository {
               liveaboardName: Value(trip.liveaboardName),
               notes: Value(trip.notes),
               tripType: Value(trip.tripType.name),
+              isShared: Value(trip.isShared),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -165,6 +170,7 @@ class TripRepository {
           liveaboardName: Value(trip.liveaboardName),
           notes: Value(trip.notes),
           tripType: Value(trip.tripType.name),
+          isShared: Value(trip.isShared),
           updatedAt: Value(now),
         ),
       );
@@ -178,6 +184,73 @@ class TripRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to update trip: ${trip.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Flip the shared state of a single trip. Marks it pending for sync.
+  Future<void> setShared(String id, bool isShared) async {
+    try {
+      _log.info('Setting trip $id isShared=$isShared');
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.trips)..where((t) => t.id.equals(id))).write(
+        TripsCompanion(isShared: Value(isShared), updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'trips',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set shared flag on trip $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Mark every private trip owned by [diverId] as shared. Returns the
+  /// count of rows updated. All updated rows are marked pending for sync.
+  Future<int> shareAllForDiver(String diverId) async {
+    try {
+      _log.info('Bulk sharing all private trips for diver $diverId');
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      return await _db.transaction(() async {
+        final toShare =
+            await (_db.select(_db.trips)..where(
+                  (t) => t.diverId.equals(diverId) & t.isShared.equals(false),
+                ))
+                .get();
+
+        if (toShare.isEmpty) return 0;
+
+        await _db.customUpdate(
+          'UPDATE trips SET is_shared = 1, updated_at = ? '
+          'WHERE diver_id = ? AND is_shared = 0',
+          variables: [Variable.withInt(now), Variable.withString(diverId)],
+          updates: {_db.trips},
+        );
+
+        for (final row in toShare) {
+          await _syncRepository.markRecordPending(
+            entityType: 'trips',
+            recordId: row.id,
+            localUpdatedAt: now,
+          );
+        }
+        SyncEventBus.notifyLocalChange();
+        return toShare.length;
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to bulk-share trips for diver $diverId',
         error: e,
         stackTrace: stackTrace,
       );
@@ -218,34 +291,45 @@ class TripRepository {
     }
   }
 
-  /// Get dives for a specific trip
-  Future<List<String>> getDiveIdsForTrip(String tripId) async {
-    final results = await _db
-        .customSelect(
-          '''
+  /// Get dives for a specific trip.
+  ///
+  /// When [diverId] is non-null only dives belonging to that diver are
+  /// returned. Pass null to return dives from all divers (import-time use).
+  Future<List<String>> getDiveIdsForTrip(
+    String tripId, {
+    String? diverId,
+  }) async {
+    final diverClause = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withString(tripId),
+      if (diverId != null) Variable.withString(diverId),
+    ];
+    final results = await _db.customSelect('''
       SELECT id FROM dives
       WHERE trip_id = ?
+      $diverClause
       ORDER BY dive_date_time DESC
-    ''',
-          variables: [Variable.withString(tripId)],
-        )
-        .get();
+    ''', variables: variables).get();
 
     return results.map((row) => row.data['id'] as String).toList();
   }
 
-  /// Get dive count for a trip
-  Future<int> getDiveCountForTrip(String tripId) async {
-    final result = await _db
-        .customSelect(
-          '''
+  /// Get dive count for a trip.
+  ///
+  /// When [diverId] is non-null only dives belonging to that diver are
+  /// counted. Pass null to count dives from all divers (import-time use).
+  Future<int> getDiveCountForTrip(String tripId, {String? diverId}) async {
+    final diverClause = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withString(tripId),
+      if (diverId != null) Variable.withString(diverId),
+    ];
+    final result = await _db.customSelect('''
       SELECT COUNT(*) as count
       FROM dives
       WHERE trip_id = ?
-    ''',
-          variables: [Variable.withString(tripId)],
-        )
-        .getSingle();
+      $diverClause
+    ''', variables: variables).getSingle();
 
     return result.data['count'] as int? ?? 0;
   }
@@ -405,16 +489,26 @@ class TripRepository {
     }
   }
 
-  /// Get trip statistics
-  Future<domain.TripWithStats> getTripWithStats(String tripId) async {
+  /// Get trip statistics.
+  ///
+  /// When [diverId] is non-null the aggregate stats (dive count, bottom time,
+  /// depths) are computed only from dives belonging to that diver.
+  /// Pass null to aggregate dives from all divers (import-time use).
+  Future<domain.TripWithStats> getTripWithStats(
+    String tripId, {
+    String? diverId,
+  }) async {
     final trip = await getTripById(tripId);
     if (trip == null) {
       throw Exception('Trip not found');
     }
 
-    final statsResult = await _db
-        .customSelect(
-          '''
+    final diverClause = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withString(tripId),
+      if (diverId != null) Variable.withString(diverId),
+    ];
+    final statsResult = await _db.customSelect('''
       SELECT
         COUNT(*) as dive_count,
         COALESCE(SUM(bottom_time), 0) as total_bottom_time,
@@ -422,10 +516,8 @@ class TripRepository {
         AVG(max_depth) as avg_depth
       FROM dives
       WHERE trip_id = ?
-    ''',
-          variables: [Variable.withString(tripId)],
-        )
-        .getSingle();
+      $diverClause
+    ''', variables: variables).getSingle();
 
     return domain.TripWithStats(
       trip: trip,
@@ -439,17 +531,21 @@ class TripRepository {
   /// Find trip that contains a specific date
   Future<domain.Trip?> findTripForDate(DateTime date, {String? diverId}) async {
     final dateMs = date.millisecondsSinceEpoch;
-    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final vis = VisibilityFilter.sqlFragment(
+      tableAlias: 'trips',
+      diverId: diverId,
+      conjunction: 'AND',
+    );
     final variables = [
       Variable.withInt(dateMs),
       Variable.withInt(dateMs),
-      if (diverId != null) Variable.withString(diverId),
+      ...vis.variables,
     ];
 
     final result = await _db.customSelect('''
       SELECT * FROM trips
       WHERE start_date <= ? AND end_date >= ?
-      $diverFilter
+      ${vis.whereClause}
       ORDER BY start_date DESC
       LIMIT 1
     ''', variables: variables).getSingleOrNull();
@@ -473,6 +569,7 @@ class TripRepository {
       tripType: TripType.fromName(
         (result.data['trip_type'] as String?) ?? 'shore',
       ),
+      isShared: (result.data['is_shared'] as int? ?? 0) != 0,
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         result.data['created_at'] as int,
       ),
@@ -482,14 +579,36 @@ class TripRepository {
     );
   }
 
-  /// Get all trips with their statistics
+  /// Get all trips with their statistics.
+  ///
+  /// When [diverId] is non-null:
+  ///   - The trip visibility predicate restricts which trips are returned
+  ///     (owned by the diver or shared).
+  ///   - The dive JOIN is scoped to that diver so stats reflect only their
+  ///     dives on shared trips.
+  /// Pass null to return all trips with unfiltered stats.
   Future<List<domain.TripWithStats>> getAllTripsWithStats({
     String? diverId,
   }) async {
-    final diverFilter = diverId != null ? 'WHERE t.diver_id = ?' : '';
-    final variables = diverId != null
-        ? [Variable.withString(diverId)]
-        : <Variable<Object>>[];
+    final vis = VisibilityFilter.sqlFragment(
+      tableAlias: 't',
+      diverId: diverId,
+      conjunction: 'WHERE',
+    );
+
+    // Build the JOIN condition: always match trip_id, and also match
+    // diver_id when a specific diver is requested so that stats on shared
+    // trips reflect only that diver's dives.
+    final joinClause = diverId != null
+        ? 'LEFT JOIN dives d ON d.trip_id = t.id AND d.diver_id = ?'
+        : 'LEFT JOIN dives d ON d.trip_id = t.id';
+
+    // When diverId is provided, prepend its variable before the visibility
+    // filter variables so the positional binding lines up with joinClause.
+    final variables = [
+      if (diverId != null) Variable.withString(diverId),
+      ...vis.variables,
+    ];
 
     final rows = await _db.customSelect('''
       SELECT
@@ -499,8 +618,8 @@ class TripRepository {
         MAX(d.max_depth) AS max_depth,
         AVG(d.avg_depth) AS avg_depth
       FROM trips t
-      LEFT JOIN dives d ON d.trip_id = t.id
-      $diverFilter
+      $joinClause
+      ${vis.whereClause}
       GROUP BY t.id
       ORDER BY t.start_date DESC
     ''', variables: variables).get();
@@ -523,6 +642,7 @@ class TripRepository {
         tripType: TripType.fromName(
           (row.data['trip_type'] as String?) ?? 'shore',
         ),
+        isShared: (row.data['is_shared'] as int? ?? 0) != 0,
         createdAt: DateTime.fromMillisecondsSinceEpoch(
           row.data['created_at'] as int,
         ),
@@ -552,6 +672,7 @@ class TripRepository {
       liveaboardName: row.liveaboardName,
       notes: row.notes,
       tripType: TripType.fromName(row.tripType),
+      isShared: row.isShared,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );

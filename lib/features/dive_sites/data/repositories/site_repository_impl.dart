@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -23,9 +24,7 @@ class SiteRepository {
         final query = _db.select(_db.diveSites)
           ..orderBy([(t) => OrderingTerm.asc(t.name)]);
 
-        if (diverId != null) {
-          query.where((t) => t.diverId.equals(diverId));
-        }
+        VisibilityFilter.applyToDiveSites(query, diverId);
 
         final rows = await query.get();
         return rows.map(_mapRowToSite).toList();
@@ -82,6 +81,7 @@ class SiteRepository {
               mooringNumber: Value(site.mooringNumber),
               parkingInfo: Value(site.parkingInfo),
               altitude: Value(site.altitude),
+              isShared: Value(site.isShared),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -132,6 +132,7 @@ class SiteRepository {
           mooringNumber: Value(site.mooringNumber),
           parkingInfo: Value(site.parkingInfo),
           altitude: Value(site.altitude),
+          isShared: Value(site.isShared),
           updatedAt: Value(now),
         ),
       );
@@ -145,6 +146,73 @@ class SiteRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to update site: ${site.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Flip the shared state of a single site. Marks it pending for sync.
+  Future<void> setShared(String id, bool isShared) async {
+    try {
+      _log.info('Setting site $id isShared=$isShared');
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.diveSites)..where((t) => t.id.equals(id))).write(
+        DiveSitesCompanion(isShared: Value(isShared), updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveSites',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set shared flag on site $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Mark every private site owned by [diverId] as shared. Returns the
+  /// count of rows updated. All updated rows are marked pending for sync.
+  Future<int> shareAllForDiver(String diverId) async {
+    try {
+      _log.info('Bulk sharing all private sites for diver $diverId');
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      return await _db.transaction(() async {
+        final toShare =
+            await (_db.select(_db.diveSites)..where(
+                  (t) => t.diverId.equals(diverId) & t.isShared.equals(false),
+                ))
+                .get();
+
+        if (toShare.isEmpty) return 0;
+
+        await _db.customUpdate(
+          'UPDATE dive_sites SET is_shared = 1, updated_at = ? '
+          'WHERE diver_id = ? AND is_shared = 0',
+          variables: [Variable.withInt(now), Variable.withString(diverId)],
+          updates: {_db.diveSites},
+        );
+
+        for (final row in toShare) {
+          await _syncRepository.markRecordPending(
+            entityType: 'diveSites',
+            recordId: row.id,
+            localUpdatedAt: now,
+          );
+        }
+        SyncEventBus.notifyLocalChange();
+        return toShare.length;
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to bulk-share sites for diver $diverId',
         error: e,
         stackTrace: stackTrace,
       );
@@ -406,6 +474,7 @@ class SiteRepository {
                   mooringNumber: Value(site.mooringNumber),
                   parkingInfo: Value(site.parkingInfo),
                   altitude: Value(site.altitude),
+                  isShared: Value(site.isShared),
                   createdAt: Value(ts?.createdAt ?? now),
                   updatedAt: Value(ts?.updatedAt ?? now),
                 ),
@@ -507,9 +576,7 @@ class SiteRepository {
           )
           ..orderBy([(t) => OrderingTerm.asc(t.name)]);
 
-        if (diverId != null) {
-          searchQuery.where((t) => t.diverId.equals(diverId));
-        }
+        VisibilityFilter.applyToDiveSites(searchQuery, diverId);
 
         final rows = await searchQuery.get();
         return rows.map(_mapRowToSite).toList();
@@ -598,6 +665,7 @@ class SiteRepository {
       mooringNumber: row.mooringNumber,
       parkingInfo: row.parkingInfo,
       altitude: row.altitude,
+      isShared: row.isShared,
     );
   }
 
@@ -620,6 +688,7 @@ class SiteRepository {
         mooringNumber: Value(site.mooringNumber),
         parkingInfo: Value(site.parkingInfo),
         altitude: Value(site.altitude),
+        isShared: Value(site.isShared),
         updatedAt: Value(now),
       ),
     );

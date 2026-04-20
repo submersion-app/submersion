@@ -15,6 +15,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/notifications/data/services/notification_scheduler.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
+import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 
 /// Unit system preset
@@ -608,6 +609,17 @@ final diverSettingsRepositoryProvider = Provider<DiverSettingsRepository>((
   ref,
 ) {
   return DiverSettingsRepository();
+});
+
+/// Repository provider for global (non-per-diver) app settings
+final appSettingsRepositoryProvider = Provider<AppSettingsRepository>((ref) {
+  return AppSettingsRepository();
+});
+
+/// Whether newly created sites/trips should be shared with all profiles by default
+final shareByDefaultProvider = FutureProvider<bool>((ref) async {
+  final repo = ref.watch(appSettingsRepositoryProvider);
+  return repo.getShareByDefault();
 });
 
 /// Settings notifier that persists to database per-diver

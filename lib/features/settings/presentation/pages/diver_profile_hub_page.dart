@@ -318,11 +318,27 @@ class DiverProfileHubPage extends ConsumerWidget {
       diverName: diver.name,
     );
     if (confirmed && context.mounted) {
-      await ref.read(diverListNotifierProvider.notifier).deleteDiver(diver.id);
+      final result = await ref
+          .read(diverListNotifierProvider.notifier)
+          .deleteDiver(diver.id);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.settings_profileHub_deleted)),
-        );
+        if (result.hasReassignments) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                context.l10n.divers_delete_reassigned_snackbar(
+                  result.reassignedTripsCount,
+                  result.reassignedSitesCount,
+                  result.reassignedToDiverName ?? '',
+                ),
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.settings_profileHub_deleted)),
+          );
+        }
       }
     }
   }

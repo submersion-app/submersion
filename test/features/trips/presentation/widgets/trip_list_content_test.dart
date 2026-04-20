@@ -3,12 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/compact_trip_list_tile.dart';
+import 'package:submersion/features/trips/presentation/widgets/dense_trip_list_tile.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_list_content.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
@@ -60,6 +62,7 @@ TripWithStats _makeTrip({
   String? location,
   int diveCount = 0,
   double? maxDepth,
+  bool isShared = false,
 }) {
   return TripWithStats(
     trip: Trip(
@@ -68,12 +71,17 @@ TripWithStats _makeTrip({
       startDate: startDate ?? DateTime(2024, 6, 1),
       endDate: endDate ?? DateTime(2024, 6, 7),
       location: location,
+      isShared: isShared,
       createdAt: _now,
       updatedAt: _now,
     ),
     diveCount: diveCount,
     maxDepth: maxDepth,
   );
+}
+
+Diver _makeDiver(String id) {
+  return Diver(id: id, name: 'Diver $id', createdAt: _now, updatedAt: _now);
 }
 
 Future<List<Override>> _buildOverrides({
@@ -103,6 +111,7 @@ Future<List<Override>> _buildPhoneOverrides({
   required List<TripWithStats> trips,
   ListViewMode viewMode = ListViewMode.detailed,
   String? highlightedTripId,
+  List<Diver>? divers,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -120,6 +129,7 @@ Future<List<Override>> _buildPhoneOverrides({
     ),
     sortedFilteredTripsProvider.overrideWith((ref) => AsyncValue.data(trips)),
     highlightedTripIdProvider.overrideWith((ref) => highlightedTripId),
+    if (divers != null) allDiversProvider.overrideWith((ref) async => divers),
   ];
 }
 
@@ -416,5 +426,387 @@ void main() {
         expect(bravo.isSelected, isTrue);
       },
     );
+  });
+
+  // ---------------------------------------------------------------------------
+  // Shared icon tests — exercises detailed, compact, and dense view modes.
+  // ---------------------------------------------------------------------------
+  group('shared icon', () {
+    testWidgets(
+      'detailed view: renders people_outline icon for shared trip when 2+ divers',
+      (tester) async {
+        final trips = [
+          _makeTrip(id: 's1', name: 'Shared Trip', isShared: true),
+          _makeTrip(id: 's2', name: 'Private Trip', isShared: false),
+        ];
+
+        final overrides = await _buildPhoneOverrides(
+          trips: trips,
+          viewMode: ListViewMode.detailed,
+          divers: [_makeDiver('d1'), _makeDiver('d2')],
+        );
+
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: const TripListContent(showAppBar: false),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Icon should appear exactly once, on the shared trip tile.
+        expect(find.byIcon(Icons.people_outline), findsOneWidget);
+
+        // The icon must be inside the tile that carries the shared trip name.
+        final sharedTile = find.ancestor(
+          of: find.text('Shared Trip'),
+          matching: find.byType(TripListTile),
+        );
+        expect(
+          find.descendant(
+            of: sharedTile,
+            matching: find.byIcon(Icons.people_outline),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'compact view: renders people_outline icon for shared trip when 2+ divers',
+      (tester) async {
+        final trips = [
+          _makeTrip(id: 's1', name: 'Shared Trip', isShared: true),
+          _makeTrip(id: 's2', name: 'Private Trip', isShared: false),
+        ];
+
+        final overrides = await _buildPhoneOverrides(
+          trips: trips,
+          viewMode: ListViewMode.compact,
+          divers: [_makeDiver('d1'), _makeDiver('d2')],
+        );
+
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: const TripListContent(showAppBar: false),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byIcon(Icons.people_outline), findsOneWidget);
+
+        final sharedTile = find.ancestor(
+          of: find.text('Shared Trip'),
+          matching: find.byType(CompactTripListTile),
+        );
+        expect(
+          find.descendant(
+            of: sharedTile,
+            matching: find.byIcon(Icons.people_outline),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'dense view: renders people_outline icon for shared trip when 2+ divers',
+      (tester) async {
+        final trips = [
+          _makeTrip(id: 's1', name: 'Shared Trip', isShared: true),
+          _makeTrip(id: 's2', name: 'Private Trip', isShared: false),
+        ];
+
+        final overrides = await _buildPhoneOverrides(
+          trips: trips,
+          viewMode: ListViewMode.dense,
+          divers: [_makeDiver('d1'), _makeDiver('d2')],
+        );
+
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: const TripListContent(showAppBar: false),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byIcon(Icons.people_outline), findsOneWidget);
+
+        final sharedTile = find.ancestor(
+          of: find.text('Shared Trip'),
+          matching: find.byType(DenseTripListTile),
+        );
+        expect(
+          find.descendant(
+            of: sharedTile,
+            matching: find.byIcon(Icons.people_outline),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('does not render icon when only one diver (detailed view)', (
+      tester,
+    ) async {
+      final trips = [_makeTrip(id: 's1', name: 'Shared Trip', isShared: true)];
+
+      final overrides = await _buildPhoneOverrides(
+        trips: trips,
+        viewMode: ListViewMode.detailed,
+        divers: [_makeDiver('d1')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.people_outline), findsNothing);
+    });
+
+    testWidgets('does not render icon when only one diver (compact view)', (
+      tester,
+    ) async {
+      final trips = [_makeTrip(id: 's1', name: 'Shared Trip', isShared: true)];
+
+      final overrides = await _buildPhoneOverrides(
+        trips: trips,
+        viewMode: ListViewMode.compact,
+        divers: [_makeDiver('d1')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.people_outline), findsNothing);
+    });
+
+    testWidgets('does not render icon when only one diver (dense view)', (
+      tester,
+    ) async {
+      final trips = [_makeTrip(id: 's1', name: 'Shared Trip', isShared: true)];
+
+      final overrides = await _buildPhoneOverrides(
+        trips: trips,
+        viewMode: ListViewMode.dense,
+        divers: [_makeDiver('d1')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.people_outline), findsNothing);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Phone app bar: search, sort, view-mode popup menu.
+  // ---------------------------------------------------------------------------
+  group('phone app bar actions', () {
+    testWidgets('tapping search icon opens search delegate', (tester) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Alpha Trip')],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Tap the search icon in the app bar.
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+      // Search delegate should now be open (back arrow visible).
+      expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+    });
+
+    testWidgets('tapping sort icon opens sort bottom sheet', (tester) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Alpha Trip')],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.sort));
+      await tester.pumpAndSettle();
+      // Sort title appears in the bottom sheet.
+      expect(find.textContaining('Sort'), findsWidgets);
+    });
+
+    testWidgets('tapping more menu opens view mode choices', (tester) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Alpha Trip')],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      // Menu items from ListViewModeToggle.
+      expect(find.byType(PopupMenuItem<String>), findsWidgets);
+    });
+
+    testWidgets('compact app bar (showAppBar=false) also has actions', (
+      tester,
+    ) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Alpha Trip')],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Compact app bar exposes search/sort/more icons.
+      expect(find.byIcon(Icons.search), findsOneWidget);
+      expect(find.byIcon(Icons.sort), findsOneWidget);
+      expect(find.byIcon(Icons.more_vert), findsOneWidget);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Empty state (detailed view, no filters)
+  // ---------------------------------------------------------------------------
+  group('empty state', () {
+    testWidgets('renders empty state with add button when no trips', (
+      tester,
+    ) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.flight_takeoff), findsOneWidget);
+      expect(find.byType(FilledButton), findsOneWidget);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Error state
+  // ---------------------------------------------------------------------------
+  group('error state', () {
+    testWidgets('renders error text and retry button on load error', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            tripListNotifierProvider.overrideWith(
+              (ref) => _MockTripListNotifier([]),
+            ),
+            tripListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
+            sortedFilteredTripsProvider.overrideWith(
+              (ref) =>
+                  AsyncValue.error(Exception('load-boom'), StackTrace.current),
+            ),
+          ],
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(find.textContaining('load-boom'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Item tap, selection callback
+  // ---------------------------------------------------------------------------
+  group('item tap', () {
+    testWidgets('tapping a trip with onItemSelected invokes callback', (
+      tester,
+    ) async {
+      final trips = [_makeTrip(id: 't1', name: 'Callback Trip')];
+      final overrides = await _buildPhoneOverrides(
+        trips: trips,
+        viewMode: ListViewMode.detailed,
+      );
+      String? selectedId;
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: TripListContent(
+            showAppBar: false,
+            onItemSelected: (id) => selectedId = id,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Callback Trip'));
+      await tester.pumpAndSettle();
+      expect(selectedId, 't1');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Initial scroll-to-selected
+  // ---------------------------------------------------------------------------
+  group('scroll to selected', () {
+    testWidgets('respects selectedId on initial build', (tester) async {
+      final trips = List.generate(
+        20,
+        (i) => _makeTrip(id: 't$i', name: 'Trip $i'),
+      );
+      final overrides = await _buildPhoneOverrides(
+        trips: trips,
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: false, selectedId: 't15'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Widget rendered without error.
+      expect(find.byType(TripListContent), findsOneWidget);
+    });
   });
 }

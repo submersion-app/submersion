@@ -392,7 +392,7 @@ class _DiverDetailContent extends ConsumerWidget {
     final confirmed = await _showDeleteConfirmation(context);
     if (confirmed && context.mounted) {
       try {
-        await ref
+        final result = await ref
             .read(diverListNotifierProvider.notifier)
             .deleteDiver(diver.id);
         if (context.mounted) {
@@ -401,9 +401,25 @@ class _DiverDetailContent extends ConsumerWidget {
           } else {
             context.pop();
           }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.l10n.divers_detail_deletedSnackbar)),
-          );
+          if (result.hasReassignments) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  context.l10n.divers_delete_reassigned_snackbar(
+                    result.reassignedTripsCount,
+                    result.reassignedSitesCount,
+                    result.reassignedToDiverName ?? '',
+                  ),
+                ),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(context.l10n.divers_detail_deletedSnackbar),
+              ),
+            );
+          }
         }
       } catch (e) {
         if (context.mounted) {

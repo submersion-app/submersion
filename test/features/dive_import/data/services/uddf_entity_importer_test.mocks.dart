@@ -223,6 +223,23 @@ class MockTripRepository extends _i1.Mock implements _i16.TripRepository {
           as _i17.Future<void>);
 
   @override
+  _i17.Future<void> setShared(String? id, bool? isShared) =>
+      (super.noSuchMethod(
+            Invocation.method(#setShared, [id, isShared]),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
+  _i17.Future<int> shareAllForDiver(String? diverId) =>
+      (super.noSuchMethod(
+            Invocation.method(#shareAllForDiver, [diverId]),
+            returnValue: _i17.Future<int>.value(0),
+          )
+          as _i17.Future<int>);
+
+  @override
   _i17.Future<void> deleteTrip(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteTrip, [id]),
@@ -232,17 +249,28 @@ class MockTripRepository extends _i1.Mock implements _i16.TripRepository {
           as _i17.Future<void>);
 
   @override
-  _i17.Future<List<String>> getDiveIdsForTrip(String? tripId) =>
+  _i17.Future<List<String>> getDiveIdsForTrip(
+    String? tripId, {
+    String? diverId,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#getDiveIdsForTrip, [tripId]),
+            Invocation.method(
+              #getDiveIdsForTrip,
+              [tripId],
+              {#diverId: diverId},
+            ),
             returnValue: _i17.Future<List<String>>.value(<String>[]),
           )
           as _i17.Future<List<String>>);
 
   @override
-  _i17.Future<int> getDiveCountForTrip(String? tripId) =>
+  _i17.Future<int> getDiveCountForTrip(String? tripId, {String? diverId}) =>
       (super.noSuchMethod(
-            Invocation.method(#getDiveCountForTrip, [tripId]),
+            Invocation.method(
+              #getDiveCountForTrip,
+              [tripId],
+              {#diverId: diverId},
+            ),
             returnValue: _i17.Future<int>.value(0),
           )
           as _i17.Future<int>);
@@ -295,13 +323,20 @@ class MockTripRepository extends _i1.Mock implements _i16.TripRepository {
           as _i17.Future<void>);
 
   @override
-  _i17.Future<_i2.TripWithStats> getTripWithStats(String? tripId) =>
+  _i17.Future<_i2.TripWithStats> getTripWithStats(
+    String? tripId, {
+    String? diverId,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#getTripWithStats, [tripId]),
+            Invocation.method(#getTripWithStats, [tripId], {#diverId: diverId}),
             returnValue: _i17.Future<_i2.TripWithStats>.value(
               _FakeTripWithStats_1(
                 this,
-                Invocation.method(#getTripWithStats, [tripId]),
+                Invocation.method(
+                  #getTripWithStats,
+                  [tripId],
+                  {#diverId: diverId},
+                ),
               ),
             ),
           )
@@ -1390,6 +1425,23 @@ class MockSiteRepository extends _i1.Mock implements _i27.SiteRepository {
             returnValueForMissingStub: _i17.Future<void>.value(),
           )
           as _i17.Future<void>);
+
+  @override
+  _i17.Future<void> setShared(String? id, bool? isShared) =>
+      (super.noSuchMethod(
+            Invocation.method(#setShared, [id, isShared]),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
+  _i17.Future<int> shareAllForDiver(String? diverId) =>
+      (super.noSuchMethod(
+            Invocation.method(#shareAllForDiver, [diverId]),
+            returnValue: _i17.Future<int>.value(0),
+          )
+          as _i17.Future<int>);
 
   @override
   _i17.Future<void> deleteSite(String? id) =>
