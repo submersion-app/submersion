@@ -6,7 +6,7 @@
 
 ## Overview
 
-Phone-mode users today see a fixed 5-slot bottom navigation: Home, Dives, Sites, Trips, More. The "More" overflow contains 9 further destinations. This design lets users choose which 3 destinations occupy the three customizable middle slots (slots 2-4); Home and More remain pinned to slots 1 and 5. The preference is device-wide, persisted via `SharedPreferences`, and does not affect wide-screen behavior.
+Phone-mode users today see a fixed 5-slot bottom navigation: Home, Dives, Sites, Trips, More. The "More" overflow contains 9 further destinations. This design lets users choose which 3 destinations occupy the three customizable middle slots (slots 2-4); Home and More remain pinned to slots 1 and 5. The preference is device-wide, persisted in the Drift `settings` key-value table via `AppSettingsRepository` (the same mechanism as `shareByDefault`), and does not affect wide-screen behavior.
 
 ### Goals
 
@@ -36,7 +36,7 @@ Phone-mode users today see a fixed 5-slot bottom navigation: Home, Dives, Sites,
 |---|----------|-----------|
 | 1 | Home pinned to slot 1; More pinned to slot 5 | Dashboard is always the expected "home" gesture; More is needed as long as any destination overflows |
 | 2 | Phone-only (≥800px unaffected) | Wide-screen rail has no primary/overflow distinction; customization is a phone-ergonomics feature |
-| 3 | Global preference (`AppSettings`) | Nav ergonomics are about the device user, not the diver profile |
+| 3 | Global preference (`AppSettingsRepository`, Drift `settings` table) | Nav ergonomics are about the device user, not the diver profile |
 | 4 | Dedicated settings page under Appearance | Discoverable via settings browsing; no custom gesture handling |
 | 5 | Primary slots only (overflow stays in default order) | Simpler data model and UI; solves the stated user need without scope creep |
 | 6 | Single `ReorderableListView` with divider | One gesture, one widget, one built-in Flutter primitive |
@@ -76,24 +76,25 @@ Ids are lowercase, kebab-cased (matching the route slugs). The 13 routable ids a
 
 A 14th entry — the `more` sentinel — is included in `kNavDestinations` with `route: ''` and `isPinned: true`; it represents the overflow control, not a destination. Total registry size: **14 entries** (13 routable + 1 sentinel). Movable set: **11 entries** (all except `dashboard` and `more`).
 
-### `AppSettings` addition
+### Persistence (global, via `AppSettingsRepository`)
+
+Nav customization is **not** a field on the per-diver `AppSettings` class. `AppSettings` is loaded/saved via `DiverSettingsRepository` and changes when the active diver switches — but the Q3 decision was for a global (device-wide) preference. Instead, we follow the same pattern as `shareByDefault`: store in the Drift `settings` key-value table via `AppSettingsRepository`.
+
+**Storage key:** `'nav_primary_ids'` in the `settings` table.
+**Encoded value:** JSON-encoded `List<String>`, e.g., `["dives","sites","trips"]`.
+**Default (when key absent):** `["dives", "sites", "trips"]` — matches today's behavior.
+
+New methods on `AppSettingsRepository`:
 
 ```dart
-// in settings_providers.dart
-class SettingsKeys {
-  // ...existing keys...
-  static const String navPrimaryIds = 'nav_primary_ids';
-}
+/// Returns the raw stored value (caller is expected to normalize) or null if unset.
+Future<List<String>?> getNavPrimaryIdsRaw() async { ... }
 
-class AppSettings {
-  // ...existing fields...
-  final List<String> navPrimaryIds; // length == 3
-}
+/// Writes the list as JSON to the settings table.
+Future<void> setNavPrimaryIds(List<String> ids) async { ... }
 ```
 
-**Default:** `["dives", "sites", "trips"]` — matches today's behavior.
-
-**Storage:** `SharedPreferences.setStringList('nav_primary_ids', [...])`.
+Reads are non-throwing (returns `null` on DB error, falling back to defaults). Writes rethrow.
 
 ### Read-path normalizer
 
@@ -105,39 +106,70 @@ All reads flow through a pure function that enforces invariants:
 4. Truncate to 3 if longer.
 5. Pad with defaults (skipping already-present ids) until length is exactly 3.
 
-This function lives in `AppSettingsRepository` and is unit-tested independently.
+This function lives as a top-level function in `lib/shared/widgets/nav/nav_destinations.dart` and is unit-tested independently.
 
 ### Write-path validation
 
-The `StateNotifier` method `updateNavPrimary(List<String> ids)` asserts length is exactly 3, all ids are in the movable registry, and no duplicates. Then it calls `SharedPreferences.setStringList` and emits new settings state.
+The `NavPrimaryIdsNotifier.setPrimaryIds(List<String> ids)` method runs the input through the normalizer, calls `AppSettingsRepository.setNavPrimaryIds(normalized)` which JSON-encodes and writes to the Drift `settings` table, then emits the normalized list as new state.
 
 ## Providers (Riverpod)
 
 Defined in `lib/shared/widgets/nav/nav_primary_provider.dart`.
 
 ```dart
+/// Canonical list of every nav destination (14 entries including the `more` sentinel).
 final navDestinationsProvider = Provider<List<NavDestination>>((ref) => kNavDestinations);
 
-final navPrimaryDestinationsProvider = Provider<List<NavDestination>>((ref) {
-  final settings = ref.watch(settingsProvider);
-  final all = ref.watch(navDestinationsProvider);
-  final home = all.firstWhere((d) => d.id == 'dashboard');
-  final more = all.firstWhere((d) => d.id == 'more');
-  final byId = {for (final d in all) d.id: d};
-  final middle = settings.navPrimaryIds
-      .map((id) => byId[id])
-      .whereType<NavDestination>()
-      .take(3)
+/// The list of movable destination ids (all except dashboard and more).
+final movableNavIdsProvider = Provider<List<String>>((ref) {
+  return ref.watch(navDestinationsProvider)
+      .where((d) => !d.isPinned)
+      .map((d) => d.id)
       .toList();
-  return [home, ...middle, more]; // always length 5
 });
 
-final navOverflowDestinationsProvider = Provider<List<NavDestination>>((ref) {
+/// The 3 default primary middle-slot ids, used when no preference is set.
+const List<String> kDefaultPrimaryIds = ['dives', 'sites', 'trips'];
+
+/// Async-loaded normalized 3-element list of primary middle-slot ids.
+/// Re-watched whenever `navPrimaryIdsNotifierProvider` emits.
+final navPrimaryIdsProvider = Provider<List<String>>((ref) {
+  return ref.watch(navPrimaryIdsNotifierProvider);
+});
+
+/// StateNotifier owning the nav primary ids. Loads from AppSettingsRepository
+/// on construction; mutations write through and update in-memory state.
+final navPrimaryIdsNotifierProvider =
+    StateNotifierProvider<NavPrimaryIdsNotifier, List<String>>((ref) {
+  return NavPrimaryIdsNotifier(
+    repository: ref.watch(appSettingsRepositoryProvider),
+    movableIds: ref.watch(movableNavIdsProvider),
+  );
+});
+
+/// Derived: the full 5-entry primary list [home, slot2, slot3, slot4, more].
+final navPrimaryDestinationsProvider = Provider<List<NavDestination>>((ref) {
   final all = ref.watch(navDestinationsProvider);
-  final primaryIds = ref.watch(settingsProvider).navPrimaryIds.toSet();
-  return all.where((d) => !d.isPinned && !primaryIds.contains(d.id)).toList();
+  final byId = {for (final d in all) d.id: d};
+  final home = byId['dashboard']!;
+  final more = byId['more']!;
+  final middle = ref.watch(navPrimaryIdsProvider)
+      .map((id) => byId[id])
+      .whereType<NavDestination>()
+      .toList();
+  return [home, ...middle, more];
+});
+
+/// Derived: destinations shown in the More sheet (movable minus primary), canonical order.
+final navOverflowDestinationsProvider = Provider<List<NavDestination>>((ref) {
+  final primaryIds = ref.watch(navPrimaryIdsProvider).toSet();
+  return ref.watch(navDestinationsProvider)
+      .where((d) => !d.isPinned && !primaryIds.contains(d.id))
+      .toList();
 });
 ```
+
+`NavPrimaryIdsNotifier` exposes `Future<void> setPrimaryIds(List<String>)` and `Future<void> resetToDefaults()`, both of which validate via the normalizer, call `repository.setNavPrimaryIds(normalized)`, then update `state`.
 
 ## UI components
 
@@ -166,7 +198,7 @@ The divider is part of the `ReorderableListView` but must remain at index 3. In 
 1. Reconstruct the movable list *without* the divider.
 2. Apply the reorder to this 11-item list (using the indices of movable items, not raw indices).
 3. If the user attempted to move the divider itself, ignore the reorder entirely.
-4. Call `settingsNotifier.updateNavPrimary(newMovableList.take(3).toList())`.
+4. Call `ref.read(navPrimaryIdsNotifierProvider.notifier).setPrimaryIds(newMovableList.take(3).toList())`.
 
 ### `MainScaffold` changes
 
@@ -234,12 +266,13 @@ New ARB keys (added to `lib/l10n/arb/app_en.arb` and the 10 sibling locale files
 **Unit:**
 
 - `test/shared/widgets/nav/nav_destinations_test.dart` — registry invariants (14 entries = 13 routable + `more` sentinel, exactly 2 with `isPinned: true`, no duplicate ids, all ids match `^[a-z][a-z-]*$`, the 11-item movable set is exactly the registry minus `dashboard` and `more`).
-- `test/features/settings/data/repositories/app_settings_nav_test.dart` — the normalizer, table-driven for each edge case above.
+- `test/shared/widgets/nav/nav_normalize_test.dart` — the `normalizeNavPrimaryIds` pure function, table-driven for each edge case above.
+- `test/features/settings/data/repositories/app_settings_repository_nav_test.dart` — round-trip test for `setNavPrimaryIds`/`getNavPrimaryIdsRaw` using an in-memory Drift DB.
 
 **Widget:**
 
 - `test/features/settings/presentation/pages/nav_customization_page_test.dart` — initial render, drag emits expected update, divider snap-back, reset button enable/disable, semantic move actions.
-- `test/shared/widgets/main_scaffold_test.dart` (extend) — mobile nav reflects `navPrimaryIds`, selected index resolves correctly under customization, More sheet omits primaries, wide-screen rail unaffected.
+- `test/shared/widgets/main_scaffold_test.dart` (extend) — mobile nav reflects the primary ids via provider override, selected index resolves correctly under customization, More sheet omits primaries, wide-screen rail unaffected.
 
 **Integration:**
 
@@ -256,8 +289,7 @@ New ARB keys (added to `lib/l10n/arb/app_en.arb` and the 10 sibling locale files
 
 **Modified:**
 
-- `lib/features/settings/presentation/providers/settings_providers.dart` — new field, new key, notifier method.
-- `lib/features/settings/data/repositories/app_settings_repository.dart` — read/write with normalizer.
+- `lib/features/settings/data/repositories/app_settings_repository.dart` — new `getNavPrimaryIdsRaw()` and `setNavPrimaryIds()` methods (JSON-encode to `settings` table, mirroring `shareByDefault`).
 - `lib/shared/widgets/main_scaffold.dart` — mobile branch only; wide-screen branch untouched.
 - `lib/core/router/app_router.dart` — register `/settings/appearance/navigation`.
 - `lib/features/settings/presentation/pages/appearance_page.dart` — entry tile.
