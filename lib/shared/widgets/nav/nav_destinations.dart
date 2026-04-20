@@ -152,3 +152,41 @@ final List<String> movableNavIds = kNavDestinations
 
 /// Default primary middle-slot ids (slots 2, 3, 4). Matches pre-customization behavior.
 const List<String> kDefaultPrimaryIds = ['dives', 'sites', 'trips'];
+
+/// Normalizes a stored list of primary ids into a valid 3-element list.
+///
+/// Guarantees on the returned list:
+/// - Length is exactly 3.
+/// - Every id is in [movableIds] (unknown / pinned ids are dropped).
+/// - No duplicates (first occurrence wins).
+/// - Padding uses [defaults] in order, skipping already-present ids.
+///
+/// [defaults] must contain at least 3 ids from [movableIds]; otherwise this
+/// throws [ArgumentError]. Callers should pass [kDefaultPrimaryIds].
+List<String> normalizeNavPrimaryIds({
+  required List<String> stored,
+  required List<String> movableIds,
+  required List<String> defaults,
+}) {
+  assert(defaults.length >= 3, 'defaults must contain at least 3 ids');
+  for (final id in defaults.take(3)) {
+    if (!movableIds.contains(id)) {
+      throw ArgumentError('default id "$id" not in movableIds');
+    }
+  }
+
+  final result = <String>[];
+  for (final id in stored) {
+    if (result.length == 3) break;
+    if (!movableIds.contains(id)) continue;
+    if (result.contains(id)) continue;
+    result.add(id);
+  }
+
+  for (final id in defaults) {
+    if (result.length == 3) break;
+    if (!result.contains(id)) result.add(id);
+  }
+
+  return List.unmodifiable(result);
+}
