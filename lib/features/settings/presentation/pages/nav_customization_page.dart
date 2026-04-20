@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -56,6 +57,8 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
   // Divider sits between primary (first 3 movable) and overflow.
   static const _dividerIndex = 3;
 
+  // INVARIANT: this page is the sole writer to navPrimaryIdsProvider while mounted.
+  // We hold a local mirror for drag responsiveness and only reconcile on reset.
   // Ordered movable ids local to the page. Initialized from provider on first
   // build; mutated optimistically during drags, then committed via notifier.
   List<String>? _local;
@@ -79,9 +82,7 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
 
     _local ??= _currentOrder(primaryIds);
 
-    final listIsDefault =
-        primaryIds.toList().toString() ==
-        kDefaultPrimaryIds.toList().toString();
+    final listIsDefault = listEquals(primaryIds, kDefaultPrimaryIds);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings_navCustomization_title)),
@@ -117,19 +118,7 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
                   destination: destination,
                 );
               },
-              onReorder: (oldIndex, newIndex) {
-                final newList = applyReorderPreservingDivider(
-                  movable: _local!,
-                  dividerIndex: _dividerIndex,
-                  oldIndex: oldIndex,
-                  newIndex: newIndex,
-                );
-                setState(() => _local = newList);
-                // Commit the top 3 as the new primary ids.
-                ref
-                    .read(navPrimaryIdsNotifierProvider.notifier)
-                    .setPrimaryIds(newList.take(3).toList());
-              },
+              onReorder: _onDragReorder,
             ),
           ),
           const Divider(height: 1),
@@ -206,18 +195,14 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
             tooltip: l10n.settings_navCustomization_moveUpLabel(
               destination.label(l10n),
             ),
-            onPressed: index == 0
-                ? null
-                : () => _onReorderByButton(index, index - 1),
+            onPressed: index == 0 ? null : () => _moveUp(index),
           ),
           IconButton(
             icon: const Icon(Icons.arrow_downward),
             tooltip: l10n.settings_navCustomization_moveDownLabel(
               destination.label(l10n),
             ),
-            onPressed: index >= _local!.length
-                ? null
-                : () => _onReorderByButton(index, index + 2),
+            onPressed: index == _local!.length ? null : () => _moveDown(index),
           ),
           ReorderableDragStartListener(
             index: index,
@@ -231,16 +216,67 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
     );
   }
 
-  void _onReorderByButton(int oldIndex, int newIndex) {
+  void _moveUp(int index) {
+    // When stepping across the divider, skip over it to the slot above.
+    final target = index == _dividerIndex + 1 ? _dividerIndex - 1 : index - 1;
+    _onReorderByButton(index, target);
+  }
+
+  void _moveDown(int index) {
+    // When stepping across the divider, skip over it to the slot below.
+    final target = index == _dividerIndex - 1 ? _dividerIndex + 2 : index + 2;
+    _onReorderByButton(index, target);
+  }
+
+  Future<void> _onReorderByButton(int oldIndex, int newIndex) async {
+    final previous = _local!;
     final newList = applyReorderPreservingDivider(
-      movable: _local!,
+      movable: previous,
       dividerIndex: _dividerIndex,
       oldIndex: oldIndex,
       newIndex: newIndex,
     );
+    if (identical(newList, previous)) return; // no-op reorder
     setState(() => _local = newList);
-    ref
-        .read(navPrimaryIdsNotifierProvider.notifier)
-        .setPrimaryIds(newList.take(3).toList());
+    try {
+      await ref
+          .read(navPrimaryIdsNotifierProvider.notifier)
+          .setPrimaryIds(newList.take(3).toList());
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _local = previous);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          // TODO(i18n): localize this error string
+          content: Text('Could not save navigation layout. Please try again.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onDragReorder(int oldIndex, int newIndex) async {
+    final previous = _local!;
+    final newList = applyReorderPreservingDivider(
+      movable: previous,
+      dividerIndex: _dividerIndex,
+      oldIndex: oldIndex,
+      newIndex: newIndex,
+    );
+    if (identical(newList, previous)) return; // no-op reorder
+    setState(() => _local = newList);
+    try {
+      await ref
+          .read(navPrimaryIdsNotifierProvider.notifier)
+          .setPrimaryIds(newList.take(3).toList());
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _local = previous);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          // TODO(i18n): localize this error string
+          content: Text('Could not save navigation layout. Please try again.'),
+        ),
+      );
+    }
   }
 }

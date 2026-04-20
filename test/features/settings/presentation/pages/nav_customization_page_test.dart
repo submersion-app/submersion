@@ -141,5 +141,40 @@ void main() {
 
       expect(repo.stored, kDefaultPrimaryIds);
     });
+
+    testWidgets('move-up on first overflow row promotes it to primary', (
+      tester,
+    ) async {
+      // Default primary: [dives, sites, trips]; first overflow = equipment.
+      final repo = _FakeRepo();
+      await tester.pumpWidget(buildHarness(repo));
+      await tester.pumpAndSettle();
+
+      // Find the move-up button whose tooltip targets Equipment.
+      await tester.tap(find.byTooltip('Move Equipment up'));
+      await tester.pumpAndSettle();
+
+      // Equipment should now be primary; trips (the last default primary)
+      // should drop to overflow.
+      expect(repo.stored, contains('equipment'));
+      expect(repo.stored, isNot(contains('trips')));
+    });
+
+    testWidgets('move-down on last primary row demotes it to overflow', (
+      tester,
+    ) async {
+      // Default primary: [dives, sites, trips]; last primary = trips.
+      final repo = _FakeRepo();
+      await tester.pumpWidget(buildHarness(repo));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Move Trips down'));
+      await tester.pumpAndSettle();
+
+      // Trips should be displaced; equipment (first overflow originally)
+      // should now be primary.
+      expect(repo.stored, contains('equipment'));
+      expect(repo.stored, isNot(contains('trips')));
+    });
   });
 }
