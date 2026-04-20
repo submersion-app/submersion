@@ -212,6 +212,12 @@ abstract class AppLocalizations {
   /// **'{title} map view'**
   String accessibility_label_mapViewTitle(Object title);
 
+  /// Screen-reader / tooltip label for the people icon shown on trip and site list tiles when a record is shared across dive profiles. Descriptive form (state), distinct from the imperative form used on the edit-page switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared with all dive profiles'**
+  String get accessibility_label_sharedWithAllProfiles;
+
   /// Tooltip for the button that shows the list pane when collapsed
   ///
   /// In en, this message translates to:

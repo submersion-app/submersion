@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Two-line compact card tile for the trip list.
 ///
@@ -62,10 +63,15 @@ class CompactTripListTile extends StatelessWidget {
                     ),
                     if (showSharedBadge) ...[
                       const SizedBox(width: 6),
-                      Icon(
-                        Icons.people_outline,
-                        size: 16,
-                        color: colorScheme.primary,
+                      Tooltip(
+                        message: context
+                            .l10n
+                            .accessibility_label_sharedWithAllProfiles,
+                        child: Icon(
+                          Icons.people_outline,
+                          size: 16,
+                          color: colorScheme.primary,
+                        ),
                       ),
                     ],
                     const SizedBox(width: 8),

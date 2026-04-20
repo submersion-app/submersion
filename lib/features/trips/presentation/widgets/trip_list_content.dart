@@ -586,10 +586,14 @@ class TripListTile extends StatelessWidget {
               Expanded(child: Text(trip.name)),
               if (showSharedBadge) ...[
                 const SizedBox(width: 6),
-                Icon(
-                  Icons.people_outline,
-                  size: 16,
-                  color: theme.colorScheme.primary,
+                Tooltip(
+                  message:
+                      context.l10n.accessibility_label_sharedWithAllProfiles,
+                  child: Icon(
+                    Icons.people_outline,
+                    size: 16,
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
               ],
             ],

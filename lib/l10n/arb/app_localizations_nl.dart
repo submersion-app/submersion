@@ -68,6 +68,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get accessibility_label_sharedWithAllProfiles =>
+      'Shared with all dive profiles';
+
+  @override
   String get accessibility_label_showList => 'Lijst tonen';
 
   @override

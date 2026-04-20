@@ -17,6 +17,10 @@
   "accessibility_label_listPane": "{title} list pane",
   "accessibility_label_mapPane": "{title} map pane",
   "accessibility_label_mapViewTitle": "{title} map view",
+  "accessibility_label_sharedWithAllProfiles": "Shared with all dive profiles",
+  "@accessibility_label_sharedWithAllProfiles": {
+    "description": "Screen-reader / tooltip label for the people icon shown on trip and site list tiles when a record is shared across dive profiles. Descriptive form (state), distinct from the imperative form used on the edit-page switch."
+  },
   "accessibility_label_showList": "Show List",
   "accessibility_label_showMapView": "Show Map View",
   "accessibility_label_viewDetails": "View details",

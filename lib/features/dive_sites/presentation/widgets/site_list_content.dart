@@ -1303,10 +1303,14 @@ class SiteListTile extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 if (showSharedBadge)
-                  Icon(
-                    Icons.people_outline,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.primary,
+                  Tooltip(
+                    message:
+                        context.l10n.accessibility_label_sharedWithAllProfiles,
+                    child: Icon(
+                      Icons.people_outline,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 if (_depthString != null)
                   Text(

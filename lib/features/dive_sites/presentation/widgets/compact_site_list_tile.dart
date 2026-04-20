@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
+
 /// Two-line compact card tile for the site list.
 ///
 /// Line 1: Site name (expanded) | Dive count text | Chevron
@@ -84,10 +86,15 @@ class CompactSiteListTile extends StatelessWidget {
                           ),
                           if (showSharedBadge) ...[
                             const SizedBox(width: 6),
-                            Icon(
-                              Icons.people_outline,
-                              size: 16,
-                              color: Theme.of(context).colorScheme.primary,
+                            Tooltip(
+                              message: context
+                                  .l10n
+                                  .accessibility_label_sharedWithAllProfiles,
+                              child: Icon(
+                                Icons.people_outline,
+                                size: 16,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                             ),
                           ],
                           const SizedBox(width: 8),
