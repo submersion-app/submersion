@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_computer/presentation/providers/downloa
 import 'package:submersion/features/dive_computer/presentation/widgets/download_exit_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
+import 'package:submersion/shared/widgets/nav/nav_primary_provider.dart';
 
 class MainScaffold extends ConsumerStatefulWidget {
   final Widget child;
@@ -21,19 +22,6 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   /// When true, the user has manually collapsed the rail (overrides auto-extend)
   bool _isCollapsed = false;
 
-  // Routes that appear in the "More" menu on mobile
-  static const _moreRoutes = [
-    '/equipment',
-    '/buddies',
-    '/dive-centers',
-    '/certifications',
-    '/courses',
-    '/statistics',
-    '/planning',
-    '/transfer',
-    '/settings',
-  ];
-
   int _calculateSelectedIndex(
     BuildContext context, {
     required bool isWideScreen,
@@ -41,7 +29,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final location = GoRouterState.of(context).uri.path;
 
     if (isWideScreen) {
-      // Wide screen: All items in the rail
+      // Wide-screen rail: ordered by default kNavDestinations.
       if (location.startsWith('/dashboard')) return 0;
       if (location.startsWith('/dives')) return 1;
       if (location.startsWith('/sites')) return 2;
@@ -56,18 +44,15 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       if (location.startsWith('/transfer')) return 11;
       if (location.startsWith('/settings')) return 12;
       return 0;
-    } else {
-      // Mobile: Dashboard, Dives, Sites, Trips, More
-      if (location.startsWith('/dashboard')) return 0;
-      if (location.startsWith('/dives')) return 1;
-      if (location.startsWith('/sites')) return 2;
-      if (location.startsWith('/trips')) return 3;
-      // Check if current route is in "More" menu
-      for (final route in _moreRoutes) {
-        if (location.startsWith(route)) return 4;
-      }
-      return 0;
     }
+
+    // Mobile: iterate the dynamic primary list (length 5: [dashboard, 3 middle, more]).
+    final primary = ref.read(navPrimaryDestinationsProvider);
+    for (var i = 0; i < primary.length - 1; i++) {
+      final route = primary[i].route;
+      if (route.isNotEmpty && location.startsWith(route)) return i;
+    }
+    return primary.length - 1; // fall through to More (index 4)
   }
 
   Future<void> _onDestinationSelected(
@@ -126,28 +111,17 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
           break;
       }
     } else {
-      // Mobile navigation: Dashboard, Dives, Sites, Trips, More
-      switch (index) {
-        case 0:
-          context.go('/dashboard');
-          break;
-        case 1:
-          context.go('/dives');
-          break;
-        case 2:
-          context.go('/sites');
-          break;
-        case 3:
-          context.go('/trips');
-          break;
-        case 4:
-          _showMoreMenu(context);
-          break;
+      final primary = ref.read(navPrimaryDestinationsProvider);
+      if (index == primary.length - 1) {
+        _showMoreMenu(context);
+        return;
       }
+      context.go(primary[index].route);
     }
   }
 
   void _showMoreMenu(BuildContext context) {
+    final overflow = ref.read(navOverflowDestinationsProvider);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -155,7 +129,6 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Fixed header
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -174,85 +147,22 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
               ),
             ),
             const Divider(height: 1),
-            // Scrollable menu items
             Flexible(
               child: ListView(
                 shrinkWrap: true,
                 children: [
-                  ListTile(
-                    leading: const Icon(Icons.backpack),
-                    title: Text(sheetContext.l10n.nav_equipment),
-                    onTap: () {
-                      Navigator.pop(sheetContext);
-                      context.go('/equipment');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.people),
-                    title: Text(sheetContext.l10n.nav_buddies),
-                    onTap: () {
-                      Navigator.pop(sheetContext);
-                      context.go('/buddies');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.store),
-                    title: Text(sheetContext.l10n.nav_diveCenters),
-                    onTap: () {
-                      Navigator.pop(sheetContext);
-                      context.go('/dive-centers');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.card_membership),
-                    title: Text(sheetContext.l10n.nav_certifications),
-                    onTap: () {
-                      Navigator.pop(sheetContext);
-                      context.go('/certifications');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.school),
-                    title: Text(sheetContext.l10n.nav_courses),
-                    subtitle: Text(sheetContext.l10n.nav_coursesSubtitle),
-                    onTap: () {
-                      Navigator.pop(sheetContext);
-                      context.go('/courses');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.bar_chart),
-                    title: Text(sheetContext.l10n.nav_statistics),
-                    onTap: () {
-                      Navigator.pop(sheetContext);
-                      context.go('/statistics');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.edit_calendar),
-                    title: Text(sheetContext.l10n.nav_planning),
-                    subtitle: Text(sheetContext.l10n.nav_planningSubtitle),
-                    onTap: () {
-                      Navigator.pop(sheetContext);
-                      context.go('/planning');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.sync_alt),
-                    title: Text(sheetContext.l10n.nav_transfer),
-                    onTap: () {
-                      Navigator.pop(sheetContext);
-                      context.go('/transfer');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.settings),
-                    title: Text(sheetContext.l10n.nav_settings),
-                    onTap: () {
-                      Navigator.pop(sheetContext);
-                      context.go('/settings');
-                    },
-                  ),
+                  for (final destination in overflow)
+                    ListTile(
+                      leading: Icon(destination.icon),
+                      title: Text(destination.label(sheetContext.l10n)),
+                      subtitle: destination.subtitle != null
+                          ? Text(destination.subtitle!(sheetContext.l10n))
+                          : null,
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        context.go(destination.route);
+                      },
+                    ),
                   const SizedBox(height: 8),
                 ],
               ),
@@ -420,37 +330,23 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
           ],
         ),
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (index) =>
-            _onDestinationSelected(index, isWideScreen: false),
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.home_outlined),
-            selectedIcon: const Icon(Icons.home),
-            label: context.l10n.nav_home,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.scuba_diving_outlined),
-            selectedIcon: const Icon(Icons.scuba_diving),
-            label: context.l10n.nav_dives,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.location_on_outlined),
-            selectedIcon: const Icon(Icons.location_on),
-            label: context.l10n.nav_sites,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.flight_outlined),
-            selectedIcon: const Icon(Icons.flight),
-            label: context.l10n.nav_trips,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.more_horiz_outlined),
-            selectedIcon: const Icon(Icons.more_horiz),
-            label: context.l10n.nav_more,
-          ),
-        ],
+      bottomNavigationBar: Consumer(
+        builder: (context, ref, _) {
+          final primary = ref.watch(navPrimaryDestinationsProvider);
+          return NavigationBar(
+            selectedIndex: selectedIndex,
+            onDestinationSelected: (index) =>
+                _onDestinationSelected(index, isWideScreen: false),
+            destinations: [
+              for (final destination in primary)
+                NavigationDestination(
+                  icon: Icon(destination.icon),
+                  selectedIcon: Icon(destination.selectedIcon),
+                  label: destination.label(context.l10n),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
