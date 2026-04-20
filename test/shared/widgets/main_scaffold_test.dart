@@ -175,7 +175,9 @@ void main() {
   });
 
   group('MainScaffold mobile nav customization', () {
-    Future<Widget> buildHarness({required AppSettingsRepository repo}) async {
+    Future<({Widget app, GoRouter router})> buildHarnessWithRouter({
+      required AppSettingsRepository repo,
+    }) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
 
@@ -242,7 +244,7 @@ void main() {
         ],
       );
 
-      return ProviderScope(
+      final app = ProviderScope(
         overrides: [
           appSettingsRepositoryProvider.overrideWithValue(repo),
           sharedPreferencesProvider.overrideWithValue(prefs),
@@ -260,6 +262,13 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
         ),
       );
+
+      return (app: app, router: router);
+    }
+
+    Future<Widget> buildHarness({required AppSettingsRepository repo}) async {
+      final result = await buildHarnessWithRouter(repo: repo);
+      return result.app;
     }
 
     testWidgets('default primary ids render default nav labels', (
@@ -375,6 +384,63 @@ void main() {
         'Transfer',
         'Settings',
       ]);
+    });
+
+    testWidgets('tapping a customized primary item navigates to its route', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'statistics'];
+      final harness = await buildHarnessWithRouter(repo: repo);
+      await tester.pumpWidget(harness.app);
+      await tester.pumpAndSettle();
+
+      // Tap the customized "Equipment" destination in the primary nav bar.
+      await tester.tap(find.widgetWithText(NavigationDestination, 'Equipment'));
+      await tester.pumpAndSettle();
+
+      // The router should have navigated to /equipment.
+      expect(
+        harness.router.routerDelegate.currentConfiguration.uri.path,
+        '/equipment',
+      );
+    });
+
+    testWidgets('overflow sheet reflects current customization', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'statistics'];
+      await tester.pumpWidget(await buildHarness(repo: repo));
+      await tester.pumpAndSettle();
+
+      // Tap the "More" destination to open the overflow sheet.
+      await tester.tap(find.widgetWithText(NavigationDestination, 'More'));
+      await tester.pumpAndSettle();
+
+      // The overflow sheet should contain the items NOT in primary.
+      expect(find.widgetWithText(ListTile, 'Dives'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'Sites'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'Trips'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'Dive Centers'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'Certifications'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'Courses'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'Planning'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'Transfer'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'Settings'), findsOneWidget);
+
+      // Items now in primary should NOT appear in the overflow sheet.
+      expect(find.widgetWithText(ListTile, 'Equipment'), findsNothing);
+      expect(find.widgetWithText(ListTile, 'Buddies'), findsNothing);
+      expect(find.widgetWithText(ListTile, 'Statistics'), findsNothing);
     });
   });
 }

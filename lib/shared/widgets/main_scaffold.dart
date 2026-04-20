@@ -47,7 +47,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     }
 
     // Mobile: iterate the dynamic primary list (length 5: [dashboard, 3 middle, more]).
-    final primary = ref.read(navPrimaryDestinationsProvider);
+    final primary = ref.watch(navPrimaryDestinationsProvider);
     for (var i = 0; i < primary.length - 1; i++) {
       final route = primary[i].route;
       if (route.isNotEmpty && location.startsWith(route)) return i;
@@ -330,24 +330,24 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
           ],
         ),
       ),
-      bottomNavigationBar: Consumer(
-        builder: (context, ref, _) {
-          final primary = ref.watch(navPrimaryDestinationsProvider);
-          return NavigationBar(
-            selectedIndex: selectedIndex,
-            onDestinationSelected: (index) =>
-                _onDestinationSelected(index, isWideScreen: false),
-            destinations: [
-              for (final destination in primary)
-                NavigationDestination(
-                  icon: Icon(destination.icon),
-                  selectedIcon: Icon(destination.selectedIcon),
-                  label: destination.label(context.l10n),
-                ),
-            ],
-          );
-        },
-      ),
+      bottomNavigationBar: _buildMobileNavBar(context, selectedIndex),
+    );
+  }
+
+  Widget _buildMobileNavBar(BuildContext context, int selectedIndex) {
+    final primary = ref.watch(navPrimaryDestinationsProvider);
+    return NavigationBar(
+      selectedIndex: selectedIndex,
+      onDestinationSelected: (index) =>
+          _onDestinationSelected(index, isWideScreen: false),
+      destinations: [
+        for (final destination in primary)
+          NavigationDestination(
+            icon: Icon(destination.icon),
+            selectedIcon: Icon(destination.selectedIcon),
+            label: destination.label(context.l10n),
+          ),
+      ],
     );
   }
 }
