@@ -334,5 +334,44 @@ void main() {
       // Current diver id cleared once its diver was deleted.
       expect(container.read(currentDiverIdProvider), isNull);
     });
+
+    test('updateDiver persists changes via notifier', () async {
+      final d = await repo.createDiver(_makeDiver(name: 'Orig'));
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      while (container.read(diverListNotifierProvider).isLoading) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      await container
+          .read(diverListNotifierProvider.notifier)
+          .updateDiver(d.copyWith(name: 'Renamed'));
+
+      final read = await repo.getDiverById(d.id);
+      expect(read?.name, equals('Renamed'));
+    });
+  });
+
+  group('CurrentDiverIdNotifier settings-table fallback', () {
+    test('resolves from Settings table when prefs is missing/stale', () async {
+      // Seed the DB settings table with a valid active diver.
+      final d = await repo.createDiver(_makeDiver(name: 'SettingsDiver'));
+      await repo.setActiveDiverIdInSettings(d.id);
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      // The notifier constructor runs _validateAndSync asynchronously. Poll
+      // up to 200ms for the resolved state to propagate.
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        if (container.read(currentDiverIdProvider) != null) break;
+      }
+
+      // The notifier should resolve to the id from the Settings table.
+      expect(container.read(currentDiverIdProvider), equals(d.id));
+    });
   });
 }
