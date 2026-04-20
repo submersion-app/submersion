@@ -5386,6 +5386,49 @@
   "settings_appearance_theme_dark": "Dark",
   "settings_appearance_theme_light": "Light",
   "settings_appearance_theme_system": "System default",
+  "settings_navCustomization_title": "Navigation bar",
+  "@settings_navCustomization_title": {
+    "description": "Title of the settings page for customizing bottom navigation primary slots."
+  },
+  "settings_navCustomization_description": "Drag items to reorder. The top three appear in your bottom navigation bar.",
+  "@settings_navCustomization_description": {
+    "description": "Help text at the top of the navigation customization page."
+  },
+  "settings_navCustomization_dividerLabel": "Items below appear in the More menu",
+  "@settings_navCustomization_dividerLabel": {
+    "description": "Non-interactive divider row between primary and overflow destinations."
+  },
+  "settings_navCustomization_resetButton": "Reset to defaults",
+  "@settings_navCustomization_resetButton": {
+    "description": "Button that restores the default nav order."
+  },
+  "settings_navCustomization_pinnedTooltip": "Always shown",
+  "@settings_navCustomization_pinnedTooltip": {
+    "description": "Tooltip on lock icons next to pinned nav items (Home and More)."
+  },
+  "settings_navCustomization_moveUpLabel": "Move {destination} up",
+  "@settings_navCustomization_moveUpLabel": {
+    "description": "Accessibility label for move-up button on a reorderable nav item.",
+    "placeholders": {
+      "destination": {"type": "String", "example": "Equipment"}
+    }
+  },
+  "settings_navCustomization_moveDownLabel": "Move {destination} down",
+  "@settings_navCustomization_moveDownLabel": {
+    "description": "Accessibility label for move-down button on a reorderable nav item.",
+    "placeholders": {
+      "destination": {"type": "String", "example": "Equipment"}
+    }
+  },
+  "settings_navCustomization_subtitlePreview": "{first} · {second} · {third}",
+  "@settings_navCustomization_subtitlePreview": {
+    "description": "Dot-separated preview of the 3 primary destinations shown on the Appearance page entry tile.",
+    "placeholders": {
+      "first": {"type": "String"},
+      "second": {"type": "String"},
+      "third": {"type": "String"}
+    }
+  },
   "settings_backToSettings_tooltip": "Back to settings",
   "settings_cloudSync_appBar_title": "Cloud Sync",
   "settings_cloudSync_autoSync": "Auto Sync",

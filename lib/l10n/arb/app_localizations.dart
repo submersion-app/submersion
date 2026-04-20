@@ -17128,6 +17128,58 @@ abstract class AppLocalizations {
   /// **'System default'**
   String get settings_appearance_theme_system;
 
+  /// Title of the settings page for customizing bottom navigation primary slots.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation bar'**
+  String get settings_navCustomization_title;
+
+  /// Help text at the top of the navigation customization page.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag items to reorder. The top three appear in your bottom navigation bar.'**
+  String get settings_navCustomization_description;
+
+  /// Non-interactive divider row between primary and overflow destinations.
+  ///
+  /// In en, this message translates to:
+  /// **'Items below appear in the More menu'**
+  String get settings_navCustomization_dividerLabel;
+
+  /// Button that restores the default nav order.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to defaults'**
+  String get settings_navCustomization_resetButton;
+
+  /// Tooltip on lock icons next to pinned nav items (Home and More).
+  ///
+  /// In en, this message translates to:
+  /// **'Always shown'**
+  String get settings_navCustomization_pinnedTooltip;
+
+  /// Accessibility label for move-up button on a reorderable nav item.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {destination} up'**
+  String settings_navCustomization_moveUpLabel(String destination);
+
+  /// Accessibility label for move-down button on a reorderable nav item.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {destination} down'**
+  String settings_navCustomization_moveDownLabel(String destination);
+
+  /// Dot-separated preview of the 3 primary destinations shown on the Appearance page entry tile.
+  ///
+  /// In en, this message translates to:
+  /// **'{first} · {second} · {third}'**
+  String settings_navCustomization_subtitlePreview(
+    String first,
+    String second,
+    String third,
+  );
+
   /// No description provided for @settings_backToSettings_tooltip.
   ///
   /// In en, this message translates to:
