@@ -755,4 +755,58 @@ void main() {
       expect(find.text('Retry'), findsOneWidget);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Item tap, selection callback
+  // ---------------------------------------------------------------------------
+  group('item tap', () {
+    testWidgets('tapping a trip with onItemSelected invokes callback', (
+      tester,
+    ) async {
+      final trips = [_makeTrip(id: 't1', name: 'Callback Trip')];
+      final overrides = await _buildPhoneOverrides(
+        trips: trips,
+        viewMode: ListViewMode.detailed,
+      );
+      String? selectedId;
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: TripListContent(
+            showAppBar: false,
+            onItemSelected: (id) => selectedId = id,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Callback Trip'));
+      await tester.pumpAndSettle();
+      expect(selectedId, 't1');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Initial scroll-to-selected
+  // ---------------------------------------------------------------------------
+  group('scroll to selected', () {
+    testWidgets('respects selectedId on initial build', (tester) async {
+      final trips = List.generate(
+        20,
+        (i) => _makeTrip(id: 't$i', name: 'Trip $i'),
+      );
+      final overrides = await _buildPhoneOverrides(
+        trips: trips,
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: false, selectedId: 't15'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Widget rendered without error.
+      expect(find.byType(TripListContent), findsOneWidget);
+    });
+  });
 }

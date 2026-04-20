@@ -546,6 +546,122 @@ void main() {
       expect(find.byIcon(Icons.error_outline), findsWidgets);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Selection mode flows (exercises _toggleSelection, select-all,
+  // deselect-all, close selection mode).
+  // ---------------------------------------------------------------------------
+  group('selection mode', () {
+    testWidgets(
+      'long press enters selection mode and shows selection app bar',
+      (tester) async {
+        _setMobileTestSurfaceSize(tester);
+        await siteRepository.createSite(
+          const DiveSite(id: 's1', name: 'First Site'),
+        );
+        await siteRepository.createSite(
+          const DiveSite(id: 's2', name: 'Second Site'),
+        );
+        await siteRepository.createSite(
+          const DiveSite(id: 's3', name: 'Third Site'),
+        );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              siteRepositoryProvider.overrideWithValue(siteRepository),
+              validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+            ],
+            child: const MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(body: SiteListContent(showAppBar: false)),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.longPress(find.text('First Site'));
+        await tester.pumpAndSettle();
+        expect(find.text('1 selected'), findsOneWidget);
+
+        // Tap select-all.
+        await tester.tap(find.byIcon(Icons.select_all));
+        await tester.pumpAndSettle();
+        expect(find.text('3 selected'), findsOneWidget);
+
+        // Tap deselect-all.
+        await tester.tap(find.byIcon(Icons.deselect));
+        await tester.pumpAndSettle();
+        expect(find.text('0 selected'), findsOneWidget);
+
+        // Tap close to exit selection mode.
+        await tester.tap(find.byIcon(Icons.close));
+        await tester.pumpAndSettle();
+        expect(find.text('0 selected'), findsNothing);
+      },
+    );
+
+    testWidgets('tapping last selected site exits selection mode', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      await siteRepository.createSite(
+        const DiveSite(id: 's1', name: 'Toggle Site'),
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            siteRepositoryProvider.overrideWithValue(siteRepository),
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SiteListContent(showAppBar: false)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.longPress(find.text('Toggle Site'));
+      await tester.pumpAndSettle();
+      expect(find.text('1 selected'), findsOneWidget);
+      await tester.tap(find.text('Toggle Site'));
+      await tester.pumpAndSettle();
+      // Selection mode exits when last item is deselected.
+      expect(find.text('1 selected'), findsNothing);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Item tap with callback
+  // ---------------------------------------------------------------------------
+  group('item tap callback', () {
+    testWidgets('tapping a site with onItemSelected invokes callback', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      final sites = [_makeSite(id: 's1', name: 'Callback Site')];
+      final overrides = await _buildPhoneOverrides(
+        sites: sites,
+        viewMode: ListViewMode.detailed,
+      );
+      String? selectedId;
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: SiteListContent(
+            showAppBar: false,
+            onItemSelected: (id) => selectedId = id,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Callback Site'));
+      await tester.pumpAndSettle();
+      expect(selectedId, 's1');
+    });
+  });
 }
 
 class _SiteListSelectionHarness extends StatefulWidget {
