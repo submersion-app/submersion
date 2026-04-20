@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
@@ -11,6 +13,54 @@ class AppSettingsRepository {
   static final _log = LoggerService.forClass(AppSettingsRepository);
 
   static const _shareByDefaultKey = 'share_new_records_by_default';
+  static const _navPrimaryIdsKey = 'nav_primary_ids';
+
+  /// Returns the raw stored nav primary ids, or `null` if unset / on read error.
+  ///
+  /// Caller should normalize via `normalizeNavPrimaryIds` before using the result.
+  Future<List<String>?> getNavPrimaryIdsRaw() async {
+    try {
+      final row = await (_db.select(
+        _db.settings,
+      )..where((t) => t.key.equals(_navPrimaryIdsKey))).getSingleOrNull();
+      if (row == null) return null;
+      final raw = row.value;
+      if (raw == null) return null;
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return null;
+      return decoded.whereType<String>().toList(growable: false);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to read $_navPrimaryIdsKey',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
+  /// Persists the nav primary ids as a JSON-encoded string in the settings table.
+  Future<void> setNavPrimaryIds(List<String> ids) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await _db
+          .into(_db.settings)
+          .insertOnConflictUpdate(
+            SettingsCompanion(
+              key: const Value(_navPrimaryIdsKey),
+              value: Value(jsonEncode(ids)),
+              updatedAt: Value(now),
+            ),
+          );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to write $_navPrimaryIdsKey',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
 
   /// Whether newly created sites and trips default to shared.
   /// Returns `false` when the key has never been set.
