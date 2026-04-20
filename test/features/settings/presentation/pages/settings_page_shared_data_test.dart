@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// ignore: implementation_imports
-import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart'
@@ -30,8 +28,6 @@ import 'package:submersion/features/trips/data/repositories/trip_repository.dart
 import 'package:submersion/features/trips/domain/entities/trip.dart' as trips;
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-
-typedef Override = riverpod.Override;
 
 /// Minimal fake SiteRepository for bulk-share smoke tests.
 class _FakeSiteRepository implements SiteRepository {
@@ -605,6 +601,9 @@ void main() {
                 (ref) =>
                     _MockCurrentDiverIdNotifier()..setCurrentDiver('diver-1'),
               ),
+              validatedCurrentDiverIdProvider.overrideWith(
+                (ref) async => 'diver-1',
+              ),
               currentDiverProvider.overrideWith((ref) async => null),
               diverListNotifierProvider.overrideWith(
                 (ref) => _MockDiverListNotifier(),
@@ -697,6 +696,9 @@ void main() {
               currentDiverIdProvider.overrideWith(
                 (ref) =>
                     _MockCurrentDiverIdNotifier()..setCurrentDiver('diver-1'),
+              ),
+              validatedCurrentDiverIdProvider.overrideWith(
+                (ref) async => 'diver-1',
               ),
               currentDiverProvider.overrideWith((ref) async => null),
               diverListNotifierProvider.overrideWith(

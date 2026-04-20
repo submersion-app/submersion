@@ -1634,8 +1634,9 @@ Future<void> _confirmAndBulkShareSites(
   BuildContext context,
   WidgetRef ref,
 ) async {
-  final diverId = ref.read(currentDiverIdProvider);
+  final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
   if (diverId == null) return;
+  if (!context.mounted) return;
 
   final siteRepo = ref.read(siteRepositoryProvider);
   final allSites = await siteRepo.getAllSites(diverId: diverId);
@@ -1692,8 +1693,9 @@ Future<void> _confirmAndBulkShareTrips(
   BuildContext context,
   WidgetRef ref,
 ) async {
-  final diverId = ref.read(currentDiverIdProvider);
+  final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
   if (diverId == null) return;
+  if (!context.mounted) return;
 
   final tripRepo = ref.read(tripRepositoryProvider);
   final allTrips = await tripRepo.getAllTrips(diverId: diverId);
@@ -1776,10 +1778,22 @@ class SharedDataSectionContent extends ConsumerWidget {
                     title: Text(context.l10n.settings_shareByDefault_title),
                     value: shareByDefault,
                     onChanged: (value) async {
-                      await ref
-                          .read(appSettingsRepositoryProvider)
-                          .setShareByDefault(value);
-                      ref.invalidate(shareByDefaultProvider);
+                      try {
+                        await ref
+                            .read(appSettingsRepositoryProvider)
+                            .setShareByDefault(value);
+                        ref.invalidate(shareByDefaultProvider);
+                      } catch (_) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(context.l10n.common_error_tryAgain),
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.errorContainer,
+                          ),
+                        );
+                      }
                     },
                   ),
                   loading: () => SwitchListTile(
