@@ -1277,28 +1277,13 @@ class SiteListTile extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          name,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: primaryTextColor,
-                              ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (showSharedBadge) ...[
-                        const SizedBox(width: 6),
-                        Icon(
-                          Icons.people_outline,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ],
-                    ],
+                  Text(
+                    name,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: primaryTextColor,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                   if (location != null) ...[
                     const SizedBox(height: 4),
@@ -1317,6 +1302,12 @@ class SiteListTile extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                if (showSharedBadge)
+                  Icon(
+                    Icons.people_outline,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 if (_depthString != null)
                   Text(
                     _depthString!,
