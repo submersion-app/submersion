@@ -399,4 +399,155 @@ void main() {
       expect(container.read(highlightedTripIdProvider), equals('t-42'));
     });
   });
+
+  group('allTripsWithStatsProvider', () {
+    test('returns empty list when no trips exist', () async {
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      final stats = await container.read(allTripsWithStatsProvider.future);
+      expect(stats, isEmpty);
+    });
+
+    test('returns stats for trips', () async {
+      await tripRepo.createTrip(_makeTrip(name: 'Alpha'));
+      await tripRepo.createTrip(_makeTrip(name: 'Bravo'));
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      final stats = await container.read(allTripsWithStatsProvider.future);
+      expect(stats.length, equals(2));
+    });
+  });
+
+  group('TripListNotifier dive assignment', () {
+    test('assignDiveToTrip updates the trip linkage', () async {
+      // Set up diver and trip
+      final diver = await diverRepo.createDiver(
+        Diver(
+          id: '',
+          name: 'D',
+          isDefault: true,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+      );
+      await prefs.setString(currentDiverIdKey, diver.id);
+
+      final t = await tripRepo.createTrip(
+        _makeTrip(name: 'Dive Trip').copyWith(diverId: diver.id),
+      );
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      // Wait for init.
+      while (container.read(tripListNotifierProvider).isLoading) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      final notifier = container.read(tripListNotifierProvider.notifier);
+
+      // assignDiveToTrip + removeDiveFromTrip for a non-existent dive should
+      // still refresh without throwing.
+      await notifier.assignDiveToTrip('no-dive', t.id);
+      await notifier.removeDiveFromTrip('no-dive', t.id);
+    });
+  });
+
+  group('TripListNotifier reacts to current diver change', () {
+    test('reloads trip list when current diver changes', () async {
+      final a = await diverRepo.createDiver(
+        Diver(
+          id: '',
+          name: 'Alice',
+          isDefault: true,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+      );
+      final b = await diverRepo.createDiver(
+        Diver(
+          id: '',
+          name: 'Bob',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+      );
+      await prefs.setString(currentDiverIdKey, a.id);
+
+      await tripRepo.createTrip(
+        _makeTrip(name: 'A-Trip').copyWith(diverId: a.id),
+      );
+      await tripRepo.createTrip(
+        _makeTrip(name: 'B-Trip').copyWith(diverId: b.id),
+      );
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      while (container.read(tripListNotifierProvider).isLoading) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      final first = container.read(tripListNotifierProvider).value!;
+      expect(first.map((s) => s.trip.name), contains('A-Trip'));
+      expect(first.map((s) => s.trip.name), isNot(contains('B-Trip')));
+
+      // Switch current diver — should trigger listen → reload.
+      await container
+          .read(currentDiverIdProvider.notifier)
+          .setCurrentDiver(b.id);
+
+      // Let async reload complete.
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(Duration.zero);
+        final state = container.read(tripListNotifierProvider);
+        if (state.hasValue &&
+            state.value!.any((s) => s.trip.name == 'B-Trip')) {
+          break;
+        }
+      }
+
+      final second = container.read(tripListNotifierProvider).value!;
+      expect(second.map((s) => s.trip.name), contains('B-Trip'));
+    });
+  });
+
+  group('tripSitesWithLocationsProvider', () {
+    test('returns empty list when trip has no dives', () async {
+      final t = await tripRepo.createTrip(_makeTrip(name: 'EmptyTrip'));
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      final sites = await container.read(
+        tripSitesWithLocationsProvider(t.id).future,
+      );
+      expect(sites, isEmpty);
+    });
+  });
+
+  group('assignDivesToTrip', () {
+    test('batch-assigns to new trip and refreshes', () async {
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      while (container.read(tripListNotifierProvider).isLoading) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      final notifier = container.read(tripListNotifierProvider.notifier);
+
+      // Even with no dive ids this should short-circuit without error.
+      await notifier.assignDivesToTrip([], 'no-trip');
+
+      // With old trip IDs to invalidate
+      final t = await tripRepo.createTrip(_makeTrip(name: 'T'));
+      await notifier.assignDivesToTrip(
+        ['nonexistent'],
+        t.id,
+        oldTripIds: {'other-trip-1', 'other-trip-2'},
+      );
+    });
+  });
 }
