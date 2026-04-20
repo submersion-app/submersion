@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Trip;
 import 'package:submersion/core/services/database_service.dart';
@@ -425,6 +426,150 @@ void main() {
         final diveIds = await repository.getDiveIdsForTrip(trip.id);
 
         expect(diveIds, isEmpty);
+      });
+    });
+
+    group('diver-scoped stats and dive lists (shared-trip isolation)', () {
+      late AppDatabase db;
+      const ts = 1700000000000;
+      late String tripId;
+
+      /// Insert a minimal dive row owned by [diverId], assigned to [tripId].
+      Future<String> insertDive({
+        required String diverId,
+        required String tripId,
+        required String diveId,
+        int bottomTime = 3600,
+        double maxDepth = 20.0,
+      }) async {
+        await db
+            .into(db.dives)
+            .insert(
+              DivesCompanion.insert(
+                id: diveId,
+                diverId: Value(diverId),
+                diveDateTime: ts,
+                tripId: Value(tripId),
+                bottomTime: Value(bottomTime),
+                maxDepth: Value(maxDepth),
+                avgDepth: Value(maxDepth / 2),
+                createdAt: ts,
+                updatedAt: ts,
+              ),
+            );
+        return diveId;
+      }
+
+      setUp(() async {
+        db = DatabaseService.instance.database;
+
+        // Create two divers.
+        for (final id in ['A', 'B']) {
+          await db
+              .into(db.divers)
+              .insert(
+                DiversCompanion.insert(
+                  id: id,
+                  name: id,
+                  createdAt: ts,
+                  updatedAt: ts,
+                ),
+              );
+        }
+
+        // Create a shared trip owned by diver A.
+        final trip = await repository.createTrip(
+          createTestTrip(
+            id: 'shared-trip',
+            name: 'Shared Trip',
+          ).copyWith(diverId: 'A', isShared: true),
+        );
+        tripId = trip.id;
+
+        // Diver A has 2 dives on this trip; Diver B has 3.
+        await insertDive(diverId: 'A', tripId: tripId, diveId: 'a1');
+        await insertDive(diverId: 'A', tripId: tripId, diveId: 'a2');
+        await insertDive(diverId: 'B', tripId: tripId, diveId: 'b1');
+        await insertDive(diverId: 'B', tripId: tripId, diveId: 'b2');
+        await insertDive(diverId: 'B', tripId: tripId, diveId: 'b3');
+      });
+
+      // getDiveIdsForTrip ---------------------------------------------------
+
+      test(
+        'getDiveIdsForTrip with diverId returns only that diver\'s dives',
+        () async {
+          final ids = await repository.getDiveIdsForTrip(tripId, diverId: 'A');
+          expect(ids.toSet(), equals({'a1', 'a2'}));
+        },
+      );
+
+      test('getDiveIdsForTrip with null diverId returns all dives', () async {
+        final ids = await repository.getDiveIdsForTrip(tripId);
+        expect(ids.toSet(), equals({'a1', 'a2', 'b1', 'b2', 'b3'}));
+      });
+
+      // getDiveCountForTrip -------------------------------------------------
+
+      test(
+        'getDiveCountForTrip with diverId counts only that diver\'s dives',
+        () async {
+          expect(
+            await repository.getDiveCountForTrip(tripId, diverId: 'A'),
+            equals(2),
+          );
+          expect(
+            await repository.getDiveCountForTrip(tripId, diverId: 'B'),
+            equals(3),
+          );
+        },
+      );
+
+      test('getDiveCountForTrip with null diverId counts all dives', () async {
+        expect(await repository.getDiveCountForTrip(tripId), equals(5));
+      });
+
+      // getTripWithStats ----------------------------------------------------
+
+      test(
+        'getTripWithStats with diverId returns stats for only that diver',
+        () async {
+          final statsA = await repository.getTripWithStats(
+            tripId,
+            diverId: 'A',
+          );
+          expect(statsA.diveCount, equals(2));
+
+          final statsB = await repository.getTripWithStats(
+            tripId,
+            diverId: 'B',
+          );
+          expect(statsB.diveCount, equals(3));
+        },
+      );
+
+      test('getTripWithStats with null diverId aggregates all dives', () async {
+        final stats = await repository.getTripWithStats(tripId);
+        expect(stats.diveCount, equals(5));
+      });
+
+      // getAllTripsWithStats ------------------------------------------------
+
+      test(
+        'getAllTripsWithStats with diverId scopes dive stats to that diver',
+        () async {
+          final results = await repository.getAllTripsWithStats(diverId: 'A');
+          expect(results, isNotEmpty);
+          final row = results.firstWhere((r) => r.trip.id == tripId);
+          // Only A's 2 dives should count.
+          expect(row.diveCount, equals(2));
+        },
+      );
+
+      test('getAllTripsWithStats with null diverId counts all dives', () async {
+        final results = await repository.getAllTripsWithStats();
+        final row = results.firstWhere((r) => r.trip.id == tripId);
+        expect(row.diveCount, equals(5));
       });
     });
 

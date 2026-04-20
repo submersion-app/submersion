@@ -522,12 +522,18 @@ class _MockTripRepository implements TripRepository {
       [];
 
   @override
-  Future<TripWithStats> getTripWithStats(String tripId) async {
+  Future<TripWithStats> getTripWithStats(
+    String tripId, {
+    String? diverId,
+  }) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<List<String>> getDiveIdsForTrip(String tripId) async => [];
+  Future<List<String>> getDiveIdsForTrip(
+    String tripId, {
+    String? diverId,
+  }) async => [];
 
   @override
   Future<void> assignDiveToTrip(String diveId, String tripId) async {}
@@ -539,7 +545,7 @@ class _MockTripRepository implements TripRepository {
   Future<Trip?> findTripForDate(DateTime date, {String? diverId}) async => null;
 
   @override
-  Future<int> getDiveCountForTrip(String tripId) async => 0;
+  Future<int> getDiveCountForTrip(String tripId, {String? diverId}) async => 0;
 
   @override
   Future<List<DiveCandidate>> findCandidateDivesForTrip({
@@ -594,12 +600,18 @@ class _MockTripRepositoryWithTrip implements TripRepository {
       [];
 
   @override
-  Future<TripWithStats> getTripWithStats(String tripId) async {
+  Future<TripWithStats> getTripWithStats(
+    String tripId, {
+    String? diverId,
+  }) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<List<String>> getDiveIdsForTrip(String tripId) async => [];
+  Future<List<String>> getDiveIdsForTrip(
+    String tripId, {
+    String? diverId,
+  }) async => [];
 
   @override
   Future<void> assignDiveToTrip(String diveId, String tripId) async {}
@@ -611,7 +623,7 @@ class _MockTripRepositoryWithTrip implements TripRepository {
   Future<Trip?> findTripForDate(DateTime date, {String? diverId}) async => null;
 
   @override
-  Future<int> getDiveCountForTrip(String tripId) async => 0;
+  Future<int> getDiveCountForTrip(String tripId, {String? diverId}) async => 0;
 
   @override
   Future<List<DiveCandidate>> findCandidateDivesForTrip({
@@ -666,12 +678,18 @@ class _MockTripRepositoryWithSharedTrip implements TripRepository {
       [];
 
   @override
-  Future<TripWithStats> getTripWithStats(String tripId) async {
+  Future<TripWithStats> getTripWithStats(
+    String tripId, {
+    String? diverId,
+  }) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<List<String>> getDiveIdsForTrip(String tripId) async => [];
+  Future<List<String>> getDiveIdsForTrip(
+    String tripId, {
+    String? diverId,
+  }) async => [];
 
   @override
   Future<void> assignDiveToTrip(String diveId, String tripId) async {}
@@ -683,7 +701,7 @@ class _MockTripRepositoryWithSharedTrip implements TripRepository {
   Future<Trip?> findTripForDate(DateTime date, {String? diverId}) async => null;
 
   @override
-  Future<int> getDiveCountForTrip(String tripId) async => 0;
+  Future<int> getDiveCountForTrip(String tripId, {String? diverId}) async => 0;
 
   @override
   Future<List<DiveCandidate>> findCandidateDivesForTrip({

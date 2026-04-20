@@ -291,34 +291,45 @@ class TripRepository {
     }
   }
 
-  /// Get dives for a specific trip
-  Future<List<String>> getDiveIdsForTrip(String tripId) async {
-    final results = await _db
-        .customSelect(
-          '''
+  /// Get dives for a specific trip.
+  ///
+  /// When [diverId] is non-null only dives belonging to that diver are
+  /// returned. Pass null to return dives from all divers (import-time use).
+  Future<List<String>> getDiveIdsForTrip(
+    String tripId, {
+    String? diverId,
+  }) async {
+    final diverClause = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withString(tripId),
+      if (diverId != null) Variable.withString(diverId),
+    ];
+    final results = await _db.customSelect('''
       SELECT id FROM dives
       WHERE trip_id = ?
+      $diverClause
       ORDER BY dive_date_time DESC
-    ''',
-          variables: [Variable.withString(tripId)],
-        )
-        .get();
+    ''', variables: variables).get();
 
     return results.map((row) => row.data['id'] as String).toList();
   }
 
-  /// Get dive count for a trip
-  Future<int> getDiveCountForTrip(String tripId) async {
-    final result = await _db
-        .customSelect(
-          '''
+  /// Get dive count for a trip.
+  ///
+  /// When [diverId] is non-null only dives belonging to that diver are
+  /// counted. Pass null to count dives from all divers (import-time use).
+  Future<int> getDiveCountForTrip(String tripId, {String? diverId}) async {
+    final diverClause = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withString(tripId),
+      if (diverId != null) Variable.withString(diverId),
+    ];
+    final result = await _db.customSelect('''
       SELECT COUNT(*) as count
       FROM dives
       WHERE trip_id = ?
-    ''',
-          variables: [Variable.withString(tripId)],
-        )
-        .getSingle();
+      $diverClause
+    ''', variables: variables).getSingle();
 
     return result.data['count'] as int? ?? 0;
   }
@@ -478,16 +489,26 @@ class TripRepository {
     }
   }
 
-  /// Get trip statistics
-  Future<domain.TripWithStats> getTripWithStats(String tripId) async {
+  /// Get trip statistics.
+  ///
+  /// When [diverId] is non-null the aggregate stats (dive count, bottom time,
+  /// depths) are computed only from dives belonging to that diver.
+  /// Pass null to aggregate dives from all divers (import-time use).
+  Future<domain.TripWithStats> getTripWithStats(
+    String tripId, {
+    String? diverId,
+  }) async {
     final trip = await getTripById(tripId);
     if (trip == null) {
       throw Exception('Trip not found');
     }
 
-    final statsResult = await _db
-        .customSelect(
-          '''
+    final diverClause = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withString(tripId),
+      if (diverId != null) Variable.withString(diverId),
+    ];
+    final statsResult = await _db.customSelect('''
       SELECT
         COUNT(*) as dive_count,
         COALESCE(SUM(bottom_time), 0) as total_bottom_time,
@@ -495,10 +516,8 @@ class TripRepository {
         AVG(max_depth) as avg_depth
       FROM dives
       WHERE trip_id = ?
-    ''',
-          variables: [Variable.withString(tripId)],
-        )
-        .getSingle();
+      $diverClause
+    ''', variables: variables).getSingle();
 
     return domain.TripWithStats(
       trip: trip,
@@ -560,7 +579,14 @@ class TripRepository {
     );
   }
 
-  /// Get all trips with their statistics
+  /// Get all trips with their statistics.
+  ///
+  /// When [diverId] is non-null:
+  ///   - The trip visibility predicate restricts which trips are returned
+  ///     (owned by the diver or shared).
+  ///   - The dive JOIN is scoped to that diver so stats reflect only their
+  ///     dives on shared trips.
+  /// Pass null to return all trips with unfiltered stats.
   Future<List<domain.TripWithStats>> getAllTripsWithStats({
     String? diverId,
   }) async {
@@ -570,6 +596,20 @@ class TripRepository {
       conjunction: 'WHERE',
     );
 
+    // Build the JOIN condition: always match trip_id, and also match
+    // diver_id when a specific diver is requested so that stats on shared
+    // trips reflect only that diver's dives.
+    final joinClause = diverId != null
+        ? 'LEFT JOIN dives d ON d.trip_id = t.id AND d.diver_id = ?'
+        : 'LEFT JOIN dives d ON d.trip_id = t.id';
+
+    // When diverId is provided, prepend its variable before the visibility
+    // filter variables so the positional binding lines up with joinClause.
+    final variables = [
+      if (diverId != null) Variable.withString(diverId),
+      ...vis.variables,
+    ];
+
     final rows = await _db.customSelect('''
       SELECT
         t.*,
@@ -578,11 +618,11 @@ class TripRepository {
         MAX(d.max_depth) AS max_depth,
         AVG(d.avg_depth) AS avg_depth
       FROM trips t
-      LEFT JOIN dives d ON d.trip_id = t.id
+      $joinClause
       ${vis.whereClause}
       GROUP BY t.id
       ORDER BY t.start_date DESC
-    ''', variables: vis.variables).get();
+    ''', variables: variables).get();
 
     return rows.map((row) {
       final trip = domain.Trip(
