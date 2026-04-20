@@ -189,4 +189,173 @@ void main() {
       expect(base == base.copyWith(isShared: true), isFalse);
     });
   });
+
+  group('Trip.durationDays', () {
+    test('returns 1 for single-day trip (same start and end)', () {
+      final trip = Trip(
+        id: 't1',
+        name: 'Day Trip',
+        startDate: DateTime(2024, 6, 1),
+        endDate: DateTime(2024, 6, 1),
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      expect(trip.durationDays, equals(1));
+    });
+
+    test('returns N+1 for multi-day trips (inclusive of both ends)', () {
+      final trip = Trip(
+        id: 't1',
+        name: 'Week Trip',
+        startDate: DateTime(2024, 6, 1),
+        endDate: DateTime(2024, 6, 7),
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      expect(trip.durationDays, equals(7));
+    });
+  });
+
+  group('Trip.isResort', () {
+    test('true for resort type', () {
+      final trip = Trip(
+        id: 't1',
+        name: 'Resort',
+        tripType: TripType.resort,
+        startDate: DateTime(2024),
+        endDate: DateTime(2024),
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      expect(trip.isResort, isTrue);
+    });
+
+    test('false for shore type', () {
+      final trip = Trip(
+        id: 't1',
+        name: 'Shore',
+        tripType: TripType.shore,
+        startDate: DateTime(2024),
+        endDate: DateTime(2024),
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      expect(trip.isResort, isFalse);
+    });
+  });
+
+  group('Trip.subtitle', () {
+    test('returns liveaboardName for liveaboard trips', () {
+      final trip = Trip(
+        id: 't1',
+        name: 'Red Sea',
+        tripType: TripType.liveaboard,
+        liveaboardName: 'MY Deep Blue',
+        resortName: 'Ignored',
+        location: 'Egypt',
+        startDate: DateTime(2024),
+        endDate: DateTime(2024),
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      expect(trip.subtitle, equals('MY Deep Blue'));
+    });
+
+    test('returns resortName for resort trips', () {
+      final trip = Trip(
+        id: 't1',
+        name: 'Bonaire',
+        tripType: TripType.resort,
+        resortName: 'Buddy Dive',
+        location: 'Bonaire',
+        startDate: DateTime(2024),
+        endDate: DateTime(2024),
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      expect(trip.subtitle, equals('Buddy Dive'));
+    });
+
+    test('returns location for shore trips', () {
+      final trip = Trip(
+        id: 't1',
+        name: 'Local',
+        tripType: TripType.shore,
+        location: 'Monterey',
+        startDate: DateTime(2024),
+        endDate: DateTime(2024),
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      expect(trip.subtitle, equals('Monterey'));
+    });
+  });
+
+  group('Trip.containsDate', () {
+    final trip = Trip(
+      id: 't1',
+      name: 'T',
+      startDate: DateTime(2024, 6, 1),
+      endDate: DateTime(2024, 6, 7),
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
+    );
+
+    test('returns true for start date', () {
+      expect(trip.containsDate(DateTime(2024, 6, 1)), isTrue);
+    });
+
+    test('returns true for end date', () {
+      expect(trip.containsDate(DateTime(2024, 6, 7)), isTrue);
+    });
+
+    test('returns true for middle date', () {
+      expect(trip.containsDate(DateTime(2024, 6, 4)), isTrue);
+    });
+
+    test('returns false for date before start', () {
+      expect(trip.containsDate(DateTime(2024, 5, 31)), isFalse);
+    });
+
+    test('returns false for date after end', () {
+      expect(trip.containsDate(DateTime(2024, 6, 8)), isFalse);
+    });
+
+    test('ignores time-of-day component', () {
+      expect(trip.containsDate(DateTime(2024, 6, 1, 23, 59, 59)), isTrue);
+    });
+  });
+
+  group('TripWithStats.formattedBottomTime', () {
+    Trip makeTrip() => Trip(
+      id: 't1',
+      name: 'T',
+      startDate: DateTime(2024),
+      endDate: DateTime(2024),
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
+    );
+
+    test('shows "Xm" when under an hour', () {
+      final stats = TripWithStats(trip: makeTrip(), totalBottomTime: 1800);
+      expect(stats.formattedBottomTime, equals('30m'));
+    });
+
+    test('shows "Yh Xm" when an hour or more', () {
+      final stats = TripWithStats(trip: makeTrip(), totalBottomTime: 3665);
+      expect(stats.formattedBottomTime, equals('1h 1m'));
+    });
+
+    test('handles zero bottom time', () {
+      final stats = TripWithStats(trip: makeTrip(), totalBottomTime: 0);
+      expect(stats.formattedBottomTime, equals('0m'));
+    });
+
+    test('props distinguishes different stats', () {
+      final trip = makeTrip();
+      final a = TripWithStats(trip: trip, diveCount: 1);
+      final b = TripWithStats(trip: trip, diveCount: 2);
+      expect(a == b, isFalse);
+    });
+  });
 }
