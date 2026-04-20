@@ -9557,6 +9557,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get settings_navCustomization_saveError =>
+      'Could not save navigation layout. Please try again.';
+
+  @override
   String get settings_backToSettings_tooltip => '返回设置';
 
   @override

@@ -9860,6 +9860,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settings_navCustomization_saveError =>
+      'Could not save navigation layout. Please try again.';
+
+  @override
   String get settings_backToSettings_tooltip => 'Back to settings';
 
   @override

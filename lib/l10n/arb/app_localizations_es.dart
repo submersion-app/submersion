@@ -10011,6 +10011,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get settings_navCustomization_saveError =>
+      'Could not save navigation layout. Please try again.';
+
+  @override
   String get settings_backToSettings_tooltip => 'Volver a ajustes';
 
   @override

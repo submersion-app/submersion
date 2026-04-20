@@ -3261,6 +3261,7 @@
     "settings_navCustomization_moveUpLabel": "Move {destination} up",
     "settings_navCustomization_moveDownLabel": "Move {destination} down",
     "settings_navCustomization_subtitlePreview": "{first} · {second} · {third}",
+    "settings_navCustomization_saveError": "Could not save navigation layout. Please try again.",
     "settings_backToSettings_tooltip": "返回设置",
     "settings_cloudSync_appBar_title": "云同步",
     "settings_cloudSync_autoSync": "自动同步",

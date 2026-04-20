@@ -3109,6 +3109,7 @@
     "settings_navCustomization_moveUpLabel": "Move {destination} up",
     "settings_navCustomization_moveDownLabel": "Move {destination} down",
     "settings_navCustomization_subtitlePreview": "{first} · {second} · {third}",
+    "settings_navCustomization_saveError": "Could not save navigation layout. Please try again.",
     "settings_backToSettings_tooltip": "Terug naar instellingen",
     "settings_cloudSync_appBar_title": "Cloudsynchronisatie",
     "settings_cloudSync_autoSync": "Automatische synchronisatie",

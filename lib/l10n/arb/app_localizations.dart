@@ -17180,6 +17180,12 @@ abstract class AppLocalizations {
     String third,
   );
 
+  /// SnackBar shown when persisting the nav order fails (e.g., database write error).
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save navigation layout. Please try again.'**
+  String get settings_navCustomization_saveError;
+
   /// No description provided for @settings_backToSettings_tooltip.
   ///
   /// In en, this message translates to:

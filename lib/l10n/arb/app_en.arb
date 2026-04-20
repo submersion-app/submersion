@@ -5429,6 +5429,10 @@
       "third": {"type": "String"}
     }
   },
+  "settings_navCustomization_saveError": "Could not save navigation layout. Please try again.",
+  "@settings_navCustomization_saveError": {
+    "description": "SnackBar shown when persisting the nav order fails (e.g., database write error)."
+  },
   "settings_backToSettings_tooltip": "Back to settings",
   "settings_cloudSync_appBar_title": "Cloud Sync",
   "settings_cloudSync_autoSync": "Auto Sync",

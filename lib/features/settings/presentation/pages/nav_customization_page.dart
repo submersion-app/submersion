@@ -75,6 +75,23 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+
+    // Reconcile local mirror when the provider emits a different primary id
+    // list than what we're displaying. This handles the cold-start race where
+    // NavPrimaryIdsNotifier starts with defaults synchronously and emits the
+    // stored customization once the async _load() completes; without this,
+    // _local would stay frozen on defaults until the user interacted.
+    ref.listen<List<String>>(navPrimaryIdsProvider, (previous, next) {
+      if (previous == next) return;
+      final currentPrimary = _local?.take(3).toList();
+      if (currentPrimary != null && listEquals(currentPrimary, next)) {
+        return; // already in sync (e.g., mid-drag we just committed)
+      }
+      setState(() {
+        _local = _currentOrder(next);
+      });
+    });
+
     final primaryIds = ref.watch(navPrimaryIdsProvider);
     final destinationsById = {
       for (final d in ref.watch(navDestinationsProvider)) d.id: d,
@@ -118,7 +135,7 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
                   destination: destination,
                 );
               },
-              onReorder: _onDragReorder,
+              onReorder: _commitReorder,
             ),
           ),
           const Divider(height: 1),
@@ -219,16 +236,19 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
   void _moveUp(int index) {
     // When stepping across the divider, skip over it to the slot above.
     final target = index == _dividerIndex + 1 ? _dividerIndex - 1 : index - 1;
-    _onReorderByButton(index, target);
+    _commitReorder(index, target);
   }
 
   void _moveDown(int index) {
     // When stepping across the divider, skip over it to the slot below.
     final target = index == _dividerIndex - 1 ? _dividerIndex + 2 : index + 2;
-    _onReorderByButton(index, target);
+    _commitReorder(index, target);
   }
 
-  Future<void> _onReorderByButton(int oldIndex, int newIndex) async {
+  /// Shared reorder commit path for both the drag handle and the move-up /
+  /// move-down buttons. Optimistically updates the local mirror, writes
+  /// through to the notifier, and rolls back with a SnackBar on failure.
+  Future<void> _commitReorder(int oldIndex, int newIndex) async {
     final previous = _local!;
     final newList = applyReorderPreservingDivider(
       movable: previous,
@@ -246,35 +266,8 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
       if (!mounted) return;
       setState(() => _local = previous);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          // TODO(i18n): localize this error string
-          content: Text('Could not save navigation layout. Please try again.'),
-        ),
-      );
-    }
-  }
-
-  Future<void> _onDragReorder(int oldIndex, int newIndex) async {
-    final previous = _local!;
-    final newList = applyReorderPreservingDivider(
-      movable: previous,
-      dividerIndex: _dividerIndex,
-      oldIndex: oldIndex,
-      newIndex: newIndex,
-    );
-    if (identical(newList, previous)) return; // no-op reorder
-    setState(() => _local = newList);
-    try {
-      await ref
-          .read(navPrimaryIdsNotifierProvider.notifier)
-          .setPrimaryIds(newList.take(3).toList());
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _local = previous);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          // TODO(i18n): localize this error string
-          content: Text('Could not save navigation layout. Please try again.'),
+        SnackBar(
+          content: Text(context.l10n.settings_navCustomization_saveError),
         ),
       );
     }
