@@ -3813,8 +3813,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// time-series data sources before falling back to stored metadata.
   ///
   /// Priority:
-  /// 1. Per-tank pressure time-series (TankPressurePoint) — most accurate
-  /// 2. Stored tank metadata (DiveTank.startPressure/endPressure) — fallback
+  /// 1. Stored tank metadata (DiveTank.startPressure/endPressure) when non-null
+  /// 2. Per-tank pressure time-series (TankPressurePoint) — potentially more accurate 
+  ///    but maybe not the value preferred by user if they manually entered pressures
   (double?, double?) _resolveTankPressures({
     required DiveTank tank,
     required Map<String, List<TankPressurePoint>>? tankPressures,
