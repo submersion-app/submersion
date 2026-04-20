@@ -614,4 +614,145 @@ void main() {
       expect(find.byIcon(Icons.people_outline), findsNothing);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Phone app bar: search, sort, view-mode popup menu.
+  // ---------------------------------------------------------------------------
+  group('phone app bar actions', () {
+    testWidgets('tapping search icon opens search delegate', (tester) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Alpha Trip')],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Tap the search icon in the app bar.
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+      // Search delegate should now be open (back arrow visible).
+      expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+    });
+
+    testWidgets('tapping sort icon opens sort bottom sheet', (tester) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Alpha Trip')],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.sort));
+      await tester.pumpAndSettle();
+      // Sort title appears in the bottom sheet.
+      expect(find.textContaining('Sort'), findsWidgets);
+    });
+
+    testWidgets('tapping more menu opens view mode choices', (tester) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Alpha Trip')],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      // Menu items from ListViewModeToggle.
+      expect(find.byType(PopupMenuItem<String>), findsWidgets);
+    });
+
+    testWidgets('compact app bar (showAppBar=false) also has actions', (
+      tester,
+    ) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Alpha Trip')],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Compact app bar exposes search/sort/more icons.
+      expect(find.byIcon(Icons.search), findsOneWidget);
+      expect(find.byIcon(Icons.sort), findsOneWidget);
+      expect(find.byIcon(Icons.more_vert), findsOneWidget);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Empty state (detailed view, no filters)
+  // ---------------------------------------------------------------------------
+  group('empty state', () {
+    testWidgets('renders empty state with add button when no trips', (
+      tester,
+    ) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.flight_takeoff), findsOneWidget);
+      expect(find.byType(FilledButton), findsOneWidget);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Error state
+  // ---------------------------------------------------------------------------
+  group('error state', () {
+    testWidgets('renders error text and retry button on load error', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            tripListNotifierProvider.overrideWith(
+              (ref) => _MockTripListNotifier([]),
+            ),
+            tripListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
+            sortedFilteredTripsProvider.overrideWith(
+              (ref) =>
+                  AsyncValue.error(Exception('load-boom'), StackTrace.current),
+            ),
+          ],
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(find.textContaining('load-boom'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+    });
+  });
 }

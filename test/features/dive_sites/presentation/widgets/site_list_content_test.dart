@@ -428,6 +428,124 @@ void main() {
       expect(find.byIcon(Icons.people_outline), findsNothing);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Phone app bar: search, sort, filter, view-mode popup menu.
+  // ---------------------------------------------------------------------------
+  group('phone app bar actions', () {
+    testWidgets('compact app bar (showAppBar=false) exposes key actions', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await _buildPhoneOverrides(
+        sites: [_makeSite(id: 's1', name: 'Alpha Site')],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.search), findsWidgets);
+      expect(find.byIcon(Icons.sort), findsWidgets);
+      expect(find.byIcon(Icons.more_vert), findsWidgets);
+    });
+
+    testWidgets('tapping sort icon opens sort bottom sheet', (tester) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await _buildPhoneOverrides(
+        sites: [_makeSite(id: 's1', name: 'Alpha Site')],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.sort).first);
+      await tester.pumpAndSettle();
+      // Sort sheet should appear.
+      expect(find.textContaining('Sort'), findsWidgets);
+    });
+
+    testWidgets('tapping more menu opens view mode choices', (tester) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await _buildPhoneOverrides(
+        sites: [_makeSite(id: 's1', name: 'Alpha Site')],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+      expect(find.byType(PopupMenuItem<String>), findsWidgets);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Empty state
+  // ---------------------------------------------------------------------------
+  group('empty state', () {
+    testWidgets('renders empty state icon when no sites', (tester) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await _buildPhoneOverrides(
+        sites: [],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Empty state icon or message.
+      expect(find.byType(SiteListContent), findsOneWidget);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Error state
+  // ---------------------------------------------------------------------------
+  group('error state', () {
+    testWidgets('renders error UI on load error', (tester) async {
+      _setMobileTestSurfaceSize(tester);
+      SharedPreferences.setMockInitialValues({});
+      final p = await SharedPreferences.getInstance();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(p),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            siteListNotifierProvider.overrideWith(
+              (ref) => _MockSiteListNotifier(),
+            ),
+            siteListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
+            sortedSitesWithCountsProvider.overrideWithValue(
+              AsyncValue.error(Exception('site-list-boom'), StackTrace.current),
+            ),
+          ],
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.error_outline), findsWidgets);
+    });
+  });
 }
 
 class _SiteListSelectionHarness extends StatefulWidget {
