@@ -1209,14 +1209,25 @@ class UddfFullImportService {
           }
         }
 
-        // Parse equipment references
+        // Parse equipment references (both <equipmentref> and <link ref="..."/>)
         final equipmentRefs = <String>[];
+
+        // Collect <equipmentref> elements
         for (final equipRef in equipmentElement.findElements('equipmentref')) {
           final ref = equipRef.innerText.trim();
           if (ref.isNotEmpty) {
             equipmentRefs.add(ref);
           }
         }
+
+        // Collect <link ref="..."/> elements from equipmentused
+        for (final linkElement in equipmentElement.findElements('link')) {
+          final ref = linkElement.getAttribute('ref');
+          if (ref != null && ref.isNotEmpty && !equipmentRefs.contains(ref)) {
+            equipmentRefs.add(ref);
+          }
+        }
+
         if (equipmentRefs.isNotEmpty) {
           diveData['equipmentRefs'] = equipmentRefs;
         }
@@ -1279,6 +1290,43 @@ class UddfFullImportService {
               diveData['diveComputerFirmware'] = computer['firmware'];
             }
           }
+        }
+      }
+    }
+
+    // Also parse equipment refs from informationafterdive (if they exist there)
+    final afterDiveElement = diveElement
+        .findElements('informationafterdive')
+        .firstOrNull;
+    if (afterDiveElement != null) {
+      final afterEquipmentElement = afterDiveElement
+          .findElements('equipmentused')
+          .firstOrNull;
+      if (afterEquipmentElement != null) {
+        // Get existing refs if any (from beforeElement)
+        final existingRefs =
+            (diveData['equipmentRefs'] as List<String>?) ?? <String>[];
+
+        // Collect <link ref="..."/> elements from afterDiveElement.equipmentused
+        for (final linkElement in afterEquipmentElement.findElements('link')) {
+          final ref = linkElement.getAttribute('ref');
+          if (ref != null && ref.isNotEmpty && !existingRefs.contains(ref)) {
+            existingRefs.add(ref);
+          }
+        }
+
+        // Collect <equipmentref> elements from afterDiveElement.equipmentused
+        for (final equipRef in afterEquipmentElement.findElements(
+          'equipmentref',
+        )) {
+          final ref = equipRef.innerText.trim();
+          if (ref.isNotEmpty && !existingRefs.contains(ref)) {
+            existingRefs.add(ref);
+          }
+        }
+
+        if (existingRefs.isNotEmpty) {
+          diveData['equipmentRefs'] = existingRefs;
         }
       }
     }
