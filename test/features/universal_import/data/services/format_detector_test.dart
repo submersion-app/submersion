@@ -121,6 +121,36 @@ void main() {
       // Should fall through to CSV or unknown
       expect(result.format, isNot(ImportFormat.uddf));
     });
+
+    test('detects MacDive XML via DOCTYPE', () {
+      const xml = '''<?xml version="1.0"?>
+<!DOCTYPE dives SYSTEM "http://www.mac-dive.com/macdive_logbook.dtd">
+<dives><schema>2.2.0</schema><dive/></dives>''';
+      final result = detector.detect(Uint8List.fromList(utf8.encode(xml)));
+      expect(result.format, ImportFormat.macdiveXml);
+      expect(result.sourceApp, SourceApp.macdive);
+      expect(result.confidence, greaterThanOrEqualTo(0.9));
+    });
+
+    test('detects MacDive XML via <dives>+<schema> when DOCTYPE missing', () {
+      const xml =
+          '<?xml version="1.0"?><dives><schema>2.2.0</schema><dive/></dives>';
+      final result = detector.detect(Uint8List.fromList(utf8.encode(xml)));
+      expect(result.format, ImportFormat.macdiveXml);
+      expect(result.sourceApp, SourceApp.macdive);
+    });
+
+    test('does not match plain UDDF as MacDive XML', () {
+      const xml = '<?xml version="1.0"?><uddf><profiledata/></uddf>';
+      final result = detector.detect(Uint8List.fromList(utf8.encode(xml)));
+      expect(result.format, ImportFormat.uddf);
+    });
+
+    test('does not match lone <dives> without <schema> as MacDive XML', () {
+      const xml = '<?xml version="1.0"?><dives><dive/></dives>';
+      final result = detector.detect(Uint8List.fromList(utf8.encode(xml)));
+      expect(result.format, isNot(ImportFormat.macdiveXml));
+    });
   });
 
   group('CSV detection', () {
