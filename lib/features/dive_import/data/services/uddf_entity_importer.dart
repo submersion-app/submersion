@@ -1255,7 +1255,12 @@ class UddfEntityImporter {
       final gasSwitchesData =
           diveData['gasSwitches'] as List<Map<String, dynamic>>?;
       if (gasSwitchesData != null && gasSwitchesData.isNotEmpty) {
+        // Build lookups from both UDDF tank ID and UDDF gas mix UUID to the
+        // persisted tank row id. MacDive-style switches reference a gas mix
+        // UUID (via <switchmix ref>), while top-level <gasswitches>
+        // entries reference a tank UUID (via <tankref>); we accept either.
         final tankIdByRef = <String, String>{};
+        final tankIdByGasMixRef = <String, String>{};
         final tanksData = diveData['tanks'] as List<Map<String, dynamic>>?;
         if (tanksData != null) {
           for (var i = 0; i < tanks.length && i < tanksData.length; i++) {
@@ -1265,6 +1270,15 @@ class UddfEntityImporter {
             if (ref != null && ref.isNotEmpty) {
               tankIdByRef[ref] = tank.id;
             }
+            final gasMixRef = (tankData['uddfGasMixRef'] as String?)?.trim();
+            // First tank linked to a given gas wins; later tanks sharing the
+            // same gas don't overwrite. This is a pragmatic resolution for
+            // dives where multiple tanks carry the same mix.
+            if (gasMixRef != null &&
+                gasMixRef.isNotEmpty &&
+                !tankIdByGasMixRef.containsKey(gasMixRef)) {
+              tankIdByGasMixRef[gasMixRef] = tank.id;
+            }
           }
         }
 
@@ -1273,9 +1287,16 @@ class UddfEntityImporter {
               final timestamp = gs['timestamp'] as int?;
               if (timestamp == null) return null;
               final tankRef = (gs['tankRef'] as String?)?.trim();
-              final tankId = tankRef != null && tankRef.isNotEmpty
-                  ? tankIdByRef[tankRef]
-                  : null;
+              final gasMixRef = (gs['gasMixRef'] as String?)?.trim();
+              String? tankId;
+              if (tankRef != null && tankRef.isNotEmpty) {
+                tankId = tankIdByRef[tankRef];
+              }
+              if ((tankId == null || tankId.isEmpty) &&
+                  gasMixRef != null &&
+                  gasMixRef.isNotEmpty) {
+                tankId = tankIdByGasMixRef[gasMixRef];
+              }
               if (tankId == null || tankId.isEmpty) return null;
               return GasSwitch(
                 id: _uuid.v4(),

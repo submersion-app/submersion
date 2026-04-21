@@ -108,20 +108,24 @@ void main() {
       );
     });
 
-    test('at least one dive has gas-switch markers', () async {
-      if (skipIfNoFixture()) return;
-      final result = await service.importAllDataFromUddf(content);
-      final withSwitch = result.dives.where((d) {
-        final profile = d['profile'] as List?;
-        if (profile == null) return false;
-        return profile.any((p) => (p as Map)['gasMixRef'] != null);
-      });
-      expect(
-        withSwitch,
-        isNotEmpty,
-        reason: 'sample contains multi-gas dives with <switchmix ref>',
-      );
-    });
+    test(
+      'at least one dive has gasSwitches entries from waypoint switchmix',
+      () async {
+        if (skipIfNoFixture()) return;
+        final result = await service.importAllDataFromUddf(content);
+        final withSwitches = result.dives.where((d) {
+          final switches = d['gasSwitches'] as List?;
+          return switches != null && switches.isNotEmpty;
+        });
+        expect(
+          withSwitches,
+          isNotEmpty,
+          reason:
+              'sample contains multi-gas deco dives marked via <switchmix ref> '
+              'on waypoints; parser should emit those to diveData["gasSwitches"]',
+        );
+      },
+    );
 
     test('at least one site has country populated', () async {
       if (skipIfNoFixture()) return;
