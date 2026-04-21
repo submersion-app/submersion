@@ -32,6 +32,7 @@ import 'package:submersion/features/universal_import/presentation/providers/csv_
 import 'package:submersion/features/universal_import/data/parsers/csv_import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/fit_import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/macdive_xml_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/placeholder_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/shearwater_cloud_parser.dart';
@@ -425,6 +426,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         pipeline: registry != null ? CsvPipeline(registry: registry) : null,
       ),
       ImportFormat.uddf => UddfImportParser(),
+      ImportFormat.macdiveXml => const MacDiveXmlParser(),
       ImportFormat.subsurfaceXml => SubsurfaceXmlParser(),
       ImportFormat.fit => const FitImportParser(),
       ImportFormat.shearwaterDb => ShearwaterCloudParser(),
