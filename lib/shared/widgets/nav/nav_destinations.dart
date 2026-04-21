@@ -39,7 +39,7 @@ class NavDestination {
 /// The complete, ordered list of nav destinations in default wide-screen order.
 ///
 /// Length is **14** — 13 routable destinations plus the `more` sentinel.
-final List<NavDestination> kNavDestinations = [
+final List<NavDestination> kNavDestinations = List.unmodifiable([
   NavDestination(
     id: 'dashboard',
     route: '/dashboard',
@@ -142,13 +142,12 @@ final List<NavDestination> kNavDestinations = [
     label: (l10n) => l10n.nav_more,
     isPinned: true,
   ),
-];
+]);
 
 /// The 12 ids that can be moved between primary slots and overflow.
-final List<String> movableNavIds = kNavDestinations
-    .where((d) => !d.isPinned)
-    .map((d) => d.id)
-    .toList(growable: false);
+final List<String> movableNavIds = List.unmodifiable(
+  kNavDestinations.where((d) => !d.isPinned).map((d) => d.id),
+);
 
 /// Default primary middle-slot ids (slots 2, 3, 4). Matches pre-customization behavior.
 const List<String> kDefaultPrimaryIds = ['dives', 'sites', 'trips'];
@@ -168,7 +167,13 @@ List<String> normalizeNavPrimaryIds({
   required List<String> movableIds,
   required List<String> defaults,
 }) {
-  assert(defaults.length >= 3, 'defaults must contain at least 3 ids');
+  if (defaults.length < 3) {
+    throw ArgumentError.value(
+      defaults,
+      'defaults',
+      'must contain at least 3 ids',
+    );
+  }
   for (final id in defaults.take(3)) {
     if (!movableIds.contains(id)) {
       throw ArgumentError('default id "$id" not in movableIds');

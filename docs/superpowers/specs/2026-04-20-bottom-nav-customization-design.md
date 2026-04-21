@@ -24,7 +24,7 @@ Phone-mode users today see a fixed 5-slot bottom navigation: Home, Dives, Sites,
 ## User flow
 
 1. User opens **Settings → Appearance → Navigation bar**.
-2. The page shows a single list: a pinned Home row at the top, 11 movable destinations in the middle (via `ReorderableListView`), a pinned More row at the bottom.
+2. The page shows a single list: a pinned Home row at the top, 12 movable destinations in the middle (via `ReorderableListView`), a pinned More row at the bottom.
 3. A non-draggable divider row labelled *"Items below appear in the More menu"* sits between the third and fourth movable items.
 4. The user drags items up or down. The top 3 movable items become primary slots 2-4; the rest populate the "More" sheet in canonical order.
 5. Changes persist immediately (no save button). The bottom nav rebuilds on the next settings state change.
@@ -74,7 +74,7 @@ The constructor is `const`; the top-level list `kNavDestinations` is `final` (cl
 Ids are lowercase, kebab-cased (matching the route slugs). The 13 routable ids are:
 `dashboard`, `dives`, `sites`, `trips`, `equipment`, `buddies`, `dive-centers`, `certifications`, `courses`, `statistics`, `planning`, `transfer`, `settings`.
 
-A 14th entry — the `more` sentinel — is included in `kNavDestinations` with `route: ''` and `isPinned: true`; it represents the overflow control, not a destination. Total registry size: **14 entries** (13 routable + 1 sentinel). Movable set: **11 entries** (all except `dashboard` and `more`).
+A 14th entry — the `more` sentinel — is included in `kNavDestinations` with `route: ''` and `isPinned: true`; it represents the overflow control, not a destination. Total registry size: **14 entries** (13 routable + 1 sentinel). Movable set: **12 entries** (all except `dashboard` and `more`).
 
 ### Persistence (global, via `AppSettingsRepository`)
 
@@ -184,7 +184,7 @@ Structure (top to bottom):
 - Info paragraph: *"Drag items to reorder. The top three appear in your bottom navigation bar."*
 - Pinned Home row: plain `ListTile` with Home icon, label, and a trailing `Icon(Icons.lock_outline)` with tooltip *"Always shown first"*.
 - `ReorderableListView.builder`:
-  - `itemCount: 12` (11 movable destinations + 1 divider).
+  - `itemCount: 13` (12 movable destinations + 1 divider).
   - `buildDefaultDragHandles: false`.
   - Movable items wrap a drag handle in `ReorderableDragStartListener(index: i, child: ...)`.
   - Divider row (at logical index 3) is a non-draggable `ListTile` with a subtle top/bottom border and the label *"Items below appear in the More menu"*.
