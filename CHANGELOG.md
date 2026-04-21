@@ -3,6 +3,38 @@
 All notable changes to Submersion are documented in this file.
 
 
+## Unreleased
+
+### Added
+
+- MacDive UDDF imports now capture substantially richer dive data: boat
+  name and captain, dive operator, surface conditions, dive-number-of-day,
+  weather (stored in the existing weather description field), plus site
+  water type, body of water, and difficulty rating.
+- Cross-format import deduplication: stable per-dive UUIDs from MacDive,
+  Shearwater Cloud, Subsurface SSRF, and generic UDDF are now preserved on
+  the `dive_data_sources` sidecar. Re-importing the same dives in a
+  different format no longer creates duplicates.
+
+### Fixed
+
+- MacDive UDDF: equipment / gear now imports correctly. The parser
+  previously only scanned Submersion's private equipment extension,
+  missing the standard UDDF gear location (`<diver><owner><equipment>`)
+  where MacDive and other compliant exporters place their inventory.
+- MacDive UDDF: `<equipmentused><link ref>` is now captured from both
+  `<informationbeforedive>` and `<informationafterdive>`.
+- MacDive UDDF: `<surfaceintervalbeforedive><infinity/></…>` is now
+  explicitly handled as "no prior dive" rather than relying on silent
+  int-parse failure.
+
+### Known limitations (to be addressed in a follow-up)
+
+- Gas switch markers (`<switchmix ref>`) in MacDive dive profiles are
+  parsed but not yet persisted to the profile samples table. A future
+  milestone will wire them through, likely via the dive-events table.
+
+
 ## 1.4.5 (2026-04-21)
 
 ### Features
