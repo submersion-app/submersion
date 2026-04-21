@@ -1553,17 +1553,22 @@ class UddfFullImportService {
         final switchMix = waypoint.findElements('switchmix').firstOrNull;
         if (switchMix != null) {
           final mixRef = switchMix.getAttribute('ref');
-          if (mixRef != null && gasMixes.containsKey(mixRef)) {
-            currentMix = gasMixes[mixRef];
-            pendingSwitchMix = currentMix;
+          if (mixRef != null) {
+            // Record the gas mix reference on the sample for downstream consumers
+            point['gasMixRef'] = mixRef;
 
-            if (tanks.length == 1) {
-              UddfImportParsers.assignGasMixToTankIfMissing(
-                tanks: tanks,
-                tankIndex: 0,
-                gasMix: currentMix!,
-              );
-              pendingSwitchMix = null;
+            if (gasMixes.containsKey(mixRef)) {
+              currentMix = gasMixes[mixRef];
+              pendingSwitchMix = currentMix;
+
+              if (tanks.length == 1) {
+                UddfImportParsers.assignGasMixToTankIfMissing(
+                  tanks: tanks,
+                  tankIndex: 0,
+                  gasMix: currentMix!,
+                );
+                pendingSwitchMix = null;
+              }
             }
           }
         }
