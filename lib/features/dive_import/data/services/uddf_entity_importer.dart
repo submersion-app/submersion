@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
-    show DiveDataSourcesCompanion;
+    show DiveDataSourcesCompanion, DiveSitesCompanion, DivesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -806,6 +806,21 @@ class UddfEntityImporter {
       );
 
       final createdSite = await repository.createSite(newSite);
+
+      // Write MacDive site metadata columns that don't flow through the
+      // DiveSite domain entity. Only set columns when source provides a value.
+      final waterType = siteData['waterType'] as String?;
+      final bodyOfWater = siteData['bodyOfWater'] as String?;
+      if (waterType != null || bodyOfWater != null) {
+        await repository.applyImportedMetadata(
+          createdSite.id,
+          DiveSitesCompanion(
+            waterType: Value(waterType),
+            bodyOfWater: Value(bodyOfWater),
+          ),
+        );
+      }
+
       if (uddfId != null) idMapping[uddfId] = createdSite;
       count++;
       onProgress?.call(ImportPhase.sites, count, selected.length);
@@ -1177,6 +1192,35 @@ class UddfEntityImporter {
 
       await repos.diveRepository.createDive(dive);
       importedDiveIds.add(diveId);
+
+      // Write MacDive dive metadata columns that don't flow through the Dive
+      // domain entity. Also plug `weather` into the existing weatherDescription
+      // column (it wasn't being populated for UDDF imports). Only issue the
+      // UPDATE when at least one value is present to avoid a no-op write.
+      final diveNumberOfDay = diveData['diveNumberOfDay'] as int?;
+      final boatName = diveData['boatName'] as String?;
+      final boatCaptain = diveData['boatCaptain'] as String?;
+      final diveOperator = diveData['diveOperator'] as String?;
+      final surfaceConditions = diveData['surfaceConditions'] as String?;
+      final weather = diveData['weather'] as String?;
+      if (diveNumberOfDay != null ||
+          boatName != null ||
+          boatCaptain != null ||
+          diveOperator != null ||
+          surfaceConditions != null ||
+          weather != null) {
+        await repos.diveRepository.applyImportedMetadata(
+          diveId,
+          DivesCompanion(
+            diveNumberOfDay: Value(diveNumberOfDay),
+            boatName: Value(boatName),
+            boatCaptain: Value(boatCaptain),
+            diveOperator: Value(diveOperator),
+            surfaceConditions: Value(surfaceConditions),
+            weatherDescription: Value(weather),
+          ),
+        );
+      }
 
       // Store per-tank pressure data
       if (profileData != null && tanks.isNotEmpty) {
