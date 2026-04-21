@@ -1411,5 +1411,25 @@ void main() {
         expect(notifier.state.fileBytes, isNull);
       });
     });
+
+    group('UniversalImportNotifier - MacDive XML', () {
+      test('detects MacDive native XML format', () async {
+        final content = await File(
+          'test/fixtures/macdive_xml/metric_small.xml',
+        ).readAsString();
+        final bytes = Uint8List.fromList(content.codeUnits);
+
+        final detection = await notifier.loadFileFromBytes(
+          bytes,
+          'metric_small.xml',
+        );
+
+        expect(detection.format, ImportFormat.macdiveXml);
+        expect(detection.sourceApp, SourceApp.macdive);
+        expect(notifier.state.fileBytes, isNotNull);
+        expect(notifier.state.fileName, 'metric_small.xml');
+        expect(notifier.state.currentStep, ImportWizardStep.sourceConfirmation);
+      });
+    });
   });
 }
