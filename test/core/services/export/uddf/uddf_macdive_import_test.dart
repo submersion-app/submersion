@@ -720,6 +720,57 @@ void main() {
       },
     );
 
+    test('extracts equipment from <diver><owner><equipment> '
+        '(standard UDDF location)', () async {
+      const uddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
+  <diver>
+    <owner id="owner-1">
+      <personal><firstname>M</firstname><lastname>G</lastname></personal>
+      <equipment>
+        <variouspieces id="gear-BCD-UUID">
+          <name>Hollis SS BP/W</name>
+          <manufacturer id="man-hollis"><name>Hollis</name></manufacturer>
+          <model>SS BP/W</model>
+          <serialnumber></serialnumber>
+        </variouspieces>
+        <suit id="gear-SUIT-UUID">
+          <name>Aqualung 7mm</name>
+          <manufacturer id="man-aqualung"><name>Aqualung</name></manufacturer>
+          <model>7mm</model>
+          <suittype>wet-suit</suittype>
+        </suit>
+        <divecomputer id="gear-DC-UUID">
+          <name>Shearwater Tern</name>
+          <manufacturer id="man-shearwater"><name>Shearwater</name></manufacturer>
+          <model>Tern</model>
+          <serialnumber>ABC123</serialnumber>
+        </divecomputer>
+      </equipment>
+    </owner>
+  </diver>
+  <profiledata><repetitiongroup id="rg-1">
+    <dive id="d-1">
+      <informationbeforedive><datetime>2024-06-01T09:00:00</datetime></informationbeforedive>
+      <informationafterdive><greatestdepth>12</greatestdepth><diveduration>1800</diveduration></informationafterdive>
+      <samples><waypoint><divetime>0</divetime><depth>0</depth></waypoint></samples>
+    </dive>
+  </repetitiongroup></profiledata>
+</uddf>''';
+      final r = await service.importAllDataFromUddf(uddf);
+      expect(
+        r.equipment.length,
+        3,
+        reason: 'MacDive emits gear under <diver><owner><equipment>',
+      );
+      final bcd = r.equipment.firstWhere(
+        (e) => e['sourceUuid'] == 'gear-BCD-UUID',
+      );
+      expect(bcd['name'], 'Hollis SS BP/W');
+      expect(bcd['manufacturer'], 'Hollis');
+      expect(bcd['model'], 'SS BP/W');
+    });
+
     test(
       'samples with <switchmix ref> record gasMixRef on the right sample',
       () async {

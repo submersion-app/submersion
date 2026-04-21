@@ -210,6 +210,12 @@ class UddfFullImportService {
     final equipmentSets = <Map<String, dynamic>>[];
     final courses = <Map<String, dynamic>>[];
 
+    // Standard UDDF location: <diver><owner><equipment> with child elements
+    // like <variouspieces>, <suit>, <divecomputer>, <regulator>, <bcd>, etc.
+    // MacDive and other UDDF-compliant exporters use this location rather
+    // than the Submersion-private <applicationdata><submersion><equipment>.
+    _collectStandardEquipment(uddfElement, equipment);
+
     final appDataElement = uddfElement
         .findElements('applicationdata')
         .firstOrNull;
@@ -218,16 +224,25 @@ class UddfFullImportService {
           .findElements('submersion')
           .firstOrNull;
       if (submersionElement != null) {
-        // Parse equipment
+        // Parse equipment from the Submersion-private extension path.
+        // Dedup against items already extracted from the standard location.
+        final existingGearUuids = <String>{
+          for (final e in equipment)
+            if (e['sourceUuid'] is String) e['sourceUuid'] as String,
+        };
         final equipmentSection = submersionElement
             .findElements('equipment')
             .firstOrNull;
         if (equipmentSection != null) {
           for (final itemElement in equipmentSection.findElements('item')) {
             final itemData = UddfImportParsers.parseEquipmentItem(itemElement);
-            if (itemData.isNotEmpty) {
-              equipment.add(itemData);
+            if (itemData.isEmpty) continue;
+            final uddfId = itemData['uddfId'];
+            if (uddfId is String && existingGearUuids.contains(uddfId)) {
+              continue;
             }
+            equipment.add(itemData);
+            if (uddfId is String) existingGearUuids.add(uddfId);
           }
         }
 
@@ -2005,5 +2020,171 @@ class UddfFullImportService {
       return 'liveaboard';
     }
     return 'recreational';
+  }
+
+  /// UDDF 3.2 standard equipment child elements that appear under
+  /// `<diver><owner><equipment>`. Each element represents one gear item and
+  /// maps to a human-readable type plus the matching [enums.EquipmentType].
+  static const Map<String, ({String label, enums.EquipmentType type})>
+  _standardGearTags = {
+    'variouspieces': (label: 'Accessory', type: enums.EquipmentType.other),
+    'suit': (label: 'Suit', type: enums.EquipmentType.wetsuit),
+    'divecomputer': (
+      label: 'Dive Computer',
+      type: enums.EquipmentType.computer,
+    ),
+    'regulator': (label: 'Regulator', type: enums.EquipmentType.regulator),
+    'bcd': (label: 'BCD', type: enums.EquipmentType.bcd),
+    'boots': (label: 'Boots', type: enums.EquipmentType.boots),
+    'fins': (label: 'Fins', type: enums.EquipmentType.fins),
+    'compass': (label: 'Compass', type: enums.EquipmentType.other),
+    'knife': (label: 'Knife', type: enums.EquipmentType.knife),
+    'tankrelatedequipment': (label: 'Tank', type: enums.EquipmentType.tank),
+  };
+
+  /// Scans the standard UDDF location (`<diver><owner><equipment>`) for
+  /// gear entries and appends them to [equipment]. Dedupes by the `id`
+  /// attribute against anything already collected.
+  void _collectStandardEquipment(
+    XmlElement uddfElement,
+    List<Map<String, dynamic>> equipment,
+  ) {
+    final existingGearUuids = <String>{
+      for (final e in equipment)
+        if (e['sourceUuid'] is String) e['sourceUuid'] as String,
+    };
+    for (final diverEl in uddfElement.findElements('diver')) {
+      for (final ownerEl in diverEl.findElements('owner')) {
+        final equipContainer = ownerEl.findElements('equipment').firstOrNull;
+        if (equipContainer == null) continue;
+        for (final entry in _standardGearTags.entries) {
+          final tagName = entry.key;
+          final tagMeta = entry.value;
+          for (final itemEl in equipContainer.findElements(tagName)) {
+            final id = itemEl.getAttribute('id');
+            if (id != null && existingGearUuids.contains(id)) continue;
+            final itemData = _parseStandardEquipmentItem(
+              itemEl,
+              tagName: tagName,
+              label: tagMeta.label,
+              type: tagMeta.type,
+            );
+            if (itemData.isEmpty) continue;
+            equipment.add(itemData);
+            if (id != null && id.isNotEmpty) existingGearUuids.add(id);
+          }
+        }
+      }
+    }
+  }
+
+  /// Parses a single UDDF standard equipment element (e.g. `<divecomputer>`,
+  /// `<variouspieces>`, `<suit>`) into a map with the same key conventions
+  /// used by the Submersion-extension path (`parseEquipmentItem`), plus a
+  /// `sourceUuid` carrying the element's `id` attribute.
+  Map<String, dynamic> _parseStandardEquipmentItem(
+    XmlElement itemElement, {
+    required String tagName,
+    required String label,
+    required enums.EquipmentType type,
+  }) {
+    final item = <String, dynamic>{};
+    final id = itemElement.getAttribute('id');
+    if (id != null && id.isNotEmpty) {
+      item['sourceUuid'] = id;
+      item['uddfId'] = id;
+    }
+
+    final name = UddfImportParsers.getElementText(itemElement, 'name');
+    if (name != null && name.isNotEmpty) {
+      item['name'] = name;
+    }
+
+    // UDDF wraps manufacturer in a nested element with its own <name> child.
+    final manufacturerEl = itemElement.findElements('manufacturer').firstOrNull;
+    String? manufacturer;
+    if (manufacturerEl != null) {
+      manufacturer = UddfImportParsers.getElementText(manufacturerEl, 'name');
+    }
+    manufacturer ??= UddfImportParsers.getElementText(
+      itemElement,
+      'manufacturer',
+    );
+    if (manufacturer != null && manufacturer.isNotEmpty) {
+      item['manufacturer'] = manufacturer;
+      // Also store under 'brand' so the downstream duplicate checker and
+      // entity importer (which read 'brand') find the same value.
+      item['brand'] = manufacturer;
+    }
+
+    final model = UddfImportParsers.getElementText(itemElement, 'model');
+    if (model != null && model.isNotEmpty) {
+      item['model'] = model;
+    }
+
+    final serial = UddfImportParsers.getElementText(
+      itemElement,
+      'serialnumber',
+    );
+    if (serial != null && serial.isNotEmpty) {
+      item['serial'] = serial;
+      item['serialNumber'] = serial;
+    }
+
+    // Narrow the suit type for wet-suit vs dry-suit when the sub-element
+    // is present; defaults to wetsuit.
+    if (tagName == 'suit') {
+      final suitType = UddfImportParsers.getElementText(
+        itemElement,
+        'suittype',
+      );
+      if (suitType != null && suitType.toLowerCase().contains('dry')) {
+        item['type'] = enums.EquipmentType.drysuit;
+      } else {
+        item['type'] = type;
+      }
+    } else {
+      item['type'] = type;
+    }
+    item['typeLabel'] = label;
+
+    final purchase = itemElement.findElements('purchase').firstOrNull;
+    if (purchase != null) {
+      final dateText =
+          UddfImportParsers.getElementText(purchase, 'date') ??
+          UddfImportParsers.getElementText(purchase, 'datetime');
+      if (dateText != null) {
+        final parsed = DateTime.tryParse(dateText);
+        if (parsed != null) {
+          item['purchaseDate'] = parsed;
+        }
+      }
+      final price = UddfImportParsers.getElementText(purchase, 'price');
+      if (price != null) {
+        item['purchasePrice'] = double.tryParse(price);
+      }
+      final currency = UddfImportParsers.getElementText(purchase, 'currency');
+      if (currency != null && currency.isNotEmpty) {
+        item['purchaseCurrency'] = currency;
+      }
+    } else {
+      final purchaseDateText = UddfImportParsers.getElementText(
+        itemElement,
+        'purchasedate',
+      );
+      if (purchaseDateText != null) {
+        final parsed = DateTime.tryParse(purchaseDateText);
+        if (parsed != null) {
+          item['purchaseDate'] = parsed;
+        }
+      }
+    }
+
+    final notes = UddfImportParsers.getElementText(itemElement, 'notes');
+    if (notes != null && notes.isNotEmpty) {
+      item['notes'] = notes;
+    }
+
+    return item;
   }
 }

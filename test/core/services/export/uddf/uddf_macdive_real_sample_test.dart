@@ -48,11 +48,17 @@ void main() {
       expect(result.buddies.length, greaterThanOrEqualTo(30));
     });
 
-    test('gear items are parsed (count may be 0 if not in export)', () async {
-      final result = await service.importAllDataFromUddf(content);
-      // Equipment may be 0 if not explicitly defined in equipment section
-      expect(result.equipment, isA<List>());
-    });
+    test(
+      'parses at least 20 gear items from <diver><owner><equipment>',
+      () async {
+        final result = await service.importAllDataFromUddf(content);
+        expect(
+          result.equipment.length,
+          greaterThanOrEqualTo(20),
+          reason: 'sample has 29 equipment items (BCs, suits, computers, regs)',
+        );
+      },
+    );
 
     test('at least one dive has equipmentRefs populated', () async {
       final result = await service.importAllDataFromUddf(content);
