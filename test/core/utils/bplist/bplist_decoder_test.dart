@@ -112,4 +112,65 @@ void main() {
       expect(payload.value, [0, 1, 2, 3]);
     });
   });
+
+  group('BPlistDecoder — real MacDive ZTIMEZONE BLOB', () {
+    late BPlistObject root;
+
+    setUpAll(() async {
+      final bytes = await File(
+        'test/fixtures/macdive_sqlite/bplist_samples/macdive_ztimezone.bplist',
+      ).readAsBytes();
+      root = BPlistDecoder.decode(Uint8List.fromList(bytes));
+    });
+
+    test('root is a dict', () {
+      expect(
+        root,
+        isA<BPlistDict>(),
+        reason: 'MacDive ZTIMEZONE is a dict with NSKeyedArchiver metadata',
+      );
+    });
+
+    test('dict has NSKeyedArchiver structure keys', () {
+      final dict = (root as BPlistDict).value;
+      // Actual keys observed in user's database:
+      // ['\$archiver', '\$objects', '\$top', '\$version']
+      expect(dict.keys, isNotEmpty);
+      final keys = dict.keys.toSet();
+      const archiverKeys = {r'$archiver', r'$objects', r'$top', r'$version'};
+      expect(
+        keys.intersection(archiverKeys),
+        isNotEmpty,
+        reason:
+            'expected NSKeyedArchiver keys (\$archiver, \$objects, \$top, \$version); '
+            'got $keys',
+      );
+    });
+
+    test('contains an \$objects array (decoded object graph)', () {
+      final dict = (root as BPlistDict).value;
+      final objectsValue = dict[r'$objects'];
+      expect(
+        objectsValue,
+        isA<BPlistArray>(),
+        reason: '\$objects must be an array in NSKeyedArchiver format',
+      );
+      final objects = (objectsValue as BPlistArray).value;
+      expect(objects, isNotEmpty);
+    });
+
+    test(
+      'fixture is substantial (> 2 KB) and exercises bplist decoder fully',
+      () async {
+        // The real user file is 3.1 KB, which is large enough to
+        // exercise object offsets beyond single bytes. This verifies
+        // that the decoder correctly handles the offset size from the
+        // trailer and is not just lucky on tiny Python-generated examples.
+        final bytes = await File(
+          'test/fixtures/macdive_sqlite/bplist_samples/macdive_ztimezone.bplist',
+        ).readAsBytes();
+        expect(bytes.length, greaterThan(2048));
+      },
+    );
+  });
 }

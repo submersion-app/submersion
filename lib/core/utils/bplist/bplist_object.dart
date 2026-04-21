@@ -1,9 +1,8 @@
 /// A decoded binary plist (v00) node. Core Data stores a small subset
 /// of the full bplist type system inside its BLOB columns: null,
 /// boolean, integer, real, string (ASCII or UTF-16BE), data, date,
-/// dict, array. Sets and CFKeyedArchiver UID references are not
-/// covered here — they would throw FormatException from the decoder
-/// if encountered, which they shouldn't be in MacDive's output.
+/// dict, array, and CFKeyedArchiver UID references. Sets would throw
+/// FormatException from the decoder if encountered.
 sealed class BPlistObject {
   const BPlistObject();
 }
@@ -58,6 +57,14 @@ class BPlistArray extends BPlistObject {
 class BPlistDict extends BPlistObject {
   final Map<String, BPlistObject> value;
   const BPlistDict(this.value);
+}
+
+/// CFKeyedArchiver UID: a 1-byte reference to another object in the
+/// archive's object table. Used in NSKeyedArchiver-encoded Core Data
+/// blobs to represent cross-references between objects.
+class BPlistUID extends BPlistObject {
+  final int index;
+  const BPlistUID(this.index);
 }
 
 /// Convenience accessors for the common case where a caller already

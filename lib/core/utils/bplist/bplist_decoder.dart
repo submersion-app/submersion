@@ -8,7 +8,7 @@ import 'package:submersion/core/utils/bplist/bplist_object.dart';
 /// bool, int (1/2/4/8-byte; 16-byte ints decoded as best-effort from
 /// their low 64 bits with a warning in a comment — MacDive hasn't been
 /// seen to emit them), real (4/8-byte IEEE754), string (ASCII + UTF-16BE),
-/// data, date, dict, array. Sets and CFKeyedArchiver UID refs throw
+/// data, date, dict, array, and CFKeyedArchiver UID refs. Sets throw
 /// FormatException.
 class BPlistDecoder {
   final Uint8List _bytes;
@@ -121,6 +121,9 @@ class BPlistDecoder {
           );
         }
         return BPlistArray(refs.map(_readObject).toList(growable: false));
+
+      case 0x8: // UID — CFKeyedArchiver reference (always 1 byte)
+        return BPlistUID(_bytes[offset + 1]);
 
       case 0xD: // dict
         final li = _readLenAndStart(offset, info);
