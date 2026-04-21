@@ -172,6 +172,35 @@ const _submersionUddf = '''<?xml version="1.0" encoding="UTF-8" ?>
   </profiledata>
 </uddf>''';
 
+// MacDive-style UDDF exercising the rich informationafterdive / before fields
+// and the dive element's id attribute used as source UUID.
+const _macDiveRichFields = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
+  <generator><name>MacDive</name></generator>
+  <profiledata><repetitiongroup id="rg-1">
+    <dive id="d-RICH-UUID">
+      <informationbeforedive>
+        <datetime>2024-06-01T09:00:00</datetime>
+        <divenumber>42</divenumber>
+        <divenumberofday>3</divenumberofday>
+      </informationbeforedive>
+      <informationafterdive>
+        <greatestdepth>18</greatestdepth>
+        <diveduration>2400</diveduration>
+        <weather>Sunny</weather>
+        <surfaceconditions>Calm</surfaceconditions>
+        <boatname>MV Nautilus</boatname>
+        <boatcaptain>Jane Smith</boatcaptain>
+        <diveoperator>Nautilus Liveaboards</diveoperator>
+        <personalmode>recreational</personalmode>
+        <altitudemode>sea-level</altitudemode>
+        <signature>Marci G.</signature>
+      </informationafterdive>
+      <samples><waypoint><divetime>0</divetime><depth>0</depth></waypoint></samples>
+    </dive>
+  </repetitiongroup></profiledata>
+</uddf>''';
+
 // MacDive-style UDDF without <informationbeforedive>, where equipmentused
 // is only in <informationafterdive>.
 const _macDiveNoBeforeInfo = '''<?xml version="1.0" encoding="UTF-8" ?>
@@ -589,5 +618,27 @@ void main() {
         );
       },
     );
+  });
+
+  group('UddfFullImportService - MacDive extended fields', () {
+    late UddfFullImportService service;
+    setUp(() => service = UddfFullImportService());
+
+    test('extracts weather, surfaceConditions, boatName, boatCaptain, '
+        'diveOperator, personalMode, altitudeMode, signature, '
+        'diveNumberOfDay, sourceUuid', () async {
+      final r = await service.importAllDataFromUddf(_macDiveRichFields);
+      final d = r.dives.first;
+      expect(d['weather'], 'Sunny');
+      expect(d['surfaceConditions'], 'Calm');
+      expect(d['boatName'], 'MV Nautilus');
+      expect(d['boatCaptain'], 'Jane Smith');
+      expect(d['diveOperator'], 'Nautilus Liveaboards');
+      expect(d['personalMode'], 'recreational');
+      expect(d['altitudeMode'], 'sea-level');
+      expect(d['signature'], 'Marci G.');
+      expect(d['diveNumberOfDay'], 3);
+      expect(d['sourceUuid'], 'd-RICH-UUID');
+    });
   });
 }
