@@ -983,6 +983,7 @@ class DiveDataSources extends Table {
   DateTimeColumn get createdAt => dateTime()();
   BlobColumn get rawData => blob().nullable()();
   BlobColumn get rawFingerprint => blob().nullable()();
+  TextColumn get sourceUuid => text().nullable()();
   TextColumn get descriptorVendor => text().nullable()();
   TextColumn get descriptorProduct => text().nullable()();
   IntColumn get descriptorModel => integer().nullable()();
@@ -1326,7 +1327,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 69;
+  static const int currentSchemaVersion = 70;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1399,6 +1400,7 @@ class AppDatabase extends _$AppDatabase {
     67,
     68,
     69,
+    70,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -3244,6 +3246,25 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 69) await reportProgress();
+        if (from < 70) {
+          // Migration 70: add source_uuid to dive_data_sources for
+          // cross-format import deduplication (MacDive UUID, Shearwater
+          // DiveId, Subsurface SSRF id, generic UDDF dive id).
+          // libdivecomputer continues to use raw_fingerprint.
+          // Guard: dive_data_sources may not exist in older migration tests.
+          final cols = await customSelect(
+            "PRAGMA table_info('dive_data_sources')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('source_uuid')) {
+              await customStatement(
+                'ALTER TABLE dive_data_sources ADD COLUMN source_uuid TEXT',
+              );
+            }
+          }
+        }
+        if (from < 70) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
