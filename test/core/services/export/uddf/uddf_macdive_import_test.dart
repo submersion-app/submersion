@@ -559,5 +559,35 @@ void main() {
         expect(gasMix, isNotNull);
       }
     });
+
+    test(
+      'treats <infinity/> surface interval as absent (first dive)',
+      () async {
+        const uddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
+  <profiledata><repetitiongroup id="rg-1">
+    <dive id="d-1">
+      <informationbeforedive>
+        <surfaceintervalbeforedive><infinity/></surfaceintervalbeforedive>
+        <datetime>2024-06-01T09:00:00</datetime>
+      </informationbeforedive>
+      <informationafterdive>
+        <greatestdepth>12</greatestdepth>
+        <diveduration>1800</diveduration>
+      </informationafterdive>
+      <samples><waypoint><divetime>0</divetime><depth>0</depth></waypoint></samples>
+    </dive>
+  </repetitiongroup></profiledata>
+</uddf>''';
+        final result = await service.importAllDataFromUddf(uddf);
+        final dive = result.dives.first;
+        expect(
+          dive.containsKey('surfaceInterval'),
+          isFalse,
+          reason:
+              '<infinity/> means no prior dive; must not set surfaceInterval',
+        );
+      },
+    );
   });
 }
