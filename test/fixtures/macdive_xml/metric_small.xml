@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dives SYSTEM "http://www.mac-dive.com/macdive_logbook.dtd">
+<dives>
+    <units>Metric</units>
+    <schema>2.2.0</schema>
+    <dive>
+        <date>2024-06-01 09:00:00</date>
+        <identifier>20240601090000-ABC123</identifier>
+        <diveNumber>42</diveNumber>
+        <rating>4</rating>
+        <maxDepth>25.40</maxDepth>
+        <averageDepth>18.00</averageDepth>
+        <duration>2400</duration>
+        <sampleInterval>10</sampleInterval>
+        <tempHigh>26.5</tempHigh>
+        <tempLow>20.0</tempLow>
+        <weight>5</weight>
+        <notes><![CDATA[Nice reef dive]]></notes>
+        <diveOperator>Test Operator</diveOperator>
+        <boat>MV Test</boat>
+        <weather>Sunny</weather>
+        <site>
+            <country>Mexico</country>
+            <location>Baja California</location>
+            <name>Test Reef</name>
+            <waterType>saltwater</waterType>
+            <lat>24.12345</lat>
+            <lon>-110.54321</lon>
+        </site>
+        <tags>
+            <tag>Reef</tag>
+            <tag>Photography</tag>
+        </tags>
+        <buddies>
+            <buddy>Alice</buddy>
+        </buddies>
+        <gear>
+            <item><type>BCD</type><manufacturer>Test</manufacturer><name>BCD1</name></item>
+        </gear>
+        <gases>
+            <gas>
+                <pressureStart>200</pressureStart>
+                <pressureEnd>60</pressureEnd>
+                <oxygen>32</oxygen>
+                <helium>0</helium>
+                <double>0</double>
+                <tankSize>12</tankSize>
+                <workingPressure>232</workingPressure>
+                <supplyType>Open Circuit</supplyType>
+                <duration>2400</duration>
+                <tankName>AL80</tankName>
+            </gas>
+        </gases>
+        <samples>
+            <sample><time>0</time><depth>0</depth><pressure>200</pressure><temperature>26.5</temperature></sample>
+            <sample><time>60</time><depth>10</depth><pressure>195</pressure><temperature>24</temperature></sample>
+            <sample><time>2400</time><depth>5</depth><pressure>60</pressure><temperature>23</temperature></sample>
+        </samples>
+    </dive>
+</dives>
