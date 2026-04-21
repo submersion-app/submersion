@@ -16,7 +16,7 @@
 
 | File | Role | New / Modified |
 |---|---|---|
-| `lib/core/database/database.dart` | Add `sourceUuid` columns to `Dives`, `DiveSites`, `Buddies`, `Gear`, `Tags`, `Certifications`, `Species`, `DiveTypes`, `Trips`. Bump schema version and add migration step. | Modified |
+| `lib/core/database/database.dart` | Add single `sourceUuid TEXT NULL` column to the existing `DiveDataSources` 1:N sidecar table. That's where per-source dive identity already lives (alongside `rawFingerprint`, `sourceFormat`, `sourceFileName`, `computerSerial`). Bump schema version 69 → 70 and add migration step. No changes to `dives`, `dive_sites`, `buddies`, or any other top-level entity tables. | Modified |
 | `lib/core/services/export/uddf/dialects/macdive_dialect.dart` | Add `<infinity/>` normalization for surface interval; preserve idempotency for all existing rewrites. | Modified |
 | `lib/core/services/export/uddf/uddf_import_parsers.dart` | Add `resolveLinkRef(XmlElement, Map<String, LinkRefKind>)` helper that resolves a `<link ref="…"/>` against a pre-built index of top-level IDs and returns the entity kind. | Modified |
 | `lib/core/services/export/uddf/uddf_full_import_service.dart` | Build ID→kind index once per import; use the helper inside `informationbeforedive` / `equipmentused` parsing; extract newly-supported dive and site fields; store each entity's source UUID on its dive/site/buddy/etc. map under `sourceUuid`. | Modified |
@@ -29,7 +29,9 @@
 
 ---
 
-## Task 1: Schema migration — add `source_uuid` columns
+## Task 1: Schema migration — add `source_uuid` column to `dive_data_sources`
+
+**Design rationale:** The project already has a 1:N `dive_data_sources` sidecar table carrying per-source dive metadata: `raw_fingerprint` (libdivecomputer), `source_format`, `source_file_name`, `computer_serial`, etc. This is where "where this dive came from" already lives. Adding `source_uuid` here (rather than on `dives` or on every top-level table) keeps the schema change minimal (one column, one table) and aligns with the existing architecture. libdivecomputer continues to use its existing `raw_fingerprint` BLOB — different mechanism, same role. The new `source_uuid` column captures the string/UUID identifiers that Shearwater Cloud (`DiveId`), MacDive (UDDF `<dive id>`, XML `<identifier>`, SQLite `ZUUID`), Subsurface SSRF, and generic UDDF all provide.
 
 **Files:**
 - Modify: `lib/core/database/database.dart`
@@ -40,37 +42,22 @@
 Create `test/core/database/source_uuid_migration_test.dart`:
 
 ```dart
-import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('fresh database has source_uuid column on dives and related tables',
-      () async {
+  test('fresh database has source_uuid column on dive_data_sources', () async {
     final db = AppDatabase.forTesting(NativeDatabase.memory());
-    final tables = [
-      'dives',
-      'dive_sites',
-      'buddies',
-      'gear',
-      'tags',
-      'certifications',
-      'species',
-      'dive_types',
-      'trips',
-    ];
-    for (final table in tables) {
-      final cols = await db
-          .customSelect("PRAGMA table_info('$table')")
-          .get();
-      final names = cols.map((r) => r.data['name'] as String).toSet();
-      expect(
-        names.contains('source_uuid'),
-        isTrue,
-        reason: 'table $table must have source_uuid column',
-      );
-    }
+    final cols = await db
+        .customSelect("PRAGMA table_info('dive_data_sources')")
+        .get();
+    final names = cols.map((r) => r.data['name'] as String).toSet();
+    expect(
+      names.contains('source_uuid'),
+      isTrue,
+      reason: 'dive_data_sources must have source_uuid column',
+    );
     await db.close();
   });
 }
@@ -79,32 +66,31 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/core/database/source_uuid_migration_test.dart`
-Expected: FAIL — `table dives must have source_uuid column`.
+Expected: FAIL — `dive_data_sources must have source_uuid column`.
 
-- [ ] **Step 3: Add columns to each table definition in `database.dart`**
+- [ ] **Step 3: Add the column to `DiveDataSources`**
 
-For each of the nine tables, add:
+In `lib/core/database/database.dart`, locate `class DiveDataSources extends Table` (around line 953). Add a nullable text column near the other per-source identity columns (e.g. immediately after `rawFingerprint`):
 
 ```dart
-TextColumn get sourceUuid => text().nullable()();
+  TextColumn get sourceUuid => text().nullable()();
 ```
-
-Place it at the end of each table class before the `override Set<Column> get primaryKey => …` (if any).
 
 - [ ] **Step 4: Bump schema version and add migration step**
 
-Open `lib/core/database/database.dart`, find the `schemaVersion` getter, bump it by one (e.g. `49 → 50`). In the `MigrationStrategy.onUpgrade`, add a new case matching the new version that runs:
+Find `currentSchemaVersion` (around line 1329) and bump from `69` to `70`.
+
+Locate the existing `dive_data_sources` ALTER migration pattern (around lines 3083-3108 — where `raw_fingerprint`, `descriptor_vendor`, `descriptor_product`, etc. are added with `if (!existing.contains('X')) { await customStatement('ALTER TABLE dive_data_sources ADD COLUMN X Y') }`). Append to the same block (inside the same `if (from < N)` guard or in a new `if (from < 70)` block, matching the file's existing idiom):
 
 ```dart
-if (from < 50) {
-  for (final table in const [
-    'dives', 'dive_sites', 'buddies', 'gear', 'tags',
-    'certifications', 'species', 'dive_types', 'trips',
-  ]) {
-    await m.customStatement('ALTER TABLE $table ADD COLUMN source_uuid TEXT;');
-  }
+if (!existing.contains('source_uuid')) {
+  await customStatement(
+    'ALTER TABLE dive_data_sources ADD COLUMN source_uuid TEXT',
+  );
 }
 ```
+
+Grep the existing migration code for the exact `existing` variable name and reuse it; don't duplicate the `PRAGMA table_info` introspection if it's already in scope.
 
 - [ ] **Step 5: Regenerate drift outputs and run the test**
 
@@ -118,9 +104,8 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add lib/core/database/database.dart test/core/database/source_uuid_migration_test.dart
-git add lib/core/database/database.g.dart  # generated
-git commit -m "feat(db): add source_uuid columns for cross-format import dedup"
+git add lib/core/database/database.dart lib/core/database/database.g.dart test/core/database/source_uuid_migration_test.dart
+git commit -m "feat(db): add source_uuid to dive_data_sources for cross-format import dedup"
 ```
 
 ---
