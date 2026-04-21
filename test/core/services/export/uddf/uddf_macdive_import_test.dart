@@ -682,5 +682,42 @@ void main() {
         expect(site['flag'], 'MX');
       },
     );
+
+    test(
+      'equipmentused <link ref> resolves gear UUIDs from before AND after sections',
+      () async {
+        const uddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
+  <diver><owner id="o"><personal><firstname>M</firstname></personal>
+    <equipment>
+      <variouspieces id="gear-REG-1"><name>Travel Reg</name></variouspieces>
+      <variouspieces id="gear-BCD-1"><name>Hydros</name></variouspieces>
+    </equipment></owner></diver>
+  <profiledata><repetitiongroup id="rg-1">
+    <dive id="d-1">
+      <informationbeforedive><datetime>2024-06-01T09:00:00</datetime></informationbeforedive>
+      <informationafterdive>
+        <greatestdepth>10</greatestdepth>
+        <diveduration>1800</diveduration>
+        <equipmentused>
+          <link ref="gear-REG-1" />
+          <link ref="gear-BCD-1" />
+        </equipmentused>
+      </informationafterdive>
+      <samples><waypoint><divetime>0</divetime><depth>0</depth></waypoint></samples>
+    </dive>
+  </repetitiongroup></profiledata>
+</uddf>''';
+        final r = await service.importAllDataFromUddf(uddf);
+        final dive = r.dives.first;
+        final refs = dive['equipmentRefs'] as List?;
+        expect(refs, isNotNull, reason: 'equipmentRefs must be populated');
+        expect(
+          refs,
+          containsAll(['gear-REG-1', 'gear-BCD-1']),
+          reason: 'both gear UUIDs should be captured',
+        );
+      },
+    );
   });
 }
