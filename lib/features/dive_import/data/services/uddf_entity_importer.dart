@@ -1422,6 +1422,7 @@ class UddfEntityImporter {
           computerSerial: Value(diveData['diveComputerSerial'] as String?),
           sourceFileName: Value(sourceFileName),
           sourceFileFormat: const Value('uddf'),
+          sourceUuid: Value(diveData['sourceUuid'] as String?),
           maxDepth: Value(asDoubleOrNull(diveData['maxDepth'])),
           avgDepth: Value(asDoubleOrNull(diveData['avgDepth'])),
           duration: Value(dive.bottomTime?.inSeconds),
