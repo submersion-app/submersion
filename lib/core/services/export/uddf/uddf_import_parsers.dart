@@ -633,3 +633,28 @@ class UddfImportParsers {
     return record;
   }
 }
+
+/// Categorisation of a top-level UDDF id so a `<link ref>` can be resolved
+/// to the entity type it points at, regardless of where the link appears.
+enum LinkRefKind {
+  site,
+  buddy,
+  gear,
+  gasMix,
+  tank,
+  diveComputer,
+  trip,
+  unknown,
+}
+
+/// Index of id → kind, built once per UDDF document by scanning the
+/// top-level entity sections. Used by the dive parser to bind each
+/// `<link ref>` child to the correct entity class by ID lookup instead
+/// of by positional order.
+class LinkRefIndex {
+  final Map<String, LinkRefKind> _map;
+  const LinkRefIndex(Map<String, LinkRefKind> map) : _map = map;
+
+  LinkRefKind kindOf(String? id) =>
+      id == null ? LinkRefKind.unknown : (_map[id] ?? LinkRefKind.unknown);
+}
