@@ -96,6 +96,12 @@ class _FakeAppSettingsRepository implements AppSettingsRepository {
     lastSetValue = value;
     _shareByDefault = value;
   }
+
+  @override
+  Future<List<String>?> getNavPrimaryIdsRaw() async => null;
+
+  @override
+  Future<void> setNavPrimaryIds(List<String> ids) async {}
 }
 
 /// Mock SettingsNotifier that doesn't access the database.
