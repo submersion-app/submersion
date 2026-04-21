@@ -2,7 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Import directly from MacDive's Core Data SQLite database (`MacDive.sqlite`). This is the most complete path: tags, critters, events, service records, full relationship graph, and per-dive profile samples encoded as Apple binary plists.
+**Goal:** Import directly from MacDive's Core Data SQLite database (`MacDive.sqlite`). Rich METADATA path — tags, critters, events, service records, full relationship graph, certifications, gear inventory.
+
+**Scope adjustment (discovered during Task 4):** `ZDIVE.ZSAMPLES` is NOT bplist — MacDive uses a proprietary binary format (entropy 7.85 bits/byte, all 256 byte values present — either bit-packed+delta-encoded or compressed with a non-standard algorithm). Tried zlib/gzip/lzma at offsets 0/4/8/12 — nothing works. Reverse-engineering MacDive's sample format is out of M3 scope.
+
+**Consequence:** M3 imports dive metadata only. `profile: []` is emitted for every dive. Users who want profile time-series data can use M1's UDDF import instead (which decodes profiles correctly from MacDive UDDF exports). SQLite import becomes the "rich metadata" path; UDDF remains the "sample data" path.
+
+`ZDIVE.ZTIMEZONE` IS bplist (NSKeyedArchiver format with UID markers) — handled correctly by the bplist decoder from Tasks 1-3.
 
 **Architecture:** Hand-rolled `BPlistDecoder` (binary plist v00) for decoding MacDive's BLOB columns (`ZRAWDATA`, `ZSAMPLES`, `ZTIMEZONE`). New `MacDiveDbReader` modeled on `ShearwaterDbReader` validates the schema and produces typed raw rows. New `MacDiveDiveMapper` joins the rows (dive ↔ site, dive ↔ buddy, dive ↔ tank ↔ gas, dive ↔ tag, dive ↔ critter) and maps them to a unified `ImportPayload`. Pipeline wiring mirrors Shearwater Cloud.
 
