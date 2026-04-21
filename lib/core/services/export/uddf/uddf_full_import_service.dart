@@ -480,6 +480,13 @@ class UddfFullImportService {
       diveComputers,
     );
 
+    // Capture the source UUID from the <dive> element's id attribute so
+    // downstream consumers (e.g., dive_data_sources sidecar) can persist it.
+    final diveId = diveElement.getAttribute('id');
+    if (diveId != null && diveId.isNotEmpty) {
+      diveData['sourceUuid'] = diveId;
+    }
+
     // Parse additional fields from informationbeforedive
     final beforeElement = diveElement
         .findElements('informationbeforedive')
@@ -489,6 +496,16 @@ class UddfFullImportService {
         beforeElement,
         'divemaster',
       );
+
+      // MacDive exposes per-day dive counter in informationbeforedive
+      final dnodRaw = UddfImportParsers.getElementText(
+        beforeElement,
+        'divenumberofday',
+      );
+      final dnod = dnodRaw == null ? null : int.tryParse(dnodRaw);
+      if (dnod != null) {
+        diveData['diveNumberOfDay'] = dnod;
+      }
 
       final diveType = UddfImportParsers.getElementText(
         beforeElement,
@@ -622,6 +639,24 @@ class UddfFullImportService {
         .findElements('informationafterdive')
         .firstOrNull;
     if (afterElement != null) {
+      // MacDive-specific string fields that the standard UDDF parser ignores.
+      // Element local name -> diveData map key.
+      for (final entry in const {
+        'weather': 'weather',
+        'surfaceconditions': 'surfaceConditions',
+        'boatname': 'boatName',
+        'boatcaptain': 'boatCaptain',
+        'diveoperator': 'diveOperator',
+        'personalmode': 'personalMode',
+        'altitudemode': 'altitudeMode',
+        'signature': 'signature',
+      }.entries) {
+        final text = UddfImportParsers.getElementText(afterElement, entry.key);
+        if (text != null && text.isNotEmpty) {
+          diveData[entry.value] = text;
+        }
+      }
+
       final waterType = UddfImportParsers.getElementText(
         afterElement,
         'watertype',
