@@ -69,7 +69,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get accessibility_label_sharedWithAllProfiles =>
-      'Shared with all dive profiles';
+      'משותף עם כל פרופילי הצלילה';
 
   @override
   String get accessibility_label_showList => 'הצגת רשימה';
@@ -1358,7 +1358,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_search => 'חיפוש';
 
   @override
-  String get common_action_share => 'Share';
+  String get common_action_share => 'שיתוף';
 
   @override
   String get common_label_error => 'שגיאה';
@@ -1370,7 +1370,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
-  String get common_error_tryAgain => 'Something went wrong. Please try again.';
+  String get common_error_tryAgain => 'משהו השתבש. יש לנסות שוב.';
 
   @override
   String get courses_action_add => 'הוסף קורס';
@@ -15946,82 +15946,81 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_label_consolidated => 'אוחדו';
 
   @override
-  String get common_label_shareWithAllProfiles =>
-      'Share with all dive profiles';
+  String get common_label_shareWithAllProfiles => 'שיתוף עם כל פרופילי הצלילה';
 
   @override
   String get settings_shareByDefault_title =>
-      'Share new sites and trips by default';
+      'שתף אתרים וטיולים חדשים כברירת מחדל';
 
   @override
-  String get settings_shareAllSites_title => 'Share all my sites';
+  String get settings_shareAllSites_title => 'שתף את כל האתרים שלי';
 
   @override
-  String get settings_shareAllTrips_title => 'Share all my trips';
+  String get settings_shareAllTrips_title => 'שתף את כל הטיולים שלי';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Make all $count of your sites visible to every dive profile in this app? You can unshare individual sites later.';
+    return 'להציג את כל $count האתרים שלך לכל פרופיל צלילה באפליקציה? תוכל לבטל שיתוף של אתרים בודדים בהמשך.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Make all $count of your trips visible to every dive profile in this app? You can unshare individual trips later.';
+    return 'להציג את כל $count הטיולים שלך לכל פרופיל צלילה באפליקציה? תוכל לבטל שיתוף של טיולים בודדים בהמשך.';
   }
 
   @override
   String settings_shareAllSites_snackbar(int count) {
-    return 'Shared $count sites with all dive profiles.';
+    return '$count אתרים שותפו עם כל פרופילי הצלילה.';
   }
 
   @override
   String settings_shareAllTrips_snackbar(int count) {
-    return 'Shared $count trips with all dive profiles.';
+    return '$count טיולים שותפו עם כל פרופילי הצלילה.';
   }
 
   @override
-  String get settings_shareAll_noneToShare => 'Nothing to share.';
+  String get settings_shareAll_noneToShare => 'אין מה לשתף.';
 
   @override
-  String get settings_sharedData_sectionTitle => 'Shared data';
+  String get settings_sharedData_sectionTitle => 'נתונים משותפים';
 
   @override
   String get settings_sharedData_sectionSubtitle =>
-      'Share sites and trips across profiles';
+      'שיתוף אתרים וטיולים בין פרופילים';
 
   @override
-  String get common_action_unshare => 'Unshare';
+  String get common_action_unshare => 'ביטול שיתוף';
 
   @override
-  String get trips_unshareConfirm_title => 'Unshare this trip?';
+  String get trips_unshareConfirm_title => 'לבטל שיתוף של טיול זה?';
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return 'This will remove \'$name\' from other dive profiles\' views. You can re-share it later.';
+    return 'פעולה זו תסיר את «$name» מתצוגות של פרופילי צלילה אחרים. תוכל לשתף שוב בהמשך.';
   }
 
   @override
-  String get sites_unshareConfirm_title => 'Unshare this site?';
+  String get sites_unshareConfirm_title => 'לבטל שיתוף של אתר זה?';
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return 'This will remove \'$name\' from other dive profiles\' views. You can re-share it later.';
+    return 'פעולה זו תסיר את «$name» מתצוגות של פרופילי צלילה אחרים. תוכל לשתף שוב בהמשך.';
   }
 
   @override
-  String get trips_deleteShared_title => 'Delete shared trip?';
+  String get trips_deleteShared_title => 'למחוק את הטיול המשותף?';
 
   @override
   String trips_deleteShared_body(String name) {
-    return '\'$name\' is shared with other dive profiles. Deleting it here removes it for everyone.';
+    return '«$name» משותף עם פרופילי צלילה אחרים. מחיקה כאן תסיר אותו עבור כולם.';
   }
 
   @override
-  String get sites_deleteShared_title => 'Delete shared site?';
+  String get sites_deleteShared_title => 'למחוק את האתר המשותף?';
 
   @override
   String sites_deleteShared_body(String name) {
-    return '\'$name\' is shared with other dive profiles. Deleting it here removes it for everyone.';
+    return '«$name» משותף עם פרופילי צלילה אחרים. מחיקה כאן תסיר אותו עבור כולם.';
   }
 
   @override
@@ -16029,15 +16028,15 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       trips,
       locale: localeName,
-      other: 'trips',
-      one: 'trip',
+      other: 'טיולים משותפים הועברו',
+      one: 'טיול משותף הועבר',
     );
     String _temp1 = intl.Intl.pluralLogic(
       sites,
       locale: localeName,
-      other: 'sites',
-      one: 'site',
+      other: 'אתרים משותפים הועברו',
+      one: 'אתר משותף הועבר',
     );
-    return 'Diver deleted. $trips shared $_temp0 and $sites shared $_temp1 reassigned to $name.';
+    return 'הצולל נמחק. $trips $_temp0 ו-$sites $_temp1 אל $name.';
   }
 }

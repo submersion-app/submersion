@@ -68,8 +68,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get accessibility_label_sharedWithAllProfiles =>
-      'Shared with all dive profiles';
+  String get accessibility_label_sharedWithAllProfiles => '已与所有潜水员资料共享';
 
   @override
   String get accessibility_label_showList => '显示列表';
@@ -1330,7 +1329,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_action_search => '搜索';
 
   @override
-  String get common_action_share => 'Share';
+  String get common_action_share => '共享';
 
   @override
   String get common_label_error => '错误';
@@ -1342,7 +1341,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
-  String get common_error_tryAgain => 'Something went wrong. Please try again.';
+  String get common_error_tryAgain => '发生错误，请重试。';
 
   @override
   String get courses_action_add => '添加课程';
@@ -15582,82 +15581,79 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_label_consolidated => '已合并';
 
   @override
-  String get common_label_shareWithAllProfiles =>
-      'Share with all dive profiles';
+  String get common_label_shareWithAllProfiles => '与所有潜水员资料共享';
 
   @override
-  String get settings_shareByDefault_title =>
-      'Share new sites and trips by default';
+  String get settings_shareByDefault_title => '默认共享新潜点和行程';
 
   @override
-  String get settings_shareAllSites_title => 'Share all my sites';
+  String get settings_shareAllSites_title => '共享我的所有潜点';
 
   @override
-  String get settings_shareAllTrips_title => 'Share all my trips';
+  String get settings_shareAllTrips_title => '共享我的所有行程';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Make all $count of your sites visible to every dive profile in this app? You can unshare individual sites later.';
+    return '将您的全部 $count 个潜点向此应用中的每个潜水员资料开放？您之后可以单独取消共享。';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Make all $count of your trips visible to every dive profile in this app? You can unshare individual trips later.';
+    return '将您的全部 $count 个行程向此应用中的每个潜水员资料开放？您之后可以单独取消共享。';
   }
 
   @override
   String settings_shareAllSites_snackbar(int count) {
-    return 'Shared $count sites with all dive profiles.';
+    return '已将 $count 个潜点与所有潜水员资料共享。';
   }
 
   @override
   String settings_shareAllTrips_snackbar(int count) {
-    return 'Shared $count trips with all dive profiles.';
+    return '已将 $count 个行程与所有潜水员资料共享。';
   }
 
   @override
-  String get settings_shareAll_noneToShare => 'Nothing to share.';
+  String get settings_shareAll_noneToShare => '没有可共享的内容。';
 
   @override
-  String get settings_sharedData_sectionTitle => 'Shared data';
+  String get settings_sharedData_sectionTitle => '共享数据';
 
   @override
-  String get settings_sharedData_sectionSubtitle =>
-      'Share sites and trips across profiles';
+  String get settings_sharedData_sectionSubtitle => '在资料之间共享潜点和行程';
 
   @override
-  String get common_action_unshare => 'Unshare';
+  String get common_action_unshare => '取消共享';
 
   @override
-  String get trips_unshareConfirm_title => 'Unshare this trip?';
+  String get trips_unshareConfirm_title => '取消共享此行程？';
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return 'This will remove \'$name\' from other dive profiles\' views. You can re-share it later.';
+    return '此操作会将「$name」从其他潜水员资料的视图中移除。您之后可以再次共享。';
   }
 
   @override
-  String get sites_unshareConfirm_title => 'Unshare this site?';
+  String get sites_unshareConfirm_title => '取消共享此潜点？';
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return 'This will remove \'$name\' from other dive profiles\' views. You can re-share it later.';
+    return '此操作会将「$name」从其他潜水员资料的视图中移除。您之后可以再次共享。';
   }
 
   @override
-  String get trips_deleteShared_title => 'Delete shared trip?';
+  String get trips_deleteShared_title => '删除共享行程？';
 
   @override
   String trips_deleteShared_body(String name) {
-    return '\'$name\' is shared with other dive profiles. Deleting it here removes it for everyone.';
+    return '「$name」已与其他潜水员资料共享。在此处删除会对所有人生效。';
   }
 
   @override
-  String get sites_deleteShared_title => 'Delete shared site?';
+  String get sites_deleteShared_title => '删除共享潜点？';
 
   @override
   String sites_deleteShared_body(String name) {
-    return '\'$name\' is shared with other dive profiles. Deleting it here removes it for everyone.';
+    return '「$name」已与其他潜水员资料共享。在此处删除会对所有人生效。';
   }
 
   @override
@@ -15665,15 +15661,15 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       trips,
       locale: localeName,
-      other: 'trips',
-      one: 'trip',
+      other: '行程',
+      one: '行程',
     );
     String _temp1 = intl.Intl.pluralLogic(
       sites,
       locale: localeName,
-      other: 'sites',
-      one: 'site',
+      other: '潜点',
+      one: '潜点',
     );
-    return 'Diver deleted. $trips shared $_temp0 and $sites shared $_temp1 reassigned to $name.';
+    return '已删除潜水员。$trips 个共享$_temp0和 $sites 个共享$_temp1已重新分配给 $name。';
   }
 }

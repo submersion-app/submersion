@@ -69,7 +69,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get accessibility_label_sharedWithAllProfiles =>
-      'Shared with all dive profiles';
+      'Compartido con todos los perfiles de buceo';
 
   @override
   String get accessibility_label_showList => 'Mostrar lista';
@@ -1405,7 +1405,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get common_action_search => 'Buscar';
 
   @override
-  String get common_action_share => 'Share';
+  String get common_action_share => 'Compartir';
 
   @override
   String get common_label_error => 'Error';
@@ -1417,7 +1417,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
-  String get common_error_tryAgain => 'Something went wrong. Please try again.';
+  String get common_error_tryAgain => 'Algo salió mal. Inténtalo de nuevo.';
 
   @override
   String get courses_action_add => 'Agregar Curso';
@@ -16385,81 +16385,81 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get common_label_shareWithAllProfiles =>
-      'Share with all dive profiles';
+      'Compartir con todos los perfiles de buceo';
 
   @override
   String get settings_shareByDefault_title =>
-      'Share new sites and trips by default';
+      'Compartir los nuevos sitios y viajes por defecto';
 
   @override
-  String get settings_shareAllSites_title => 'Share all my sites';
+  String get settings_shareAllSites_title => 'Compartir todos mis sitios';
 
   @override
-  String get settings_shareAllTrips_title => 'Share all my trips';
+  String get settings_shareAllTrips_title => 'Compartir todos mis viajes';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Make all $count of your sites visible to every dive profile in this app? You can unshare individual sites later.';
+    return '¿Hacer visibles los $count sitios para todos los perfiles de buceo de esta app? Podrás dejar de compartir sitios individuales más tarde.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Make all $count of your trips visible to every dive profile in this app? You can unshare individual trips later.';
+    return '¿Hacer visibles los $count viajes para todos los perfiles de buceo de esta app? Podrás dejar de compartir viajes individuales más tarde.';
   }
 
   @override
   String settings_shareAllSites_snackbar(int count) {
-    return 'Shared $count sites with all dive profiles.';
+    return '$count sitios compartidos con todos los perfiles de buceo.';
   }
 
   @override
   String settings_shareAllTrips_snackbar(int count) {
-    return 'Shared $count trips with all dive profiles.';
+    return '$count viajes compartidos con todos los perfiles de buceo.';
   }
 
   @override
-  String get settings_shareAll_noneToShare => 'Nothing to share.';
+  String get settings_shareAll_noneToShare => 'Nada que compartir.';
 
   @override
-  String get settings_sharedData_sectionTitle => 'Shared data';
+  String get settings_sharedData_sectionTitle => 'Datos compartidos';
 
   @override
   String get settings_sharedData_sectionSubtitle =>
-      'Share sites and trips across profiles';
+      'Compartir sitios y viajes entre perfiles';
 
   @override
-  String get common_action_unshare => 'Unshare';
+  String get common_action_unshare => 'Dejar de compartir';
 
   @override
-  String get trips_unshareConfirm_title => 'Unshare this trip?';
+  String get trips_unshareConfirm_title => '¿Dejar de compartir este viaje?';
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return 'This will remove \'$name\' from other dive profiles\' views. You can re-share it later.';
+    return 'Esto eliminará «$name» de la vista de los demás perfiles de buceo. Podrás volver a compartirlo más tarde.';
   }
 
   @override
-  String get sites_unshareConfirm_title => 'Unshare this site?';
+  String get sites_unshareConfirm_title => '¿Dejar de compartir este sitio?';
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return 'This will remove \'$name\' from other dive profiles\' views. You can re-share it later.';
+    return 'Esto eliminará «$name» de la vista de los demás perfiles de buceo. Podrás volver a compartirlo más tarde.';
   }
 
   @override
-  String get trips_deleteShared_title => 'Delete shared trip?';
+  String get trips_deleteShared_title => '¿Eliminar el viaje compartido?';
 
   @override
   String trips_deleteShared_body(String name) {
-    return '\'$name\' is shared with other dive profiles. Deleting it here removes it for everyone.';
+    return '«$name» está compartido con otros perfiles de buceo. Eliminarlo aquí lo elimina para todos.';
   }
 
   @override
-  String get sites_deleteShared_title => 'Delete shared site?';
+  String get sites_deleteShared_title => '¿Eliminar el sitio compartido?';
 
   @override
   String sites_deleteShared_body(String name) {
-    return '\'$name\' is shared with other dive profiles. Deleting it here removes it for everyone.';
+    return '«$name» está compartido con otros perfiles de buceo. Eliminarlo aquí lo elimina para todos.';
   }
 
   @override
@@ -16467,15 +16467,15 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       trips,
       locale: localeName,
-      other: 'trips',
-      one: 'trip',
+      other: 'viajes compartidos',
+      one: 'viaje compartido',
     );
     String _temp1 = intl.Intl.pluralLogic(
       sites,
       locale: localeName,
-      other: 'sites',
-      one: 'site',
+      other: 'sitios compartidos',
+      one: 'sitio compartido',
     );
-    return 'Diver deleted. $trips shared $_temp0 and $sites shared $_temp1 reassigned to $name.';
+    return 'Buzo eliminado. $trips $_temp0 y $sites $_temp1 reasignados a $name.';
   }
 }
