@@ -11,8 +11,11 @@ import 'package:submersion/features/universal_import/data/models/field_mapping.d
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/parsers/macdive_sqlite_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_xml_parser.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+
+import '../../../../fixtures/macdive_sqlite/build_synthetic_db.dart';
 
 /// Helper to encode a CSV string to bytes for testing.
 Uint8List _csvBytes(String csv) => Uint8List.fromList(csv.codeUnits);
@@ -1472,6 +1475,46 @@ void main() {
           expect(payload.entitiesOf(ImportEntityType.sites).length, 1);
           expect(payload.entitiesOf(ImportEntityType.buddies).length, 1);
           expect(payload.entitiesOf(ImportEntityType.equipment).length, 1);
+        },
+      );
+    });
+
+    group('UniversalImportNotifier - MacDive SQLite', () {
+      test('detects MacDive SQLite format from synthetic DB', () async {
+        final path =
+            '${Directory.systemTemp.path}/mdw_${DateTime.now().microsecondsSinceEpoch}.sqlite';
+        final file = buildSyntheticMacDiveDb(path);
+        addTearDown(() {
+          if (file.existsSync()) file.deleteSync();
+        });
+        final bytes = Uint8List.fromList(await file.readAsBytes());
+
+        final detection = await notifier.loadFileFromBytes(
+          bytes,
+          'MacDive.sqlite',
+        );
+
+        expect(detection.format, ImportFormat.macdiveSqlite);
+        expect(detection.sourceApp, SourceApp.macdive);
+        expect(notifier.state.currentStep, ImportWizardStep.sourceConfirmation);
+      });
+
+      test(
+        'MacDiveSqliteParser produces populated payload from synthetic DB',
+        () async {
+          final path =
+              '${Directory.systemTemp.path}/mdw2_${DateTime.now().microsecondsSinceEpoch}.sqlite';
+          final file = buildSyntheticMacDiveDb(path);
+          addTearDown(() {
+            if (file.existsSync()) file.deleteSync();
+          });
+          final bytes = Uint8List.fromList(await file.readAsBytes());
+
+          const parser = MacDiveSqliteParser();
+          final payload = await parser.parse(bytes);
+
+          expect(payload.entitiesOf(ImportEntityType.dives).length, 3);
+          expect(payload.entitiesOf(ImportEntityType.tags).length, 2);
         },
       );
     });

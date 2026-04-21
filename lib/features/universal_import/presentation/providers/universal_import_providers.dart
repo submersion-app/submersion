@@ -32,12 +32,14 @@ import 'package:submersion/features/universal_import/presentation/providers/csv_
 import 'package:submersion/features/universal_import/data/parsers/csv_import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/fit_import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/macdive_sqlite_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_xml_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/placeholder_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/shearwater_cloud_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/uddf_import_parser.dart';
 import 'package:submersion/features/universal_import/data/services/format_detector.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/presentation/providers/import_consolidation_service.dart';
@@ -86,6 +88,12 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         detection = const DetectionResult(
           format: ImportFormat.shearwaterDb,
           sourceApp: SourceApp.shearwater,
+          confidence: 0.95,
+        );
+      } else if (await MacDiveDbReader.isMacDiveDb(bytes)) {
+        detection = const DetectionResult(
+          format: ImportFormat.macdiveSqlite,
+          sourceApp: SourceApp.macdive,
           confidence: 0.95,
         );
       }
@@ -427,6 +435,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       ),
       ImportFormat.uddf => UddfImportParser(),
       ImportFormat.macdiveXml => const MacDiveXmlParser(),
+      ImportFormat.macdiveSqlite => const MacDiveSqliteParser(),
       ImportFormat.subsurfaceXml => SubsurfaceXmlParser(),
       ImportFormat.fit => const FitImportParser(),
       ImportFormat.shearwaterDb => ShearwaterCloudParser(),
