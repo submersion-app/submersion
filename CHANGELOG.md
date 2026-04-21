@@ -11,6 +11,14 @@ All notable changes to Submersion are documented in this file.
   name and captain, dive operator, surface conditions, weather (stored
   in the existing weather description field), plus site water type, body
   of water, and difficulty rating.
+- **MacDive native XML import.** MacDive's own `.xml` logbook format is now
+  a first-class import source. Unlike MacDive UDDF (which doesn't emit tags),
+  the native XML export carries dive tags — so users migrating tag metadata
+  from MacDive should choose this format. Supports both Imperial and Metric
+  unit modes; depths/temperatures/pressures are converted to the canonical
+  internal units at the reader boundary.
+- **MacDive (XML) source override** in the import wizard's detected-source
+  dropdown, alongside the existing MacDive (CSV) option.
 - Cross-format import deduplication: stable per-dive UUIDs from MacDive,
   Shearwater Cloud, Subsurface SSRF, and generic UDDF are now preserved on
   the `dive_data_sources` sidecar. Re-importing the same dives in a
