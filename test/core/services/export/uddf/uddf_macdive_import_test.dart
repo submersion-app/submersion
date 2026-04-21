@@ -761,18 +761,31 @@ void main() {
     });
 
     test(
-      'samples with <switchmix ref> record gasMixRef on the right sample',
+      'emits gasSwitches from waypoint <switchmix ref> for multi-tank dives',
       () async {
+        // MacDive deco-dive style: two tanks, each linked to a gas definition;
+        // profile samples mark the switch via <switchmix ref="mix-deco"/>.
         const uddf = '''<?xml version="1.0" encoding="UTF-8" ?>
 <uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
   <gasdefinitions>
-    <mix id="mix-bottom"><o2>0.32</o2></mix>
-    <mix id="mix-deco"><o2>0.80</o2></mix>
+    <mix id="mix-bottom"><o2>0.32</o2><he>0.0</he></mix>
+    <mix id="mix-deco"><o2>0.80</o2><he>0.0</he></mix>
   </gasdefinitions>
   <profiledata><repetitiongroup id="rg-1">
     <dive id="d-1">
       <informationbeforedive><datetime>2024-06-01T09:00:00</datetime></informationbeforedive>
-      <informationafterdive><greatestdepth>40</greatestdepth><diveduration>3600</diveduration></informationafterdive>
+      <informationafterdive>
+        <greatestdepth>40</greatestdepth>
+        <diveduration>3600</diveduration>
+      </informationafterdive>
+      <tankdata>
+        <link ref="mix-bottom" />
+        <tankvolume>0.012</tankvolume>
+      </tankdata>
+      <tankdata>
+        <link ref="mix-deco" />
+        <tankvolume>0.007</tankvolume>
+      </tankdata>
       <samples>
         <waypoint><divetime>0</divetime><depth>0</depth><switchmix ref="mix-bottom"/></waypoint>
         <waypoint><divetime>120</divetime><depth>30</depth></waypoint>
@@ -782,17 +795,20 @@ void main() {
   </repetitiongroup></profiledata>
 </uddf>''';
         final r = await service.importAllDataFromUddf(uddf);
-        final profile = r.dives.first['profile'] as List<Map<String, dynamic>>;
-        expect(profile.length, 3);
-        final switches = profile
-            .where((p) => p['gasMixRef'] != null)
-            .map((p) => p['gasMixRef'])
-            .toList();
+        final dive = r.dives.first;
+        final switches =
+            (dive['gasSwitches'] as List?)?.cast<Map<String, dynamic>>() ??
+            const [];
         expect(
-          switches,
-          ['mix-bottom', 'mix-deco'],
-          reason: 'only samples with <switchmix ref> should have gasMixRef',
+          switches.length,
+          2,
+          reason: 'two waypoints carry <switchmix ref>',
         );
+        expect(switches[0]['timestamp'], 0);
+        expect(switches[0]['gasMixRef'], 'mix-bottom');
+        expect(switches[1]['timestamp'], 2400);
+        expect(switches[1]['gasMixRef'], 'mix-deco');
+        expect(switches[1]['depth'], 6);
       },
     );
   });
