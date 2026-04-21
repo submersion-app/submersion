@@ -153,6 +153,36 @@ class SiteRepository {
     }
   }
 
+  /// Apply a partial [DiveSitesCompanion] update to a site row.
+  ///
+  /// Used by the UDDF importer to persist columns that do not flow through
+  /// the [domain.DiveSite] entity (e.g. MacDive waterType / bodyOfWater).
+  /// Only columns set on [patch] are written; others are left untouched.
+  /// Marks the row pending for sync.
+  Future<void> applyImportedMetadata(
+    String siteId,
+    DiveSitesCompanion patch,
+  ) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.diveSites)..where((t) => t.id.equals(siteId)))
+          .write(patch.copyWith(updatedAt: Value(now)));
+      await _syncRepository.markRecordPending(
+        entityType: 'diveSites',
+        recordId: siteId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to apply imported metadata to site: $siteId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Flip the shared state of a single site. Marks it pending for sync.
   Future<void> setShared(String id, bool isShared) async {
     try {

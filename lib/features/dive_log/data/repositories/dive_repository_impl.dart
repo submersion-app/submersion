@@ -3573,6 +3573,37 @@ class DiveRepository {
     }
   }
 
+  /// Apply a partial [DivesCompanion] update to a dive row.
+  ///
+  /// Used by the UDDF importer to persist fields that do not flow through
+  /// the [domain.Dive] entity (e.g. MacDive boat/operator/weather metadata).
+  /// Only columns set on [patch] are written; others are left untouched.
+  /// Marks the row pending for sync.
+  Future<void> applyImportedMetadata(
+    String diveId,
+    DivesCompanion patch,
+  ) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        patch.copyWith(updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to apply imported metadata to dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Insert a new computer reading snapshot.
   Future<void> saveComputerReading(DiveDataSourcesCompanion reading) async {
     try {

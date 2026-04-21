@@ -126,6 +126,12 @@ class Dives extends Table {
       text().withDefault(const Constant('recreational'))();
   TextColumn get buddy => text().nullable()();
   TextColumn get diveMaster => text().nullable()();
+  // MacDive import fields — common dive metadata
+  IntColumn get diveNumberOfDay => integer().nullable()();
+  TextColumn get boatName => text().nullable()();
+  TextColumn get boatCaptain => text().nullable()();
+  TextColumn get diveOperator => text().nullable()();
+  TextColumn get surfaceConditions => text().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
   TextColumn get siteId => text().nullable().references(DiveSites, #id)();
   IntColumn get rating => integer().nullable()();
@@ -300,6 +306,9 @@ class DiveSites extends Table {
   RealColumn get maxDepth => real().nullable()(); // Deepest point
   TextColumn get difficulty =>
       text().nullable()(); // Beginner, Intermediate, Advanced, Technical
+  // MacDive site metadata
+  TextColumn get waterType => text().nullable()();
+  TextColumn get bodyOfWater => text().nullable()();
   TextColumn get country => text().nullable()();
   TextColumn get region => text().nullable()();
   RealColumn get rating => real().nullable()();
@@ -1327,7 +1336,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 70;
+  static const int currentSchemaVersion = 71;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1401,6 +1410,7 @@ class AppDatabase extends _$AppDatabase {
     68,
     69,
     70,
+    71,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -3265,6 +3275,61 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 70) await reportProgress();
+        if (from < 71) {
+          // Migration 71: add MacDive dive + site metadata fields.
+          final divesCols = await customSelect(
+            "PRAGMA table_info('dives')",
+          ).get();
+          final divesExisting = divesCols
+              .map((r) => r.data['name'] as String)
+              .toSet();
+          if (divesCols.isNotEmpty) {
+            if (!divesExisting.contains('dive_number_of_day')) {
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN dive_number_of_day INTEGER',
+              );
+            }
+            if (!divesExisting.contains('boat_name')) {
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN boat_name TEXT',
+              );
+            }
+            if (!divesExisting.contains('boat_captain')) {
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN boat_captain TEXT',
+              );
+            }
+            if (!divesExisting.contains('dive_operator')) {
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN dive_operator TEXT',
+              );
+            }
+            if (!divesExisting.contains('surface_conditions')) {
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN surface_conditions TEXT',
+              );
+            }
+          }
+          final sitesCols = await customSelect(
+            "PRAGMA table_info('dive_sites')",
+          ).get();
+          final sitesExisting = sitesCols
+              .map((r) => r.data['name'] as String)
+              .toSet();
+          if (sitesCols.isNotEmpty) {
+            if (!sitesExisting.contains('water_type')) {
+              await customStatement(
+                'ALTER TABLE dive_sites ADD COLUMN water_type TEXT',
+              );
+            }
+            if (!sitesExisting.contains('body_of_water')) {
+              await customStatement(
+                'ALTER TABLE dive_sites ADD COLUMN body_of_water TEXT',
+              );
+            }
+          }
+        }
+        if (from < 71) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
