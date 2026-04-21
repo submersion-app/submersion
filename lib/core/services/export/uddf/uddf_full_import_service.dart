@@ -459,6 +459,24 @@ class UddfFullImportService {
       'notes',
     );
 
+    // Extract MacDive-specific site fields
+    final siteId = siteElement.getAttribute('id');
+    if (siteId != null && siteId.isNotEmpty) {
+      site['sourceUuid'] = siteId;
+    }
+
+    for (final entry in const {
+      'watertype': 'waterType',
+      'bodyofwater': 'bodyOfWater',
+      'difficulty': 'difficulty',
+      'flag': 'flag',
+    }.entries) {
+      final v = UddfImportParsers.getElementText(siteElement, entry.key);
+      if (v != null && v.isNotEmpty) {
+        site[entry.value] = v;
+      }
+    }
+
     return site;
   }
 

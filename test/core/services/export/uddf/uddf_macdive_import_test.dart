@@ -640,5 +640,47 @@ void main() {
       expect(d['diveNumberOfDay'], 3);
       expect(d['sourceUuid'], 'd-RICH-UUID');
     });
+
+    test(
+      'extracts site watertype, bodyOfWater, difficulty, flag, sourceUuid',
+      () async {
+        const uddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
+  <divesite>
+    <site id="site-RICH-UUID">
+      <name>Rich Site</name>
+      <watertype>saltwater</watertype>
+      <bodyofwater>Pacific Ocean</bodyofwater>
+      <difficulty>advanced</difficulty>
+      <flag>MX</flag>
+      <geography><address><country>Mexico</country></address></geography>
+    </site>
+  </divesite>
+  <profiledata><repetitiongroup id="rg-1">
+    <dive id="d-1">
+      <informationbeforedive>
+        <link ref="site-RICH-UUID" />
+        <datetime>2024-06-01T09:00:00</datetime>
+      </informationbeforedive>
+      <informationafterdive>
+        <greatestdepth>12</greatestdepth>
+        <diveduration>1800</diveduration>
+      </informationafterdive>
+      <samples><waypoint><divetime>0</divetime><depth>0</depth></waypoint></samples>
+    </dive>
+  </repetitiongroup></profiledata>
+</uddf>''';
+        final r = await service.importAllDataFromUddf(uddf);
+        final site = r.sites.firstWhere(
+          (s) => s['sourceUuid'] == 'site-RICH-UUID',
+          orElse: () => <String, dynamic>{},
+        );
+        expect(site['name'], 'Rich Site');
+        expect(site['waterType'], 'saltwater');
+        expect(site['bodyOfWater'], 'Pacific Ocean');
+        expect(site['difficulty'], 'advanced');
+        expect(site['flag'], 'MX');
+      },
+    );
   });
 }
