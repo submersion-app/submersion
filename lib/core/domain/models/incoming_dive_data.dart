@@ -18,6 +18,16 @@ class IncomingDiveData {
   final String? computerSerial;
   final List<DiveProfilePoint> profile;
   final String? siteName;
+  final String? weather;
+  final String? surfaceConditions;
+  final String? boatName;
+  final String? boatCaptain;
+  final String? diveOperator;
+  final String? personalMode;
+  final String? altitudeMode;
+  final String? signature;
+  final int? diveNumberOfDay;
+  final String? sourceUuid;
 
   const IncomingDiveData({
     this.startTime,
@@ -30,6 +40,16 @@ class IncomingDiveData {
     this.computerSerial,
     this.profile = const [],
     this.siteName,
+    this.weather,
+    this.surfaceConditions,
+    this.boatName,
+    this.boatCaptain,
+    this.diveOperator,
+    this.personalMode,
+    this.altitudeMode,
+    this.signature,
+    this.diveNumberOfDay,
+    this.sourceUuid,
   });
 
   /// Create from a [DownloadedDive] (dive computer download flow).
@@ -86,6 +106,16 @@ class IncomingDiveData {
       computerSerial: data['diveComputerSerial'] as String?,
       siteName: data['siteName'] as String?,
       profile: profile,
+      weather: data['weather'] as String?,
+      surfaceConditions: data['surfaceConditions'] as String?,
+      boatName: data['boatName'] as String?,
+      boatCaptain: data['boatCaptain'] as String?,
+      diveOperator: data['diveOperator'] as String?,
+      personalMode: data['personalMode'] as String?,
+      altitudeMode: data['altitudeMode'] as String?,
+      signature: data['signature'] as String?,
+      diveNumberOfDay: data['diveNumberOfDay'] as int?,
+      sourceUuid: data['sourceUuid'] as String?,
     );
   }
 }
