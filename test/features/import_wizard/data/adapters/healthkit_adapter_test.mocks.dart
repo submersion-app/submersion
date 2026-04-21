@@ -862,6 +862,18 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
           as _i7.Future<bool>);
 
   @override
+  _i7.Future<void> applyImportedMetadata(
+    String? diveId,
+    _i17.DivesCompanion? patch,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#applyImportedMetadata, [diveId, patch]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
   _i7.Future<void> saveComputerReading(
     _i17.DiveDataSourcesCompanion? reading,
   ) =>

@@ -14,6 +14,29 @@
 
 ---
 
+## Milestone 2 Status — COMPLETE
+
+- All 11 tasks landed. 10 implementation commits + 1 commit that cherry-picked
+  the MacDiveValueMapper onto this branch after it originally landed on main
+  by mistake.
+- New `ImportFormat.macdiveXml` with source override and format-detector
+  recognition (DOCTYPE + `<dives>`/`<schema>` fallback).
+- `MacDiveXmlReader` produces typed `MacDiveXmlLogbook` from XML with SI
+  canonical units at the boundary. Imperial↔Metric verified via an explicit
+  imperial fixture.
+- `MacDiveXmlParser` implements `ImportParser`, dedups sites/buddies/tags/gear
+  inline, routes raw MacDive strings through `MacDiveValueMapper` so
+  `waterType`/`entryType` resolve to Submersion enums.
+- Gated real-sample test (`@Tags(['real-data'])`) asserts 540 dives, tag
+  preservation (20+ unique tags), site dedup, unit-conversion sanity.
+- Full test suite passes (7000+ tests).
+
+Next: M3 (MacDive SQLite) builds on top of this. Key shared assets —
+`MacDiveValueMapper`, `MacDiveUnitConverter` — are reused by M3's SQLite
+parser.
+
+---
+
 ## File Structure
 
 | File | Role | New / Modified |

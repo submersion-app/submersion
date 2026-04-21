@@ -822,6 +822,18 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
           as _i18.Future<bool>);
 
   @override
+  _i18.Future<void> applyImportedMetadata(
+    String? diveId,
+    _i26.DivesCompanion? patch,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#applyImportedMetadata, [diveId, patch]),
+            returnValue: _i18.Future<void>.value(),
+            returnValueForMissingStub: _i18.Future<void>.value(),
+          )
+          as _i18.Future<void>);
+
+  @override
   _i18.Future<void> saveComputerReading(
     _i26.DiveDataSourcesCompanion? reading,
   ) =>
@@ -972,6 +984,18 @@ class MockSiteRepository extends _i1.Mock implements _i27.SiteRepository {
   _i18.Future<void> updateSite(_i5.DiveSite? site) =>
       (super.noSuchMethod(
             Invocation.method(#updateSite, [site]),
+            returnValue: _i18.Future<void>.value(),
+            returnValueForMissingStub: _i18.Future<void>.value(),
+          )
+          as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> applyImportedMetadata(
+    String? siteId,
+    _i26.DiveSitesCompanion? patch,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#applyImportedMetadata, [siteId, patch]),
             returnValue: _i18.Future<void>.value(),
             returnValueForMissingStub: _i18.Future<void>.value(),
           )
