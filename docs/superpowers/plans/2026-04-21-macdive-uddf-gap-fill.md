@@ -4,23 +4,6 @@
 
 **Goal:** Close all current gaps in Submersion's UDDF import path when the source is a MacDive export, and add the `sourceUuid` plumbing needed for downstream MacDive XML / SQLite milestones.
 
-## Milestone 1 Status
-
-**COMPLETE** — All non-skipped tasks delivered and tested.
-
-- **Tasks landed:** 1, 2, 4, 5, 6, 8, 9, 10, 11, 12
-  - Schema v69 → v70 with `source_uuid` columns on all importable entities
-  - 10 new MacDive dive-level fields extracted (weather, boat, operator, personal mode, altitude mode, signature, dive-number-of-day, etc.)
-  - 4 new site-level fields extracted (water type, body of water, difficulty, flag)
-  - Gear import now scans standard UDDF `<diver><owner><equipment>` location, not just Submersion private extension
-  - Gas switches (`<switchmix ref>`) now recorded on samples for deco dives
-  - Equipment refs captured from both `informationbeforedive` and `informationafterdive`
-  - `<surfaceintervalbeforedive><infinity/>` explicitly handled (first-dive marker)
-  - Source UUIDs persist through import → DB on all entities
-- **Tasks skipped:** 3 (bug didn't exist), 7 (non-dive entity UUIDs descoped)
-- **Real-data validation:** User's 29MB MacDive UDDF passes regression assertions (540 dives, 373+ sites, 33+ buddies, 32+ gear)
-- **Test coverage:** 7099 tests pass, all new fields covered by unit + integration tests
-
 **Architecture:** Changes are confined to `lib/core/services/export/uddf/` (parsing), the dive-import schema migration layer, and the universal-import adapter. Additions are field-for-field extractions from `<informationbeforedive>` / `<informationafterdive>` / `<site>` plus a robustness fix for `<link ref>` disambiguation. No pipeline wiring changes.
 
 **Tech Stack:** Flutter, Dart 3, Drift ORM, `xml` package, Riverpod. Testing via `flutter_test`.
