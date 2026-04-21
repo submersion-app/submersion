@@ -62,7 +62,7 @@ void main() {
       expect(dive['siteName'], 'Test Reef');
       expect(site['name'], 'Test Reef');
       expect(site['country'], 'Mexico');
-      expect(site['waterType'], 'saltwater');
+      expect(site['waterType'], 'salt');
       expect(site['latitude'], closeTo(24.12345, 0.00001));
       expect(site['longitude'], closeTo(-110.54321, 0.00001));
     });
@@ -109,6 +109,50 @@ void main() {
       expect(payload.entitiesOf(ImportEntityType.dives), isEmpty);
       expect(payload.warnings, isNotEmpty);
       expect(payload.warnings.first.severity, ImportWarningSeverity.error);
+    });
+
+    test('maps MacDive waterType "saltwater" to WaterType.salt.name', () async {
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final site = payload.entitiesOf(ImportEntityType.sites).first;
+      // Downstream UddfEntityImporter calls _parseEnum(raw, WaterType.values)
+      // which matches by `.name`. So "saltwater" (MacDive raw) should become
+      // "salt" (WaterType.salt.name).
+      expect(site['waterType'], 'salt');
+    });
+
+    test('maps MacDive entryType "Boat" to EntryMethod.boat.name', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 09:00:00</date><identifier>d1</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <entryType>Boat</entryType>
+    <samples/>
+  </dive>
+</dives>''';
+      final bytes = Uint8List.fromList(utf8.encode(xml));
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final dive = payload.entitiesOf(ImportEntityType.dives).first;
+      expect(dive['entryMethod'], 'boat');
+    });
+
+    test('unknown entryType strings pass through as null', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 09:00:00</date><identifier>d1</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <entryType>WormholeDive</entryType>
+    <samples/>
+  </dive>
+</dives>''';
+      final bytes = Uint8List.fromList(utf8.encode(xml));
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final dive = payload.entitiesOf(ImportEntityType.dives).first;
+      // Unknown value: omit the key entirely so the importer leaves the
+      // dive's entryMethod at its default, rather than writing a garbage
+      // value.
+      expect(dive.containsKey('entryMethod'), isFalse);
     });
   });
 
