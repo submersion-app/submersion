@@ -23,9 +23,6 @@ class IncomingDiveData {
   final String? boatName;
   final String? boatCaptain;
   final String? diveOperator;
-  final String? personalMode;
-  final String? altitudeMode;
-  final String? signature;
   final int? diveNumberOfDay;
   final String? sourceUuid;
 
@@ -45,9 +42,6 @@ class IncomingDiveData {
     this.boatName,
     this.boatCaptain,
     this.diveOperator,
-    this.personalMode,
-    this.altitudeMode,
-    this.signature,
     this.diveNumberOfDay,
     this.sourceUuid,
   });
@@ -111,9 +105,6 @@ class IncomingDiveData {
       boatName: data['boatName'] as String?,
       boatCaptain: data['boatCaptain'] as String?,
       diveOperator: data['diveOperator'] as String?,
-      personalMode: data['personalMode'] as String?,
-      altitudeMode: data['altitudeMode'] as String?,
-      signature: data['signature'] as String?,
       diveNumberOfDay: data['diveNumberOfDay'] as int?,
       sourceUuid: data['sourceUuid'] as String?,
     );

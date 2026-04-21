@@ -192,9 +192,6 @@ const _macDiveRichFields = '''<?xml version="1.0" encoding="UTF-8" ?>
         <boatname>MV Nautilus</boatname>
         <boatcaptain>Jane Smith</boatcaptain>
         <diveoperator>Nautilus Liveaboards</diveoperator>
-        <personalmode>recreational</personalmode>
-        <altitudemode>sea-level</altitudemode>
-        <signature>Marci G.</signature>
       </informationafterdive>
       <samples><waypoint><divetime>0</divetime><depth>0</depth></waypoint></samples>
     </dive>
@@ -625,8 +622,7 @@ void main() {
     setUp(() => service = UddfFullImportService());
 
     test('extracts weather, surfaceConditions, boatName, boatCaptain, '
-        'diveOperator, personalMode, altitudeMode, signature, '
-        'diveNumberOfDay, sourceUuid', () async {
+        'diveOperator, diveNumberOfDay, sourceUuid', () async {
       final r = await service.importAllDataFromUddf(_macDiveRichFields);
       final d = r.dives.first;
       expect(d['weather'], 'Sunny');
@@ -634,15 +630,12 @@ void main() {
       expect(d['boatName'], 'MV Nautilus');
       expect(d['boatCaptain'], 'Jane Smith');
       expect(d['diveOperator'], 'Nautilus Liveaboards');
-      expect(d['personalMode'], 'recreational');
-      expect(d['altitudeMode'], 'sea-level');
-      expect(d['signature'], 'Marci G.');
       expect(d['diveNumberOfDay'], 3);
       expect(d['sourceUuid'], 'd-RICH-UUID');
     });
 
     test(
-      'extracts site watertype, bodyOfWater, difficulty, flag, sourceUuid',
+      'extracts site watertype, bodyOfWater, difficulty, sourceUuid',
       () async {
         const uddf = '''<?xml version="1.0" encoding="UTF-8" ?>
 <uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
@@ -652,7 +645,6 @@ void main() {
       <watertype>saltwater</watertype>
       <bodyofwater>Pacific Ocean</bodyofwater>
       <difficulty>advanced</difficulty>
-      <flag>MX</flag>
       <geography><address><country>Mexico</country></address></geography>
     </site>
   </divesite>
@@ -679,7 +671,6 @@ void main() {
         expect(site['waterType'], 'saltwater');
         expect(site['bodyOfWater'], 'Pacific Ocean');
         expect(site['difficulty'], 'advanced');
-        expect(site['flag'], 'MX');
       },
     );
 

@@ -484,7 +484,6 @@ class UddfFullImportService {
       'watertype': 'waterType',
       'bodyofwater': 'bodyOfWater',
       'difficulty': 'difficulty',
-      'flag': 'flag',
     }.entries) {
       final v = UddfImportParsers.getElementText(siteElement, entry.key);
       if (v != null && v.isNotEmpty) {
@@ -680,9 +679,6 @@ class UddfFullImportService {
         'boatname': 'boatName',
         'boatcaptain': 'boatCaptain',
         'diveoperator': 'diveOperator',
-        'personalmode': 'personalMode',
-        'altitudemode': 'altitudeMode',
-        'signature': 'signature',
       }.entries) {
         final text = UddfImportParsers.getElementText(afterElement, entry.key);
         if (text != null && text.isNotEmpty) {
