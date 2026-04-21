@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/domain/entities/migration_progress.dart';
@@ -21,6 +24,18 @@ import 'package:submersion/features/backup/domain/exceptions/backup_failed_excep
 class _FakeLocationService extends DatabaseLocationService {
   final String _path;
   _FakeLocationService(super.prefs) : _path = '/tmp/test.db';
+
+  @override
+  Future<String> getDatabasePath() async => _path;
+}
+
+/// A fake [DatabaseLocationService] that returns a caller-provided path.
+/// Used by recovery tests so each test has its own isolated db file path —
+/// necessary because the recovery flow actually invokes sqlite3 against the
+/// path (unlike most lifecycle tests where the path is never touched).
+class _CustomPathLocationService extends DatabaseLocationService {
+  final String _path;
+  _CustomPathLocationService(super.prefs, this._path);
 
   @override
   Future<String> getDatabasePath() async => _path;
@@ -1168,6 +1183,218 @@ void main() {
       await tester.pump();
 
       expect(quitCalled, 1);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Hot-journal recovery flow
+  //
+  // Triggered when initialization raises a SqliteException in the
+  // SQLITE_READONLY family (primary code 8) — typically code 776
+  // (SQLITE_READONLY_ROLLBACK) left behind by a crashed or cancelled
+  // transaction. Rather than parroting "reinstall or contact support", the
+  // startup screen should offer a one-tap recovery path that reopens the
+  // database RW so SQLite can finish the rollback.
+  // ---------------------------------------------------------------------------
+  group('recovery flow', () {
+    late SharedPreferences prefs;
+    late LogFileService logFileService;
+    late DatabaseLocationService locationService;
+    late Directory tempDir;
+    void Function(FlutterErrorDetails)? originalOnError;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+      logFileService = LogFileService(logDirectory: '/tmp/test-logs');
+      tempDir = Directory.systemTemp.createTempSync('startup_recovery_test_');
+      locationService = _CustomPathLocationService(
+        prefs,
+        p.join(tempDir.path, 'test.db'),
+      );
+      // Suppress splash Image.asset decode noise (same as the lifecycle group).
+      originalOnError = FlutterError.onError;
+      FlutterError.onError = (details) {
+        final message = details.toString();
+        if (message.contains('IMAGE RESOURCE SERVICE') ||
+            message.contains('resolving an image') ||
+            message.contains('Message corrupted')) {
+          return;
+        }
+        originalOnError?.call(details);
+      };
+    });
+
+    tearDown(() {
+      FlutterError.onError = originalOnError;
+      if (tempDir.existsSync()) {
+        tempDir.deleteSync(recursive: true);
+      }
+    });
+
+    testWidgets(
+      'SqliteException code 776 routes to recovery UI, not generic error',
+      (tester) async {
+        await tester.pumpWidget(
+          _buildStartupWrapper(
+            prefs: prefs,
+            logFileService: logFileService,
+            locationService: locationService,
+            schemaVersionProbeOverride: (_) =>
+                (needsMigration: false, totalSteps: 0),
+            initializerOverride: (_) async {
+              throw sqlite3.SqliteException(
+                776,
+                'attempt to write a readonly database',
+              );
+            },
+          ),
+        );
+
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pumpAndSettle();
+
+        // Recovery UI, not "Database upgrade failed".
+        expect(find.text('Database needs recovery'), findsOneWidget);
+        expect(find.byIcon(Icons.build_circle_outlined), findsOneWidget);
+        expect(
+          find.widgetWithText(FilledButton, 'Recover database'),
+          findsOneWidget,
+        );
+        expect(
+          find.widgetWithText(TextButton, 'Close without recovering'),
+          findsOneWidget,
+        );
+        expect(find.text('Database upgrade failed'), findsNothing);
+        expect(find.byKey(const ValueKey('error')), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'recovery UI surfaces the SQLite extended result code for diagnostics',
+      (tester) async {
+        await tester.pumpWidget(
+          _buildStartupWrapper(
+            prefs: prefs,
+            logFileService: logFileService,
+            locationService: locationService,
+            schemaVersionProbeOverride: (_) =>
+                (needsMigration: false, totalSteps: 0),
+            initializerOverride: (_) async {
+              throw sqlite3.SqliteException(776, 'readonly');
+            },
+          ),
+        );
+
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('SQLite code 776'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'non-readonly SqliteException (e.g. SQLITE_BUSY) still shows generic error',
+      (tester) async {
+        await tester.pumpWidget(
+          _buildStartupWrapper(
+            prefs: prefs,
+            logFileService: logFileService,
+            locationService: locationService,
+            schemaVersionProbeOverride: (_) =>
+                (needsMigration: false, totalSteps: 0),
+            initializerOverride: (_) async {
+              // SQLITE_BUSY — primary code 5; not in the READONLY family.
+              throw sqlite3.SqliteException(5, 'database is locked');
+            },
+          ),
+        );
+
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Database upgrade failed'), findsOneWidget);
+        expect(find.byIcon(Icons.error_outline), findsOneWidget);
+        expect(find.text('Database needs recovery'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Close without recovering invokes closeAppOverride exactly once',
+      (tester) async {
+        var closeCalled = 0;
+        await tester.pumpWidget(
+          _buildStartupWrapper(
+            prefs: prefs,
+            logFileService: logFileService,
+            locationService: locationService,
+            schemaVersionProbeOverride: (_) =>
+                (needsMigration: false, totalSteps: 0),
+            initializerOverride: (_) async {
+              throw sqlite3.SqliteException(776, 'readonly');
+            },
+            closeAppOverride: () => closeCalled++,
+          ),
+        );
+
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pumpAndSettle();
+
+        await tester.tap(
+          find.widgetWithText(TextButton, 'Close without recovering'),
+        );
+        await tester.pump();
+
+        expect(closeCalled, 1);
+      },
+    );
+
+    testWidgets('tapping Recover database re-invokes the initializer and shows '
+        'recovering state while the second attempt is pending', (tester) async {
+      // First call throws the readonly-rollback exception that triggers
+      // recovery. The second call (the one that recovery re-runs) never
+      // completes, so the UI stays in the `recovering` state and we can
+      // assert it. Letting the second call succeed would mount the full
+      // app (which needs a real database) and fail the test harness.
+      var calls = 0;
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) async {
+            calls++;
+            if (calls == 1) {
+              throw sqlite3.SqliteException(776, 'readonly');
+            }
+            await Completer<void>().future;
+          },
+        ),
+      );
+
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Database needs recovery'), findsOneWidget);
+      expect(calls, 1);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Recover database'));
+      // Drive the recovery microtasks: setState(recovering),
+      // getDatabasePath, recoverHotJournal (no-op for a nonexistent file),
+      // _runInitialization re-entry, probe, initializer (pends).
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      expect(calls, 2);
+      expect(find.text('Recovering database...'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('Database needs recovery'), findsNothing);
+
+      // Drain the 1-second splash-delay timer started by _runInitialization.
+      await tester.pump(const Duration(seconds: 2));
     });
   });
 }
