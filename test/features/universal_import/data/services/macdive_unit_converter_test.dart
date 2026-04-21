@@ -4,9 +4,9 @@ import 'package:submersion/features/universal_import/data/services/macdive_unit_
 import 'package:submersion/features/universal_import/data/services/macdive_xml_models.dart';
 
 void main() {
-  final metric = const MacDiveUnitConverter(MacDiveUnitSystem.metric);
-  final imperial = const MacDiveUnitConverter(MacDiveUnitSystem.imperial);
-  final unknown = const MacDiveUnitConverter(MacDiveUnitSystem.unknown);
+  const metric = MacDiveUnitConverter(MacDiveUnitSystem.metric);
+  const imperial = MacDiveUnitConverter(MacDiveUnitSystem.imperial);
+  const unknown = MacDiveUnitConverter(MacDiveUnitSystem.unknown);
 
   group('depthToMeters', () {
     test('metric passes through', () {
