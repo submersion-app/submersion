@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_value_mapper.dart';
 
 void main() {
