@@ -3,6 +3,55 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.4.5 (2026-04-21)
+
+### Features
+
+- customizable bottom nav primary slots on phone (#250)
+- optionally share sites and trips across dive profiles (#249)
+- add Cmd+Shift+D to open diver switcher
+- Slice D - dive-level metadata + provenance fill-out (#247)
+- Slice C.2 - extended SSRF profile events (#244)
+- Slice C - profile events + source tagging (#243)
+- Slice A - setpoint + partial cylinders (#236)
+- add region picker page for offline map downloads
+- add map style selector (Street, Topo, Satellite) (#233)
+- store raw dive data from dive computers (#176) (#230)
+- add Overview page in Statistics section (#167) (#229)
+- add map style selector (Street, Topo, Satellite)
+
+### Bug Fixes
+
+- show hours underwater on second line in narrow hero bar
+- increase test surface size for desktop appearance hub
+- add Map Style picker to desktop settings layout
+- make v64 migration defensive for missing diver_settings table
+- wrap LocationPickerMap test in ProviderScope
+- resolve analyze errors in map style feature
+
+### Documentation
+
+- add implementation plan for raw dive data storage (#176)
+- add design spec for raw dive data storage (#176)
+- add implementation plan for Statistics Overview (#167)
+- add design spec for Statistics Overview page (#167)
+
+### CI/CD
+
+- trigger build
+
+### Chores
+
+- bump version to 1.4.5+91
+
+### Other
+
+- i18n: translate 24 missing shared-sites/trips strings across 10 locales
+- i18n: translate 35 missing strings across 10 locales
+- Revert "Merge main into Jaibar/main to resolve conflicts for PR #193"
+- apply dart format to map style files
+
+
 ## 1.4.4 (2026-04-15)
 
 ### Features
