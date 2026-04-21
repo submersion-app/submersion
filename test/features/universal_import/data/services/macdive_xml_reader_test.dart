@@ -184,4 +184,78 @@ void main() {
       expect(logbook.dives.first.maxDepthMeters, 50);
     });
   });
+
+  group('MacDiveXmlReader (imperial fixture)', () {
+    late String content;
+
+    setUpAll(() async {
+      content = await File(
+        'test/fixtures/macdive_xml/imperial_small.xml',
+      ).readAsString();
+    });
+
+    test('declares imperial unit system', () {
+      final logbook = MacDiveXmlReader.parse(content);
+      expect(logbook.units, MacDiveUnitSystem.imperial);
+    });
+
+    test('depths converted feet → meters', () {
+      final dive = MacDiveXmlReader.parse(content).dives.first;
+      // 100 ft × 0.3048 = 30.48 m
+      expect(dive.maxDepthMeters, closeTo(30.48, 0.01));
+      // 60 ft × 0.3048 = 18.288 m
+      expect(dive.avgDepthMeters, closeTo(18.288, 0.01));
+    });
+
+    test('temperatures converted °F → °C', () {
+      final dive = MacDiveXmlReader.parse(content).dives.first;
+      // 80°F = 26.667°C
+      expect(dive.tempHighCelsius, closeTo(26.667, 0.01));
+      // 70°F = 21.111°C
+      expect(dive.tempLowCelsius, closeTo(21.111, 0.01));
+    });
+
+    test('weight converted lb → kg', () {
+      final dive = MacDiveXmlReader.parse(content).dives.first;
+      // 10 lb × 0.453592 = 4.536 kg
+      expect(dive.weightKg, closeTo(4.536, 0.01));
+    });
+
+    test('gas pressures converted psi → bar', () {
+      final dive = MacDiveXmlReader.parse(content).dives.first;
+      final gas = dive.gases.first;
+      // 3000 psi × 0.0689476 = 206.843 bar
+      expect(gas.pressureStartBar, closeTo(206.843, 0.1));
+      // 1000 psi × 0.0689476 = 68.948 bar
+      expect(gas.pressureEndBar, closeTo(68.948, 0.1));
+      expect(gas.workingPressureBar, closeTo(206.843, 0.1));
+    });
+
+    test('tank size converted cft-at-working-pressure → liters', () {
+      final dive = MacDiveXmlReader.parse(content).dives.first;
+      // 77.4 cft × 28.3168 / (3000 × 0.0689476) ≈ 10.59 L
+      expect(dive.gases.first.tankSizeLiters, closeTo(10.59, 0.1));
+    });
+
+    test('sample temperatures converted °F → °C', () {
+      final dive = MacDiveXmlReader.parse(content).dives.first;
+      // Sample 1: 80°F → 26.667°C
+      expect(dive.samples.first.temperatureCelsius, closeTo(26.667, 0.01));
+      // Sample 2: 72°F → 22.222°C
+      expect(dive.samples[1].temperatureCelsius, closeTo(22.222, 0.01));
+    });
+
+    test('sample depths and pressures converted', () {
+      final dive = MacDiveXmlReader.parse(content).dives.first;
+      // Sample 2: 100 ft → 30.48 m, 2000 psi → 137.9 bar
+      expect(dive.samples[1].depthMeters, closeTo(30.48, 0.01));
+      expect(dive.samples[1].pressureBar, closeTo(137.895, 0.1));
+    });
+
+    test('sample times remain in seconds (no unit conversion)', () {
+      final dive = MacDiveXmlReader.parse(content).dives.first;
+      expect(dive.samples[0].time, Duration.zero);
+      expect(dive.samples[1].time, const Duration(seconds: 600));
+    });
+  });
 }
