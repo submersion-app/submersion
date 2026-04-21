@@ -187,7 +187,19 @@ git commit -m "feat(uddf): add LinkRefIndex for ref-kind disambiguation"
 
 ---
 
-## Task 3: Build and use the ID index in `UddfFullImportService`
+## Task 3: Build and use the ID index in `UddfFullImportService` — **SKIPPED**
+
+**Investigation outcome:** The plan's premise (that the current parser assumes positional order for `<link ref>` children in `<informationbeforedive>`) turned out to be wrong. The existing `_parseUddfDive` at `uddf_full_import_service.dart:1173-1211` already classifies each link by looking up its `ref` attribute in pre-built entity maps (`sites`, `buddies`, `decoModels`, `diveComputers`). The prescribed failing test passes against unmodified code.
+
+**What the real gap is (deferred):** `_parseFullDive` at lines 557-571 uses string-prefix matching (`ref.startsWith('trip_')`, `'center_'`, `'course_'`) to classify trip/center/course refs. This WOULD fail for MacDive-style UUIDs — but MacDive UDDF (per the user's 29MB sample) does not emit `<trip>` / `<divecenter>` / `<course>` references at all. For Milestone 1 scope (MacDive UDDF), this codepath is not exercised. Revisit in Milestone 3 (MacDive SQLite) if trip/center refs start showing up.
+
+**LinkRefKind / LinkRefIndex from Task 2 are retained** — they cost ~22 lines + 2 tests and may be useful for the Milestone 3 SQLite work where cross-entity UUID resolution matters.
+
+**Status:** Task 3 marked as SKIPPED in the task tracker. No code change for this task.
+
+---
+
+## Task 3 (ORIGINAL, for reference) — not executed
 
 **Files:**
 - Modify: `lib/core/services/export/uddf/uddf_full_import_service.dart`
