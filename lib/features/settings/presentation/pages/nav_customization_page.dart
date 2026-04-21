@@ -256,7 +256,7 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
       oldIndex: oldIndex,
       newIndex: newIndex,
     );
-    if (identical(newList, previous)) return; // no-op reorder
+    if (listEquals(newList, previous)) return; // no-op reorder
     setState(() => _local = newList);
     try {
       await ref

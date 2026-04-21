@@ -71,6 +71,24 @@ void main() {
       );
       expect(result, ['b', 'c', 'd', 'a', 'e', 'f']);
     });
+
+    test(
+      'same-position reorder returns content-equal but non-identical list',
+      () {
+        // Drop-on-self (or any drag that results in no position change) still
+        // produces a fresh list. _commitReorder therefore uses listEquals, not
+        // identical, to detect a no-op and skip the repository write.
+        const input = ['a', 'b', 'c', 'd', 'e', 'f'];
+        final result = applyReorderPreservingDivider(
+          movable: input,
+          dividerIndex: 3,
+          oldIndex: 4,
+          newIndex: 4,
+        );
+        expect(result, input);
+        expect(identical(result, input), isFalse);
+      },
+    );
   });
 
   group('NavCustomizationPage widget', () {
