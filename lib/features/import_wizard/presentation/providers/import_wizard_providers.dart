@@ -4,6 +4,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/tag_selection.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
@@ -39,6 +40,7 @@ class ImportWizardState {
     this.importTotal = 0,
     this.importResult,
     this.isImporting = false,
+    this.isCancellationRequested = false,
     this.error,
   });
 
@@ -85,6 +87,12 @@ class ImportWizardState {
   /// True while the adapter's [performImport] is running.
   final bool isImporting;
 
+  /// True once the user has requested cancellation of the running import.
+  /// The adapter is notified via its cancellation token and returns a partial
+  /// result; this flag lets the UI render a "Cancelling..." state until that
+  /// return happens.
+  final bool isCancellationRequested;
+
   /// Non-null when an error has occurred.
   final String? error;
 
@@ -104,6 +112,7 @@ class ImportWizardState {
     UnifiedImportResult? importResult,
     bool clearImportResult = false,
     bool? isImporting,
+    bool? isCancellationRequested,
     String? error,
     bool clearError = false,
   }) {
@@ -124,6 +133,8 @@ class ImportWizardState {
           ? null
           : (importResult ?? this.importResult),
       isImporting: isImporting ?? this.isImporting,
+      isCancellationRequested:
+          isCancellationRequested ?? this.isCancellationRequested,
       error: clearError ? null : (error ?? this.error),
     );
   }
@@ -165,9 +176,27 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   final TagRepository? _tagRepository;
   String? _diverId;
 
+  /// Active cancellation token for the currently-running import, or null
+  /// when no import is in progress. The notifier owns the lifecycle: it's
+  /// allocated fresh in [performImport] and cleared once the adapter returns.
+  ImportCancellationToken? _cancelToken;
+
   /// Set the validated diver ID for tag association during import.
   void setDiverId(String? diverId) {
     _diverId = diverId;
+  }
+
+  /// Request cancellation of the running import. Cooperative — the adapter
+  /// finishes the current work item (e.g. the current dive's transaction)
+  /// before exiting the loop with a partial result.
+  ///
+  /// Safe to call when no import is in progress: it just no-ops.
+  /// Safe to call repeatedly: the token's own `cancel()` is idempotent.
+  void cancelImport() {
+    final token = _cancelToken;
+    if (token == null || token.isCancelled) return;
+    token.cancel();
+    state = state.copyWith(isCancellationRequested: true);
   }
 
   /// The duplicate actions supported by the underlying adapter.
@@ -478,7 +507,14 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       return;
     }
 
-    state = state.copyWith(isImporting: true, clearError: true);
+    final token = ImportCancellationToken();
+    _cancelToken = token;
+
+    state = state.copyWith(
+      isImporting: true,
+      isCancellationRequested: false,
+      clearError: true,
+    );
 
     try {
       final result = await _adapter.performImport(
@@ -493,13 +529,17 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
             importTotal: total,
           );
         },
+        cancelToken: token,
       );
 
       // Apply import tags to all imported dives.
       // Tag application is non-fatal: dives are already imported, so we
       // keep the result and advance to summary even if tagging fails.
+      // Skip it entirely if cancellation was requested — the user asked
+      // us to stop, not to do one more round of DB work.
       String? tagWarning;
-      if (state.importTags.isNotEmpty &&
+      if (!token.isCancelled &&
+          state.importTags.isNotEmpty &&
           result.importedDiveIds.isNotEmpty &&
           _tagRepository != null) {
         try {
@@ -527,6 +567,8 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
           errorMessage: 'Import failed: $e',
         ),
       );
+    } finally {
+      _cancelToken = null;
     }
   }
 

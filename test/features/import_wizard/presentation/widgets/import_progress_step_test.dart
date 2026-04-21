@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
@@ -52,6 +53,7 @@ class _FakeAdapter implements ImportSourceAdapter {
     Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
     bool retainSourceDiveNumbers = false,
     ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
   }) => throw UnimplementedError();
 }
 
@@ -218,6 +220,44 @@ void main() {
         find.byKey(const Key('import_progress_circular')),
       );
       expect(indicator.value, closeTo(0.25, 0.001));
+    });
+
+    testWidgets('shows cancel button by default', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(
+        find.byKey(const Key('import_progress_cancel_button')),
+        findsOneWidget,
+      );
+      expect(find.text('Cancel import'), findsOneWidget);
+    });
+
+    testWidgets('cancel button is disabled once cancellation requested', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        isCancellationRequested: true,
+        importPhase: ImportPhase.dives,
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      final button = tester.widget<TextButton>(
+        find.byKey(const Key('import_progress_cancel_button')),
+      );
+      expect(button.onPressed, isNull);
+      expect(find.text('Cancelling...'), findsAtLeastNWidgets(1));
     });
   });
 }

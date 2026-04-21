@@ -276,19 +276,54 @@ class _UnifiedImportWizardBodyState
     }
 
     if (_currentPage >= _importIndex) {
-      await showDialog<void>(
+      final notifier = ref.read(importWizardNotifierProvider.notifier);
+      final state = ref.read(importWizardNotifierProvider);
+
+      // Already cancelling — show a waiting notice.
+      if (state.isCancellationRequested) {
+        await showDialog<void>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Cancelling'),
+            content: const Text(
+              'Finishing the current dive before stopping. '
+              'Already-imported dives are kept.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      final confirmed = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Import in progress'),
-          content: const Text('Import is in progress and cannot be cancelled.'),
+          title: const Text('Cancel import?'),
+          content: const Text(
+            'Stop after the current dive finishes. '
+            'Already-imported dives will be kept.',
+          ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('OK'),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Keep importing'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Cancel import'),
             ),
           ],
         ),
       );
+
+      if (confirmed == true) {
+        notifier.cancelImport();
+      }
       return;
     }
 

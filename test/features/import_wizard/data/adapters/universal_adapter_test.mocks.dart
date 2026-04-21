@@ -62,6 +62,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
     as _i7;
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart'
     as _i8;
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart'
+    as _i43;
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart'
     as _i42;
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart'
@@ -2881,6 +2883,7 @@ class MockUddfEntityImporter extends _i1.Mock
     required String? diverId,
     bool? retainSourceDiveNumbers = false,
     _i42.ImportProgressCallback? onProgress,
+    _i43.ImportCancellationToken? cancelToken,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#import, [], {
@@ -2890,6 +2893,7 @@ class MockUddfEntityImporter extends _i1.Mock
               #diverId: diverId,
               #retainSourceDiveNumbers: retainSourceDiveNumbers,
               #onProgress: onProgress,
+              #cancelToken: cancelToken,
             }),
             returnValue: _i18.Future<_i17.UddfEntityImportResult>.value(
               _FakeUddfEntityImportResult_18(
@@ -2901,6 +2905,7 @@ class MockUddfEntityImporter extends _i1.Mock
                   #diverId: diverId,
                   #retainSourceDiveNumbers: retainSourceDiveNumbers,
                   #onProgress: onProgress,
+                  #cancelToken: cancelToken,
                 }),
               ),
             ),
@@ -2915,6 +2920,7 @@ class MockUddfEntityImporter extends _i1.Mock
                       #diverId: diverId,
                       #retainSourceDiveNumbers: retainSourceDiveNumbers,
                       #onProgress: onProgress,
+                      #cancelToken: cancelToken,
                     }),
                   ),
                 ),

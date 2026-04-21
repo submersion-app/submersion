@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 
 @GenerateNiceMocks([
@@ -707,6 +708,122 @@ void main() {
 
       expect(result.errorMessage, isNotNull);
     });
+
+    test('breaks loop mid-import when cancelToken is cancelled', () async {
+      final dive1 = makeDownloadedDive(
+        startTime: DateTime(2026, 3, 15, 10, 0),
+        fingerprint: 'fp1',
+      );
+      final dive2 = makeDownloadedDive(
+        startTime: DateTime(2026, 3, 15, 14, 0),
+        fingerprint: 'fp2',
+      );
+      final dive3 = makeDownloadedDive(
+        startTime: DateTime(2026, 3, 15, 18, 0),
+        fingerprint: 'fp3',
+      );
+      adapter.setDownloadedDives([dive1, dive2, dive3]);
+      final bundle = await adapter.buildBundle();
+
+      final cancelToken = ImportCancellationToken();
+
+      when(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: anyNamed('diverId'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+        ),
+      ).thenAnswer((invocation) async {
+        // Cancel the token after the FIRST dive is imported so the loop
+        // breaks before processing dives 2 and 3.
+        cancelToken.cancel();
+        return 'imported-id';
+      });
+
+      final result = await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0, 1, 2},
+        },
+        {},
+        cancelToken: cancelToken,
+      );
+
+      // Only the first dive was imported before cancellation kicked in.
+      expect(result.importedCounts[ImportEntityType.dives], equals(1));
+      verify(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: anyNamed('diverId'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+        ),
+      ).called(1);
+    });
+
+    test(
+      'cancelled import only advances fingerprint for processed dives',
+      () async {
+        // Three dives with incrementing startTimes. selectNewestFingerprint
+        // picks by latest startTime, so if ALL dives were used the fingerprint
+        // would be 'fp3'. With cancellation after dive1, it should be 'fp1'.
+        final dive1 = makeDownloadedDive(
+          startTime: DateTime(2026, 3, 15, 10, 0),
+          fingerprint: 'fp1',
+        );
+        final dive2 = makeDownloadedDive(
+          startTime: DateTime(2026, 3, 15, 14, 0),
+          fingerprint: 'fp2',
+        );
+        final dive3 = makeDownloadedDive(
+          startTime: DateTime(2026, 3, 15, 18, 0),
+          fingerprint: 'fp3',
+        );
+        adapter.setDownloadedDives([dive1, dive2, dive3]);
+        final bundle = await adapter.buildBundle();
+
+        final cancelToken = ImportCancellationToken();
+
+        when(
+          mockImportService.importSingleDiveAsNew(
+            any,
+            computerId: anyNamed('computerId'),
+            diverId: anyNamed('diverId'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+          ),
+        ).thenAnswer((_) async {
+          cancelToken.cancel();
+          return 'imported-id';
+        });
+
+        await adapter.performImport(
+          bundle,
+          {
+            ImportEntityType.dives: {0, 1, 2},
+          },
+          {},
+          cancelToken: cancelToken,
+        );
+
+        // Fingerprint advances only to the processed dive's fingerprint,
+        // not to the newest downloaded dive's fingerprint. Next session can
+        // still pick up dive2 and dive3.
+        verify(
+          mockComputerRepo.updateLastFingerprint('computer-1', 'fp1'),
+        ).called(1);
+        verifyNever(mockComputerRepo.updateLastFingerprint(any, 'fp3'));
+      },
+    );
   });
 
   // -------------------------------------------------------------------------

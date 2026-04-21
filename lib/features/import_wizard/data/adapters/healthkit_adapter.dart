@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
@@ -218,6 +219,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
     Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
     bool retainSourceDiveNumbers = false,
     ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
   }) async {
     final baseSelections = Set<int>.from(
       selections[ImportEntityType.dives] ?? <int>{},
@@ -256,6 +258,8 @@ class HealthKitAdapter implements ImportSourceAdapter {
     final importedDiveIds = <String>[];
 
     for (var i = 0; i < sortedIndices.length; i++) {
+      if (cancelToken?.isCancelled ?? false) break;
+
       final index = sortedIndices[i];
 
       if (index >= _parsedDives.length) continue;

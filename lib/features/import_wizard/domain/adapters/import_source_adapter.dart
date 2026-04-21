@@ -1,5 +1,6 @@
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
@@ -67,11 +68,16 @@ abstract class ImportSourceAdapter {
   /// The [selections] map contains which items the user selected per entity
   /// type. The [duplicateActions] map contains the user's chosen action for
   /// each duplicate item per entity type.
+  ///
+  /// If [cancelToken] is non-null, implementations should poll
+  /// [ImportCancellationToken.isCancelled] between work items and return a
+  /// partial result rather than throw when cancellation is observed.
   Future<UnifiedImportResult> performImport(
     ImportBundle bundle,
     Map<ImportEntityType, Set<int>> selections,
     Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
     bool retainSourceDiveNumbers,
     ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
   });
 }
