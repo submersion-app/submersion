@@ -12,6 +12,27 @@
 
 ---
 
+## Milestone 1 Status — COMPLETE
+
+- All 12 tasks landed or explicitly skipped (Task 3 proven non-bug; see Task 3 section).
+- Schema bumped v69 → v70 (source_uuid on dive_data_sources) → v71
+  (7 new dive + site metadata columns: dive_number_of_day, boat_name,
+  boat_captain, dive_operator, surface_conditions on dives; water_type,
+  body_of_water on dive_sites).
+- Cross-format import dedup now works via `dive_data_sources.source_uuid`.
+- Parser-to-DB gap closed for MacDive rich fields. `weather` now lands
+  on the existing weather_description column. difficulty continues to
+  flow through the DiveSite entity path.
+- Dropped from scope: personalMode, altitudeMode, signature, site flag
+  (niche / redundant). LinkRefKind/LinkRefIndex (Task 2) also removed
+  after Task 3 investigation showed the bug they targeted didn't exist.
+- Known limitation: profile `gasMixRef` (from `<switchmix ref>`) is
+  parsed but not yet persisted to the profile samples table — deferred
+  to a future milestone, likely via dive-events.
+- Real-sample regression test passes (gated behind `@Tags(['real-data'])`).
+
+---
+
 ## File Structure
 
 | File | Role | New / Modified |
