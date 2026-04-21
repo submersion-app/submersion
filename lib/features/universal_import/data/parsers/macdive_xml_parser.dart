@@ -6,6 +6,7 @@ import 'package:submersion/features/universal_import/data/models/import_options.
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_value_mapper.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_xml_models.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_xml_reader.dart';
 
@@ -214,7 +215,8 @@ class MacDiveXmlParser implements ImportParser {
     if (d.surfaceConditions != null) {
       map['surfaceConditions'] = d.surfaceConditions;
     }
-    if (d.entryType != null) map['entryMethod'] = d.entryType;
+    final entryMethod = MacDiveValueMapper.entryType(d.entryType);
+    if (entryMethod != null) map['entryMethod'] = entryMethod.name;
     if (d.computer != null) map['diveComputerModel'] = d.computer;
     if (d.serial != null) map['diveComputerSerial'] = d.serial;
     // MacDive rating is a 0.0-5.0 float; Submersion stores 0-5 int.
@@ -271,7 +273,8 @@ class MacDiveXmlParser implements ImportParser {
     if (s.country != null) map['country'] = s.country;
     if (s.location != null) map['region'] = s.location;
     if (s.bodyOfWater != null) map['bodyOfWater'] = s.bodyOfWater;
-    if (s.waterType != null) map['waterType'] = s.waterType;
+    final waterType = MacDiveValueMapper.waterType(s.waterType);
+    if (waterType != null) map['waterType'] = waterType.name;
     if (s.difficulty != null) map['difficulty'] = s.difficulty;
     if (s.altitudeMeters != null) map['altitude'] = s.altitudeMeters;
     if (s.latitude != null) map['latitude'] = s.latitude;
