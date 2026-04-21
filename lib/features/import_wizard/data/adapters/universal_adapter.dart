@@ -295,6 +295,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     final existingDiveTypes = await _ref.refresh(diveTypesProvider.future);
     final diveRepo = _ref.read(diveRepositoryProvider);
     final existingDives = await diveRepo.getAllDives(diverId: diverId);
+    final existingSourceUuidByDiveId = await diveRepo.getSourceUuidByDiveId();
 
     final dupResult = checker.check(
       payload: payload,
@@ -307,6 +308,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       existingCertifications: existingCertifications,
       existingTags: existingTags,
       existingDiveTypes: existingDiveTypes,
+      existingSourceUuidByDiveId: existingSourceUuidByDiveId,
     );
 
     final updatedGroups = Map<wizard.ImportEntityType, EntityGroup>.from(

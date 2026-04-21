@@ -853,6 +853,19 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
           as _i7.Future<List<_i16.DiveDataSource>>);
 
   @override
+  _i7.Future<Map<String, String>> getSourceUuidByDiveId() =>
+      (super.noSuchMethod(
+            Invocation.method(#getSourceUuidByDiveId, []),
+            returnValue: _i7.Future<Map<String, String>>.value(
+              <String, String>{},
+            ),
+            returnValueForMissingStub: _i7.Future<Map<String, String>>.value(
+              <String, String>{},
+            ),
+          )
+          as _i7.Future<Map<String, String>>);
+
+  @override
   _i7.Future<bool> hasMultipleDataSources(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#hasMultipleDataSources, [diveId]),

@@ -59,13 +59,27 @@ class ImportDuplicateResult {
 /// - Name matching (case-insensitive) for simple entities
 /// - Lat/lon proximity (100m) for sites
 /// - Name + type compound matching for equipment and certifications
-/// - Fuzzy [DiveMatcher] scoring for dives
+/// - Source UUID exact match (first pass) then fuzzy [DiveMatcher] scoring for
+///   dives
 class ImportDuplicateChecker {
   const ImportDuplicateChecker();
 
   static final _dateFormatter = DateFormat('MMM d, yyyy');
 
+  /// Score assigned to dives matched via `sourceUuid` exact match. Chosen to
+  /// be above [DiveMatcher]'s probable-duplicate threshold (0.7) so callers
+  /// can treat the match as a certainty without any content comparison.
+  static const double _sourceUuidMatchScore = 1.0;
+
   /// Check all entity types in [payload] against existing data.
+  ///
+  /// [existingSourceUuidByDiveId] maps each existing dive's id to the
+  /// `source_uuid` from its primary (or any) `dive_data_sources` row. Callers
+  /// build this map by querying `DiveDataSources`; it is optional because
+  /// paths that never touch source UUIDs (tests, legacy callers) can pass an
+  /// empty map. When an incoming dive carries a matching `sourceUuid` in its
+  /// payload map, this short-circuits fuzzy content matching — faster and
+  /// more precise for cross-format re-imports.
   ImportDuplicateResult check({
     required ImportPayload payload,
     required List<Dive> existingDives,
@@ -77,6 +91,7 @@ class ImportDuplicateChecker {
     required List<Certification> existingCertifications,
     required List<Tag> existingTags,
     required List<DiveTypeEntity> existingDiveTypes,
+    Map<String, String> existingSourceUuidByDiveId = const {},
     DiveMatcher matcher = const DiveMatcher(),
   }) {
     final duplicates = <ImportEntityType, Set<int>>{};
@@ -148,7 +163,12 @@ class ImportDuplicateChecker {
 
     final dives = payload.entitiesOf(ImportEntityType.dives);
     final diveMatches = dives.isNotEmpty
-        ? _checkDiveDuplicates(dives, existingDives, matcher)
+        ? _checkDiveDuplicates(
+            dives,
+            existingDives,
+            existingSourceUuidByDiveId,
+            matcher,
+          )
         : <int, DiveMatchResult>{};
 
     return ImportDuplicateResult(
@@ -650,13 +670,56 @@ class ImportDuplicateChecker {
   Map<int, DiveMatchResult> _checkDiveDuplicates(
     List<Map<String, dynamic>> importedDives,
     List<Dive> existingDives,
+    Map<String, String> existingSourceUuidByDiveId,
     DiveMatcher matcher,
   ) {
     if (existingDives.isEmpty) return {};
 
     final matches = <int, DiveMatchResult>{};
 
+    // Pass 0: exact match by source_uuid. When a user imports MacDive's
+    // SQLite and later re-imports the same dives from UDDF (or vice versa),
+    // they share the same `sourceUuid`. Matching on that short-circuits
+    // content fuzzy matching — faster and precise, since two dives with the
+    // same source UUID are definitionally the same dive. A mismatched (or
+    // missing) UUID never vetoes a content match; it only upgrades likely
+    // matches to certain ones.
+    final existingBySourceUuid = <String, Dive>{};
+    if (existingSourceUuidByDiveId.isNotEmpty) {
+      final existingById = <String, Dive>{
+        for (final dive in existingDives) dive.id: dive,
+      };
+      existingSourceUuidByDiveId.forEach((diveId, uuid) {
+        if (uuid.isEmpty) return;
+        final dive = existingById[diveId];
+        if (dive != null) {
+          existingBySourceUuid[uuid] = dive;
+        }
+      });
+    }
+
+    final handled = <int>{};
+    if (existingBySourceUuid.isNotEmpty) {
+      for (var i = 0; i < importedDives.length; i++) {
+        final uuid = importedDives[i]['sourceUuid'] as String?;
+        if (uuid == null || uuid.isEmpty) continue;
+        final existing = existingBySourceUuid[uuid];
+        if (existing == null) continue;
+
+        matches[i] = DiveMatchResult(
+          diveId: existing.id,
+          score: _sourceUuidMatchScore,
+          timeDifferenceMs: 0,
+          siteName: existing.site?.name,
+        );
+        handled.add(i);
+      }
+    }
+
+    // Pass 1: content fuzzy matching for everything not already handled.
     for (var i = 0; i < importedDives.length; i++) {
+      if (handled.contains(i)) continue;
+
       final diveData = importedDives[i];
       final dateTime = diveData['dateTime'] as DateTime?;
       if (dateTime == null) continue;

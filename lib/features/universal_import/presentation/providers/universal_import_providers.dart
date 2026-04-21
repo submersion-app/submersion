@@ -458,6 +458,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     final existingDiveTypes = await _ref.read(diveTypesProvider.future);
     final diveRepo = _ref.read(diveRepositoryProvider);
     final existingDives = await diveRepo.getAllDives();
+    final existingSourceUuidByDiveId = await diveRepo.getSourceUuidByDiveId();
 
     return checker.check(
       payload: payload,
@@ -470,6 +471,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       existingCertifications: existingCertifications,
       existingTags: existingTags,
       existingDiveTypes: existingDiveTypes,
+      existingSourceUuidByDiveId: existingSourceUuidByDiveId,
     );
   }
 
