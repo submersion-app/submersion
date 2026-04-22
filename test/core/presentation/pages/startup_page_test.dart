@@ -41,6 +41,31 @@ class _CustomPathLocationService extends DatabaseLocationService {
   Future<String> getDatabasePath() async => _path;
 }
 
+/// A fake [DatabaseLocationService] that succeeds for the first [failAfter]
+/// calls, then throws on every call thereafter. Used to drive the
+/// `_runRecovery` catch block (which only fires when a non-SqliteException
+/// escapes) without corrupting a real SQLite file.
+class _FlakyLocationService extends DatabaseLocationService {
+  final String path;
+  final int failAfter;
+  int calls = 0;
+
+  _FlakyLocationService(
+    super.prefs, {
+    required this.path,
+    required this.failAfter,
+  });
+
+  @override
+  Future<String> getDatabasePath() async {
+    calls++;
+    if (calls > failAfter) {
+      throw StateError('simulated location failure');
+    }
+    return path;
+  }
+}
+
 /// A synchronous no-op subclass of [PreMigrationBackupService] for tests that
 /// exercise the migration path without wanting real file I/O.
 class _NoOpBackupService extends PreMigrationBackupService {
@@ -1348,6 +1373,138 @@ void main() {
         expect(closeCalled, 1);
       },
     );
+
+    testWidgets(
+      'recovery catch block routes to recoveryFailed UI when getDatabasePath '
+      'throws on the retry attempt',
+      (tester) async {
+        // First call → succeeds (lets the initializer throw 776 → recoveryRequired).
+        // Second call (inside _runRecovery) → throws → the `catch` block in
+        // _runRecovery fires, which is the only path that sets _errorMessage
+        // alongside _state = recoveryFailed.
+        final flaky = _FlakyLocationService(
+          prefs,
+          path: p.join(tempDir.path, 'test.db'),
+          failAfter: 1,
+        );
+        await tester.pumpWidget(
+          _buildStartupWrapper(
+            prefs: prefs,
+            logFileService: logFileService,
+            locationService: flaky,
+            schemaVersionProbeOverride: (_) =>
+                (needsMigration: false, totalSteps: 0),
+            initializerOverride: (_) async {
+              throw sqlite3.SqliteException(776, 'readonly');
+            },
+          ),
+        );
+
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pumpAndSettle();
+
+        // We should now be in recoveryRequired.
+        expect(find.text('Database needs recovery'), findsOneWidget);
+
+        // Tap Recover → _runRecovery calls getDatabasePath, which throws.
+        await tester.tap(find.widgetWithText(FilledButton, 'Recover database'));
+        await tester.pump();
+        await tester.pump();
+
+        // The recoveryFailed UI is rendered with the error message.
+        expect(find.text('Recovery did not complete'), findsOneWidget);
+        expect(find.byIcon(Icons.error_outline), findsOneWidget);
+        expect(
+          find.textContaining('simulated location failure'),
+          findsOneWidget,
+        );
+        expect(
+          find.widgetWithText(OutlinedButton, 'Try again'),
+          findsOneWidget,
+        );
+        expect(find.widgetWithText(FilledButton, 'Close'), findsOneWidget);
+      },
+    );
+
+    testWidgets('Try again on recoveryFailed UI re-invokes _runRecovery', (
+      tester,
+    ) async {
+      final flaky = _FlakyLocationService(
+        prefs,
+        path: p.join(tempDir.path, 'test.db'),
+        failAfter: 1,
+      );
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: flaky,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) async {
+            throw sqlite3.SqliteException(776, 'readonly');
+          },
+        ),
+      );
+
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      // Drive into recoveryFailed.
+      await tester.tap(find.widgetWithText(FilledButton, 'Recover database'));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Recovery did not complete'), findsOneWidget);
+
+      final callsBeforeRetry = flaky.calls;
+
+      // Tap Try again — should run _runRecovery once more, which again
+      // calls getDatabasePath (throws) and lands back on recoveryFailed.
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Try again'));
+      await tester.pump();
+      await tester.pump();
+
+      // The location service was hit once more, confirming re-invocation.
+      expect(flaky.calls, greaterThan(callsBeforeRetry));
+      expect(find.text('Recovery did not complete'), findsOneWidget);
+    });
+
+    testWidgets('Close on recoveryFailed UI invokes closeAppOverride', (
+      tester,
+    ) async {
+      var closeCalled = 0;
+      final flaky = _FlakyLocationService(
+        prefs,
+        path: p.join(tempDir.path, 'test.db'),
+        failAfter: 1,
+      );
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: flaky,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) async {
+            throw sqlite3.SqliteException(776, 'readonly');
+          },
+          closeAppOverride: () => closeCalled++,
+        ),
+      );
+
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Recover database'));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Recovery did not complete'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Close'));
+      await tester.pump();
+
+      expect(closeCalled, 1);
+    });
 
     testWidgets('tapping Recover database re-invokes the initializer and shows '
         'recovering state while the second attempt is pending', (tester) async {

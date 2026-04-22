@@ -32,30 +32,57 @@ import 'package:submersion/features/import_wizard/presentation/widgets/wizard_st
 /// Accepts an [ImportSourceAdapter] and orchestrates the full import flow:
 /// acquisition steps (source-specific), review, import progress, and summary.
 class UnifiedImportWizard extends StatelessWidget {
-  const UnifiedImportWizard({super.key, required this.adapter});
+  const UnifiedImportWizard({
+    super.key,
+    required this.adapter,
+    this.initialPageOverride,
+    this.notifierFactoryOverride,
+  });
 
   final ImportSourceAdapter adapter;
+
+  /// Optional starting page for widget tests that need to exercise behavior
+  /// on pages past the acquisition/review flow (e.g. the cancel dialog on
+  /// the import-progress page) without driving the full adapter through
+  /// [ImportSourceAdapter.buildBundle] and [performImport].
+  @visibleForTesting
+  final int? initialPageOverride;
+
+  /// Optional notifier factory for tests that need to inject a pre-configured
+  /// [ImportWizardNotifier] (e.g. one whose state already has
+  /// `isCancellationRequested: true` so the "already cancelling" dialog
+  /// branch can be exercised).
+  @visibleForTesting
+  final ImportWizardNotifier Function(Ref ref)? notifierFactoryOverride;
 
   @override
   Widget build(BuildContext context) {
     return ProviderScope(
       overrides: [
         importWizardNotifierProvider.overrideWith(
-          (ref) => ImportWizardNotifier(
-            adapter,
-            tagRepository: ref.read(tagRepositoryProvider),
-          ),
+          notifierFactoryOverride ??
+              (ref) => ImportWizardNotifier(
+                adapter,
+                tagRepository: ref.read(tagRepositoryProvider),
+              ),
         ),
       ],
-      child: _UnifiedImportWizardBody(adapter: adapter),
+      child: _UnifiedImportWizardBody(
+        adapter: adapter,
+        initialPageOverride: initialPageOverride,
+      ),
     );
   }
 }
 
 class _UnifiedImportWizardBody extends ConsumerStatefulWidget {
-  const _UnifiedImportWizardBody({required this.adapter});
+  const _UnifiedImportWizardBody({
+    required this.adapter,
+    this.initialPageOverride,
+  });
 
   final ImportSourceAdapter adapter;
+  final int? initialPageOverride;
 
   @override
   ConsumerState<_UnifiedImportWizardBody> createState() =>
@@ -110,7 +137,16 @@ class _UnifiedImportWizardBodyState
         widget.adapter.resetState();
       }
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _resetComplete = true);
+        if (!mounted) return;
+        setState(() {
+          _resetComplete = true;
+          if (widget.initialPageOverride != null) {
+            _currentPage = widget.initialPageOverride!;
+          }
+        });
+        if (widget.initialPageOverride != null && _pageController.hasClients) {
+          _pageController.jumpToPage(widget.initialPageOverride!);
+        }
       });
     });
   }

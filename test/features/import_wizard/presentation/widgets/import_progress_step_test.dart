@@ -259,5 +259,39 @@ void main() {
       expect(button.onPressed, isNull);
       expect(find.text('Cancelling...'), findsAtLeastNWidgets(1));
     });
+
+    testWidgets('tapping cancel button invokes notifier.cancelImport', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _SpyNotifier();
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(notifier.cancelCalls, 0);
+
+      await tester.tap(find.byKey(const Key('import_progress_cancel_button')));
+      await tester.pump();
+
+      expect(notifier.cancelCalls, 1);
+    });
   });
+}
+
+/// Notifier spy that counts `cancelImport` calls. The real notifier's
+/// `cancelImport` short-circuits when no import is running; the spy lets us
+/// assert the button actually wires through to it.
+class _SpyNotifier extends ImportWizardNotifier {
+  _SpyNotifier() : super(_FakeAdapter());
+
+  int cancelCalls = 0;
+
+  @override
+  void cancelImport() {
+    cancelCalls++;
+    super.cancelImport();
+  }
 }

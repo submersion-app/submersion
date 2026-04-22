@@ -14,6 +14,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_phase.dar
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/unified_import_wizard.dart';
+import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -179,4 +180,171 @@ void main() {
       expect(state.wasLoadedExternally, isFalse);
     });
   });
+
+  // -------------------------------------------------------------------------
+  // Cancel dialog flow on the import-progress page
+  //
+  // The wizard's close button (Icons.close in the AppBar) has two distinct
+  // behaviors when the user is on the import-progress page:
+  // 1. If no cancellation is pending, it confirms with a two-button dialog
+  //    and only calls notifier.cancelImport() when the user picks "Cancel
+  //    import".
+  // 2. If a cancellation is already in flight, it shows a read-only notice
+  //    explaining that the current dive will finish before stopping.
+  //
+  // These tests use initialPageOverride to jump straight to _importIndex so
+  // we don't have to drive the adapter through buildBundle/performImport,
+  // and notifierFactoryOverride so the inner ProviderScope uses a spy we
+  // can assert `cancelImport` call-counts against.
+  // -------------------------------------------------------------------------
+  group('UnifiedImportWizard cancel dialog', () {
+    Widget buildAt(
+      int page, {
+      required ImportSourceAdapter adapter,
+      ImportWizardNotifier Function(Ref ref)? notifierFactory,
+    }) {
+      return ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: UnifiedImportWizard(
+            adapter: adapter,
+            initialPageOverride: page,
+            notifierFactoryOverride: notifierFactory,
+          ),
+        ),
+      );
+    }
+
+    _SpyNotifier makeSpy({bool alreadyCancelling = false}) {
+      final spy = _SpyNotifier();
+      if (alreadyCancelling) {
+        spy.state = spy.state.copyWith(isCancellationRequested: true);
+      }
+      return spy;
+    }
+
+    // Scope "Cancel import" matches to the dialog only — the import-progress
+    // page also renders a `TextButton.icon` with label "Cancel import", which
+    // otherwise matches and makes finders ambiguous.
+    Finder dialogCancelButton() => find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.widgetWithText(TextButton, 'Cancel import'),
+    );
+
+    testWidgets(
+      'close button on import page opens Cancel import? confirm dialog',
+      (tester) async {
+        final adapter = _FakeAdapter();
+        // 1 acquisition step → _importIndex = 2 (0=acq, 1=review, 2=import).
+        await tester.pumpWidget(buildAt(2, adapter: adapter));
+        // Drain the two post-frame callbacks used by _resetComplete +
+        // initialPageOverride before the AppBar is clickable.
+        await tester.pump();
+        await tester.pump();
+        await tester.pump();
+
+        await tester.tap(find.byIcon(Icons.close));
+        // Finite pump — ImportProgressStep renders indeterminate progress
+        // indicators that prevent pumpAndSettle from ever returning.
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.text('Cancel import?'), findsOneWidget);
+        expect(
+          find.widgetWithText(TextButton, 'Keep importing'),
+          findsOneWidget,
+        );
+        expect(dialogCancelButton(), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'tapping Keep importing dismisses dialog without calling cancelImport',
+      (tester) async {
+        final spy = makeSpy();
+        await tester.pumpWidget(
+          buildAt(2, adapter: _FakeAdapter(), notifierFactory: (_) => spy),
+        );
+        await tester.pump();
+        await tester.pump();
+        await tester.pump();
+
+        await tester.tap(find.byIcon(Icons.close));
+        await tester.pump(const Duration(milliseconds: 300));
+
+        await tester.tap(find.widgetWithText(TextButton, 'Keep importing'));
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(spy.cancelCalls, 0);
+        expect(find.text('Cancel import?'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'tapping Cancel import in confirm dialog calls notifier.cancelImport',
+      (tester) async {
+        final spy = makeSpy();
+        await tester.pumpWidget(
+          buildAt(2, adapter: _FakeAdapter(), notifierFactory: (_) => spy),
+        );
+        await tester.pump();
+        await tester.pump();
+        await tester.pump();
+
+        await tester.tap(find.byIcon(Icons.close));
+        await tester.pump(const Duration(milliseconds: 300));
+
+        await tester.tap(dialogCancelButton());
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(spy.cancelCalls, 1);
+        expect(find.text('Cancel import?'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'close button shows Cancelling notice when cancellation already pending',
+      (tester) async {
+        final spy = makeSpy(alreadyCancelling: true);
+        await tester.pumpWidget(
+          buildAt(2, adapter: _FakeAdapter(), notifierFactory: (_) => spy),
+        );
+        await tester.pump();
+        await tester.pump();
+        await tester.pump();
+
+        await tester.tap(find.byIcon(Icons.close));
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.text('Cancelling'), findsOneWidget);
+        expect(
+          find.textContaining('Finishing the current dive'),
+          findsOneWidget,
+        );
+        // No confirm buttons — just an OK dismiss.
+        expect(find.widgetWithText(TextButton, 'Keep importing'), findsNothing);
+        expect(find.widgetWithText(TextButton, 'OK'), findsOneWidget);
+
+        await tester.tap(find.widgetWithText(TextButton, 'OK'));
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // The already-cancelling path must not re-invoke cancelImport.
+        expect(spy.cancelCalls, 0);
+      },
+    );
+  });
+}
+
+/// Notifier spy so we can assert `cancelImport()` is (or isn't) called by
+/// the wizard's confirm dialog without driving a real import.
+class _SpyNotifier extends ImportWizardNotifier {
+  _SpyNotifier() : super(_FakeAdapter());
+
+  int cancelCalls = 0;
+
+  @override
+  void cancelImport() {
+    cancelCalls++;
+    super.cancelImport();
+  }
 }
