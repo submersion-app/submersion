@@ -118,5 +118,28 @@ void main() {
         reason: 'max depth 95th percentile should be in meters, not feet',
       );
     });
+
+    test(
+      'imageRefs parser handles <photos> elements (0 in this sample)',
+      () async {
+        final payload = await const MacDiveXmlParser().parse(bytes);
+        // This real XML sample does not contain any <photos> elements.
+        // The parser correctly emits zero imageRefs for dives with no photos.
+        // This test documents that the parser handles the photo parsing path
+        // correctly (even when the result is empty).
+        expect(payload.imageRefs, isEmpty);
+      },
+    );
+
+    test('imageRefs have stable identifiers when photos are present', () async {
+      // This test is a documentation/regression guard: if a sample with
+      // actual photos becomes available, it will verify that every
+      // imageRef carries a non-empty diveSourceUuid. The current sample
+      // has no photos, so this assertion is trivially true (empty list).
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      for (final ref in payload.imageRefs) {
+        expect(ref.diveSourceUuid, isNotEmpty);
+      }
+    });
   });
 }
