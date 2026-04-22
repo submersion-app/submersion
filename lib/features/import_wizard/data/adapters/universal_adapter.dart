@@ -44,6 +44,7 @@ import 'package:submersion/features/universal_import/data/services/import_duplic
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/field_mapping_step.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/file_selection_step.dart';
+import 'package:submersion/features/universal_import/presentation/widgets/photo_linking_step.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/source_confirmation_step.dart';
 
 /// True once a file has been detected and the wizard moved past file selection.
@@ -84,6 +85,17 @@ final _universalAdapterMappingAutoAdvanceProvider = Provider<bool>((ref) {
     return mapping != null && mapping.columns.isNotEmpty;
   }
   return false;
+});
+
+/// True once the Link Photos step is ready to be advanced past.
+///
+/// Satisfied when the user has explicitly skipped photo linking, or once
+/// the resolver has produced a (possibly partial) list of resolved photos.
+/// The wizard still allows advancing even when some photos resolved as
+/// misses — the user can reconcile those later.
+final _universalAdapterPhotoStepReadyProvider = Provider<bool>((ref) {
+  final state = ref.watch(universalImportNotifierProvider);
+  return state.photoLinkingSkipped || state.resolvedPhotos != null;
 });
 
 /// Import source adapter for universal file imports (CSV, Subsurface XML,
@@ -142,38 +154,61 @@ class UniversalAdapter implements ImportSourceAdapter {
   };
 
   @override
-  List<WizardStepDef> get acquisitionSteps => [
-    WizardStepDef(
-      label: 'Select File',
-      icon: Icons.file_open,
-      builder: (context) => const FileSelectionStep(),
-      canAdvance: universalAdapterFileSelectedProvider,
-      autoAdvance: true,
-    ),
-    WizardStepDef(
-      label: 'Confirm Source',
-      icon: Icons.check_circle_outline,
-      builder: (context) => const SourceConfirmationStep(),
-      canAdvance: universalAdapterSourceReadyProvider,
-      onBeforeAdvance: () async {
-        await _ref
-            .read(universalImportNotifierProvider.notifier)
-            .confirmSource();
-      },
-    ),
-    WizardStepDef(
-      label: 'Map Fields',
-      icon: Icons.table_chart_outlined,
-      builder: (context) => const FieldMappingStep(),
-      canAdvance: universalAdapterMappingReadyProvider,
-      canAutoAdvance: _universalAdapterMappingAutoAdvanceProvider,
-      autoAdvance: true,
-      onBeforeAdvance: () async {
-        final notifier = _ref.read(universalImportNotifierProvider.notifier);
-        await notifier.confirmFieldMapping();
-      },
-    ),
-  ];
+  List<WizardStepDef> get acquisitionSteps {
+    final baseline = <WizardStepDef>[
+      WizardStepDef(
+        label: 'Select File',
+        icon: Icons.file_open,
+        builder: (context) => const FileSelectionStep(),
+        canAdvance: universalAdapterFileSelectedProvider,
+        autoAdvance: true,
+      ),
+      WizardStepDef(
+        label: 'Confirm Source',
+        icon: Icons.check_circle_outline,
+        builder: (context) => const SourceConfirmationStep(),
+        canAdvance: universalAdapterSourceReadyProvider,
+        onBeforeAdvance: () async {
+          await _ref
+              .read(universalImportNotifierProvider.notifier)
+              .confirmSource();
+        },
+      ),
+      WizardStepDef(
+        label: 'Map Fields',
+        icon: Icons.table_chart_outlined,
+        builder: (context) => const FieldMappingStep(),
+        canAdvance: universalAdapterMappingReadyProvider,
+        canAutoAdvance: _universalAdapterMappingAutoAdvanceProvider,
+        autoAdvance: true,
+        onBeforeAdvance: () async {
+          final notifier = _ref.read(universalImportNotifierProvider.notifier);
+          await notifier.confirmFieldMapping();
+        },
+      ),
+    ];
+
+    // Append a Link Photos step only when the parsed payload actually
+    // carries photo references AND the user has not already chosen to
+    // skip photo linking. The step vanishes immediately on skip so the
+    // wizard renderer doesn't flicker back.
+    final state = _ref.read(universalImportNotifierProvider);
+    final hasPhotos =
+        (state.payload?.imageRefs.isNotEmpty ?? false) &&
+        !state.photoLinkingSkipped;
+    if (!hasPhotos) return baseline;
+
+    return [
+      ...baseline,
+      WizardStepDef(
+        label: 'Link Photos',
+        icon: Icons.photo_library_outlined,
+        builder: (context) => const PhotoLinkingStep(),
+        canAdvance: _universalAdapterPhotoStepReadyProvider,
+        autoAdvance: true,
+      ),
+    ];
+  }
 
   @override
   Future<ImportBundle> buildBundle() async {
