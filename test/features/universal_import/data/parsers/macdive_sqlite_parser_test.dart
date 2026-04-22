@@ -25,13 +25,13 @@ void main() {
     });
 
     test('supportedFormats is macdiveSqlite', () {
-      expect(MacDiveSqliteParser().supportedFormats, [
+      expect(const MacDiveSqliteParser().supportedFormats, [
         ImportFormat.macdiveSqlite,
       ]);
     });
 
     test('parses synthetic MacDive SQLite end-to-end', () async {
-      final payload = await MacDiveSqliteParser().parse(validBytes);
+      final payload = await const MacDiveSqliteParser().parse(validBytes);
       expect(payload.entitiesOf(ImportEntityType.dives).length, 3);
       expect(payload.entitiesOf(ImportEntityType.sites).length, 2);
       expect(
@@ -56,7 +56,7 @@ void main() {
       db.dispose();
 
       final otherBytes = Uint8List.fromList(await tmp.readAsBytes());
-      final payload = await MacDiveSqliteParser().parse(otherBytes);
+      final payload = await const MacDiveSqliteParser().parse(otherBytes);
       expect(payload.isEmpty, isTrue);
       expect(payload.warnings, isNotEmpty);
       expect(payload.warnings.first.severity, ImportWarningSeverity.error);
@@ -64,7 +64,7 @@ void main() {
 
     test('returns error payload on totally invalid bytes', () async {
       final garbage = Uint8List.fromList(const [0, 1, 2, 3, 4]);
-      final payload = await MacDiveSqliteParser().parse(garbage);
+      final payload = await const MacDiveSqliteParser().parse(garbage);
       expect(payload.isEmpty, isTrue);
       expect(payload.warnings.first.severity, ImportWarningSeverity.error);
     });

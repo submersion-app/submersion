@@ -20,6 +20,41 @@
 
 ---
 
+## Milestone 3 Status — COMPLETE
+
+- All 14 tasks landed; bplist decoder (Tasks 1-4) shipped with UID
+  support after real-sample probing revealed NSKeyedArchiver format
+  in ZTIMEZONE.
+- ZSAMPLES profile-sample decoding **descoped** — MacDive uses a
+  proprietary binary format (entropy 7.85 bits/byte; not bplist; not
+  zlib/gzip/lzma at any reasonable offset). Users wanting profile
+  samples should use M1's UDDF import. M3 is the "rich metadata"
+  path; UDDF remains the "sample data" path.
+- New `ImportFormat.macdiveSqlite` + source override. Detector
+  chain: SQLite magic → Shearwater check → MacDive check → generic.
+- `MacDiveDbReader` validates schema (ZDIVE + ZDIVESITE + ZGAS +
+  ZTANKANDGAS) and returns typed row graph keyed by PK; junctions
+  as dive_pk → related_pks maps. Filters null-FK tombstones in
+  ZTANKANDGAS discovered on real data.
+- `MacDiveDiveMapper` reuses M2's `MacDiveUnitConverter` and
+  `MacDiveValueMapper`. Dive map keys match M2's `MacDiveXmlParser`
+  exactly so the same `UddfEntityImporter` downstream consumes
+  both sources uniformly.
+- `ImportDuplicateChecker` now short-circuits on `source_uuid`
+  when incoming dives match existing `dive_data_sources.source_uuid`.
+  Separate parameter map keeps the `Dive` entity unchanged
+  (multi-source-per-dive semantics preserved).
+- Gated `@Tags(['real-data'])` test asserts against user's real
+  6.7MB DB: 540 dives, 373 sites, 33 buddies, 39 tags, 32 gear —
+  all with sourceUuid populated. Profile always empty per descope.
+- Full test suite passes.
+
+Next: M4 (Photos) extends M2's XML parser and M3's SQLite reader
+to emit `imageRefs` on payloads and adds a photo-linking wizard
+step.
+
+---
+
 ## File Structure
 
 | File | Role | New / Modified |
