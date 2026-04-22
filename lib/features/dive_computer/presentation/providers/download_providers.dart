@@ -170,6 +170,10 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         error: e,
         stackTrace: stackTrace,
       );
+      // Cancel the event subscription so stray events from the native side
+      // cannot mutate state after a synchronous start failure.
+      _downloadSubscription?.cancel();
+      _downloadSubscription = null;
       state = state.copyWith(
         phase: DownloadPhase.error,
         errorMessage: 'Download failed: $e',

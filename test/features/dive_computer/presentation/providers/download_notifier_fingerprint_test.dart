@@ -91,8 +91,20 @@ void main() {
   });
 
   group('download failures are logged', () {
+    List<LogEntry> captureLibdcErrors() {
+      final entries = <LogEntry>[];
+      final sub = LoggerService.logStream
+          .where(
+            (e) => e.level == LogLevel.error && e.category == LogCategory.libdc,
+          )
+          .listen(entries.add);
+      addTearDown(sub.cancel);
+      return entries;
+    }
+
     test('DownloadErrorEvent writes an ERROR log entry', () async {
       final controller = StreamController<DownloadEvent>.broadcast();
+      addTearDown(controller.close);
       when(mockService.downloadEvents).thenAnswer((_) => controller.stream);
       when(
         mockService.startDownload(any, fingerprint: anyNamed('fingerprint')),
@@ -102,11 +114,9 @@ void main() {
         service: mockService,
         repository: mockRepository,
       );
+      addTearDown(testNotifier.dispose);
 
-      final errorEntries = <LogEntry>[];
-      final sub = LoggerService.logStream
-          .where((e) => e.level == LogLevel.error)
-          .listen(errorEntries.add);
+      final errorEntries = captureLibdcErrors();
 
       final device = DiscoveredDevice(
         id: 'test-err-1',
@@ -131,11 +141,6 @@ void main() {
       expect(errorEntries, hasLength(1));
       expect(errorEntries.first.message, contains('comm_timeout'));
       expect(errorEntries.first.message, contains('Communication timeout'));
-      expect(errorEntries.first.category, LogCategory.libdc);
-
-      await sub.cancel();
-      testNotifier.dispose();
-      await controller.close();
     });
 
     test(
@@ -152,11 +157,9 @@ void main() {
           service: mockService,
           repository: mockRepository,
         );
+        addTearDown(testNotifier.dispose);
 
-        final errorEntries = <LogEntry>[];
-        final sub = LoggerService.logStream
-            .where((e) => e.level == LogLevel.error)
-            .listen(errorEntries.add);
+        final errorEntries = captureLibdcErrors();
 
         final device = DiscoveredDevice(
           id: 'test-err-2',
@@ -171,10 +174,46 @@ void main() {
 
         expect(errorEntries, hasLength(1));
         expect(errorEntries.first.message, contains('boom'));
-
-        await sub.cancel();
-        testNotifier.dispose();
       },
     );
+
+    test('startDownload catch block cancels the events subscription', () async {
+      final controller = StreamController<DownloadEvent>.broadcast();
+      addTearDown(controller.close);
+      when(mockService.downloadEvents).thenAnswer((_) => controller.stream);
+      when(
+        mockService.startDownload(any, fingerprint: anyNamed('fingerprint')),
+      ).thenThrow(StateError('boom'));
+
+      final testNotifier = DownloadNotifier(
+        service: mockService,
+        repository: mockRepository,
+      );
+      addTearDown(testNotifier.dispose);
+
+      final errorEntries = captureLibdcErrors();
+
+      final device = DiscoveredDevice(
+        id: 'test-err-3',
+        name: 'Test Device',
+        connectionType: DeviceConnectionType.usb,
+        address: 'COM3',
+        discoveredAt: DateTime(2026, 1, 1),
+      );
+
+      await testNotifier.startDownload(device);
+
+      // If the catch block did not cancel the subscription, this stray
+      // event would reach _onDownloadEvent and emit a second error log.
+      controller.add(
+        DownloadErrorEvent(
+          DiveComputerError(code: 'stray', message: 'Stray event'),
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(errorEntries, hasLength(1));
+      expect(errorEntries.first.message, contains('boom'));
+    });
   });
 }
