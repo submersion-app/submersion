@@ -10635,6 +10635,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_gfPreset_medium_name => 'Moyen';
 
   @override
+  String get settings_import_cancelButton => 'Annuler l\'importation';
+
+  @override
+  String get settings_import_cancelling => 'Annulation...';
+
+  @override
   String get settings_import_dialog_title => 'Importation des donnees';
 
   @override

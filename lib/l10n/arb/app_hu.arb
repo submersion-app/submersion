@@ -3228,6 +3228,8 @@
   "settings_gfPreset_low_name": "Alacsony",
   "settings_gfPreset_medium_description": "Kiegyensulyozott megközelites",
   "settings_gfPreset_medium_name": "Közepes",
+  "settings_import_cancelButton": "Importalas megszakitasa",
+  "settings_import_cancelling": "Megszakitas...",
   "settings_import_dialog_title": "Adatok importalasa",
   "settings_import_doNotClose": "Kerem, ne zarja be az alkalmazast",
   "settings_import_itemCount": "{current} / {total}",

@@ -3262,6 +3262,8 @@
   "settings_gfPreset_low_name": "منخفض",
   "settings_gfPreset_medium_description": "نهج متوازن",
   "settings_gfPreset_medium_name": "متوسط",
+  "settings_import_cancelButton": "إلغاء الاستيراد",
+  "settings_import_cancelling": "جارٍ الإلغاء...",
   "settings_import_dialog_title": "جارٍ استيراد البيانات",
   "settings_import_doNotClose": "يرجى عدم إغلاق التطبيق",
   "settings_import_itemCount": "{current} من {total}",

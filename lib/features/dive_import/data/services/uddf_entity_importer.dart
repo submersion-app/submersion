@@ -28,6 +28,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -216,6 +217,10 @@ class UddfEntityImporter {
   ///
   /// Only entities at indices present in [selections] are imported.
   /// Reports progress via [onProgress] callback.
+  ///
+  /// If [cancelToken] is non-null, the dive-import loop polls
+  /// [ImportCancellationToken.isCancelled] between each dive and returns the
+  /// partial result already persisted when cancellation is observed.
   Future<UddfEntityImportResult> import({
     required UddfImportResult data,
     required UddfImportSelections selections,
@@ -223,6 +228,7 @@ class UddfEntityImporter {
     required String diverId,
     bool retainSourceDiveNumbers = false,
     ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
   }) async {
     final now = DateTime.now();
 
@@ -350,6 +356,7 @@ class UddfEntityImporter {
       retainSourceDiveNumbers: retainSourceDiveNumbers,
       now: now,
       onProgress: onProgress,
+      cancelToken: cancelToken,
     );
 
     return UddfEntityImportResult(
@@ -943,6 +950,7 @@ class UddfEntityImporter {
     bool retainSourceDiveNumbers = false,
     required DateTime now,
     ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
   }) async {
     if (selected.isEmpty) return const _DiveImportResult(0, 0);
     onProgress?.call(ImportPhase.dives, 0, selected.length);
@@ -965,6 +973,8 @@ class UddfEntityImporter {
         : await repos.diveRepository.getNextDiveNumber(diverId: diverId);
 
     for (final i in sortedSelected) {
+      if (cancelToken?.isCancelled ?? false) break;
+
       final diveData = items[i];
 
       // Build profile (include setpoint/ppO2 sensor readings)

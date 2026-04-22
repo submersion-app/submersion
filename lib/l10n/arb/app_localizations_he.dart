@@ -10315,6 +10315,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_gfPreset_medium_name => 'בינוני';
 
   @override
+  String get settings_import_cancelButton => 'ביטול ייבוא';
+
+  @override
+  String get settings_import_cancelling => 'מבטל...';
+
+  @override
   String get settings_import_dialog_title => 'ייבוא נתונים';
 
   @override

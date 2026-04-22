@@ -20,6 +20,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 // Import wizard bundle types: hide ImportEntityType to avoid name clash with
@@ -379,6 +380,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     Map<wizard.ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
     bool retainSourceDiveNumbers = false,
     ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
   }) async {
     final notifierState = _ref.read(universalImportNotifierProvider);
     final payload = notifierState.payload;
@@ -459,6 +461,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       diverId: currentDiver.id,
       retainSourceDiveNumbers: retainSourceDiveNumbers,
       onProgress: onProgress,
+      cancelToken: cancelToken,
     );
 
     return UnifiedImportResult(

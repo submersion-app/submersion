@@ -196,11 +196,16 @@ class DatabaseService {
   /// Reads the stored schema version from a database file without opening it
   /// through Drift. Returns null if the file does not exist, or the integer
   /// PRAGMA user_version value otherwise.
+  ///
+  /// Opens in read-write mode (not read-only) so SQLite can automatically
+  /// roll back any hot journal left behind by a previous crash. A read-only
+  /// open on a db with a pending rollback throws SQLITE_READONLY_ROLLBACK
+  /// (extended code 776) before even the first PRAGMA can execute.
   static int? getStoredSchemaVersion(String dbPath) {
     final file = File(dbPath);
     if (!file.existsSync()) return null;
 
-    final db = sqlite3.sqlite3.open(dbPath, mode: sqlite3.OpenMode.readOnly);
+    final db = sqlite3.sqlite3.open(dbPath, mode: sqlite3.OpenMode.readWrite);
     try {
       final result = db.select('PRAGMA user_version');
       if (result.isEmpty) return null;
@@ -208,6 +213,38 @@ class DatabaseService {
     } finally {
       db.dispose();
     }
+  }
+
+  /// Force SQLite to complete any pending hot-journal rollback on [dbPath].
+  ///
+  /// Opens the file in read-write mode — the very act of opening triggers
+  /// SQLite's automatic recovery of a hot journal. Returns true if the file
+  /// opened cleanly (recovery either wasn't needed or succeeded), false if
+  /// the journal could not be rolled back (file still read-only, on a
+  /// read-only volume, etc.).
+  ///
+  /// Safe to call on a file without a hot journal: it simply no-ops.
+  static bool recoverHotJournal(String dbPath) {
+    final file = File(dbPath);
+    if (!file.existsSync()) return true;
+    try {
+      final db = sqlite3.sqlite3.open(dbPath, mode: sqlite3.OpenMode.readWrite);
+      try {
+        db.select('PRAGMA user_version');
+      } finally {
+        db.dispose();
+      }
+      return true;
+    } on sqlite3.SqliteException {
+      return false;
+    }
+  }
+
+  /// True if [error] is a [sqlite3.SqliteException] in the SQLITE_READONLY
+  /// family (primary result code 8) — typically SQLITE_READONLY_ROLLBACK
+  /// (776) after a cancelled transaction left a hot journal behind.
+  static bool isRecoverableReadonlyError(Object error) {
+    return error is sqlite3.SqliteException && error.resultCode == 8;
   }
 
   /// Resolve the database path using location service or default

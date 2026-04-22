@@ -10392,6 +10392,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_gfPreset_medium_name => 'متوسط';
 
   @override
+  String get settings_import_cancelButton => 'إلغاء الاستيراد';
+
+  @override
+  String get settings_import_cancelling => 'جارٍ الإلغاء...';
+
+  @override
   String get settings_import_dialog_title => 'جارٍ استيراد البيانات';
 
   @override

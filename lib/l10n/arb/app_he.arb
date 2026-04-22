@@ -3262,6 +3262,8 @@
   "settings_gfPreset_low_name": "נמוך",
   "settings_gfPreset_medium_description": "גישה מאוזנת",
   "settings_gfPreset_medium_name": "בינוני",
+  "settings_import_cancelButton": "ביטול ייבוא",
+  "settings_import_cancelling": "מבטל...",
   "settings_import_dialog_title": "ייבוא נתונים",
   "settings_import_doNotClose": "נא לא לסגור את האפליקציה",
   "settings_import_itemCount": "{current} מתוך {total}",

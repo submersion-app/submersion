@@ -13,6 +13,8 @@ import 'package:submersion/features/import_wizard/domain/models/duplicate_action
     as _i8;
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart'
     as _i2;
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart'
+    as _i11;
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart'
     as _i10;
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart'
@@ -20,7 +22,7 @@ import 'package:submersion/features/import_wizard/domain/models/unified_import_r
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart'
     as _i7;
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart'
-    as _i11;
+    as _i12;
 import 'package:submersion/features/tags/domain/entities/tag.dart' as _i4;
 
 // ignore_for_file: type=lint
@@ -162,6 +164,7 @@ class MockImportSourceAdapter extends _i1.Mock
     duplicateActions, {
     bool? retainSourceDiveNumbers,
     _i10.ImportProgressCallback? onProgress,
+    _i11.ImportCancellationToken? cancelToken,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -170,6 +173,7 @@ class MockImportSourceAdapter extends _i1.Mock
               {
                 #retainSourceDiveNumbers: retainSourceDiveNumbers,
                 #onProgress: onProgress,
+                #cancelToken: cancelToken,
               },
             ),
             returnValue: _i9.Future<_i3.UnifiedImportResult>.value(
@@ -181,6 +185,7 @@ class MockImportSourceAdapter extends _i1.Mock
                   {
                     #retainSourceDiveNumbers: retainSourceDiveNumbers,
                     #onProgress: onProgress,
+                    #cancelToken: cancelToken,
                   },
                 ),
               ),
@@ -195,6 +200,7 @@ class MockImportSourceAdapter extends _i1.Mock
                       {
                         #retainSourceDiveNumbers: retainSourceDiveNumbers,
                         #onProgress: onProgress,
+                        #cancelToken: cancelToken,
                       },
                     ),
                   ),
@@ -206,7 +212,7 @@ class MockImportSourceAdapter extends _i1.Mock
 /// A class which mocks [TagRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTagRepository extends _i1.Mock implements _i11.TagRepository {
+class MockTagRepository extends _i1.Mock implements _i12.TagRepository {
   @override
   _i9.Future<List<_i4.Tag>> getAllTags({String? diverId}) =>
       (super.noSuchMethod(
@@ -357,18 +363,18 @@ class MockTagRepository extends _i1.Mock implements _i11.TagRepository {
           as _i9.Future<void>);
 
   @override
-  _i9.Future<List<_i11.TagStatistic>> getTagStatistics({String? diverId}) =>
+  _i9.Future<List<_i12.TagStatistic>> getTagStatistics({String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#getTagStatistics, [], {#diverId: diverId}),
-            returnValue: _i9.Future<List<_i11.TagStatistic>>.value(
-              <_i11.TagStatistic>[],
+            returnValue: _i9.Future<List<_i12.TagStatistic>>.value(
+              <_i12.TagStatistic>[],
             ),
             returnValueForMissingStub:
-                _i9.Future<List<_i11.TagStatistic>>.value(
-                  <_i11.TagStatistic>[],
+                _i9.Future<List<_i12.TagStatistic>>.value(
+                  <_i12.TagStatistic>[],
                 ),
           )
-          as _i9.Future<List<_i11.TagStatistic>>);
+          as _i9.Future<List<_i12.TagStatistic>>);
 
   @override
   _i9.Future<int> getTagUsageCount(String? tagId) =>

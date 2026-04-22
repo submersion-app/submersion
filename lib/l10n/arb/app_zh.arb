@@ -3428,6 +3428,8 @@
   "settings_gfPreset_low_name": "低",
   "settings_gfPreset_medium_description": "平衡方案",
   "settings_gfPreset_medium_name": "中等",
+  "settings_import_cancelButton": "取消导入",
+  "settings_import_cancelling": "正在取消...",
   "settings_import_dialog_title": "正在导入数据",
   "settings_import_doNotClose": "请不要关闭应用",
   "settings_import_itemCount": "{current}/{total}",

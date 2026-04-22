@@ -10099,6 +10099,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_gfPreset_medium_name => '中等';
 
   @override
+  String get settings_import_cancelButton => '取消导入';
+
+  @override
+  String get settings_import_cancelling => '正在取消...';
+
+  @override
   String get settings_import_dialog_title => '正在导入数据';
 
   @override
