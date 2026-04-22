@@ -8,6 +8,7 @@ import 'package:submersion/features/universal_import/data/models/import_payload.
 import 'package:submersion/features/universal_import/data/csv/models/parsed_csv.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
+import 'package:submersion/features/universal_import/data/services/photo_resolver.dart';
 
 // ============================================================================
 // Wizard Steps
@@ -55,6 +56,9 @@ class UniversalImportState {
     this.importCurrent = 0,
     this.importTotal = 0,
     this.wasLoadedExternally = false,
+    this.photoRootDir,
+    this.resolvedPhotos,
+    this.photoLinkingSkipped = false,
   });
 
   final ImportWizardStep currentStep;
@@ -122,6 +126,16 @@ class UniversalImportState {
   /// to skip resetState on init, then cleared.
   final bool wasLoadedExternally;
 
+  /// User-picked folder under which to resolve photos.
+  final String? photoRootDir;
+
+  /// Output of PhotoResolver.resolveAll, null until the user picks a folder.
+  final List<ResolvedPhoto>? resolvedPhotos;
+
+  /// True when the user chose "Skip photos" (mutually exclusive with having
+  /// resolvedPhotos).
+  final bool photoLinkingSkipped;
+
   UniversalImportState copyWith({
     ImportWizardStep? currentStep,
     bool? isLoading,
@@ -156,6 +170,11 @@ class UniversalImportState {
     ParsedCsv? parsedCsv,
     bool clearParsedCsv = false,
     bool? wasLoadedExternally,
+    String? photoRootDir,
+    bool clearPhotoRootDir = false,
+    List<ResolvedPhoto>? resolvedPhotos,
+    bool clearResolvedPhotos = false,
+    bool? photoLinkingSkipped,
   }) {
     return UniversalImportState(
       currentStep: currentStep ?? this.currentStep,
@@ -194,6 +213,13 @@ class UniversalImportState {
       importCurrent: importCurrent ?? this.importCurrent,
       importTotal: importTotal ?? this.importTotal,
       wasLoadedExternally: wasLoadedExternally ?? this.wasLoadedExternally,
+      photoRootDir: clearPhotoRootDir
+          ? null
+          : (photoRootDir ?? this.photoRootDir),
+      resolvedPhotos: clearResolvedPhotos
+          ? null
+          : (resolvedPhotos ?? this.resolvedPhotos),
+      photoLinkingSkipped: photoLinkingSkipped ?? this.photoLinkingSkipped,
     );
   }
 

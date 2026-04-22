@@ -23,6 +23,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_image_ref.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/csv/pipeline/csv_pipeline.dart';
@@ -40,6 +41,7 @@ import 'package:submersion/features/universal_import/data/parsers/shearwater_clo
 import 'package:submersion/features/universal_import/data/parsers/uddf_import_parser.dart';
 import 'package:submersion/features/universal_import/data/services/format_detector.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
+import 'package:submersion/features/universal_import/data/services/photo_resolver.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/presentation/providers/import_consolidation_service.dart';
@@ -334,6 +336,38 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// Skip the optional additional file and proceed to field mapping.
   void skipAdditionalFile() {
     state = state.copyWith(currentStep: ImportWizardStep.fieldMapping);
+  }
+
+  // -- Photo Linking --
+
+  /// Set the photo root directory and kick off resolution against the
+  /// current payload's imageRefs. Noop when there's no payload or no
+  /// imageRefs.
+  Future<void> setPhotoRoot(String dirPath) async {
+    final refs = state.payload?.imageRefs ?? const <ImportImageRef>[];
+    if (refs.isEmpty) {
+      state = state.copyWith(photoRootDir: dirPath);
+      return;
+    }
+    state = state.copyWith(
+      photoRootDir: dirPath,
+      isLoading: true,
+      clearResolvedPhotos: true,
+    );
+    final resolver = PhotoResolver(rootDir: dirPath);
+    final results = await resolver.resolveAll(refs);
+    state = state.copyWith(resolvedPhotos: results, isLoading: false);
+  }
+
+  /// Record that the user chose to skip photo linking. Clears any
+  /// previous root dir / resolved list so downstream code sees a
+  /// clean "no photos to write" signal.
+  void skipPhotoLinking() {
+    state = state.copyWith(
+      photoLinkingSkipped: true,
+      clearPhotoRootDir: true,
+      clearResolvedPhotos: true,
+    );
   }
 
   // -- Step 2b: Field Mapping (CSV only) --
