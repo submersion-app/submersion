@@ -1362,14 +1362,13 @@ class UddfFullImportService {
       // Get linked gas mix
       final mixLink = tankDataElement.findElements('link').firstOrNull;
       if (mixLink != null) {
-        final mixRef = mixLink.getAttribute('ref');
-        if (mixRef != null) {
+        final rawMixRef = mixLink.getAttribute('ref');
+        final mixRef = rawMixRef?.trim();
+        if (mixRef != null && mixRef.isNotEmpty) {
           // Record the UDDF gas-mix UUID on the tank so the importer can
           // resolve waypoint-level <switchmix ref> markers (which reference
           // gas mixes, not tanks) back to a tank for the gas_switches row.
-          if (mixRef.isNotEmpty) {
-            tankInfo['uddfGasMixRef'] = mixRef;
-          }
+          tankInfo['uddfGasMixRef'] = mixRef;
           if (gasMixes.containsKey(mixRef)) {
             tankInfo['gasMix'] = gasMixes[mixRef];
           }
@@ -1566,8 +1565,12 @@ class UddfFullImportService {
 
         final switchMix = waypoint.findElements('switchmix').firstOrNull;
         if (switchMix != null) {
-          final mixRef = switchMix.getAttribute('ref');
-          if (mixRef != null) {
+          final rawMixRef = switchMix.getAttribute('ref');
+          final mixRef = rawMixRef?.trim();
+          // Skip emission entirely when the ref is empty or whitespace-only:
+          // the importer would have no way to resolve such a dangling ref
+          // back to a persisted tank row.
+          if (mixRef != null && mixRef.isNotEmpty) {
             // Emit a gas switch entry for the importer to persist. Shape
             // matches the top-level <gasswitches> parser (timestamp/depth/
             // tankRef), plus `gasMixRef` so the importer can resolve the
