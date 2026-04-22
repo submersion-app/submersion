@@ -822,8 +822,12 @@ class UddfEntityImporter {
         await repository.applyImportedMetadata(
           createdSite.id,
           DiveSitesCompanion(
-            waterType: Value(waterType),
-            bodyOfWater: Value(bodyOfWater),
+            waterType: waterType != null
+                ? Value(waterType)
+                : const Value.absent(),
+            bodyOfWater: bodyOfWater != null
+                ? Value(bodyOfWater)
+                : const Value.absent(),
           ),
         );
       }
@@ -1222,12 +1226,22 @@ class UddfEntityImporter {
         await repos.diveRepository.applyImportedMetadata(
           diveId,
           DivesCompanion(
-            diveNumberOfDay: Value(diveNumberOfDay),
-            boatName: Value(boatName),
-            boatCaptain: Value(boatCaptain),
-            diveOperator: Value(diveOperator),
-            surfaceConditions: Value(surfaceConditions),
-            weatherDescription: Value(weather),
+            diveNumberOfDay: diveNumberOfDay != null
+                ? Value(diveNumberOfDay)
+                : const Value.absent(),
+            boatName: boatName != null ? Value(boatName) : const Value.absent(),
+            boatCaptain: boatCaptain != null
+                ? Value(boatCaptain)
+                : const Value.absent(),
+            diveOperator: diveOperator != null
+                ? Value(diveOperator)
+                : const Value.absent(),
+            surfaceConditions: surfaceConditions != null
+                ? Value(surfaceConditions)
+                : const Value.absent(),
+            weatherDescription: weather != null
+                ? Value(weather)
+                : const Value.absent(),
           ),
         );
       }
