@@ -1375,6 +1375,50 @@ void main() {
     );
 
     testWidgets(
+      'recoverHotJournal returning false sets a specific error message on '
+      'the recoveryFailed UI',
+      (tester) async {
+        // Write bytes that aren't a valid SQLite header at the db path.
+        // sqlite3.open in readWrite mode will still create a handle, but the
+        // subsequent PRAGMA user_version probe inside recoverHotJournal will
+        // throw SQLITE_NOTADB — which recoverHotJournal catches and reports
+        // as `false`, driving us into the `!recovered` branch of _runRecovery.
+        final dbPath = p.join(tempDir.path, 'corrupt.db');
+        File(dbPath).writeAsBytesSync(List<int>.filled(4096, 0xAB));
+        locationService = _CustomPathLocationService(prefs, dbPath);
+
+        await tester.pumpWidget(
+          _buildStartupWrapper(
+            prefs: prefs,
+            logFileService: logFileService,
+            locationService: locationService,
+            schemaVersionProbeOverride: (_) =>
+                (needsMigration: false, totalSteps: 0),
+            initializerOverride: (_) async {
+              throw sqlite3.SqliteException(776, 'readonly');
+            },
+          ),
+        );
+
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pumpAndSettle();
+        expect(find.text('Database needs recovery'), findsOneWidget);
+
+        await tester.tap(find.widgetWithText(FilledButton, 'Recover database'));
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text('Recovery did not complete'), findsOneWidget);
+        // The specific message from the `!recovered` branch — NOT a stale
+        // SqliteException message and NOT an exception `.toString()`.
+        expect(
+          find.textContaining('could not reopen the database'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
       'recovery catch block routes to recoveryFailed UI when getDatabasePath '
       'throws on the retry attempt',
       (tester) async {

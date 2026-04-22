@@ -243,6 +243,9 @@ class _StartupWrapperState extends State<StartupWrapper>
     if (!mounted) return;
     setState(() {
       _state = _StartupState.recovering;
+      // Clear any stale text from a prior failed attempt so the
+      // recoveryFailed UI reflects only the current reason.
+      _errorMessage = '';
     });
     try {
       final dbPath = await widget.locationService.getDatabasePath();
@@ -251,6 +254,9 @@ class _StartupWrapperState extends State<StartupWrapper>
         if (mounted) {
           setState(() {
             _state = _StartupState.recoveryFailed;
+            _errorMessage =
+                'SQLite could not reopen the database to roll back the '
+                'interrupted transaction.';
           });
         }
         return;
