@@ -172,6 +172,13 @@ void _createSchema(Database db) {
       ZIDENTIFIER VARCHAR, ZALL VARCHAR
     )
   ''');
+  db.execute('''
+    CREATE TABLE ZDIVEIMAGE (
+      Z_PK INTEGER PRIMARY KEY, Z_ENT INTEGER, Z_OPT INTEGER,
+      ZPOSITION INTEGER, ZRELATIONSHIPDIVE INTEGER,
+      ZCAPTION VARCHAR, ZORIGINALPATH VARCHAR, ZPATH VARCHAR, ZUUID VARCHAR
+    )
+  ''');
 }
 
 void _insertFixtureRows(Database db) {
@@ -281,5 +288,20 @@ void _insertFixtureRows(Database db) {
   db.execute('''
     INSERT INTO ZMETADATA (Z_PK, ZIDENTIFIER, ZALL)
     VALUES (1, 'SystemOfUnits', 'Metric')
+  ''');
+
+  // ---- dive images ----
+  // Dive 1 gets 2 photos; dive 2 gets 1; dive 3 has none.
+  db.execute('''
+    INSERT INTO ZDIVEIMAGE (
+      Z_PK, ZPOSITION, ZRELATIONSHIPDIVE,
+      ZCAPTION, ZPATH, ZORIGINALPATH, ZUUID
+    ) VALUES
+      (1, 0, 1, 'Shark!', '/Users/test/Pictures/Diving/shark.jpg',
+       '/old/Pictures/shark.jpg', 'img-uuid-1'),
+      (2, 1, 1, NULL, '/Users/test/Pictures/Diving/turtle.jpg',
+       NULL, 'img-uuid-2'),
+      (3, 0, 2, 'Reef', '/Users/test/Pictures/Diving/reef.jpg',
+       NULL, 'img-uuid-3')
   ''');
 }

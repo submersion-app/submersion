@@ -328,6 +328,35 @@ class MacDiveRawEvent {
   });
 }
 
+/// A row from MacDive's `ZDIVEIMAGE` table — a photo reference
+/// attached to a dive. The BLOB-like fields (image bytes) live on
+/// the filesystem at `ZPATH`; this row just carries the reference.
+class MacDiveRawDiveImage {
+  final int pk;
+  final String uuid;
+  final int diveFk;
+  final int position;
+  final String? caption;
+
+  /// Current absolute path — may or may not exist on the machine
+  /// running the import.
+  final String? path;
+
+  /// Original absolute path when MacDive first imported this photo.
+  /// Usually equal to [path] but may diverge if the user moved files.
+  final String? originalPath;
+
+  const MacDiveRawDiveImage({
+    required this.pk,
+    required this.uuid,
+    required this.diveFk,
+    this.position = 0,
+    this.caption,
+    this.path,
+    this.originalPath,
+  });
+}
+
 /// Top-level container returned by [MacDiveDbReader.readAll]. Holds all
 /// tables keyed for lookup plus the junction tables as dive_pk → list
 /// of foreign PKs. The mapper walks this graph to build ImportPayload.
@@ -344,6 +373,7 @@ class MacDiveRawLogbook {
   final List<MacDiveRawCertification> certifications;
   final List<MacDiveRawServiceRecord> serviceRecords;
   final List<MacDiveRawEvent> events;
+  final List<MacDiveRawDiveImage> diveImages;
   final Map<int, List<int>> diveToBuddyPks;
   final Map<int, List<int>> diveToTagPks;
   final Map<int, List<int>> diveToGearPks;
@@ -366,6 +396,7 @@ class MacDiveRawLogbook {
     required this.certifications,
     required this.serviceRecords,
     required this.events,
+    required this.diveImages,
     required this.diveToBuddyPks,
     required this.diveToTagPks,
     required this.diveToGearPks,
