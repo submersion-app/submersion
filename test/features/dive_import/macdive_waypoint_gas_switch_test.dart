@@ -166,22 +166,27 @@ void main() {
           reason: 'expected one gas_switches row per <switchmix ref>',
         );
 
-        // Tanks are imported in UDDF order; tank[0] = bottom gas, tank[1] = deco.
-        // Importer preserves tank order from the parsed `tanks` list.
-        final bottomTankId = diveTanks[0].id;
-        final decoTankId = diveTanks[1].id;
+        // Identify tanks by o2Percent rather than relying on row insertion
+        // order: SQLite/Drift do not guarantee `select(...).get()` ordering
+        // without an explicit ORDER BY, so positional indexing is flaky
+        // across engine versions. The synthetic UDDF uses 32% for the
+        // bottom mix and 80% for the deco mix, which are unambiguous.
+        final bottomTankId = diveTanks.firstWhere((t) => t.o2Percent == 32).id;
+        final decoTankId = diveTanks.firstWhere((t) => t.o2Percent == 80).id;
 
         final byTimestamp = {for (final gs in switches) gs.timestamp: gs};
         expect(byTimestamp.keys, containsAll(<int>[0, 2400]));
         expect(
           byTimestamp[0]!.tankId,
           bottomTankId,
-          reason: 'waypoint 0s switch to mix-bottom should land on tank[0]',
+          reason:
+              'waypoint 0s switch to mix-bottom should land on the 32% tank',
         );
         expect(
           byTimestamp[2400]!.tankId,
           decoTankId,
-          reason: 'waypoint 2400s switch to mix-deco should land on tank[1]',
+          reason:
+              'waypoint 2400s switch to mix-deco should land on the 80% tank',
         );
         expect(byTimestamp[2400]!.depth, 6.0);
       },
