@@ -13,7 +13,6 @@ import 'package:submersion/features/universal_import/data/models/import_options.
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_sqlite_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_xml_parser.dart';
-import 'package:submersion/features/universal_import/data/services/photo_resolver.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
 import '../../../../fixtures/macdive_sqlite/build_synthetic_db.dart';

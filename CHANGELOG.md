@@ -28,6 +28,13 @@ All notable changes to Submersion are documented in this file.
   SQLite won't create duplicates.
 - **MacDive (SQLite) source override** in the import wizard's
   detected-source dropdown, alongside MacDive (CSV) and MacDive (XML).
+- **Photo import from MacDive.** The import wizard now offers a "Link
+  Photos" step when a MacDive SQLite or XML file carries photo
+  references. You pick a root folder; the resolver locates each photo
+  using three strategies in order (direct path, rebased path with
+  longest-tail matching, then filename scan). Matched photos are
+  copied into Submersion's media storage and linked to the
+  corresponding dives.
 
 ### Fixed
 
@@ -59,6 +66,18 @@ All notable changes to Submersion are documented in this file.
   and isn't standard bplist or any common compression. Users who
   need time-series profile data should use the MacDive UDDF import
   path instead, which decodes MacDive's UDDF profile correctly.
+- **MacDive library-internal photos.** MacDive stores photos added
+  via its own "Import Photo" feature as UUID-named files inside its
+  private app-support directory — roughly ~80% of photos in a typical
+  MacDive library. To import those, point the folder picker at
+  `~/Library/Containers/com.mintsoftware.MacDive2/Data/Library/Application Support/MacDive/photos/`
+  (or the equivalent on your machine). Photos the user originally
+  dragged into MacDive from Pictures/Downloads/etc. retain their
+  original absolute paths and resolve directly.
+- **Photo import is desktop-only.** macOS, Windows, and Linux support
+  the full flow. iOS and Android show a "photos import is desktop-only"
+  notice — the file-picker API doesn't grant unrestricted filesystem
+  access on those platforms.
 
 
 ## 1.4.5 (2026-04-21)

@@ -14,6 +14,36 @@
 
 ---
 
+## Milestone 4 Status — COMPLETE
+
+- All 13 tasks landed.
+- Foundation: `ImportImageRef` model, `ImportPayload.imageRefs`,
+  `PhotoResolver` (direct / rebased / filename fallback),
+  `ImportedPhotoStorage` (per-dive directory, collision-safe).
+- Reader extensions: `MacDiveDbReader` reads `ZDIVEIMAGE`;
+  `MacDiveXmlReader` parses `<photos><photo>`.
+- Parser extensions: both MacDive parsers emit `imageRefs` into the
+  payload.
+- Wizard UI: `PhotoLinkingStep` widget with desktop + mobile
+  branches; conditionally injected into `UniversalAdapter.acquisitionSteps`
+  when the payload carries photos.
+- Integration: `ImportedPhotoLinkService` orchestrates post-import
+  photo writes; `UddfEntityImportResult` exposes `sourceUuidToDiveId`
+  so photos link to the right new-dive ID; `MediaItem` rows link
+  written files back to dives.
+- Real-data observations (from the 6.7MB MacDive.sqlite):
+  - 261 ZDIVEIMAGE rows with non-empty paths.
+  - ~43 have absolute user-home paths (direct-path strategy wins).
+  - ~218 have MacDive-library UUID filenames — users must point the
+    folder picker at MacDive's app-support directory; filename
+    fallback does the rest.
+- Full test suite passes.
+
+That completes the full four-milestone MacDive import rework.
+GH #178, #179, and all known ScubaBoard complaints are closed.
+
+---
+
 ## File Structure
 
 | File | Role | New / Modified |
