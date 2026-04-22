@@ -3,6 +3,29 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.4.6 (2026-04-22)
+
+### Bug Fixes
+
+- log download failures to the file log (#258)
+- DB readonly-rollback recovery + cooperative import cancellation (#255)
+
+### Documentation
+
+- implementation plans for MacDive import milestones 1-4
+- design spec for robust MacDive import (UDDF, XML, SQLite, photos)
+
+### Chores
+
+- bump version to 1.4.6+92
+- changelog + plan update for MacDive UDDF gap-fill milestone
+
+### Other
+
+- ignore sample data
+- Revert "chore: changelog + plan update for MacDive UDDF gap-fill milestone"
+
+
 ## 1.4.5 (2026-04-21)
 
 ### Features
