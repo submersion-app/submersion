@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_image_ref.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 
 /// Unified import payload produced by all parsers.
@@ -24,10 +25,14 @@ class ImportPayload extends Equatable {
   /// Metadata about the import source.
   final Map<String, dynamic> metadata;
 
+  /// Photos referenced by dives in the source dataset.
+  final List<ImportImageRef> imageRefs;
+
   const ImportPayload({
     required this.entities,
     this.warnings = const [],
     this.metadata = const {},
+    this.imageRefs = const [],
   });
 
   /// Get entities of a specific type, or empty list if none.
@@ -46,11 +51,12 @@ class ImportPayload extends Equatable {
       .toList();
 
   /// Whether the payload has any data to import.
-  bool get isEmpty => entities.values.every((list) => list.isEmpty);
+  bool get isEmpty =>
+      entities.values.every((list) => list.isEmpty) && imageRefs.isEmpty;
 
   /// Whether the payload has any data to import.
   bool get isNotEmpty => !isEmpty;
 
   @override
-  List<Object?> get props => [entities, warnings, metadata];
+  List<Object?> get props => [entities, warnings, metadata, imageRefs];
 }
