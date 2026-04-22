@@ -569,6 +569,9 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       );
     } finally {
       _cancelToken = null;
+      if (state.isCancellationRequested) {
+        state = state.copyWith(isCancellationRequested: false);
+      }
     }
   }
 

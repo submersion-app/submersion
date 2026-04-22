@@ -3262,6 +3262,8 @@
   "settings_gfPreset_low_name": "Laag",
   "settings_gfPreset_medium_description": "Gebalanceerde aanpak",
   "settings_gfPreset_medium_name": "Middel",
+  "settings_import_cancelButton": "Import annuleren",
+  "settings_import_cancelling": "Bezig met annuleren...",
   "settings_import_dialog_title": "Gegevens importeren",
   "settings_import_doNotClose": "Sluit de app niet",
   "settings_import_itemCount": "{current} van {total}",

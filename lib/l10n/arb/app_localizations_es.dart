@@ -10585,6 +10585,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_gfPreset_medium_name => 'Medio';
 
   @override
+  String get settings_import_cancelButton => 'Cancelar importacion';
+
+  @override
+  String get settings_import_cancelling => 'Cancelando...';
+
+  @override
   String get settings_import_dialog_title => 'Importando datos';
 
   @override

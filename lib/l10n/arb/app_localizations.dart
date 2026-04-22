@@ -18077,6 +18077,18 @@ abstract class AppLocalizations {
   /// **'Medium'**
   String get settings_gfPreset_medium_name;
 
+  /// No description provided for @settings_import_cancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel import'**
+  String get settings_import_cancelButton;
+
+  /// No description provided for @settings_import_cancelling.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelling...'**
+  String get settings_import_cancelling;
+
   /// No description provided for @settings_import_dialog_title.
   ///
   /// In en, this message translates to:

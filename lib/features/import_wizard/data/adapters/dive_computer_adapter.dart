@@ -433,7 +433,6 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     var imported = 0;
     var consolidated = 0;
     var updated = 0;
-    final importedDives = <DownloadedDive>[];
     final processedDives = <DownloadedDive>[];
     final importedDiveIds = <String>[];
 
@@ -494,7 +493,6 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           libdivecomputerVersion: _libdivecomputerVersion,
         );
         imported++;
-        importedDives.add(dive);
         importedDiveIds.add(diveId);
       }
 

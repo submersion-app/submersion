@@ -1039,14 +1039,13 @@ void main() {
 
         await notifier.performImport();
 
-        // Token is cleared in the notifier's finally block after completion,
-        // so a second cancelImport after the fact is a no-op — but the state
-        // flag remains on last write, which was "true".
-        expect(notifier.state.isCancellationRequested, isTrue);
+        // The finally block clears both the live token and the
+        // isCancellationRequested flag so a subsequent import starts fresh.
+        expect(notifier.state.isCancellationRequested, isFalse);
 
-        // And a second cancelImport() now does nothing (no live token).
+        // A second cancelImport() is a no-op — no live token, no stale flag.
         notifier.cancelImport();
-        expect(notifier.state.isCancellationRequested, isTrue);
+        expect(notifier.state.isCancellationRequested, isFalse);
       });
     });
 

@@ -10514,6 +10514,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_gfPreset_medium_name => 'Middel';
 
   @override
+  String get settings_import_cancelButton => 'Import annuleren';
+
+  @override
+  String get settings_import_cancelling => 'Bezig met annuleren...';
+
+  @override
   String get settings_import_dialog_title => 'Gegevens importeren';
 
   @override

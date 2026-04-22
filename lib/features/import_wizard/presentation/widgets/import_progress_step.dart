@@ -16,6 +16,7 @@ class ImportProgressStep extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(importWizardNotifierProvider);
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     final phase = state.importPhase;
     final current = state.importCurrent;
@@ -24,7 +25,7 @@ class ImportProgressStep extends ConsumerWidget {
 
     final fraction = (total > 0) ? current / total : null;
     final phaseText = isCancelling
-        ? 'Cancelling...'
+        ? l10n.settings_import_cancelling
         : _resolvePhaseText(context, phase);
 
     return Center(
@@ -83,7 +84,11 @@ class ImportProgressStep extends ConsumerWidget {
                         .read(importWizardNotifierProvider.notifier)
                         .cancelImport(),
               icon: const Icon(Icons.cancel_outlined),
-              label: Text(isCancelling ? 'Cancelling...' : 'Cancel import'),
+              label: Text(
+                isCancelling
+                    ? l10n.settings_import_cancelling
+                    : l10n.settings_import_cancelButton,
+              ),
             ),
           ],
         ),

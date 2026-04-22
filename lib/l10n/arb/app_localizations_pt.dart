@@ -10599,6 +10599,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_gfPreset_medium_name => 'Medio';
 
   @override
+  String get settings_import_cancelButton => 'Cancelar importacao';
+
+  @override
+  String get settings_import_cancelling => 'Cancelando...';
+
+  @override
   String get settings_import_dialog_title => 'Importando Dados';
 
   @override
