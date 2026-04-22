@@ -41,6 +41,22 @@ class MacDiveXmlLogbook {
   });
 }
 
+/// A photo referenced under a dive's `<photos>` container in MacDive XML.
+class MacDiveXmlPhoto {
+  /// Absolute path as recorded in the XML. May not exist on the
+  /// machine running the import — the resolver handles misses.
+  final String path;
+
+  /// Optional caption. Empty CDATA / whitespace-only caption comes
+  /// through as null (consistent with the reader's `_text` normaliser).
+  final String? caption;
+
+  /// 0-based index among this dive's photos. Assigned by the reader.
+  final int position;
+
+  const MacDiveXmlPhoto({required this.path, this.caption, this.position = 0});
+}
+
 /// A single dive from a MacDive XML file. All numeric fields are in SI
 /// canonical units after the unit converter has run at the reader boundary.
 class MacDiveXmlDive {
@@ -107,6 +123,7 @@ class MacDiveXmlDive {
   final List<MacDiveXmlGearItem> gear;
   final List<MacDiveXmlGas> gases;
   final List<MacDiveXmlSample> samples;
+  final List<MacDiveXmlPhoto> photos;
 
   const MacDiveXmlDive({
     this.identifier,
@@ -146,6 +163,7 @@ class MacDiveXmlDive {
     this.gear = const [],
     this.gases = const [],
     this.samples = const [],
+    this.photos = const [],
   });
 }
 

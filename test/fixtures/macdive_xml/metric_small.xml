@@ -56,5 +56,9 @@
             <sample><time>60</time><depth>10</depth><pressure>195</pressure><temperature>24</temperature></sample>
             <sample><time>2400</time><depth>5</depth><pressure>60</pressure><temperature>23</temperature></sample>
         </samples>
+        <photos>
+            <photo><path>/Users/test/Pictures/a.jpg</path><caption>Shark</caption></photo>
+            <photo><path>/Users/test/Pictures/b.jpg</path></photo>
+        </photos>
     </dive>
 </dives>

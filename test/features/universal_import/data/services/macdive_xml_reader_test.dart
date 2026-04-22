@@ -258,4 +258,65 @@ void main() {
       expect(dive.samples[1].time, const Duration(seconds: 600));
     });
   });
+
+  group('MacDiveXmlReader - photos', () {
+    late String content;
+
+    setUpAll(() async {
+      content = await File(
+        'test/fixtures/macdive_xml/metric_small.xml',
+      ).readAsString();
+    });
+
+    test('reads both photo entries with paths and position index', () {
+      final dive = MacDiveXmlReader.parse(content).dives.first;
+      expect(dive.photos.length, 2);
+      expect(dive.photos[0].path, '/Users/test/Pictures/a.jpg');
+      expect(dive.photos[0].position, 0);
+      expect(dive.photos[1].path, '/Users/test/Pictures/b.jpg');
+      expect(dive.photos[1].position, 1);
+    });
+
+    test('caption read from first photo, null on the second', () {
+      final dive = MacDiveXmlReader.parse(content).dives.first;
+      expect(dive.photos[0].caption, 'Shark');
+      expect(dive.photos[1].caption, isNull);
+    });
+
+    test('dives without <photos> container return empty list, not null', () {
+      const xml = '''<?xml version="1.0"?>
+<dives>
+  <units>Metric</units>
+  <schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 00:00:00</date>
+    <samples/>
+  </dive>
+</dives>''';
+      final dive = MacDiveXmlReader.parse(xml).dives.first;
+      expect(dive.photos, isEmpty);
+    });
+
+    test(
+      'empty path is skipped (no silent zero-path ImportImageRef later)',
+      () {
+        const xml = '''<?xml version="1.0"?>
+<dives>
+  <units>Metric</units>
+  <schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 00:00:00</date>
+    <photos>
+      <photo><path></path><caption>orphan</caption></photo>
+      <photo><path>/real/path.jpg</path></photo>
+    </photos>
+    <samples/>
+  </dive>
+</dives>''';
+        final dive = MacDiveXmlReader.parse(xml).dives.first;
+        expect(dive.photos.length, 1);
+        expect(dive.photos.first.path, '/real/path.jpg');
+      },
+    );
+  });
 }
