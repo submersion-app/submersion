@@ -32,6 +32,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_bundle.da
     show ImportEntityType;
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
@@ -41,6 +42,8 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
     as ui;
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
+import 'package:submersion/features/universal_import/data/services/imported_photo_link_service.dart';
+import 'package:submersion/features/universal_import/data/services/imported_photo_storage.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/field_mapping_step.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/file_selection_step.dart';
@@ -498,11 +501,43 @@ class UniversalAdapter implements ImportSourceAdapter {
       onProgress: onProgress,
     );
 
+    // After the dive writer finishes, copy any photos that the Link Photos
+    // wizard step resolved. Skipped photos / misses / orphaned dive refs are
+    // no-ops — photo failures never abort the import, dives are already safe
+    // on disk at this point.
+    await _writeResolvedPhotos(sourceUuidToDiveId: result.sourceUuidToDiveId);
+
     return UnifiedImportResult(
       importedCounts: _convertImportCounts(result),
       consolidatedCount: 0,
       skippedCount: skipped,
       importedDiveIds: result.diveIds,
+    );
+  }
+
+  /// If the wizard collected resolved photos and the user did not skip
+  /// photo linking, write each successfully-resolved photo (bytes present)
+  /// to the per-dive media folder and register a MediaItem row.
+  ///
+  /// [sourceUuidToDiveId] maps source-side dive UUIDs to the newly-created
+  /// dive row IDs, as populated by [UddfEntityImporter].
+  Future<void> _writeResolvedPhotos({
+    required Map<String, String> sourceUuidToDiveId,
+  }) async {
+    final state = _ref.read(universalImportNotifierProvider);
+    if (state.photoLinkingSkipped) return;
+    final resolved = state.resolvedPhotos;
+    if (resolved == null || resolved.isEmpty) return;
+
+    final mediaRoot = await _ref.read(importedPhotoMediaRootProvider.future);
+    final storage = ImportedPhotoStorage(mediaRoot: mediaRoot);
+    final service = ImportedPhotoLinkService(
+      storage: storage,
+      mediaRepository: _ref.read(mediaRepositoryProvider),
+    );
+    await service.linkAll(
+      resolved: resolved,
+      sourceUuidToDiveId: sourceUuidToDiveId,
     );
   }
 

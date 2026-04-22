@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -775,3 +776,17 @@ final universalImportNotifierProvider =
     StateNotifierProvider<UniversalImportNotifier, UniversalImportState>((ref) {
       return UniversalImportNotifier(ref);
     });
+
+/// Resolves the root directory under which imported photos are written.
+///
+/// Returns `<AppSupport>/media`. Tests override this provider to redirect
+/// writes into a temp directory instead of touching the real app-support
+/// folder.
+///
+/// Returned path is the root that [ImportedPhotoStorage] prepends its
+/// `dive/<diveId>/` subpath to, matching the convention used elsewhere in
+/// the app for per-dive media storage.
+final importedPhotoMediaRootProvider = FutureProvider<String>((ref) async {
+  final supportDir = await getApplicationSupportDirectory();
+  return '${supportDir.path}/media';
+});
