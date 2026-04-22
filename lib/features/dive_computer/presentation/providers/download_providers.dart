@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -111,6 +113,8 @@ class DownloadState {
 /// record when the download completes. Import and consolidation are handled
 /// by the unified import wizard via [DiveComputerAdapter].
 class DownloadNotifier extends StateNotifier<DownloadState> {
+  static final LoggerService _log = LoggerService.forClass(DownloadNotifier);
+
   final pigeon.DiveComputerService _service;
   final DiveComputerRepository _repository;
   StreamSubscription<pigeon.DownloadEvent>? _downloadSubscription;
@@ -159,7 +163,13 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       }
 
       await _service.startDownload(device.toPigeon(), fingerprint: fingerprint);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log.error(
+        'Download failed',
+        category: LogCategory.libdc,
+        error: e,
+        stackTrace: stackTrace,
+      );
       state = state.copyWith(
         phase: DownloadPhase.error,
         errorMessage: 'Download failed: $e',
@@ -200,6 +210,10 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         // Persist device info on the computer record.
         _persistDeviceInfo(serialNumber, firmwareVersion);
       case pigeon.DownloadErrorEvent(:final error):
+        _log.error(
+          'Download failed (${error.code}): ${error.message}',
+          category: LogCategory.libdc,
+        );
         state = state.copyWith(
           phase: DownloadPhase.error,
           errorMessage: error.message,
