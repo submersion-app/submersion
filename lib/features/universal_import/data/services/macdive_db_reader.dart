@@ -223,19 +223,28 @@ class MacDiveDbReader {
   }
 
   static List<MacDiveRawTankAndGas> _readTankAndGases(Database db) {
-    return db.select('SELECT * FROM ZTANKANDGAS').map((r) {
-      return MacDiveRawTankAndGas(
-        diveFk: r['ZRELATIONSHIPDIVE'] as int,
-        tankFk: r['ZRELATIONSHIPTANK'] as int,
-        gasFk: r['ZRELATIONSHIPGAS'] as int,
-        airStart: _double(r['ZAIRSTART']),
-        airEnd: _double(r['ZAIREND']),
-        duration: _double(r['ZDURATION']),
-        isDouble: (r['ZISDOUBLE'] as int? ?? 0) != 0,
-        order: (r['ZORDER'] as int?) ?? 0,
-        supplyType: _str(r['ZSUPPLYTYPE']),
-      );
-    }).toList();
+    return db
+        .select('SELECT * FROM ZTANKANDGAS')
+        .where((r) {
+          // Skip rows with missing foreign keys (incomplete tank/gas references).
+          return (r['ZRELATIONSHIPDIVE'] as int?) != null &&
+              (r['ZRELATIONSHIPTANK'] as int?) != null &&
+              (r['ZRELATIONSHIPGAS'] as int?) != null;
+        })
+        .map((r) {
+          return MacDiveRawTankAndGas(
+            diveFk: r['ZRELATIONSHIPDIVE'] as int,
+            tankFk: r['ZRELATIONSHIPTANK'] as int,
+            gasFk: r['ZRELATIONSHIPGAS'] as int,
+            airStart: _double(r['ZAIRSTART']),
+            airEnd: _double(r['ZAIREND']),
+            duration: _double(r['ZDURATION']),
+            isDouble: (r['ZISDOUBLE'] as int? ?? 0) != 0,
+            order: (r['ZORDER'] as int?) ?? 0,
+            supplyType: _str(r['ZSUPPLYTYPE']),
+          );
+        })
+        .toList();
   }
 
   static List<MacDiveRawCritter> _readCritters(Database db) {
