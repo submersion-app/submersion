@@ -1,4 +1,5 @@
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_image_ref.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_raw_types.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_unit_converter.dart';
@@ -45,6 +46,30 @@ class MacDiveDiveMapper {
     if (tagMaps.isNotEmpty) entities[ImportEntityType.tags] = tagMaps;
     if (gearMaps.isNotEmpty) entities[ImportEntityType.equipment] = gearMaps;
 
+    // Build a diveFk → sourceUuid lookup so we can link photos without
+    // re-scanning the dives list per image.
+    final diveUuidByPk = <int, String>{
+      for (final d in logbook.dives)
+        if (d.uuid.isNotEmpty) d.pk: d.uuid,
+    };
+
+    final imageRefs = <ImportImageRef>[];
+    for (final img in logbook.diveImages) {
+      final diveUuid = diveUuidByPk[img.diveFk];
+      if (diveUuid == null) continue; // orphan row, skip
+      final path = img.path ?? img.originalPath;
+      if (path == null || path.isEmpty) continue;
+      imageRefs.add(
+        ImportImageRef(
+          originalPath: path,
+          diveSourceUuid: diveUuid,
+          caption: img.caption,
+          position: img.position,
+          sourceUuid: img.uuid.isEmpty ? null : img.uuid,
+        ),
+      );
+    }
+
     return ImportPayload(
       entities: entities,
       warnings: const [],
@@ -53,6 +78,7 @@ class MacDiveDiveMapper {
         'diveCount': logbook.dives.length,
         'units': units.name,
       },
+      imageRefs: imageRefs,
     );
   }
 

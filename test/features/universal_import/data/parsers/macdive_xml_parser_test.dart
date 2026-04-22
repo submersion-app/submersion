@@ -154,6 +154,61 @@ void main() {
       // value.
       expect(dive.containsKey('entryMethod'), isFalse);
     });
+
+    test('emits imageRefs from each dive\'s <photos>', () async {
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      expect(
+        payload.imageRefs.length,
+        2,
+        reason: 'metric_small.xml has 2 photos in one dive',
+      );
+      final first = payload.imageRefs.first;
+      expect(first.originalPath, '/Users/test/Pictures/a.jpg');
+      expect(first.diveSourceUuid, '20240601090000-ABC123');
+      expect(first.caption, 'Shark');
+      expect(first.position, 0);
+    });
+
+    test('dives without photos contribute zero imageRefs', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives>
+  <units>Metric</units>
+  <schema>2.2.0</schema>
+  <dive>
+    <identifier>d1</identifier>
+    <date>2024-01-01 00:00:00</date>
+    <samples/>
+  </dive>
+</dives>''';
+      final bytes = Uint8List.fromList(utf8.encode(xml));
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      expect(payload.imageRefs, isEmpty);
+    });
+
+    test('photos on a dive without an <identifier> are skipped '
+        '(can\'t link to a sourceUuid)', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives>
+  <units>Metric</units>
+  <schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 00:00:00</date>
+    <photos>
+      <photo><path>/unlinked/x.jpg</path></photo>
+    </photos>
+    <samples/>
+  </dive>
+</dives>''';
+      final bytes = Uint8List.fromList(utf8.encode(xml));
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      expect(
+        payload.imageRefs,
+        isEmpty,
+        reason:
+            'no sourceUuid to link photos to; payload carries dive but '
+            'no imageRefs',
+      );
+    });
   });
 
   group('MacDiveXmlParser dedup behavior', () {
