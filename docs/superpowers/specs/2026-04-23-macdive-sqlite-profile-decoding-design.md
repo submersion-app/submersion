@@ -256,3 +256,29 @@ Append a link to this spec at the tail of `docs/superpowers/plans/2026-04-21-mac
 ## Open questions
 
 None material at spec-approval time. Phase 1 will surface any; they get resolved inline in `docs/import-formats/macdive-zsamples.md` before Phase 2 starts.
+
+## Phase 1 outcome (recorded 2026-04-23)
+
+**Decision:** NO-GO on `ZSAMPLES` decoding. PIVOT to `ZRAWDATA` via libdivecomputer.
+
+**Summary of findings:** The Phase 1 spike successfully built all tooling (`extract_corpus`, `blob_inspect`, `compression_probe`, `differ`, `batch_score`) and characterised the `ZSAMPLES` format, but did not crack it. Specifically:
+
+- The second header word (`bytes 4–7` LE) perfectly predicts the per-sample record stride: `16→12`, `24→16`, `25→20`, `156→24`, `157→28` bytes per sample (arithmetic progression, step 4). This is a clean, reusable finding.
+- All standard compression codecs (gzip, zlib, raw DEFLATE, lzma, bz2, lz4 frame/block, zstd, LZFSE) were probed at every offset 0..63 across all 348 paired fixtures. No plausible hits (29 tiny false positives under `raw_deflate` only).
+- XOR-with-fixed-key obfuscation eliminated via pair-entropy analysis (XOR of similar dives produced 7.4–7.9 bits/byte, essentially indistinguishable from the random baseline of 7.95).
+- The first 28-byte record in many fixtures has a constant 8-byte prefix and constant 8-byte trailer surrounding a 16-byte variable payload — consistent with block-cipher encryption.
+
+Without the encryption key (would require static analysis of the MacDive binary), `ZSAMPLES` is not decodable within a bounded investigation timebox.
+
+**Pivot rationale:** Every Shearwater dive in the sample DB has **both** `ZRAWDATA` and `ZSAMPLES` (267 of 267). `ZRAWDATA` holds the raw Shearwater sensor dump, which the already-integrated `libdivecomputer_plugin` can parse. The pivot gives 267/540 = 49% of all dives (76% of dives with any sample data) via a certain, maintained code path, vs. the theoretical 65% via a speculative `ZSAMPLES` decoder.
+
+**Artifacts produced:**
+- `docs/import-formats/macdive-zsamples.md` — full Phase 1 findings document.
+- `scripts/reverse_engineering/zsamples/` — retained tooling and 19 passing pytest tests.
+- Phase 2 plan (pivot): `docs/superpowers/plans/2026-04-23-macdive-profile-phase-2-zrawdata.md`.
+
+**Decisions for Phase 2 under the pivot:**
+- Decoder target: `ZRAWDATA` column, not `ZSAMPLES`.
+- Implementation: thin adapter over `libdivecomputer_plugin`, calling the Shearwater parser family.
+- Coverage fallback: dives without `ZRAWDATA` continue to emit `profile: []` with an `ImportWarning`. Current user behavior for those dives (use UDDF import for profile data) is preserved.
+- Architecture (`MacDiveSamplesDecoder` / `MacDiveSqliteSample`) from the original spec is retained — the decoder body changes, the public interface does not.
