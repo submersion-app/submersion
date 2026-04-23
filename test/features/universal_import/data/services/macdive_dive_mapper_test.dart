@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -264,7 +263,7 @@ void main() {
     });
 
     test('null ZRAWDATA produces empty profile with no warning', () async {
-      final dive = MacDiveRawDive(
+      const dive = MacDiveRawDive(
         pk: 1,
         uuid: 'dive-no-raw',
         computer: 'Manual',
