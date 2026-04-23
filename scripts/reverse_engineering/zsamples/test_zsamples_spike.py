@@ -113,3 +113,45 @@ def test_hex_dump_line_formats_16_bytes():
     line = hex_dump_line(bytes(range(16)), offset=0)
     assert "00 01 02 03" in line
     assert "0c 0d 0e 0f" in line
+
+
+import gzip
+import lzma
+import zlib
+
+from compression_probe import (
+    Codec,
+    try_all,
+    CODECS,
+)
+
+
+def test_codecs_list_includes_standard_codecs():
+    names = {c.name for c in CODECS}
+    # Standard codecs present by exact name:
+    assert {"zlib", "gzip", "lzma", "bz2", "zstd"}.issubset(names)
+    # lz4 has two variants (frame, block); at least one must be present.
+    assert any(name.startswith("lz4") for name in names)
+
+
+def test_try_all_detects_gzip_wrapped_payload():
+    payload = b"hello world" * 50
+    blob = gzip.compress(payload)
+    hits = try_all(blob, offsets=[0])
+    assert any(h.codec.name == "gzip" and h.offset == 0 and h.decompressed == payload for h in hits)
+
+
+def test_try_all_detects_zlib_at_offset():
+    payload = b"timestamped depth data\n" * 20
+    blob = b"\x04\x00\x00\x00" + zlib.compress(payload)
+    hits = try_all(blob, offsets=[0, 4])
+    assert any(h.codec.name == "zlib" and h.offset == 4 and h.decompressed == payload for h in hits)
+
+
+def test_try_all_returns_no_hits_for_random():
+    import os
+    blob = os.urandom(2048)
+    hits = try_all(blob, offsets=list(range(0, 32)))
+    # It's statistically possible for a random blob to decompress under some codec,
+    # but vanishingly unlikely to produce >512 bytes.
+    assert all(len(h.decompressed) < 512 for h in hits)
