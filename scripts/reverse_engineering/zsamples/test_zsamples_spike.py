@@ -202,3 +202,22 @@ def test_score_depth_rmse_is_nan_when_no_timestamps_overlap():
     assert math.isnan(score.depth_rmse), f"expected NaN, got {score.depth_rmse}"
     assert score.matched_samples == 0
     assert score.pct_samples_within_tolerance == 0.0
+
+
+from batch_score import BatchResult, run_batch
+from hypotheses.h0_noop import decode as h0_decode
+
+
+def test_batch_runs_noop_hypothesis_and_returns_histogram(tmp_path):
+    # Seed the tmp corpus with one minimal fixture.
+    blob = b"\x04\x00\x00\x00\x00\x00\x00\x00"
+    (tmp_path / "abc.zsamples.bin").write_bytes(blob)
+    import json
+    with (tmp_path / "abc.uddf.json").open("w") as f:
+        json.dump({"uuid": "abc", "samples": [{"time_s": 0, "depth_m": 0.0}]}, f)
+
+    result = run_batch(corpus_dir=tmp_path, hypothesis=h0_decode)
+
+    assert result.fixtures_tried == 1
+    assert 0.0 <= result.aggregate_overall <= 1.0
+    assert len(result.per_fixture_scores) == 1
