@@ -25,7 +25,10 @@ void main() {
     test('parses identifier, date, diveNumber', () {
       final dive = MacDiveXmlReader.parse(content).dives.first;
       expect(dive.identifier, '20240601090000-ABC123');
-      expect(dive.date, DateTime(2024, 6, 1, 9, 0, 0));
+      // MacDive XML has no timezone; we encode the wall clock in UTC so
+      // timestamps don't drift across DST or travel. See _parseDate.
+      expect(dive.date, DateTime.utc(2024, 6, 1, 9, 0, 0));
+      expect(dive.date!.isUtc, isTrue);
       expect(dive.diveNumber, 42);
     });
 

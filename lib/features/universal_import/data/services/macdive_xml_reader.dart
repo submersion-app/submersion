@@ -208,12 +208,29 @@ class MacDiveXmlReader {
 
   static DateTime? _parseDate(String? raw) {
     if (raw == null || raw.isEmpty) return null;
+    // MacDive XML carries no timezone info — treat the timestamp as a wall
+    // clock and encode it in UTC so dedup and display don't drift when the
+    // device's timezone changes (travel, DST). Matches the Subsurface XML
+    // parser's convention (see SubsurfaceXmlParser._parseDive).
     try {
-      return _dateFormat.parseStrict(raw);
+      return _asUtcWallTime(_dateFormat.parseStrict(raw));
     } catch (_) {
-      // Fallback: ISO-8601 style (2024-06-01T09:00:00)
-      return DateTime.tryParse(raw.replaceFirst(' ', 'T'));
+      final parsed = DateTime.tryParse(raw.replaceFirst(' ', 'T'));
+      return parsed == null ? null : _asUtcWallTime(parsed);
     }
+  }
+
+  static DateTime _asUtcWallTime(DateTime value) {
+    return DateTime.utc(
+      value.year,
+      value.month,
+      value.day,
+      value.hour,
+      value.minute,
+      value.second,
+      value.millisecond,
+      value.microsecond,
+    );
   }
 
   static Duration? _durationSeconds(int? seconds) {
