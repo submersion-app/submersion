@@ -155,3 +155,39 @@ def test_try_all_returns_no_hits_for_random():
     # It's statistically possible for a random blob to decompress under some codec,
     # but vanishingly unlikely to produce >512 bytes.
     assert all(len(h.decompressed) < 512 for h in hits)
+
+
+from differ import Score, score_decode
+
+
+def test_score_perfect_match():
+    truth = [
+        {"time_s": 0, "depth_m": 0.0, "temperature_c": 25.0},
+        {"time_s": 10, "depth_m": 5.0, "temperature_c": 24.0},
+        {"time_s": 20, "depth_m": 10.0, "temperature_c": 23.5},
+    ]
+    decoded = [dict(s) for s in truth]
+    score = score_decode(decoded, truth)
+    assert score.sample_count_match == 1.0
+    assert score.timestamp_rmse == 0.0
+    assert score.depth_rmse == 0.0
+    assert score.pct_samples_within_tolerance == 1.0
+
+
+def test_score_penalizes_missing_samples():
+    truth = [{"time_s": i * 10, "depth_m": float(i), "temperature_c": 25.0} for i in range(100)]
+    decoded = truth[:50]  # only half the samples
+    score = score_decode(decoded, truth)
+    assert score.sample_count_match == 0.5
+    assert score.pct_samples_within_tolerance < 0.6
+
+
+def test_score_tolerances_depth_and_temp():
+    truth = [{"time_s": 0, "depth_m": 10.0, "temperature_c": 20.0}]
+    # Within tolerance: +0.05m depth, +0.3C temp
+    decoded_ok = [{"time_s": 0, "depth_m": 10.05, "temperature_c": 20.3}]
+    # Outside tolerance: +0.3m depth
+    decoded_bad = [{"time_s": 0, "depth_m": 10.3, "temperature_c": 20.0}]
+
+    assert score_decode(decoded_ok, truth).pct_samples_within_tolerance == 1.0
+    assert score_decode(decoded_bad, truth).pct_samples_within_tolerance == 0.0
