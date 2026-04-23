@@ -57,3 +57,45 @@ def test_from_uddf_file_rejects_uuid_filter_with_first_only():
             uuid_filter={"some-uuid"},
             first_only=True,
         )
+
+
+from blob_inspect import (
+    shannon_entropy,
+    find_repeating_stride,
+    hex_dump_line,
+    interpret_offset,
+)
+
+
+def test_shannon_entropy_uniform_bytes_is_max():
+    data = bytes(range(256))
+    assert abs(shannon_entropy(data) - 8.0) < 0.01
+
+
+def test_shannon_entropy_zeros_is_zero():
+    assert shannon_entropy(b"\x00" * 1024) == 0.0
+
+
+def test_find_repeating_stride_detects_period():
+    data = (b"\x01\x02\x03\x04" * 100)
+    stride = find_repeating_stride(data, min_stride=2, max_stride=8)
+    assert stride == 4
+
+
+def test_find_repeating_stride_returns_none_for_random():
+    import os
+    stride = find_repeating_stride(os.urandom(1024), min_stride=2, max_stride=16)
+    assert stride is None
+
+
+def test_interpret_offset_decodes_little_endian_uint32():
+    # 0x12345678 little-endian at offset 0 of this buffer:
+    data = bytes([0x78, 0x56, 0x34, 0x12, 0, 0, 0, 0])
+    interp = interpret_offset(data, 0)
+    assert interp["u32_le"] == 0x12345678
+
+
+def test_hex_dump_line_formats_16_bytes():
+    line = hex_dump_line(bytes(range(16)), offset=0)
+    assert "00 01 02 03" in line
+    assert "0c 0d 0e 0f" in line
