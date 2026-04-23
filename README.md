@@ -288,7 +288,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation.
 | **v1.5** | Nearly Complete | Dive computer connectivity, deco algorithms, O₂ tracking, cloud sync, photos, 10 languages |
 | **v2.0** | Planned | Community features, social sharing, advanced analytics, partner integrations |
 
-See [FEATURE_ROADMAP.md](FEATURE_ROADMAP.md) for the complete development plan.
+See [FEATURE_ROADMAP.md](docs/FEATURE_ROADMAP.md) for the complete development plan.
 
 ## Contributing
 
