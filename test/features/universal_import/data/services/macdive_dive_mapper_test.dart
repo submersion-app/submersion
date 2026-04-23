@@ -357,5 +357,345 @@ void main() {
         expect(payload.warnings.first.severity, ImportWarningSeverity.info);
       },
     );
+
+    test(
+      'PlatformException(UNSUPPORTED) on first dive disables FFI for the rest',
+      () async {
+        final rawData = Uint8List.fromList(List.filled(32, 0x41));
+        final dive1 = MacDiveRawDive(
+          pk: 1,
+          uuid: 'dive-1',
+          computer: 'Shearwater Teric',
+          rawDataBlob: rawData,
+        );
+        final dive2 = MacDiveRawDive(
+          pk: 2,
+          uuid: 'dive-2',
+          computer: 'Shearwater Teric',
+          rawDataBlob: rawData,
+        );
+        final logbook = MacDiveRawLogbook(
+          dives: [dive1, dive2],
+          sitesByPk: const {},
+          buddiesByPk: const {},
+          tagsByPk: const {},
+          gearByPk: const {},
+          tanksByPk: const {},
+          gasesByPk: const {},
+          tankAndGases: const [],
+          crittersByPk: const {},
+          certifications: const [],
+          serviceRecords: const [],
+          events: const [],
+          diveToBuddyPks: const {},
+          diveToTagPks: const {},
+          diveToGearPks: const {},
+          diveToCritterPks: const {},
+          unitsPreference: 'Metric',
+        );
+
+        var callCount = 0;
+        final payload = await MacDiveDiveMapper.toPayload(
+          logbook,
+          parseRawDiveData: (v, p, m, d) async {
+            callCount++;
+            throw PlatformException(
+              code: 'UNSUPPORTED',
+              message: 'dive-computer plugin not built for this platform',
+            );
+          },
+        );
+
+        expect(callCount, 1);
+        final dives = payload.entitiesOf(ImportEntityType.dives);
+        expect(dives, hasLength(2));
+        expect(dives[0]['profile'], isEmpty);
+        expect(dives[1]['profile'], isEmpty);
+        expect(payload.warnings, hasLength(1));
+        expect(payload.warnings.first.severity, ImportWarningSeverity.info);
+        expect(payload.warnings.first.message, contains('UNSUPPORTED'));
+      },
+    );
+
+    test(
+      'PlatformException(channel-error) on first dive disables FFI for the rest',
+      () async {
+        final rawData = Uint8List.fromList(List.filled(32, 0x41));
+        final dive1 = MacDiveRawDive(
+          pk: 1,
+          uuid: 'dive-1',
+          computer: 'Shearwater Teric',
+          rawDataBlob: rawData,
+        );
+        final dive2 = MacDiveRawDive(
+          pk: 2,
+          uuid: 'dive-2',
+          computer: 'Shearwater Teric',
+          rawDataBlob: rawData,
+        );
+        final logbook = MacDiveRawLogbook(
+          dives: [dive1, dive2],
+          sitesByPk: const {},
+          buddiesByPk: const {},
+          tagsByPk: const {},
+          gearByPk: const {},
+          tanksByPk: const {},
+          gasesByPk: const {},
+          tankAndGases: const [],
+          crittersByPk: const {},
+          certifications: const [],
+          serviceRecords: const [],
+          events: const [],
+          diveToBuddyPks: const {},
+          diveToTagPks: const {},
+          diveToGearPks: const {},
+          diveToCritterPks: const {},
+          unitsPreference: 'Metric',
+        );
+
+        var callCount = 0;
+        final payload = await MacDiveDiveMapper.toPayload(
+          logbook,
+          parseRawDiveData: (v, p, m, d) async {
+            callCount++;
+            throw PlatformException(
+              code: 'channel-error',
+              message: 'platform channel not registered',
+            );
+          },
+        );
+
+        expect(callCount, 1);
+        final dives = payload.entitiesOf(ImportEntityType.dives);
+        expect(dives, hasLength(2));
+        expect(dives[0]['profile'], isEmpty);
+        expect(dives[1]['profile'], isEmpty);
+        expect(payload.warnings, hasLength(1));
+        expect(payload.warnings.first.severity, ImportWarningSeverity.info);
+        expect(payload.warnings.first.message, contains('channel-error'));
+      },
+    );
+
+    test(
+      'PlatformException with non-fatal code produces per-dive warning only',
+      () async {
+        final rawData = Uint8List.fromList(List.filled(32, 0x41));
+        final dive1 = MacDiveRawDive(
+          pk: 1,
+          uuid: 'dive-1',
+          computer: 'Shearwater Teric',
+          rawDataBlob: rawData,
+        );
+        final dive2 = MacDiveRawDive(
+          pk: 2,
+          uuid: 'dive-2',
+          computer: 'Shearwater Teric',
+          rawDataBlob: rawData,
+        );
+        final logbook = MacDiveRawLogbook(
+          dives: [dive1, dive2],
+          sitesByPk: const {},
+          buddiesByPk: const {},
+          tagsByPk: const {},
+          gearByPk: const {},
+          tanksByPk: const {},
+          gasesByPk: const {},
+          tankAndGases: const [],
+          crittersByPk: const {},
+          certifications: const [],
+          serviceRecords: const [],
+          events: const [],
+          diveToBuddyPks: const {},
+          diveToTagPks: const {},
+          diveToGearPks: const {},
+          diveToCritterPks: const {},
+          unitsPreference: 'Metric',
+        );
+
+        var callCount = 0;
+        final payload = await MacDiveDiveMapper.toPayload(
+          logbook,
+          parseRawDiveData: (v, p, m, d) async {
+            callCount++;
+            throw PlatformException(
+              code: 'PARSE_ERROR',
+              message: 'corrupt dive data',
+            );
+          },
+        );
+
+        // Non-fatal code → both dives still attempt decode; each emits its own
+        // warning; FFI stays available.
+        expect(callCount, 2);
+        final dives = payload.entitiesOf(ImportEntityType.dives);
+        expect(dives, hasLength(2));
+        expect(dives[0]['profile'], isEmpty);
+        expect(dives[1]['profile'], isEmpty);
+        expect(payload.warnings, hasLength(2));
+        expect(
+          payload.warnings.every(
+            (w) => w.severity == ImportWarningSeverity.warning,
+          ),
+          isTrue,
+        );
+        expect(payload.warnings[0].message, contains('dive-1'));
+        expect(payload.warnings[1].message, contains('dive-2'));
+      },
+    );
+
+    test(
+      'profile projection emits all optional sample fields when present',
+      () async {
+        final parsed = pigeon.ParsedDive(
+          fingerprint: 'test',
+          dateTimeYear: 2026,
+          dateTimeMonth: 3,
+          dateTimeDay: 11,
+          dateTimeHour: 10,
+          dateTimeMinute: 0,
+          dateTimeSecond: 0,
+          maxDepthMeters: 30.0,
+          avgDepthMeters: 20.0,
+          durationSeconds: 1800,
+          samples: [
+            // Sample 1: tank pressure + NDL (decoType == 0).
+            pigeon.ProfileSample(
+              timeSeconds: 0,
+              depthMeters: 20.0,
+              pressureBar: 150.0,
+              tankIndex: 1,
+              decoType: 0,
+              decoTime: 1200,
+            ),
+            // Sample 2: deco state with ceiling (decoType != 0).
+            pigeon.ProfileSample(
+              timeSeconds: 10,
+              depthMeters: 25.0,
+              decoType: 2,
+              decoDepth: 5.0,
+            ),
+            // Sample 3: heart rate + setpoint + ppo2 + cns + rbt + tts.
+            pigeon.ProfileSample(
+              timeSeconds: 20,
+              depthMeters: 30.0,
+              heartRate: 75,
+              setpoint: 1.2,
+              ppo2: 1.4,
+              cns: 15.0,
+              rbt: 3600,
+              tts: 600,
+            ),
+          ],
+          tanks: const [],
+          gasMixes: const [],
+          events: const [],
+        );
+
+        final dive = MacDiveRawDive(
+          pk: 1,
+          uuid: 'dive-full-projection',
+          computer: 'Shearwater Teric',
+          rawDataBlob: Uint8List.fromList(List.filled(32, 0x41)),
+        );
+        final logbook = MacDiveRawLogbook(
+          dives: [dive],
+          sitesByPk: const {},
+          buddiesByPk: const {},
+          tagsByPk: const {},
+          gearByPk: const {},
+          tanksByPk: const {},
+          gasesByPk: const {},
+          tankAndGases: const [],
+          crittersByPk: const {},
+          certifications: const [],
+          serviceRecords: const [],
+          events: const [],
+          diveToBuddyPks: const {},
+          diveToTagPks: const {},
+          diveToGearPks: const {},
+          diveToCritterPks: const {},
+          unitsPreference: 'Metric',
+        );
+
+        final payload = await MacDiveDiveMapper.toPayload(
+          logbook,
+          parseRawDiveData: (v, p, m, d) async => parsed,
+        );
+        final profile =
+            (payload.entitiesOf(ImportEntityType.dives).first['profile'] as List)
+                .cast<Map<String, dynamic>>();
+
+        // Sample 0: tank pressure + NDL branch.
+        expect(profile[0]['allTankPressures'], isA<List>());
+        final tankPressures =
+            (profile[0]['allTankPressures'] as List).cast<Map<String, dynamic>>();
+        expect(tankPressures.first['pressure'], 150.0);
+        expect(tankPressures.first['tankIndex'], 1);
+        expect(profile[0]['decoType'], 0);
+        expect(profile[0]['ndl'], 1200); // only emitted when decoType == 0
+        expect(profile[0].containsKey('ceiling'), isFalse);
+
+        // Sample 1: ceiling branch (decoType != 0).
+        expect(profile[1]['decoType'], 2);
+        expect(profile[1]['ceiling'], 5.0);
+        expect(profile[1].containsKey('ndl'), isFalse);
+
+        // Sample 2: all the rest of the optional fields.
+        expect(profile[2]['heartRate'], 75);
+        expect(profile[2]['setpoint'], 1.2);
+        expect(profile[2]['ppO2'], 1.4);
+        expect(profile[2]['cns'], 15.0);
+        expect(profile[2]['rbt'], 3600);
+        expect(profile[2]['tts'], 600);
+      },
+    );
+
+    test(
+      '_defaultParse path exercised when no parseRawDiveData is provided',
+      () async {
+        // No parseRawDiveData parameter → toPayload falls back to _defaultParse,
+        // which hits the platform channel. In the test host the channel is not
+        // registered, so DiveComputerHostApi().parseRawDiveData throws
+        // MissingPluginException. toPayload catches it and short-circuits FFI.
+        final dive = MacDiveRawDive(
+          pk: 1,
+          uuid: 'dive-default-parse',
+          computer: 'Shearwater Teric',
+          rawDataBlob: Uint8List.fromList(List.filled(32, 0x41)),
+        );
+        final logbook = MacDiveRawLogbook(
+          dives: [dive],
+          sitesByPk: const {},
+          buddiesByPk: const {},
+          tagsByPk: const {},
+          gearByPk: const {},
+          tanksByPk: const {},
+          gasesByPk: const {},
+          tankAndGases: const [],
+          crittersByPk: const {},
+          certifications: const [],
+          serviceRecords: const [],
+          events: const [],
+          diveToBuddyPks: const {},
+          diveToTagPks: const {},
+          diveToGearPks: const {},
+          diveToCritterPks: const {},
+          unitsPreference: 'Metric',
+        );
+
+        // NOT passing parseRawDiveData — _defaultParse is used.
+        final payload = await MacDiveDiveMapper.toPayload(logbook);
+
+        final dives = payload.entitiesOf(ImportEntityType.dives);
+        expect(dives, hasLength(1));
+        expect(dives[0]['profile'], isEmpty);
+        // Expect either a MissingPluginException info warning or a
+        // per-dive decode warning depending on which exception the
+        // Pigeon host emits when the plugin isn't registered. Both are
+        // acceptable — the point is that _defaultParse executed without
+        // crashing the import.
+        expect(payload.warnings, isNotEmpty);
+      },
+    );
   });
 }
