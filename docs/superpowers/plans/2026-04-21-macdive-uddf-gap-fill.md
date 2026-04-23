@@ -16,9 +16,11 @@
 
 - All 12 tasks landed or explicitly skipped (Task 3 proven non-bug; see Task 3 section).
 - Schema bumped v69 → v70 (source_uuid on dive_data_sources) → v71
-  (7 new dive + site metadata columns: dive_number_of_day, boat_name,
-  boat_captain, dive_operator, surface_conditions on dives; water_type,
-  body_of_water on dive_sites).
+  (6 new dive + site metadata columns: boat_name, boat_captain,
+  dive_operator, surface_conditions on dives; water_type, body_of_water
+  on dive_sites). Task 8 and Task 10's snippets below show an earlier
+  plan that also added `dive_number_of_day`; see "Post-completion
+  revision" note directly below.
 - Cross-format import dedup now works via `dive_data_sources.source_uuid`.
 - Parser-to-DB gap closed for MacDive rich fields. `weather` now lands
   on the existing weather_description column. difficulty continues to
@@ -30,6 +32,21 @@
   parsed but not yet persisted to the profile samples table — deferred
   to a future milestone, likely via dive-events.
 - Real-sample regression test passes (gated behind `@Tags(['real-data'])`).
+
+### Post-completion revision: dive_number_of_day is derived, not stored
+
+Originally this milestone planned a `dive_number_of_day` INT column on
+`dives`, populated from UDDF `<divenumberofday>`. After landing,
+review found the value is trivially derivable from `diveDateTime`
+(`ROW_NUMBER() OVER (PARTITION BY DATE(diveDateTime) ORDER BY
+diveDateTime)`) and has no current reader in the app. Storing it would
+also desync the moment a diver manually adds a dive between two
+imported dives. The column, its v71 ALTER, parser extraction,
+`IncomingDiveData` field, and importer write path were all removed.
+Task 8's "Add fields to the domain model" snippet and Task 10's DB
+write snippet in this document are the pre-revision plan; they are
+kept for historical context. `<divenumberofday>` is now ignored on
+import and computed on demand if/when the UI needs it.
 
 ---
 
