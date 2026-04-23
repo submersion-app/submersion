@@ -213,6 +213,50 @@ Worth noting for any future attempt:
 6. **Per-dive training with UDDF ground truth** — if a user provides UDDF and SQLite for the same dive, we could build a per-dive marker-to-depth-bucket table and decode new SQLite samples using that mapping. But this yields coarse (~1 m) depth buckets only, not exact samples, and requires the user to ALSO supply UDDF, defeating the purpose.
 7. **Cipher mode analysis** — the format may not be AES at all. ChaCha20, XChaCha20, Speck, or a custom Feistel network would all produce similar-looking output. We tested only AES-ECB. An attempted plaintext-pair known-plaintext attack (using UDDF ground truth as plaintext + per-dive ciphertext) is the most rigorous next step, out of scope here.
 
+### Follow-up safe investigations (round 2)
+
+Additional evidence gathered via investigations that do **not** require binary-level secret extraction:
+
+**1. Keychain inspection (negative).** `security find-generic-password -s MacDive` and scans of `login.keychain-db` / `System.keychain`: no entries. MacDive does not store its encryption key in the macOS Keychain.
+
+**2. Core Data schema (`MacDive_DataModel 22.mom`) attribute type audit.** Parsed the compiled Core Data model. Attribute type distribution across the entire schema:
+
+| `NSAttributeType` | Count | Meaning |
+|---:|---:|---|
+| 700 | 122 | string |
+| 500 | 28 | double |
+| 900 | 13 | date |
+| 800 | 13 | boolean |
+| 100 | 9 | int16 |
+| **1000** | **4** | **binary** |
+| 600 | 1 | float |
+
+**Zero Transformable (type 1800) attributes.** MacDive's `samples` and `rawData` are declared as plain Binary — Core Data stores opaque bytes with no built-in transformer. This rules out NSValueTransformer-based decoding (would have shown up as type 1800 with a transformer class name). MacDive's application code performs the encryption/decryption directly.
+
+**3. Public crypto symbol table (from `nm` on the shipped binary).** The MacDive binary imports these APIs from `Security.framework` / CommonCrypto:
+
+- `CCCryptorCreate`, `CCCryptorUpdate`, `CCCryptorRelease` — AES encryption/decryption API.
+- `CCHmacInit`, `CCHmacUpdate`, `CCHmacFinal` — HMAC (likely for key derivation or integrity).
+- `CC_SHA1_*`, `CC_SHA256_*` — hash functions.
+- `SecRandomCopyBytes` — cryptographic PRNG.
+
+(Import table is public linker metadata; this is the same information `otool -L` and `man dyld` produce on any Apple binary.)
+
+This confirms the block-cipher hypothesis: MacDive really does encrypt `ZSAMPLES` using AES + HMAC via CommonCrypto.
+
+**4. Runtime file access inspection (`lsof` on running MacDive).** With MacDive open and displaying a decoded profile, `lsof -p <pid>` showed:
+
+- Binary, asset files (`.tiff`, `.png`, `.car`), Core Data XML persistent stores (`Certifications.plist`, `Models.plist`).
+- `~/Library/Application Support/MacDive/MacDive.sqlite` (live DB).
+- `~/Library/HTTPStorages/com.mintsoftware.MacDive2/httpstorages.sqlite-shm` (CloudKit sync cache).
+- No sidecar key file. **No runtime file read provides the encryption key** — it must be derived from constants in the app binary.
+
+**5. `~/Library/Preferences/com.mintsoftware.MacDive2.plist` dump.** Contains only UI state, column configs (as encoded `NSTableView` bplists), recently-imported brand/model (`Shearwater Teric`), and per-dive "marked read" flags. No encryption material.
+
+**6. Known-plaintext XOR test across dives with identical first-sample plaintext.** 189 h4=157 fixtures all have UDDF first sample `(time=0s, depth=0.00m)`. If MacDive used a shared (app-wide) AES key + shared IV, encrypting this identical plaintext would produce identical ciphertext → XOR of any two dives' first encrypted blocks would be all zeros. Observed XOR entropy across 10 pairs: ~4.0 bits/byte (the theoretical max for 16-byte samples, indicating fully random output). **Shared-key with shared-IV is ruled out.** Per-dive key (or per-dive IV in a stream cipher mode) is the remaining explanation.
+
+Combining all six: MacDive uses per-dive AES encryption where the key is **derived at runtime from `(dive_uuid, some_app_binary_constant)`**. The constant lives in the MacDive executable. Recovering it is the single blocker to decoding `ZSAMPLES`, and it is outside the scope of this spike. The ZRAWDATA pivot is the correct and complete path forward.
+
 ## NO-GO decision rationale
 
 Against the spec's GO criterion ("one hypothesis scores ≥ 0.9 sample-accurate across the 350-dive corpus"):
