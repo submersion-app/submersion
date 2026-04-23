@@ -23,7 +23,6 @@ class IncomingDiveData {
   final String? boatName;
   final String? boatCaptain;
   final String? diveOperator;
-  final int? diveNumberOfDay;
   final String? sourceUuid;
 
   const IncomingDiveData({
@@ -42,7 +41,6 @@ class IncomingDiveData {
     this.boatName,
     this.boatCaptain,
     this.diveOperator,
-    this.diveNumberOfDay,
     this.sourceUuid,
   });
 
@@ -105,7 +103,6 @@ class IncomingDiveData {
       boatName: data['boatName'] as String?,
       boatCaptain: data['boatCaptain'] as String?,
       diveOperator: data['diveOperator'] as String?,
-      diveNumberOfDay: data['diveNumberOfDay'] as int?,
       sourceUuid: data['sourceUuid'] as String?,
     );
   }
