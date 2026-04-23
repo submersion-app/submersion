@@ -3,6 +3,7 @@ enum ImportFormat {
   csv,
   uddf,
   macdiveXml,
+  macdiveSqlite,
   subsurfaceXml,
   divingLogXml,
   suuntoSml,
@@ -18,6 +19,7 @@ enum ImportFormat {
     csv => 'CSV',
     uddf => 'UDDF',
     macdiveXml => 'MacDive XML',
+    macdiveSqlite => 'MacDive SQLite',
     subsurfaceXml => 'Subsurface XML',
     divingLogXml => 'Diving Log XML',
     suuntoSml => 'Suunto SML',
@@ -32,7 +34,13 @@ enum ImportFormat {
 
   /// Whether this format has a parser implemented in v1.5.
   bool get isSupported => switch (this) {
-    csv || uddf || subsurfaceXml || fit || shearwaterDb || macdiveXml => true,
+    csv ||
+    uddf ||
+    subsurfaceXml ||
+    fit ||
+    shearwaterDb ||
+    macdiveXml ||
+    macdiveSqlite => true,
     _ => false,
   };
 }
@@ -129,6 +137,11 @@ class SourceOverrideOption {
       sourceApp: SourceApp.macdive,
       format: ImportFormat.macdiveXml,
       displayName: 'MacDive (XML)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.macdive,
+      format: ImportFormat.macdiveSqlite,
+      displayName: 'MacDive (SQLite)',
     ),
     SourceOverrideOption(
       sourceApp: SourceApp.divingLog,

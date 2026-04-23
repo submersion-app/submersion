@@ -3553,6 +3553,55 @@ class DiveRepository {
     }
   }
 
+  /// Get `source_uuid` for every dive that has a non-null one, as a
+  /// `{ diveId -> sourceUuid }` map.
+  ///
+  /// Used by the import duplicate checker to short-circuit content fuzzy
+  /// matching for dives that already have a known source UUID. When a dive
+  /// has multiple data sources (multi-computer), the primary row's UUID wins;
+  /// otherwise the most recently created row's UUID is used. Dives with no
+  /// source_uuid on any row are absent from the map.
+  ///
+  /// When [diverId] is provided, the result is restricted to that diver's
+  /// dives — callers that have already scoped `existingDives` to a single
+  /// diver should pass it here so the UUID map shares the same scope.
+  Future<Map<String, String>> getSourceUuidByDiveId({String? diverId}) async {
+    try {
+      final sql = StringBuffer('SELECT s.dive_id, s.source_uuid ')
+        ..write('FROM dive_data_sources s ');
+      final variables = <Variable<Object>>[];
+      if (diverId != null) {
+        sql.write('INNER JOIN dives d ON d.id = s.dive_id ');
+      }
+      sql.write('WHERE s.source_uuid IS NOT NULL ');
+      if (diverId != null) {
+        sql.write('AND d.diver_id = ? ');
+        variables.add(Variable<Object>(diverId));
+      }
+      sql.write('ORDER BY s.is_primary DESC, s.created_at DESC');
+
+      final rows = await _db
+          .customSelect(sql.toString(), variables: variables)
+          .get();
+      final result = <String, String>{};
+      for (final row in rows) {
+        final diveId = row.read<String>('dive_id');
+        final uuid = row.read<String?>('source_uuid');
+        if (uuid == null || uuid.isEmpty) continue;
+        // First row wins (ordered by isPrimary DESC then createdAt DESC).
+        result.putIfAbsent(diveId, () => uuid);
+      }
+      return result;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load source UUIDs for dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Return true if a dive has readings from 2 or more computers.
   Future<bool> hasMultipleDataSources(String diveId) async {
     try {

@@ -19,6 +19,15 @@ All notable changes to Submersion are documented in this file.
   internal units at the reader boundary.
 - **MacDive (XML) source override** in the import wizard's detected-source
   dropdown, alongside the existing MacDive (CSV) option.
+- **MacDive SQLite import.** Direct import from MacDive's Core Data
+  SQLite database. Captures the same entity set as MacDive XML — dives,
+  sites, buddies, tags, and gear inventory — plus per-dive tank and gas
+  mix linkage drawn from the `ZTANKANDGAS` join table. Cross-format
+  deduplication via source UUIDs: if you've already imported the same
+  dives via MacDive UDDF or XML, re-importing from SQLite won't create
+  duplicates.
+- **MacDive (SQLite) source override** in the import wizard's
+  detected-source dropdown, alongside MacDive (CSV) and MacDive (XML).
 - Cross-format import deduplication: stable per-dive UUIDs from MacDive,
   Shearwater Cloud, Subsurface SSRF, and generic UDDF are now preserved on
   the `dive_data_sources` sidecar. Re-importing the same dives in a
@@ -41,6 +50,22 @@ All notable changes to Submersion are documented in this file.
 - Gas switch markers (`<switchmix ref>`) in MacDive dive profiles are
   parsed but not yet persisted to the profile samples table. A future
   milestone will wire them through, likely via the dive-events table.
+
+### Known limitations
+
+- Profile samples (depth/time-series data) are NOT imported from
+  MacDive SQLite. MacDive stores sample data in `ZDIVE.ZSAMPLES`
+  using a proprietary binary format that isn't publicly documented
+  and isn't standard bplist or any common compression. Users who
+  need time-series profile data should use the MacDive UDDF import
+  path instead, which decodes MacDive's UDDF profile correctly.
+- The MacDive SQLite path reads critters (marine-life sightings),
+  dive events, service records, and certifications into its typed
+  row graph, but these are not yet emitted into the import payload —
+  the unified importer doesn't have entity types for critters,
+  events, or service records, and certification emission is scoped
+  for a follow-up. For now, only the dive/site/buddy/tag/gear subset
+  is persisted.
 
 
 ## 1.4.6 (2026-04-22)
