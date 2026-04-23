@@ -2,43 +2,35 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Produce decoded profile samples for every Shearwater dive imported from a MacDive SQLite database, by decoding the `ZDIVE.ZRAWDATA` column via the already-integrated `libdivecomputer_plugin`. Dives without `ZRAWDATA` (older imports, non-Shearwater computers, manual entries) continue to import without a profile, with an `ImportWarning` flagging why.
+**Goal:** Produce decoded profile samples for every dive imported from a MacDive SQLite database that has a non-null `ZDIVE.ZRAWDATA` column. Route the raw bytes through the existing `libdivecomputer_plugin.parseRawDiveData()` API and project the result into the unified `ImportPayload` format. Dives without `ZRAWDATA` (older imports, non-Shearwater computers, manual entries) continue to import without a profile, with an `ImportWarning` flagging why.
 
-**Architecture:** Follows the design spec's original shape (`MacDiveSamplesDecoder` + `MacDiveSqliteSample` under `lib/features/universal_import/data/services/`) but the decoder body is a thin adapter over `libdivecomputer_plugin` rather than a custom binary parser. The reader/mapper integration points are unchanged from the spec.
+**Architecture:** Extends `MacDiveDiveMapper` (already on `main` from PR #256) by adapting the ZRAWDATA handling pattern already proven in `ShearwaterDiveMapper.mergeWithParsedDive()`. No new service layer, no new typed model — we consume the plugin's `ProfileSample` directly and project it to the `ImportPayload` profile map using the same 10-line helper pattern as `MacDiveXmlParser`.
 
 **Tech Stack:** Flutter, Dart 3, `libdivecomputer_plugin` (local package at `packages/libdivecomputer_plugin/`), Riverpod, `flutter_test`.
 
 **Dependencies:**
-- PR #256 (MacDive SQLite import, `feature/macdive-sqlite`) is **merged** to `main` as of 2026-04-23. All reader/mapper files this plan modifies already live on `main`.
-- The Phase 1 spike PR (#260, `feature/macdive-zsamples-phase-1`) should merge before this work starts, so `docs/import-formats/macdive-zsamples.md` and the retained tooling are on `main`. Alternatively, this work can stack on top of `feature/macdive-zsamples-phase-1` — either target works.
+- PR #256 (MacDive SQLite import, `feature/macdive-sqlite`) is merged to `main` as of 2026-04-23.
+- Phase 1 spike PR (#260) should merge before this work so `docs/import-formats/macdive-zsamples.md` is available on `main` for reference. (Not strictly required — this plan doesn't touch those files — but it makes the history coherent.)
 - The `libdivecomputer` git submodule must be initialized in the worktree.
 
-**Spec:** `docs/superpowers/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md` (as updated with the Phase 1 outcome).
+**Spec:** `docs/superpowers/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md` (as updated with the Phase 1 NO-GO on ZSAMPLES + pivot to ZRAWDATA).
 
-**Investigation foundation:** `docs/import-formats/macdive-zsamples.md` documents why `ZSAMPLES` decoding was deferred. This plan targets the alternative column with `libdivecomputer` support.
+**Investigation foundation:** `docs/import-formats/macdive-zsamples.md` explains why `ZSAMPLES` was ruled out (per-dive AES encryption). This plan targets `ZRAWDATA` instead — 100% of Shearwater dives (267/267 in the sample DB) have it, and `libdivecomputer` parses Shearwater's native format natively.
 
 ---
 
-## Pre-work: libdivecomputer API exploration
+## Pattern to copy
 
-Before implementation, verify the `libdivecomputer_plugin` exposes what this plan needs. This is a **controller-level investigation task** — inspect the plugin's public Dart API, not a subagent dispatch.
+The entire plan is effectively "do what `ShearwaterDiveMapper.mergeWithParsedDive()` does, but inside `MacDiveDiveMapper`."
 
-- [ ] **Discover the plugin's API surface**
+Key existing code to reuse:
 
-Run:
-```bash
-find packages/libdivecomputer_plugin/lib -name "*.dart" | head
-cat packages/libdivecomputer_plugin/lib/*.dart | head -200
-```
-
-Record:
-- Is there a function that takes raw bytes + a vendor/model hint and returns parsed samples? Or does the plugin expect to own the download flow end-to-end (i.e. connect to a BLE device, not parse arbitrary bytes)?
-- What's the sample-point data model? Does it match `DiveProfilePoint` fields (timestamp, depth, temperature, ppO2, ndl, etc.)?
-- Does the plugin need `family` (e.g. Shearwater Petrel) and `model` (e.g. Teric) parameters, or does it auto-detect from the bytes?
-
-**Exit criterion:** If the plugin does NOT expose a bytes-in / samples-out entry point, this plan is blocked; add a Task 0 to contribute such an entry point to the plugin (or open an upstream issue). Report and stop before proceeding.
-
-If the API is workable, the rest of this plan applies.
+| Reference | File | Purpose |
+|---|---|---|
+| `DiveComputerHostApi().parseRawDiveData(vendor, product, 0, bytes)` | `packages/libdivecomputer_plugin/lib/src/generated/dive_computer_api.g.dart` | Plugin's bytes-in → `ParsedDive` API |
+| `ShearwaterDiveMapper._parseWithFfi(...)` (~line 328) | `lib/features/universal_import/data/services/shearwater_dive_mapper.dart` | How to call `parseRawDiveData` with error handling |
+| `ShearwaterDiveMapper.mergeWithParsedDive(map, parsed, warnings)` (~line 341) | same file | How to fold `ParsedDive.samples` into an ImportPayload map |
+| `MacDiveXmlParser._buildProfile(...)` lines 279–291 | `lib/features/universal_import/data/parsers/macdive_xml_parser.dart` | Existing `ProfileSample`-shaped → payload-map projection reference |
 
 ---
 
@@ -46,25 +38,25 @@ If the API is workable, the rest of this plan applies.
 
 | File | Role | New / Modified |
 |---|---|---|
-| `lib/features/universal_import/data/services/macdive_samples/macdive_sqlite_sample.dart` | `MacDiveSqliteSample` typed model (fields match `MacDiveXmlSample`). | Created |
-| `lib/features/universal_import/data/services/macdive_samples/macdive_samples_decoder.dart` | Public `MacDiveSamplesDecoder` with `decode(blob, units, converter)`. Delegates to libdivecomputer. | Created |
-| `lib/features/universal_import/data/services/macdive_raw_types.dart` | Add `samples: List<MacDiveSqliteSample>` field to `MacDiveRawDive` (default empty). | Modified |
-| `lib/features/universal_import/data/services/macdive_db_reader.dart` | Call the decoder on each dive's `ZRAWDATA`. Record per-dive warnings on decode failure. | Modified |
-| `lib/features/universal_import/data/services/macdive_dive_mapper.dart` | Replace the `profile: const []` line (~334) with a projection of `dive.samples` into payload maps. | Modified |
-| `lib/features/universal_import/data/models/import_warning.dart` (or wherever the sum type lives) | Add `ImportWarning.sampleDecodeFailed` variant. | Modified |
-| `test/features/universal_import/data/services/macdive_samples_decoder_test.dart` | Unit tests against committed golden ZRAWDATA fixtures. | Created |
-| `test/fixtures/macdive_sqlite/zrawdata_golden/` | Small (≤1KB) redacted ZRAWDATA fixtures, one per observed Shearwater variant. | Created |
-| `test/features/universal_import/data/parsers/macdive_sqlite_real_sample_test.dart` | Gated real-sample test: decode every dive's ZRAWDATA, cross-check against UDDF profile by UUID. | Created |
+| `lib/features/universal_import/data/services/macdive_dive_mapper.dart` | Replace `profile: const []` at line ~334 with a ZRAWDATA-decode + sample-projection block adapted from `ShearwaterDiveMapper`. | Modified |
+| `lib/features/universal_import/data/services/macdive_raw_types.dart` | No structural change — `MacDiveRawDive` already has `rawDataBlob: Uint8List?` and `computerName: String?` from PR #256. Verify at plan start. | Reference |
+| `lib/features/universal_import/data/models/import_warning.dart` (or wherever `ImportWarning` lives — `grep -r 'class ImportWarning' lib/` at plan start) | Add `ImportWarning.sampleDecodeFailed({diveUuid, reason})`. If a compatible variant already exists, reuse it. | Modified |
+| `test/features/universal_import/data/services/macdive_dive_mapper_test.dart` | Extend the existing test for MacDiveDiveMapper (added in PR #256) with two new tests: one for successful ZRAWDATA decode → populated `profile`, one for missing/unparseable ZRAWDATA → `profile: []` + warning. Use a stubbed plugin API. | Modified |
+| `test/features/universal_import/data/parsers/macdive_sqlite_real_sample_test.dart` | Gated real-sample test: import the full sample SQLite, confirm Shearwater dives get non-empty profiles, cross-check against UDDF per UUID. Mirrors `macdive_xml_real_sample_test.dart` structure. | Created |
+
+**Notably NOT created** (compared to the original skeleton plan):
+- ~~`MacDiveSqliteSample` typed model~~ — use `pigeon.ProfileSample` directly from the plugin.
+- ~~`MacDiveSamplesDecoder` service~~ — `parseRawDiveData` IS the decoder.
+- ~~`test/fixtures/macdive_sqlite/zrawdata_golden/`~~ — the plugin owns parser-level golden tests; the mapper layer only needs unit tests with stubbed plugin calls + the gated real-sample regression.
 
 ---
 
-## Task 1: Worktree setup
+## Task 1: Worktree setup and baseline verification
 
 **Files:** No files created.
 
-- [ ] **Step 1: Create the Phase 2 worktree**
+- [ ] **Step 1: Create the Phase 2 worktree from `main`**
 
-After the Phase 1 PR (#260) merges to `main`, base off `main`:
 ```bash
 git fetch origin
 git worktree add -b feature/macdive-profile-zrawdata \
@@ -72,416 +64,560 @@ git worktree add -b feature/macdive-profile-zrawdata \
   origin/main
 ```
 
-If Phase 1 PR is still open and you want to stack (and later rebase once #260 merges), base off its branch instead:
-```bash
-git worktree add -b feature/macdive-profile-zrawdata \
-  .worktrees/macdive-profile-zrawdata \
-  origin/feature/macdive-zsamples-phase-1
-```
-
-- [ ] **Step 2: Initialize submodules (libdivecomputer is required) and pub deps**
+- [ ] **Step 2: Initialize submodules and Flutter deps in the worktree**
 
 ```bash
 cd .worktrees/macdive-profile-zrawdata
 git submodule update --init --recursive
 flutter pub get
+dart run build_runner build --delete-conflicting-outputs
 ```
 
-- [ ] **Step 3: Symlink sample data (per Phase 1 setup pattern)**
+- [ ] **Step 3: Symlink sample data into the worktree (gitignored, same as Phase 1)**
 
 ```bash
-ln -s $(pwd)/../../scripts/sample_data scripts/sample_data
+ln -s /Users/ericgriffin/repos/submersion-app/submersion/scripts/sample_data \
+      scripts/sample_data
 ```
 
-- [ ] **Step 4: No commit**
+- [ ] **Step 4: Confirm the expected files exist and the baseline tests pass**
+
+```bash
+ls lib/features/universal_import/data/services/macdive_dive_mapper.dart
+ls lib/features/universal_import/data/services/macdive_raw_types.dart
+ls lib/features/universal_import/data/services/shearwater_dive_mapper.dart
+grep -n "profile.*const.*\[\]" lib/features/universal_import/data/services/macdive_dive_mapper.dart
+flutter test test/features/universal_import/data/services/macdive_dive_mapper_test.dart
+```
+
+Expected:
+- All three files listed.
+- `grep` finds the `profile: const []` line (record its line number — it's the integration point).
+- Existing mapper tests pass before any changes.
+
+- [ ] **Step 5: Locate `ImportWarning` and confirm whether `sampleDecodeFailed` (or a compatible variant) already exists**
+
+```bash
+grep -rn "class ImportWarning" lib/
+grep -rn "sampleDecodeFailed\|SampleDecodeFailed\|profile.*decode.*failed" lib/
+```
+
+Record:
+- The file where `ImportWarning` is defined.
+- Whether a matching variant exists (if yes, reuse; if no, add in Task 4).
+
+- [ ] **Step 6: Read `ShearwaterDiveMapper._parseWithFfi` and `mergeWithParsedDive` carefully**
+
+```bash
+sed -n '80,150p' lib/features/universal_import/data/services/shearwater_dive_mapper.dart
+sed -n '320,430p' lib/features/universal_import/data/services/shearwater_dive_mapper.dart
+```
+
+These are the reference implementations for all subsequent tasks. If they differ materially from what this plan assumes (e.g. different method names, different signatures), stop and report — the plan needs an update before proceeding.
+
+- [ ] **Step 7: No commit** (setup/read-only).
 
 ---
 
-## Task 2: `MacDiveSqliteSample` typed model
+## Task 2: Failing tests for ZRAWDATA decode in `MacDiveDiveMapper`
 
 **Files:**
-- Create: `lib/features/universal_import/data/services/macdive_samples/macdive_sqlite_sample.dart`
-- Test: `test/features/universal_import/data/services/macdive_sqlite_sample_test.dart`
+- Modify: `test/features/universal_import/data/services/macdive_dive_mapper_test.dart`
 
-- [ ] **Step 1: Write the failing test**
+This task adds failing tests first (TDD). The tests assume a stubbed `parseRawDiveData` returning a minimal `ParsedDive`; they verify the mapper projects samples correctly into the payload.
 
-```dart
-import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/universal_import/data/services/macdive_samples/macdive_sqlite_sample.dart';
+- [ ] **Step 1: Add two new tests to the existing test file**
 
-void main() {
-  test('MacDiveSqliteSample stores SI units', () {
-    final sample = MacDiveSqliteSample(
-      time: const Duration(seconds: 30),
-      depthMeters: 10.5,
-      temperatureCelsius: 24.0,
-      pressureBar: 180.0,
-      ppO2: 1.4,
-      ndlSeconds: 1200,
-    );
-    expect(sample.time.inSeconds, 30);
-    expect(sample.depthMeters, 10.5);
-  });
-
-  test('fields are nullable except time', () {
-    final sample = MacDiveSqliteSample(time: Duration.zero);
-    expect(sample.depthMeters, isNull);
-    expect(sample.temperatureCelsius, isNull);
-  });
-}
-```
-
-- [ ] **Step 2: Run the test — ModuleNotFoundError**
-
-```bash
-flutter test test/features/universal_import/data/services/macdive_sqlite_sample_test.dart
-```
-
-- [ ] **Step 3: Implement the model**
-
-```dart
-/// One sample from a MacDive SQLite dive profile, in SI canonical units.
-///
-/// Shape intentionally matches `MacDiveXmlSample` so downstream payload
-/// projection logic does not branch on source format.
-class MacDiveSqliteSample {
-  const MacDiveSqliteSample({
-    required this.time,
-    this.depthMeters,
-    this.pressureBar,
-    this.temperatureCelsius,
-    this.ppO2,
-    this.ndlSeconds,
-  });
-
-  final Duration time;
-  final double? depthMeters;
-  final double? pressureBar;
-  final double? temperatureCelsius;
-  final double? ppO2;
-  final int? ndlSeconds;
-}
-```
-
-- [ ] **Step 4: Test passes.**
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add lib/features/universal_import/data/services/macdive_samples/macdive_sqlite_sample.dart \
-        test/features/universal_import/data/services/macdive_sqlite_sample_test.dart
-git commit -m "feat(macdive): MacDiveSqliteSample typed model"
-```
-
----
-
-## Task 3: Decoder — delegates to libdivecomputer_plugin
-
-**Files:**
-- Create: `lib/features/universal_import/data/services/macdive_samples/macdive_samples_decoder.dart`
-- Test: `test/features/universal_import/data/services/macdive_samples_decoder_test.dart`
-- Test fixtures: `test/fixtures/macdive_sqlite/zrawdata_golden/*.bin` (added as they become available — see Step 1 guidance)
-
-The exact implementation depends on the libdivecomputer_plugin API surface discovered in Pre-work. Two expected shapes:
-
-**Shape A — Plugin exposes `parseBytes(Uint8List, {required vendor, required model})`.** The decoder looks up vendor/model from `ZDIVE.ZCOMPUTER` (e.g. "Shearwater Teric" → `Vendor.shearwater, Model.teric`), calls the plugin, maps the plugin's sample type to `MacDiveSqliteSample`.
-
-**Shape B — Plugin requires a device/download flow.** Not workable for offline file import. The pre-work exit criterion covers this case.
-
-- [ ] **Step 1: Create at least one golden fixture**
-
-Extract a small `ZRAWDATA` blob from the sample SQLite:
-```bash
-sqlite3 scripts/sample_data/MacDive.sqlite \
-  "SELECT writefile('test/fixtures/macdive_sqlite/zrawdata_golden/shearwater_teric_short.bin', ZRAWDATA) FROM ZDIVE WHERE ZRAWDATA IS NOT NULL AND LENGTH(ZRAWDATA) < 10000 ORDER BY LENGTH(ZRAWDATA) ASC LIMIT 1"
-```
-
-Redact any serial numbers or user-identifying bytes (if present — inspect with `xxd`) before committing. Target fixture size < 10KB.
-
-- [ ] **Step 2: Write failing decoder test using the fixture**
-
-```dart
-test('decode produces MacDiveSqliteSample sequence for Teric fixture', () {
-  final bytes = File('test/fixtures/macdive_sqlite/zrawdata_golden/shearwater_teric_short.bin').readAsBytesSync();
-  final decoder = const MacDiveSamplesDecoder();
-  final samples = decoder.decode(
-    bytes,
-    computerName: 'Shearwater Teric',
-    units: MacDiveUnitSystem.metric,
-    converter: MacDiveUnitConverter(...),
-  );
-  expect(samples, isNotEmpty);
-  expect(samples.first.time.inSeconds, 0);
-  expect(samples.first.depthMeters, greaterThanOrEqualTo(0));
-  // Sample times are monotonic.
-  for (int i = 1; i < samples.length; i++) {
-    expect(samples[i].time >= samples[i - 1].time, isTrue);
-  }
-});
-```
-
-- [ ] **Step 3: Implement the decoder**
-
-Exact API depends on Pre-work findings. Skeleton:
+Append to `test/features/universal_import/data/services/macdive_dive_mapper_test.dart` (exact code; adapt imports if the existing file uses different aliases):
 
 ```dart
 import 'dart:typed_data';
-import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart';
-import 'macdive_sqlite_sample.dart';
+import 'package:libdivecomputer_plugin/src/generated/dive_computer_api.g.dart' as pigeon;
 
-class MacDiveSamplesDecoder {
-  const MacDiveSamplesDecoder({this.plugin});
+// ... existing imports
 
-  final LibdivecomputerPlugin? plugin;
-
-  List<MacDiveSqliteSample> decode(
-    Uint8List blob, {
-    required String? computerName,
-    required MacDiveUnitSystem units,
-    required MacDiveUnitConverter converter,
-  }) {
-    final (vendor, model) = _identifyVendorAndModel(computerName);
-    final result = (plugin ?? LibdivecomputerPlugin.instance)
-        .parseBytes(blob, vendor: vendor, model: model);
-    return result.samples.map(_toSqliteSample).toList();
-  }
-
-  MacDiveSqliteSample _toSqliteSample(DiveComputerSample s) =>
-      MacDiveSqliteSample(
-        time: Duration(seconds: s.timeSeconds),
-        depthMeters: s.depthMeters,
-        temperatureCelsius: s.temperatureCelsius,
-        pressureBar: s.pressureBar,
-        ppO2: s.ppO2Bar,
-        ndlSeconds: s.ndlSeconds,
-      );
-
-  (Vendor, Model) _identifyVendorAndModel(String? computerName) {
-    switch (computerName) {
-      case 'Shearwater Teric': return (Vendor.shearwater, Model.teric);
-      case 'Shearwater Tern':  return (Vendor.shearwater, Model.tern);
-      // Extend as the real plugin's enum reveals.
-      default:
-        throw MacDiveSamplesDecodeError('Unknown computer: $computerName');
-    }
-  }
-}
-
-class MacDiveSamplesDecodeError implements Exception {
-  const MacDiveSamplesDecodeError(this.reason);
-  final String reason;
-  @override
-  String toString() => 'MacDiveSamplesDecodeError($reason)';
-}
-```
-
-- [ ] **Step 4: Test passes.**
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add lib/features/universal_import/data/services/macdive_samples/macdive_samples_decoder.dart \
-        test/features/universal_import/data/services/macdive_samples_decoder_test.dart \
-        test/fixtures/macdive_sqlite/zrawdata_golden/
-git commit -m "feat(macdive): MacDiveSamplesDecoder via libdivecomputer_plugin"
-```
-
----
-
-## Task 4: Wire decoder into `MacDiveDbReader`
-
-**Files:**
-- Modify: `lib/features/universal_import/data/services/macdive_raw_types.dart`
-- Modify: `lib/features/universal_import/data/services/macdive_db_reader.dart`
-- Test: update `test/features/universal_import/data/services/macdive_db_reader_test.dart`
-
-- [ ] **Step 1: Add `samples` field to `MacDiveRawDive`**
-
-```dart
-class MacDiveRawDive {
-  // ... existing fields
-  final List<MacDiveSqliteSample> samples;
-  MacDiveRawDive({
-    // ... existing,
-    this.samples = const [],
-  });
-}
-```
-
-- [ ] **Step 2: Write failing test — reader populates `samples` from ZRAWDATA**
-
-Extend the synthetic-DB test: build a dive row with a known ZRAWDATA blob (use a committed fixture), instantiate reader with the decoder stubbed to return `[MacDiveSqliteSample(time: Duration.zero)]`, assert `logbook.dives.first.samples.length == 1`.
-
-- [ ] **Step 3: Call decoder in reader's per-dive loop**
-
-```dart
-// In MacDiveDbReader, per-dive processing:
-List<MacDiveSqliteSample> samples = const [];
-if (row.rawDataBlob != null) {
-  try {
-    samples = decoder.decode(
-      row.rawDataBlob!,
-      computerName: row.computerName,
-      units: unitsPreference,
-      converter: converter,
+group('MacDiveDiveMapper.profile from ZRAWDATA', () {
+  test('populates profile when ZRAWDATA decode succeeds', () async {
+    // A minimal ParsedDive the stub will return.
+    final parsed = pigeon.ParsedDive(
+      fingerprint: 'test',
+      dateTimeYear: 2026, dateTimeMonth: 3, dateTimeDay: 11,
+      dateTimeHour: 10, dateTimeMinute: 0, dateTimeSecond: 0,
+      maxDepthMeters: 10.0, avgDepthMeters: 6.0, durationSeconds: 600,
+      samples: [
+        pigeon.ProfileSample(timeSeconds: 0,  depthMeters: 0.0,  temperatureCelsius: 25.0),
+        pigeon.ProfileSample(timeSeconds: 10, depthMeters: 5.0,  temperatureCelsius: 24.5),
+        pigeon.ProfileSample(timeSeconds: 20, depthMeters: 10.0, temperatureCelsius: 24.0),
+      ],
+      tanks: const [], gasMixes: const [], events: const [],
     );
-  } on MacDiveSamplesDecodeError catch (e) {
-    warnings.add(ImportWarning.sampleDecodeFailed(
-      diveUuid: row.uuid,
-      reason: e.reason,
-    ));
-  }
+
+    final rawDive = _macDiveRawDiveFixture(
+      uuid: 'dive-1',
+      computerName: 'Shearwater Teric',
+      rawDataBlob: Uint8List.fromList(List.filled(32, 0x41)),  // stub bytes; parser is mocked
+    );
+
+    final mapper = MacDiveDiveMapper(
+      parseRawDiveData: (vendor, product, model, bytes) async => parsed,
+    );
+
+    final logbook = _logbookWith([rawDive]);
+    final payload = await mapper.toPayload(logbook);
+    final dive = payload.entities[ImportEntityType.dives]!.first;
+
+    final profile = dive['profile'] as List<Map<String, dynamic>>;
+    expect(profile, hasLength(3));
+    expect(profile[0]['timestamp'], 0);
+    expect(profile[0]['depth'], 0.0);
+    expect(profile[0]['temperature'], 25.0);
+    expect(profile[2]['timestamp'], 20);
+    expect(profile[2]['depth'], 10.0);
+  });
+
+  test('emits sampleDecodeFailed warning and profile:[] when decode throws', () async {
+    final rawDive = _macDiveRawDiveFixture(
+      uuid: 'dive-2',
+      computerName: 'Shearwater Teric',
+      rawDataBlob: Uint8List.fromList(List.filled(32, 0x42)),
+    );
+
+    final mapper = MacDiveDiveMapper(
+      parseRawDiveData: (vendor, product, model, bytes) async =>
+          throw pigeon.PigeonError(code: 'PARSE_ERROR', message: 'corrupt', details: null),
+    );
+
+    final payload = await mapper.toPayload(_logbookWith([rawDive]));
+    final dive = payload.entities[ImportEntityType.dives]!.first;
+
+    expect(dive['profile'], isEmpty);
+    expect(payload.warnings.any((w) => w.toString().contains('dive-2')), isTrue);
+  });
+
+  test('returns profile:[] for dives with null ZRAWDATA (no warning)', () async {
+    final rawDive = _macDiveRawDiveFixture(
+      uuid: 'dive-3', computerName: 'Manual', rawDataBlob: null,
+    );
+
+    final mapper = MacDiveDiveMapper(
+      parseRawDiveData: (vendor, product, model, bytes) async =>
+          throw StateError('should not be called'),
+    );
+
+    final payload = await mapper.toPayload(_logbookWith([rawDive]));
+    final dive = payload.entities[ImportEntityType.dives]!.first;
+
+    expect(dive['profile'], isEmpty);
+    expect(payload.warnings, isEmpty);
+  });
+});
+
+// Helper: adjust to match the actual `MacDiveRawDive` constructor signature that
+// landed in PR #256. Look at `macdive_raw_types.dart` to see required fields.
+MacDiveRawDive _macDiveRawDiveFixture({
+  required String uuid,
+  required String? computerName,
+  required Uint8List? rawDataBlob,
+}) {
+  // Fill in the remaining required fields with reasonable defaults. Use the
+  // existing synthetic-DB builder helpers if one exists (check test/fixtures/macdive_sqlite/).
+  throw UnimplementedError('Fill from macdive_raw_types.dart signature');
 }
-dive = dive.copyWith(samples: samples);
+
+MacDiveRawLogbook _logbookWith(List<MacDiveRawDive> dives) {
+  // Fill from macdive_raw_types.dart. Other fields likely default to empty maps/lists.
+  throw UnimplementedError();
+}
 ```
 
-- [ ] **Step 4: Test passes.**
+Note on the helper stubs: fill them in by reading `macdive_raw_types.dart` during this step. The point is for the test to compile — this is why Step 1 of Task 1 said "verify baseline tests pass" and read the raw types file. Use whatever defaults make the existing tests compile.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 2: Run the new tests and confirm they fail**
 
 ```bash
-git add lib/features/universal_import/data/services/macdive_raw_types.dart \
-        lib/features/universal_import/data/services/macdive_db_reader.dart \
-        test/features/universal_import/data/services/macdive_db_reader_test.dart
-git commit -m "feat(macdive): reader decodes ZRAWDATA to MacDiveSqliteSample list"
+flutter test test/features/universal_import/data/services/macdive_dive_mapper_test.dart --plain-name "ZRAWDATA"
+```
+
+Expected: FAIL. The current `MacDiveDiveMapper` ignores `rawDataBlob` and always emits `profile: const []`. The three tests should specifically fail on:
+- Test 1: `expect(profile, hasLength(3))` → gets `0` because current code emits `[]`.
+- Test 2: `expect(payload.warnings.any(...))` → empty warnings list.
+- Test 3: should already pass (null blob path is current behavior) — note it as "accidentally passing today," do NOT mark green.
+
+- [ ] **Step 3: Commit (red-phase commit)**
+
+```bash
+git add test/features/universal_import/data/services/macdive_dive_mapper_test.dart
+git commit -m "test(macdive): failing tests for ZRAWDATA profile decode (red phase)"
 ```
 
 ---
 
-## Task 5: Mapper projects samples into ImportPayload
+## Task 3: `MacDiveDiveMapper` decodes `ZRAWDATA` and projects samples
 
 **Files:**
 - Modify: `lib/features/universal_import/data/services/macdive_dive_mapper.dart`
-- Test: update `test/features/universal_import/data/services/macdive_dive_mapper_test.dart`
 
-- [ ] **Step 1: Write failing test** — mapper emits non-empty `profile` for a dive with decoded samples.
+This is the core implementation task. Follows the exact pattern of `ShearwaterDiveMapper._parseWithFfi` + `mergeWithParsedDive`.
 
-- [ ] **Step 2: Replace `profile: const []` at the hard-coded line (~334) with the projection**
+- [ ] **Step 1: Add a `parseRawDiveData` constructor parameter for testability**
+
+Adapt the existing `MacDiveDiveMapper` constructor:
 
 ```dart
-// In MacDiveDiveMapper._buildDiveMap:
-final profile = <Map<String, dynamic>>[];
-for (final s in dive.samples) {
-  final point = <String, dynamic>{'timestamp': s.time.inSeconds};
-  if (s.depthMeters != null) point['depth'] = s.depthMeters;
-  if (s.pressureBar != null) point['pressure'] = s.pressureBar;
-  if (s.temperatureCelsius != null) point['temperature'] = s.temperatureCelsius;
-  if (s.ppO2 != null) point['ppO2'] = s.ppO2;
-  if (s.ndlSeconds != null) point['ndl'] = s.ndlSeconds;
-  profile.add(point);
+typedef ParseRawDiveDataFn = Future<pigeon.ParsedDive> Function(
+  String vendor, String product, int model, Uint8List data,
+);
+
+class MacDiveDiveMapper {
+  MacDiveDiveMapper({ParseRawDiveDataFn? parseRawDiveData})
+      : _parseRawDiveData = parseRawDiveData ?? _defaultParse;
+
+  final ParseRawDiveDataFn _parseRawDiveData;
+
+  static Future<pigeon.ParsedDive> _defaultParse(
+    String vendor, String product, int model, Uint8List data,
+  ) => pigeon.DiveComputerHostApi().parseRawDiveData(vendor, product, model, data);
+
+  // ... existing members
 }
+```
+
+Import at the top of the file:
+```dart
+import 'dart:typed_data';
+import 'package:libdivecomputer_plugin/src/generated/dive_computer_api.g.dart' as pigeon;
+```
+
+- [ ] **Step 2: Add a helper that maps `ZCOMPUTER` strings to libdivecomputer (vendor, product)**
+
+Near the bottom of the file:
+
+```dart
+/// Maps MacDive's ZCOMPUTER string to the (vendor, product) pair
+/// libdivecomputer expects. Returns null for computers not supported by the
+/// plugin; callers should emit a warning and skip decoding.
+(String vendor, String product)? _vendorProductFromZComputer(String? zComputer) {
+  if (zComputer == null) return null;
+  switch (zComputer) {
+    case 'Shearwater Teric':   return ('Shearwater', 'Teric');
+    case 'Shearwater Tern':    return ('Shearwater', 'Tern');
+    case 'Shearwater Petrel':  return ('Shearwater', 'Petrel');
+    case 'Shearwater Perdix':  return ('Shearwater', 'Perdix');
+    case 'Shearwater Nerd':    return ('Shearwater', 'Nerd');
+    // Extend as other ZCOMPUTER values are observed in the sample data.
+    default: return null;
+  }
+}
+```
+
+Rationale: libdivecomputer expects strings that match its internal device descriptor table. For Shearwater, the vendor is always `"Shearwater"` and the product is the model name without the vendor prefix. See `DiveComputerService.getDeviceDescriptors()` output in the plugin's test file for the exact spelling the plugin returns.
+
+- [ ] **Step 3: Replace the `profile: const []` line with the decode+project block**
+
+Locate the line identified in Task 1 Step 4 (grep output). Replace that single statement with:
+
+```dart
+final profile = <Map<String, dynamic>>[];
+final vendorProduct = _vendorProductFromZComputer(dive.computerName);
+final rawData = dive.rawDataBlob;
+
+if (rawData != null && vendorProduct != null) {
+  try {
+    final parsed = await _parseRawDiveData(
+      vendorProduct.$1, vendorProduct.$2, 0, rawData,
+    );
+    for (final s in parsed.samples) {
+      final point = <String, dynamic>{'timestamp': s.timeSeconds};
+      if (s.depthMeters != 0 || s.timeSeconds == 0) {
+        point['depth'] = s.depthMeters;  // always emit depth; 0.0 is valid
+      } else {
+        point['depth'] = s.depthMeters;
+      }
+      if (s.temperatureCelsius != null) point['temperature'] = s.temperatureCelsius;
+      if (s.pressureBar != null) point['pressure'] = s.pressureBar;
+      if (s.ppo2 != null) point['ppO2'] = s.ppo2;
+      if (s.decoTime != null) point['ndl'] = s.decoTime;
+      if (s.heartRate != null) point['heartRate'] = s.heartRate;
+      if (s.setpoint != null) point['setpoint'] = s.setpoint;
+      if (s.cns != null) point['cns'] = s.cns;
+      if (s.rbt != null) point['rbt'] = s.rbt;
+      if (s.decoType != null) point['decoType'] = s.decoType;
+      if (s.tts != null) point['tts'] = s.tts;
+      if (s.decoDepth != null) point['ceiling'] = s.decoDepth;
+      profile.add(point);
+    }
+  } catch (e) {
+    warnings.add(ImportWarning.sampleDecodeFailed(
+      diveUuid: dive.uuid,
+      reason: e.toString(),
+    ));
+  }
+}
+
 map['profile'] = profile;
 ```
 
-- [ ] **Step 3: Test passes.**
+Simplify the depth emission to just `point['depth'] = s.depthMeters;` — the conditional above was a thinko leftover. The clean version:
 
-- [ ] **Step 4: Commit**
+```dart
+final profile = <Map<String, dynamic>>[];
+final vendorProduct = _vendorProductFromZComputer(dive.computerName);
+final rawData = dive.rawDataBlob;
+
+if (rawData != null && vendorProduct != null) {
+  try {
+    final parsed = await _parseRawDiveData(
+      vendorProduct.$1, vendorProduct.$2, 0, rawData,
+    );
+    for (final s in parsed.samples) {
+      final point = <String, dynamic>{
+        'timestamp': s.timeSeconds,
+        'depth': s.depthMeters,
+      };
+      if (s.temperatureCelsius != null) point['temperature'] = s.temperatureCelsius;
+      if (s.pressureBar != null)        point['pressure']    = s.pressureBar;
+      if (s.ppo2 != null)               point['ppO2']        = s.ppo2;
+      if (s.decoTime != null)           point['ndl']         = s.decoTime;
+      if (s.heartRate != null)          point['heartRate']   = s.heartRate;
+      if (s.setpoint != null)           point['setpoint']    = s.setpoint;
+      if (s.cns != null)                point['cns']         = s.cns;
+      if (s.rbt != null)                point['rbt']         = s.rbt;
+      if (s.decoType != null)           point['decoType']    = s.decoType;
+      if (s.tts != null)                point['tts']         = s.tts;
+      if (s.decoDepth != null)          point['ceiling']     = s.decoDepth;
+      profile.add(point);
+    }
+  } catch (e) {
+    warnings.add(ImportWarning.sampleDecodeFailed(
+      diveUuid: dive.uuid,
+      reason: e.toString(),
+    ));
+  }
+}
+
+map['profile'] = profile;
+```
+
+- [ ] **Step 4: If `toPayload`'s method signature isn't `async`, make it `async`**
+
+`parseRawDiveData` returns a `Future`. The mapper's `toPayload` method likely needs to become `async`. If this causes cascading signature changes (e.g. in `MacDiveSqliteParser.parse`), propagate them — they're all one-line edits. The parser is already `async` per `ImportParser` interface.
+
+- [ ] **Step 5: Run the tests added in Task 2**
+
+```bash
+flutter test test/features/universal_import/data/services/macdive_dive_mapper_test.dart --plain-name "ZRAWDATA"
+```
+
+Expected: all three tests PASS.
+
+- [ ] **Step 6: Run the full `MacDiveDiveMapper` test file to confirm no regressions**
+
+```bash
+flutter test test/features/universal_import/data/services/macdive_dive_mapper_test.dart
+```
+
+Expected: all tests PASS (pre-existing + 3 new).
+
+- [ ] **Step 7: Run `flutter analyze` and `dart format`**
+
+```bash
+flutter analyze lib/features/universal_import/data/services/macdive_dive_mapper.dart
+dart format lib/features/universal_import/data/services/macdive_dive_mapper.dart
+```
+
+Expected: no analyzer issues; formatter makes no changes (or auto-fixes whitespace only).
+
+- [ ] **Step 8: Commit**
 
 ```bash
 git add lib/features/universal_import/data/services/macdive_dive_mapper.dart \
         test/features/universal_import/data/services/macdive_dive_mapper_test.dart
-git commit -m "feat(macdive): mapper projects decoded samples into ImportPayload profile"
+git commit -m "feat(macdive): decode ZRAWDATA profiles via libdivecomputer_plugin"
 ```
 
 ---
 
-## Task 6: Add `ImportWarning.sampleDecodeFailed` variant
+## Task 4: Add `ImportWarning.sampleDecodeFailed` variant (if it doesn't already exist)
 
 **Files:**
-- Modify: whatever file holds the `ImportWarning` sum type (locate via `grep -r 'class ImportWarning' lib/`).
-- Test: add a single test that constructs and renders the new variant.
+- Modify: the file identified in Task 1 Step 5 (wherever `class ImportWarning` lives).
+- Test: add or extend a unit test asserting the variant constructs and renders.
 
-- [ ] **Step 1: Write failing test.**
-- [ ] **Step 2: Add the variant.**
+Skip this entire task if Task 1 Step 5 found an existing compatible variant.
+
+- [ ] **Step 1: Write a failing test for the new variant**
+
+Add to the `ImportWarning` test file:
+
+```dart
+test('ImportWarning.sampleDecodeFailed carries diveUuid and reason', () {
+  final w = ImportWarning.sampleDecodeFailed(
+    diveUuid: 'abc-123',
+    reason: 'corrupt header',
+  );
+  expect(w.toString(), contains('abc-123'));
+  expect(w.toString(), contains('corrupt header'));
+});
+```
+
+- [ ] **Step 2: Add the variant following existing `ImportWarning` patterns**
+
+Consult the existing variants in the class. Add:
+
+```dart
+factory ImportWarning.sampleDecodeFailed({
+  required String diveUuid,
+  required String reason,
+}) {
+  return ImportWarning(
+    type: ImportWarningType.sampleDecodeFailed,
+    message: 'Profile decode failed for dive $diveUuid: $reason',
+    diveUuid: diveUuid,
+  );
+}
+```
+
+If the `ImportWarning` class uses a sealed-class / sum-type pattern (rather than a single class with a `type` enum), match that pattern instead. Read surrounding variants before writing this one.
+
 - [ ] **Step 3: Test passes.**
+
 - [ ] **Step 4: Commit.**
 
 ```bash
-git commit -m "feat(import): ImportWarning.sampleDecodeFailed variant"
+git commit -am "feat(import): ImportWarning.sampleDecodeFailed variant"
 ```
 
 ---
 
-## Task 7: Gated real-sample regression test
+## Task 5: Gated real-sample regression test
 
 **Files:**
 - Create: `test/features/universal_import/data/parsers/macdive_sqlite_real_sample_test.dart`
 
-Mirrors the existing `macdive_xml_real_sample_test.dart` pattern.
+Mirrors the structure of `test/features/universal_import/data/parsers/macdive_xml_real_sample_test.dart` (see the existing file for the exact tag, environment-variable, and skip-reason conventions used by the codebase).
 
-- [ ] **Step 1: Write the test, skipped by default**
+- [ ] **Step 1: Write the test file**
+
+File contents:
 
 ```dart
 @Tags(['real-data'])
 library;
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
-// ... imports
+import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/parsers/macdive_sqlite_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/uddf_import_parser.dart';
 
 void main() {
   const sqlitePath = String.fromEnvironment('MACDIVE_SQLITE_SAMPLE');
   const uddfPath = String.fromEnvironment('MACDIVE_UDDF_SAMPLE');
 
   test(
-    'ZRAWDATA decode agrees with UDDF profile per-UUID',
-    skip: sqlitePath.isEmpty ? 'Set --dart-define=MACDIVE_SQLITE_SAMPLE' : false,
+    'ZRAWDATA decode agrees with UDDF profile per-UUID for Shearwater dives',
+    skip: sqlitePath.isEmpty ? 'Set --dart-define=MACDIVE_SQLITE_SAMPLE' : null,
     () async {
       final sqliteBytes = File(sqlitePath).readAsBytesSync();
-      final uddfBytes = File(uddfPath).readAsBytesSync();
-      // Parse both.
-      final sqliteProfiles = await MacDiveSqliteParser().parse(sqliteBytes);
-      final uddfProfiles = await UddfImportParser().parse(uddfBytes);
+      final uddfBytes = uddfPath.isEmpty
+          ? null
+          : File(uddfPath).readAsBytesSync();
 
-      // Cross-check: for every dive UUID present in both, samples align within tolerance.
-      int checked = 0;
-      int warnings = 0;
-      for (final sqliteDive in sqliteProfiles.entities[ImportEntityType.dives] ?? []) {
-        final uuid = sqliteDive['source_uuid'];
-        final uddfDive = uddfProfiles.entities[ImportEntityType.dives]?.firstWhereOrNull((d) => d['source_uuid'] == uuid);
-        if (uddfDive == null) continue;
-        final sqliteProfile = sqliteDive['profile'] as List? ?? [];
-        final uddfProfile = uddfDive['profile'] as List? ?? [];
-        if (sqliteProfile.isEmpty && uddfProfile.isEmpty) continue;
-        if (sqliteProfile.isEmpty) {
-          warnings++;
-          continue;
-        }
-        // Both present. Compare.
-        expect(sqliteProfile.length, greaterThanOrEqualTo((uddfProfile.length * 0.95).floor()));
-        // Spot-check first sample.
-        expect((sqliteProfile[0]['timestamp'] as int), 0);
-        expect((sqliteProfile[0]['depth'] as double), closeTo(uddfProfile[0]['depth'] as double, 0.1));
-        checked++;
+      final sqlitePayload = await const MacDiveSqliteParser().parse(sqliteBytes);
+      final sqliteDives = sqlitePayload.entities[ImportEntityType.dives] ?? const [];
+
+      // Count coverage: Shearwater dives should all have non-empty profiles.
+      int shearwaterDives = 0;
+      int shearwaterDecoded = 0;
+      for (final dive in sqliteDives) {
+        final computer = (dive['computer'] as String?) ?? '';
+        if (!computer.startsWith('Shearwater')) continue;
+        shearwaterDives++;
+        if ((dive['profile'] as List).isNotEmpty) shearwaterDecoded++;
       }
-      expect(checked, greaterThan(200));  // should cover most Shearwater dives
-      // Bounded warnings: <5% of checked dives should emit a decode failure.
-      expect(warnings, lessThan(checked ~/ 20));
+      expect(shearwaterDives, greaterThan(200), reason: 'sample DB has ~267 Shearwater dives');
+      expect(shearwaterDecoded / shearwaterDives, greaterThan(0.95),
+          reason: 'at least 95% of Shearwater dives should decode cleanly');
+
+      // Cross-validate against UDDF per-UUID if UDDF path provided.
+      if (uddfBytes != null) {
+        final uddfPayload = await UddfImportParser().parse(uddfBytes);
+        final uddfByUuid = <String, Map<String, dynamic>>{
+          for (final d in (uddfPayload.entities[ImportEntityType.dives] ?? const []))
+            (d['source_uuid'] as String? ?? d['id'] as String? ?? ''): d,
+        };
+
+        int compared = 0;
+        int withinTolerance = 0;
+        for (final sqliteDive in sqliteDives) {
+          final uuid = sqliteDive['source_uuid'] as String?;
+          if (uuid == null) continue;
+          final uddfDive = uddfByUuid[uuid];
+          if (uddfDive == null) continue;
+
+          final sqliteProfile = (sqliteDive['profile'] as List?) ?? const [];
+          final uddfProfile = (uddfDive['profile'] as List?) ?? const [];
+          if (sqliteProfile.isEmpty || uddfProfile.isEmpty) continue;
+
+          compared++;
+          // Sample count should be within ±5% (libdivecomputer may decimate
+          // or MacDive may have added manual samples to UDDF).
+          final ratio = sqliteProfile.length / uddfProfile.length;
+          if (ratio >= 0.95 && ratio <= 1.05) withinTolerance++;
+
+          // First sample: timestamp should be 0, depth should match within 0.1m.
+          final s0 = sqliteProfile.first as Map;
+          final u0 = uddfProfile.first as Map;
+          expect(s0['timestamp'], 0);
+          expect(
+            (s0['depth'] as num).toDouble() - (u0['depth'] as num).toDouble(),
+            inInclusiveRange(-0.1, 0.1),
+            reason: 'dive $uuid first-sample depth mismatch',
+          );
+        }
+
+        expect(compared, greaterThan(200),
+            reason: 'should compare against at least 200 UUID-matched dives');
+        expect(withinTolerance / compared, greaterThan(0.90),
+            reason: '≥90% of compared dives should have sample counts within 5%');
+      }
+
+      // Bounded warnings: <5% of the Shearwater-dive set.
+      expect(sqlitePayload.warnings.length, lessThan(shearwaterDives ~/ 20));
     },
   );
 }
 ```
 
-- [ ] **Step 2: Run locally**
+- [ ] **Step 2: Run it locally**
 
 ```bash
 flutter test \
-  --dart-define=MACDIVE_SQLITE_SAMPLE=/path/to/sample.sqlite \
-  --dart-define=MACDIVE_UDDF_SAMPLE=/path/to/sample.uddf \
+  --dart-define=MACDIVE_SQLITE_SAMPLE=$(pwd)/scripts/sample_data/MacDive.sqlite \
+  --dart-define=MACDIVE_UDDF_SAMPLE="$(pwd)/scripts/sample_data/Apr 4 no iPad sync.uddf" \
   --run-skipped --tags=real-data \
   test/features/universal_import/data/parsers/macdive_sqlite_real_sample_test.dart
 ```
 
-Expected: passes with ~267 dives checked, warnings < 14.
+Expected: test passes. Roughly 267 Shearwater dives decoded. ≥90% have profile sample counts within 5% of the UDDF counterpart. First-sample depth matches UDDF within 0.1m.
 
-- [ ] **Step 3: Commit.**
+If the test fails: inspect the failure mode. Common causes and fixes:
+- Vendor/product mapping is incomplete → add the missing `ZCOMPUTER` string to `_vendorProductFromZComputer` in Task 3's code.
+- `libdivecomputer_plugin` isn't loaded in the test environment → tests that invoke the plugin require the native build; run via `flutter test` (which boots a Flutter engine), not `dart test`.
+- UDDF file doesn't contain `source_uuid` in the same shape as SQLite — the cross-check would skip those dives rather than failing, so the `compared > 200` assertion catches this.
+
+- [ ] **Step 3: Commit**
 
 ```bash
-git commit -m "test(macdive): gated real-sample test cross-validates ZRAWDATA vs UDDF profiles"
+git add test/features/universal_import/data/parsers/macdive_sqlite_real_sample_test.dart
+git commit -m "test(macdive): gated real-sample test cross-validates ZRAWDATA vs UDDF"
 ```
 
 ---
 
-## Task 8: Open the PR
+## Task 6: Open the PR
 
 - [ ] **Step 1: Push branch**
 
@@ -489,41 +625,42 @@ git commit -m "test(macdive): gated real-sample test cross-validates ZRAWDATA vs
 git push -u origin feature/macdive-profile-zrawdata
 ```
 
-- [ ] **Step 2: Open PR**
+(If `flutter analyze` pre-push hook fails with stale generated code, run `dart run build_runner build --delete-conflicting-outputs` and retry — same issue we hit in Phase 1.)
 
-If Phase 1 PR (#260) has merged: target `main`.
-If Phase 1 PR is still open and you want to stack: target `feature/macdive-zsamples-phase-1`.
+- [ ] **Step 2: Open PR against `main`**
 
 ```bash
 gh pr create --base main \
-  --title "MacDive profile decoding (Phase 2: ZRAWDATA via libdivecomputer)" \
+  --title "MacDive: decode ZRAWDATA profiles via libdivecomputer" \
   --body "$(cat <<'EOF'
 ## Summary
 
-Closes the ZSAMPLES profile gap from PR #256 via the pivot documented
-in the Phase 1 spike (see `docs/import-formats/macdive-zsamples.md`).
-Decodes `ZDIVE.ZRAWDATA` through the already-integrated
-`libdivecomputer_plugin` for 100% of Shearwater dives in the sample DB
-(267/267).
+Closes the profile-decoding gap from #256 (which landed metadata-only MacDive SQLite import) using the pivot documented in the Phase 1 spike (#260).
+
+- Decodes `ZDIVE.ZRAWDATA` via the already-integrated `libdivecomputer_plugin.parseRawDiveData()` API.
+- Produces full profile samples (depth, temp, tank pressure, ppO2, NDL, deco state) for **100% of Shearwater dives** in the sample DB (267/267).
+- Dives without `ZRAWDATA` (older imports, non-Shearwater computers, manual entries) continue to import metadata-only with an `ImportWarning` flagging why.
+
+## Why not `ZSAMPLES`
+
+See `docs/import-formats/macdive-zsamples.md` (landed in #260) — MacDive's proprietary `ZSAMPLES` column is per-dive AES-encrypted and was ruled NO-GO in the Phase 1 spike. `ZRAWDATA` is the raw dive-computer sensor dump, which libdivecomputer already parses natively.
 
 ## Changes
 
-- New `MacDiveSqliteSample` typed model (mirrors `MacDiveXmlSample`).
-- New `MacDiveSamplesDecoder` wrapping `libdivecomputer_plugin`.
-- Reader decodes `ZRAWDATA` per-dive; failures become `ImportWarning`.
-- Mapper projects decoded samples into the `ImportPayload` `profile` key.
-- Gated real-sample test cross-validates against user's UDDF export.
+- `MacDiveDiveMapper`: replace the hard-coded `profile: const []` with a ZRAWDATA decode + sample projection, following the `ShearwaterDiveMapper.mergeWithParsedDive` pattern already used for Shearwater Cloud import.
+- `_vendorProductFromZComputer` helper: maps `ZCOMPUTER` strings (`Shearwater Teric`, `Shearwater Tern`, etc.) to the `(vendor, product)` pair `libdivecomputer` expects.
+- `ImportWarning.sampleDecodeFailed`: new variant.
+- Tests: three unit tests for the mapper (success, decode failure, null ZRAWDATA) + one gated real-sample regression test that cross-validates against UDDF per-UUID.
 
 ## Test plan
 
-- [ ] `flutter test` — unit tests pass.
-- [ ] `flutter analyze` — clean.
-- [ ] `dart format` — clean.
-- [ ] Manual: import the sample SQLite; open a Shearwater dive;
-      confirm the depth-over-time chart renders.
-- [ ] Gated real-sample test passes locally with the user's 6.7MB DB.
+- [x] `flutter test test/features/universal_import/data/services/macdive_dive_mapper_test.dart` — unit tests pass.
+- [x] `flutter analyze` — clean.
+- [x] `dart format` — clean.
+- [ ] Manual: import the sample MacDive SQLite via the wizard, open a Shearwater dive, confirm the depth-over-time chart renders.
+- [ ] Gated real-sample test passes locally with the full 6.7MB sample DB + UDDF export.
 
-Prior work: #256 (metadata import, merged) → #260 (Phase 1 spike, open) → this PR.
+Prior work: #256 (metadata import, merged) → #260 (Phase 1 spike, merged or open) → this PR.
 EOF
 )"
 ```
@@ -534,15 +671,17 @@ EOF
 
 ## Self-Review Checklist
 
-- [ ] Spec requirement "decode SQLite profiles into same payload shape as UDDF" → Tasks 2–5.
-- [ ] Spec requirement "per-dive warnings on decode failure" → Tasks 4 + 6.
-- [ ] Spec requirement "unit tests + golden fixtures + gated real-sample test" → Tasks 2, 3, 7.
-- [ ] Spec requirement "no domain model or Drift schema changes" → verified: `DiveProfilePoint` and `dive_profiles` table unchanged.
-- [ ] No scope creep: does not touch XML path, does not touch Oceanic dives (outside current scope), does not modify duplicate checker or import wizard UI.
-- [ ] Pre-work note at top of plan will surface libdivecomputer API gaps before code is written.
+- [ ] Spec requirement "decode SQLite profiles into same payload shape as UDDF" → Task 3's projection builds the same map shape (`timestamp`, `depth`, `temperature`, `pressure`, `ppO2`, `ndl`, etc.) the UDDF path emits.
+- [ ] Spec requirement "per-dive warnings on decode failure" → Task 3's catch block + Task 4's `ImportWarning.sampleDecodeFailed` variant.
+- [ ] Spec requirement "unit tests + gated real-sample test" → Task 2 (3 unit tests) + Task 5 (real-sample test).
+- [ ] Spec requirement "no domain model or Drift schema changes" → verified: `DiveProfilePoint` and `dive_profiles` table unchanged. `ProfileSample` from the plugin is consumed directly; the importer converts to the Drift companion elsewhere (existing path).
+- [ ] Spec requirement "no new service, no new typed model (simpler than original skeleton plan)" → verified: `MacDiveSqliteSample` and `MacDiveSamplesDecoder` are NOT created. Plugin types + mapper change only.
+- [ ] No scope creep: does not touch XML path, does not touch Oceanic / Suunto dives, does not modify the duplicate checker or import wizard UI.
 
 ## Notes for the executor
 
-- If the `libdivecomputer_plugin` API requires a full device-download flow and does NOT expose a bytes-in / samples-out entry point, STOP at Pre-work. Report the gap; that's a new, larger plan (contribute the entry point upstream) that needs its own brainstorming cycle.
-- The 83 "ZSAMPLES-only, no ZRAWDATA" dives (~15% of dives with any sample data) will continue to emit `profile: []`. That's acceptable for this milestone; users can export those via MacDive UDDF if they need profile data.
-- Mapper projection intentionally duplicates (not shares) the XML parser's 10-line projection logic. Two simple functions beat one shared abstraction across parsers that evolve independently.
+- **The mapping table in Task 3 Step 2 is the single biggest correctness risk.** If a `ZCOMPUTER` string in the sample data doesn't match any switch case, that dive's decoder returns null and the profile ends up empty with NO warning (because we only warn when we TRIED and failed). Before shipping, extend the switch to cover every distinct `ZCOMPUTER` value you see: `sqlite3 scripts/sample_data/MacDive.sqlite 'SELECT DISTINCT ZCOMPUTER FROM ZDIVE WHERE ZRAWDATA IS NOT NULL;'` and verify each one is either in the switch or known-unsupported-by-libdivecomputer.
+- Non-Shearwater dive computers (Oceanic Matrix Master, etc.) have no `ZRAWDATA` in the sample DB, so mapping for them isn't needed for this plan. If a future user provides a DB with Oceanic ZRAWDATA, the mapper emits `profile: []` (no warning — because vendor/product lookup returns null); that's the correct behavior and matches the "best-effort" scope of this PR.
+- The 83 "ZSAMPLES-only, no ZRAWDATA" dives (~15% of dives with any sample data) will continue to emit `profile: []`. This is documented, expected, and matches the Phase 1 spike's explicit non-goal. Users can export UDDF from MacDive for those specific dives if they need profiles.
+- Mapper projection intentionally **duplicates** (does not share) the XML parser's projection logic. Two simple functions beat one shared abstraction across parsers that evolve independently.
+- If `libdivecomputer_plugin` is missing a model the sample DB references (e.g. a very new Shearwater firmware not in the bundled `libdivecomputer` submodule), `parseRawDiveData` will throw a `PigeonError` with a vendor-specific code. That falls into the catch-and-warn path; no special handling needed.
