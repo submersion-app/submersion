@@ -643,7 +643,7 @@ Closes the profile-decoding gap from #256 (which landed metadata-only MacDive SQ
 
 ## Why not `ZSAMPLES`
 
-See `docs/import-formats/macdive-zsamples.md` (landed in #260) — MacDive's proprietary `ZSAMPLES` column is per-dive AES-encrypted and was ruled NO-GO in the Phase 1 spike. `ZRAWDATA` is the raw dive-computer sensor dump, which libdivecomputer already parses natively.
+See `docs/import-formats/macdive-zsamples.md` — MacDive's proprietary `ZSAMPLES` column is per-dive AES-encrypted and was ruled NO-GO in the Phase 1 spike. `ZRAWDATA` is the raw dive-computer sensor dump, which libdivecomputer already parses natively.
 
 ## Changes
 
