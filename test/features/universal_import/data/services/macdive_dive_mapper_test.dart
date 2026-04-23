@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
@@ -113,22 +114,18 @@ void main() {
       expect(fresh.containsKey('longitude'), isFalse);
     });
 
-    test(
-      'profile is always empty (ZSAMPLES is proprietary, not decoded)',
-      () async {
-        final logbook = await MacDiveDbReader.readAll(bytes);
-        final payload = await MacDiveDiveMapper.toPayload(logbook);
-        for (final dive in payload.entitiesOf(ImportEntityType.dives)) {
-          final profile = dive['profile'] as List?;
-          // We either don't emit the key at all, or emit an empty list.
-          expect(
-            profile ?? const [],
-            isEmpty,
-            reason: 'M3 does not decode ZSAMPLES - profile stays empty',
-          );
-        }
-      },
-    );
+    test('profile is empty when synthetic fixture has no ZRAWDATA', () async {
+      final logbook = await MacDiveDbReader.readAll(bytes);
+      final payload = await MacDiveDiveMapper.toPayload(logbook);
+      for (final dive in payload.entitiesOf(ImportEntityType.dives)) {
+        final profile = dive['profile'] as List?;
+        // Synthetic fixture rows have no rawDataBlob, so _decodeProfile
+        // short-circuits and profile stays empty. When a real DB provides
+        // ZRAWDATA + a recognized ZCOMPUTER, profile is populated via
+        // libdivecomputer — see the ZRAWDATA group tests below.
+        expect(profile ?? const [], isEmpty);
+      }
+    });
 
     test('metadata includes source identifier and dive count', () async {
       final logbook = await MacDiveDbReader.readAll(bytes);
@@ -302,5 +299,64 @@ void main() {
       expect(returnedDives.first['profile'], isEmpty);
       expect(payload.warnings, isEmpty);
     });
+
+    test(
+      'MissingPluginException on first dive disables FFI for the rest',
+      () async {
+        final rawData = Uint8List.fromList(List.filled(32, 0x41));
+        final dive1 = MacDiveRawDive(
+          pk: 1,
+          uuid: 'dive-1',
+          computer: 'Shearwater Teric',
+          rawDataBlob: rawData,
+        );
+        final dive2 = MacDiveRawDive(
+          pk: 2,
+          uuid: 'dive-2',
+          computer: 'Shearwater Teric',
+          rawDataBlob: rawData,
+        );
+        final logbook = MacDiveRawLogbook(
+          dives: [dive1, dive2],
+          sitesByPk: const {},
+          buddiesByPk: const {},
+          tagsByPk: const {},
+          gearByPk: const {},
+          tanksByPk: const {},
+          gasesByPk: const {},
+          tankAndGases: const [],
+          crittersByPk: const {},
+          certifications: const [],
+          serviceRecords: const [],
+          events: const [],
+          diveToBuddyPks: const {},
+          diveToTagPks: const {},
+          diveToGearPks: const {},
+          diveToCritterPks: const {},
+          unitsPreference: 'Metric',
+        );
+
+        var callCount = 0;
+        final payload = await MacDiveDiveMapper.toPayload(
+          logbook,
+          parseRawDiveData: (v, p, m, d) async {
+            callCount++;
+            throw MissingPluginException('plugin missing');
+          },
+        );
+
+        // Both dives get profile:[] but the plugin is only called ONCE
+        // (for dive 1; dive 2 is skipped after the fatal error).
+        expect(callCount, 1);
+        final dives = payload.entitiesOf(ImportEntityType.dives);
+        expect(dives, hasLength(2));
+        expect(dives[0]['profile'], isEmpty);
+        expect(dives[1]['profile'], isEmpty);
+        // One info warning about FFI unavailability (dive-2 should NOT
+        // produce a per-dive decode warning).
+        expect(payload.warnings, hasLength(1));
+        expect(payload.warnings.first.severity, ImportWarningSeverity.info);
+      },
+    );
   });
 }

@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:flutter/services.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -57,10 +56,45 @@ class MacDiveDiveMapper {
     final tagMaps = _buildTagMaps(logbook);
     final gearMaps = _buildGearMaps(logbook, converter);
     final diveMaps = <Map<String, dynamic>>[];
+    bool ffiAvailable = true;
+
     for (final d in logbook.dives) {
-      diveMaps.add(
-        await _buildDiveMap(d, logbook, converter, parseFn, warnings),
-      );
+      try {
+        final effective = ffiAvailable ? parseFn : null;
+        diveMaps.add(
+          await _buildDiveMap(d, logbook, converter, effective, warnings),
+        );
+      } on MissingPluginException {
+        ffiAvailable = false;
+        warnings.add(
+          const ImportWarning(
+            severity: ImportWarningSeverity.info,
+            message:
+                'Dive-computer FFI plugin unavailable; profile decoding skipped for remaining dives.',
+            entityType: ImportEntityType.dives,
+          ),
+        );
+        diveMaps.add(
+          await _buildDiveMap(d, logbook, converter, null, warnings),
+        );
+      } on PlatformException catch (e) {
+        if (e.code == 'UNSUPPORTED' || e.code == 'channel-error') {
+          ffiAvailable = false;
+          warnings.add(
+            ImportWarning(
+              severity: ImportWarningSeverity.info,
+              message:
+                  'Dive-computer FFI unavailable (${e.code}); profile decoding skipped for remaining dives.',
+              entityType: ImportEntityType.dives,
+            ),
+          );
+          diveMaps.add(
+            await _buildDiveMap(d, logbook, converter, null, warnings),
+          );
+        } else {
+          rethrow;
+        }
+      }
     }
 
     final entities = <ImportEntityType, List<Map<String, dynamic>>>{};
@@ -211,7 +245,7 @@ class MacDiveDiveMapper {
     MacDiveRawDive d,
     MacDiveRawLogbook logbook,
     MacDiveUnitConverter c,
-    ParseRawDiveDataFn parseFn,
+    ParseRawDiveDataFn? parseFn,
     List<ImportWarning> warnings,
   ) async {
     final map = <String, dynamic>{};
@@ -385,9 +419,10 @@ class MacDiveDiveMapper {
 
   static Future<List<Map<String, dynamic>>> _decodeProfile(
     MacDiveRawDive dive,
-    ParseRawDiveDataFn parseFn,
+    ParseRawDiveDataFn? parseFn, // null = FFI known unavailable; skip decode
     List<ImportWarning> warnings,
   ) async {
+    if (parseFn == null) return const [];
     final rawData = dive.rawDataBlob;
     final vendorProduct = _vendorProductFromZComputer(dive.computer);
     if (rawData == null || rawData.isEmpty || vendorProduct == null) {
@@ -401,6 +436,18 @@ class MacDiveDiveMapper {
         rawData,
       );
       return _projectSamples(parsed);
+    } on MissingPluginException {
+      rethrow;
+    } on PlatformException catch (e) {
+      if (e.code == 'UNSUPPORTED' || e.code == 'channel-error') rethrow;
+      warnings.add(
+        ImportWarning(
+          severity: ImportWarningSeverity.warning,
+          message: 'Profile decode failed for dive ${dive.uuid}: $e',
+          entityType: ImportEntityType.dives,
+        ),
+      );
+      return const [];
     } catch (e) {
       warnings.add(
         ImportWarning(
@@ -448,9 +495,13 @@ class MacDiveDiveMapper {
   }
 
   /// Maps MacDive's ZCOMPUTER string to the (vendor, product) pair
-  /// libdivecomputer expects. Returns null for computers the plugin
-  /// does not support — caller emits `profile: []` without a warning
-  /// (not a decode failure, just an unsupported model).
+  /// libdivecomputer expects. Currently covers Shearwater models observed
+  /// in the 2026 sample DB plus the two newer 2024+ releases (Perdix 2,
+  /// NERD 2). Returns null for computers the plugin does not support —
+  /// caller emits `profile: []` without a warning (not a decode failure,
+  /// just an unsupported model).
+  ///
+  /// Supported set: Teric, Tern, Petrel, Perdix, Perdix 2, Nerd, NERD 2.
   static (String, String)? _vendorProductFromZComputer(String? zComputer) {
     if (zComputer == null) return null;
     switch (zComputer) {
@@ -462,8 +513,12 @@ class MacDiveDiveMapper {
         return ('Shearwater', 'Petrel');
       case 'Shearwater Perdix':
         return ('Shearwater', 'Perdix');
+      case 'Shearwater Perdix 2':
+        return ('Shearwater', 'Perdix 2');
       case 'Shearwater Nerd':
         return ('Shearwater', 'Nerd');
+      case 'Shearwater NERD 2':
+        return ('Shearwater', 'NERD 2');
       default:
         return null;
     }
