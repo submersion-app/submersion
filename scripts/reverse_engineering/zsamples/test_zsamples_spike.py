@@ -191,3 +191,14 @@ def test_score_tolerances_depth_and_temp():
 
     assert score_decode(decoded_ok, truth).pct_samples_within_tolerance == 1.0
     assert score_decode(decoded_bad, truth).pct_samples_within_tolerance == 0.0
+
+
+def test_score_depth_rmse_is_nan_when_no_timestamps_overlap():
+    """A completely-failed decoder should produce NaN depth_rmse, not 0.0 (which masks failure)."""
+    import math
+    truth = [{"time_s": 0, "depth_m": 10.0}, {"time_s": 10, "depth_m": 20.0}]
+    decoded = [{"time_s": 999, "depth_m": 5.0}]  # no timestamp overlap
+    score = score_decode(decoded, truth)
+    assert math.isnan(score.depth_rmse), f"expected NaN, got {score.depth_rmse}"
+    assert score.matched_samples == 0
+    assert score.pct_samples_within_tolerance == 0.0

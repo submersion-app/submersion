@@ -77,7 +77,7 @@ def score_decode(decoded: list[dict], truth: list[dict]) -> Score:
     return Score(
         sample_count_match=min(1.0, len(decoded) / truth_n) if truth_n else 0.0,
         timestamp_rmse=0.0,  # we match by exact time; non-matches excluded
-        depth_rmse=math.sqrt(depth_squared_err / max(1, timestamps_matched)),
+        depth_rmse=math.sqrt(depth_squared_err / timestamps_matched) if timestamps_matched else float("nan"),
         temperature_rmse=math.sqrt(temp_squared_err / max(1, temp_count)) if temp_count else 0.0,
         pct_samples_within_tolerance=matched_samples / max(1, len(truth)),
         matched_samples=matched_samples,
