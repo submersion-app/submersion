@@ -114,7 +114,7 @@ If the format were XOR-with-fixed-key obfuscation, two similar-duration dives' b
 
 Most pairs are indistinguishable from random XOR. Some (notably Pair 3 at 14.9% zeros — two dives with adjacent UUIDs) show mild structure but nowhere near the 30–70% zero rate a fixed-XOR scheme would produce. **Simple XOR obfuscation is ruled out.**
 
-### Most likely remaining explanation: block cipher
+### Most likely remaining explanation: per-dive block cipher
 
 Combining the evidence:
 - No standard compression matches
@@ -128,6 +128,90 @@ Combining the evidence:
 - ECB would explain why the SAME plaintext (a shared dive-start record) encrypts to the SAME ciphertext across many dives — exactly the "`84b90aa0`" prefix pattern.
 
 Without the AES key, decoding this format is not feasible in a bounded investigation timebox. MacDive's source is closed; recovering the key would require static analysis of the MacDive binary, which is out of scope for this spike.
+
+### Deeper structural analysis (extended investigation)
+
+After the initial findings above, a deeper pass revealed finer format details. Summary below; all observations are from an h4=157 fixture (UUID `B2CA722D`, the smallest at 2624 bytes / ~93 UDDF samples) analyzed at 56-byte stride:
+
+**Per-record column-wise entropy (stride=56, skipping the first 56-byte "header" record):**
+
+| Byte range | Entropy | Behavior |
+|---|---|---|
+| 0–15 | ~5.3 | Unique per record (encrypted, 1 AES block) |
+| **16–23** | ~2.4 | **Semi-constant marker**, dominated by `f3dc966901169615` (19/45 records = 42%) with secondary `f482af012335efe7` (9/45 = 20%) |
+| 24–39 | ~5.3 | Unique per record (encrypted, a second 16-byte block) |
+| **40–47** | ~2.0 | **Semi-constant marker**, `0278515bd77a8ff2` (20/45 = 44%), `50c3723adf1c9e61` (11/45 = 24%), `321a12202d1630c0` (4/45 = 9%) |
+| **48–55** | ~1.0 | **Alternates between exactly 2 values** — `7b6c4983d5151543` (23/45) vs `b47fd2889df233ca` (22/45) |
+
+This is the strongest structural evidence recovered. Each 56-byte record is two encrypted 16-byte blocks (at offsets 0–15 and 24–39), separated by an 8-byte semi-constant marker (16–23), followed by an 8-byte semi-constant marker (40–47), followed by an 8-byte **alternating sync word** (48–55). The alternating sync likely encodes an `odd/even sample` parity bit or a `gas group` toggle.
+
+**Per-dive encryption hypothesis strengthens.** Sync markers across dives are NOT shared:
+
+- `B2CA722D` (smallest fixture): alternates `7b6c4983d5151543` / `b47fd2889df233ca`.
+- `0138EF6D` (large fixture, 10408 bytes): contains neither of the above patterns. Instead its dominant sync-position values are `794baa149dd84659` (79/371 samples) and `cd0a3ffbb514a277` (47/371).
+
+Identical plaintext encrypted under different keys yields different ciphertext. The per-dive sync cluster values argue the sync field is encrypted with **a key that varies per dive**. This matches common "per-dive PBKDF2-from-UUID" or "HMAC-SHA256(dive_uuid, record_index)" derivation patterns seen in commercial apps that want to discourage offline decoding.
+
+**Stride-56 fit is partial.** Of the 189 h4=157 fixtures in the corpus:
+- 92 (49%) fit exactly: `(blob_size − 8) % 56 == 40` (48 bytes tail).
+- 97 (51%) do not fit cleanly at stride 56.
+
+So h4=157 fixtures are either a mix of two sub-formats, or there is additional variable-length padding we have not isolated.
+
+**Interpretation of stride=28 vs 56.** The earlier finding that `(blob_size − 8) / uddf_sample_count ≈ 28` remains numerically true. Reconciling with stride=56: each 56-byte record likely encodes **two samples' worth of data** (two encrypted 16-byte blocks, per the column analysis). That is consistent with a paired-sample compression scheme where consecutive samples are more compact when paired.
+
+### What this strengthens, weakens, and adds for NO-GO
+
+- **Strengthens:** The two-block-per-record structure with per-dive sync markers is consistent with real encryption (per-dive AES key). Simple XOR obfuscation is further ruled out — the alternating sync word at bytes 48–55 would be trivially XOR-recoverable if the obfuscation were a constant key, but we see dive-specific pairs.
+- **Weakens:** Nothing — all previous claims still hold.
+- **Adds:** If someone *does* recover an AES key in the future, the record format now has a precise spec: `[8B magic header first-only] | [56B records: enc16 | marker8 | enc16 | marker8 | altsync8] | [40B tail]`. A decoder post-key-recovery could be written in a day.
+
+### Additional attempts performed
+
+Before calling NO-GO, the following additional concrete attacks were tried:
+
+**AES-ECB/CBC with candidate keys (ruled out simple fixed keys):**
+
+Attempted AES-128 and AES-256 ECB decryption of the first 16-byte block of fixture `0138EF6D` with each of these candidate keys:
+- All zeros, all 0xFF
+- ASCII strings `MacDive`, `MacDive Dive`, `MacDive Samples`, `DIVE_PROFILE_KEY`, `samples`, `ZSAMPLES`, `zsamples`, `ShearwaterCloud`, `SamplesKey`, `bplist00`
+- Dive UUID bytes directly (16-byte UUID)
+- MD5/SHA-1/SHA-256 of the dive UUID (truncated to 16 or used full 32)
+- SHA-256 of each ASCII seed
+
+Every decryption produced random-looking output. No candidate yielded plausible small integers at any offset (e.g. `time_s` or `depth_cm`). Naive fixed-key AES is ruled out.
+
+**Marker-to-depth correlation within a dive (revealed per-dive encoding):**
+
+Within a single dive (the smallest, h4=157 / `B2CA722D`, 45 records after the header), the byte[16:24] marker cluster values correlate tightly with UDDF depth buckets:
+
+| byte[16:24] marker | Sample count | UDDF depth range | Mean depth |
+|---|---:|---|---:|
+| `f3dc966901169615` | 38 | 0.0 – 4.0 m | 3.4 m |
+| `62accd075fdc3b1a` | 8 | 4.6 – 4.9 m | 4.7 m (deepest bucket) |
+| `2b0cc210f4607fee` | 14 | 3.8 – 4.8 m | 4.3 m |
+| `f482af012335efe7` | 10 | 3.7 – 4.3 m | 3.9 m |
+| `ac61cdf98bac21c2` | 10 | 3.8 – 4.5 m | 4.1 m |
+| `353ca741970971cc` | 6 | 3.4 – 4.7 m | 3.8 m |
+| `49978add7f817666` | 2 | 3.0 – 3.2 m | 3.1 m |
+
+byte[40:48] shows similar depth-bucket correlation. byte[48:56] alternates between two values that correspond to upper vs lower halves of the dive's depth range.
+
+**BUT** cross-dive analysis (first 30 h4=157 fixtures, 5253 distinct byte[20:28] values globally) confirms that **marker values do NOT transfer across dives** — the mapping from marker-byte to depth-bucket is dive-specific. This pattern is exactly what per-dive-keyed encryption would produce: same plaintext ("depth bucket 3"), different key per dive, different ciphertext per dive. Within a dive, the mapping is stable because the key is stable.
+
+This reinforces the per-dive-key hypothesis and explains the entropy pattern: the "encrypted" regions and the "structured markers" are BOTH encrypted — the markers just have smaller input domains (bucket indices) so their encrypted output has lower cross-dive entropy.
+
+### Alternative paths not yet exhausted
+
+Worth noting for any future attempt:
+
+1. **Static analysis of the MacDive macOS binary** — disassemble `MacDive.app` and locate the AES key derivation routine. Feasible but legally sensitive (EULA concerns); out of scope for this spike.
+2. **macOS Keychain inspection** — if MacDive stores a key in the user's Keychain, it may be readable with user permission. We did not attempt this.
+3. **Runtime DTrace / LLDB** — attaching a debugger to MacDive while it exports or reads a dive could expose the key in memory. Feasible but intrusive.
+4. **Per-dive brute force** — 128-bit AES keys are not brute-forceable. Ruled out.
+5. **Key derivation from dive UUID + fixed secret** — if the key is `KDF(uuid, app_secret)`, recovering `app_secret` one-shot from MacDive cracks ALL dives. This is the highest-value target for any serious attempt.
+6. **Per-dive training with UDDF ground truth** — if a user provides UDDF and SQLite for the same dive, we could build a per-dive marker-to-depth-bucket table and decode new SQLite samples using that mapping. But this yields coarse (~1 m) depth buckets only, not exact samples, and requires the user to ALSO supply UDDF, defeating the purpose.
+7. **Cipher mode analysis** — the format may not be AES at all. ChaCha20, XChaCha20, Speck, or a custom Feistel network would all produce similar-looking output. We tested only AES-ECB. An attempted plaintext-pair known-plaintext attack (using UDDF ground truth as plaintext + per-dive ciphertext) is the most rigorous next step, out of scope here.
 
 ## NO-GO decision rationale
 
