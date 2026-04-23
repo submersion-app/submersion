@@ -4,8 +4,8 @@
 // Exercises the importer path end-to-end against an in-memory AppDatabase
 // to verify that the fields parsed out of MacDive UDDF land in the new DB
 // columns (dives.boat_name / boat_captain / dive_operator / surface_conditions
-// / dive_number_of_day / weather_description and dive_sites.water_type /
-// body_of_water / difficulty).
+// / weather_description and dive_sites.water_type / body_of_water /
+// difficulty).
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
@@ -48,7 +48,6 @@ const _macDiveRichUddf = '''<?xml version="1.0" encoding="UTF-8" ?>
         <link ref="site-RICH-UUID" />
         <datetime>2024-06-01T09:00:00</datetime>
         <divenumber>42</divenumber>
-        <divenumberofday>3</divenumberofday>
       </informationbeforedive>
       <informationafterdive>
         <greatestdepth>18</greatestdepth>
@@ -129,7 +128,6 @@ void main() {
       expect(dive.boatName, 'MV Nautilus');
       expect(dive.boatCaptain, 'Jane Smith');
       expect(dive.diveOperator, 'Nautilus Liveaboards');
-      expect(dive.diveNumberOfDay, 3);
       expect(dive.surfaceConditions, 'Calm');
       expect(
         dive.weatherDescription,

@@ -1211,14 +1211,12 @@ class UddfEntityImporter {
       // domain entity. Also plug `weather` into the existing weatherDescription
       // column (it wasn't being populated for UDDF imports). Only issue the
       // UPDATE when at least one value is present to avoid a no-op write.
-      final diveNumberOfDay = diveData['diveNumberOfDay'] as int?;
       final boatName = diveData['boatName'] as String?;
       final boatCaptain = diveData['boatCaptain'] as String?;
       final diveOperator = diveData['diveOperator'] as String?;
       final surfaceConditions = diveData['surfaceConditions'] as String?;
       final weather = diveData['weather'] as String?;
-      if (diveNumberOfDay != null ||
-          boatName != null ||
+      if (boatName != null ||
           boatCaptain != null ||
           diveOperator != null ||
           surfaceConditions != null ||
@@ -1226,9 +1224,6 @@ class UddfEntityImporter {
         await repos.diveRepository.applyImportedMetadata(
           diveId,
           DivesCompanion(
-            diveNumberOfDay: diveNumberOfDay != null
-                ? Value(diveNumberOfDay)
-                : const Value.absent(),
             boatName: boatName != null ? Value(boatName) : const Value.absent(),
             boatCaptain: boatCaptain != null
                 ? Value(boatCaptain)

@@ -182,7 +182,6 @@ const _macDiveRichFields = '''<?xml version="1.0" encoding="UTF-8" ?>
       <informationbeforedive>
         <datetime>2024-06-01T09:00:00</datetime>
         <divenumber>42</divenumber>
-        <divenumberofday>3</divenumberofday>
       </informationbeforedive>
       <informationafterdive>
         <greatestdepth>18</greatestdepth>
@@ -622,7 +621,7 @@ void main() {
     setUp(() => service = UddfFullImportService());
 
     test('extracts weather, surfaceConditions, boatName, boatCaptain, '
-        'diveOperator, diveNumberOfDay, sourceUuid', () async {
+        'diveOperator, sourceUuid', () async {
       final r = await service.importAllDataFromUddf(_macDiveRichFields);
       final d = r.dives.first;
       expect(d['weather'], 'Sunny');
@@ -630,7 +629,6 @@ void main() {
       expect(d['boatName'], 'MV Nautilus');
       expect(d['boatCaptain'], 'Jane Smith');
       expect(d['diveOperator'], 'Nautilus Liveaboards');
-      expect(d['diveNumberOfDay'], 3);
       expect(d['sourceUuid'], 'd-RICH-UUID');
     });
 

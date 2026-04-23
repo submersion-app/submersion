@@ -529,16 +529,6 @@ class UddfFullImportService {
         'divemaster',
       );
 
-      // MacDive exposes per-day dive counter in informationbeforedive
-      final dnodRaw = UddfImportParsers.getElementText(
-        beforeElement,
-        'divenumberofday',
-      );
-      final dnod = dnodRaw == null ? null : int.tryParse(dnodRaw);
-      if (dnod != null) {
-        diveData['diveNumberOfDay'] = dnod;
-      }
-
       final diveType = UddfImportParsers.getElementText(
         beforeElement,
         'divetype',

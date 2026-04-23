@@ -55,7 +55,6 @@ void main() {
       final cols = await db.customSelect("PRAGMA table_info('dives')").get();
       final names = cols.map((c) => c.read<String>('name')).toSet();
 
-      expect(names, contains('dive_number_of_day'));
       expect(names, contains('boat_name'));
       expect(names, contains('boat_captain'));
       expect(names, contains('dive_operator'));
@@ -89,7 +88,6 @@ void main() {
         final cols = await db.customSelect("PRAGMA table_info('dives')").get();
         final names = cols.map((c) => c.read<String>('name')).toSet();
 
-        expect(names, contains('dive_number_of_day'));
         expect(names, contains('boat_name'));
         expect(names, contains('boat_captain'));
         expect(names, contains('dive_operator'));
