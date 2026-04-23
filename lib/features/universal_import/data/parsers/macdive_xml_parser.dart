@@ -109,11 +109,14 @@ class MacDiveXmlParser implements ImportParser {
       }
 
       if (dive.buddies.isNotEmpty) {
+        // Per-dive dedup: a dive with duplicate `<buddy>` entries would
+        // otherwise emit repeated refs. The buddy repo tolerates this by
+        // UPSERTing, but the redundant round-trips are wasted work.
         final buddyRefs = <String>[];
         for (final buddy in dive.buddies) {
           final trimmed = buddy.trim();
           if (trimmed.isEmpty) continue;
-          buddyRefs.add(trimmed);
+          if (!buddyRefs.contains(trimmed)) buddyRefs.add(trimmed);
           buddiesByName.putIfAbsent(
             trimmed,
             () => <String, dynamic>{'name': trimmed, 'uddfId': trimmed},
@@ -150,11 +153,14 @@ class MacDiveXmlParser implements ImportParser {
       }
 
       if (dive.tags.isNotEmpty) {
+        // Per-dive dedup: `dive_tags` has no UNIQUE(diveId, tagId)
+        // constraint, so duplicate `<tag>` entries would create duplicate
+        // junction rows that surface as a tag appearing twice on a dive.
         final tagNames = <String>[];
         for (final tag in dive.tags) {
           final trimmed = tag.trim();
           if (trimmed.isEmpty) continue;
-          tagNames.add(trimmed);
+          if (!tagNames.contains(trimmed)) tagNames.add(trimmed);
           tagsByName.putIfAbsent(
             trimmed,
             () => <String, dynamic>{'name': trimmed, 'uddfId': trimmed},
@@ -238,8 +244,8 @@ class MacDiveXmlParser implements ImportParser {
     if (entryMethod != null) map['entryMethod'] = entryMethod.name;
     if (d.computer != null) map['diveComputerModel'] = d.computer;
     if (d.serial != null) map['diveComputerSerial'] = d.serial;
-    // MacDive rating is a 0.0-5.0 float; Submersion stores 0-5 int.
-    if (d.rating != null) map['rating'] = d.rating!.clamp(0.0, 5.0).round();
+    final rating = MacDiveValueMapper.rating(d.rating);
+    if (rating != null) map['rating'] = rating;
 
     // Tanks: each <gas> becomes a tank map using the same key conventions as
     // the Subsurface and UDDF parsers so `UddfEntityImporter._buildTanks` can

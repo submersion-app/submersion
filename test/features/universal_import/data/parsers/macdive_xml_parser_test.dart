@@ -231,6 +231,40 @@ void main() {
       },
     );
 
+    test('duplicate <buddy> entries on one dive dedupe in buddyRefs', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 09:00:00</date><identifier>d1</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <buddies><buddy>Alice</buddy><buddy>Alice</buddy><buddy>Bob</buddy></buddies>
+    <samples/>
+  </dive>
+</dives>''';
+      final bytes = Uint8List.fromList(utf8.encode(xml));
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final dive = payload.entitiesOf(ImportEntityType.dives).first;
+      expect(dive['buddyRefs'], ['Alice', 'Bob']);
+    });
+
+    test('duplicate <tag> entries on one dive dedupe in tagRefs', () async {
+      // dive_tags has no UNIQUE(diveId, tagId) constraint, so duplicates
+      // would surface as the same tag shown twice on a dive.
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 09:00:00</date><identifier>d1</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <tags><tag>Reef</tag><tag>Reef</tag><tag>Photography</tag></tags>
+    <samples/>
+  </dive>
+</dives>''';
+      final bytes = Uint8List.fromList(utf8.encode(xml));
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final dive = payload.entitiesOf(ImportEntityType.dives).first;
+      expect(dive['tagRefs'], ['Reef', 'Photography']);
+    });
+
     test('multiple dives with overlapping buddies dedup', () async {
       const xml = '''<?xml version="1.0"?>
 <dives><units>Metric</units><schema>2.2.0</schema>
