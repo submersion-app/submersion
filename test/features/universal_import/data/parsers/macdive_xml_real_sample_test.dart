@@ -1,3 +1,16 @@
+/// MacDive XML real-sample regression suite.
+///
+/// These tests exercise a real MacDive native XML export that is not checked
+/// into the repository. To run them locally, point the [MACDIVE_XML_SAMPLE]
+/// compile-time environment variable at your local sample file:
+///
+///   flutter test \
+///     --dart-define=MACDIVE_XML_SAMPLE=/absolute/path/to/sample.xml \
+///     --run-skipped --tags=real-data \
+///     test/features/universal_import/data/parsers/macdive_xml_real_sample_test.dart
+///
+/// Without the env var (or when the file at that path does not exist), every
+/// test in this suite is cleanly skipped so CI and fresh clones stay green.
 @Tags(['real-data'])
 library;
 
@@ -11,23 +24,41 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_xml_parser.dart';
 
-const _realSamplePath =
-    '/Users/ericgriffin/Documents/submersion development/submersion data/Macdive/Apr 4 no iPad Mini sync.xml';
+/// Compile-time env var that points at a local MacDive native XML sample.
+///
+/// Injected via `flutter test --dart-define=MACDIVE_XML_SAMPLE=...`.
+const _realSamplePathEnvVar = String.fromEnvironment('MACDIVE_XML_SAMPLE');
+
+String? _realSamplePath() {
+  if (_realSamplePathEnvVar.isEmpty) return null;
+  return _realSamplePathEnvVar;
+}
 
 void main() {
   group('MacDive XML real-sample regression', () {
     late Uint8List bytes;
+    var hasFixture = false;
 
     setUpAll(() async {
-      final file = File(_realSamplePath);
-      if (!file.existsSync()) {
-        markTestSkipped('Real sample not available in this environment');
-        return;
-      }
+      final path = _realSamplePath();
+      if (path == null) return;
+      final file = File(path);
+      if (!file.existsSync()) return;
       bytes = Uint8List.fromList(utf8.encode(await file.readAsString()));
+      hasFixture = true;
     });
 
+    bool skipIfNoFixture() {
+      if (hasFixture) return false;
+      markTestSkipped(
+        'Real sample not available. Set MACDIVE_XML_SAMPLE via '
+        '--dart-define and pass --run-skipped --tags=real-data to run.',
+      );
+      return true;
+    }
+
     test('parses 540 dives without errors', () async {
+      if (skipIfNoFixture()) return;
       final payload = await const MacDiveXmlParser().parse(bytes);
       expect(payload.entitiesOf(ImportEntityType.dives).length, 540);
       // No errors (warnings are ok).
@@ -40,6 +71,7 @@ void main() {
     });
 
     test('every dive has a sourceUuid from <identifier>', () async {
+      if (skipIfNoFixture()) return;
       final payload = await const MacDiveXmlParser().parse(bytes);
       final dives = payload.entitiesOf(ImportEntityType.dives);
       expect(
@@ -50,6 +82,7 @@ void main() {
     });
 
     test('tags imported (MacDive XML has tags, unlike MacDive UDDF)', () async {
+      if (skipIfNoFixture()) return;
       final payload = await const MacDiveXmlParser().parse(bytes);
       final tags = payload.entitiesOf(ImportEntityType.tags);
       expect(
@@ -65,6 +98,7 @@ void main() {
     });
 
     test('sites deduped by name', () async {
+      if (skipIfNoFixture()) return;
       final payload = await const MacDiveXmlParser().parse(bytes);
       final sites = payload.entitiesOf(ImportEntityType.sites);
       expect(sites, isNotEmpty);
@@ -77,6 +111,7 @@ void main() {
     });
 
     test('at least one dive has tagRefs populated', () async {
+      if (skipIfNoFixture()) return;
       final payload = await const MacDiveXmlParser().parse(bytes);
       final dives = payload.entitiesOf(ImportEntityType.dives);
       final withTags = dives.where(
@@ -86,6 +121,7 @@ void main() {
     });
 
     test('at least one dive has tanks + profile populated', () async {
+      if (skipIfNoFixture()) return;
       final payload = await const MacDiveXmlParser().parse(bytes);
       final dives = payload.entitiesOf(ImportEntityType.dives);
       final withTanks = dives.where(
@@ -99,6 +135,7 @@ void main() {
     });
 
     test('imperial sample: max depth values are plausible in meters', () async {
+      if (skipIfNoFixture()) return;
       final payload = await const MacDiveXmlParser().parse(bytes);
       final dives = payload.entitiesOf(ImportEntityType.dives);
       // After conversion, max depths should be mostly 5-80 meters (reasonable
