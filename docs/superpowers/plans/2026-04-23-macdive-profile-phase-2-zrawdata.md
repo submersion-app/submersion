@@ -9,8 +9,8 @@
 **Tech Stack:** Flutter, Dart 3, `libdivecomputer_plugin` (local package at `packages/libdivecomputer_plugin/`), Riverpod, `flutter_test`.
 
 **Dependencies:**
-- PR for the Phase 1 spike (`feature/macdive-zsamples-phase-1`) must merge first (adds `docs/import-formats/macdive-zsamples.md` and the retained tooling). That branch targets `feature/macdive-sqlite`.
-- PR #256 (`feature/macdive-sqlite`) must be open throughout so Phase 2 can target it.
+- PR #256 (MacDive SQLite import, `feature/macdive-sqlite`) is **merged** to `main` as of 2026-04-23. All reader/mapper files this plan modifies already live on `main`.
+- The Phase 1 spike PR (#260, `feature/macdive-zsamples-phase-1`) should merge before this work starts, so `docs/import-formats/macdive-zsamples.md` and the retained tooling are on `main`. Alternatively, this work can stack on top of `feature/macdive-zsamples-phase-1` — either target works.
 - The `libdivecomputer` git submodule must be initialized in the worktree.
 
 **Spec:** `docs/superpowers/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md` (as updated with the Phase 1 outcome).
@@ -62,10 +62,18 @@ If the API is workable, the rest of this plan applies.
 
 **Files:** No files created.
 
-- [ ] **Step 1: Create the Phase 2 worktree from the Phase 1 branch tip**
+- [ ] **Step 1: Create the Phase 2 worktree**
 
+After the Phase 1 PR (#260) merges to `main`, base off `main`:
 ```bash
 git fetch origin
+git worktree add -b feature/macdive-profile-zrawdata \
+  .worktrees/macdive-profile-zrawdata \
+  origin/main
+```
+
+If Phase 1 PR is still open and you want to stack (and later rebase once #260 merges), base off its branch instead:
+```bash
 git worktree add -b feature/macdive-profile-zrawdata \
   .worktrees/macdive-profile-zrawdata \
   origin/feature/macdive-zsamples-phase-1
@@ -481,10 +489,13 @@ git commit -m "test(macdive): gated real-sample test cross-validates ZRAWDATA vs
 git push -u origin feature/macdive-profile-zrawdata
 ```
 
-- [ ] **Step 2: Open PR against `feature/macdive-zsamples-phase-1`** (which in turn targets `feature/macdive-sqlite`).
+- [ ] **Step 2: Open PR**
+
+If Phase 1 PR (#260) has merged: target `main`.
+If Phase 1 PR is still open and you want to stack: target `feature/macdive-zsamples-phase-1`.
 
 ```bash
-gh pr create --base feature/macdive-zsamples-phase-1 \
+gh pr create --base main \
   --title "MacDive profile decoding (Phase 2: ZRAWDATA via libdivecomputer)" \
   --body "$(cat <<'EOF'
 ## Summary
@@ -512,7 +523,7 @@ Decodes `ZDIVE.ZRAWDATA` through the already-integrated
       confirm the depth-over-time chart renders.
 - [ ] Gated real-sample test passes locally with the user's 6.7MB DB.
 
-Stacked on: #256 → `feature/macdive-zsamples-phase-1` → this PR.
+Prior work: #256 (metadata import, merged) → #260 (Phase 1 spike, open) → this PR.
 EOF
 )"
 ```
