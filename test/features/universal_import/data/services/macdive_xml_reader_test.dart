@@ -172,6 +172,19 @@ void main() {
       expect(dive.boat, isNull);
     });
 
+    test('throws when root element is not <dives>', () {
+      // Guards against a source-override misuse where a user forces "MacDive
+      // XML" on a UDDF or other file: without this check, the reader would
+      // silently return an empty logbook.
+      const uddf =
+          '<?xml version="1.0"?>'
+          '<uddf version="3.2.0"><profiledata/></uddf>';
+      expect(
+        () => MacDiveXmlReader.parse(uddf),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
     test('unknown units system passes through numerics unchanged', () {
       const xml = '''<?xml version="1.0"?>
 <dives>

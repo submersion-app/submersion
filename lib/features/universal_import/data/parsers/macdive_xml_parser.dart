@@ -130,10 +130,23 @@ class MacDiveXmlParser implements ImportParser {
         }
       }
 
-      for (final g in dive.gear) {
-        final key = _gearKey(g);
-        if (key.isEmpty) continue;
-        gearByKey.putIfAbsent(key, () => _mapGear(g));
+      // Collect gear: record a per-dive `equipmentRefs` list keyed by the
+      // same composite key used for dedup, so `UddfEntityImporter` can link
+      // the imported equipment entities back to the dive via its
+      // `equipmentIdMapping` (uddfId -> newId) lookup. Without this, dedup
+      // still produces the entity list but the dive wouldn't reference any
+      // of it.
+      if (dive.gear.isNotEmpty) {
+        final equipmentRefs = <String>[];
+        for (final g in dive.gear) {
+          final key = _gearKey(g);
+          if (key.isEmpty) continue;
+          if (!equipmentRefs.contains(key)) equipmentRefs.add(key);
+          gearByKey.putIfAbsent(key, () => _mapGear(g, uddfId: key));
+        }
+        if (equipmentRefs.isNotEmpty) {
+          diveMap['equipmentRefs'] = equipmentRefs;
+        }
       }
 
       if (dive.tags.isNotEmpty) {
@@ -290,8 +303,13 @@ class MacDiveXmlParser implements ImportParser {
     return map;
   }
 
-  Map<String, dynamic> _mapGear(MacDiveXmlGearItem g) {
-    final map = <String, dynamic>{};
+  Map<String, dynamic> _mapGear(
+    MacDiveXmlGearItem g, {
+    required String uddfId,
+  }) {
+    // `uddfId` is the gear's composite dedup key, referenced from each dive's
+    // `equipmentRefs`. UddfEntityImporter resolves it via `equipmentIdMapping`.
+    final map = <String, dynamic>{'uddfId': uddfId};
     if (g.name != null) map['name'] = g.name;
     if (g.manufacturer != null) map['brand'] = g.manufacturer;
     if (g.type != null) map['type'] = g.type;

@@ -101,6 +101,17 @@ void main() {
       expect((profile[1] as Map)['timestamp'], 60);
     });
 
+    test('dive links gear via equipmentRefs with matching uddfId', () async {
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final dive = payload.entitiesOf(ImportEntityType.dives).first;
+      final equipment = payload.entitiesOf(ImportEntityType.equipment);
+      // Fixture has one gear item: manufacturer=Test, name=BCD1, no serial.
+      // Composite key "Test|BCD1|" lands on both sides.
+      expect(dive['equipmentRefs'], ['Test|BCD1|']);
+      expect(equipment.first['uddfId'], 'Test|BCD1|');
+      expect(equipment.first['name'], 'BCD1');
+    });
+
     test(
       'dive maps boat/diveOperator/weather into existing UDDF key names',
       () async {
@@ -213,6 +224,10 @@ void main() {
         final equipment = payload.entitiesOf(ImportEntityType.equipment);
         expect(equipment.length, 1, reason: 'only the populated item survives');
         expect(equipment.first['name'], 'BCD1');
+        // equipmentRefs reflects only the surviving item; skipped empty
+        // `<item>` elements do not leave phantom refs on the dive either.
+        final dive = payload.entitiesOf(ImportEntityType.dives).first;
+        expect(dive['equipmentRefs'], ['Test|BCD1|']);
       },
     );
 

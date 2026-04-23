@@ -24,6 +24,17 @@ class MacDiveXmlReader {
     final doc = XmlDocument.parse(content);
     final root = doc.rootElement;
 
+    // Reject non-MacDive XML early: MacDive native XML must have <dives> at
+    // the root. Without this check, a user who forces a source override onto
+    // a UDDF or other dive XML would get a silent empty logbook because our
+    // `findElements('dive')` walk doesn't match anything at UDDF's top level.
+    // The parser's try/catch converts this into a user-visible ImportWarning.
+    if (root.name.local != 'dives') {
+      throw const FormatException(
+        'Not a MacDive native XML document: expected <dives> root element',
+      );
+    }
+
     final units = MacDiveUnitSystem.fromXml(_text(root, 'units'));
     final converter = MacDiveUnitConverter(units);
     final schemaVersion = _text(root, 'schema');
