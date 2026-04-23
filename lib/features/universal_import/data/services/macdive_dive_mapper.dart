@@ -1,10 +1,24 @@
+import 'package:flutter/services.dart';
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_raw_types.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_unit_converter.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_value_mapper.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_xml_models.dart'
     show MacDiveUnitSystem;
+
+/// Signature for the [pigeon.DiveComputerHostApi.parseRawDiveData] call so
+/// tests can inject a fake without spawning the platform channel.
+typedef ParseRawDiveDataFn =
+    Future<pigeon.ParsedDive> Function(
+      String vendor,
+      String product,
+      int model,
+      Uint8List data,
+    );
 
 /// Maps a [MacDiveRawLogbook] (raw SQLite rows read by [MacDiveDbReader])
 /// into a unified [ImportPayload] the rest of the import pipeline consumes
@@ -12,11 +26,11 @@ import 'package:submersion/features/universal_import/data/services/macdive_xml_m
 /// `MacDiveXmlParser` so the downstream `UddfEntityImporter` processes
 /// both sources through the same code path.
 ///
-/// Profile samples (`ZSAMPLES`) are NOT decoded in M3 - MacDive uses a
-/// proprietary binary format (not bplist, not a common compression).
-/// `profile: []` is emitted for every dive. Users who need profile
-/// samples should use the UDDF import path (M1), which decodes MacDive's
-/// UDDF profile correctly.
+/// Profile samples are decoded from the `ZRAWDATA` BLOB via
+/// [pigeon.DiveComputerHostApi.parseRawDiveData] (the same path used by
+/// [ShearwaterDiveMapper] for Shearwater Cloud imports). Dives without
+/// `ZRAWDATA`, with an unknown computer model, or where decoding fails emit
+/// `profile: []`. Decode failures additionally emit an [ImportWarning].
 class MacDiveDiveMapper {
   const MacDiveDiveMapper._();
 
@@ -26,17 +40,62 @@ class MacDiveDiveMapper {
   /// String enum-ish values (waterType, entryType) go through
   /// [MacDiveValueMapper] so unrecognised inputs are dropped rather than
   /// mis-stored.
-  static ImportPayload toPayload(MacDiveRawLogbook logbook) {
+  ///
+  /// [parseRawDiveData] can be supplied by tests to skip the real FFI call.
+  static Future<ImportPayload> toPayload(
+    MacDiveRawLogbook logbook, {
+    ParseRawDiveDataFn? parseRawDiveData,
+  }) async {
     final units = MacDiveUnitSystem.fromXml(logbook.unitsPreference);
     final converter = MacDiveUnitConverter(units);
+    final parseFn = parseRawDiveData ?? _defaultParse;
+    final warnings = <ImportWarning>[];
 
     final siteMaps = _buildSiteMaps(logbook, converter);
     final buddyMaps = _buildBuddyMaps(logbook);
     final tagMaps = _buildTagMaps(logbook);
     final gearMaps = _buildGearMaps(logbook, converter);
-    final diveMaps = [
-      for (final d in logbook.dives) _buildDiveMap(d, logbook, converter),
-    ];
+    final diveMaps = <Map<String, dynamic>>[];
+    bool ffiAvailable = true;
+
+    for (final d in logbook.dives) {
+      try {
+        final effective = ffiAvailable ? parseFn : null;
+        diveMaps.add(
+          await _buildDiveMap(d, logbook, converter, effective, warnings),
+        );
+      } on MissingPluginException {
+        ffiAvailable = false;
+        warnings.add(
+          const ImportWarning(
+            severity: ImportWarningSeverity.info,
+            message:
+                'Dive-computer FFI plugin unavailable; profile decoding skipped for remaining dives.',
+            entityType: ImportEntityType.dives,
+          ),
+        );
+        diveMaps.add(
+          await _buildDiveMap(d, logbook, converter, null, warnings),
+        );
+      } on PlatformException catch (e) {
+        if (e.code == 'UNSUPPORTED' || e.code == 'channel-error') {
+          ffiAvailable = false;
+          warnings.add(
+            ImportWarning(
+              severity: ImportWarningSeverity.info,
+              message:
+                  'Dive-computer FFI unavailable (${e.code}); profile decoding skipped for remaining dives.',
+              entityType: ImportEntityType.dives,
+            ),
+          );
+          diveMaps.add(
+            await _buildDiveMap(d, logbook, converter, null, warnings),
+          );
+        } else {
+          rethrow;
+        }
+      }
+    }
 
     final entities = <ImportEntityType, List<Map<String, dynamic>>>{};
     if (diveMaps.isNotEmpty) entities[ImportEntityType.dives] = diveMaps;
@@ -47,7 +106,7 @@ class MacDiveDiveMapper {
 
     return ImportPayload(
       entities: entities,
-      warnings: const [],
+      warnings: warnings,
       metadata: {
         'source': 'macdive_sqlite',
         'diveCount': logbook.dives.length,
@@ -55,6 +114,20 @@ class MacDiveDiveMapper {
       },
     );
   }
+
+  // ---- default FFI implementation ----
+
+  static Future<pigeon.ParsedDive> _defaultParse(
+    String vendor,
+    String product,
+    int model,
+    Uint8List data,
+  ) => pigeon.DiveComputerHostApi().parseRawDiveData(
+    vendor,
+    product,
+    model,
+    data,
+  );
 
   // ---- site / buddy / tag / gear ----
 
@@ -168,11 +241,13 @@ class MacDiveDiveMapper {
 
   // ---- dive ----
 
-  static Map<String, dynamic> _buildDiveMap(
+  static Future<Map<String, dynamic>> _buildDiveMap(
     MacDiveRawDive d,
     MacDiveRawLogbook logbook,
     MacDiveUnitConverter c,
-  ) {
+    ParseRawDiveDataFn? parseFn,
+    List<ImportWarning> warnings,
+  ) async {
     final map = <String, dynamic>{};
 
     if (d.uuid.isNotEmpty) map['sourceUuid'] = d.uuid;
@@ -332,10 +407,120 @@ class MacDiveDiveMapper {
       map['tanks'] = tanks;
     }
 
-    // Profile: always empty in M3. ZSAMPLES is MacDive's proprietary
-    // binary sample format and is not decoded here.
-    map['profile'] = const <Map<String, dynamic>>[];
+    // Profile: decode ZRAWDATA via libdivecomputer_plugin when available.
+    // Dives without ZRAWDATA or with an unmapped computer emit [] silently.
+    // Decode failures emit [] and append an ImportWarning.
+    map['profile'] = await _decodeProfile(d, parseFn, warnings);
 
     return map;
+  }
+
+  // ---- profile decoding ----
+
+  static Future<List<Map<String, dynamic>>> _decodeProfile(
+    MacDiveRawDive dive,
+    ParseRawDiveDataFn? parseFn, // null = FFI known unavailable; skip decode
+    List<ImportWarning> warnings,
+  ) async {
+    if (parseFn == null) return const [];
+    final rawData = dive.rawDataBlob;
+    final vendorProduct = _vendorProductFromZComputer(dive.computer);
+    if (rawData == null || rawData.isEmpty || vendorProduct == null) {
+      return const [];
+    }
+    try {
+      final parsed = await parseFn(
+        vendorProduct.$1,
+        vendorProduct.$2,
+        0,
+        rawData,
+      );
+      return _projectSamples(parsed);
+    } on MissingPluginException {
+      rethrow;
+    } on PlatformException catch (e) {
+      if (e.code == 'UNSUPPORTED' || e.code == 'channel-error') rethrow;
+      warnings.add(
+        ImportWarning(
+          severity: ImportWarningSeverity.warning,
+          message: 'Profile decode failed for dive ${dive.uuid}: $e',
+          entityType: ImportEntityType.dives,
+        ),
+      );
+      return const [];
+    } catch (e) {
+      warnings.add(
+        ImportWarning(
+          severity: ImportWarningSeverity.warning,
+          message: 'Profile decode failed for dive ${dive.uuid}: $e',
+          entityType: ImportEntityType.dives,
+        ),
+      );
+      return const [];
+    }
+  }
+
+  /// Projects [pigeon.ParsedDive] samples into the canonical import map
+  /// format. Mirrors [ShearwaterDiveMapper.mergeWithParsedDive] exactly for
+  /// the sample projection block (same keys, same conditional emission).
+  static List<Map<String, dynamic>> _projectSamples(pigeon.ParsedDive parsed) {
+    return parsed.samples.map((s) {
+      final sampleMap = <String, dynamic>{
+        'timestamp': s.timeSeconds,
+        'depth': s.depthMeters,
+      };
+      if (s.temperatureCelsius != null) {
+        sampleMap['temperature'] = s.temperatureCelsius;
+      }
+      if (s.pressureBar != null) {
+        sampleMap['allTankPressures'] = <Map<String, dynamic>>[
+          {'pressure': s.pressureBar, 'tankIndex': s.tankIndex ?? 0},
+        ];
+      }
+      if (s.setpoint != null) sampleMap['setpoint'] = s.setpoint;
+      if (s.ppo2 != null) sampleMap['ppO2'] = s.ppo2;
+      if (s.heartRate != null) sampleMap['heartRate'] = s.heartRate;
+      if (s.cns != null) sampleMap['cns'] = s.cns;
+      if (s.rbt != null) sampleMap['rbt'] = s.rbt;
+      if (s.tts != null) sampleMap['tts'] = s.tts;
+      if (s.decoType != null) sampleMap['decoType'] = s.decoType;
+      if (s.decoDepth != null && s.decoType != null && s.decoType != 0) {
+        sampleMap['ceiling'] = s.decoDepth;
+      }
+      if (s.decoType == 0 && s.decoTime != null) {
+        sampleMap['ndl'] = s.decoTime;
+      }
+      return sampleMap;
+    }).toList();
+  }
+
+  /// Maps MacDive's ZCOMPUTER string to the (vendor, product) pair
+  /// libdivecomputer expects. Currently covers Shearwater models observed
+  /// in the 2026 sample DB plus the two newer 2024+ releases (Perdix 2,
+  /// NERD 2). Returns null for computers the plugin does not support —
+  /// caller emits `profile: []` without a warning (not a decode failure,
+  /// just an unsupported model).
+  ///
+  /// Supported set: Teric, Tern, Petrel, Perdix, Perdix 2, Nerd, NERD 2.
+  static (String, String)? _vendorProductFromZComputer(String? zComputer) {
+    if (zComputer == null) return null;
+    switch (zComputer) {
+      case 'Shearwater Teric':
+        return ('Shearwater', 'Teric');
+      case 'Shearwater Tern':
+        return ('Shearwater', 'Tern');
+      case 'Shearwater Petrel':
+        return ('Shearwater', 'Petrel');
+      case 'Shearwater Perdix':
+        return ('Shearwater', 'Perdix');
+      case 'Shearwater Perdix 2':
+        return ('Shearwater', 'Perdix 2');
+      case 'Shearwater Nerd':
+        return ('Shearwater', 'Nerd');
+      case 'Shearwater NERD 2':
+        return ('Shearwater', 'NERD 2');
+      default:
+        return null;
+    }
   }
 }
