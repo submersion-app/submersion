@@ -622,13 +622,14 @@ void main() {
           parseRawDiveData: (v, p, m, d) async => parsed,
         );
         final profile =
-            (payload.entitiesOf(ImportEntityType.dives).first['profile'] as List)
+            (payload.entitiesOf(ImportEntityType.dives).first['profile']
+                    as List)
                 .cast<Map<String, dynamic>>();
 
         // Sample 0: tank pressure + NDL branch.
         expect(profile[0]['allTankPressures'], isA<List>());
-        final tankPressures =
-            (profile[0]['allTankPressures'] as List).cast<Map<String, dynamic>>();
+        final tankPressures = (profile[0]['allTankPressures'] as List)
+            .cast<Map<String, dynamic>>();
         expect(tankPressures.first['pressure'], 150.0);
         expect(tankPressures.first['tankIndex'], 1);
         expect(profile[0]['decoType'], 0);
