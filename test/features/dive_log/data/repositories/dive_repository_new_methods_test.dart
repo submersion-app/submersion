@@ -365,6 +365,93 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
+  // getSourceUuidByDiveId
+  // ---------------------------------------------------------------------------
+
+  group('getSourceUuidByDiveId', () {
+    Future<void> saveUuidReading(
+      String readingId,
+      String diveId,
+      String uuid, {
+      bool isPrimary = true,
+    }) async {
+      await repository.saveComputerReading(
+        buildReading(
+          id: readingId,
+          diveId: diveId,
+          isPrimary: isPrimary,
+        ).copyWith(sourceUuid: Value(uuid)),
+      );
+    }
+
+    test('returns all UUIDs when no diverId is provided', () async {
+      await insertTestDiver('diver-a');
+      await insertTestDiver('diver-b');
+      final dA = await insertTestDive(id: 'dive-a', diverId: 'diver-a');
+      final dB = await insertTestDive(id: 'dive-b', diverId: 'diver-b');
+      await saveUuidReading('read-a', dA, 'uuid-a');
+      await saveUuidReading('read-b', dB, 'uuid-b');
+
+      final result = await repository.getSourceUuidByDiveId();
+
+      expect(result, {dA: 'uuid-a', dB: 'uuid-b'});
+    });
+
+    test(
+      'restricts result to specified diver when diverId is provided',
+      () async {
+        await insertTestDiver('diver-a');
+        await insertTestDiver('diver-b');
+        final dA = await insertTestDive(
+          id: 'dive-a-scoped',
+          diverId: 'diver-a',
+        );
+        final dB = await insertTestDive(
+          id: 'dive-b-scoped',
+          diverId: 'diver-b',
+        );
+        await saveUuidReading('read-a-s', dA, 'uuid-a');
+        await saveUuidReading('read-b-s', dB, 'uuid-b');
+
+        final result = await repository.getSourceUuidByDiveId(
+          diverId: 'diver-a',
+        );
+
+        expect(result, {dA: 'uuid-a'});
+      },
+    );
+
+    test('returns empty map for a diver with no dives', () async {
+      await insertTestDiver('diver-empty');
+      await insertTestDiver('diver-has-data');
+      final d = await insertTestDive(id: 'dive-has', diverId: 'diver-has-data');
+      await saveUuidReading('read-has', d, 'uuid-has');
+
+      final result = await repository.getSourceUuidByDiveId(
+        diverId: 'diver-empty',
+      );
+
+      expect(result, isEmpty);
+    });
+
+    test('primary data source wins over secondary for same dive', () async {
+      await insertTestDiver('diver-primary');
+      final d = await insertTestDive(
+        id: 'dive-primary-pick',
+        diverId: 'diver-primary',
+      );
+      await saveUuidReading('read-sec', d, 'uuid-secondary', isPrimary: false);
+      await saveUuidReading('read-prim', d, 'uuid-primary', isPrimary: true);
+
+      final result = await repository.getSourceUuidByDiveId(
+        diverId: 'diver-primary',
+      );
+
+      expect(result[d], 'uuid-primary');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // saveComputerReading
   // ---------------------------------------------------------------------------
 
