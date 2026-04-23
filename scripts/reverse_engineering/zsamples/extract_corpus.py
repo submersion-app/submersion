@@ -15,7 +15,6 @@ import json
 import sqlite3
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
-from typing import Iterable
 
 from lxml import etree
 
@@ -39,6 +38,8 @@ class UddfProfile:
 
         If `first_only` is True, return the first profile found (test use).
         """
+        if first_only and uuid_filter is not None:
+            raise ValueError("uuid_filter is ignored when first_only=True; pass uuid_filter=None")
         results: dict[str, UddfProfile] = {}
         # UDDF files can be large; use iterparse for memory efficiency.
         context = etree.iterparse(str(path), events=("end",), tag=f"{{{UDDF_NS['u']}}}dive")

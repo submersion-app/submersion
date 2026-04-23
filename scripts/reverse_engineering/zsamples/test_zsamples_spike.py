@@ -47,3 +47,13 @@ def test_uddf_profile_parse_returns_monotonic_timestamps():
     assert profile is not None
     times = [s["time_s"] for s in profile.samples]
     assert times == sorted(times), "Sample times should be monotonically non-decreasing"
+
+
+def test_from_uddf_file_rejects_uuid_filter_with_first_only():
+    """Guard against the silent wrong-answer bug noted in code review."""
+    with pytest.raises(ValueError, match="uuid_filter is ignored"):
+        UddfProfile.from_uddf_file(
+            SAMPLE_UDDF,
+            uuid_filter={"some-uuid"},
+            first_only=True,
+        )
