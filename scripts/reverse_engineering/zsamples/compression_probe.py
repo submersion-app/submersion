@@ -16,7 +16,6 @@ import gzip
 import lzma
 import shutil
 import subprocess
-import sys
 import tempfile
 import zlib
 from dataclasses import dataclass
@@ -100,10 +99,12 @@ def _lzfse_decompress(data: bytes) -> bytes:
     tool = shutil.which("compression_tool")
     if tool is None:
         raise RuntimeError("neither pyliblzfse nor compression_tool available")
-    with tempfile.NamedTemporaryFile(delete=False) as src, tempfile.NamedTemporaryFile(delete=False) as dst:
+    src = tempfile.NamedTemporaryFile(delete=False)
+    dst = tempfile.NamedTemporaryFile(delete=False)
+    try:
         src.write(data)
-        src.flush()
-        # compression_tool syntax: -decode -i in -o out -encoding lzfse
+        src.close()
+        dst.close()
         result = subprocess.run(
             [tool, "-decode", "-i", src.name, "-o", dst.name, "-encoding", "lzfse"],
             capture_output=True,
@@ -111,6 +112,9 @@ def _lzfse_decompress(data: bytes) -> bytes:
         if result.returncode != 0:
             raise RuntimeError(f"compression_tool failed: {result.stderr!r}")
         return Path(dst.name).read_bytes()
+    finally:
+        Path(src.name).unlink(missing_ok=True)
+        Path(dst.name).unlink(missing_ok=True)
 
 
 CODECS: list[Codec] = [
