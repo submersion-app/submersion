@@ -95,6 +95,20 @@ def test_interpret_offset_decodes_little_endian_uint32():
     assert interp["u32_le"] == 0x12345678
 
 
+def test_interpret_offset_includes_all_endians_at_each_width():
+    """All widths should have both LE and BE interpretations when bytes are available."""
+    data = bytes([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08])
+    interp = interpret_offset(data, 0)
+    assert "u16_le" in interp and "u16_be" in interp
+    assert "u32_le" in interp and "u32_be" in interp
+    assert "f32_le" in interp and "f32_be" in interp
+    assert "u64_le" in interp and "u64_be" in interp
+    assert "f64_le" in interp and "f64_be" in interp
+    # Spot-check one pair: u32 big-endian is 0x01020304, little-endian is 0x04030201.
+    assert interp["u32_be"] == 0x01020304
+    assert interp["u32_le"] == 0x04030201
+
+
 def test_hex_dump_line_formats_16_bytes():
     line = hex_dump_line(bytes(range(16)), offset=0)
     assert "00 01 02 03" in line

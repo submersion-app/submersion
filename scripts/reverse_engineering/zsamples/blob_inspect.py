@@ -20,8 +20,9 @@ def shannon_entropy(data: bytes) -> float:
 
 
 def find_repeating_stride(data: bytes, min_stride: int = 2, max_stride: int = 64) -> int | None:
-    """Return the smallest stride S in [min_stride, max_stride] where byte[i]
-    and byte[i+S] are equal for most i; or None if no strong periodicity."""
+    """Return the highest-scoring stride S in [min_stride, max_stride] where
+    byte[i] and byte[i+S] are equal for >90% of positions; ties broken in
+    favor of the smaller stride. Returns None if no stride exceeds 90%."""
     best_stride: int | None = None
     best_score = 0.0
     for stride in range(min_stride, max_stride + 1):
@@ -47,9 +48,12 @@ def interpret_offset(data: bytes, offset: int) -> dict:
         out["u32_le"] = struct.unpack_from("<I", data, offset)[0]
         out["u32_be"] = struct.unpack_from(">I", data, offset)[0]
         out["f32_le"] = struct.unpack_from("<f", data, offset)[0]
+        out["f32_be"] = struct.unpack_from(">f", data, offset)[0]
     if offset + 8 <= len(data):
         out["u64_le"] = struct.unpack_from("<Q", data, offset)[0]
+        out["u64_be"] = struct.unpack_from(">Q", data, offset)[0]
         out["f64_le"] = struct.unpack_from("<d", data, offset)[0]
+        out["f64_be"] = struct.unpack_from(">d", data, offset)[0]
     return out
 
 
