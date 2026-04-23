@@ -24,6 +24,17 @@ class MacDiveXmlReader {
     final doc = XmlDocument.parse(content);
     final root = doc.rootElement;
 
+    // Reject non-MacDive XML early: MacDive native XML must have <dives> at
+    // the root. Without this check, a user who forces a source override onto
+    // a UDDF or other dive XML would get a silent empty logbook because our
+    // `findElements('dive')` walk doesn't match anything at UDDF's top level.
+    // The parser's try/catch converts this into a user-visible ImportWarning.
+    if (root.name.local != 'dives') {
+      throw const FormatException(
+        'Not a MacDive native XML document: expected <dives> root element',
+      );
+    }
+
     final units = MacDiveUnitSystem.fromXml(_text(root, 'units'));
     final converter = MacDiveUnitConverter(units);
     final schemaVersion = _text(root, 'schema');
@@ -85,6 +96,26 @@ class MacDiveXmlReader {
       samples: _parseSamples(el, c),
       photos: _parsePhotos(el),
     );
+  }
+
+  // ---- photos ----
+
+  static List<MacDiveXmlPhoto> _parsePhotos(XmlElement dive) {
+    final container = dive.findElements('photos').firstOrNull;
+    if (container == null) return const [];
+    var idx = 0;
+    final out = <MacDiveXmlPhoto>[];
+    for (final p in container.findElements('photo')) {
+      final path = p.findElements('path').firstOrNull?.innerText.trim();
+      if (path == null || path.isEmpty) {
+        idx++; // still advance the counter so subsequent positions stay stable
+        continue;
+      }
+      final caption = _text(p, 'caption');
+      out.add(MacDiveXmlPhoto(path: path, caption: caption, position: idx));
+      idx++;
+    }
+    return out;
   }
 
   // ---- site ----
@@ -188,26 +219,6 @@ class MacDiveXmlReader {
         .toList(growable: false);
   }
 
-  // ---- photos ----
-
-  static List<MacDiveXmlPhoto> _parsePhotos(XmlElement dive) {
-    final container = dive.findElements('photos').firstOrNull;
-    if (container == null) return const [];
-    var idx = 0;
-    final out = <MacDiveXmlPhoto>[];
-    for (final p in container.findElements('photo')) {
-      final path = p.findElements('path').firstOrNull?.innerText.trim();
-      if (path == null || path.isEmpty) {
-        idx++; // still advance the counter so subsequent positions stay stable
-        continue;
-      }
-      final caption = _text(p, 'caption');
-      out.add(MacDiveXmlPhoto(path: path, caption: caption, position: idx));
-      idx++;
-    }
-    return out;
-  }
-
   // ---- helpers ----
 
   static String? _text(XmlElement parent, String name) {
@@ -229,12 +240,29 @@ class MacDiveXmlReader {
 
   static DateTime? _parseDate(String? raw) {
     if (raw == null || raw.isEmpty) return null;
+    // MacDive XML carries no timezone info — treat the timestamp as a wall
+    // clock and encode it in UTC so dedup and display don't drift when the
+    // device's timezone changes (travel, DST). Matches the Subsurface XML
+    // parser's convention (see SubsurfaceXmlParser._parseDive).
     try {
-      return _dateFormat.parseStrict(raw);
+      return _asUtcWallTime(_dateFormat.parseStrict(raw));
     } catch (_) {
-      // Fallback: ISO-8601 style (2024-06-01T09:00:00)
-      return DateTime.tryParse(raw.replaceFirst(' ', 'T'));
+      final parsed = DateTime.tryParse(raw.replaceFirst(' ', 'T'));
+      return parsed == null ? null : _asUtcWallTime(parsed);
     }
+  }
+
+  static DateTime _asUtcWallTime(DateTime value) {
+    return DateTime.utc(
+      value.year,
+      value.month,
+      value.day,
+      value.hour,
+      value.minute,
+      value.second,
+      value.millisecond,
+      value.microsecond,
+    );
   }
 
   static Duration? _durationSeconds(int? seconds) {

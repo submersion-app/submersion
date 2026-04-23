@@ -279,9 +279,9 @@ void _insertFixtureRows(Database db) {
       Z_PK, ZRELATIONSHIPDIVE, ZRELATIONSHIPTANK, ZRELATIONSHIPGAS,
       ZAIRSTART, ZAIREND, ZORDER, ZSUPPLYTYPE, ZUUID
     ) VALUES
-      (1, 1, 1, 1, 3000, 1000, 0, 'Open Circuit', 'tag-uuid-1'),
-      (2, 2, 1, 1, 3000,  900, 0, 'Open Circuit', 'tag-uuid-2'),
-      (3, 3, 2, 2, 2400,  500, 0, 'Open Circuit', 'tag-uuid-3')
+      (1, 1, 1, 1, 3000, 1000, 0, 'Open Circuit', 'tankandgas-uuid-1'),
+      (2, 2, 1, 1, 3000,  900, 0, 'Open Circuit', 'tankandgas-uuid-2'),
+      (3, 3, 2, 2, 2400,  500, 0, 'Open Circuit', 'tankandgas-uuid-3')
   ''');
 
   // ---- units preference ----

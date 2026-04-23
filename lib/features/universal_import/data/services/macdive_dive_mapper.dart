@@ -148,14 +148,32 @@ class MacDiveDiveMapper {
     return out;
   }
 
+  /// Returns the stable uddf-style id for a gear row. Prefers the MacDive
+  /// UUID (guaranteed unique per gear item in Core Data); falls back to
+  /// the name so older exports without UUIDs still link. Returns null
+  /// when neither is present — callers should skip the gear entirely in
+  /// that case.
+  static String? _gearUddfId(MacDiveRawGear g) {
+    if (g.uuid.isNotEmpty) return g.uuid;
+    final name = g.name;
+    if (name != null && name.isNotEmpty) return name;
+    return null;
+  }
+
   static List<Map<String, dynamic>> _buildGearMaps(
     MacDiveRawLogbook logbook,
     MacDiveUnitConverter c,
   ) {
     final out = <Map<String, dynamic>>[];
     for (final g in logbook.gearByPk.values) {
-      final map = <String, dynamic>{};
-      if (g.name != null) map['name'] = g.name;
+      final name = g.name;
+      // UddfEntityImporter._importEquipment skips items without a name.
+      // Dropping them here avoids phantom entries in the review UI and
+      // keeps equipmentIdMapping in sync with the emitted entities.
+      if (name == null || name.isEmpty) continue;
+      final uddfId = _gearUddfId(g);
+      if (uddfId == null) continue;
+      final map = <String, dynamic>{'name': name, 'uddfId': uddfId};
       if (g.manufacturer != null) map['brand'] = g.manufacturer;
       if (g.model != null) map['model'] = g.model;
       if (g.serial != null) map['serialNumber'] = g.serial;
@@ -185,6 +203,15 @@ class MacDiveDiveMapper {
 
     if (d.uuid.isNotEmpty) map['sourceUuid'] = d.uuid;
     if (d.identifier != null) map['sourceIdentifier'] = d.identifier;
+    // `rawDate` is an absolute UTC DateTime derived from ZRAWDATE (NSDate
+    // reference seconds). MacDive stores the per-dive zone separately in
+    // `ZTIMEZONE` as an NSKeyedArchiver-encoded NSTimeZone. Emitting
+    // rawDate directly matches M2 (`macdive_xml_parser.dart`) and reads
+    // back correctly as long as the diver views the dive from the same
+    // zone in which they dove. A cross-parser move to the wall-time-as-UTC
+    // convention (cf. `subsurface_xml_parser.dart`) requires NSTimeZone
+    // extraction for M3 and structured-date emission for M1/M2 — tracked
+    // as follow-up work, not folded into this PR.
     if (d.rawDate != null) map['dateTime'] = d.rawDate;
     if (d.diveNumber != null) map['diveNumber'] = d.diveNumber;
     if (d.repetitiveDiveNumber != null) {
@@ -270,6 +297,19 @@ class MacDiveDiveMapper {
           logbook.buddiesByPk[bpk]!.name!,
     ];
     if (buddyNames.isNotEmpty) map['unmatchedBuddyNames'] = buddyNames;
+
+    // Per-dive gear linkage via `equipmentRefs`. UddfEntityImporter
+    // resolves each ref through `equipmentIdMapping[uddfId]` to find
+    // the newly-created equipment row, so we emit the same uddfId
+    // values produced by `_buildGearMaps` above (MacDive gear UUID,
+    // with name fallback for older exports). Gear items skipped in
+    // the equipment map are also omitted here.
+    final gearPks = logbook.diveToGearPks[d.pk] ?? const <int>[];
+    final equipmentRefs = <String>[
+      for (final gpk in gearPks)
+        if (logbook.gearByPk[gpk] case final g?) ?_gearUddfId(g),
+    ];
+    if (equipmentRefs.isNotEmpty) map['equipmentRefs'] = equipmentRefs;
 
     // Tags - emit names under `tagRefs`.
     final tagPks = logbook.diveToTagPks[d.pk] ?? const <int>[];

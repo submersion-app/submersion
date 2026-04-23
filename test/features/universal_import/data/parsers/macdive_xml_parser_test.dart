@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_xml_parser.dart';
@@ -76,10 +78,17 @@ void main() {
       final tank = tanks.first as Map<String, dynamic>;
       expect(tank['startPressure'], 200);
       expect(tank['endPressure'], 60);
-      expect(tank['gasMix'], isNotNull);
-      final gasMix = tank['gasMix'] as Map<String, dynamic>;
-      expect(gasMix['o2'], closeTo(0.32, 0.01));
-      expect(gasMix['he'], closeTo(0.0, 0.01));
+      // Keys match the UDDF/Subsurface tank-map convention so
+      // UddfEntityImporter._buildTanks can consume them directly.
+      expect(tank['volume'], 12);
+      expect(tank['workingPressure'], 232);
+      // gasMix must be a `GasMix` object, not a Map — the importer does
+      // `t['gasMix'] as GasMix?` and a Map cast would throw.
+      expect(tank['gasMix'], isA<GasMix>());
+      final gasMix = tank['gasMix'] as GasMix;
+      // GasMix stores o2/he as percentages 0-100 (not 0-1 fractions).
+      expect(gasMix.o2, closeTo(32.0, 0.01));
+      expect(gasMix.he, closeTo(0.0, 0.01));
     });
 
     test('dive has profile samples with timestamp+depth', () async {
@@ -90,6 +99,17 @@ void main() {
       expect(profile!.length, 3);
       expect((profile[0] as Map)['timestamp'], 0);
       expect((profile[1] as Map)['timestamp'], 60);
+    });
+
+    test('dive links gear via equipmentRefs with matching uddfId', () async {
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final dive = payload.entitiesOf(ImportEntityType.dives).first;
+      final equipment = payload.entitiesOf(ImportEntityType.equipment);
+      // Fixture has one gear item: manufacturer=Test, name=BCD1, no serial.
+      // Composite key "Test|BCD1|" lands on both sides.
+      expect(dive['equipmentRefs'], ['Test|BCD1|']);
+      expect(equipment.first['uddfId'], 'Test|BCD1|');
+      expect(equipment.first['name'], 'BCD1');
     });
 
     test(
@@ -155,7 +175,7 @@ void main() {
       expect(dive.containsKey('entryMethod'), isFalse);
     });
 
-    test('emits imageRefs from each dive\'s <photos>', () async {
+    test("emits imageRefs from each dive's <photos>", () async {
       final payload = await const MacDiveXmlParser().parse(bytes);
       expect(
         payload.imageRefs.length,
@@ -185,9 +205,11 @@ void main() {
       expect(payload.imageRefs, isEmpty);
     });
 
-    test('photos on a dive without an <identifier> are skipped '
-        '(can\'t link to a sourceUuid)', () async {
-      const xml = '''<?xml version="1.0"?>
+    test(
+      "photos on a dive without an <identifier> are skipped "
+      "(can't link to a sourceUuid)",
+      () async {
+        const xml = '''<?xml version="1.0"?>
 <dives>
   <units>Metric</units>
   <schema>2.2.0</schema>
@@ -199,16 +221,17 @@ void main() {
     <samples/>
   </dive>
 </dives>''';
-      final bytes = Uint8List.fromList(utf8.encode(xml));
-      final payload = await const MacDiveXmlParser().parse(bytes);
-      expect(
-        payload.imageRefs,
-        isEmpty,
-        reason:
-            'no sourceUuid to link photos to; payload carries dive but '
-            'no imageRefs',
-      );
-    });
+        final bytes = Uint8List.fromList(utf8.encode(xml));
+        final payload = await const MacDiveXmlParser().parse(bytes);
+        expect(
+          payload.imageRefs,
+          isEmpty,
+          reason:
+              'no sourceUuid to link photos to; payload carries dive but '
+              'no imageRefs',
+        );
+      },
+    );
   });
 
   group('MacDiveXmlParser dedup behavior', () {
@@ -236,6 +259,68 @@ void main() {
         1,
         reason: 'sites dedup by name',
       );
+    });
+
+    test(
+      'empty <item/> gear elements are skipped (no phantom entity)',
+      () async {
+        const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 09:00:00</date><identifier>d1</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <gear>
+      <item/>
+      <item><manufacturer> </manufacturer><name></name><serial/></item>
+      <item><manufacturer>Test</manufacturer><name>BCD1</name></item>
+    </gear>
+    <samples/>
+  </dive>
+</dives>''';
+        final bytes = Uint8List.fromList(utf8.encode(xml));
+        final payload = await const MacDiveXmlParser().parse(bytes);
+        final equipment = payload.entitiesOf(ImportEntityType.equipment);
+        expect(equipment.length, 1, reason: 'only the populated item survives');
+        expect(equipment.first['name'], 'BCD1');
+        // equipmentRefs reflects only the surviving item; skipped empty
+        // `<item>` elements do not leave phantom refs on the dive either.
+        final dive = payload.entitiesOf(ImportEntityType.dives).first;
+        expect(dive['equipmentRefs'], ['Test|BCD1|']);
+      },
+    );
+
+    test('duplicate <buddy> entries on one dive dedupe in buddyRefs', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 09:00:00</date><identifier>d1</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <buddies><buddy>Alice</buddy><buddy>Alice</buddy><buddy>Bob</buddy></buddies>
+    <samples/>
+  </dive>
+</dives>''';
+      final bytes = Uint8List.fromList(utf8.encode(xml));
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final dive = payload.entitiesOf(ImportEntityType.dives).first;
+      expect(dive['buddyRefs'], ['Alice', 'Bob']);
+    });
+
+    test('duplicate <tag> entries on one dive dedupe in tagRefs', () async {
+      // dive_tags has no UNIQUE(diveId, tagId) constraint, so duplicates
+      // would surface as the same tag shown twice on a dive.
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 09:00:00</date><identifier>d1</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <tags><tag>Reef</tag><tag>Reef</tag><tag>Photography</tag></tags>
+    <samples/>
+  </dive>
+</dives>''';
+      final bytes = Uint8List.fromList(utf8.encode(xml));
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final dive = payload.entitiesOf(ImportEntityType.dives).first;
+      expect(dive['tagRefs'], ['Reef', 'Photography']);
     });
 
     test('multiple dives with overlapping buddies dedup', () async {

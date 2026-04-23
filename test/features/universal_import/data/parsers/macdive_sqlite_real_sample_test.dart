@@ -10,20 +10,22 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_sqlite_parser.dart';
 
-const _realSamplePath =
-    '/Users/ericgriffin/Documents/submersion development/submersion data/Macdive/MacDive.sqlite';
+const _realSamplePathEnvVar = 'MACDIVE_SQLITE_REAL_SAMPLE_PATH';
 
 void main() {
-  group('MacDive SQLite real-sample regression', () {
+  final realSamplePath = Platform.environment[_realSamplePathEnvVar];
+  final skipReason = _resolveSkipReason(realSamplePath);
+
+  group('MacDive SQLite real-sample regression', skip: skipReason, () {
     late Uint8List bytes;
 
     setUpAll(() async {
-      final file = File(_realSamplePath);
-      if (!file.existsSync()) {
-        markTestSkipped('Real sample not available in this environment');
-        return;
+      if (skipReason != null) {
+        // Surfaces a clear reason if someone forces --run-skipped without the
+        // env var, instead of a cryptic null-check error.
+        throw StateError(skipReason);
       }
-      bytes = Uint8List.fromList(await file.readAsBytes());
+      bytes = Uint8List.fromList(await File(realSamplePath!).readAsBytes());
     });
 
     test(
@@ -122,6 +124,38 @@ void main() {
       expect(withTanks, isNotEmpty);
     });
 
+    test('at least one dive has equipmentRefs linking to imported gear', () async {
+      final payload = await const MacDiveSqliteParser().parse(bytes);
+      final dives = payload.entitiesOf(ImportEntityType.dives);
+      final withGear = dives.where(
+        (d) => (d['equipmentRefs'] as List?)?.isNotEmpty ?? false,
+      );
+      expect(
+        withGear,
+        isNotEmpty,
+        reason:
+            'MacDive SQLite has dive↔gear junctions (Z_5RELATIONSHIPGEARITEMS); '
+            'at least one dive in the 540-dive sample should carry equipmentRefs',
+      );
+
+      final equipment = payload.entitiesOf(ImportEntityType.equipment);
+      final uddfIds = equipment
+          .map((g) => g['uddfId'] as String?)
+          .whereType<String>()
+          .toSet();
+      for (final dive in withGear) {
+        for (final ref in (dive['equipmentRefs'] as List).cast<String>()) {
+          expect(
+            uddfIds,
+            contains(ref),
+            reason:
+                'every equipmentRef must resolve to an emitted gear uddfId so '
+                'UddfEntityImporter.equipmentIdMapping picks it up',
+          );
+        }
+      }
+    });
+
     test(
       'profile is always empty (ZSAMPLES proprietary, not decoded)',
       () async {
@@ -218,4 +252,14 @@ void main() {
       }
     });
   });
+}
+
+String? _resolveSkipReason(String? path) {
+  if (path == null || path.isEmpty) {
+    return 'Set $_realSamplePathEnvVar to a MacDive SQLite path to run this test';
+  }
+  if (!File(path).existsSync()) {
+    return 'Real sample not found at $path (from $_realSamplePathEnvVar)';
+  }
+  return null;
 }

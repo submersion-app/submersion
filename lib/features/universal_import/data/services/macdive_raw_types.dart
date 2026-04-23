@@ -59,10 +59,11 @@ class MacDiveRawDive {
   /// `ZSAMPLES` BLOB — MacDive's proprietary profile-sample format
   /// (NOT bplist; left on the model for future decode work, not
   /// used by M3).
-  final Uint8List? samplesBplist;
+  final Uint8List? samplesBlob;
 
-  /// `ZRAWDATA` BLOB — raw dive-computer sensor dump.
-  final Uint8List? rawDataBplist;
+  /// `ZRAWDATA` BLOB — raw dive-computer sensor dump (format varies by
+  /// computer; not bplist).
+  final Uint8List? rawDataBlob;
 
   const MacDiveRawDive({
     required this.pk,
@@ -104,8 +105,8 @@ class MacDiveRawDive {
     this.weight,
     this.diveSiteFk,
     this.certificationFk,
-    this.samplesBplist,
-    this.rawDataBplist,
+    this.samplesBlob,
+    this.rawDataBlob,
   });
 }
 
@@ -401,7 +402,7 @@ class MacDiveRawLogbook {
     required this.certifications,
     required this.serviceRecords,
     required this.events,
-    required this.diveImages,
+    this.diveImages = const [],
     required this.diveToBuddyPks,
     required this.diveToTagPks,
     required this.diveToGearPks,

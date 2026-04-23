@@ -10595,6 +10595,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_gfPreset_medium_name => 'Mittel';
 
   @override
+  String get settings_import_cancelButton => 'Import abbrechen';
+
+  @override
+  String get settings_import_cancelling => 'Wird abgebrochen...';
+
+  @override
   String get settings_import_dialog_title => 'Daten werden importiert';
 
   @override

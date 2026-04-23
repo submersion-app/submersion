@@ -62,6 +62,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
     as _i7;
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart'
     as _i8;
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart'
+    as _i43;
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart'
     as _i42;
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart'
@@ -813,9 +815,9 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
           as _i18.Future<List<_i25.DiveDataSource>>);
 
   @override
-  _i18.Future<Map<String, String>> getSourceUuidByDiveId() =>
+  _i18.Future<Map<String, String>> getSourceUuidByDiveId({String? diverId}) =>
       (super.noSuchMethod(
-            Invocation.method(#getSourceUuidByDiveId, []),
+            Invocation.method(#getSourceUuidByDiveId, [], {#diverId: diverId}),
             returnValue: _i18.Future<Map<String, String>>.value(
               <String, String>{},
             ),
@@ -2918,6 +2920,7 @@ class MockUddfEntityImporter extends _i1.Mock
     required String? diverId,
     bool? retainSourceDiveNumbers = false,
     _i42.ImportProgressCallback? onProgress,
+    _i43.ImportCancellationToken? cancelToken,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#import, [], {
@@ -2927,6 +2930,7 @@ class MockUddfEntityImporter extends _i1.Mock
               #diverId: diverId,
               #retainSourceDiveNumbers: retainSourceDiveNumbers,
               #onProgress: onProgress,
+              #cancelToken: cancelToken,
             }),
             returnValue: _i18.Future<_i17.UddfEntityImportResult>.value(
               _FakeUddfEntityImportResult_18(
@@ -2938,6 +2942,7 @@ class MockUddfEntityImporter extends _i1.Mock
                   #diverId: diverId,
                   #retainSourceDiveNumbers: retainSourceDiveNumbers,
                   #onProgress: onProgress,
+                  #cancelToken: cancelToken,
                 }),
               ),
             ),
@@ -2952,6 +2957,7 @@ class MockUddfEntityImporter extends _i1.Mock
                       #diverId: diverId,
                       #retainSourceDiveNumbers: retainSourceDiveNumbers,
                       #onProgress: onProgress,
+                      #cancelToken: cancelToken,
                     }),
                   ),
                 ),

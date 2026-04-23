@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_image_ref.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
@@ -108,37 +110,58 @@ class MacDiveXmlParser implements ImportParser {
       }
 
       if (dive.buddies.isNotEmpty) {
-        final names = <String>[];
+        // Per-dive dedup: a dive with duplicate `<buddy>` entries would
+        // otherwise emit repeated refs. The buddy repo tolerates this by
+        // UPSERTing, but the redundant round-trips are wasted work.
+        final buddyRefs = <String>[];
         for (final buddy in dive.buddies) {
           final trimmed = buddy.trim();
           if (trimmed.isEmpty) continue;
-          names.add(trimmed);
+          if (!buddyRefs.contains(trimmed)) buddyRefs.add(trimmed);
           buddiesByName.putIfAbsent(
             trimmed,
             () => <String, dynamic>{'name': trimmed, 'uddfId': trimmed},
           );
         }
-        if (names.isNotEmpty) {
-          // `unmatchedBuddyNames` is the key UddfEntityImporter uses for
-          // inline buddy names that should be created on demand and linked
-          // to the dive. This keeps one-pipe compatibility with the UDDF
-          // importer without introducing a second key name.
-          diveMap['unmatchedBuddyNames'] = names;
+        if (buddyRefs.isNotEmpty) {
+          // `buddyRefs` matches the `uddfId` values of the buddy entities we
+          // just added to `buddiesByName`, so `UddfEntityImporter` resolves
+          // them via `buddyIdMapping`. That mapping only has entries for
+          // buddies the user actually selected for import — using
+          // `unmatchedBuddyNames` here would bypass that selection and create
+          // buddies unconditionally. This mirrors SubsurfaceXmlParser.
+          diveMap['buddyRefs'] = buddyRefs;
         }
       }
 
-      for (final g in dive.gear) {
-        final key = _gearKey(g);
-        if (key.isEmpty) continue;
-        gearByKey.putIfAbsent(key, () => _mapGear(g));
+      // Collect gear: record a per-dive `equipmentRefs` list keyed by the
+      // same composite key used for dedup, so `UddfEntityImporter` can link
+      // the imported equipment entities back to the dive via its
+      // `equipmentIdMapping` (uddfId -> newId) lookup. Without this, dedup
+      // still produces the entity list but the dive wouldn't reference any
+      // of it.
+      if (dive.gear.isNotEmpty) {
+        final equipmentRefs = <String>[];
+        for (final g in dive.gear) {
+          final key = _gearKey(g);
+          if (key.isEmpty) continue;
+          if (!equipmentRefs.contains(key)) equipmentRefs.add(key);
+          gearByKey.putIfAbsent(key, () => _mapGear(g, uddfId: key));
+        }
+        if (equipmentRefs.isNotEmpty) {
+          diveMap['equipmentRefs'] = equipmentRefs;
+        }
       }
 
       if (dive.tags.isNotEmpty) {
+        // Per-dive dedup: `dive_tags` has no UNIQUE(diveId, tagId)
+        // constraint, so duplicate `<tag>` entries would create duplicate
+        // junction rows that surface as a tag appearing twice on a dive.
         final tagNames = <String>[];
         for (final tag in dive.tags) {
           final trimmed = tag.trim();
           if (trimmed.isEmpty) continue;
-          tagNames.add(trimmed);
+          if (!tagNames.contains(trimmed)) tagNames.add(trimmed);
           tagsByName.putIfAbsent(
             trimmed,
             () => <String, dynamic>{'name': trimmed, 'uddfId': trimmed},
@@ -205,7 +228,9 @@ class MacDiveXmlParser implements ImportParser {
     if (d.identifier != null) map['sourceUuid'] = d.identifier;
     if (d.date != null) map['dateTime'] = d.date;
     if (d.diveNumber != null) map['diveNumber'] = d.diveNumber;
-    if (d.repetitiveDive != null) map['diveNumberOfDay'] = d.repetitiveDive;
+    // MacDive's <repetitiveDive> (per-day counter) is intentionally dropped:
+    // main's refactor removed the `dive_number_of_day` column because it's
+    // derivable from dateTime and goes stale after manual edits.
     if (d.maxDepthMeters != null) map['maxDepth'] = d.maxDepthMeters;
     if (d.avgDepthMeters != null) map['avgDepth'] = d.avgDepthMeters;
     if (d.duration != null) {
@@ -238,13 +263,15 @@ class MacDiveXmlParser implements ImportParser {
     if (entryMethod != null) map['entryMethod'] = entryMethod.name;
     if (d.computer != null) map['diveComputerModel'] = d.computer;
     if (d.serial != null) map['diveComputerSerial'] = d.serial;
-    // MacDive rating is a 0.0-5.0 float; Submersion stores 0-5 int.
-    if (d.rating != null) map['rating'] = d.rating!.clamp(0.0, 5.0).round();
+    final rating = MacDiveValueMapper.rating(d.rating);
+    if (rating != null) map['rating'] = rating;
 
-    // Tanks: each <gas> becomes a tank map. gasMix is nested as a Map with
-    // o2/he expressed as fractions (0.0-1.0) so the downstream importer can
-    // construct a GasMix and link tank -> gas without having to re-derive
-    // the mix. This mirrors what the UDDF pipeline produces for its tanks.
+    // Tanks: each <gas> becomes a tank map using the same key conventions as
+    // the Subsurface and UDDF parsers so `UddfEntityImporter._buildTanks` can
+    // consume MacDive tanks unchanged — keys `volume` / `workingPressure`
+    // (not `volumeL` / `workingPressureBar`), and `gasMix` as a `GasMix`
+    // object (the importer casts `t['gasMix'] as GasMix?`). `GasMix` stores
+    // o2/he as percentages 0-100, which matches what the reader already emits.
     final tanks = <Map<String, dynamic>>[];
     for (var i = 0; i < d.gases.length; i++) {
       final g = d.gases[i];
@@ -253,17 +280,17 @@ class MacDiveXmlParser implements ImportParser {
         tank['startPressure'] = g.pressureStartBar;
       }
       if (g.pressureEndBar != null) tank['endPressure'] = g.pressureEndBar;
-      if (g.tankSizeLiters != null) tank['volumeL'] = g.tankSizeLiters;
+      if (g.tankSizeLiters != null) tank['volume'] = g.tankSizeLiters;
       if (g.workingPressureBar != null) {
-        tank['workingPressureBar'] = g.workingPressureBar;
+        tank['workingPressure'] = g.workingPressureBar;
       }
       if (g.tankName != null) tank['name'] = g.tankName;
       if (g.supplyType != null) tank['supplyType'] = g.supplyType;
       if (g.duration != null) tank['runtime'] = g.duration;
-      tank['gasMix'] = <String, dynamic>{
-        if (g.oxygenPercent != null) 'o2': g.oxygenPercent! / 100.0,
-        if (g.heliumPercent != null) 'he': g.heliumPercent! / 100.0,
-      };
+      tank['gasMix'] = GasMix(
+        o2: g.oxygenPercent ?? 21.0,
+        he: g.heliumPercent ?? 0.0,
+      );
       tanks.add(tank);
     }
     if (tanks.isNotEmpty) map['tanks'] = tanks;
@@ -301,8 +328,13 @@ class MacDiveXmlParser implements ImportParser {
     return map;
   }
 
-  Map<String, dynamic> _mapGear(MacDiveXmlGearItem g) {
-    final map = <String, dynamic>{};
+  Map<String, dynamic> _mapGear(
+    MacDiveXmlGearItem g, {
+    required String uddfId,
+  }) {
+    // `uddfId` is the gear's composite dedup key, referenced from each dive's
+    // `equipmentRefs`. UddfEntityImporter resolves it via `equipmentIdMapping`.
+    final map = <String, dynamic>{'uddfId': uddfId};
     if (g.name != null) map['name'] = g.name;
     if (g.manufacturer != null) map['brand'] = g.manufacturer;
     if (g.type != null) map['type'] = g.type;
@@ -311,6 +343,13 @@ class MacDiveXmlParser implements ImportParser {
   }
 
   String _gearKey(MacDiveXmlGearItem g) {
-    return '${g.manufacturer ?? ''}|${g.name ?? ''}|${g.serial ?? ''}';
+    final manufacturer = g.manufacturer?.trim() ?? '';
+    final name = g.name?.trim() ?? '';
+    final serial = g.serial?.trim() ?? '';
+    // Empty `<item/>` elements would otherwise collapse to a `"||"` key and
+    // show up as a phantom equipment entity. Skip them by returning an
+    // empty key; the caller (`_gearKey(...).isEmpty`) drops the item.
+    if (manufacturer.isEmpty && name.isEmpty && serial.isEmpty) return '';
+    return '$manufacturer|$name|$serial';
   }
 }

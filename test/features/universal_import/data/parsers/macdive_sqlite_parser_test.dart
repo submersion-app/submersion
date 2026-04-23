@@ -68,5 +68,33 @@ void main() {
       expect(payload.isEmpty, isTrue);
       expect(payload.warnings.first.severity, ImportWarningSeverity.error);
     });
+
+    test(
+      'gear entities carry a stable uddfId matching the gear UUID',
+      () async {
+        final payload = await const MacDiveSqliteParser().parse(validBytes);
+        final equipment = payload.entitiesOf(ImportEntityType.equipment);
+        expect(equipment, hasLength(1));
+        final gear = equipment.single;
+        expect(gear['name'], 'Hydros Pro');
+        expect(gear['uddfId'], 'gear-uuid-1');
+        expect(gear['sourceUuid'], 'gear-uuid-1');
+      },
+    );
+
+    test(
+      'dives emit equipmentRefs pointing at gear uddfIds, enabling linking',
+      () async {
+        final payload = await const MacDiveSqliteParser().parse(validBytes);
+        final dives = payload.entitiesOf(ImportEntityType.dives);
+        // Dive 1 in the synthetic fixture has the only dive↔gear junction.
+        final withGear = dives.where(
+          (d) => (d['equipmentRefs'] as List?)?.isNotEmpty ?? false,
+        );
+        expect(withGear, hasLength(1));
+        final refs = withGear.single['equipmentRefs'] as List;
+        expect(refs, ['gear-uuid-1']);
+      },
+    );
   });
 }

@@ -8,9 +8,9 @@ All notable changes to Submersion are documented in this file.
 ### Added
 
 - MacDive UDDF imports now capture substantially richer dive data: boat
-  name and captain, dive operator, surface conditions, dive-number-of-day,
-  weather (stored in the existing weather description field), plus site
-  water type, body of water, and difficulty rating.
+  name and captain, dive operator, surface conditions, weather (stored
+  in the existing weather description field), plus site water type, body
+  of water, and difficulty rating.
 - **MacDive native XML import.** MacDive's own `.xml` logbook format is now
   a first-class import source. Unlike MacDive UDDF (which doesn't emit tags),
   the native XML export carries dive tags — so users migrating tag metadata
@@ -20,12 +20,12 @@ All notable changes to Submersion are documented in this file.
 - **MacDive (XML) source override** in the import wizard's detected-source
   dropdown, alongside the existing MacDive (CSV) option.
 - **MacDive SQLite import.** Direct import from MacDive's Core Data
-  SQLite database — the most complete metadata path. Captures dives,
-  sites, buddies, tags (as with XML), gear inventory, critters/marine
-  life sightings, dive events, service records, and certifications.
-  Cross-format deduplication via source UUIDs: if you've already
-  imported the same dives via MacDive UDDF or XML, re-importing from
-  SQLite won't create duplicates.
+  SQLite database. Captures the same entity set as MacDive XML — dives,
+  sites, buddies, tags, and gear inventory — plus per-dive tank and gas
+  mix linkage drawn from the `ZTANKANDGAS` join table. Cross-format
+  deduplication via source UUIDs: if you've already imported the same
+  dives via MacDive UDDF or XML, re-importing from SQLite won't create
+  duplicates.
 - **MacDive (SQLite) source override** in the import wizard's
   detected-source dropdown, alongside MacDive (CSV) and MacDive (XML).
 - **Photo import from MacDive.** The import wizard now offers a "Link
@@ -35,13 +35,14 @@ All notable changes to Submersion are documented in this file.
   longest-tail matching, then filename scan). Matched photos are
   copied into Submersion's media storage and linked to the
   corresponding dives.
-
-### Fixed
-
 - Cross-format import deduplication: stable per-dive UUIDs from MacDive,
   Shearwater Cloud, Subsurface SSRF, and generic UDDF are now preserved on
   the `dive_data_sources` sidecar. Re-importing the same dives in a
   different format no longer creates duplicates.
+
+### Fixed
+
+
 - MacDive UDDF: equipment / gear now imports correctly. The parser
   previously only scanned Submersion's private equipment extension,
   missing the standard UDDF gear location (`<diver><owner><equipment>`)
@@ -66,6 +67,13 @@ All notable changes to Submersion are documented in this file.
   and isn't standard bplist or any common compression. Users who
   need time-series profile data should use the MacDive UDDF import
   path instead, which decodes MacDive's UDDF profile correctly.
+- The MacDive SQLite path reads critters (marine-life sightings),
+  dive events, service records, and certifications into its typed
+  row graph, but these are not yet emitted into the import payload —
+  the unified importer doesn't have entity types for critters,
+  events, or service records, and certification emission is scoped
+  for a follow-up. For now, only the dive/site/buddy/tag/gear subset
+  is persisted.
 - **MacDive library-internal photos.** MacDive stores photos added
   via its own "Import Photo" feature as UUID-named files inside its
   private app-support directory — roughly ~80% of photos in a typical
@@ -78,6 +86,29 @@ All notable changes to Submersion are documented in this file.
   the full flow. iOS and Android show a "photos import is desktop-only"
   notice — the file-picker API doesn't grant unrestricted filesystem
   access on those platforms.
+
+
+## 1.4.6 (2026-04-22)
+
+### Bug Fixes
+
+- log download failures to the file log (#258)
+- DB readonly-rollback recovery + cooperative import cancellation (#255)
+
+### Documentation
+
+- implementation plans for MacDive import milestones 1-4
+- design spec for robust MacDive import (UDDF, XML, SQLite, photos)
+
+### Chores
+
+- bump version to 1.4.6+92
+- changelog + plan update for MacDive UDDF gap-fill milestone
+
+### Other
+
+- ignore sample data
+- Revert "chore: changelog + plan update for MacDive UDDF gap-fill milestone"
 
 
 ## 1.4.5 (2026-04-21)

@@ -529,16 +529,6 @@ class UddfFullImportService {
         'divemaster',
       );
 
-      // MacDive exposes per-day dive counter in informationbeforedive
-      final dnodRaw = UddfImportParsers.getElementText(
-        beforeElement,
-        'divenumberofday',
-      );
-      final dnod = dnodRaw == null ? null : int.tryParse(dnodRaw);
-      if (dnod != null) {
-        diveData['diveNumberOfDay'] = dnod;
-      }
-
       final diveType = UddfImportParsers.getElementText(
         beforeElement,
         'divetype',
@@ -1372,9 +1362,16 @@ class UddfFullImportService {
       // Get linked gas mix
       final mixLink = tankDataElement.findElements('link').firstOrNull;
       if (mixLink != null) {
-        final mixRef = mixLink.getAttribute('ref');
-        if (mixRef != null && gasMixes.containsKey(mixRef)) {
-          tankInfo['gasMix'] = gasMixes[mixRef];
+        final rawMixRef = mixLink.getAttribute('ref');
+        final mixRef = rawMixRef?.trim();
+        if (mixRef != null && mixRef.isNotEmpty) {
+          // Record the UDDF gas-mix UUID on the tank so the importer can
+          // resolve waypoint-level <switchmix ref> markers (which reference
+          // gas mixes, not tanks) back to a tank for the gas_switches row.
+          tankInfo['uddfGasMixRef'] = mixRef;
+          if (gasMixes.containsKey(mixRef)) {
+            tankInfo['gasMix'] = gasMixes[mixRef];
+          }
         }
       }
 
@@ -1528,6 +1525,11 @@ class UddfFullImportService {
     final samplesElement = diveElement.findElements('samples').firstOrNull;
     if (samplesElement != null) {
       final profile = <Map<String, dynamic>>[];
+      // Gas switches emitted from waypoint-level <switchmix ref="..."/>.
+      // MacDive marks deco gas changes on individual samples this way; we feed
+      // them into the same `diveData['gasSwitches']` pipe as the top-level
+      // <gasswitches> section so the importer has one consumer.
+      final waypointGasSwitches = <Map<String, dynamic>>[];
       GasMix? currentMix;
       GasMix? pendingSwitchMix;
       double? lastWaypointCns;
@@ -1563,10 +1565,28 @@ class UddfFullImportService {
 
         final switchMix = waypoint.findElements('switchmix').firstOrNull;
         if (switchMix != null) {
-          final mixRef = switchMix.getAttribute('ref');
-          if (mixRef != null) {
-            // Record the gas mix reference on the sample for downstream consumers
-            point['gasMixRef'] = mixRef;
+          final rawMixRef = switchMix.getAttribute('ref');
+          final mixRef = rawMixRef?.trim();
+          // Skip emission entirely when the ref is empty or whitespace-only:
+          // the importer would have no way to resolve such a dangling ref
+          // back to a persisted tank row.
+          if (mixRef != null && mixRef.isNotEmpty) {
+            // Emit a gas switch entry for the importer to persist. Shape
+            // matches the top-level <gasswitches> parser (timestamp/depth/
+            // tankRef), plus `gasMixRef` so the importer can resolve the
+            // MacDive-style gas-UUID reference to a tank.
+            final timestamp = point['timestamp'] as int?;
+            if (timestamp != null) {
+              final entry = <String, dynamic>{
+                'timestamp': timestamp,
+                'gasMixRef': mixRef,
+              };
+              final depth = point['depth'];
+              if (depth != null) {
+                entry['depth'] = depth;
+              }
+              waypointGasSwitches.add(entry);
+            }
 
             if (gasMixes.containsKey(mixRef)) {
               currentMix = gasMixes[mixRef];
@@ -1732,6 +1752,24 @@ class UddfFullImportService {
       // Use gas mix from samples if no tank data was found
       if (currentMix != null && !diveData.containsKey('tanks')) {
         diveData['gasMix'] = currentMix;
+      }
+
+      // Merge waypoint-level gas switches with any entries emitted earlier
+      // from the top-level <gasswitches> section, deduping on
+      // timestamp+gasMixRef+tankRef so both paths feed one consumer.
+      if (waypointGasSwitches.isNotEmpty) {
+        final existing =
+            (diveData['gasSwitches'] as List<Map<String, dynamic>>?) ??
+            const <Map<String, dynamic>>[];
+        final seen = <String>{};
+        final merged = <Map<String, dynamic>>[];
+        for (final gs in [...existing, ...waypointGasSwitches]) {
+          final key = '${gs['timestamp']}|${gs['gasMixRef']}|${gs['tankRef']}';
+          if (seen.add(key)) {
+            merged.add(gs);
+          }
+        }
+        diveData['gasSwitches'] = merged;
       }
     }
 

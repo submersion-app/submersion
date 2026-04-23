@@ -28,6 +28,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -226,6 +227,10 @@ class UddfEntityImporter {
   ///
   /// Only entities at indices present in [selections] are imported.
   /// Reports progress via [onProgress] callback.
+  ///
+  /// If [cancelToken] is non-null, the dive-import loop polls
+  /// [ImportCancellationToken.isCancelled] between each dive and returns the
+  /// partial result already persisted when cancellation is observed.
   Future<UddfEntityImportResult> import({
     required UddfImportResult data,
     required UddfImportSelections selections,
@@ -233,6 +238,7 @@ class UddfEntityImporter {
     required String diverId,
     bool retainSourceDiveNumbers = false,
     ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
   }) async {
     final now = DateTime.now();
 
@@ -360,6 +366,7 @@ class UddfEntityImporter {
       retainSourceDiveNumbers: retainSourceDiveNumbers,
       now: now,
       onProgress: onProgress,
+      cancelToken: cancelToken,
     );
 
     return UddfEntityImportResult(
@@ -826,8 +833,12 @@ class UddfEntityImporter {
         await repository.applyImportedMetadata(
           createdSite.id,
           DiveSitesCompanion(
-            waterType: Value(waterType),
-            bodyOfWater: Value(bodyOfWater),
+            waterType: waterType != null
+                ? Value(waterType)
+                : const Value.absent(),
+            bodyOfWater: bodyOfWater != null
+                ? Value(bodyOfWater)
+                : const Value.absent(),
           ),
         );
       }
@@ -969,6 +980,7 @@ class UddfEntityImporter {
     bool retainSourceDiveNumbers = false,
     required DateTime now,
     ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
   }) async {
     if (selected.isEmpty) return const _DiveImportResult(0, 0);
     onProgress?.call(ImportPhase.dives, 0, selected.length);
@@ -992,6 +1004,8 @@ class UddfEntityImporter {
         : await repos.diveRepository.getNextDiveNumber(diverId: diverId);
 
     for (final i in sortedSelected) {
+      if (cancelToken?.isCancelled ?? false) break;
+
       final diveData = items[i];
 
       // Build profile (include setpoint/ppO2 sensor readings)
@@ -1218,14 +1232,12 @@ class UddfEntityImporter {
       // domain entity. Also plug `weather` into the existing weatherDescription
       // column (it wasn't being populated for UDDF imports). Only issue the
       // UPDATE when at least one value is present to avoid a no-op write.
-      final diveNumberOfDay = diveData['diveNumberOfDay'] as int?;
       final boatName = diveData['boatName'] as String?;
       final boatCaptain = diveData['boatCaptain'] as String?;
       final diveOperator = diveData['diveOperator'] as String?;
       final surfaceConditions = diveData['surfaceConditions'] as String?;
       final weather = diveData['weather'] as String?;
-      if (diveNumberOfDay != null ||
-          boatName != null ||
+      if (boatName != null ||
           boatCaptain != null ||
           diveOperator != null ||
           surfaceConditions != null ||
@@ -1233,12 +1245,19 @@ class UddfEntityImporter {
         await repos.diveRepository.applyImportedMetadata(
           diveId,
           DivesCompanion(
-            diveNumberOfDay: Value(diveNumberOfDay),
-            boatName: Value(boatName),
-            boatCaptain: Value(boatCaptain),
-            diveOperator: Value(diveOperator),
-            surfaceConditions: Value(surfaceConditions),
-            weatherDescription: Value(weather),
+            boatName: boatName != null ? Value(boatName) : const Value.absent(),
+            boatCaptain: boatCaptain != null
+                ? Value(boatCaptain)
+                : const Value.absent(),
+            diveOperator: diveOperator != null
+                ? Value(diveOperator)
+                : const Value.absent(),
+            surfaceConditions: surfaceConditions != null
+                ? Value(surfaceConditions)
+                : const Value.absent(),
+            weatherDescription: weather != null
+                ? Value(weather)
+                : const Value.absent(),
           ),
         );
       }
@@ -1257,7 +1276,12 @@ class UddfEntityImporter {
       final gasSwitchesData =
           diveData['gasSwitches'] as List<Map<String, dynamic>>?;
       if (gasSwitchesData != null && gasSwitchesData.isNotEmpty) {
+        // Build lookups from both UDDF tank ID and UDDF gas mix UUID to the
+        // persisted tank row id. MacDive-style switches reference a gas mix
+        // UUID (via <switchmix ref>), while top-level <gasswitches>
+        // entries reference a tank UUID (via <tankref>); we accept either.
         final tankIdByRef = <String, String>{};
+        final tankIdByGasMixRef = <String, String>{};
         final tanksData = diveData['tanks'] as List<Map<String, dynamic>>?;
         if (tanksData != null) {
           for (var i = 0; i < tanks.length && i < tanksData.length; i++) {
@@ -1267,6 +1291,15 @@ class UddfEntityImporter {
             if (ref != null && ref.isNotEmpty) {
               tankIdByRef[ref] = tank.id;
             }
+            final gasMixRef = (tankData['uddfGasMixRef'] as String?)?.trim();
+            // First tank linked to a given gas wins; later tanks sharing the
+            // same gas don't overwrite. This is a pragmatic resolution for
+            // dives where multiple tanks carry the same mix.
+            if (gasMixRef != null &&
+                gasMixRef.isNotEmpty &&
+                !tankIdByGasMixRef.containsKey(gasMixRef)) {
+              tankIdByGasMixRef[gasMixRef] = tank.id;
+            }
           }
         }
 
@@ -1275,9 +1308,16 @@ class UddfEntityImporter {
               final timestamp = gs['timestamp'] as int?;
               if (timestamp == null) return null;
               final tankRef = (gs['tankRef'] as String?)?.trim();
-              final tankId = tankRef != null && tankRef.isNotEmpty
-                  ? tankIdByRef[tankRef]
-                  : null;
+              final gasMixRef = (gs['gasMixRef'] as String?)?.trim();
+              String? tankId;
+              if (tankRef != null && tankRef.isNotEmpty) {
+                tankId = tankIdByRef[tankRef];
+              }
+              if ((tankId == null || tankId.isEmpty) &&
+                  gasMixRef != null &&
+                  gasMixRef.isNotEmpty) {
+                tankId = tankIdByGasMixRef[gasMixRef];
+              }
               if (tankId == null || tankId.isEmpty) return null;
               return GasSwitch(
                 id: _uuid.v4(),

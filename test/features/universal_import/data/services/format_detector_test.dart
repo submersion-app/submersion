@@ -151,6 +151,18 @@ void main() {
       final result = detector.detect(Uint8List.fromList(utf8.encode(xml)));
       expect(result.format, isNot(ImportFormat.macdiveXml));
     });
+
+    test('detects MacDive XML when root tags carry attributes', () {
+      const xml =
+          '<?xml version="1.0"?>'
+          '<dives xmlns="http://example.com/mac">'
+          '<schema version="2.2.0">2.2.0</schema>'
+          '<dive/>'
+          '</dives>';
+      final result = detector.detect(Uint8List.fromList(utf8.encode(xml)));
+      expect(result.format, ImportFormat.macdiveXml);
+      expect(result.sourceApp, SourceApp.macdive);
+    });
   });
 
   group('CSV detection', () {

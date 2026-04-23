@@ -27,7 +27,7 @@ class BPlistDecoder {
 
   /// Entry point: decode [bytes] into the root [BPlistObject].
   /// Throws [FormatException] if [bytes] is not a valid bplist00 stream
-  /// or uses unsupported type markers (sets, UIDs).
+  /// or uses unsupported type markers (sets).
   static BPlistObject decode(Uint8List bytes) {
     if (bytes.length < 8 + 32) {
       throw const FormatException('bplist00 stream too short');
@@ -79,6 +79,12 @@ class BPlistDecoder {
 
       case 0x1: // int
         // info bits 0..3 encode log2(byteCount): 0->1, 1->2, 2->4, 3->8, 4->16.
+        // 16-byte ints are decoded as a best-effort truncation to the low
+        // 64 bits: Dart's `int` is 64-bit on native platforms, and the
+        // `(value << 8) | byte` accumulator in `_readBigEndianInt` silently
+        // drops the high bytes once the value overflows — which for a big-
+        // endian read keeps exactly the low 64 bits of the source integer.
+        // MacDive has not been seen to emit 16-byte ints in practice.
         final byteCount = 1 << info;
         return BPlistInt(_readBigEndianInt(_bytes, offset + 1, byteCount));
 
@@ -122,8 +128,9 @@ class BPlistDecoder {
         }
         return BPlistArray(refs.map(_readObject).toList(growable: false));
 
-      case 0x8: // UID — CFKeyedArchiver reference (always 1 byte)
-        return BPlistUID(_bytes[offset + 1]);
+      case 0x8: // UID — CFKeyedArchiver reference (1..4 bytes; info encodes byteCount - 1)
+        final byteCount = info + 1;
+        return BPlistUID(_readBigEndianInt(_bytes, offset + 1, byteCount));
 
       case 0xD: // dict
         final li = _readLenAndStart(offset, info);

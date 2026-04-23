@@ -113,6 +113,54 @@ void main() {
     });
   });
 
+  group('BPlistDecoder — multi-byte UID markers', () {
+    // Synthetic bplist: root = UID(index). The decoder must honor the
+    // bplist spec's `byteCount = (marker & 0x0F) + 1` rule so archives
+    // with > 255 objects (e.g. large NSKeyedArchiver graphs) decode
+    // correctly. Regression test for the 1-byte-only bug.
+    Uint8List buildBplistWithRootUid(List<int> uidBytes) {
+      final marker = 0x80 | (uidBytes.length - 1);
+      final body = <int>[marker, ...uidBytes];
+      const bodyOffset = 8;
+      final offsetTableOffset = bodyOffset + body.length;
+      const numObjects = 1;
+      const topObject = 0;
+      final trailer = <int>[
+        0, 0, 0, 0, 0, 0, // unused / sortVersion
+        1, // offsetIntSize
+        1, // objectRefSize
+        0, 0, 0, 0, 0, 0, 0, numObjects, // numObjects (u64 BE)
+        0, 0, 0, 0, 0, 0, 0, topObject, // topObject (u64 BE)
+        0, 0, 0, 0, 0, 0, 0, offsetTableOffset, // offsetTableOffset (u64 BE)
+      ];
+      return Uint8List.fromList([
+        0x62, 0x70, 0x6C, 0x69, 0x73, 0x74, 0x30, 0x30, // "bplist00"
+        ...body,
+        bodyOffset, // offset table: one entry pointing at body
+        ...trailer,
+      ]);
+    }
+
+    test('decodes 2-byte UID index (e.g. object 256)', () {
+      final bytes = buildBplistWithRootUid(const [0x01, 0x00]);
+      final result = BPlistDecoder.decode(bytes);
+      expect(result, isA<BPlistUID>());
+      expect((result as BPlistUID).index, 256);
+    });
+
+    test('decodes 4-byte UID index', () {
+      final bytes = buildBplistWithRootUid(const [0x00, 0x01, 0x00, 0x00]);
+      final result = BPlistDecoder.decode(bytes);
+      expect((result as BPlistUID).index, 0x00010000);
+    });
+
+    test('still decodes the common 1-byte case', () {
+      final bytes = buildBplistWithRootUid(const [0x2A]);
+      final result = BPlistDecoder.decode(bytes);
+      expect((result as BPlistUID).index, 42);
+    });
+  });
+
   group('BPlistDecoder — real MacDive ZTIMEZONE BLOB', () {
     late BPlistObject root;
 

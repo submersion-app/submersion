@@ -25,7 +25,10 @@ void main() {
     test('parses identifier, date, diveNumber', () {
       final dive = MacDiveXmlReader.parse(content).dives.first;
       expect(dive.identifier, '20240601090000-ABC123');
-      expect(dive.date, DateTime(2024, 6, 1, 9, 0, 0));
+      // MacDive XML has no timezone; we encode the wall clock in UTC so
+      // timestamps don't drift across DST or travel. See _parseDate.
+      expect(dive.date, DateTime.utc(2024, 6, 1, 9, 0, 0));
+      expect(dive.date!.isUtc, isTrue);
       expect(dive.diveNumber, 42);
     });
 
@@ -168,6 +171,20 @@ void main() {
       expect(dive.notes, isNull);
       expect(dive.boat, isNull);
     });
+
+    test('throws when root element is not <dives>', () {
+      // Guards against a source-override misuse where a user forces "MacDive
+      // XML" on a UDDF or other file: without this check, the reader would
+      // silently return an empty logbook.
+      const uddf =
+          '<?xml version="1.0"?>'
+          '<uddf version="3.2.0"><profiledata/></uddf>';
+      expect(
+        () => MacDiveXmlReader.parse(uddf),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
 
     test('unknown units system passes through numerics unchanged', () {
       const xml = '''<?xml version="1.0"?>

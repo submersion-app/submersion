@@ -59,9 +59,11 @@ class BPlistDict extends BPlistObject {
   const BPlistDict(this.value);
 }
 
-/// CFKeyedArchiver UID: a 1-byte reference to another object in the
-/// archive's object table. Used in NSKeyedArchiver-encoded Core Data
-/// blobs to represent cross-references between objects.
+/// CFKeyedArchiver UID: a big-endian reference to another object in the
+/// archive's object table. The bplist marker's low nibble encodes
+/// `byteCount - 1`, so the index field is 1..4 bytes wide. Used in
+/// NSKeyedArchiver-encoded Core Data blobs to represent cross-references
+/// between objects.
 class BPlistUID extends BPlistObject {
   final int index;
   const BPlistUID(this.index);

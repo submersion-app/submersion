@@ -127,7 +127,6 @@ class Dives extends Table {
   TextColumn get buddy => text().nullable()();
   TextColumn get diveMaster => text().nullable()();
   // MacDive import fields — common dive metadata
-  IntColumn get diveNumberOfDay => integer().nullable()();
   TextColumn get boatName => text().nullable()();
   TextColumn get boatCaptain => text().nullable()();
   TextColumn get diveOperator => text().nullable()();
@@ -3284,11 +3283,6 @@ class AppDatabase extends _$AppDatabase {
               .map((r) => r.data['name'] as String)
               .toSet();
           if (divesCols.isNotEmpty) {
-            if (!divesExisting.contains('dive_number_of_day')) {
-              await customStatement(
-                'ALTER TABLE dives ADD COLUMN dive_number_of_day INTEGER',
-              );
-            }
             if (!divesExisting.contains('boat_name')) {
               await customStatement(
                 'ALTER TABLE dives ADD COLUMN boat_name TEXT',

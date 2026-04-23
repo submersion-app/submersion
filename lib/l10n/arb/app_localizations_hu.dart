@@ -10567,6 +10567,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_gfPreset_medium_name => 'Közepes';
 
   @override
+  String get settings_import_cancelButton => 'Importalas megszakitasa';
+
+  @override
+  String get settings_import_cancelling => 'Megszakitas...';
+
+  @override
   String get settings_import_dialog_title => 'Adatok importalasa';
 
   @override

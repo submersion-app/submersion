@@ -18,6 +18,13 @@ class MacDiveDbReader {
   /// have a `ZDIVE` table coincidentally.
   static const _requiredTables = ['ZDIVE', 'ZDIVESITE', 'ZGAS', 'ZTANKANDGAS'];
 
+  /// Synchronous companion to [isMacDiveDb] for callers that have
+  /// already probed the SQLite table set (e.g. the format detector
+  /// runs every DB-flavor check against one probe to avoid doubling
+  /// temp-file I/O).
+  static bool matchesTables(Set<String> tables) =>
+      _requiredTables.every(tables.contains);
+
   /// True when [bytes] is a SQLite database containing every table in
   /// [_requiredTables]. Returns false (doesn't throw) for non-SQLite
   /// inputs or unrelated schemas.
@@ -44,9 +51,14 @@ class MacDiveDbReader {
   }
 
   /// Reads every MacDive table relevant to the import pipeline and
-  /// returns a fully populated [MacDiveRawLogbook]. Missing/unpopulated
-  /// tables (e.g. `ZCRITTER` when the user logs no marine-life
-  /// sightings) produce empty collections rather than errors.
+  /// returns a fully populated [MacDiveRawLogbook]. The four tables in
+  /// [_requiredTables] are validated up-front (a [FormatException] is
+  /// thrown if any are missing) so subsequent reads on them can rely
+  /// on direct `db.select` without per-call guards. For every other
+  /// table (e.g. `ZCRITTER`, `ZBUDDY`, `ZGEARITEM`), a missing or
+  /// unpopulated table produces an empty collection rather than an
+  /// error — some MacDive schema versions omit tables the user has
+  /// never touched.
   static Future<MacDiveRawLogbook> readAll(Uint8List bytes) async {
     final tmpPath = _tmpPath();
     final tmpFile = File(tmpPath);
@@ -54,6 +66,7 @@ class MacDiveDbReader {
       await tmpFile.writeAsBytes(bytes);
       final db = sqlite3.open(tmpPath, mode: OpenMode.readOnly);
       try {
+        _validateRequiredTables(db);
         final unitsPreference = _readUnitsPreference(db);
         final sites = _readSites(db);
         final buddies = _readBuddies(db);
@@ -157,28 +170,34 @@ class MacDiveDbReader {
   }
 
   static List<MacDiveRawBuddy> _readBuddies(Database db) {
-    return db.select('SELECT Z_PK, ZUUID, ZNAME FROM ZBUDDY').map((r) {
-      return MacDiveRawBuddy(
+    return _selectOrEmpty<MacDiveRawBuddy>(
+      db,
+      'SELECT Z_PK, ZUUID, ZNAME FROM ZBUDDY',
+      (r) => MacDiveRawBuddy(
         pk: r['Z_PK'] as int,
         uuid: _str(r['ZUUID']) ?? '',
         name: _str(r['ZNAME']),
-      );
-    }).toList();
+      ),
+    );
   }
 
   static List<MacDiveRawTag> _readTags(Database db) {
-    return db.select('SELECT Z_PK, ZUUID, ZNAME FROM ZTAG').map((r) {
-      return MacDiveRawTag(
+    return _selectOrEmpty<MacDiveRawTag>(
+      db,
+      'SELECT Z_PK, ZUUID, ZNAME FROM ZTAG',
+      (r) => MacDiveRawTag(
         pk: r['Z_PK'] as int,
         uuid: _str(r['ZUUID']) ?? '',
         name: _str(r['ZNAME']),
-      );
-    }).toList();
+      ),
+    );
   }
 
   static List<MacDiveRawGear> _readGear(Database db) {
-    return db.select('SELECT * FROM ZGEARITEM').map((r) {
-      return MacDiveRawGear(
+    return _selectOrEmpty<MacDiveRawGear>(
+      db,
+      'SELECT * FROM ZGEARITEM',
+      (r) => MacDiveRawGear(
         pk: r['Z_PK'] as int,
         uuid: _str(r['ZUUID']) ?? '',
         name: _str(r['ZNAME']),
@@ -193,21 +212,23 @@ class MacDiveDbReader {
         notes: _str(r['ZNOTES']),
         url: _str(r['ZURL']),
         warranty: _str(r['ZWARRANTY']),
-      );
-    }).toList();
+      ),
+    );
   }
 
   static List<MacDiveRawTank> _readTanks(Database db) {
-    return db.select('SELECT * FROM ZTANK').map((r) {
-      return MacDiveRawTank(
+    return _selectOrEmpty<MacDiveRawTank>(
+      db,
+      'SELECT * FROM ZTANK',
+      (r) => MacDiveRawTank(
         pk: r['Z_PK'] as int,
         uuid: _str(r['ZUUID']) ?? '',
         name: _str(r['ZNAME']),
         size: _double(r['ZSIZE']),
         workingPressure: _double(r['ZWORKINGPRESSURE']),
         type: _str(r['ZTYPE']),
-      );
-    }).toList();
+      ),
+    );
   }
 
   static List<MacDiveRawGas> _readGases(Database db) {
@@ -372,8 +393,8 @@ class MacDiveDbReader {
         weight: _str(r['ZWEIGHT']),
         diveSiteFk: r['ZRELATIONSHIPDIVESITE'] as int?,
         certificationFk: r['ZRELATIONSHIPCERTIFICATION'] as int?,
-        samplesBplist: _bytes(r['ZSAMPLES']),
-        rawDataBplist: _bytes(r['ZRAWDATA']),
+        samplesBlob: _bytes(r['ZSAMPLES']),
+        rawDataBlob: _bytes(r['ZRAWDATA']),
       );
     }).toList();
   }
@@ -412,6 +433,24 @@ class MacDiveDbReader {
       return db.select(query).map(map).toList();
     } catch (_) {
       return const [];
+    }
+  }
+
+  /// Confirms every table in [_requiredTables] exists in [db]. Called
+  /// at the top of [readAll] so the readers below can count on these
+  /// tables being present, and so that a missing-table failure surfaces
+  /// as a clear error instead of a confusing "no such table" from a
+  /// later query.
+  static void _validateRequiredTables(Database db) {
+    final rows = db.select("SELECT name FROM sqlite_master WHERE type='table'");
+    final tables = rows.map<String>((r) => r['name'] as String).toSet();
+    final missing = _requiredTables
+        .where((t) => !tables.contains(t))
+        .toList(growable: false);
+    if (missing.isNotEmpty) {
+      throw FormatException(
+        'MacDive SQLite is missing required tables: ${missing.join(', ')}',
+      );
     }
   }
 

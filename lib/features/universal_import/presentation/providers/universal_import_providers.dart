@@ -86,14 +86,18 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     var detection = detector.detect(bytes);
 
     if (detection.format == ImportFormat.sqlite) {
-      final isShearwater = await ShearwaterDbReader.isShearwaterCloudDb(bytes);
-      if (isShearwater) {
+      // Probe the SQLite table set once and reuse for each DB flavor
+      // check. Without this, every flavor would re-write the full byte
+      // array to its own temp file and re-open sqlite — wasteful for
+      // large dive databases on mobile/low-end devices.
+      final tables = await ShearwaterDbReader.probeSqliteTableNames(bytes);
+      if (ShearwaterDbReader.matchesTables(tables)) {
         detection = const DetectionResult(
           format: ImportFormat.shearwaterDb,
           sourceApp: SourceApp.shearwater,
           confidence: 0.95,
         );
-      } else if (await MacDiveDbReader.isMacDiveDb(bytes)) {
+      } else if (MacDiveDbReader.matchesTables(tables)) {
         detection = const DetectionResult(
           format: ImportFormat.macdiveSqlite,
           sourceApp: SourceApp.macdive,

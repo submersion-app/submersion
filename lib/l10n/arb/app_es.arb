@@ -3262,6 +3262,8 @@
   "settings_gfPreset_low_name": "Bajo",
   "settings_gfPreset_medium_description": "Enfoque equilibrado",
   "settings_gfPreset_medium_name": "Medio",
+  "settings_import_cancelButton": "Cancelar importacion",
+  "settings_import_cancelling": "Cancelando...",
   "settings_import_dialog_title": "Importando datos",
   "settings_import_doNotClose": "Por favor, no cierres la aplicacion",
   "settings_import_itemCount": "{current} de {total}",
