@@ -338,12 +338,17 @@ class MacDiveRawDiveImage {
   final int position;
   final String? caption;
 
-  /// Current absolute path — may or may not exist on the machine
-  /// running the import.
+  /// MacDive's current path for the photo (`ZPATH`). For externally-sourced
+  /// photos this is usually an absolute path on the machine MacDive last
+  /// saw it on. For photos imported into MacDive's internal library it is
+  /// often just a UUID-based basename (e.g. `1A2B-...-xyz.jpg`), not a
+  /// filesystem-absolute path. May or may not exist on the machine running
+  /// this import.
   final String? path;
 
-  /// Original absolute path when MacDive first imported this photo.
-  /// Usually equal to [path] but may diverge if the user moved files.
+  /// Original absolute path when MacDive first imported this photo
+  /// (`ZORIGINALPATH`). Present mainly for externally-sourced photos;
+  /// typically null for photos imported into MacDive's internal library.
   final String? originalPath;
 
   const MacDiveRawDiveImage({

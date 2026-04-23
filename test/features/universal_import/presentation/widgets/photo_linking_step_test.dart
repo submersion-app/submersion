@@ -94,7 +94,7 @@ void main() {
           ResolvedPhoto(
             ref: ImportImageRef(originalPath: 'a', diveSourceUuid: 'd'),
             kind: PhotoResolutionKind.directPath,
-            bytes: null, // value doesn't matter for this test
+            resolvedPath: '/some/folder/a',
           ),
           ResolvedPhoto(
             ref: ImportImageRef(originalPath: 'b', diveSourceUuid: 'd'),

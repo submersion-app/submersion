@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:submersion/features/universal_import/data/models/import_image_ref.dart';
 
@@ -21,6 +20,11 @@ enum PhotoResolutionKind {
 }
 
 /// Result of trying to locate a photo referenced by an import.
+///
+/// Only the source path is stored; file bytes are NOT held in memory.
+/// Downstream writers stream from [resolvedPath] at write time to keep
+/// peak memory bounded regardless of batch size — a 261-photo MacDive
+/// import would otherwise hold hundreds of MB of JPEG bytes in state.
 class ResolvedPhoto {
   /// The source reference this result corresponds to.
   final ImportImageRef ref;
@@ -29,10 +33,9 @@ class ResolvedPhoto {
   final PhotoResolutionKind kind;
 
   /// Absolute path on the local filesystem if found; null otherwise.
+  /// The file is NOT opened by the resolver; callers stream/copy at
+  /// write time.
   final String? resolvedPath;
-
-  /// File bytes if found; null on miss.
-  final Uint8List? bytes;
 
   /// Optional human-readable message (e.g. "access denied"). The
   /// wizard shows this to the user for diagnosis when a miss is
@@ -43,7 +46,6 @@ class ResolvedPhoto {
     required this.ref,
     required this.kind,
     this.resolvedPath,
-    this.bytes,
     this.errorMessage,
   });
 }
@@ -60,9 +62,12 @@ class ResolvedPhoto {
 ///      [resolveAll] call, index by basename, look up each ref's
 ///      basename.
 ///
-/// Scanning is done once per call so a 261-photo MacDive import doesn't
-/// rescan rootDir 261 times. Empty input returns empty output without
-/// scanning.
+/// Each ref first gets direct + rebase attempts. Only if at least one
+/// ref still misses AND rootDir is set do we pay the recursive-scan
+/// cost to build the filename index. This keeps well-organised imports
+/// (where direct-path or rebase resolves everything) fast.
+///
+/// Empty input returns empty output without scanning.
 class PhotoResolver {
   /// Optional user-selected root directory for rebased / filename lookups.
   /// When null, only the direct-path strategy applies.
@@ -74,81 +79,72 @@ class PhotoResolver {
   Future<List<ResolvedPhoto>> resolveAll(List<ImportImageRef> refs) async {
     if (refs.isEmpty) return const [];
 
-    // Build the filename index once — reused across all refs. Null
-    // when rootDir is absent.
-    final filenameIndex = rootDir == null
-        ? null
-        : await _indexByFilename(rootDir!);
-
+    // First pass: direct path and rebased resolution only. Track which
+    // refs still need the filename-match fallback.
     final results = <ResolvedPhoto>[];
-    for (final ref in refs) {
-      results.add(await _resolveOne(ref, filenameIndex));
+    final missIndexes = <int>[];
+    for (var i = 0; i < refs.length; i++) {
+      final resolved = await _resolveDirectOrRebased(refs[i]);
+      results.add(resolved);
+      if (resolved.kind == PhotoResolutionKind.miss) {
+        missIndexes.add(i);
+      }
+    }
+
+    // Second pass: only build the recursive filename index if at least
+    // one ref still needs it AND we have a rootDir to search under.
+    if (rootDir == null || missIndexes.isEmpty) {
+      return results;
+    }
+    final filenameIndex = await _indexByFilename(rootDir!);
+    for (final index in missIndexes) {
+      final retry = _resolveByFilename(refs[index], filenameIndex);
+      if (retry != null) results[index] = retry;
     }
     return results;
   }
 
-  Future<ResolvedPhoto> _resolveOne(
-    ImportImageRef ref,
-    Map<String, List<String>>? filenameIndex,
-  ) async {
-    // 1. Direct.
+  Future<ResolvedPhoto> _resolveDirectOrRebased(ImportImageRef ref) async {
     final direct = File(ref.originalPath);
     if (await direct.exists()) {
-      try {
-        final bytes = await direct.readAsBytes();
-        return ResolvedPhoto(
-          ref: ref,
-          kind: PhotoResolutionKind.directPath,
-          resolvedPath: ref.originalPath,
-          bytes: bytes,
-        );
-      } catch (e) {
-        return ResolvedPhoto(
-          ref: ref,
-          kind: PhotoResolutionKind.miss,
-          errorMessage: 'Read failed at original path: $e',
-        );
-      }
+      return ResolvedPhoto(
+        ref: ref,
+        kind: PhotoResolutionKind.directPath,
+        resolvedPath: ref.originalPath,
+      );
     }
 
     if (rootDir == null) {
       return ResolvedPhoto(ref: ref, kind: PhotoResolutionKind.miss);
     }
 
-    // 2. Rebase: find longest tail of originalPath that exists under rootDir.
     final rebased = _tryRebase(ref.originalPath, rootDir!);
     if (rebased != null) {
-      try {
-        final bytes = await File(rebased).readAsBytes();
-        return ResolvedPhoto(
-          ref: ref,
-          kind: PhotoResolutionKind.rebased,
-          resolvedPath: rebased,
-          bytes: bytes,
-        );
-      } catch (_) {
-        // Fall through to filename match — rebase path listed but
-        // couldn't read; try a broader search.
-      }
+      return ResolvedPhoto(
+        ref: ref,
+        kind: PhotoResolutionKind.rebased,
+        resolvedPath: rebased,
+      );
     }
 
-    // 3. Filename match.
-    final candidates = filenameIndex?[ref.filename] ?? const <String>[];
+    return ResolvedPhoto(ref: ref, kind: PhotoResolutionKind.miss);
+  }
+
+  ResolvedPhoto? _resolveByFilename(
+    ImportImageRef ref,
+    Map<String, List<String>> filenameIndex,
+  ) {
+    final candidates = filenameIndex[ref.filename] ?? const <String>[];
     for (final candidate in candidates) {
-      try {
-        final bytes = await File(candidate).readAsBytes();
+      if (File(candidate).existsSync()) {
         return ResolvedPhoto(
           ref: ref,
           kind: PhotoResolutionKind.filenameMatch,
           resolvedPath: candidate,
-          bytes: bytes,
         );
-      } catch (_) {
-        // Try next candidate.
       }
     }
-
-    return ResolvedPhoto(ref: ref, kind: PhotoResolutionKind.miss);
+    return null;
   }
 
   /// Rebase strategy: peel components off the front of [original] and

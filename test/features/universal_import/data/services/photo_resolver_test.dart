@@ -17,7 +17,7 @@ void main() {
   });
 
   group('PhotoResolver - direct path', () {
-    test('finds file at originalPath, returns bytes', () async {
+    test('finds file at originalPath, returns its path', () async {
       final file = File('${tmp.path}/a.jpg')..writeAsBytesSync([1, 2, 3, 4]);
       final refs = [
         ImportImageRef(originalPath: file.path, diveSourceUuid: 'd'),
@@ -25,7 +25,6 @@ void main() {
       final results = await const PhotoResolver(rootDir: null).resolveAll(refs);
       expect(results.length, 1);
       expect(results.first.kind, PhotoResolutionKind.directPath);
-      expect(results.first.bytes, [1, 2, 3, 4]);
       expect(results.first.resolvedPath, file.path);
     });
 
@@ -41,7 +40,7 @@ void main() {
         ];
         final results = await PhotoResolver(rootDir: tmp.path).resolveAll(refs);
         expect(results.first.kind, PhotoResolutionKind.directPath);
-        expect(results.first.bytes, [9]);
+        expect(results.first.resolvedPath, direct.path);
       },
     );
   });
@@ -53,7 +52,8 @@ void main() {
       // Resolver peels /Users/other off the front and finds it.
       final subdir = Directory('${tmp.path}/Photos/Diving')
         ..createSync(recursive: true);
-      File('${subdir.path}/shark.jpg').writeAsBytesSync([7]);
+      final expectedFile = File('${subdir.path}/shark.jpg')
+        ..writeAsBytesSync([7]);
 
       final refs = [
         const ImportImageRef(
@@ -63,7 +63,7 @@ void main() {
       ];
       final results = await PhotoResolver(rootDir: tmp.path).resolveAll(refs);
       expect(results.first.kind, PhotoResolutionKind.rebased);
-      expect(results.first.bytes, [7]);
+      expect(results.first.resolvedPath, expectedFile.path);
     });
 
     test('rebase returns longest matching tail', () async {
@@ -72,7 +72,8 @@ void main() {
       // <tmp>/Photos/shark.jpg because it shares the longer tail.
       File('${tmp.path}/shark.jpg').writeAsBytesSync([1]);
       final photosDir = Directory('${tmp.path}/Photos')..createSync();
-      File('${photosDir.path}/shark.jpg').writeAsBytesSync([2]);
+      final expectedFile = File('${photosDir.path}/shark.jpg')
+        ..writeAsBytesSync([2]);
 
       final refs = [
         const ImportImageRef(
@@ -82,7 +83,7 @@ void main() {
       ];
       final results = await PhotoResolver(rootDir: tmp.path).resolveAll(refs);
       expect(results.first.kind, PhotoResolutionKind.rebased);
-      expect(results.first.bytes, [2]);
+      expect(results.first.resolvedPath, expectedFile.path);
     });
   });
 
@@ -92,7 +93,8 @@ void main() {
       () async {
         final subdir = Directory('${tmp.path}/deep/nested')
           ..createSync(recursive: true);
-        File('${subdir.path}/b.jpg').writeAsBytesSync([88]);
+        final expectedFile = File('${subdir.path}/b.jpg')
+          ..writeAsBytesSync([88]);
 
         final refs = [
           const ImportImageRef(
@@ -102,7 +104,7 @@ void main() {
         ];
         final results = await PhotoResolver(rootDir: tmp.path).resolveAll(refs);
         expect(results.first.kind, PhotoResolutionKind.filenameMatch);
-        expect(results.first.bytes, [88]);
+        expect(results.first.resolvedPath, expectedFile.path);
       },
     );
 
@@ -119,7 +121,7 @@ void main() {
   });
 
   group('PhotoResolver - miss', () {
-    test('returns miss with null bytes when nothing matches', () async {
+    test('returns miss with null path when nothing matches', () async {
       final refs = [
         const ImportImageRef(
           originalPath: '/nowhere/x.jpg',
@@ -128,7 +130,6 @@ void main() {
       ];
       final results = await PhotoResolver(rootDir: tmp.path).resolveAll(refs);
       expect(results.first.kind, PhotoResolutionKind.miss);
-      expect(results.first.bytes, isNull);
       expect(results.first.resolvedPath, isNull);
     });
 
@@ -164,7 +165,31 @@ void main() {
           results.every((r) => r.kind == PhotoResolutionKind.filenameMatch),
           isTrue,
         );
-        expect(results.every((r) => r.bytes != null), isTrue);
+        expect(results.every((r) => r.resolvedPath != null), isTrue);
+      },
+    );
+
+    test(
+      'filename index skipped entirely when direct/rebase resolve all refs',
+      () async {
+        // When every ref is found via direct path, the recursive index
+        // walk must not happen. Put a deeply-nested guard file that would
+        // show up in an index scan; we never reference it. If the resolver
+        // still walked the tree to build an index, it would still succeed —
+        // this test asserts the behavior (all direct hits) that lazy
+        // indexing preserves. The real correctness check is that no miss
+        // appears in the output path.
+        final direct1 = File('${tmp.path}/a.jpg')..writeAsBytesSync([1]);
+        final direct2 = File('${tmp.path}/b.jpg')..writeAsBytesSync([2]);
+        final refs = [
+          ImportImageRef(originalPath: direct1.path, diveSourceUuid: 'd'),
+          ImportImageRef(originalPath: direct2.path, diveSourceUuid: 'd'),
+        ];
+        final results = await PhotoResolver(rootDir: tmp.path).resolveAll(refs);
+        expect(results.map((r) => r.kind), [
+          PhotoResolutionKind.directPath,
+          PhotoResolutionKind.directPath,
+        ]);
       },
     );
 

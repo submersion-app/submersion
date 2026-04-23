@@ -5,7 +5,6 @@
 // that files land on disk and MediaItem rows reference them.
 
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -209,14 +208,17 @@ Future<void> _runAdapter(
 void main() {
   late AppDatabase db;
   late Directory mediaRoot;
+  late Directory sourceDir;
 
   setUp(() async {
     db = await setUpTestDatabase();
     mediaRoot = Directory.systemTemp.createTempSync('uaw_photo_');
+    sourceDir = Directory.systemTemp.createTempSync('uaw_photo_src_');
   });
 
   tearDown(() async {
     if (mediaRoot.existsSync()) mediaRoot.deleteSync(recursive: true);
+    if (sourceDir.existsSync()) sourceDir.deleteSync(recursive: true);
     await tearDownTestDatabase();
   });
 
@@ -236,12 +238,15 @@ void main() {
           diveSourceUuid: diveSourceUuid,
           imageRefs: const [ref],
         );
+        // Source file that the resolver would have pointed at; adapter
+        // copies bytes from here to the mediaRoot during performImport.
+        final sourceFile = File('${sourceDir.path}/reef.jpg')
+          ..writeAsBytesSync([0xAA, 0xBB, 0xCC]);
         final resolved = [
           ResolvedPhoto(
             ref: ref,
             kind: PhotoResolutionKind.directPath,
-            resolvedPath: '/orig/reef.jpg',
-            bytes: Uint8List.fromList([0xAA, 0xBB, 0xCC]),
+            resolvedPath: sourceFile.path,
           ),
         ];
 
@@ -369,7 +374,7 @@ void main() {
     );
 
     testWidgets(
-      'photos with null bytes (misses) do not fail the import, dives still land',
+      'misses (null resolvedPath) do not fail the import, dives still land',
       (tester) async {
         final diver = await _createTestDiver();
         const diveSourceUuid = 'dive-SRC-UUID-MISS';
@@ -381,8 +386,8 @@ void main() {
           diveSourceUuid: diveSourceUuid,
           imageRefs: const [ref],
         );
-        // Miss: bytes null, kind == miss — mimics the resolver giving
-        // up for this ref. The user clicked Next anyway.
+        // Miss: null resolvedPath, kind == miss — mimics the resolver
+        // giving up for this ref. The user clicked Next anyway.
         const resolved = [
           ResolvedPhoto(ref: ref, kind: PhotoResolutionKind.miss),
         ];
@@ -428,12 +433,17 @@ void main() {
           diveSourceUuid: keepDive,
           imageRefs: const [ref],
         );
+        // Source file on disk — even though the adapter will resolve this
+        // as an orphan (no dive with the matching source UUID), the
+        // resolvedPath must point at a real file so the test exercises
+        // the path-based pipeline realistically.
+        final sourceFile = File('${sourceDir.path}/orphan.jpg')
+          ..writeAsBytesSync([1]);
         final resolved = [
           ResolvedPhoto(
             ref: ref,
             kind: PhotoResolutionKind.directPath,
-            resolvedPath: '/orig/orphan.jpg',
-            bytes: Uint8List.fromList([1]),
+            resolvedPath: sourceFile.path,
           ),
         ];
 

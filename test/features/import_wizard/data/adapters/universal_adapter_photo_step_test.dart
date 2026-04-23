@@ -130,7 +130,10 @@ void main() {
       );
     });
 
-    testWidgets('omits Link Photos after user clicks Skip', (tester) async {
+    testWidgets('keeps Link Photos in the list after user clicks Skip so '
+        'auto-advance can move forward without shrinking the step list', (
+      tester,
+    ) async {
       await _runWithAdapter(
         tester,
         overrides: [
@@ -144,8 +147,15 @@ void main() {
         ],
         callback: (adapter) {
           final steps = adapter.acquisitionSteps;
-          expect(steps, hasLength(3));
-          expect(steps.map((s) => s.label), isNot(contains('Link Photos')));
+          expect(
+            steps,
+            hasLength(4),
+            reason:
+                'Removing the step after Skip would shrink the list while '
+                '_currentPage still points at it, which re-routes _onNext '
+                'into the Review branch and skips bundle preparation.',
+          );
+          expect(steps.last.label, equals('Link Photos'));
         },
       );
     });

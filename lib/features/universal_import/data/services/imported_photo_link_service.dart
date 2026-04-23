@@ -12,9 +12,9 @@ class ImportedPhotoLinkResult {
   /// [MediaRepository].
   final int written;
 
-  /// Number of resolved photos with null bytes (resolver misses that the
-  /// user chose not to re-resolve). Counted but not fatal.
-  final int missingBytes;
+  /// Number of resolved photos with no usable source path (resolver misses
+  /// the user chose not to re-resolve). Counted but not fatal.
+  final int missingSource;
 
   /// Number of resolved photos whose [ResolvedPhoto.ref.diveSourceUuid]
   /// did not match any newly-created dive (for example because the user
@@ -29,13 +29,13 @@ class ImportedPhotoLinkResult {
 
   const ImportedPhotoLinkResult({
     this.written = 0,
-    this.missingBytes = 0,
+    this.missingSource = 0,
     this.orphanDive = 0,
     this.failures = 0,
   });
 
   bool get isAllWritten =>
-      missingBytes == 0 && orphanDive == 0 && failures == 0;
+      missingSource == 0 && orphanDive == 0 && failures == 0;
 }
 
 /// Writes resolved photos to disk and registers them as [MediaItem] rows
@@ -67,23 +67,24 @@ class ImportedPhotoLinkService {
 
   /// Process every [resolved] photo against [sourceUuidToDiveId].
   ///
-  /// For each photo: if bytes are present AND sourceUuid resolves to a dive,
-  /// write the file to the per-dive media folder and insert a MediaItem row
-  /// carrying `filePath`, `originalFilename`, and `caption`. Missing bytes
-  /// and unknown UUIDs are counted but not errors.
+  /// For each photo: if a [ResolvedPhoto.resolvedPath] is present AND
+  /// sourceUuid resolves to a dive, copy the file to the per-dive media
+  /// folder and insert a MediaItem row carrying `filePath`,
+  /// `originalFilename`, and `caption`. Missing source paths and unknown
+  /// UUIDs are counted but not errors.
   Future<ImportedPhotoLinkResult> linkAll({
     required List<ResolvedPhoto> resolved,
     required Map<String, String> sourceUuidToDiveId,
   }) async {
     var written = 0;
-    var missingBytes = 0;
+    var missingSource = 0;
     var orphanDive = 0;
     var failures = 0;
 
     for (final photo in resolved) {
-      final bytes = photo.bytes;
-      if (bytes == null) {
-        missingBytes++;
+      final sourcePath = photo.resolvedPath;
+      if (sourcePath == null) {
+        missingSource++;
         continue;
       }
 
@@ -101,7 +102,7 @@ class ImportedPhotoLinkService {
         final file = await _storage.store(
           diveId: diveId,
           ref: photo.ref,
-          bytes: bytes,
+          sourcePath: sourcePath,
         );
 
         final now = DateTime.now();
@@ -132,7 +133,7 @@ class ImportedPhotoLinkService {
 
     return ImportedPhotoLinkResult(
       written: written,
-      missingBytes: missingBytes,
+      missingSource: missingSource,
       orphanDive: orphanDive,
       failures: failures,
     );

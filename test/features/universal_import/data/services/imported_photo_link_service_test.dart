@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
@@ -15,25 +14,30 @@ import '../../../../helpers/test_database.dart';
 // Helpers
 // ---------------------------------------------------------------------------
 
+/// Build a [ResolvedPhoto] whose [ResolvedPhoto.resolvedPath] points at an
+/// actual on-disk file under [sourceDir] containing [bytes]. Pass a null
+/// [bytes] to simulate a resolver miss (no source file, no resolvedPath).
 ResolvedPhoto _resolved({
+  required Directory sourceDir,
   required String diveSourceUuid,
   required String filename,
-  Uint8List? bytes,
+  List<int>? bytes,
   String? caption,
   int position = 0,
   PhotoResolutionKind kind = PhotoResolutionKind.directPath,
 }) {
-  return ResolvedPhoto(
-    ref: ImportImageRef(
-      originalPath: '/orig/$filename',
-      diveSourceUuid: diveSourceUuid,
-      caption: caption,
-      position: position,
-    ),
-    kind: bytes == null ? PhotoResolutionKind.miss : kind,
-    bytes: bytes,
-    resolvedPath: bytes == null ? null : '/orig/$filename',
+  final ref = ImportImageRef(
+    originalPath: '/orig/$filename',
+    diveSourceUuid: diveSourceUuid,
+    caption: caption,
+    position: position,
   );
+  if (bytes == null) {
+    return ResolvedPhoto(ref: ref, kind: PhotoResolutionKind.miss);
+  }
+  final sourceFile = File('${sourceDir.path}/$filename')
+    ..writeAsBytesSync(bytes);
+  return ResolvedPhoto(ref: ref, kind: kind, resolvedPath: sourceFile.path);
 }
 
 /// Insert a minimal dive row so [MediaRepository.createMedia] can satisfy
@@ -61,16 +65,19 @@ Future<void> _insertBareDive(AppDatabase db, String diveId) async {
 void main() {
   late AppDatabase db;
   late Directory mediaRoot;
+  late Directory sourceDir;
   late MediaRepository mediaRepository;
 
   setUp(() async {
     db = await setUpTestDatabase();
     mediaRoot = Directory.systemTemp.createTempSync('ipls_media_');
+    sourceDir = Directory.systemTemp.createTempSync('ipls_src_');
     mediaRepository = MediaRepository();
   });
 
   tearDown(() async {
     if (mediaRoot.existsSync()) mediaRoot.deleteSync(recursive: true);
+    if (sourceDir.existsSync()) sourceDir.deleteSync(recursive: true);
     await tearDownTestDatabase();
   });
 
@@ -83,7 +90,7 @@ void main() {
 
   group('ImportedPhotoLinkService.linkAll', () {
     test(
-      'resolved photos with bytes are written to disk and registered as MediaItems',
+      'resolved photos with a source path are written to disk and registered as MediaItems',
       () async {
         const diveSourceUuid = 'dive-src-1';
         const newDiveId = 'new-dive-1';
@@ -93,9 +100,10 @@ void main() {
         final result = await service.linkAll(
           resolved: [
             _resolved(
+              sourceDir: sourceDir,
               diveSourceUuid: diveSourceUuid,
               filename: 'shark.jpg',
-              bytes: Uint8List.fromList([1, 2, 3]),
+              bytes: [1, 2, 3],
               caption: 'Reef shark!',
               position: 2,
             ),
@@ -104,7 +112,7 @@ void main() {
         );
 
         expect(result.written, 1);
-        expect(result.missingBytes, 0);
+        expect(result.missingSource, 0);
         expect(result.orphanDive, 0);
         expect(result.failures, 0);
         expect(result.isAllWritten, isTrue);
@@ -125,7 +133,7 @@ void main() {
     );
 
     test(
-      'photos with null bytes are counted as missing, no file or row',
+      'photos with no source path are counted as missing, no file or row',
       () async {
         const diveSourceUuid = 'dive-src-1';
         const newDiveId = 'new-dive-1';
@@ -135,6 +143,7 @@ void main() {
         final result = await service.linkAll(
           resolved: [
             _resolved(
+              sourceDir: sourceDir,
               diveSourceUuid: diveSourceUuid,
               filename: 'missing.jpg',
               bytes: null, // resolver miss the user accepted
@@ -144,7 +153,7 @@ void main() {
         );
 
         expect(result.written, 0);
-        expect(result.missingBytes, 1);
+        expect(result.missingSource, 1);
         expect(result.orphanDive, 0);
         expect(result.failures, 0);
 
@@ -164,9 +173,10 @@ void main() {
         final result = await service.linkAll(
           resolved: [
             _resolved(
+              sourceDir: sourceDir,
               diveSourceUuid: 'filtered-out-uuid',
               filename: 'x.jpg',
-              bytes: Uint8List.fromList([9]),
+              bytes: [9],
             ),
           ],
           // Note: no entry for 'filtered-out-uuid' — simulates the user
@@ -176,7 +186,7 @@ void main() {
 
         expect(result.written, 0);
         expect(result.orphanDive, 1);
-        expect(result.missingBytes, 0);
+        expect(result.missingSource, 0);
         expect(result.failures, 0);
 
         // Assert: no MediaItem was created against any dive in the DB.
@@ -199,34 +209,38 @@ void main() {
         final result = await service.linkAll(
           resolved: [
             _resolved(
+              sourceDir: sourceDir,
               diveSourceUuid: diveA,
               filename: 'a1.jpg',
-              bytes: Uint8List.fromList([1]),
+              bytes: [1],
               position: 0,
             ),
             _resolved(
+              sourceDir: sourceDir,
               diveSourceUuid: diveA,
               filename: 'a2.jpg',
               bytes: null, // miss
               position: 1,
             ),
             _resolved(
+              sourceDir: sourceDir,
               diveSourceUuid: diveB,
               filename: 'b1.jpg',
-              bytes: Uint8List.fromList([2]),
+              bytes: [2],
               position: 0,
             ),
             _resolved(
+              sourceDir: sourceDir,
               diveSourceUuid: 'unknown-uuid',
               filename: 'orphan.jpg',
-              bytes: Uint8List.fromList([3]),
+              bytes: [3],
             ),
           ],
           sourceUuidToDiveId: const {diveA: newA, diveB: newB},
         );
 
         expect(result.written, 2);
-        expect(result.missingBytes, 1);
+        expect(result.missingSource, 1);
         expect(result.orphanDive, 1);
         expect(result.failures, 0);
 
@@ -247,7 +261,7 @@ void main() {
         sourceUuidToDiveId: const {'anything': 'nope'},
       );
       expect(result.written, 0);
-      expect(result.missingBytes, 0);
+      expect(result.missingSource, 0);
       expect(result.orphanDive, 0);
       expect(result.failures, 0);
       expect(result.isAllWritten, isTrue);
@@ -262,15 +276,17 @@ void main() {
       await service.linkAll(
         resolved: [
           _resolved(
+            sourceDir: sourceDir,
             diveSourceUuid: diveSourceUuid,
             filename: 'reef.jpg',
-            bytes: Uint8List.fromList([1]),
+            bytes: [1],
             position: 5,
           ),
           _resolved(
+            sourceDir: sourceDir,
             diveSourceUuid: diveSourceUuid,
             filename: 'turtle.jpg',
-            bytes: Uint8List.fromList([2]),
+            bytes: [2],
             position: 0,
           ),
         ],

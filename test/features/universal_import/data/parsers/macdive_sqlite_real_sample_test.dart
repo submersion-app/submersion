@@ -194,9 +194,11 @@ void main() {
     test('imageRef paths are plausible (absolute or UUID filenames)', () async {
       final payload = await const MacDiveSqliteParser().parse(bytes);
       // MacDive stores either:
-      // 1. Absolute paths in ZORIGINALPATH (e.g., /Users/Marci/Downloads/IMG_1234.jpg)
-      // 2. UUID-based filenames in ZPATH when no original path (e.g., 1234-5678-...jpg)
-      // The mapper emits ZORIGINALPATH if present, else ZPATH.
+      // 1. Absolute paths in ZPATH (e.g., /Users/Marci/Downloads/IMG_1234.jpg),
+      //    often with a corresponding ZORIGINALPATH for externally-sourced photos.
+      // 2. UUID-based basenames in ZPATH for photos in MacDive's internal
+      //    library (e.g., 1234-5678-...jpg), with ZORIGINALPATH null.
+      // The mapper emits ZPATH if present, else falls back to ZORIGINALPATH.
       expect(payload.imageRefs, isNotEmpty);
       for (final ref in payload.imageRefs) {
         final isAbsolute =

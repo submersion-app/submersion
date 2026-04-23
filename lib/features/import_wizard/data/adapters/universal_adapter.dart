@@ -191,14 +191,15 @@ class UniversalAdapter implements ImportSourceAdapter {
       ),
     ];
 
-    // Append a Link Photos step only when the parsed payload actually
-    // carries photo references AND the user has not already chosen to
-    // skip photo linking. The step vanishes immediately on skip so the
-    // wizard renderer doesn't flicker back.
+    // Append a Link Photos step whenever the parsed payload carries photo
+    // references. The step stays in the list regardless of photoLinkingSkipped:
+    // once Skip fires, _universalAdapterPhotoStepReadyProvider goes true and
+    // the wizard auto-advances off the step normally. Removing the step
+    // mid-session would shrink the list while _currentPage still points at
+    // it, causing _onNext() to mis-interpret the position as Review and
+    // jump straight into _startImport() without bundle preparation.
     final state = _ref.read(universalImportNotifierProvider);
-    final hasPhotos =
-        (state.payload?.imageRefs.isNotEmpty ?? false) &&
-        !state.photoLinkingSkipped;
+    final hasPhotos = state.payload?.imageRefs.isNotEmpty ?? false;
     if (!hasPhotos) return baseline;
 
     return [

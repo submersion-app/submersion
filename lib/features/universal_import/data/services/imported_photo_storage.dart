@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:submersion/features/universal_import/data/models/import_image_ref.dart';
 
@@ -15,6 +14,10 @@ import 'package:submersion/features/universal_import/data/models/import_image_re
 /// The [diveId] is the newly-created dive's internal ID — not the
 /// source UUID. Callers resolve source-UUID → new-dive-ID after the
 /// dive writer runs.
+///
+/// Files are copied from their source path rather than read into memory
+/// first — this keeps peak memory bounded when importing hundreds of
+/// photos.
 class ImportedPhotoStorage {
   /// Absolute path to the media root (e.g.
   /// `<AppSupport>/media`). Subdirectories are created on demand.
@@ -22,19 +25,20 @@ class ImportedPhotoStorage {
 
   const ImportedPhotoStorage({required this.mediaRoot});
 
-  /// Writes [bytes] to the per-dive directory, returning the resulting
-  /// [File]. Parent directory is created if needed.
+  /// Copies the file at [sourcePath] into the per-dive directory,
+  /// returning the resulting [File]. Parent directory is created if
+  /// needed. File bytes are streamed by the OS copy primitive rather
+  /// than read into memory.
   Future<File> store({
     required String diveId,
     required ImportImageRef ref,
-    required Uint8List bytes,
+    required String sourcePath,
   }) async {
     final dir = Directory('$mediaRoot/dive/$diveId');
     await dir.create(recursive: true);
     final desired = '${ref.position}-${ref.filename}';
     final target = await _uniqueName(dir, desired);
-    await target.writeAsBytes(bytes, flush: true);
-    return target;
+    return File(sourcePath).copy(target.path);
   }
 
   /// Returns a File under [dir] whose name either equals [desired] (if
