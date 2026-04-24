@@ -51,6 +51,7 @@ class DiveSite extends Equatable {
   final double?
   altitude; // Altitude above sea level in meters (for altitude diving)
   final SiteConditions? conditions;
+  final bool isShared;
 
   const DiveSite({
     required this.id,
@@ -72,6 +73,7 @@ class DiveSite extends Equatable {
     this.parkingInfo,
     this.altitude,
     this.conditions,
+    this.isShared = false,
   });
 
   /// Full location string (region, country)
@@ -114,6 +116,7 @@ class DiveSite extends Equatable {
     String? parkingInfo,
     double? altitude,
     SiteConditions? conditions,
+    bool? isShared,
   }) {
     return DiveSite(
       id: id ?? this.id,
@@ -135,6 +138,7 @@ class DiveSite extends Equatable {
       parkingInfo: parkingInfo ?? this.parkingInfo,
       altitude: altitude ?? this.altitude,
       conditions: conditions ?? this.conditions,
+      isShared: isShared ?? this.isShared,
     );
   }
 
@@ -159,6 +163,7 @@ class DiveSite extends Equatable {
     parkingInfo,
     altitude,
     conditions,
+    isShared,
   ];
 }
 

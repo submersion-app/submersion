@@ -56,6 +56,7 @@ class Trips extends Table {
   TextColumn get liveaboardName => text().nullable()();
   TextColumn get tripType => text().withDefault(const Constant('shore'))();
   TextColumn get notes => text().withDefault(const Constant(''))();
+  BoolColumn get isShared => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -125,6 +126,11 @@ class Dives extends Table {
       text().withDefault(const Constant('recreational'))();
   TextColumn get buddy => text().nullable()();
   TextColumn get diveMaster => text().nullable()();
+  // MacDive import fields — common dive metadata
+  TextColumn get boatName => text().nullable()();
+  TextColumn get boatCaptain => text().nullable()();
+  TextColumn get diveOperator => text().nullable()();
+  TextColumn get surfaceConditions => text().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
   TextColumn get siteId => text().nullable().references(DiveSites, #id)();
   IntColumn get rating => integer().nullable()();
@@ -299,6 +305,9 @@ class DiveSites extends Table {
   RealColumn get maxDepth => real().nullable()(); // Deepest point
   TextColumn get difficulty =>
       text().nullable()(); // Beginner, Intermediate, Advanced, Technical
+  // MacDive site metadata
+  TextColumn get waterType => text().nullable()();
+  TextColumn get bodyOfWater => text().nullable()();
   TextColumn get country => text().nullable()();
   TextColumn get region => text().nullable()();
   RealColumn get rating => real().nullable()();
@@ -313,6 +322,7 @@ class DiveSites extends Table {
       text().nullable()(); // Parking availability and tips
   RealColumn get altitude => real()
       .nullable()(); // Altitude above sea level in meters (for altitude diving)
+  BoolColumn get isShared => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -981,6 +991,7 @@ class DiveDataSources extends Table {
   DateTimeColumn get createdAt => dateTime()();
   BlobColumn get rawData => blob().nullable()();
   BlobColumn get rawFingerprint => blob().nullable()();
+  TextColumn get sourceUuid => text().nullable()();
   TextColumn get descriptorVendor => text().nullable()();
   TextColumn get descriptorProduct => text().nullable()();
   IntColumn get descriptorModel => integer().nullable()();
@@ -1005,6 +1016,8 @@ class DiveProfileEvents extends Table {
   RealColumn get value =>
       real().nullable()(); // event-specific value (e.g., ascent rate)
   TextColumn get tankId => text().nullable()(); // for gas switch events
+  TextColumn get source =>
+      text().withDefault(const Constant('imported'))(); // EventSource.name
   IntColumn get createdAt => integer()();
 
   @override
@@ -1322,7 +1335,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 67;
+  static const int currentSchemaVersion = 71;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1393,6 +1406,10 @@ class AppDatabase extends _$AppDatabase {
     65,
     66,
     67,
+    68,
+    69,
+    70,
+    71,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -3189,6 +3206,124 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 67) await reportProgress();
+
+        if (from < 68) {
+          // Guard: dive_profile_events may not exist in older migration tests.
+          final dpeColumns = await customSelect(
+            "PRAGMA table_info('dive_profile_events')",
+          ).get();
+          if (dpeColumns.isNotEmpty) {
+            final existing = dpeColumns
+                .map((c) => c.read<String>('name'))
+                .toSet();
+            if (!existing.contains('source')) {
+              await customStatement(
+                "ALTER TABLE dive_profile_events ADD COLUMN source TEXT NOT NULL DEFAULT 'imported'",
+              );
+            }
+          }
+        }
+        if (from < 68) await reportProgress();
+        if (from < 69) {
+          // Guard: trips may not exist in older migration test schemas.
+          final tripColumns = await customSelect(
+            "PRAGMA table_info('trips')",
+          ).get();
+          if (tripColumns.isNotEmpty) {
+            final existing = tripColumns
+                .map((c) => c.read<String>('name'))
+                .toSet();
+            if (!existing.contains('is_shared')) {
+              await customStatement(
+                'ALTER TABLE trips ADD COLUMN is_shared INTEGER NOT NULL DEFAULT 0',
+              );
+            }
+          }
+          // Guard: dive_sites may not exist in older migration test schemas.
+          final siteColumns = await customSelect(
+            "PRAGMA table_info('dive_sites')",
+          ).get();
+          if (siteColumns.isNotEmpty) {
+            final existing = siteColumns
+                .map((c) => c.read<String>('name'))
+                .toSet();
+            if (!existing.contains('is_shared')) {
+              await customStatement(
+                'ALTER TABLE dive_sites ADD COLUMN is_shared INTEGER NOT NULL DEFAULT 0',
+              );
+            }
+          }
+        }
+        if (from < 69) await reportProgress();
+        if (from < 70) {
+          // Migration 70: add source_uuid to dive_data_sources for
+          // cross-format import deduplication (MacDive UUID, Shearwater
+          // DiveId, Subsurface SSRF id, generic UDDF dive id).
+          // libdivecomputer continues to use raw_fingerprint.
+          // Guard: dive_data_sources may not exist in older migration tests.
+          final cols = await customSelect(
+            "PRAGMA table_info('dive_data_sources')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('source_uuid')) {
+              await customStatement(
+                'ALTER TABLE dive_data_sources ADD COLUMN source_uuid TEXT',
+              );
+            }
+          }
+        }
+        if (from < 70) await reportProgress();
+        if (from < 71) {
+          // Migration 71: add MacDive dive + site metadata fields.
+          final divesCols = await customSelect(
+            "PRAGMA table_info('dives')",
+          ).get();
+          final divesExisting = divesCols
+              .map((r) => r.data['name'] as String)
+              .toSet();
+          if (divesCols.isNotEmpty) {
+            if (!divesExisting.contains('boat_name')) {
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN boat_name TEXT',
+              );
+            }
+            if (!divesExisting.contains('boat_captain')) {
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN boat_captain TEXT',
+              );
+            }
+            if (!divesExisting.contains('dive_operator')) {
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN dive_operator TEXT',
+              );
+            }
+            if (!divesExisting.contains('surface_conditions')) {
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN surface_conditions TEXT',
+              );
+            }
+          }
+          final sitesCols = await customSelect(
+            "PRAGMA table_info('dive_sites')",
+          ).get();
+          final sitesExisting = sitesCols
+              .map((r) => r.data['name'] as String)
+              .toSet();
+          if (sitesCols.isNotEmpty) {
+            if (!sitesExisting.contains('water_type')) {
+              await customStatement(
+                'ALTER TABLE dive_sites ADD COLUMN water_type TEXT',
+              );
+            }
+            if (!sitesExisting.contains('body_of_water')) {
+              await customStatement(
+                'ALTER TABLE dive_sites ADD COLUMN body_of_water TEXT',
+              );
+            }
+          }
+        }
+        if (from < 71) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys

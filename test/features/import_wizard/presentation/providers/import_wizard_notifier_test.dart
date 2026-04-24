@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/tag_selection.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
@@ -540,6 +541,7 @@ void main() {
             any,
             retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
           ),
         ).thenAnswer((_) async {
           // Capture during import — state should be importing
@@ -582,6 +584,7 @@ void main() {
               any,
               any,
               onProgress: anyNamed('onProgress'),
+              cancelToken: anyNamed('cancelToken'),
             ),
           ).thenAnswer((_) async => importResult);
 
@@ -594,6 +597,7 @@ void main() {
               captureAny,
               retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
               onProgress: anyNamed('onProgress'),
+              cancelToken: anyNamed('cancelToken'),
             ),
           ).captured;
 
@@ -630,6 +634,7 @@ void main() {
             any,
             retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
           ),
         ).thenAnswer((_) async => importResult);
 
@@ -651,6 +656,7 @@ void main() {
             any,
             retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
           ),
         ).thenThrow(Exception('DB error'));
 
@@ -679,6 +685,7 @@ void main() {
             any,
             retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
           ),
         ).thenAnswer((_) async => importResult);
 
@@ -705,6 +712,7 @@ void main() {
             any,
             retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
           ),
         ).thenAnswer((invocation) async {
           final onProgress =
@@ -740,6 +748,7 @@ void main() {
             any,
             retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
           ),
         );
         expect(notifier.state.isImporting, isFalse);
@@ -769,6 +778,7 @@ void main() {
             any,
             retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
           ),
         ).thenThrow(Exception('Database connection lost'));
 
@@ -800,6 +810,7 @@ void main() {
             any,
             retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
           ),
         ).thenThrow(Exception('IO failure'));
 
@@ -833,6 +844,7 @@ void main() {
             any,
             retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
           ),
         ).thenAnswer((_) async => importResult);
 
@@ -882,6 +894,7 @@ void main() {
               any,
               retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
               onProgress: anyNamed('onProgress'),
+              cancelToken: anyNamed('cancelToken'),
             ),
           ).thenAnswer((_) async => importResult);
 
@@ -912,6 +925,7 @@ void main() {
             any,
             retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
             onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
           ),
         ).thenAnswer((_) async => importResult);
 
@@ -919,6 +933,119 @@ void main() {
 
         verifyNever(mockTagRepo.getOrCreateTag(any));
         verifyNever(mockTagRepo.addTagToDive(any, any));
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    // cancelImport
+    // -------------------------------------------------------------------------
+
+    group('cancelImport', () {
+      test('does nothing when no import is in progress', () {
+        // No-op when no token has been created (never started).
+        notifier.cancelImport();
+        expect(notifier.state.isCancellationRequested, isFalse);
+      });
+
+      test('sets isCancellationRequested while import is running', () async {
+        final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);
+        notifier.setBundle(bundle);
+
+        const importResult = UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 1},
+          consolidatedCount: 0,
+          skippedCount: 0,
+        );
+
+        // Stub performImport to call cancel mid-flight and observe state.
+        var observedCancellationFlag = false;
+        when(
+          mockAdapter.performImport(
+            any,
+            any,
+            any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+            onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
+          ),
+        ).thenAnswer((_) async {
+          notifier.cancelImport();
+          observedCancellationFlag = notifier.state.isCancellationRequested;
+          return importResult;
+        });
+
+        await notifier.performImport();
+
+        expect(observedCancellationFlag, isTrue);
+      });
+
+      test('passes a live cancelToken to the adapter', () async {
+        final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);
+        notifier.setBundle(bundle);
+
+        const importResult = UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 0},
+          consolidatedCount: 0,
+          skippedCount: 0,
+        );
+
+        ImportCancellationToken? capturedToken;
+        when(
+          mockAdapter.performImport(
+            any,
+            any,
+            any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+            onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
+          ),
+        ).thenAnswer((invocation) async {
+          capturedToken =
+              invocation.namedArguments[#cancelToken]
+                  as ImportCancellationToken?;
+          notifier.cancelImport();
+          return importResult;
+        });
+
+        await notifier.performImport();
+
+        expect(capturedToken, isNotNull);
+        expect(capturedToken!.isCancelled, isTrue);
+      });
+
+      test('clears isCancellationRequested after import completes', () async {
+        final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);
+        notifier.setBundle(bundle);
+
+        const importResult = UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 1},
+          consolidatedCount: 0,
+          skippedCount: 0,
+        );
+
+        when(
+          mockAdapter.performImport(
+            any,
+            any,
+            any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+            onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
+          ),
+        ).thenAnswer((_) async {
+          notifier.cancelImport();
+          return importResult;
+        });
+
+        await notifier.performImport();
+
+        // The finally block clears both the live token and the
+        // isCancellationRequested flag so a subsequent import starts fresh.
+        expect(notifier.state.isCancellationRequested, isFalse);
+
+        // A second cancelImport() is a no-op — no live token, no stale flag.
+        notifier.cancelImport();
+        expect(notifier.state.isCancellationRequested, isFalse);
       });
     });
 

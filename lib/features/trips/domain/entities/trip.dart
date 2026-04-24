@@ -13,6 +13,7 @@ class Trip extends Equatable {
   final String? liveaboardName;
   final TripType tripType;
   final String notes;
+  final bool isShared;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -27,6 +28,7 @@ class Trip extends Equatable {
     this.liveaboardName,
     this.tripType = TripType.shore,
     this.notes = '',
+    this.isShared = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -66,6 +68,7 @@ class Trip extends Equatable {
     Object? liveaboardName = _undefined,
     TripType? tripType,
     String? notes,
+    bool? isShared,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -84,6 +87,7 @@ class Trip extends Equatable {
           : liveaboardName as String?,
       tripType: tripType ?? this.tripType,
       notes: notes ?? this.notes,
+      isShared: isShared ?? this.isShared,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -101,6 +105,7 @@ class Trip extends Equatable {
     liveaboardName,
     tripType,
     notes,
+    isShared,
     createdAt,
     updatedAt,
   ];

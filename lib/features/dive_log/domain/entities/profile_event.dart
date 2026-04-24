@@ -34,6 +34,9 @@ class ProfileEvent extends Equatable {
   /// Associated tank ID (for gas switches)
   final String? tankId;
 
+  /// Provenance of this event (imported, computed, or user-authored).
+  final EventSource source;
+
   /// When this event was created
   final DateTime createdAt;
 
@@ -47,6 +50,14 @@ class ProfileEvent extends Equatable {
     this.depth,
     this.value,
     this.tankId,
+    // Default intentionally biased toward `imported` — the most common case
+    // for direct-constructor callers is DB read-back, where the value is
+    // being reconstituted from a persisted row. Callers that construct
+    // events from in-app analysis MUST explicitly pass
+    // `source: EventSource.computed`; user-authored events MUST pass
+    // `source: EventSource.user`. Factories enforce the correct default per
+    // event type — prefer factories over direct construction.
+    this.source = EventSource.imported,
     required this.createdAt,
   });
 
@@ -100,6 +111,7 @@ class ProfileEvent extends Equatable {
     required int timestamp,
     double? depth,
     required DateTime createdAt,
+    EventSource source = EventSource.computed,
   }) {
     return ProfileEvent(
       id: id,
@@ -108,6 +120,7 @@ class ProfileEvent extends Equatable {
       eventType: ProfileEventType.ascentStart,
       depth: depth,
       createdAt: createdAt,
+      source: source,
     );
   }
 
@@ -119,6 +132,7 @@ class ProfileEvent extends Equatable {
     required double depth,
     required DateTime createdAt,
     bool isStart = true,
+    EventSource source = EventSource.computed,
   }) {
     return ProfileEvent(
       id: id,
@@ -129,6 +143,7 @@ class ProfileEvent extends Equatable {
           : ProfileEventType.safetyStopEnd,
       depth: depth,
       createdAt: createdAt,
+      source: source,
     );
   }
 
@@ -139,6 +154,7 @@ class ProfileEvent extends Equatable {
     required int timestamp,
     required double depth,
     required DateTime createdAt,
+    EventSource source = EventSource.computed,
   }) {
     return ProfileEvent(
       id: id,
@@ -147,6 +163,7 @@ class ProfileEvent extends Equatable {
       eventType: ProfileEventType.maxDepth,
       depth: depth,
       createdAt: createdAt,
+      source: source,
     );
   }
 
@@ -159,6 +176,7 @@ class ProfileEvent extends Equatable {
     required double rate,
     required DateTime createdAt,
     bool isCritical = false,
+    EventSource source = EventSource.computed,
   }) {
     return ProfileEvent(
       id: id,
@@ -171,6 +189,7 @@ class ProfileEvent extends Equatable {
       depth: depth,
       value: rate,
       createdAt: createdAt,
+      source: source,
     );
   }
 
@@ -183,6 +202,7 @@ class ProfileEvent extends Equatable {
     required String tankId,
     String? gasName,
     required DateTime createdAt,
+    EventSource source = EventSource.imported,
   }) {
     return ProfileEvent(
       id: id,
@@ -193,6 +213,7 @@ class ProfileEvent extends Equatable {
       tankId: tankId,
       description: gasName,
       createdAt: createdAt,
+      source: source,
     );
   }
 
@@ -204,6 +225,7 @@ class ProfileEvent extends Equatable {
     double? depth,
     String? note,
     required DateTime createdAt,
+    EventSource source = EventSource.user,
   }) {
     return ProfileEvent(
       id: id,
@@ -213,6 +235,7 @@ class ProfileEvent extends Equatable {
       depth: depth,
       description: note,
       createdAt: createdAt,
+      source: source,
     );
   }
 
@@ -224,6 +247,7 @@ class ProfileEvent extends Equatable {
     required double setpoint,
     double? depth,
     required DateTime createdAt,
+    EventSource source = EventSource.imported,
   }) {
     return ProfileEvent(
       id: id,
@@ -233,6 +257,101 @@ class ProfileEvent extends Equatable {
       value: setpoint,
       depth: depth,
       createdAt: createdAt,
+      source: source,
+    );
+  }
+
+  /// Create a deco stop event (CCR/technical dives).
+  factory ProfileEvent.decoStop({
+    required String id,
+    required String diveId,
+    required int timestamp,
+    required double depth,
+    required DateTime createdAt,
+    bool isStart = true,
+    EventSource source = EventSource.imported,
+  }) {
+    return ProfileEvent(
+      id: id,
+      diveId: diveId,
+      timestamp: timestamp,
+      eventType: isStart
+          ? ProfileEventType.decoStopStart
+          : ProfileEventType.decoStopEnd,
+      depth: depth,
+      createdAt: createdAt,
+      source: source,
+    );
+  }
+
+  /// Create a deco violation event (ceiling exceeded, generic violation).
+  factory ProfileEvent.decoViolation({
+    required String id,
+    required String diveId,
+    required int timestamp,
+    double? depth,
+    double? value,
+    String? description,
+    required DateTime createdAt,
+    EventSource source = EventSource.imported,
+  }) {
+    return ProfileEvent(
+      id: id,
+      diveId: diveId,
+      timestamp: timestamp,
+      eventType: ProfileEventType.decoViolation,
+      severity: EventSeverity.alert,
+      depth: depth,
+      value: value,
+      description: description,
+      createdAt: createdAt,
+      source: source,
+    );
+  }
+
+  /// Create a high ppO2 warning event.
+  factory ProfileEvent.ppO2High({
+    required String id,
+    required String diveId,
+    required int timestamp,
+    required double value,
+    double? depth,
+    required DateTime createdAt,
+    EventSource source = EventSource.imported,
+  }) {
+    return ProfileEvent(
+      id: id,
+      diveId: diveId,
+      timestamp: timestamp,
+      eventType: ProfileEventType.ppO2High,
+      severity: EventSeverity.warning,
+      value: value,
+      depth: depth,
+      createdAt: createdAt,
+      source: source,
+    );
+  }
+
+  /// Create a low ppO2 warning event (hypoxia risk, typically CCR).
+  factory ProfileEvent.ppO2Low({
+    required String id,
+    required String diveId,
+    required int timestamp,
+    required double value,
+    double? depth,
+    required DateTime createdAt,
+    EventSource source = EventSource.imported,
+  }) {
+    return ProfileEvent(
+      id: id,
+      diveId: diveId,
+      timestamp: timestamp,
+      eventType: ProfileEventType.ppO2Low,
+      severity: EventSeverity.warning,
+      value: value,
+      depth: depth,
+      createdAt: createdAt,
+      source: source,
     );
   }
 
@@ -246,6 +365,7 @@ class ProfileEvent extends Equatable {
     double? depth,
     double? value,
     String? tankId,
+    EventSource? source,
     DateTime? createdAt,
   }) {
     return ProfileEvent(
@@ -258,6 +378,7 @@ class ProfileEvent extends Equatable {
       depth: depth ?? this.depth,
       value: value ?? this.value,
       tankId: tankId ?? this.tankId,
+      source: source ?? this.source,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -273,6 +394,7 @@ class ProfileEvent extends Equatable {
     depth,
     value,
     tankId,
+    source,
     createdAt,
   ];
 }

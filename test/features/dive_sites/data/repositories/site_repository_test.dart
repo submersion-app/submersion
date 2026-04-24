@@ -733,6 +733,188 @@ void main() {
         },
       );
     });
+
+    group('isShared persistence', () {
+      test('createSite persists isShared=true', () async {
+        const site = DiveSite(id: '', name: 'Shared Reef', isShared: true);
+        final created = await repository.createSite(site);
+
+        final readBack = await repository.getSiteById(created.id);
+        expect(readBack, isNotNull);
+        expect(readBack!.isShared, isTrue);
+      });
+
+      test('createSite defaults isShared to false', () async {
+        const site = DiveSite(id: '', name: 'Default Reef');
+        final created = await repository.createSite(site);
+
+        final readBack = await repository.getSiteById(created.id);
+        expect(readBack!.isShared, isFalse);
+      });
+
+      test('updateSite persists isShared changes', () async {
+        const site = DiveSite(id: '', name: 'Toggle');
+        final created = await repository.createSite(site);
+
+        await repository.updateSite(created.copyWith(isShared: true));
+
+        final readBack = await repository.getSiteById(created.id);
+        expect(readBack!.isShared, isTrue);
+      });
+    });
+
+    group('sharing actions', () {
+      late db.AppDatabase dbInstance;
+      const ts = 1700000000000;
+
+      setUp(() async {
+        dbInstance = DatabaseService.instance.database;
+        for (final id in ['A', 'B']) {
+          await dbInstance
+              .into(dbInstance.divers)
+              .insert(
+                db.DiversCompanion.insert(
+                  id: id,
+                  name: id,
+                  createdAt: ts,
+                  updatedAt: ts,
+                ),
+              );
+        }
+      });
+
+      test('setShared toggles the field on a single site', () async {
+        final created = await repository.createSite(
+          const DiveSite(id: '', name: 'Flip', diverId: 'A'),
+        );
+
+        await repository.setShared(created.id, true);
+        final readShared = await repository.getSiteById(created.id);
+        expect(readShared!.isShared, isTrue);
+
+        await repository.setShared(created.id, false);
+        final readBack = await repository.getSiteById(created.id);
+        expect(readBack!.isShared, isFalse);
+      });
+
+      test(
+        'shareAllForDiver shares only that diver\'s private sites',
+        () async {
+          await repository.createSite(
+            const DiveSite(id: '', name: 'A1', diverId: 'A'),
+          );
+          await repository.createSite(
+            const DiveSite(id: '', name: 'A2', diverId: 'A'),
+          );
+          await repository.createSite(
+            const DiveSite(id: '', name: 'B1', diverId: 'B'),
+          );
+          await repository.createSite(
+            const DiveSite(
+              id: '',
+              name: 'A3-already',
+              diverId: 'A',
+              isShared: true,
+            ),
+          );
+
+          final count = await repository.shareAllForDiver('A');
+          expect(count, equals(2));
+
+          final aSites = await repository.getAllSites(diverId: 'A');
+          final aMap = {for (final s in aSites) s.name: s.isShared};
+          expect(aMap['A1'], isTrue);
+          expect(aMap['A2'], isTrue);
+          expect(aMap['A3-already'], isTrue);
+
+          final bSites = await repository.getAllSites(diverId: 'B');
+          expect(bSites.singleWhere((s) => s.name == 'B1').isShared, isFalse);
+        },
+      );
+
+      test('shareAllForDiver returns 0 when nothing to share', () async {
+        await repository.createSite(
+          const DiveSite(id: '', name: 'Already', diverId: 'A', isShared: true),
+        );
+        expect(await repository.shareAllForDiver('A'), equals(0));
+      });
+    });
+
+    group('visibility filter', () {
+      late db.AppDatabase dbInstance;
+      const ts = 1700000000000;
+
+      setUp(() async {
+        dbInstance = DatabaseService.instance.database;
+        for (final id in ['A', 'B', 'C']) {
+          await dbInstance
+              .into(dbInstance.divers)
+              .insert(
+                db.DiversCompanion.insert(
+                  id: id,
+                  name: id,
+                  createdAt: ts,
+                  updatedAt: ts,
+                ),
+              );
+        }
+      });
+
+      test('getAllSites returns owner + shared for a given diver', () async {
+        await repository.createSite(
+          const DiveSite(id: '', name: 'Salt A', diverId: 'A'),
+        );
+        await repository.createSite(
+          const DiveSite(id: '', name: 'Pier B', diverId: 'B'),
+        );
+        await repository.createSite(
+          const DiveSite(
+            id: '',
+            name: 'Shared Reef',
+            diverId: 'B',
+            isShared: true,
+          ),
+        );
+
+        final names = (await repository.getAllSites(
+          diverId: 'A',
+        )).map((s) => s.name).toSet();
+        expect(names, equals({'Salt A', 'Shared Reef'}));
+      });
+
+      test('getAllSites with null diverId returns everything', () async {
+        await repository.createSite(
+          const DiveSite(id: '', name: 'One', diverId: 'A'),
+        );
+        await repository.createSite(
+          const DiveSite(id: '', name: 'Two', diverId: 'B'),
+        );
+
+        final sites = await repository.getAllSites();
+        expect(sites.length, equals(2));
+      });
+
+      test('searchSites honors visibility filter', () async {
+        await repository.createSite(
+          const DiveSite(id: '', name: 'Bonaire Reef', diverId: 'A'),
+        );
+        await repository.createSite(
+          const DiveSite(
+            id: '',
+            name: 'Bonaire Pier',
+            diverId: 'B',
+            isShared: true,
+          ),
+        );
+        await repository.createSite(
+          const DiveSite(id: '', name: 'Bonaire Private', diverId: 'C'),
+        );
+
+        final results = await repository.searchSites('Bonaire', diverId: 'A');
+        final names = results.map((s) => s.name).toSet();
+        expect(names, equals({'Bonaire Reef', 'Bonaire Pier'}));
+      });
+    });
   });
 
   group('Performance smoke tests (light preset)', () {

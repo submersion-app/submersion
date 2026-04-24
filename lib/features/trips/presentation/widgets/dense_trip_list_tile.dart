@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Single-row flat tile for the trip list (maximum density).
 ///
@@ -10,12 +11,14 @@ class DenseTripListTile extends StatelessWidget {
   final TripWithStats tripWithStats;
   final bool isSelected;
   final VoidCallback? onTap;
+  final bool showSharedBadge;
 
   const DenseTripListTile({
     super.key,
     required this.tripWithStats,
     this.isSelected = false,
     this.onTap,
+    this.showSharedBadge = false,
   });
 
   /// Formats a date as "MMM d", adding the year if it is not the current year.
@@ -69,6 +72,18 @@ class DenseTripListTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (showSharedBadge) ...[
+                  const SizedBox(width: 6),
+                  Tooltip(
+                    message:
+                        context.l10n.accessibility_label_sharedWithAllProfiles,
+                    child: Icon(
+                      Icons.people_outline,
+                      size: 16,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ],
                 const SizedBox(width: 8),
                 // Abbreviated date range (~100px)
                 SizedBox(

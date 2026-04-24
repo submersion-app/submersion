@@ -16,13 +16,17 @@ class ImportProgressStep extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(importWizardNotifierProvider);
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     final phase = state.importPhase;
     final current = state.importCurrent;
     final total = state.importTotal;
+    final isCancelling = state.isCancellationRequested;
 
     final fraction = (total > 0) ? current / total : null;
-    final phaseText = _resolvePhaseText(context, phase);
+    final phaseText = isCancelling
+        ? l10n.settings_import_cancelling
+        : _resolvePhaseText(context, phase);
 
     return Center(
       child: Padding(
@@ -70,6 +74,21 @@ class ImportProgressStep extends ConsumerWidget {
             LinearProgressIndicator(
               key: const Key('import_progress_linear'),
               value: fraction,
+            ),
+            const SizedBox(height: 32),
+            TextButton.icon(
+              key: const Key('import_progress_cancel_button'),
+              onPressed: isCancelling
+                  ? null
+                  : () => ref
+                        .read(importWizardNotifierProvider.notifier)
+                        .cancelImport(),
+              icon: const Icon(Icons.cancel_outlined),
+              label: Text(
+                isCancelling
+                    ? l10n.settings_import_cancelling
+                    : l10n.settings_import_cancelButton,
+              ),
             ),
           ],
         ),

@@ -191,8 +191,8 @@ class DiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>> {
     _ref.invalidate(diverByIdProvider(diver.id));
   }
 
-  Future<void> deleteDiver(String id) async {
-    await _repository.deleteDiver(id);
+  Future<DeleteDiverResult> deleteDiver(String id) async {
+    final result = await _repository.deleteDiverWithReassignment(id);
     await refresh();
 
     // If deleted diver was current, clear selection
@@ -200,6 +200,7 @@ class DiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>> {
     if (currentId == id) {
       await _ref.read(currentDiverIdProvider.notifier).clearCurrentDiver();
     }
+    return result;
   }
 
   Future<void> setAsDefault(String id) async {

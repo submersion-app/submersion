@@ -429,6 +429,7 @@ class ReparseService {
             timestamp: Value(e.timeSeconds),
             eventType: Value(eventType),
             severity: Value(_eventSeverity(eventType)),
+            source: const Value('imported'), // native DC events are imports
             depth: const Value(null),
             value: Value(
               e.data != null ? double.tryParse(e.data!['value'] ?? '') : null,

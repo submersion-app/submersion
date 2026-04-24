@@ -1,8 +1,14 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
@@ -16,6 +22,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
@@ -1857,5 +1864,334 @@ void main() {
       expect(buddy.certificationLevel, isNull);
       expect(buddy.certificationAgency, isNull);
     });
+  });
+
+  group('Profile events persistence', () {
+    setUp(() {
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+      when(mockDiveRepo.insertProfileEvents(any)).thenAnswer((_) async {});
+    });
+
+    test('persists setpointChange event with correct fields', () async {
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 30.0,
+            'events': [
+              {'eventType': 'setpointChange', 'timestamp': 300, 'value': 1.2},
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final captured = verify(
+        mockDiveRepo.insertProfileEvents(captureAny),
+      ).captured;
+      final events = captured.first as List<ProfileEvent>;
+      expect(events, hasLength(1));
+      expect(events[0].eventType, ProfileEventType.setpointChange);
+      expect(events[0].timestamp, 300);
+      expect(events[0].value, 1.2);
+      expect(events[0].source, EventSource.imported);
+    });
+
+    test('does not call insertProfileEvents for unknown event type', () async {
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 20.0,
+            'events': [
+              {'eventType': 'unknownType', 'timestamp': 100},
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      verifyNever(mockDiveRepo.insertProfileEvents(any));
+    });
+
+    test(
+      'persists all 8 event types from profile-events-variety-style diveData',
+      () async {
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 40.0,
+              'events': [
+                {'eventType': 'setpointChange', 'timestamp': 60, 'value': 0.7},
+                {
+                  'eventType': 'bookmark',
+                  'timestamp': 120,
+                  'description': 'nice spot',
+                },
+                {
+                  'eventType': 'ascentRateWarning',
+                  'timestamp': 180,
+                  'value': 12.5,
+                },
+                {'eventType': 'ppO2High', 'timestamp': 240, 'value': 1.7},
+                {'eventType': 'decoViolation', 'timestamp': 300},
+                {'eventType': 'decoViolation', 'timestamp': 360, 'value': 0.5},
+                {'eventType': 'decoStopStart', 'timestamp': 420},
+                {'eventType': 'safetyStopStart', 'timestamp': 480},
+              ],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: UddfImportSelections.selectAll(data),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        final captured = verify(
+          mockDiveRepo.insertProfileEvents(captureAny),
+        ).captured;
+        final events = captured.first as List<ProfileEvent>;
+        expect(events, hasLength(8));
+
+        expect(events[0].eventType, ProfileEventType.setpointChange);
+        expect(events[0].source, EventSource.imported);
+
+        expect(events[1].eventType, ProfileEventType.bookmark);
+        expect(events[1].source, EventSource.imported);
+        expect(events[1].description, 'nice spot');
+
+        expect(events[2].eventType, ProfileEventType.ascentRateWarning);
+        expect(events[2].source, EventSource.imported);
+
+        expect(events[3].eventType, ProfileEventType.ppO2High);
+        expect(events[3].source, EventSource.imported);
+        expect(events[3].value, 1.7);
+
+        expect(events[4].eventType, ProfileEventType.decoViolation);
+        expect(events[4].source, EventSource.imported);
+
+        expect(events[5].eventType, ProfileEventType.decoViolation);
+        expect(events[5].value, 0.5);
+
+        expect(events[6].eventType, ProfileEventType.decoStopStart);
+        expect(events[6].source, EventSource.imported);
+
+        expect(events[7].eventType, ProfileEventType.safetyStopStart);
+        expect(events[7].source, EventSource.imported);
+      },
+    );
+
+    test('bookmark event from import uses source=imported, not user', () async {
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 18.0,
+            'events': [
+              {
+                'eventType': 'bookmark',
+                'timestamp': 90,
+                'description': 'cool fish',
+              },
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final captured = verify(
+        mockDiveRepo.insertProfileEvents(captureAny),
+      ).captured;
+      final events = captured.first as List<ProfileEvent>;
+      expect(events, hasLength(1));
+      expect(events[0].eventType, ProfileEventType.bookmark);
+      expect(events[0].source, EventSource.imported);
+      expect(events[0].description, 'cool fish');
+    });
+
+    test(
+      'ppO2High event with missing value is skipped at importer level',
+      () async {
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 20.0,
+              'events': [
+                // No 'value' key — simulates parser malfunction or malformed event
+                {'eventType': 'ppO2High', 'timestamp': 300},
+              ],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: UddfImportSelections.selectAll(data),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        verifyNever(mockDiveRepo.insertProfileEvents(any));
+      },
+    );
+
+    test(
+      'ppO2Low event with missing value is skipped at importer level',
+      () async {
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 20.0,
+              'events': [
+                // No 'value' key — simulates parser malfunction or malformed event
+                {'eventType': 'ppO2Low', 'timestamp': 300},
+              ],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: UddfImportSelections.selectAll(data),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        verifyNever(mockDiveRepo.insertProfileEvents(any));
+      },
+    );
+
+    test(
+      'ascentRateWarning event with missing value is skipped at importer level',
+      () async {
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 20.0,
+              'events': [
+                // No 'value' key — avoid persisting a misleading 0 m/min rate
+                {'eventType': 'ascentRateWarning', 'timestamp': 300},
+              ],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: UddfImportSelections.selectAll(data),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        verifyNever(mockDiveRepo.insertProfileEvents(any));
+      },
+    );
+  });
+
+  group('dive-level metadata persistence (Slice D)', () {
+    test(
+      'dual-cylinder.ssrf populates Dives + DiveDataSources metadata fields',
+      () async {
+        // This test asserts specific values from dual-cylinder.ssrf:
+        // - divecomputer model: 'Shearwater Peregrine'
+        // - Serial: '98d09a47'
+        // - FW Version: '86'
+        // - Deco model: 'GF 40/85'
+        // - Surface pressure: '1.012 bar'
+        // If dual-cylinder.ssrf is ever edited (e.g., sanitized for privacy),
+        // update the expectations below to match.
+
+        // 1. Load fixture bytes and wrap in required <divelog> envelope.
+        const fixturePath =
+            'test/features/universal_import/data/parsers/fixtures/dual-cylinder.ssrf';
+        final diveXml = await File(fixturePath).readAsString();
+        final wrapped =
+            "<divelog program='subsurface' version='3'><dives>$diveXml</dives></divelog>";
+        // Encode as UTF-8 to match SubsurfaceXmlParser.parse() decoding;
+        // codeUnits would produce UTF-16 and break on non-ASCII fixtures.
+        final bytes = Uint8List.fromList(utf8.encode(wrapped));
+
+        // 2. Parse via SubsurfaceXmlParser.
+        final parsePayload = await SubsurfaceXmlParser().parse(bytes);
+        final diveDataList = parsePayload.entitiesOf(ImportEntityType.dives);
+        expect(diveDataList.length, 1);
+        final diveData = diveDataList.first;
+
+        // 3. Parser-level assertions — metadata keys populated.
+        expect(diveData['diveComputerModel'], 'Shearwater Peregrine');
+        expect(diveData['diveComputerSerial'], '98d09a47');
+        expect(diveData['diveComputerFirmware'], '86');
+        expect(diveData['decoAlgorithm'], 'buhlmann');
+        expect(diveData['gradientFactorLow'], 40);
+        expect(diveData['gradientFactorHigh'], 85);
+        expect(diveData['surfacePressure'], closeTo(1.012, 0.0001));
+
+        // 4. Build UddfImportResult from parsed dives and run the importer.
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+        when(mockDiveRepo.saveComputerReading(any)).thenAnswer((_) async {});
+
+        final data = UddfImportResult(dives: diveDataList);
+
+        await importer.import(
+          data: data,
+          selections: UddfImportSelections.selectAll(data),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        // 5. Verify captured Dive entity — assert dive-level metadata fields.
+        final capturedDives = verify(
+          mockDiveRepo.createDive(captureAny),
+        ).captured;
+        final dive = capturedDives.single as Dive;
+        expect(dive.diveComputerModel, 'Shearwater Peregrine');
+        expect(dive.diveComputerSerial, '98d09a47');
+        expect(dive.diveComputerFirmware, '86');
+        expect(dive.decoAlgorithm, 'buhlmann');
+        expect(dive.gradientFactorLow, 40);
+        expect(dive.gradientFactorHigh, 85);
+        expect(dive.surfacePressure, closeTo(1.012, 0.0001));
+
+        // 6. Verify captured DiveDataSourcesCompanion — assert data-source fields.
+        final capturedReadings = verify(
+          mockDiveRepo.saveComputerReading(captureAny),
+        ).captured;
+        final reading = capturedReadings.single;
+        expect(reading.computerModel.value, 'Shearwater Peregrine');
+        expect(reading.computerSerial.value, '98d09a47');
+        expect(reading.decoAlgorithm.value, 'buhlmann');
+        expect(reading.gradientFactorLow.value, 40);
+        expect(reading.gradientFactorHigh.value, 85);
+      },
+    );
   });
 }

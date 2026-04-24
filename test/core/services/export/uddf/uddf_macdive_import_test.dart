@@ -172,6 +172,31 @@ const _submersionUddf = '''<?xml version="1.0" encoding="UTF-8" ?>
   </profiledata>
 </uddf>''';
 
+// MacDive-style UDDF exercising the rich informationafterdive / before fields
+// and the dive element's id attribute used as source UUID.
+const _macDiveRichFields = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
+  <generator><name>MacDive</name></generator>
+  <profiledata><repetitiongroup id="rg-1">
+    <dive id="d-RICH-UUID">
+      <informationbeforedive>
+        <datetime>2024-06-01T09:00:00</datetime>
+        <divenumber>42</divenumber>
+      </informationbeforedive>
+      <informationafterdive>
+        <greatestdepth>18</greatestdepth>
+        <diveduration>2400</diveduration>
+        <weather>Sunny</weather>
+        <surfaceconditions>Calm</surfaceconditions>
+        <boatname>MV Nautilus</boatname>
+        <boatcaptain>Jane Smith</boatcaptain>
+        <diveoperator>Nautilus Liveaboards</diveoperator>
+      </informationafterdive>
+      <samples><waypoint><divetime>0</divetime><depth>0</depth></waypoint></samples>
+    </dive>
+  </repetitiongroup></profiledata>
+</uddf>''';
+
 // MacDive-style UDDF without <informationbeforedive>, where equipmentused
 // is only in <informationafterdive>.
 const _macDiveNoBeforeInfo = '''<?xml version="1.0" encoding="UTF-8" ?>
@@ -559,5 +584,232 @@ void main() {
         expect(gasMix, isNotNull);
       }
     });
+
+    test(
+      'treats <infinity/> surface interval as absent (first dive)',
+      () async {
+        const uddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
+  <profiledata><repetitiongroup id="rg-1">
+    <dive id="d-1">
+      <informationbeforedive>
+        <surfaceintervalbeforedive><infinity/></surfaceintervalbeforedive>
+        <datetime>2024-06-01T09:00:00</datetime>
+      </informationbeforedive>
+      <informationafterdive>
+        <greatestdepth>12</greatestdepth>
+        <diveduration>1800</diveduration>
+      </informationafterdive>
+      <samples><waypoint><divetime>0</divetime><depth>0</depth></waypoint></samples>
+    </dive>
+  </repetitiongroup></profiledata>
+</uddf>''';
+        final result = await service.importAllDataFromUddf(uddf);
+        final dive = result.dives.first;
+        expect(
+          dive.containsKey('surfaceInterval'),
+          isFalse,
+          reason:
+              '<infinity/> means no prior dive; must not set surfaceInterval',
+        );
+      },
+    );
+  });
+
+  group('UddfFullImportService - MacDive extended fields', () {
+    late UddfFullImportService service;
+    setUp(() => service = UddfFullImportService());
+
+    test('extracts weather, surfaceConditions, boatName, boatCaptain, '
+        'diveOperator, sourceUuid', () async {
+      final r = await service.importAllDataFromUddf(_macDiveRichFields);
+      final d = r.dives.first;
+      expect(d['weather'], 'Sunny');
+      expect(d['surfaceConditions'], 'Calm');
+      expect(d['boatName'], 'MV Nautilus');
+      expect(d['boatCaptain'], 'Jane Smith');
+      expect(d['diveOperator'], 'Nautilus Liveaboards');
+      expect(d['sourceUuid'], 'd-RICH-UUID');
+    });
+
+    test(
+      'extracts site watertype, bodyOfWater, difficulty, sourceUuid',
+      () async {
+        const uddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
+  <divesite>
+    <site id="site-RICH-UUID">
+      <name>Rich Site</name>
+      <watertype>saltwater</watertype>
+      <bodyofwater>Pacific Ocean</bodyofwater>
+      <difficulty>advanced</difficulty>
+      <geography><address><country>Mexico</country></address></geography>
+    </site>
+  </divesite>
+  <profiledata><repetitiongroup id="rg-1">
+    <dive id="d-1">
+      <informationbeforedive>
+        <link ref="site-RICH-UUID" />
+        <datetime>2024-06-01T09:00:00</datetime>
+      </informationbeforedive>
+      <informationafterdive>
+        <greatestdepth>12</greatestdepth>
+        <diveduration>1800</diveduration>
+      </informationafterdive>
+      <samples><waypoint><divetime>0</divetime><depth>0</depth></waypoint></samples>
+    </dive>
+  </repetitiongroup></profiledata>
+</uddf>''';
+        final r = await service.importAllDataFromUddf(uddf);
+        final site = r.sites.firstWhere(
+          (s) => s['sourceUuid'] == 'site-RICH-UUID',
+          orElse: () => <String, dynamic>{},
+        );
+        expect(site['name'], 'Rich Site');
+        expect(site['waterType'], 'saltwater');
+        expect(site['bodyOfWater'], 'Pacific Ocean');
+        expect(site['difficulty'], 'advanced');
+      },
+    );
+
+    test(
+      'equipmentused <link ref> resolves gear UUIDs from before AND after sections',
+      () async {
+        const uddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
+  <diver><owner id="o"><personal><firstname>M</firstname></personal>
+    <equipment>
+      <variouspieces id="gear-REG-1"><name>Travel Reg</name></variouspieces>
+      <variouspieces id="gear-BCD-1"><name>Hydros</name></variouspieces>
+    </equipment></owner></diver>
+  <profiledata><repetitiongroup id="rg-1">
+    <dive id="d-1">
+      <informationbeforedive><datetime>2024-06-01T09:00:00</datetime></informationbeforedive>
+      <informationafterdive>
+        <greatestdepth>10</greatestdepth>
+        <diveduration>1800</diveduration>
+        <equipmentused>
+          <link ref="gear-REG-1" />
+          <link ref="gear-BCD-1" />
+        </equipmentused>
+      </informationafterdive>
+      <samples><waypoint><divetime>0</divetime><depth>0</depth></waypoint></samples>
+    </dive>
+  </repetitiongroup></profiledata>
+</uddf>''';
+        final r = await service.importAllDataFromUddf(uddf);
+        final dive = r.dives.first;
+        final refs = dive['equipmentRefs'] as List?;
+        expect(refs, isNotNull, reason: 'equipmentRefs must be populated');
+        expect(
+          refs,
+          containsAll(['gear-REG-1', 'gear-BCD-1']),
+          reason: 'both gear UUIDs should be captured',
+        );
+      },
+    );
+
+    test('extracts equipment from <diver><owner><equipment> '
+        '(standard UDDF location)', () async {
+      const uddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
+  <diver>
+    <owner id="owner-1">
+      <personal><firstname>M</firstname><lastname>G</lastname></personal>
+      <equipment>
+        <variouspieces id="gear-BCD-UUID">
+          <name>Hollis SS BP/W</name>
+          <manufacturer id="man-hollis"><name>Hollis</name></manufacturer>
+          <model>SS BP/W</model>
+          <serialnumber></serialnumber>
+        </variouspieces>
+        <suit id="gear-SUIT-UUID">
+          <name>Aqualung 7mm</name>
+          <manufacturer id="man-aqualung"><name>Aqualung</name></manufacturer>
+          <model>7mm</model>
+          <suittype>wet-suit</suittype>
+        </suit>
+        <divecomputer id="gear-DC-UUID">
+          <name>Shearwater Tern</name>
+          <manufacturer id="man-shearwater"><name>Shearwater</name></manufacturer>
+          <model>Tern</model>
+          <serialnumber>ABC123</serialnumber>
+        </divecomputer>
+      </equipment>
+    </owner>
+  </diver>
+  <profiledata><repetitiongroup id="rg-1">
+    <dive id="d-1">
+      <informationbeforedive><datetime>2024-06-01T09:00:00</datetime></informationbeforedive>
+      <informationafterdive><greatestdepth>12</greatestdepth><diveduration>1800</diveduration></informationafterdive>
+      <samples><waypoint><divetime>0</divetime><depth>0</depth></waypoint></samples>
+    </dive>
+  </repetitiongroup></profiledata>
+</uddf>''';
+      final r = await service.importAllDataFromUddf(uddf);
+      expect(
+        r.equipment.length,
+        3,
+        reason: 'MacDive emits gear under <diver><owner><equipment>',
+      );
+      final bcd = r.equipment.firstWhere(
+        (e) => e['sourceUuid'] == 'gear-BCD-UUID',
+      );
+      expect(bcd['name'], 'Hollis SS BP/W');
+      expect(bcd['manufacturer'], 'Hollis');
+      expect(bcd['model'], 'SS BP/W');
+    });
+
+    test(
+      'emits gasSwitches from waypoint <switchmix ref> for multi-tank dives',
+      () async {
+        // MacDive deco-dive style: two tanks, each linked to a gas definition;
+        // profile samples mark the switch via <switchmix ref="mix-deco"/>.
+        const uddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
+  <gasdefinitions>
+    <mix id="mix-bottom"><o2>0.32</o2><he>0.0</he></mix>
+    <mix id="mix-deco"><o2>0.80</o2><he>0.0</he></mix>
+  </gasdefinitions>
+  <profiledata><repetitiongroup id="rg-1">
+    <dive id="d-1">
+      <informationbeforedive><datetime>2024-06-01T09:00:00</datetime></informationbeforedive>
+      <informationafterdive>
+        <greatestdepth>40</greatestdepth>
+        <diveduration>3600</diveduration>
+      </informationafterdive>
+      <tankdata>
+        <link ref="mix-bottom" />
+        <tankvolume>0.012</tankvolume>
+      </tankdata>
+      <tankdata>
+        <link ref="mix-deco" />
+        <tankvolume>0.007</tankvolume>
+      </tankdata>
+      <samples>
+        <waypoint><divetime>0</divetime><depth>0</depth><switchmix ref="mix-bottom"/></waypoint>
+        <waypoint><divetime>120</divetime><depth>30</depth></waypoint>
+        <waypoint><divetime>2400</divetime><depth>6</depth><switchmix ref="mix-deco"/></waypoint>
+      </samples>
+    </dive>
+  </repetitiongroup></profiledata>
+</uddf>''';
+        final r = await service.importAllDataFromUddf(uddf);
+        final dive = r.dives.first;
+        final switches =
+            (dive['gasSwitches'] as List?)?.cast<Map<String, dynamic>>() ??
+            const [];
+        expect(
+          switches.length,
+          2,
+          reason: 'two waypoints carry <switchmix ref>',
+        );
+        expect(switches[0]['timestamp'], 0);
+        expect(switches[0]['gasMixRef'], 'mix-bottom');
+        expect(switches[1]['timestamp'], 2400);
+        expect(switches[1]['gasMixRef'], 'mix-deco');
+        expect(switches[1]['depth'], 6);
+      },
+    );
   });
 }

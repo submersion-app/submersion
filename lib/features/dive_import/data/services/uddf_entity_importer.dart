@@ -1,9 +1,10 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
-    show DiveDataSourcesCompanion;
+    show DiveDataSourcesCompanion, DiveSitesCompanion, DivesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -18,6 +19,7 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_rep
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
@@ -26,6 +28,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -182,6 +185,7 @@ class UddfEntityImportResult {
 /// cross-references between entity types.
 class UddfEntityImporter {
   static const _uuid = Uuid();
+  final _log = LoggerService.forClass(UddfEntityImporter);
 
   final TankPresetEntity? _defaultTankPreset;
   final int _defaultStartPressure;
@@ -213,6 +217,10 @@ class UddfEntityImporter {
   ///
   /// Only entities at indices present in [selections] are imported.
   /// Reports progress via [onProgress] callback.
+  ///
+  /// If [cancelToken] is non-null, the dive-import loop polls
+  /// [ImportCancellationToken.isCancelled] between each dive and returns the
+  /// partial result already persisted when cancellation is observed.
   Future<UddfEntityImportResult> import({
     required UddfImportResult data,
     required UddfImportSelections selections,
@@ -220,6 +228,7 @@ class UddfEntityImporter {
     required String diverId,
     bool retainSourceDiveNumbers = false,
     ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
   }) async {
     final now = DateTime.now();
 
@@ -347,6 +356,7 @@ class UddfEntityImporter {
       retainSourceDiveNumbers: retainSourceDiveNumbers,
       now: now,
       onProgress: onProgress,
+      cancelToken: cancelToken,
     );
 
     return UddfEntityImportResult(
@@ -803,6 +813,25 @@ class UddfEntityImporter {
       );
 
       final createdSite = await repository.createSite(newSite);
+
+      // Write MacDive site metadata columns that don't flow through the
+      // DiveSite domain entity. Only set columns when source provides a value.
+      final waterType = siteData['waterType'] as String?;
+      final bodyOfWater = siteData['bodyOfWater'] as String?;
+      if (waterType != null || bodyOfWater != null) {
+        await repository.applyImportedMetadata(
+          createdSite.id,
+          DiveSitesCompanion(
+            waterType: waterType != null
+                ? Value(waterType)
+                : const Value.absent(),
+            bodyOfWater: bodyOfWater != null
+                ? Value(bodyOfWater)
+                : const Value.absent(),
+          ),
+        );
+      }
+
       if (uddfId != null) idMapping[uddfId] = createdSite;
       count++;
       onProgress?.call(ImportPhase.sites, count, selected.length);
@@ -940,6 +969,7 @@ class UddfEntityImporter {
     bool retainSourceDiveNumbers = false,
     required DateTime now,
     ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
   }) async {
     if (selected.isEmpty) return const _DiveImportResult(0, 0);
     onProgress?.call(ImportPhase.dives, 0, selected.length);
@@ -962,6 +992,8 @@ class UddfEntityImporter {
         : await repos.diveRepository.getNextDiveNumber(diverId: diverId);
 
     for (final i in sortedSelected) {
+      if (cancelToken?.isCancelled ?? false) break;
+
       final diveData = items[i];
 
       // Build profile (include setpoint/ppO2 sensor readings)
@@ -1110,6 +1142,7 @@ class UddfEntityImporter {
         airTemp: asDoubleOrNull(diveData['airTemp']),
         surfacePressure: asDoubleOrNull(diveData['surfacePressure']),
         surfaceInterval: diveData['surfaceInterval'] as Duration?,
+        decoAlgorithm: diveData['decoAlgorithm'] as String?,
         gradientFactorLow: diveData['gradientFactorLow'] as int?,
         gradientFactorHigh: diveData['gradientFactorHigh'] as int?,
         diveComputerModel: diveData['diveComputerModel'] as String?,
@@ -1174,6 +1207,40 @@ class UddfEntityImporter {
       await repos.diveRepository.createDive(dive);
       importedDiveIds.add(diveId);
 
+      // Write MacDive dive metadata columns that don't flow through the Dive
+      // domain entity. Also plug `weather` into the existing weatherDescription
+      // column (it wasn't being populated for UDDF imports). Only issue the
+      // UPDATE when at least one value is present to avoid a no-op write.
+      final boatName = diveData['boatName'] as String?;
+      final boatCaptain = diveData['boatCaptain'] as String?;
+      final diveOperator = diveData['diveOperator'] as String?;
+      final surfaceConditions = diveData['surfaceConditions'] as String?;
+      final weather = diveData['weather'] as String?;
+      if (boatName != null ||
+          boatCaptain != null ||
+          diveOperator != null ||
+          surfaceConditions != null ||
+          weather != null) {
+        await repos.diveRepository.applyImportedMetadata(
+          diveId,
+          DivesCompanion(
+            boatName: boatName != null ? Value(boatName) : const Value.absent(),
+            boatCaptain: boatCaptain != null
+                ? Value(boatCaptain)
+                : const Value.absent(),
+            diveOperator: diveOperator != null
+                ? Value(diveOperator)
+                : const Value.absent(),
+            surfaceConditions: surfaceConditions != null
+                ? Value(surfaceConditions)
+                : const Value.absent(),
+            weatherDescription: weather != null
+                ? Value(weather)
+                : const Value.absent(),
+          ),
+        );
+      }
+
       // Store per-tank pressure data
       if (profileData != null && tanks.isNotEmpty) {
         await _storeTankPressures(
@@ -1188,7 +1255,12 @@ class UddfEntityImporter {
       final gasSwitchesData =
           diveData['gasSwitches'] as List<Map<String, dynamic>>?;
       if (gasSwitchesData != null && gasSwitchesData.isNotEmpty) {
+        // Build lookups from both UDDF tank ID and UDDF gas mix UUID to the
+        // persisted tank row id. MacDive-style switches reference a gas mix
+        // UUID (via <switchmix ref>), while top-level <gasswitches>
+        // entries reference a tank UUID (via <tankref>); we accept either.
         final tankIdByRef = <String, String>{};
+        final tankIdByGasMixRef = <String, String>{};
         final tanksData = diveData['tanks'] as List<Map<String, dynamic>>?;
         if (tanksData != null) {
           for (var i = 0; i < tanks.length && i < tanksData.length; i++) {
@@ -1198,6 +1270,15 @@ class UddfEntityImporter {
             if (ref != null && ref.isNotEmpty) {
               tankIdByRef[ref] = tank.id;
             }
+            final gasMixRef = (tankData['uddfGasMixRef'] as String?)?.trim();
+            // First tank linked to a given gas wins; later tanks sharing the
+            // same gas don't overwrite. This is a pragmatic resolution for
+            // dives where multiple tanks carry the same mix.
+            if (gasMixRef != null &&
+                gasMixRef.isNotEmpty &&
+                !tankIdByGasMixRef.containsKey(gasMixRef)) {
+              tankIdByGasMixRef[gasMixRef] = tank.id;
+            }
           }
         }
 
@@ -1206,9 +1287,16 @@ class UddfEntityImporter {
               final timestamp = gs['timestamp'] as int?;
               if (timestamp == null) return null;
               final tankRef = (gs['tankRef'] as String?)?.trim();
-              final tankId = tankRef != null && tankRef.isNotEmpty
-                  ? tankIdByRef[tankRef]
-                  : null;
+              final gasMixRef = (gs['gasMixRef'] as String?)?.trim();
+              String? tankId;
+              if (tankRef != null && tankRef.isNotEmpty) {
+                tankId = tankIdByRef[tankRef];
+              }
+              if ((tankId == null || tankId.isEmpty) &&
+                  gasMixRef != null &&
+                  gasMixRef.isNotEmpty) {
+                tankId = tankIdByGasMixRef[gasMixRef];
+              }
               if (tankId == null || tankId.isEmpty) return null;
               return GasSwitch(
                 id: _uuid.v4(),
@@ -1223,6 +1311,170 @@ class UddfEntityImporter {
             .toList();
         if (switches.isNotEmpty) {
           await repos.diveRepository.insertGasSwitches(switches);
+        }
+      }
+
+      // Persist profile events emitted by the parser. Currently supported (Slice C + C.2):
+      // setpointChange, bookmark, safetyStopStart, decoStopStart, decoViolation,
+      // ascentRateWarning, ppO2High, ppO2Low. Future slices may add more types as
+      // real SSRF exports surface additional event names.
+      //
+      // NOTE ON UDDF DIVERGENCE: SSRF's subsurface_xml_parser emits events under
+      // `diveData['events']` (read here). The UDDF path in
+      // `uddf_full_import_service.dart` emits events under
+      // `diveData['profileEvents']` — a pre-existing key mismatch. UDDF-side
+      // event persistence is intentionally out of scope for Slice C; when a
+      // future slice adds UDDF event import, unify the keys or add a second
+      // consumer block here.
+      final eventMaps = (diveData['events'] as List?)
+          ?.cast<Map<String, dynamic>>();
+      if (eventMaps != null && eventMaps.isNotEmpty) {
+        final events = <ProfileEvent>[];
+        for (final m in eventMaps) {
+          // Defensive cast: malformed/partial events (missing/non-string
+          // eventType) are forward-compat noise, not errors. Skip quietly.
+          final eventTypeStr = m['eventType'] as String?;
+          if (eventTypeStr == null || eventTypeStr.isEmpty) continue;
+          final timestamp = m['timestamp'] as int?;
+          if (timestamp == null) continue;
+          final value = m['value'] as double?;
+          final description = m['description'] as String?;
+          switch (eventTypeStr) {
+            case 'setpointChange':
+              if (value == null) continue;
+              events.add(
+                ProfileEvent.setpointChange(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  setpoint: value,
+                  createdAt: now,
+                ),
+              );
+              break;
+
+            case 'bookmark':
+              events.add(
+                ProfileEvent.bookmark(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  note: description,
+                  createdAt: now,
+                  source:
+                      EventSource.imported, // override `user` factory default
+                ),
+              );
+              break;
+
+            case 'safetyStopStart':
+              events.add(
+                ProfileEvent.safetyStop(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  depth:
+                      0.0, // parser does not emit depth on event elements; placeholder used across safety/deco/ascent cases. Future enrichment slice may interpolate from samples.
+                  createdAt: now,
+                  isStart: true,
+                  source: EventSource
+                      .imported, // override `computed` factory default
+                ),
+              );
+              break;
+
+            case 'decoStopStart':
+              events.add(
+                ProfileEvent.decoStop(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  depth: 0.0,
+                  createdAt: now,
+                  isStart: true,
+                  // factory default is already `imported`; no override needed
+                ),
+              );
+              break;
+
+            case 'decoViolation':
+              events.add(
+                ProfileEvent.decoViolation(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  value: value,
+                  createdAt: now,
+                  // factory default is already `imported`; no override needed
+                ),
+              );
+              break;
+
+            case 'ascentRateWarning':
+              if (value == null) {
+                _log.warning(
+                  'Skipping ascentRateWarning event with missing value',
+                );
+                continue; // match setpointChange/ppO2 null-guard pattern
+              }
+              events.add(
+                ProfileEvent.ascentRateWarning(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  depth: 0.0,
+                  rate: value,
+                  createdAt: now,
+                  source: EventSource
+                      .imported, // override `computed` factory default
+                ),
+              );
+              break;
+
+            case 'ppO2High':
+              if (value == null) {
+                _log.warning('Skipping ppO2High event with missing value');
+                continue; // match setpointChange null-guard pattern
+              }
+              events.add(
+                ProfileEvent.ppO2High(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  value: value,
+                  createdAt: now,
+                ),
+              );
+              break;
+
+            case 'ppO2Low':
+              if (value == null) {
+                _log.warning('Skipping ppO2Low event with missing value');
+                continue; // match setpointChange null-guard pattern
+              }
+              events.add(
+                ProfileEvent.ppO2Low(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  timestamp: timestamp,
+                  value: value,
+                  createdAt: now,
+                ),
+              );
+              break;
+
+            default:
+              // Unknown event type — skip with a log line so future types can
+              // be tracked. Do not throw: unknown types are forward-compat
+              // noise, not errors.
+              _log.warning(
+                'Skipping unknown profile event type from parser: $eventTypeStr',
+              );
+              break;
+          }
+        }
+        if (events.isNotEmpty) {
+          await repos.diveRepository.insertProfileEvents(events);
         }
       }
 
@@ -1254,6 +1506,7 @@ class UddfEntityImporter {
           computerSerial: Value(diveData['diveComputerSerial'] as String?),
           sourceFileName: Value(sourceFileName),
           sourceFileFormat: const Value('uddf'),
+          sourceUuid: Value(diveData['sourceUuid'] as String?),
           maxDepth: Value(asDoubleOrNull(diveData['maxDepth'])),
           avgDepth: Value(asDoubleOrNull(diveData['avgDepth'])),
           duration: Value(dive.bottomTime?.inSeconds),
@@ -1262,6 +1515,9 @@ class UddfEntityImporter {
           exitTime: Value(dive.exitTime),
           cns: Value(asDoubleOrNull(diveData['cnsEnd'])),
           otu: Value(asDoubleOrNull(diveData['otu'])),
+          decoAlgorithm: Value(diveData['decoAlgorithm'] as String?),
+          gradientFactorLow: Value(diveData['gradientFactorLow'] as int?),
+          gradientFactorHigh: Value(diveData['gradientFactorHigh'] as int?),
           importedAt: Value(now),
           createdAt: Value(now),
         ),

@@ -17,6 +17,7 @@ import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
@@ -771,6 +772,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     WidgetRef ref,
     List<SiteWithDiveCount> sites,
   ) {
+    final diversCount = ref
+        .watch(allDiversProvider)
+        .when(data: (d) => d.length, loading: () => 0, error: (_, _) => 0);
+
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(sortedSitesWithCountsProvider);
@@ -786,6 +791,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               widget.selectedId == site.id ||
               ref.watch(highlightedSiteIdProvider) == site.id;
           final isChecked = _selectedIds.contains(site.id);
+          final showSharedBadge = site.isShared && diversCount >= 2;
 
           final viewMode = ref.watch(siteListViewModeProvider);
           final locationString = site.locationString.isNotEmpty
@@ -805,6 +811,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               isChecked: isChecked,
               latitude: site.location?.latitude,
               longitude: site.location?.longitude,
+              showSharedBadge: showSharedBadge,
               onTap: () => _handleItemTap(site),
               onLongPress: _isSelectionMode
                   ? null
@@ -817,6 +824,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               isSelectionMode: _isSelectionMode,
               isSelected: isChecked,
               isHighlighted: !_isSelectionMode && isSelected,
+              showSharedBadge: showSharedBadge,
               onTap: () => _handleItemTap(site),
               onLongPress: _isSelectionMode
                   ? null
@@ -829,6 +837,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               isSelectionMode: _isSelectionMode,
               isSelected: isChecked,
               isHighlighted: !_isSelectionMode && isSelected,
+              showSharedBadge: showSharedBadge,
               onTap: () => _handleItemTap(site),
               onLongPress: _isSelectionMode
                   ? null
@@ -1193,6 +1202,7 @@ class SiteListTile extends ConsumerWidget {
   final bool isChecked;
   final double? latitude;
   final double? longitude;
+  final bool showSharedBadge;
 
   const SiteListTile({
     super.key,
@@ -1210,6 +1220,7 @@ class SiteListTile extends ConsumerWidget {
     this.isChecked = false,
     this.latitude,
     this.longitude,
+    this.showSharedBadge = false,
   });
 
   String? get _depthString {
@@ -1291,6 +1302,16 @@ class SiteListTile extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                if (showSharedBadge)
+                  Tooltip(
+                    message:
+                        context.l10n.accessibility_label_sharedWithAllProfiles,
+                    child: Icon(
+                      Icons.people_outline,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
                 if (_depthString != null)
                   Text(
                     _depthString!,

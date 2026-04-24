@@ -17,6 +17,10 @@
   "accessibility_label_listPane": "{title} list pane",
   "accessibility_label_mapPane": "{title} map pane",
   "accessibility_label_mapViewTitle": "{title} map view",
+  "accessibility_label_sharedWithAllProfiles": "Shared with all dive profiles",
+  "@accessibility_label_sharedWithAllProfiles": {
+    "description": "Screen-reader / tooltip label for the people icon shown on trip and site list tiles when a record is shared across dive profiles. Descriptive form (state), distinct from the imperative form used on the edit-page switch."
+  },
   "accessibility_label_showList": "Show List",
   "accessibility_label_showMapView": "Show Map View",
   "accessibility_label_viewDetails": "View details",
@@ -923,6 +927,7 @@
   "common_action_ok": "OK",
   "common_action_save": "Save",
   "common_action_search": "Search",
+  "common_action_share": "Share",
   "common_label_error": "Error",
   "common_label_loading": "Loading",
   "common_placeholder_noValue": "--",
@@ -950,6 +955,9 @@
   "@common_action_save": {
     "description": "Generic save action"
   },
+  "@common_action_share": {
+    "description": "Confirmation button label for actions that share a record with other dive profiles."
+  },
   "@common_action_search": {
     "description": "Generic search action"
   },
@@ -961,6 +969,10 @@
   },
   "@common_placeholder_noValue": {
     "description": "Placeholder shown when a value is null or unavailable"
+  },
+  "common_error_tryAgain": "Something went wrong. Please try again.",
+  "@common_error_tryAgain": {
+    "description": "Generic error snackbar shown when an action fails and the user should retry."
   },
   "courses_action_add": "Add Course",
   "courses_action_create": "Create Course",
@@ -5374,6 +5386,53 @@
   "settings_appearance_theme_dark": "Dark",
   "settings_appearance_theme_light": "Light",
   "settings_appearance_theme_system": "System default",
+  "settings_navCustomization_title": "Navigation bar",
+  "@settings_navCustomization_title": {
+    "description": "Title of the settings page for customizing bottom navigation primary slots."
+  },
+  "settings_navCustomization_description": "Drag items to reorder. The top three appear in your bottom navigation bar.",
+  "@settings_navCustomization_description": {
+    "description": "Help text at the top of the navigation customization page."
+  },
+  "settings_navCustomization_dividerLabel": "Items below appear in the More menu",
+  "@settings_navCustomization_dividerLabel": {
+    "description": "Non-interactive divider row between primary and overflow destinations."
+  },
+  "settings_navCustomization_resetButton": "Reset to defaults",
+  "@settings_navCustomization_resetButton": {
+    "description": "Button that restores the default nav order."
+  },
+  "settings_navCustomization_pinnedTooltip": "Always shown",
+  "@settings_navCustomization_pinnedTooltip": {
+    "description": "Tooltip on lock icons next to pinned nav items (Home and More)."
+  },
+  "settings_navCustomization_moveUpLabel": "Move {destination} up",
+  "@settings_navCustomization_moveUpLabel": {
+    "description": "Accessibility label for move-up button on a reorderable nav item.",
+    "placeholders": {
+      "destination": {"type": "String", "example": "Equipment"}
+    }
+  },
+  "settings_navCustomization_moveDownLabel": "Move {destination} down",
+  "@settings_navCustomization_moveDownLabel": {
+    "description": "Accessibility label for move-down button on a reorderable nav item.",
+    "placeholders": {
+      "destination": {"type": "String", "example": "Equipment"}
+    }
+  },
+  "settings_navCustomization_subtitlePreview": "{first} · {second} · {third}",
+  "@settings_navCustomization_subtitlePreview": {
+    "description": "Dot-separated preview of the 3 primary destinations shown on the Appearance page entry tile.",
+    "placeholders": {
+      "first": {"type": "String"},
+      "second": {"type": "String"},
+      "third": {"type": "String"}
+    }
+  },
+  "settings_navCustomization_saveError": "Could not save navigation layout. Please try again.",
+  "@settings_navCustomization_saveError": {
+    "description": "SnackBar shown when persisting the nav order fails (e.g., database write error)."
+  },
   "settings_backToSettings_tooltip": "Back to settings",
   "settings_cloudSync_appBar_title": "Cloud Sync",
   "settings_cloudSync_autoSync": "Auto Sync",
@@ -5522,6 +5581,8 @@
   "settings_gfPreset_low_name": "Low",
   "settings_gfPreset_medium_description": "Balanced approach",
   "settings_gfPreset_medium_name": "Medium",
+  "settings_import_cancelButton": "Cancel import",
+  "settings_import_cancelling": "Cancelling...",
   "settings_import_dialog_title": "Importing Data",
   "settings_import_doNotClose": "Please do not close the app",
   "settings_import_itemCount": "{current} of {total}",
@@ -10020,5 +10081,147 @@
   "universalImport_label_consolidated": "Consolidated",
   "@universalImport_label_consolidated": {
     "description": "Label for the count of consolidated dives in summary"
+  },
+  "common_label_shareWithAllProfiles": "Share with all dive profiles",
+  "@common_label_shareWithAllProfiles": {
+    "description": "Switch on trip/site edit pages that makes the record visible to all local dive profiles."
+  },
+  "settings_shareByDefault_title": "Share new sites and trips by default",
+  "@settings_shareByDefault_title": {
+    "description": "Global setting: when ON, newly created trips and sites are shared with all dive profiles by default."
+  },
+  "settings_shareAllSites_title": "Share all my sites",
+  "@settings_shareAllSites_title": {
+    "description": "Button/menu item to share all sites at once"
+  },
+  "settings_shareAllTrips_title": "Share all my trips",
+  "@settings_shareAllTrips_title": {
+    "description": "Button/menu item to share all trips at once"
+  },
+  "settings_shareAllSites_confirm": "Make all {count} of your sites visible to every dive profile in this app? You can unshare individual sites later.",
+  "@settings_shareAllSites_confirm": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "settings_shareAllTrips_confirm": "Make all {count} of your trips visible to every dive profile in this app? You can unshare individual trips later.",
+  "@settings_shareAllTrips_confirm": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "settings_shareAllSites_snackbar": "Shared {count} sites with all dive profiles.",
+  "@settings_shareAllSites_snackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "settings_shareAllTrips_snackbar": "Shared {count} trips with all dive profiles.",
+  "@settings_shareAllTrips_snackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "settings_shareAll_noneToShare": "Nothing to share.",
+  "@settings_shareAll_noneToShare": {
+    "description": "Message shown when there are no sites/trips to share"
+  },
+  "settings_sharedData_sectionTitle": "Shared data",
+  "@settings_sharedData_sectionTitle": {
+    "description": "Section header for shared data controls"
+  },
+  "settings_sharedData_sectionSubtitle": "Share sites and trips across profiles",
+  "@settings_sharedData_sectionSubtitle": {
+    "description": "Subtitle for the 'Shared data' section in Settings — short description of the section's purpose."
+  },
+  "common_action_unshare": "Unshare",
+  "@common_action_unshare": {
+    "description": "Button label to remove sharing from a record that was previously shared with all dive profiles."
+  },
+  "trips_unshareConfirm_title": "Unshare this trip?",
+  "@trips_unshareConfirm_title": {
+    "description": "Title of the confirmation dialog shown before un-sharing a trip that is currently shared with all profiles."
+  },
+  "trips_unshareConfirm_body": "This will remove '{name}' from other dive profiles' views. You can re-share it later.",
+  "@trips_unshareConfirm_body": {
+    "description": "Body of the confirmation dialog shown before un-sharing a trip.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Red Sea Liveaboard"
+      }
+    }
+  },
+  "sites_unshareConfirm_title": "Unshare this site?",
+  "@sites_unshareConfirm_title": {
+    "description": "Title of the confirmation dialog shown before un-sharing a dive site that is currently shared with all profiles."
+  },
+  "sites_unshareConfirm_body": "This will remove '{name}' from other dive profiles' views. You can re-share it later.",
+  "@sites_unshareConfirm_body": {
+    "description": "Body of the confirmation dialog shown before un-sharing a dive site.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Salt Pier"
+      }
+    }
+  },
+  "trips_deleteShared_title": "Delete shared trip?",
+  "@trips_deleteShared_title": {
+    "description": "Title of the strengthened delete confirmation dialog shown when the trip being deleted is shared with other dive profiles."
+  },
+  "trips_deleteShared_body": "'{name}' is shared with other dive profiles. Deleting it here removes it for everyone.",
+  "@trips_deleteShared_body": {
+    "description": "Body of the delete confirmation dialog for a shared trip.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Red Sea Liveaboard"
+      }
+    }
+  },
+  "sites_deleteShared_title": "Delete shared site?",
+  "@sites_deleteShared_title": {
+    "description": "Title of the strengthened delete confirmation dialog shown when the dive site being deleted is shared with other dive profiles."
+  },
+  "sites_deleteShared_body": "'{name}' is shared with other dive profiles. Deleting it here removes it for everyone.",
+  "@sites_deleteShared_body": {
+    "description": "Body of the delete confirmation dialog for a shared dive site.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Salt Pier"
+      }
+    }
+  },
+  "divers_delete_reassigned_snackbar": "Diver deleted. {trips} shared {trips, plural, one{trip} other{trips}} and {sites} shared {sites, plural, one{site} other{sites}} reassigned to {name}.",
+  "@divers_delete_reassigned_snackbar": {
+    "description": "Snackbar shown after deleting a diver when shared trips/sites were reassigned to a surviving diver instead of deleted.",
+    "placeholders": {
+      "trips": {
+        "type": "int",
+        "example": "2"
+      },
+      "sites": {
+        "type": "int",
+        "example": "1"
+      },
+      "name": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
   }
 }

@@ -64,3 +64,6 @@ android/fastlane/play-store-key.json
 .venv/
 venv/
 .python-version
+
+# Sample data
+scripts/sample_data/

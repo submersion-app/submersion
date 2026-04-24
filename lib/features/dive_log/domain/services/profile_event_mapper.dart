@@ -18,6 +18,7 @@ ProfileEvent mapDiveProfileEventToProfileEvent(DiveProfileEvent dbEvent) {
     depth: dbEvent.depth,
     value: dbEvent.value,
     tankId: dbEvent.tankId,
+    source: _parseSource(dbEvent.source),
     createdAt: DateTime.fromMillisecondsSinceEpoch(dbEvent.createdAt),
   );
 }
@@ -44,6 +45,20 @@ EventSeverity _parseSeverity(String severity) {
     }
   }
   return EventSeverity.info;
+}
+
+/// Parse a string source to [EventSource] enum.
+///
+/// Falls back to [EventSource.imported] for unknown values — this matches
+/// the DB column's DEFAULT 'imported' and keeps pre-Slice-C rows and any
+/// malformed data interpretable rather than throwing.
+EventSource _parseSource(String source) {
+  for (final value in EventSource.values) {
+    if (value.name == source) {
+      return value;
+    }
+  }
+  return EventSource.imported;
 }
 
 /// Merges auto-detected events with DB-loaded events, deduplicating by

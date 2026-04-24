@@ -3,6 +3,143 @@
 All notable changes to Submersion are documented in this file.
 
 
+## Unreleased
+
+### Added
+
+- MacDive UDDF imports now capture substantially richer dive data: boat
+  name and captain, dive operator, surface conditions, weather (stored
+  in the existing weather description field), plus site water type, body
+  of water, and difficulty rating.
+- **MacDive native XML import.** MacDive's own `.xml` logbook format is now
+  a first-class import source. Unlike MacDive UDDF (which doesn't emit tags),
+  the native XML export carries dive tags — so users migrating tag metadata
+  from MacDive should choose this format. Supports both Imperial and Metric
+  unit modes; depths/temperatures/pressures are converted to the canonical
+  internal units at the reader boundary.
+- **MacDive (XML) source override** in the import wizard's detected-source
+  dropdown, alongside the existing MacDive (CSV) option.
+- **MacDive SQLite import.** Direct import from MacDive's Core Data
+  SQLite database. Captures the same entity set as MacDive XML — dives,
+  sites, buddies, tags, and gear inventory — plus per-dive tank and gas
+  mix linkage drawn from the `ZTANKANDGAS` join table. Cross-format
+  deduplication via source UUIDs: if you've already imported the same
+  dives via MacDive UDDF or XML, re-importing from SQLite won't create
+  duplicates.
+- **MacDive (SQLite) source override** in the import wizard's
+  detected-source dropdown, alongside MacDive (CSV) and MacDive (XML).
+- Cross-format import deduplication: stable per-dive UUIDs from MacDive,
+  Shearwater Cloud, Subsurface SSRF, and generic UDDF are now preserved on
+  the `dive_data_sources` sidecar. Re-importing the same dives in a
+  different format no longer creates duplicates.
+
+### Fixed
+
+- MacDive UDDF: equipment / gear now imports correctly. The parser
+  previously only scanned Submersion's private equipment extension,
+  missing the standard UDDF gear location (`<diver><owner><equipment>`)
+  where MacDive and other compliant exporters place their inventory.
+- MacDive UDDF: `<equipmentused><link ref>` is now captured from both
+  `<informationbeforedive>` and `<informationafterdive>`.
+- MacDive UDDF: `<surfaceintervalbeforedive><infinity/></…>` is now
+  explicitly handled as "no prior dive" rather than relying on silent
+  int-parse failure.
+
+### Known limitations (to be addressed in a follow-up)
+
+- Gas switch markers (`<switchmix ref>`) in MacDive dive profiles are
+  parsed but not yet persisted to the profile samples table. A future
+  milestone will wire them through, likely via the dive-events table.
+
+### Known limitations
+
+- Profile samples (depth/time-series data) are NOT imported from
+  MacDive SQLite. MacDive stores sample data in `ZDIVE.ZSAMPLES`
+  using a proprietary binary format that isn't publicly documented
+  and isn't standard bplist or any common compression. Users who
+  need time-series profile data should use the MacDive UDDF import
+  path instead, which decodes MacDive's UDDF profile correctly.
+- The MacDive SQLite path reads critters (marine-life sightings),
+  dive events, service records, and certifications into its typed
+  row graph, but these are not yet emitted into the import payload —
+  the unified importer doesn't have entity types for critters,
+  events, or service records, and certification emission is scoped
+  for a follow-up. For now, only the dive/site/buddy/tag/gear subset
+  is persisted.
+
+
+## 1.4.6 (2026-04-22)
+
+### Bug Fixes
+
+- log download failures to the file log (#258)
+- DB readonly-rollback recovery + cooperative import cancellation (#255)
+
+### Documentation
+
+- implementation plans for MacDive import milestones 1-4
+- design spec for robust MacDive import (UDDF, XML, SQLite, photos)
+
+### Chores
+
+- bump version to 1.4.6+92
+- changelog + plan update for MacDive UDDF gap-fill milestone
+
+### Other
+
+- ignore sample data
+- Revert "chore: changelog + plan update for MacDive UDDF gap-fill milestone"
+
+
+## 1.4.5 (2026-04-21)
+
+### Features
+
+- customizable bottom nav primary slots on phone (#250)
+- optionally share sites and trips across dive profiles (#249)
+- add Cmd+Shift+D to open diver switcher
+- Slice D - dive-level metadata + provenance fill-out (#247)
+- Slice C.2 - extended SSRF profile events (#244)
+- Slice C - profile events + source tagging (#243)
+- Slice A - setpoint + partial cylinders (#236)
+- add region picker page for offline map downloads
+- add map style selector (Street, Topo, Satellite) (#233)
+- store raw dive data from dive computers (#176) (#230)
+- add Overview page in Statistics section (#167) (#229)
+- add map style selector (Street, Topo, Satellite)
+
+### Bug Fixes
+
+- show hours underwater on second line in narrow hero bar
+- increase test surface size for desktop appearance hub
+- add Map Style picker to desktop settings layout
+- make v64 migration defensive for missing diver_settings table
+- wrap LocationPickerMap test in ProviderScope
+- resolve analyze errors in map style feature
+
+### Documentation
+
+- add implementation plan for raw dive data storage (#176)
+- add design spec for raw dive data storage (#176)
+- add implementation plan for Statistics Overview (#167)
+- add design spec for Statistics Overview page (#167)
+
+### CI/CD
+
+- trigger build
+
+### Chores
+
+- bump version to 1.4.5+91
+
+### Other
+
+- i18n: translate 24 missing shared-sites/trips strings across 10 locales
+- i18n: translate 35 missing strings across 10 locales
+- Revert "Merge main into Jaibar/main to resolve conflicts for PR #193"
+- apply dart format to map style files
+
+
 ## 1.4.4 (2026-04-15)
 
 ### Features

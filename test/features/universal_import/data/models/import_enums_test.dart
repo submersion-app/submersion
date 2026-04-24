@@ -25,12 +25,14 @@ void main() {
 
   group('ImportFormat', () {
     test('has all expected values', () {
-      expect(ImportFormat.values, hasLength(12));
+      expect(ImportFormat.values, hasLength(14));
     });
 
     test('displayName for each format', () {
       expect(ImportFormat.csv.displayName, 'CSV');
       expect(ImportFormat.uddf.displayName, 'UDDF');
+      expect(ImportFormat.macdiveXml.displayName, 'MacDive XML');
+      expect(ImportFormat.macdiveSqlite.displayName, 'MacDive SQLite');
       expect(ImportFormat.subsurfaceXml.displayName, 'Subsurface XML');
       expect(ImportFormat.divingLogXml.displayName, 'Diving Log XML');
       expect(ImportFormat.suuntoSml.displayName, 'Suunto SML');
@@ -44,13 +46,15 @@ void main() {
     });
 
     test(
-      'isSupported returns true for csv, uddf, subsurfaceXml, fit, shearwaterDb',
+      'isSupported returns true for csv, uddf, subsurfaceXml, fit, shearwaterDb, macdiveXml, macdiveSqlite',
       () {
         expect(ImportFormat.csv.isSupported, isTrue);
         expect(ImportFormat.uddf.isSupported, isTrue);
         expect(ImportFormat.subsurfaceXml.isSupported, isTrue);
         expect(ImportFormat.fit.isSupported, isTrue);
         expect(ImportFormat.shearwaterDb.isSupported, isTrue);
+        expect(ImportFormat.macdiveXml.isSupported, isTrue);
+        expect(ImportFormat.macdiveSqlite.isSupported, isTrue);
       },
     );
 
@@ -149,7 +153,7 @@ void main() {
   group('SourceOverrideOption', () {
     group('supported list', () {
       test('contains expected number of entries', () {
-        expect(SourceOverrideOption.supported.length, 14);
+        expect(SourceOverrideOption.supported.length, 16);
       });
 
       test('contains Submersion CSV entry', () {
@@ -237,6 +241,26 @@ void main() {
         );
         expect(match, hasLength(1));
         expect(match.first.displayName, 'MacDive (CSV)');
+      });
+
+      test('contains MacDive XML entry', () {
+        final match = SourceOverrideOption.supported.where(
+          (o) =>
+              o.sourceApp == SourceApp.macdive &&
+              o.format == ImportFormat.macdiveXml,
+        );
+        expect(match, hasLength(1));
+        expect(match.first.displayName, 'MacDive (XML)');
+      });
+
+      test('contains MacDive SQLite entry', () {
+        final match = SourceOverrideOption.supported.where(
+          (o) =>
+              o.sourceApp == SourceApp.macdive &&
+              o.format == ImportFormat.macdiveSqlite,
+        );
+        expect(match, hasLength(1));
+        expect(match.first.displayName, 'MacDive (SQLite)');
       });
 
       test('contains Diving Log CSV entry', () {

@@ -310,6 +310,15 @@ class SubsurfaceXmlParser implements ImportParser {
       result['gasSwitches'] = gasSwitches;
     }
 
+    final events = divecomputer != null
+        ? _parseProfileEvents(divecomputer)
+        : const <Map<String, dynamic>>[];
+    if (events.isNotEmpty) result['events'] = events;
+
+    if (divecomputer != null) {
+      result.addAll(_parseDiveComputerMetadata(divecomputer));
+    }
+
     // Weights
     final weights = _parseWeights(dive);
     if (weights.isNotEmpty) result['weights'] = weights;
@@ -568,6 +577,79 @@ class SubsurfaceXmlParser implements ImportParser {
     }
   }
 
+  /// Parses a Subsurface `Deco model` extradata value into algorithm + gradient
+  /// factors. Subsurface emits strings like `'GF 40/85'` for Bühlmann with
+  /// gradient factors. Non-GF formats (e.g., `'VPM-B +2'`) are preserved as
+  /// the raw lowercased algorithm string with no gradient-factor extraction.
+  ///
+  /// Returns a map with optional keys:
+  ///   - `'decoAlgorithm'`: String
+  ///   - `'gradientFactorLow'`: int
+  ///   - `'gradientFactorHigh'`: int
+  ///
+  /// Returns an empty map when the input is null or empty.
+  static Map<String, dynamic> _parseDecoModel(String? value) {
+    if (value == null || value.trim().isEmpty) return const {};
+    final trimmed = value.trim();
+    final gfMatch = RegExp(r'^GF\s*(\d+)\s*/\s*(\d+)$').firstMatch(trimmed);
+    if (gfMatch != null) {
+      return {
+        'decoAlgorithm': 'buhlmann',
+        'gradientFactorLow': int.parse(gfMatch.group(1)!),
+        'gradientFactorHigh': int.parse(gfMatch.group(2)!),
+      };
+    }
+    return {'decoAlgorithm': trimmed.toLowerCase()};
+  }
+
+  /// Extracts dive-level metadata from a `<divecomputer>` element:
+  /// model attribute, serial/firmware from extradata, deco algorithm and
+  /// gradient factors parsed from the `Deco model` extradata string, and
+  /// surface pressure from the `<surface>` child element.
+  ///
+  /// Returns a map with only the keys that had values. Absent fields are
+  /// omitted (no null-value noise).
+  static Map<String, dynamic> _parseDiveComputerMetadata(
+    XmlElement divecomputer,
+  ) {
+    final result = <String, dynamic>{};
+
+    final model = divecomputer.getAttribute('model');
+    if (model != null && model.isNotEmpty) {
+      result['diveComputerModel'] = model;
+    }
+
+    final surface = divecomputer.findElements('surface').firstOrNull;
+    if (surface != null) {
+      final pressure = _parseDouble(surface.getAttribute('pressure'));
+      if (pressure != null) result['surfacePressure'] = pressure;
+    }
+
+    final extradata = <String, String>{};
+    for (final ed in divecomputer.findElements('extradata')) {
+      final key = ed.getAttribute('key');
+      final value = ed.getAttribute('value');
+      if (key != null && value != null) extradata[key] = value;
+    }
+
+    final serial = extradata['Serial'];
+    if (serial != null && serial.isNotEmpty) {
+      result['diveComputerSerial'] = serial;
+    }
+
+    final fwVersion = extradata['FW Version'];
+    if (fwVersion != null && fwVersion.isNotEmpty) {
+      result['diveComputerFirmware'] = fwVersion;
+    }
+
+    final decoModel = extradata['Deco model'];
+    if (decoModel != null) {
+      result.addAll(_parseDecoModel(decoModel));
+    }
+
+    return result;
+  }
+
   /// Returns true when the element has a non-null, non-empty attribute value
   /// for [name]. Empty-string attribute values (`<cylinder o2='' />`) count as
   /// absent, which matches the surrounding import contract.
@@ -664,6 +746,115 @@ class SubsurfaceXmlParser implements ImportParser {
       cylinderIndex++;
     }
     return tanks;
+  }
+
+  /// Parses `<event>` children of a `<divecomputer>` into typed profile-event
+  /// maps.
+  ///
+  /// Currently emits: `setpointChange` (from `SP change`), `bookmark`,
+  /// `safetyStopStart` (from `safety stop`), `decoStopStart` (from `deco stop`),
+  /// `decoViolation` (from `ceiling` or `violation`), `ascentRateWarning`
+  /// (from `ascent`), and `ppO2High` / `ppO2Low`
+  /// (from `po2`, split by `value` threshold: >= 1.4 → high, <= 0.18 → low).
+  ///
+  /// Gas-change events remain handled by `_parseGasSwitches` (persisted via
+  /// the distinct `GasSwitches` table). Future slices may extend this method
+  /// to cover additional types.
+  ///
+  /// Setpoint value normalization: Subsurface typically emits `value` in mbar
+  /// (e.g., 1200 for 1.2 bar) but some third-party exporters use bar (1.2).
+  /// The `> 10` threshold is exclusive: realistic setpoints are 0.2-1.6 bar
+  /// (200-1600 mbar), so 10 is unreachable in either unit.
+  ///
+  /// Implausible values (non-positive) and unparseable timestamps are dropped.
+  static List<Map<String, dynamic>> _parseProfileEvents(
+    XmlElement divecomputer,
+  ) {
+    final events = <Map<String, dynamic>>[];
+    for (final event in divecomputer.findElements('event')) {
+      final name = event.getAttribute('name')?.trim().toLowerCase();
+
+      if (name == 'sp change') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final raw = _parseDouble(event.getAttribute('value'));
+        if (raw == null || raw <= 0) continue;
+        final bar = raw > 10 ? raw / 1000 : raw;
+        events.add({
+          'eventType': 'setpointChange',
+          'timestamp': timestamp,
+          'value': bar,
+        });
+      } else if (name == 'bookmark') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final description = event.getAttribute('description');
+        events.add({
+          'eventType': 'bookmark',
+          'timestamp': timestamp,
+          'description': ?description,
+        });
+      } else if (name == 'safety stop') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        events.add({'eventType': 'safetyStopStart', 'timestamp': timestamp});
+      } else if (name == 'deco stop') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        events.add({'eventType': 'decoStopStart', 'timestamp': timestamp});
+      } else if (name == 'ceiling' || name == 'violation') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final value = _parseDouble(event.getAttribute('value'));
+        events.add({
+          'eventType': 'decoViolation',
+          'timestamp': timestamp,
+          'value': ?value,
+        });
+      } else if (name == 'ascent') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final value = _parseDouble(event.getAttribute('value'));
+        // Flat mapping to `ascentRateWarning`: Subsurface emits a single
+        // `name='ascent'` for all ascent alarms. The `ascentRateCritical`
+        // enum variant is not produced here because the critical-vs-warning
+        // threshold (typically 18 m/min recreational / 9 m/min technical) is
+        // diver-configurable and not accessible from the parser layer.
+        // A future enrichment slice may add threshold-based variant selection
+        // once the setting is plumbed through.
+        events.add({
+          'eventType': 'ascentRateWarning',
+          'timestamp': timestamp,
+          'value': ?value,
+        });
+      } else if (name == 'po2') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final value = _parseDouble(event.getAttribute('value'));
+        if (value == null || value <= 0) continue;
+        // Subsurface emits a single `po2` event name for both high- and
+        // low-ppO2 alarms; the `value` attribute tells us which direction
+        // the ppO2 crossed. Threshold choices match typical CCR alarm config:
+        //   >= 1.4 bar → ppO2High (toxicity warning)
+        //   <= 0.18 bar → ppO2Low (hypoxia warning)
+        // Values in the "normal" range (0.18 < v < 1.4) default to ppO2High;
+        // Subsurface shouldn't emit an event in that range, but if it does,
+        // ppO2High surfaces the anomaly rather than silently dropping it.
+        final eventType = value <= 0.18 ? 'ppO2Low' : 'ppO2High';
+        events.add({
+          'eventType': eventType,
+          'timestamp': timestamp,
+          'value': value,
+        });
+      }
+      // Unrecognized names (e.g., `gaschange` which has a separate pipeline,
+      // DC metadata like `low battery`, `heading`) fall through silently. The
+      // import pipeline that consumes `result['events']` is responsible for
+      // logging truly unknown event types — this parser stays quiet because
+      // the full set of names Subsurface can emit is broader than what we
+      // persist (Slice C.2 handles 7 types; future slices may add more).
+    }
+    return events;
   }
 
   List<Map<String, dynamic>> _parseGasSwitches(XmlElement divecomputer) {

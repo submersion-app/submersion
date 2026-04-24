@@ -11,6 +11,7 @@ import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -391,6 +392,10 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     List<TripWithStats> trips,
     bool hasActiveFilters,
   ) {
+    final diversCount = ref
+        .watch(allDiversProvider)
+        .when(data: (d) => d.length, loading: () => 0, error: (_, _) => 0);
+
     return RefreshIndicator(
       onRefresh: () async {
         await ref.read(tripListNotifierProvider.notifier).refresh();
@@ -410,21 +415,26 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                     ref.watch(highlightedTripIdProvider) ==
                         tripWithStats.trip.id;
                 final viewMode = ref.watch(tripListViewModeProvider);
+                final showSharedBadge =
+                    tripWithStats.trip.isShared && diversCount >= 2;
                 return switch (viewMode) {
                   ListViewMode.detailed => TripListTile(
                     tripWithStats: tripWithStats,
                     isSelected: isSelected,
                     onTap: () => _handleItemTap(tripWithStats.trip),
+                    showSharedBadge: showSharedBadge,
                   ),
                   ListViewMode.compact => CompactTripListTile(
                     tripWithStats: tripWithStats,
                     isSelected: isSelected,
                     onTap: () => _handleItemTap(tripWithStats.trip),
+                    showSharedBadge: showSharedBadge,
                   ),
                   ListViewMode.dense || ListViewMode.table => DenseTripListTile(
                     tripWithStats: tripWithStats,
                     isSelected: isSelected,
                     onTap: () => _handleItemTap(tripWithStats.trip),
+                    showSharedBadge: showSharedBadge,
                   ),
                 };
               },
@@ -531,12 +541,14 @@ class TripListTile extends StatelessWidget {
   final TripWithStats tripWithStats;
   final bool isSelected;
   final VoidCallback? onTap;
+  final bool showSharedBadge;
 
   const TripListTile({
     super.key,
     required this.tripWithStats,
     this.isSelected = false,
     this.onTap,
+    this.showSharedBadge = false,
   });
 
   @override
@@ -569,7 +581,23 @@ class TripListTile extends StatelessWidget {
               color: theme.colorScheme.onPrimaryContainer,
             ),
           ),
-          title: Text(trip.name),
+          title: Row(
+            children: [
+              Expanded(child: Text(trip.name)),
+              if (showSharedBadge) ...[
+                const SizedBox(width: 6),
+                Tooltip(
+                  message:
+                      context.l10n.accessibility_label_sharedWithAllProfiles,
+                  child: Icon(
+                    Icons.people_outline,
+                    size: 16,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
+            ],
+          ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
