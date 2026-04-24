@@ -15,6 +15,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -3032,6 +3034,128 @@ class DiveRepository {
   }
 
   // ============================================================================
+  // Profile Event Operations
+  // ============================================================================
+
+  /// Bulk insert profile events (for dive computer imports and analysis results)
+  Future<void> insertProfileEvents(List<ProfileEvent> events) async {
+    if (events.isEmpty) return;
+
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final diveIds = <String>{};
+      for (final event in events) {
+        final id = event.id.isEmpty ? _uuid.v4() : event.id;
+        diveIds.add(event.diveId);
+        // Drift's default conflict mode is `insertOrFail` — duplicate IDs
+        // throw. Callers are expected to pass unique IDs (either freshly
+        // generated via _uuid.v4() or from domain entities that assigned them);
+        // the `event.id.isEmpty ? _uuid.v4()` guard above covers the most
+        // common case where the caller hasn't assigned an ID yet.
+        await _db
+            .into(_db.diveProfileEvents)
+            .insert(
+              DiveProfileEventsCompanion(
+                id: Value(id),
+                diveId: Value(event.diveId),
+                timestamp: Value(event.timestamp),
+                eventType: Value(event.eventType.name),
+                severity: Value(event.severity.name),
+                description: Value(event.description),
+                depth: Value(event.depth),
+                value: Value(event.value),
+                tankId: Value(event.tankId),
+                source: Value(event.source.name),
+                // Preserve the domain entity's own createdAt (e.g., from dive computer
+                // clock) rather than substituting wall-clock `now` — unlike GasSwitches,
+                // profile events carry meaningful source timestamps used for sync dedup.
+                createdAt: Value(event.createdAt.millisecondsSinceEpoch),
+              ),
+            );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveProfileEvents',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+      for (final diveId in diveIds) {
+        await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+          DivesCompanion(updatedAt: Value(now)),
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: diveId,
+          localUpdatedAt: now,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
+      _log.info('Inserted ${events.length} profile events');
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to bulk insert profile events',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Get all profile events for a dive, ordered by timestamp ascending
+  Future<List<ProfileEvent>> getProfileEventsForDive(String diveId) async {
+    try {
+      final rows =
+          await (_db.select(_db.diveProfileEvents)
+                ..where((t) => t.diveId.equals(diveId))
+                ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+              .get();
+      return rows.map(mapDiveProfileEventToProfileEvent).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get profile events for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
+  }
+
+  /// Delete all profile events for a dive
+  Future<void> deleteProfileEventsForDive(String diveId) async {
+    try {
+      final existing = await (_db.select(
+        _db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      await (_db.delete(
+        _db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).go();
+      for (final row in existing) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveProfileEvents',
+          recordId: row.id,
+        );
+      }
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        DivesCompanion(updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+      _log.info('Deleted profile events for dive: $diveId');
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to delete profile events for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  // ============================================================================
   // Surface Interval Operations
   // ============================================================================
 
@@ -3429,6 +3553,55 @@ class DiveRepository {
     }
   }
 
+  /// Get `source_uuid` for every dive that has a non-null one, as a
+  /// `{ diveId -> sourceUuid }` map.
+  ///
+  /// Used by the import duplicate checker to short-circuit content fuzzy
+  /// matching for dives that already have a known source UUID. When a dive
+  /// has multiple data sources (multi-computer), the primary row's UUID wins;
+  /// otherwise the most recently created row's UUID is used. Dives with no
+  /// source_uuid on any row are absent from the map.
+  ///
+  /// When [diverId] is provided, the result is restricted to that diver's
+  /// dives — callers that have already scoped `existingDives` to a single
+  /// diver should pass it here so the UUID map shares the same scope.
+  Future<Map<String, String>> getSourceUuidByDiveId({String? diverId}) async {
+    try {
+      final sql = StringBuffer('SELECT s.dive_id, s.source_uuid ')
+        ..write('FROM dive_data_sources s ');
+      final variables = <Variable<Object>>[];
+      if (diverId != null) {
+        sql.write('INNER JOIN dives d ON d.id = s.dive_id ');
+      }
+      sql.write('WHERE s.source_uuid IS NOT NULL ');
+      if (diverId != null) {
+        sql.write('AND d.diver_id = ? ');
+        variables.add(Variable<Object>(diverId));
+      }
+      sql.write('ORDER BY s.is_primary DESC, s.created_at DESC');
+
+      final rows = await _db
+          .customSelect(sql.toString(), variables: variables)
+          .get();
+      final result = <String, String>{};
+      for (final row in rows) {
+        final diveId = row.read<String>('dive_id');
+        final uuid = row.read<String?>('source_uuid');
+        if (uuid == null || uuid.isEmpty) continue;
+        // First row wins (ordered by isPrimary DESC then createdAt DESC).
+        result.putIfAbsent(diveId, () => uuid);
+      }
+      return result;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load source UUIDs for dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Return true if a dive has readings from 2 or more computers.
   Future<bool> hasMultipleDataSources(String diveId) async {
     try {
@@ -3442,6 +3615,37 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to check multiple computers for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Apply a partial [DivesCompanion] update to a dive row.
+  ///
+  /// Used by the UDDF importer to persist fields that do not flow through
+  /// the [domain.Dive] entity (e.g. MacDive boat/operator/weather metadata).
+  /// Only columns set on [patch] are written; others are left untouched.
+  /// Marks the row pending for sync.
+  Future<void> applyImportedMetadata(
+    String diveId,
+    DivesCompanion patch,
+  ) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        patch.copyWith(updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to apply imported metadata to dive: $diveId',
         error: e,
         stackTrace: stackTrace,
       );

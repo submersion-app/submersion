@@ -1,9 +1,11 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -359,6 +361,93 @@ void main() {
       final result = await repository.hasMultipleDataSources(diveA);
 
       expect(result, isFalse);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getSourceUuidByDiveId
+  // ---------------------------------------------------------------------------
+
+  group('getSourceUuidByDiveId', () {
+    Future<void> saveUuidReading(
+      String readingId,
+      String diveId,
+      String uuid, {
+      bool isPrimary = true,
+    }) async {
+      await repository.saveComputerReading(
+        buildReading(
+          id: readingId,
+          diveId: diveId,
+          isPrimary: isPrimary,
+        ).copyWith(sourceUuid: Value(uuid)),
+      );
+    }
+
+    test('returns all UUIDs when no diverId is provided', () async {
+      await insertTestDiver('diver-a');
+      await insertTestDiver('diver-b');
+      final dA = await insertTestDive(id: 'dive-a', diverId: 'diver-a');
+      final dB = await insertTestDive(id: 'dive-b', diverId: 'diver-b');
+      await saveUuidReading('read-a', dA, 'uuid-a');
+      await saveUuidReading('read-b', dB, 'uuid-b');
+
+      final result = await repository.getSourceUuidByDiveId();
+
+      expect(result, {dA: 'uuid-a', dB: 'uuid-b'});
+    });
+
+    test(
+      'restricts result to specified diver when diverId is provided',
+      () async {
+        await insertTestDiver('diver-a');
+        await insertTestDiver('diver-b');
+        final dA = await insertTestDive(
+          id: 'dive-a-scoped',
+          diverId: 'diver-a',
+        );
+        final dB = await insertTestDive(
+          id: 'dive-b-scoped',
+          diverId: 'diver-b',
+        );
+        await saveUuidReading('read-a-s', dA, 'uuid-a');
+        await saveUuidReading('read-b-s', dB, 'uuid-b');
+
+        final result = await repository.getSourceUuidByDiveId(
+          diverId: 'diver-a',
+        );
+
+        expect(result, {dA: 'uuid-a'});
+      },
+    );
+
+    test('returns empty map for a diver with no dives', () async {
+      await insertTestDiver('diver-empty');
+      await insertTestDiver('diver-has-data');
+      final d = await insertTestDive(id: 'dive-has', diverId: 'diver-has-data');
+      await saveUuidReading('read-has', d, 'uuid-has');
+
+      final result = await repository.getSourceUuidByDiveId(
+        diverId: 'diver-empty',
+      );
+
+      expect(result, isEmpty);
+    });
+
+    test('primary data source wins over secondary for same dive', () async {
+      await insertTestDiver('diver-primary');
+      final d = await insertTestDive(
+        id: 'dive-primary-pick',
+        diverId: 'diver-primary',
+      );
+      await saveUuidReading('read-sec', d, 'uuid-secondary', isPrimary: false);
+      await saveUuidReading('read-prim', d, 'uuid-primary', isPrimary: true);
+
+      final result = await repository.getSourceUuidByDiveId(
+        diverId: 'diver-primary',
+      );
+
+      expect(result[d], 'uuid-primary');
     });
   });
 
@@ -1293,6 +1382,134 @@ void main() {
       for (final p in profiles) {
         expect(p.isPrimary, isFalse);
       }
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // ProfileEvent CRUD
+  // ---------------------------------------------------------------------------
+
+  group('ProfileEvent CRUD', () {
+    test(
+      'insertProfileEvents persists and getProfileEventsForDive reads',
+      () async {
+        final diveId = await insertTestDive(id: 'dive-pe-insert');
+        final now = DateTime.utc(2026, 1, 1);
+        final events = [
+          ProfileEvent.setpointChange(
+            id: 'e1',
+            diveId: diveId,
+            timestamp: 0,
+            setpoint: 0.7,
+            createdAt: now,
+          ),
+          ProfileEvent.setpointChange(
+            id: 'e2',
+            diveId: diveId,
+            timestamp: 1500,
+            setpoint: 1.3,
+            createdAt: now,
+          ),
+        ];
+
+        await repository.insertProfileEvents(events);
+        final loaded = await repository.getProfileEventsForDive(diveId);
+
+        expect(loaded.length, 2);
+        expect(loaded[0].eventType, ProfileEventType.setpointChange);
+        expect(loaded[0].timestamp, 0);
+        expect(loaded[0].value, 0.7);
+        expect(loaded[0].source, EventSource.imported);
+        expect(loaded[1].timestamp, 1500);
+        expect(loaded[1].value, 1.3);
+      },
+    );
+
+    test(
+      'getProfileEventsForDive returns events ordered by timestamp',
+      () async {
+        final diveId = await insertTestDive(id: 'dive-pe-order');
+        final now = DateTime.utc(2026, 1, 1);
+        // Insert in reverse order.
+        await repository.insertProfileEvents([
+          ProfileEvent.setpointChange(
+            id: 'e2',
+            diveId: diveId,
+            timestamp: 1500,
+            setpoint: 1.3,
+            createdAt: now,
+          ),
+          ProfileEvent.setpointChange(
+            id: 'e1',
+            diveId: diveId,
+            timestamp: 0,
+            setpoint: 0.7,
+            createdAt: now,
+          ),
+        ]);
+        final loaded = await repository.getProfileEventsForDive(diveId);
+        expect(loaded.map((e) => e.timestamp).toList(), [0, 1500]);
+      },
+    );
+
+    test('deleteProfileEventsForDive removes only that dive events', () async {
+      final diveAId = await insertTestDive(id: 'dive-pe-del-a');
+      final diveBId = await insertTestDive(id: 'dive-pe-del-b');
+      final now = DateTime.utc(2026, 1, 1);
+      await repository.insertProfileEvents([
+        ProfileEvent.setpointChange(
+          id: 'a1',
+          diveId: diveAId,
+          timestamp: 0,
+          setpoint: 1.0,
+          createdAt: now,
+        ),
+        ProfileEvent.setpointChange(
+          id: 'b1',
+          diveId: diveBId,
+          timestamp: 0,
+          setpoint: 1.2,
+          createdAt: now,
+        ),
+      ]);
+      await repository.deleteProfileEventsForDive(diveAId);
+      expect(await repository.getProfileEventsForDive(diveAId), isEmpty);
+      expect((await repository.getProfileEventsForDive(diveBId)).length, 1);
+    });
+
+    test('bookmark event persists with source=user', () async {
+      final diveId = await insertTestDive(id: 'dive-pe-bookmark');
+      final now = DateTime.utc(2026, 1, 1);
+      await repository.insertProfileEvents([
+        ProfileEvent.bookmark(
+          id: 'b1',
+          diveId: diveId,
+          timestamp: 500,
+          depth: 10.0,
+          note: 'cool fish',
+          createdAt: now,
+        ),
+      ]);
+      final loaded = (await repository.getProfileEventsForDive(diveId)).single;
+      expect(loaded.source, EventSource.user);
+      expect(loaded.description, 'cool fish');
+    });
+
+    test('ascentStart event persists with source=computed', () async {
+      final diveId = await insertTestDive(id: 'dive-pe-computed');
+      final now = DateTime.utc(2026, 1, 1);
+      await repository.insertProfileEvents([
+        ProfileEvent.ascentStart(
+          id: 'c1',
+          diveId: diveId,
+          timestamp: 300,
+          depth: 5.0,
+          createdAt: now,
+        ),
+      ]);
+      final loaded = (await repository.getProfileEventsForDive(diveId)).single;
+      expect(loaded.source, EventSource.computed);
+      expect(loaded.eventType, ProfileEventType.ascentStart);
     });
   });
 }

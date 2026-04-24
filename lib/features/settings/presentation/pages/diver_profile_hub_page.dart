@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/widgets/delete_diver_dialog.dart';
+import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class DiverProfileHubPage extends ConsumerWidget {
@@ -66,7 +67,7 @@ class DiverProfileHubPage extends ConsumerWidget {
               const SizedBox(height: 16),
               _buildSectionTilesCard(context, diver),
               const SizedBox(height: 16),
-              _buildManagementTilesCard(context, ref, diver),
+              _buildManagementTilesCard(context, diver),
               const SizedBox(height: 32),
             ],
           ),
@@ -221,11 +222,7 @@ class DiverProfileHubPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildManagementTilesCard(
-    BuildContext context,
-    WidgetRef ref,
-    Diver diver,
-  ) {
+  Widget _buildManagementTilesCard(BuildContext context, Diver diver) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Card(
@@ -239,7 +236,7 @@ class DiverProfileHubPage extends ConsumerWidget {
               ),
               title: Text(context.l10n.settings_profileHub_switchDiver),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => _showDiverSwitcher(context, ref, diver.id),
+              onTap: () => showDiverSwitcherSheet(context),
             ),
             const Divider(height: 1),
             ListTile(
@@ -311,97 +308,6 @@ class DiverProfileHubPage extends ConsumerWidget {
     return diver.notes.split('\n').first;
   }
 
-  // -- Dialogs --
-
-  void _showDiverSwitcher(
-    BuildContext context,
-    WidgetRef ref,
-    String currentDiverId,
-  ) {
-    final diverListAsync = ref.read(diverListNotifierProvider);
-
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (sheetContext) {
-        return ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(sheetContext).size.height * 0.4,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Text(
-                  context.l10n.settings_profile_switchDiver_title,
-                  style: Theme.of(sheetContext).textTheme.titleLarge,
-                ),
-              ),
-              const Divider(),
-              Flexible(
-                child: diverListAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, _) => Center(
-                    child: Text(
-                      context.l10n.settings_profile_error_loadingDiver,
-                    ),
-                  ),
-                  data: (divers) => ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: divers.length,
-                    itemBuilder: (listContext, index) {
-                      final diver = divers[index];
-                      final isActive = diver.id == currentDiverId;
-
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Theme.of(
-                            sheetContext,
-                          ).colorScheme.primaryContainer,
-                          foregroundColor: Theme.of(
-                            sheetContext,
-                          ).colorScheme.onPrimaryContainer,
-                          child: Text(diver.initials),
-                        ),
-                        title: Text(diver.name),
-                        trailing: isActive
-                            ? Icon(
-                                Icons.check,
-                                color: Theme.of(
-                                  sheetContext,
-                                ).colorScheme.primary,
-                              )
-                            : null,
-                        onTap: () {
-                          if (!isActive) {
-                            ref
-                                .read(currentDiverIdProvider.notifier)
-                                .setCurrentDiver(diver.id);
-                            Navigator.of(sheetContext).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  context.l10n.settings_profile_switchedTo(
-                                    diver.name,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _showDeleteConfirmation(
     BuildContext context,
     WidgetRef ref,
@@ -412,11 +318,27 @@ class DiverProfileHubPage extends ConsumerWidget {
       diverName: diver.name,
     );
     if (confirmed && context.mounted) {
-      await ref.read(diverListNotifierProvider.notifier).deleteDiver(diver.id);
+      final result = await ref
+          .read(diverListNotifierProvider.notifier)
+          .deleteDiver(diver.id);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.settings_profileHub_deleted)),
-        );
+        if (result.hasReassignments) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                context.l10n.divers_delete_reassigned_snackbar(
+                  result.reassignedTripsCount,
+                  result.reassignedSitesCount,
+                  result.reassignedToDiverName ?? '',
+                ),
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.settings_profileHub_deleted)),
+          );
+        }
       }
     }
   }

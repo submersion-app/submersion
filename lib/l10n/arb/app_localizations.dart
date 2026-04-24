@@ -212,6 +212,12 @@ abstract class AppLocalizations {
   /// **'{title} map view'**
   String accessibility_label_mapViewTitle(Object title);
 
+  /// Screen-reader / tooltip label for the people icon shown on trip and site list tiles when a record is shared across dive profiles. Descriptive form (state), distinct from the imperative form used on the edit-page switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared with all dive profiles'**
+  String get accessibility_label_sharedWithAllProfiles;
+
   /// Tooltip for the button that shows the list pane when collapsed
   ///
   /// In en, this message translates to:
@@ -2454,6 +2460,12 @@ abstract class AppLocalizations {
   /// **'Search'**
   String get common_action_search;
 
+  /// Confirmation button label for actions that share a record with other dive profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get common_action_share;
+
   /// Generic error label
   ///
   /// In en, this message translates to:
@@ -2471,6 +2483,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'--'**
   String get common_placeholder_noValue;
+
+  /// Generic error snackbar shown when an action fails and the user should retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get common_error_tryAgain;
 
   /// No description provided for @courses_action_add.
   ///
@@ -17110,6 +17128,64 @@ abstract class AppLocalizations {
   /// **'System default'**
   String get settings_appearance_theme_system;
 
+  /// Title of the settings page for customizing bottom navigation primary slots.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation bar'**
+  String get settings_navCustomization_title;
+
+  /// Help text at the top of the navigation customization page.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag items to reorder. The top three appear in your bottom navigation bar.'**
+  String get settings_navCustomization_description;
+
+  /// Non-interactive divider row between primary and overflow destinations.
+  ///
+  /// In en, this message translates to:
+  /// **'Items below appear in the More menu'**
+  String get settings_navCustomization_dividerLabel;
+
+  /// Button that restores the default nav order.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to defaults'**
+  String get settings_navCustomization_resetButton;
+
+  /// Tooltip on lock icons next to pinned nav items (Home and More).
+  ///
+  /// In en, this message translates to:
+  /// **'Always shown'**
+  String get settings_navCustomization_pinnedTooltip;
+
+  /// Accessibility label for move-up button on a reorderable nav item.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {destination} up'**
+  String settings_navCustomization_moveUpLabel(String destination);
+
+  /// Accessibility label for move-down button on a reorderable nav item.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {destination} down'**
+  String settings_navCustomization_moveDownLabel(String destination);
+
+  /// Dot-separated preview of the 3 primary destinations shown on the Appearance page entry tile.
+  ///
+  /// In en, this message translates to:
+  /// **'{first} · {second} · {third}'**
+  String settings_navCustomization_subtitlePreview(
+    String first,
+    String second,
+    String third,
+  );
+
+  /// SnackBar shown when persisting the nav order fails (e.g., database write error).
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save navigation layout. Please try again.'**
+  String get settings_navCustomization_saveError;
+
   /// No description provided for @settings_backToSettings_tooltip.
   ///
   /// In en, this message translates to:
@@ -18000,6 +18076,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Medium'**
   String get settings_gfPreset_medium_name;
+
+  /// No description provided for @settings_import_cancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel import'**
+  String get settings_import_cancelButton;
+
+  /// No description provided for @settings_import_cancelling.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelling...'**
+  String get settings_import_cancelling;
 
   /// No description provided for @settings_import_dialog_title.
   ///
@@ -27563,6 +27651,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Consolidated'**
   String get universalImport_label_consolidated;
+
+  /// Switch on trip/site edit pages that makes the record visible to all local dive profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with all dive profiles'**
+  String get common_label_shareWithAllProfiles;
+
+  /// Global setting: when ON, newly created trips and sites are shared with all dive profiles by default.
+  ///
+  /// In en, this message translates to:
+  /// **'Share new sites and trips by default'**
+  String get settings_shareByDefault_title;
+
+  /// Button/menu item to share all sites at once
+  ///
+  /// In en, this message translates to:
+  /// **'Share all my sites'**
+  String get settings_shareAllSites_title;
+
+  /// Button/menu item to share all trips at once
+  ///
+  /// In en, this message translates to:
+  /// **'Share all my trips'**
+  String get settings_shareAllTrips_title;
+
+  /// No description provided for @settings_shareAllSites_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Make all {count} of your sites visible to every dive profile in this app? You can unshare individual sites later.'**
+  String settings_shareAllSites_confirm(int count);
+
+  /// No description provided for @settings_shareAllTrips_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Make all {count} of your trips visible to every dive profile in this app? You can unshare individual trips later.'**
+  String settings_shareAllTrips_confirm(int count);
+
+  /// No description provided for @settings_shareAllSites_snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared {count} sites with all dive profiles.'**
+  String settings_shareAllSites_snackbar(int count);
+
+  /// No description provided for @settings_shareAllTrips_snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared {count} trips with all dive profiles.'**
+  String settings_shareAllTrips_snackbar(int count);
+
+  /// Message shown when there are no sites/trips to share
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to share.'**
+  String get settings_shareAll_noneToShare;
+
+  /// Section header for shared data controls
+  ///
+  /// In en, this message translates to:
+  /// **'Shared data'**
+  String get settings_sharedData_sectionTitle;
+
+  /// Subtitle for the 'Shared data' section in Settings — short description of the section's purpose.
+  ///
+  /// In en, this message translates to:
+  /// **'Share sites and trips across profiles'**
+  String get settings_sharedData_sectionSubtitle;
+
+  /// Button label to remove sharing from a record that was previously shared with all dive profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Unshare'**
+  String get common_action_unshare;
+
+  /// Title of the confirmation dialog shown before un-sharing a trip that is currently shared with all profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Unshare this trip?'**
+  String get trips_unshareConfirm_title;
+
+  /// Body of the confirmation dialog shown before un-sharing a trip.
+  ///
+  /// In en, this message translates to:
+  /// **'This will remove \'{name}\' from other dive profiles\' views. You can re-share it later.'**
+  String trips_unshareConfirm_body(String name);
+
+  /// Title of the confirmation dialog shown before un-sharing a dive site that is currently shared with all profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Unshare this site?'**
+  String get sites_unshareConfirm_title;
+
+  /// Body of the confirmation dialog shown before un-sharing a dive site.
+  ///
+  /// In en, this message translates to:
+  /// **'This will remove \'{name}\' from other dive profiles\' views. You can re-share it later.'**
+  String sites_unshareConfirm_body(String name);
+
+  /// Title of the strengthened delete confirmation dialog shown when the trip being deleted is shared with other dive profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete shared trip?'**
+  String get trips_deleteShared_title;
+
+  /// Body of the delete confirmation dialog for a shared trip.
+  ///
+  /// In en, this message translates to:
+  /// **'\'{name}\' is shared with other dive profiles. Deleting it here removes it for everyone.'**
+  String trips_deleteShared_body(String name);
+
+  /// Title of the strengthened delete confirmation dialog shown when the dive site being deleted is shared with other dive profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete shared site?'**
+  String get sites_deleteShared_title;
+
+  /// Body of the delete confirmation dialog for a shared dive site.
+  ///
+  /// In en, this message translates to:
+  /// **'\'{name}\' is shared with other dive profiles. Deleting it here removes it for everyone.'**
+  String sites_deleteShared_body(String name);
+
+  /// Snackbar shown after deleting a diver when shared trips/sites were reassigned to a surviving diver instead of deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Diver deleted. {trips} shared {trips, plural, one{trip} other{trips}} and {sites} shared {sites, plural, one{site} other{sites}} reassigned to {name}.'**
+  String divers_delete_reassigned_snackbar(int trips, int sites, String name);
 }
 
 class _AppLocalizationsDelegate

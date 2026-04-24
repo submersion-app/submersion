@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
@@ -43,6 +44,9 @@ enum _StartupState {
   backingUp,
   migrating,
   backupFailed,
+  recoveryRequired,
+  recovering,
+  recoveryFailed,
   ready,
   error,
 }
@@ -99,6 +103,7 @@ class _StartupWrapperState extends State<StartupWrapper>
   int _dbVersion = 0;
   int _appVersion = 0;
   BackupFailedException? _backupError;
+  sqlite3.SqliteException? _readonlyError;
 
   /// Drives the dissolve of the splash layer over the mounted app beneath.
   /// Forward-only; starts when _state first reaches ready.
@@ -199,11 +204,68 @@ class _StartupWrapperState extends State<StartupWrapper>
           _appVersion = e.appVersion;
         });
       }
+    } on sqlite3.SqliteException catch (e) {
+      if (DatabaseService.isRecoverableReadonlyError(e)) {
+        debugPrint(
+          'Startup hit SQLITE_READONLY (code ${e.extendedResultCode}); '
+          'offering hot-journal recovery.',
+        );
+        if (mounted) {
+          setState(() {
+            _state = _StartupState.recoveryRequired;
+            _readonlyError = e;
+          });
+        }
+      } else {
+        debugPrint('FATAL: App initialization failed: $e');
+        if (mounted) {
+          setState(() {
+            _state = _StartupState.error;
+            _errorMessage = '$e';
+          });
+        }
+      }
     } catch (e) {
       debugPrint('FATAL: App initialization failed: $e');
       if (mounted) {
         setState(() {
           _state = _StartupState.error;
+          _errorMessage = '$e';
+        });
+      }
+    }
+  }
+
+  /// Attempt to recover the database from a hot-journal-readonly error by
+  /// reopening in read-write mode (which forces SQLite to finish the
+  /// rollback), then retry initialization from the top.
+  Future<void> _runRecovery() async {
+    if (!mounted) return;
+    setState(() {
+      _state = _StartupState.recovering;
+      // Clear any stale text from a prior failed attempt so the
+      // recoveryFailed UI reflects only the current reason.
+      _errorMessage = '';
+    });
+    try {
+      final dbPath = await widget.locationService.getDatabasePath();
+      final recovered = DatabaseService.recoverHotJournal(dbPath);
+      if (!recovered) {
+        if (mounted) {
+          setState(() {
+            _state = _StartupState.recoveryFailed;
+            _errorMessage =
+                'SQLite could not reopen the database to roll back the '
+                'interrupted transaction.';
+          });
+        }
+        return;
+      }
+      await _runInitialization();
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _state = _StartupState.recoveryFailed;
           _errorMessage = '$e';
         });
       }
@@ -390,7 +452,10 @@ class _StartupWrapperState extends State<StartupWrapper>
                 debugShowCheckedModeBanner: false,
                 home:
                     (_state == _StartupState.error ||
-                        _state == _StartupState.backupFailed)
+                        _state == _StartupState.backupFailed ||
+                        _state == _StartupState.recoveryRequired ||
+                        _state == _StartupState.recovering ||
+                        _state == _StartupState.recoveryFailed)
                     ? Scaffold(
                         key: const ValueKey('error'),
                         backgroundColor: backgroundColor,
@@ -497,6 +562,12 @@ class _StartupWrapperState extends State<StartupWrapper>
       );
     }
 
+    if (_state == _StartupState.recoveryRequired ||
+        _state == _StartupState.recovering ||
+        _state == _StartupState.recoveryFailed) {
+      return _buildRecoveryContent(textColor, subtitleColor);
+    }
+
     if (_isVersionMismatch) {
       return Padding(
         padding: const EdgeInsets.all(24),
@@ -561,12 +632,156 @@ class _StartupWrapperState extends State<StartupWrapper>
           const SizedBox(height: 16),
           Text(
             'Try restarting the app. If this persists, '
-            'reinstall or contact support.',
+            'contact support — your data is still on disk and does not '
+            'require a reinstall.',
             style: TextStyle(fontSize: 14, color: subtitleColor),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
           FilledButton(onPressed: _closeApp, child: const Text('Close')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecoveryContent(Color textColor, Color subtitleColor) {
+    if (_state == _StartupState.recovering) {
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              width: 64,
+              height: 64,
+              child: CircularProgressIndicator(),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Recovering database...',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Rolling back the interrupted transaction. This usually '
+              'takes a few seconds.',
+              style: TextStyle(fontSize: 14, color: subtitleColor),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_state == _StartupState.recoveryFailed) {
+      final details = _errorMessage.isNotEmpty
+          ? _errorMessage
+          : (_readonlyError?.toString() ?? '');
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.orange),
+            const SizedBox(height: 24),
+            Text(
+              'Recovery did not complete',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'The database could not be rolled back automatically. Your '
+              'data is still on disk; contact support before reinstalling '
+              'so we can help you recover it.',
+              style: TextStyle(fontSize: 14, color: subtitleColor),
+              textAlign: TextAlign.center,
+            ),
+            if (details.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                details,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: subtitleColor,
+                  fontFamily: 'monospace',
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+            const SizedBox(height: 24),
+            Wrap(
+              spacing: 12,
+              children: [
+                OutlinedButton(
+                  onPressed: _runRecovery,
+                  child: const Text('Try again'),
+                ),
+                FilledButton(onPressed: _closeApp, child: const Text('Close')),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    // recoveryRequired
+    final code = _readonlyError?.extendedResultCode;
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.build_circle_outlined, size: 64, color: Colors.blue),
+          const SizedBox(height: 24),
+          Text(
+            'Database needs recovery',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'A previous session was interrupted while writing to the '
+            'database. Your data is still on disk; we just need to finish '
+            'rolling back the cancelled change before the app can open.',
+            style: TextStyle(fontSize: 14, color: subtitleColor),
+            textAlign: TextAlign.center,
+          ),
+          if (code != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              'SQLite code $code',
+              style: TextStyle(
+                fontSize: 12,
+                color: subtitleColor,
+                fontFamily: 'monospace',
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          const SizedBox(height: 24),
+          FilledButton(
+            onPressed: _runRecovery,
+            child: const Text('Recover database'),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: _closeApp,
+            child: const Text('Close without recovering'),
+          ),
         ],
       ),
     );

@@ -29,6 +29,7 @@ void main() {
     List<Certification> certifications = const [],
     List<Tag> tags = const [],
     List<DiveTypeEntity> diveTypes = const [],
+    Map<String, String> existingSourceUuidByDiveId = const {},
   }) {
     return checker.check(
       payload: payload ?? const ImportPayload(entities: {}),
@@ -41,6 +42,7 @@ void main() {
       existingCertifications: certifications,
       existingTags: tags,
       existingDiveTypes: diveTypes,
+      existingSourceUuidByDiveId: existingSourceUuidByDiveId,
     );
   }
 
@@ -449,6 +451,173 @@ void main() {
       );
 
       expect(result.diveMatches, contains(0));
+    });
+  });
+
+  group('Dive duplicates (source_uuid)', () {
+    test(
+      'first-pass source_uuid match takes precedence over content match',
+      () {
+        // Content would NOT fuzzy-match (different date, different depth),
+        // but matching source_uuid should still flag as a match.
+        final result = checkWith(
+          payload: ImportPayload(
+            entities: {
+              ImportEntityType.dives: [
+                {
+                  'sourceUuid': 'XYZ',
+                  'dateTime': DateTime(2020, 1, 1, 8, 0),
+                  'maxDepth': 10.0,
+                  'runtime': const Duration(minutes: 20),
+                },
+              ],
+            },
+          ),
+          dives: [
+            Dive(
+              id: 'existing-1',
+              dateTime: DateTime(2024, 6, 1, 10, 0),
+              maxDepth: 25.0,
+              bottomTime: const Duration(minutes: 45),
+            ),
+          ],
+          existingSourceUuidByDiveId: const {'existing-1': 'XYZ'},
+        );
+
+        expect(result.diveMatches, contains(0));
+        expect(result.diveMatches[0]!.diveId, 'existing-1');
+        // UUID match is a certainty, reflected by a probable-duplicate score.
+        expect(result.diveMatches[0]!.isProbable, isTrue);
+      },
+    );
+
+    test('null source_uuid falls through to content fuzzy matching', () {
+      final diveTime = DateTime(2024, 6, 1, 10, 0);
+      final result = checkWith(
+        payload: ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {
+                // No sourceUuid at all.
+                'dateTime': diveTime,
+                'maxDepth': 25.0,
+                'runtime': const Duration(minutes: 45),
+              },
+            ],
+          },
+        ),
+        dives: [
+          Dive(
+            id: 'existing-1',
+            dateTime: diveTime,
+            maxDepth: 25.0,
+            bottomTime: const Duration(minutes: 45),
+          ),
+        ],
+        // Existing dive also has no source_uuid.
+        existingSourceUuidByDiveId: const {},
+      );
+
+      expect(result.diveMatches, contains(0));
+      expect(result.diveMatches[0]!.diveId, 'existing-1');
+    });
+
+    test('mismatched source_uuid with matching content still matches '
+        '(content path wins)', () {
+      // UUIDs differ, but content is identical. UUIDs must NOT veto a
+      // content match — they only upgrade likely matches to certain ones.
+      final diveTime = DateTime(2024, 6, 1, 10, 0);
+      final result = checkWith(
+        payload: ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {
+                'sourceUuid': 'B',
+                'dateTime': diveTime,
+                'maxDepth': 25.0,
+                'runtime': const Duration(minutes: 45),
+              },
+            ],
+          },
+        ),
+        dives: [
+          Dive(
+            id: 'existing-1',
+            dateTime: diveTime,
+            maxDepth: 25.0,
+            bottomTime: const Duration(minutes: 45),
+          ),
+        ],
+        existingSourceUuidByDiveId: const {'existing-1': 'A'},
+      );
+
+      expect(result.diveMatches, contains(0));
+      expect(result.diveMatches[0]!.diveId, 'existing-1');
+    });
+
+    test(
+      'incoming source_uuid with no existing match falls through to content',
+      () {
+        // Incoming carries a UUID but no existing dive has it. Content should
+        // still match if it's close enough.
+        final diveTime = DateTime(2024, 6, 1, 10, 0);
+        final result = checkWith(
+          payload: ImportPayload(
+            entities: {
+              ImportEntityType.dives: [
+                {
+                  'sourceUuid': 'ORPHAN',
+                  'dateTime': diveTime,
+                  'maxDepth': 25.0,
+                  'runtime': const Duration(minutes: 45),
+                },
+              ],
+            },
+          ),
+          dives: [
+            Dive(
+              id: 'existing-1',
+              dateTime: diveTime,
+              maxDepth: 25.0,
+              bottomTime: const Duration(minutes: 45),
+            ),
+          ],
+          existingSourceUuidByDiveId: const {'existing-1': 'DIFFERENT'},
+        );
+
+        expect(result.diveMatches, contains(0));
+        expect(result.diveMatches[0]!.diveId, 'existing-1');
+      },
+    );
+
+    test('empty string source_uuid is treated as null', () {
+      // Defensive: empty strings must not collide with each other.
+      final result = checkWith(
+        payload: ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {
+                'sourceUuid': '',
+                'dateTime': DateTime(2020, 1, 1, 8, 0),
+                'maxDepth': 10.0,
+                'runtime': const Duration(minutes: 20),
+              },
+            ],
+          },
+        ),
+        dives: [
+          Dive(
+            id: 'existing-1',
+            dateTime: DateTime(2024, 6, 1, 10, 0),
+            maxDepth: 25.0,
+            bottomTime: const Duration(minutes: 45),
+          ),
+        ],
+        existingSourceUuidByDiveId: const {'existing-1': ''},
+      );
+
+      // No UUID match (both empty), and content doesn't match either.
+      expect(result.diveMatches, isEmpty);
     });
   });
 

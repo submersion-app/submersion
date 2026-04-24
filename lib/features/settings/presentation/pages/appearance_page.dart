@@ -6,6 +6,7 @@ import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/nav/nav_primary_provider.dart';
 
 const _sectionRoutes = [
   'dives',
@@ -90,6 +91,31 @@ class AppearancePage extends ConsumerWidget {
                 );
               }).toList(),
             ),
+          ),
+          const Divider(),
+          Consumer(
+            builder: (context, ref, _) {
+              final primary = ref.watch(navPrimaryDestinationsProvider);
+              // Skip pinned Home and More; take the 3 middle labels.
+              final middleLabels = primary
+                  .skip(1)
+                  .take(primary.length - 2)
+                  .map((d) => d.label(context.l10n))
+                  .toList();
+              final preview = context.l10n
+                  .settings_navCustomization_subtitlePreview(
+                    middleLabels.isNotEmpty ? middleLabels[0] : '',
+                    middleLabels.length > 1 ? middleLabels[1] : '',
+                    middleLabels.length > 2 ? middleLabels[2] : '',
+                  );
+              return ListTile(
+                leading: const Icon(Icons.view_quilt_outlined),
+                title: Text(context.l10n.settings_navCustomization_title),
+                subtitle: Text(preview),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/settings/appearance/navigation'),
+              );
+            },
           ),
           const Divider(),
 

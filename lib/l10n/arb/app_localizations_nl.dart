@@ -68,6 +68,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get accessibility_label_sharedWithAllProfiles =>
+      'Gedeeld met alle duikersprofielen';
+
+  @override
   String get accessibility_label_showList => 'Lijst tonen';
 
   @override
@@ -1393,6 +1397,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get common_action_search => 'Zoeken';
 
   @override
+  String get common_action_share => 'Delen';
+
+  @override
   String get common_label_error => 'Fout';
 
   @override
@@ -1400,6 +1407,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get common_placeholder_noValue => '--';
+
+  @override
+  String get common_error_tryAgain =>
+      'Er is iets misgegaan. Probeer het opnieuw.';
 
   @override
   String get courses_action_add => 'Cursus toevoegen';
@@ -9899,6 +9910,46 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_appearance_theme_system => 'Systeemstandaard';
 
   @override
+  String get settings_navCustomization_title => 'Navigation bar';
+
+  @override
+  String get settings_navCustomization_description =>
+      'Drag items to reorder. The top three appear in your bottom navigation bar.';
+
+  @override
+  String get settings_navCustomization_dividerLabel =>
+      'Items below appear in the More menu';
+
+  @override
+  String get settings_navCustomization_resetButton => 'Reset to defaults';
+
+  @override
+  String get settings_navCustomization_pinnedTooltip => 'Always shown';
+
+  @override
+  String settings_navCustomization_moveUpLabel(String destination) {
+    return 'Move $destination up';
+  }
+
+  @override
+  String settings_navCustomization_moveDownLabel(String destination) {
+    return 'Move $destination down';
+  }
+
+  @override
+  String settings_navCustomization_subtitlePreview(
+    String first,
+    String second,
+    String third,
+  ) {
+    return '$first · $second · $third';
+  }
+
+  @override
+  String get settings_navCustomization_saveError =>
+      'Could not save navigation layout. Please try again.';
+
+  @override
   String get settings_backToSettings_tooltip => 'Terug naar instellingen';
 
   @override
@@ -10461,6 +10512,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_gfPreset_medium_name => 'Middel';
+
+  @override
+  String get settings_import_cancelButton => 'Import annuleren';
+
+  @override
+  String get settings_import_cancelling => 'Bezig met annuleren...';
 
   @override
   String get settings_import_dialog_title => 'Gegevens importeren';
@@ -16192,4 +16249,100 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_label_consolidated => 'Geconsolideerd';
+
+  @override
+  String get common_label_shareWithAllProfiles =>
+      'Delen met alle duikersprofielen';
+
+  @override
+  String get settings_shareByDefault_title =>
+      'Nieuwe sites en trips standaard delen';
+
+  @override
+  String get settings_shareAllSites_title => 'Al mijn sites delen';
+
+  @override
+  String get settings_shareAllTrips_title => 'Al mijn trips delen';
+
+  @override
+  String settings_shareAllSites_confirm(int count) {
+    return 'Al je $count sites zichtbaar maken voor elk duikersprofiel in deze app? Je kunt individuele sites later ontdelen.';
+  }
+
+  @override
+  String settings_shareAllTrips_confirm(int count) {
+    return 'Al je $count trips zichtbaar maken voor elk duikersprofiel in deze app? Je kunt individuele trips later ontdelen.';
+  }
+
+  @override
+  String settings_shareAllSites_snackbar(int count) {
+    return '$count sites gedeeld met alle duikersprofielen.';
+  }
+
+  @override
+  String settings_shareAllTrips_snackbar(int count) {
+    return '$count trips gedeeld met alle duikersprofielen.';
+  }
+
+  @override
+  String get settings_shareAll_noneToShare => 'Niets om te delen.';
+
+  @override
+  String get settings_sharedData_sectionTitle => 'Gedeelde gegevens';
+
+  @override
+  String get settings_sharedData_sectionSubtitle =>
+      'Sites en trips delen tussen profielen';
+
+  @override
+  String get common_action_unshare => 'Delen opheffen';
+
+  @override
+  String get trips_unshareConfirm_title => 'Deze trip ontdelen?';
+
+  @override
+  String trips_unshareConfirm_body(String name) {
+    return 'Hiermee wordt ‘$name’ uit de weergaven van andere duikersprofielen verwijderd. Je kunt het later weer delen.';
+  }
+
+  @override
+  String get sites_unshareConfirm_title => 'Deze site ontdelen?';
+
+  @override
+  String sites_unshareConfirm_body(String name) {
+    return 'Hiermee wordt ‘$name’ uit de weergaven van andere duikersprofielen verwijderd. Je kunt het later weer delen.';
+  }
+
+  @override
+  String get trips_deleteShared_title => 'Gedeelde trip verwijderen?';
+
+  @override
+  String trips_deleteShared_body(String name) {
+    return '‘$name’ wordt gedeeld met andere duikersprofielen. Hier verwijderen haalt het voor iedereen weg.';
+  }
+
+  @override
+  String get sites_deleteShared_title => 'Gedeelde site verwijderen?';
+
+  @override
+  String sites_deleteShared_body(String name) {
+    return '‘$name’ wordt gedeeld met andere duikersprofielen. Hier verwijderen haalt het voor iedereen weg.';
+  }
+
+  @override
+  String divers_delete_reassigned_snackbar(int trips, int sites, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      trips,
+      locale: localeName,
+      other: 'trips',
+      one: 'trip',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: 'sites',
+      one: 'site',
+    );
+    return 'Duiker verwijderd. $trips gedeelde $_temp0 en $sites gedeelde $_temp1 toegewezen aan $name.';
+  }
 }
