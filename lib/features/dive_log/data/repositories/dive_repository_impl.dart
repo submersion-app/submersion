@@ -2440,7 +2440,7 @@ class DiveRepository {
       tanks: tankRows.map((t) {
         // Derive start/end pressure from profile data when available.
         // Profile time-series from AI transmitters is the fallback
-        // source, if values entered by the user are not available in the 
+        // source, if values entered by the user are not available in the
         // dive tanks table.
         final profilePoints = tankPressuresByTankId[t.id];
         final profileStartPressure =
