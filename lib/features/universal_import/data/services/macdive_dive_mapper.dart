@@ -1,6 +1,5 @@
-import 'package:flutter/services.dart';
-import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
-
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
@@ -10,27 +9,18 @@ import 'package:submersion/features/universal_import/data/services/macdive_value
 import 'package:submersion/features/universal_import/data/services/macdive_xml_models.dart'
     show MacDiveUnitSystem;
 
-/// Signature for the [pigeon.DiveComputerHostApi.parseRawDiveData] call so
-/// tests can inject a fake without spawning the platform channel.
-typedef ParseRawDiveDataFn =
-    Future<pigeon.ParsedDive> Function(
-      String vendor,
-      String product,
-      int model,
-      Uint8List data,
-    );
-
 /// Maps a [MacDiveRawLogbook] (raw SQLite rows read by [MacDiveDbReader])
 /// into a unified [ImportPayload] the rest of the import pipeline consumes
 /// without knowing the source was SQLite. Key conventions mirror the M2
 /// `MacDiveXmlParser` so the downstream `UddfEntityImporter` processes
 /// both sources through the same code path.
 ///
-/// Profile samples are decoded from the `ZRAWDATA` BLOB via
-/// [pigeon.DiveComputerHostApi.parseRawDiveData] (the same path used by
-/// [ShearwaterDiveMapper] for Shearwater Cloud imports). Dives without
-/// `ZRAWDATA`, with an unknown computer model, or where decoding fails emit
-/// `profile: []`. Decode failures additionally emit an [ImportWarning].
+/// Profile samples are NOT decoded from the SQLite file. `ZSAMPLES` is
+/// AES-encrypted with a per-dive key; `ZRAWDATA` turned out to be a
+/// MacDive-specific wrapper rather than the raw Shearwater protocol dump
+/// libdivecomputer can parse. See `docs/import-formats/macdive-zsamples.md`.
+/// When dives carry non-empty `ZRAWDATA` a single aggregated [ImportWarning]
+/// points users at MacDive's XML export as the working profile path.
 class MacDiveDiveMapper {
   const MacDiveDiveMapper._();
 
@@ -40,61 +30,37 @@ class MacDiveDiveMapper {
   /// String enum-ish values (waterType, entryType) go through
   /// [MacDiveValueMapper] so unrecognised inputs are dropped rather than
   /// mis-stored.
-  ///
-  /// [parseRawDiveData] can be supplied by tests to skip the real FFI call.
-  static Future<ImportPayload> toPayload(
-    MacDiveRawLogbook logbook, {
-    ParseRawDiveDataFn? parseRawDiveData,
-  }) async {
+  static ImportPayload toPayload(MacDiveRawLogbook logbook) {
     final units = MacDiveUnitSystem.fromXml(logbook.unitsPreference);
     final converter = MacDiveUnitConverter(units);
-    final parseFn = parseRawDiveData ?? _defaultParse;
     final warnings = <ImportWarning>[];
 
     final siteMaps = _buildSiteMaps(logbook, converter);
     final buddyMaps = _buildBuddyMaps(logbook);
     final tagMaps = _buildTagMaps(logbook);
     final gearMaps = _buildGearMaps(logbook, converter);
-    final diveMaps = <Map<String, dynamic>>[];
-    bool ffiAvailable = true;
+    final diveMaps = [
+      for (final d in logbook.dives) _buildDiveMap(d, logbook, converter),
+    ];
 
-    for (final d in logbook.dives) {
-      try {
-        final effective = ffiAvailable ? parseFn : null;
-        diveMaps.add(
-          await _buildDiveMap(d, logbook, converter, effective, warnings),
-        );
-      } on MissingPluginException {
-        ffiAvailable = false;
-        warnings.add(
-          const ImportWarning(
-            severity: ImportWarningSeverity.info,
-            message:
-                'Dive-computer FFI plugin unavailable; profile decoding skipped for remaining dives.',
-            entityType: ImportEntityType.dives,
-          ),
-        );
-        diveMaps.add(
-          await _buildDiveMap(d, logbook, converter, null, warnings),
-        );
-      } on PlatformException catch (e) {
-        if (e.code == 'UNSUPPORTED' || e.code == 'channel-error') {
-          ffiAvailable = false;
-          warnings.add(
-            ImportWarning(
-              severity: ImportWarningSeverity.info,
-              message:
-                  'Dive-computer FFI unavailable (${e.code}); profile decoding skipped for remaining dives.',
-              entityType: ImportEntityType.dives,
-            ),
-          );
-          diveMaps.add(
-            await _buildDiveMap(d, logbook, converter, null, warnings),
-          );
-        } else {
-          rethrow;
-        }
-      }
+    // One aggregated warning per logbook so a 500-dive import does not
+    // produce 500 identical summary lines. Per-dive granularity buys us
+    // nothing here — the cause is format-level, not dive-level.
+    final zrawdataDives = logbook.dives
+        .where((d) => d.rawDataBlob != null && d.rawDataBlob!.isNotEmpty)
+        .length;
+    if (zrawdataDives > 0) {
+      warnings.add(
+        ImportWarning(
+          severity: ImportWarningSeverity.info,
+          message:
+              '$zrawdataDives dive(s) carry raw profile data in this SQLite file, '
+              'but MacDive stores it in a proprietary format Submersion cannot yet '
+              'decode. To import dive profiles, export from MacDive as XML '
+              '(File > Export > UDDF or MacDive XML) and import that file instead.',
+          entityType: ImportEntityType.dives,
+        ),
+      );
     }
 
     final entities = <ImportEntityType, List<Map<String, dynamic>>>{};
@@ -114,20 +80,6 @@ class MacDiveDiveMapper {
       },
     );
   }
-
-  // ---- default FFI implementation ----
-
-  static Future<pigeon.ParsedDive> _defaultParse(
-    String vendor,
-    String product,
-    int model,
-    Uint8List data,
-  ) => pigeon.DiveComputerHostApi().parseRawDiveData(
-    vendor,
-    product,
-    model,
-    data,
-  );
 
   // ---- site / buddy / tag / gear ----
 
@@ -241,13 +193,11 @@ class MacDiveDiveMapper {
 
   // ---- dive ----
 
-  static Future<Map<String, dynamic>> _buildDiveMap(
+  static Map<String, dynamic> _buildDiveMap(
     MacDiveRawDive d,
     MacDiveRawLogbook logbook,
     MacDiveUnitConverter c,
-    ParseRawDiveDataFn? parseFn,
-    List<ImportWarning> warnings,
-  ) async {
+  ) {
     final map = <String, dynamic>{};
 
     if (d.uuid.isNotEmpty) map['sourceUuid'] = d.uuid;
@@ -398,129 +348,19 @@ class MacDiveDiveMapper {
           entry['runtime'] = Duration(seconds: t.duration!.round());
         }
         if (t.supplyType != null) entry['supplyType'] = t.supplyType;
-        entry['gasMix'] = <String, dynamic>{
-          if (gas?.oxygen != null) 'o2': gas!.oxygen,
-          if (gas?.helium != null) 'he': gas!.helium,
-        };
+        entry['gasMix'] = GasMix(
+          o2: (gas?.oxygen ?? 0.21) * 100.0,
+          he: (gas?.helium ?? 0.0) * 100.0,
+        );
         tanks.add(entry);
       }
       map['tanks'] = tanks;
     }
 
-    // Profile: decode ZRAWDATA via libdivecomputer_plugin when available.
-    // Dives without ZRAWDATA or with an unmapped computer emit [] silently.
-    // Decode failures emit [] and append an ImportWarning.
-    map['profile'] = await _decodeProfile(d, parseFn, warnings);
+    // No `profile` key emitted — matches the XML parser convention of
+    // omitting the key when no samples are available. See class doc for
+    // why ZRAWDATA is not decoded here.
 
     return map;
-  }
-
-  // ---- profile decoding ----
-
-  static Future<List<Map<String, dynamic>>> _decodeProfile(
-    MacDiveRawDive dive,
-    ParseRawDiveDataFn? parseFn, // null = FFI known unavailable; skip decode
-    List<ImportWarning> warnings,
-  ) async {
-    if (parseFn == null) return const [];
-    final rawData = dive.rawDataBlob;
-    final vendorProduct = _vendorProductFromZComputer(dive.computer);
-    if (rawData == null || rawData.isEmpty || vendorProduct == null) {
-      return const [];
-    }
-    try {
-      final parsed = await parseFn(
-        vendorProduct.$1,
-        vendorProduct.$2,
-        0,
-        rawData,
-      );
-      return _projectSamples(parsed);
-    } on MissingPluginException {
-      rethrow;
-    } on PlatformException catch (e) {
-      if (e.code == 'UNSUPPORTED' || e.code == 'channel-error') rethrow;
-      warnings.add(
-        ImportWarning(
-          severity: ImportWarningSeverity.warning,
-          message: 'Profile decode failed for dive ${dive.uuid}: $e',
-          entityType: ImportEntityType.dives,
-        ),
-      );
-      return const [];
-    } catch (e) {
-      warnings.add(
-        ImportWarning(
-          severity: ImportWarningSeverity.warning,
-          message: 'Profile decode failed for dive ${dive.uuid}: $e',
-          entityType: ImportEntityType.dives,
-        ),
-      );
-      return const [];
-    }
-  }
-
-  /// Projects [pigeon.ParsedDive] samples into the canonical import map
-  /// format. Mirrors [ShearwaterDiveMapper.mergeWithParsedDive] exactly for
-  /// the sample projection block (same keys, same conditional emission).
-  static List<Map<String, dynamic>> _projectSamples(pigeon.ParsedDive parsed) {
-    return parsed.samples.map((s) {
-      final sampleMap = <String, dynamic>{
-        'timestamp': s.timeSeconds,
-        'depth': s.depthMeters,
-      };
-      if (s.temperatureCelsius != null) {
-        sampleMap['temperature'] = s.temperatureCelsius;
-      }
-      if (s.pressureBar != null) {
-        sampleMap['allTankPressures'] = <Map<String, dynamic>>[
-          {'pressure': s.pressureBar, 'tankIndex': s.tankIndex ?? 0},
-        ];
-      }
-      if (s.setpoint != null) sampleMap['setpoint'] = s.setpoint;
-      if (s.ppo2 != null) sampleMap['ppO2'] = s.ppo2;
-      if (s.heartRate != null) sampleMap['heartRate'] = s.heartRate;
-      if (s.cns != null) sampleMap['cns'] = s.cns;
-      if (s.rbt != null) sampleMap['rbt'] = s.rbt;
-      if (s.tts != null) sampleMap['tts'] = s.tts;
-      if (s.decoType != null) sampleMap['decoType'] = s.decoType;
-      if (s.decoDepth != null && s.decoType != null && s.decoType != 0) {
-        sampleMap['ceiling'] = s.decoDepth;
-      }
-      if (s.decoType == 0 && s.decoTime != null) {
-        sampleMap['ndl'] = s.decoTime;
-      }
-      return sampleMap;
-    }).toList();
-  }
-
-  /// Maps MacDive's ZCOMPUTER string to the (vendor, product) pair
-  /// libdivecomputer expects. Currently covers Shearwater models observed
-  /// in the 2026 sample DB plus the two newer 2024+ releases (Perdix 2,
-  /// NERD 2). Returns null for computers the plugin does not support —
-  /// caller emits `profile: []` without a warning (not a decode failure,
-  /// just an unsupported model).
-  ///
-  /// Supported set: Teric, Tern, Petrel, Perdix, Perdix 2, Nerd, NERD 2.
-  static (String, String)? _vendorProductFromZComputer(String? zComputer) {
-    if (zComputer == null) return null;
-    switch (zComputer) {
-      case 'Shearwater Teric':
-        return ('Shearwater', 'Teric');
-      case 'Shearwater Tern':
-        return ('Shearwater', 'Tern');
-      case 'Shearwater Petrel':
-        return ('Shearwater', 'Petrel');
-      case 'Shearwater Perdix':
-        return ('Shearwater', 'Perdix');
-      case 'Shearwater Perdix 2':
-        return ('Shearwater', 'Perdix 2');
-      case 'Shearwater Nerd':
-        return ('Shearwater', 'Nerd');
-      case 'Shearwater NERD 2':
-        return ('Shearwater', 'NERD 2');
-      default:
-        return null;
-    }
   }
 }

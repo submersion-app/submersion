@@ -1,7 +1,7 @@
-# MacDive `ZDIVE.ZSAMPLES` Binary Format — Investigation Findings
+# MacDive `ZDIVE.ZSAMPLES` / `ZDIVE.ZRAWDATA` Binary Format — Investigation Findings
 
-**Status:** NO-GO for Phase 1 decoding. Recommend pivot to `ZRAWDATA` via `libdivecomputer`.
-**Date:** 2026-04-23
+**Status:** NO-GO for both columns. `ZSAMPLES` is AES-encrypted with a per-dive key (documented below). `ZRAWDATA` was pivoted to on 2026-04-23 under the assumption it was raw Shearwater protocol data libdivecomputer could parse; **that assumption was invalidated on 2026-04-24** when real-data testing produced systematic parser errors. MacDive SQLite profile import is not currently supported — users should export as MacDive XML for profile data.
+**Date:** 2026-04-23 (initial), 2026-04-24 (ZRAWDATA invalidation)
 **Author:** Eric Griffin
 **Spec:** `docs/superpowers/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md`
 **Plan:** `docs/superpowers/plans/2026-04-23-macdive-zsamples-phase-1-spike.md`
@@ -270,6 +270,8 @@ With the structural evidence pointing to block-cipher encryption, continuing to 
 
 ## Recommended pivot: `ZRAWDATA` via `libdivecomputer`
 
+> **Update 2026-04-24 — this pivot did not work.** The claim below that `ZRAWDATA` is "Shearwater's own binary frame format, which libdivecomputer's `shearwater_common` and `shearwater_petrel` parsers support natively" was made from byte-pattern inspection and has since been invalidated by real-data testing. See "Update 2026-04-24: ZRAWDATA pivot invalidated" below for details. The following subsection is preserved as-is for traceability of what was believed at the time of the initial spike.
+
 Every Shearwater dive (267/540 = 49% of the DB; 267/350 = 76% of dives with any sample data) has a `ZRAWDATA` column alongside `ZSAMPLES`. `ZRAWDATA` is the raw dive-computer sensor dump in the vendor's native format. First bytes across three Shearwater Teric dives:
 
 ```
@@ -308,3 +310,73 @@ Under `scripts/reverse_engineering/zsamples/`:
 - `test_zsamples_spike.py` has 19 passing tests covering the tooling.
 
 This investigation produced negative results on `ZSAMPLES` decoding but positive results on the pivot strategy. The tooling above makes any future attempt cheap to resume.
+
+## Update 2026-04-24: ZRAWDATA pivot invalidated
+
+The Phase 2 implementation landed in commit `9e519a8da65` ("feat(macdive): decode ZRAWDATA profiles via libdivecomputer_plugin") and mapped MacDive `ZCOMPUTER` strings to libdivecomputer `(vendor, product)` pairs, feeding `ZRAWDATA` bytes straight into `DiveComputerHostApi.parseRawDiveData`. Tests used a mocked `parseFn` and a synthetic fixture with no real `ZRAWDATA` blob, so the claim "libdivecomputer can parse these bytes" was never validated against real data.
+
+### What real data actually produces
+
+A Submersion user with a MacDive library of Shearwater Teric dives imported their real `MacDive.sqlite` and observed the import complete with zero profile data for any dive. Each Shearwater dive produced a stderr line from libdivecomputer:
+
+```
+ERROR: Opening or closing record 1 not found.
+[in shearwater_predator_parser.c:646 (shearwater_predator_parser_cache)]
+```
+
+Head and tail hex dumps of the affected blobs (pulled via `sqlite3 ... HEX(SUBSTR(ZRAWDATA, 1, 128))`):
+
+```
+Dive 1 (31,536 bytes, Teric):
+  head: 887FC03FB94554035900CA80306B0E7E CBC500D1B051890C823F1E8A81E03FF0
+        0FEE515500D6403­2A8A41AC99FA6E4207 B6B9FAB09178FC7A2A0697C0C131400
+        C1403­28AAC0FF1F1F8E964B8CD0CA3400 281806792F8080A07FCAD02E10018180­6
+        258CD0CA3400281806780183C180303F E56F5001AE4160B01B4406800185 00
+  tail: 00 00 … (zero-padded for at least 64 bytes)
+
+Dive 2 (28,800 bytes, Teric):
+  head: 887FC03F794556030500CA80301B0E73 ED1500D1B051890C823F1E8A81E03FF0 …
+```
+
+### Why libdivecomputer rejects these blobs
+
+libdivecomputer's `shearwater_predator_parser.c` selects format at line 359:
+
+```c
+unsigned int pnf = parser->petrel ? array_uint16_be(data) != 0xFFFF : 0;
+```
+
+For the Petrel family (Petrel/Perdix/Teric/Tern/Nerd/...): if the first two bytes are not `0xFFFF`, it treats the blob as Petrel Native Format (PNF) — a stream of 32-byte samples each prefixed with a record-type byte (`0x10..0x19` for opening records, `0x20..0x29` for closing, `0x01` for a dive sample, etc.).
+
+The MacDive `ZRAWDATA` head starts with `0x887F`, so the parser enters PNF mode. But at no 16-byte or 32-byte aligned offset in the first 128 bytes does `data[offset]` equal any valid record-type byte. The parser scans the whole blob, picks up an opening record 0 and closing record 0 somewhere in the stream (hence the specific "record **1** not found" wording in the error — record 0 *was* found), and fails the 0–4 required-records check at line 644.
+
+### What this tells us
+
+1. **`ZRAWDATA` is not the raw Shearwater BLE/sensor dump.** If it were, libdivecomputer would parse at least the header correctly — it handles Teric/Perdix/Petrel natively as the same product line the Shearwater Cloud import successfully parses via the same API.
+2. **`ZRAWDATA` bytes 20–31 being identical across dives is evidence against raw protocol data, not for it.** A real BLE dump would carry per-dive serial numbers, timestamps, or firmware versions in those bytes. The prior spike read "same bytes across dives" as a device fingerprint and assumed the rest was protocol data; in retrospect, identical bytes across dives is consistent with *MacDive's own envelope/wrapper* surrounding the real payload (or a MacDive-reencoded summary).
+3. **`ZRAWDATA` blob sizes (31,536 and 28,800 bytes) are not clean multiples of the PNF 32-byte sample size**, further indicating this is not PNF framing.
+
+Plausible remaining interpretations, in rough order of likelihood:
+- MacDive applies its own framing/header layer around a Shearwater payload — stripping N leading bytes would reveal PNF or legacy-Predator bytes libdivecomputer can parse. **Testable:** try `parseRawDiveData` after skipping 2/4/8/12/16/32/64/128 leading bytes; if any offset succeeds, we know the wrapper length.
+- MacDive decodes the BLE stream into its own intermediate binary format (summary-plus-samples) and stores that. Parsing would require reverse-engineering.
+- MacDive encrypts `ZRAWDATA` with the same per-dive key used for `ZSAMPLES`. Entropy evidence here is weaker than for `ZSAMPLES` (those identical 12 bytes across dives would not survive standard encryption), so this is the least likely explanation.
+
+### Corrective action taken
+
+Commit **(to be tagged at revert time)** removed the ZRAWDATA → libdivecomputer decoder path. `MacDiveDiveMapper` no longer calls `parseRawDiveData`, no longer emits a `profile` key on any dive, and the `_vendorProductFromZComputer` map has been deleted. When a logbook contains dives with non-empty `ZRAWDATA`, a single aggregated `ImportWarning` is emitted pointing the user at MacDive's XML export as the working profile path. The warning is surfaced in `ImportSummaryStep`.
+
+Net effect on the 540-dive reference DB:
+- **217 Teric + 50 Tern** dives: previously produced parser error spam and empty profiles; now produce no spam and the same empty profiles, with one aggregated warning.
+- **113 Oceanic Matrix Master** dives (no ZRAWDATA anyway): unchanged.
+- **(no computer) + "No Computer"** manual-entry dives: unchanged.
+
+### What a working implementation would need to investigate first
+
+If someone wants to retry this:
+
+1. **Strip-and-retry probe.** Feed `ZRAWDATA[N:]` to `parseRawDiveData` for each N in `{0, 2, 4, 8, 12, 16, 32, 64, 128}` and report the first N that parses cleanly. Cheapest possible next step; rules in or out the "MacDive framing wrapper" hypothesis in under an hour.
+2. **Compare `ZRAWDATA` with Shearwater Cloud response for the same dive.** If a user has both a MacDive export and a Shearwater Cloud account with the same dive, the XOR / diff of the two payloads isolates MacDive's transformation. Requires user cooperation and a valid Shearwater account.
+3. **Runtime macOS debugger on MacDive.app.** Attach LLDB when MacDive is *writing* a new dive to `ZRAWDATA` and observe the bytes just before they hit Core Data. The transformation, if any, is in that code path.
+4. **`shearwater_common`-family entry points in libdivecomputer.** The current code uses the `shearwater_petrel` product branch; it's possible a different product branch (e.g. `shearwater_predator` for an older Predator-format payload) would accept these bytes. The parser error quotes the predator parser, but libdivecomputer routes Teric/Petrel through the same `.c` file with a different `parser->petrel` flag. Forcing `petrel=0` (legacy Predator mode) bypasses the PNF record-check and always synthesizes a single 128-byte header record — worth a one-line probe.
+
+The `scripts/reverse_engineering/zsamples/` tooling is reusable for any of the above.
