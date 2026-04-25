@@ -1,10 +1,55 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart'
+    as divers;
+import 'package:submersion/features/divers/domain/entities/diver.dart'
+    as domain;
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+late SharedPreferences _prefs;
+
+class _FakeDiverRepository extends divers.DiverRepository {
+  @override
+  Future<domain.Diver?> getDiverById(String id) async => null;
+
+  @override
+  Future<domain.Diver?> getDefaultDiver() async => null;
+
+  @override
+  Future<String?> getActiveDiverIdFromSettings() async => null;
+
+  @override
+  Future<void> setActiveDiverIdInSettings(String? diverId) async {}
+}
+
+class _FakeDiverSettingsRepository extends DiverSettingsRepository {
+  @override
+  Future<AppSettings> getOrCreateSettingsForDiver(
+    String diverId, {
+    AppSettings? defaultSettings,
+  }) async {
+    return const AppSettings(notificationsEnabled: false);
+  }
+
+  @override
+  Future<void> updateSettingsForDiver(
+    String diverId,
+    AppSettings settings,
+  ) async {}
+}
+
+class _SettingsNotifier extends SettingsNotifier {
+  _SettingsNotifier(Ref ref) : super(_FakeDiverSettingsRepository(), ref);
+}
 
 /// Generate a simple square-profile dive for testing:
 /// Descent to [maxDepth] over [descentSeconds], hold for [bottomSeconds],
@@ -44,6 +89,11 @@ List<DiveProfilePoint> _generateSquareProfile({
 }
 
 void main() {
+  setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
+    _prefs = await SharedPreferences.getInstance();
+  });
+
   group('buildProfileGasSegments', () {
     test('defaults to air when dive has no tanks', () {
       final dive = Dive(
@@ -622,6 +672,55 @@ void main() {
       );
       expect(result.ndlCurve, equals(baseAnalysis.ndlCurve));
       expect(sourceInfo.ndlActual, MetricDataSource.calculated);
+    });
+  });
+
+  group('diveProfileAnalysisProvider', () {
+    test('returns analysis for a dive with profile data', () {
+      final profile = _generateSquareProfile(
+        maxDepth: 18.0,
+        descentSeconds: 30,
+        bottomSeconds: 600,
+        ascentSeconds: 90,
+      );
+      final dive = Dive(
+        id: 'test-dive',
+        dateTime: DateTime(2025, 1, 1),
+        profile: profile,
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(_prefs),
+          diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
+          settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final result = container.read(diveProfileAnalysisProvider(dive));
+      expect(result, isNotNull);
+      expect(result!.ascentRates, isNotEmpty);
+    });
+
+    test('returns null for empty profile', () {
+      final dive = Dive(
+        id: 'empty-dive',
+        dateTime: DateTime(2025, 1, 1),
+        profile: const [],
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(_prefs),
+          diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
+          settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final result = container.read(diveProfileAnalysisProvider(dive));
+      expect(result, isNull);
     });
   });
 }
