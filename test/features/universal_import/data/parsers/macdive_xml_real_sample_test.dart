@@ -134,6 +134,30 @@ void main() {
       expect(withProfile, isNotEmpty);
     });
 
+    test('profile timestamps span the dive (not all zero)', () async {
+      // Regression guard: real MacDive exports format <time> as decimal
+      // seconds ("10.00"), which int.tryParse silently rejects. The bug
+      // produced 264 sample rows all stamped with timestamp=0 — present in
+      // counts, missing on the chart. Assert that at least one dive's
+      // profile reaches deep into the runtime so an all-zero collapse is
+      // caught immediately.
+      if (skipIfNoFixture()) return;
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final dives = payload.entitiesOf(ImportEntityType.dives);
+      final maxTimestamp = dives
+          .map((d) => (d['profile'] as List?) ?? const [])
+          .expand((p) => p)
+          .map((p) => (p as Map)['timestamp'] as int? ?? 0)
+          .fold<int>(0, (a, b) => a > b ? a : b);
+      expect(
+        maxTimestamp,
+        greaterThan(60),
+        reason:
+            'profile sample timestamps should span the dive runtime, not '
+            'collapse to zero',
+      );
+    });
+
     test('imperial sample: max depth values are plausible in meters', () async {
       if (skipIfNoFixture()) return;
       final payload = await const MacDiveXmlParser().parse(bytes);

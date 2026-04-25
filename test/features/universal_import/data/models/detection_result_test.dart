@@ -115,6 +115,71 @@ void main() {
         expect(result.description, isNot(contains('%')));
         expect(result.description, isNot(contains('confidence')));
       });
+
+      test(
+        'does not duplicate source app name when format already includes it (MacDive XML)',
+        () {
+          const result = DetectionResult(
+            format: ImportFormat.macdiveXml,
+            sourceApp: SourceApp.macdive,
+            confidence: 0.95,
+          );
+
+          expect(result.description, 'Detected MacDive XML file');
+        },
+      );
+
+      test(
+        'does not duplicate source app name when format already includes it (MacDive SQLite)',
+        () {
+          const result = DetectionResult(
+            format: ImportFormat.macdiveSqlite,
+            sourceApp: SourceApp.macdive,
+            confidence: 0.95,
+          );
+
+          expect(result.description, 'Detected MacDive SQLite file');
+        },
+      );
+
+      test(
+        'does not duplicate source app name when format already includes it (Subsurface XML)',
+        () {
+          const result = DetectionResult(
+            format: ImportFormat.subsurfaceXml,
+            sourceApp: SourceApp.subsurface,
+            confidence: 0.98,
+          );
+
+          expect(result.description, 'Detected Subsurface XML file');
+        },
+      );
+
+      test(
+        'does not duplicate source app name when format already includes it (Shearwater Cloud)',
+        () {
+          const result = DetectionResult(
+            format: ImportFormat.shearwaterDb,
+            sourceApp: SourceApp.shearwater,
+            confidence: 0.95,
+          );
+
+          expect(result.description, 'Detected Shearwater Cloud file');
+        },
+      );
+
+      test(
+        'still prefixes source app for generic formats (Subsurface CSV)',
+        () {
+          const result = DetectionResult(
+            format: ImportFormat.csv,
+            sourceApp: SourceApp.subsurface,
+            confidence: 0.85,
+          );
+
+          expect(result.description, 'Detected Subsurface CSV file');
+        },
+      );
     });
 
     group('Equatable', () {
