@@ -101,6 +101,30 @@ void main() {
       expect((profile[1] as Map)['timestamp'], 60);
     });
 
+    test('profile sample pressure exposed via allTankPressures', () async {
+      // UddfEntityImporter._storeTankPressures only reads the
+      // `allTankPressures` key on each profile point (a list of
+      // {pressure, tankIndex} maps). Writing the legacy `pressure` key
+      // silently drops the cylinder pressure trace from the profile chart.
+      // MacDive XML emits one <pressure> per sample for the primary tank,
+      // so we map it to tankIndex 0.
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final dive = payload.entitiesOf(ImportEntityType.dives).first;
+      final profile = (dive['profile'] as List).cast<Map<String, dynamic>>();
+
+      final firstSample = profile[0];
+      final allTP = firstSample['allTankPressures'] as List?;
+      expect(
+        allTP,
+        isNotNull,
+        reason: 'importer reads sample pressure from allTankPressures only',
+      );
+      expect(allTP!.length, 1, reason: 'single-gas dive has one tank entry');
+      final tp0 = allTP.first as Map<String, dynamic>;
+      expect(tp0['tankIndex'], 0);
+      expect(tp0['pressure'], 200);
+    });
+
     test('dive links gear via equipmentRefs with matching uddfId', () async {
       final payload = await const MacDiveXmlParser().parse(bytes);
       final dive = payload.entitiesOf(ImportEntityType.dives).first;

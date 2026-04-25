@@ -134,6 +134,33 @@ void main() {
       expect(withProfile, isNotEmpty);
     });
 
+    test('profile samples carry tank pressure via allTankPressures', () async {
+      // Regression guard: MacDive XML samples emit <pressure> per primary
+      // tank, but the importer reads pressure exclusively from
+      // `allTankPressures` (a list of {pressure, tankIndex} maps). Writing
+      // the singular `pressure` key drops the cylinder pressure trace
+      // entirely — counts would still tally but the profile chart would
+      // not render the cylinder pressure line.
+      if (skipIfNoFixture()) return;
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final dives = payload.entitiesOf(ImportEntityType.dives);
+      final samplesWithPressure = dives
+          .map((d) => (d['profile'] as List?) ?? const [])
+          .expand((p) => p)
+          .where(
+            (p) =>
+                ((p as Map)['allTankPressures'] as List?)?.isNotEmpty ?? false,
+          );
+      expect(
+        samplesWithPressure,
+        isNotEmpty,
+        reason:
+            'real MacDive exports include <pressure> in samples; if no '
+            'allTankPressures entries appear, the profile chart will be '
+            'missing its cylinder pressure trace',
+      );
+    });
+
     test('profile timestamps span the dive (not all zero)', () async {
       // Regression guard: real MacDive exports format <time> as decimal
       // seconds ("10.00"), which int.tryParse silently rejects. The bug

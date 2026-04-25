@@ -280,7 +280,16 @@ class MacDiveXmlParser implements ImportParser {
     for (final s in d.samples) {
       final point = <String, dynamic>{'timestamp': s.time.inSeconds};
       if (s.depthMeters != null) point['depth'] = s.depthMeters;
-      if (s.pressureBar != null) point['pressure'] = s.pressureBar;
+      if (s.pressureBar != null) {
+        // UddfEntityImporter._storeTankPressures reads sample pressure
+        // exclusively from `allTankPressures` (a list of
+        // {pressure, tankIndex} maps); the singular `pressure` key it
+        // ignores. MacDive XML emits one <pressure> per sample for the
+        // primary tank, so map to tankIndex 0 to match Subsurface/UDDF/CSV.
+        point['allTankPressures'] = [
+          <String, dynamic>{'pressure': s.pressureBar, 'tankIndex': 0},
+        ];
+      }
       if (s.temperatureCelsius != null) {
         point['temperature'] = s.temperatureCelsius;
       }
