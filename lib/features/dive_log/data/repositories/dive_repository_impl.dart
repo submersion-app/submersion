@@ -471,9 +471,14 @@ class DiveRepository {
   /// Returns a map of `diveId` to `List<DiveProfilePoint>` where each profile
   /// is downsampled to at most [maxSamples] evenly-spaced points. This is
   /// used for mini-charts in the dive list to avoid N+1 queries.
+  ///
+  /// The mini chart is up to 120 logical pixels wide, so 120 samples lands at
+  /// roughly one point per pixel — enough resolution to render the dive's
+  /// shape (descents, safety stops, multilevel profiles) without spline
+  /// smoothing flattening short features.
   Future<Map<String, List<domain.DiveProfilePoint>>> getBatchProfileSummaries(
     List<String> diveIds, {
-    int maxSamples = 20,
+    int maxSamples = 120,
   }) async {
     if (diveIds.isEmpty) return {};
     try {

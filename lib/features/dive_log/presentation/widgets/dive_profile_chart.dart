@@ -3455,8 +3455,11 @@ class DiveProfileMiniChart extends StatelessWidget {
                     (p) => FlSpot(p.timestamp.toDouble(), -p.depth),
                   ) // Negate for inverted axis
                   .toList(),
-              isCurved: true,
-              curveSmoothness: 0.3,
+              // Straight segments preserve the actual sample-to-sample shape
+              // (safety stops, multilevel ledges, abrupt descents). Catmull-
+              // Rom smoothing flattens those short features into rounded
+              // arcs, producing a less informative "blob" silhouette.
+              isCurved: false,
               color: chartColor,
               barWidth: 1.5,
               isStrokeCapRound: true,
