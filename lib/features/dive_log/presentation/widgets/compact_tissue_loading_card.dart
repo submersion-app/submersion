@@ -326,44 +326,31 @@ class _CompactTissueLoadingCardState
       color: colorScheme.onSurfaceVariant,
     );
 
-    Widget buildStripRow({bool flexible = false}) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Fast', style: labelStyle),
-              Text('Slow', style: labelStyle),
-            ],
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: TissueHeatMapStrip(
-              decoStatuses: widget.decoStatuses!,
-              selectedIndex: widget.selectedIndex,
-              height: 72,
-              flexible: flexible,
-              colorFn: colorFn,
-              hoveredCompartmentIndex: _highlightedCompartmentIndex(),
-              onHoverIndexChanged: widget.onHeatMapHover,
-              onCompartmentHoverChanged: (compIdx) {
-                if (compIdx != null) {
-                  _setHoveredCompartment(compIdx);
-                } else {
-                  _clearHoveredCompartment();
-                }
-              },
-            ),
-          ),
-        ],
+    Widget buildStrip({bool flexible = false}) {
+      return TissueHeatMapStrip(
+        decoStatuses: widget.decoStatuses!,
+        selectedIndex: widget.selectedIndex,
+        height: 72,
+        flexible: flexible,
+        colorFn: colorFn,
+        hoveredCompartmentIndex: _highlightedCompartmentIndex(),
+        onHoverIndexChanged: widget.onHeatMapHover,
+        onCompartmentHoverChanged: (compIdx) {
+          if (compIdx != null) {
+            _setHoveredCompartment(compIdx);
+          } else {
+            _clearHoveredCompartment();
+          }
+        },
       );
     }
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
+            Text(context.l10n.diveLog_deco_tissueFast, style: labelStyle),
             const Spacer(),
             TissueHeatMapLegend(
               colorScheme: colorScheme,
@@ -376,9 +363,10 @@ class _CompactTissueLoadingCardState
         ),
         const SizedBox(height: 4),
         if (expandToFill)
-          Expanded(child: buildStripRow(flexible: true))
+          Expanded(child: buildStrip(flexible: true))
         else
-          SizedBox(height: 72, child: buildStripRow()),
+          SizedBox(height: 72, child: buildStrip()),
+        Text(context.l10n.diveLog_deco_tissueSlow, style: labelStyle),
       ],
     );
   }
