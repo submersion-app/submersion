@@ -82,10 +82,12 @@ void main() {
             )
           ''');
           rawDb.execute('''
-            CREATE TABLE IF NOT EXISTS media (
+            CREATE TABLE media (
               id TEXT NOT NULL PRIMARY KEY,
               dive_id TEXT,
               file_path TEXT NOT NULL,
+              file_type TEXT NOT NULL DEFAULT 'photo',
+              platform_asset_id TEXT,
               created_at INTEGER NOT NULL,
               updated_at INTEGER NOT NULL
             )
@@ -110,5 +112,55 @@ void main() {
         'media_fetch_diagnostics',
       ]),
     );
+  });
+
+  test('migration to v72 backfills source_type from existing rows', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (rawDb) {
+          rawDb.execute('PRAGMA foreign_keys = ON');
+          rawDb.execute('PRAGMA user_version = 71');
+
+          // v71 schema: media table before v72 migration.
+          rawDb.execute('''
+            CREATE TABLE media (
+              id TEXT NOT NULL PRIMARY KEY,
+              file_path TEXT NOT NULL,
+              file_type TEXT NOT NULL DEFAULT 'photo',
+              platform_asset_id TEXT,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+
+          // Seed pre-migration rows.
+          rawDb.execute('''
+            INSERT INTO media (id, file_path, file_type, platform_asset_id, created_at, updated_at)
+            VALUES ('a', '', 'photo', 'PHASSET_1', 0, 0)
+          ''');
+          rawDb.execute('''
+            INSERT INTO media (id, file_path, file_type, platform_asset_id, created_at, updated_at)
+            VALUES ('b', '/Users/me/sig.png', 'instructor_signature', NULL, 0, 0)
+          ''');
+          rawDb.execute('''
+            INSERT INTO media (id, file_path, file_type, platform_asset_id, created_at, updated_at)
+            VALUES ('c', '/Users/me/photo.jpg', 'photo', NULL, 0, 0)
+          ''');
+        },
+      ),
+    );
+    addTearDown(db.close);
+
+    final rows = await db
+        .customSelect('SELECT id, source_type, local_path FROM media')
+        .get();
+    final byId = {for (final r in rows) r.read<String>('id'): r};
+
+    expect(byId['a']!.read<String>('source_type'), 'platformGallery');
+    expect(byId['b']!.read<String>('source_type'), 'signature');
+    expect(byId['c']!.read<String>('source_type'), 'localFile');
+    expect(byId['c']!.read<String?>('local_path'), '/Users/me/photo.jpg');
+
+    await db.close();
   });
 }

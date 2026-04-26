@@ -3416,6 +3416,49 @@ class AppDatabase extends _$AppDatabase {
               error_count INTEGER NOT NULL DEFAULT 0
             )
           ''');
+
+          // Backfill source_type for existing rows.
+          // Order matters: signature first (most specific), then platformGallery,
+          // then localFile, with platformGallery as the safe default for the
+          // unreachable "neither pointer set" case.
+          await customStatement('''
+            UPDATE media SET source_type = 'signature'
+            WHERE file_type = 'instructor_signature'
+          ''');
+          await customStatement('''
+            UPDATE media
+            SET source_type = 'platformGallery'
+            WHERE file_type != 'instructor_signature'
+              AND platform_asset_id IS NOT NULL
+          ''');
+          await customStatement('''
+            UPDATE media
+            SET source_type = 'localFile',
+                local_path = file_path
+            WHERE file_type != 'instructor_signature'
+              AND platform_asset_id IS NULL
+              AND file_path IS NOT NULL
+              AND file_path != ''
+          ''');
+
+          // Indexes.
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_media_source_type
+            ON media(source_type)
+          ''');
+          await customStatement('''
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_media_subscription_entry
+            ON media(subscription_id, entry_key)
+            WHERE subscription_id IS NOT NULL
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_media_connector_account
+            ON media(connector_account_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_media_origin_device
+            ON media(origin_device_id)
+          ''');
         }
         if (from < 72) await reportProgress();
       },
