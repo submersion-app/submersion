@@ -584,6 +584,81 @@ class PendingPhotoSuggestions extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Manifest-feed subscriptions (Atom/RSS, JSON, CSV) for periodic polling.
+/// Synced across devices.
+class MediaSubscriptions extends Table {
+  TextColumn get id => text()();
+  TextColumn get manifestUrl => text()();
+  TextColumn get format => text()();
+  TextColumn get displayName => text().nullable()();
+  IntColumn get pollIntervalSeconds =>
+      integer().withDefault(const Constant(86400))();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  TextColumn get credentialsHostId => text().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Per-device polling state for each subscription. Not synced.
+class MediaSubscriptionState extends Table {
+  TextColumn get subscriptionId =>
+      text().references(MediaSubscriptions, #id, onDelete: KeyAction.cascade)();
+  IntColumn get lastPolledAt => integer().nullable()();
+  IntColumn get nextPollAt => integer().nullable()();
+  TextColumn get lastEtag => text().nullable()();
+  TextColumn get lastModified => text().nullable()();
+  TextColumn get lastError => text().nullable()();
+  IntColumn get lastErrorAt => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {subscriptionId};
+}
+
+/// Configured service-connector accounts (Immich, Dropbox, etc.). Not synced —
+/// each device signs in independently.
+class ConnectorAccounts extends Table {
+  TextColumn get id => text()();
+  TextColumn get connectorType => text()();
+  TextColumn get displayName => text()();
+  TextColumn get baseUrl => text().nullable()();
+  TextColumn get accountIdentifier => text().nullable()();
+  TextColumn get credentialsRef => text()();
+  IntColumn get addedAt => integer()();
+  IntColumn get lastUsedAt => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Per-host credentials for ad-hoc HTTP(S) media URLs. Not synced.
+class NetworkCredentialHosts extends Table {
+  TextColumn get id => text()();
+  TextColumn get hostname => text()();
+  TextColumn get authType => text()();
+  TextColumn get displayName => text().nullable()();
+  TextColumn get credentialsRef => text()();
+  IntColumn get addedAt => integer()();
+  IntColumn get lastUsedAt => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Per-device fetch error diagnostics for media items. Not synced.
+class MediaFetchDiagnostics extends Table {
+  TextColumn get mediaItemId =>
+      text().references(Media, #id, onDelete: KeyAction.cascade)();
+  IntColumn get lastErrorAt => integer().nullable()();
+  TextColumn get lastErrorMessage => text().nullable()();
+  IntColumn get errorCount => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {mediaItemId};
+}
+
 /// Application settings key-value store (legacy - kept for backward compatibility)
 class Settings extends Table {
   TextColumn get key => text()();
@@ -1337,6 +1412,11 @@ class FieldPresets extends Table {
     // Column view configuration
     ViewConfigs,
     FieldPresets,
+    MediaSubscriptions,
+    MediaSubscriptionState,
+    ConnectorAccounts,
+    NetworkCredentialHosts,
+    MediaFetchDiagnostics,
   ],
 )
 class AppDatabase extends _$AppDatabase {
