@@ -109,6 +109,7 @@ class MediaRepository {
               isOrphaned: Value(item.isOrphaned),
               signerId: Value(item.signerId),
               signerName: Value(item.signerName),
+              imageData: Value(item.imageData),
               sourceType: Value(item.sourceType.name),
               localPath: Value(item.localPath),
               bookmarkRef: Value(item.bookmarkRef),
@@ -171,6 +172,7 @@ class MediaRepository {
           isOrphaned: Value(item.isOrphaned),
           signerId: Value(item.signerId),
           signerName: Value(item.signerName),
+          imageData: Value(item.imageData),
           sourceType: Value(item.sourceType.name),
           localPath: Value(item.localPath),
           bookmarkRef: Value(item.bookmarkRef),
@@ -626,6 +628,7 @@ class MediaRepository {
       isOrphaned: row.isOrphaned,
       signerId: row.signerId,
       signerName: row.signerName,
+      imageData: row.imageData,
       sourceType:
           MediaSourceType.fromString(row.sourceType) ??
           MediaSourceType.platformGallery,

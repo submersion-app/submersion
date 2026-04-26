@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:equatable/equatable.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
@@ -79,6 +81,7 @@ class MediaItem extends Equatable {
   final bool isOrphaned;
   final String? signerId;
   final String? signerName;
+  final Uint8List? imageData;
   final MediaSourceType sourceType;
   final String? localPath;
   final String? bookmarkRef;
@@ -114,6 +117,7 @@ class MediaItem extends Equatable {
     this.isOrphaned = false,
     this.signerId,
     this.signerName,
+    this.imageData,
     this.sourceType = MediaSourceType.platformGallery,
     this.localPath,
     this.bookmarkRef,
@@ -164,6 +168,7 @@ class MediaItem extends Equatable {
     bool? isOrphaned,
     Object? signerId = _undefined,
     Object? signerName = _undefined,
+    Object? imageData = _undefined,
     MediaSourceType? sourceType,
     Object? localPath = _undefined,
     Object? bookmarkRef = _undefined,
@@ -215,6 +220,9 @@ class MediaItem extends Equatable {
       signerName: signerName == _undefined
           ? this.signerName
           : signerName as String?,
+      imageData: imageData == _undefined
+          ? this.imageData
+          : imageData as Uint8List?,
       sourceType: sourceType ?? this.sourceType,
       localPath: localPath == _undefined
           ? this.localPath
@@ -267,6 +275,7 @@ class MediaItem extends Equatable {
     isOrphaned,
     signerId,
     signerName,
+    imageData,
     sourceType,
     localPath,
     bookmarkRef,
