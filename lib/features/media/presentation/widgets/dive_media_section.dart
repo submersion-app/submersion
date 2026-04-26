@@ -359,18 +359,20 @@ class _MediaThumbnailContent extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Thumbnail or placeholder
+            // Thumbnail or placeholder.
+            // Orphaned items show a distinct error tile; all other items
+            // route through MediaItemView which dispatches to the correct
+            // resolver for the item's sourceType (gallery, signature, etc.)
+            // and renders UnavailableMediaPlaceholder for missing assets.
             if (item.isOrphaned)
               const _OrphanedPlaceholder()
-            else if (item.platformAssetId != null)
+            else
               MediaItemView(
                 item: item,
                 thumbnail: true,
                 targetSize: const Size(200, 200),
                 fit: BoxFit.cover,
-              )
-            else
-              _buildPlaceholder(colorScheme),
+              ),
 
             // Dimming overlay for unselected items in selection mode
             if (isSelectionMode && !isSelected)
@@ -455,13 +457,6 @@ class _MediaThumbnailContent extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildPlaceholder(ColorScheme colorScheme) {
-    return Container(
-      color: colorScheme.surfaceContainerHighest,
-      child: Icon(Icons.photo, color: colorScheme.onSurfaceVariant),
     );
   }
 }
