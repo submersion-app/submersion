@@ -126,6 +126,39 @@ void main() {
     },
   );
 
+  test('network_credential_hosts rejects duplicate hostname (UNIQUE) on fresh '
+      'install — matches v72 migration constraint', () async {
+    await db
+        .into(db.networkCredentialHosts)
+        .insert(
+          NetworkCredentialHostsCompanion.insert(
+            id: 'host-a',
+            hostname: 'photos.example.com',
+            authType: 'basic',
+            credentialsRef: 'cred-1',
+            addedAt: 0,
+          ),
+        );
+
+    // Fresh-install schema (created from the Drift table classes) must
+    // reject a second row with the same hostname, just like the migration's
+    // `hostname TEXT NOT NULL UNIQUE` constraint does on upgraded DBs.
+    expect(
+      () async => db
+          .into(db.networkCredentialHosts)
+          .insert(
+            NetworkCredentialHostsCompanion.insert(
+              id: 'host-b',
+              hostname: 'photos.example.com',
+              authType: 'bearer',
+              credentialsRef: 'cred-2',
+              addedAt: 0,
+            ),
+          ),
+      throwsA(isA<Exception>()),
+    );
+  });
+
   test(
     'media_fetch_diagnostics accepts insert + select via typed API',
     () async {

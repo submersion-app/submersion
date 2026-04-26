@@ -160,7 +160,5 @@ void main() {
     expect(byId['b']!.read<String>('source_type'), 'signature');
     expect(byId['c']!.read<String>('source_type'), 'localFile');
     expect(byId['c']!.read<String?>('local_path'), '/Users/me/photo.jpg');
-
-    await db.close();
   });
 }

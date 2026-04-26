@@ -62,12 +62,19 @@ class LocalMediaHandler(
         val ref = call.argument<String>("bookmarkRef")
             ?: return result.error("INVALID_ARGS", "bookmarkRef required", null)
         val uri = Uri.parse(ref)
-        val df = DocumentFile.fromSingleUri(context, uri)
-        if (df == null || !df.exists()) {
-            result.success(null)
-            return
+        // DocumentFile.fromSingleUri / .exists() can throw SecurityException
+        // (permission revoked) or IllegalArgumentException (malformed URI);
+        // both mean "file is gone from this device's perspective", which the
+        // Dart side already handles via the `null` result.
+        val exists = try {
+            val df = DocumentFile.fromSingleUri(context, uri)
+            df != null && df.exists()
+        } catch (_: SecurityException) {
+            false
+        } catch (_: IllegalArgumentException) {
+            false
         }
-        result.success(uri.toString())
+        result.success(if (exists) uri.toString() else null)
     }
 
     private fun releaseBookmark(call: MethodCall, result: MethodChannel.Result) {

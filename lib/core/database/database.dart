@@ -657,6 +657,14 @@ class NetworkCredentialHosts extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  // Match the v72 migration's `hostname TEXT NOT NULL UNIQUE` so fresh
+  // installs (created from the Drift schema) reject duplicate hostnames the
+  // same way upgraded DBs do.
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {hostname},
+  ];
 }
 
 /// Per-device fetch error diagnostics for media items. Not synced.

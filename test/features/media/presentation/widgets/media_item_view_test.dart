@@ -269,6 +269,46 @@ void main() {
     },
   );
 
+  testWidgets(
+    'recomputes future when a pointer field changes in-place (same id)',
+    (tester) async {
+      // Same id, but platformAssetId changes — this is the in-place
+      // mutation case where `_inputsChanged` previously returned false
+      // because only id+sourceType were checked, leaving stale resolved
+      // bytes on screen. Equatable-based comparison fixes it.
+      final stub = _StubResolver(
+        BytesData(bytes: _pngBytes),
+        MediaSourceType.platformGallery,
+      );
+      final key = UniqueKey();
+      MediaItem itemWithAssetId(String assetId) => MediaItem(
+        id: 'same-id',
+        mediaType: MediaType.photo,
+        sourceType: MediaSourceType.platformGallery,
+        platformAssetId: assetId,
+        takenAt: DateTime.utc(2024, 1, 1),
+        createdAt: DateTime.utc(2024, 1, 1),
+        updatedAt: DateTime.utc(2024, 1, 1),
+      );
+      Widget treeFor(MediaItem item) => _wrap(
+        child: SizedBox(
+          width: 50,
+          height: 50,
+          child: MediaItemView(key: key, item: item),
+        ),
+        resolver: stub,
+      );
+
+      await tester.pumpWidget(treeFor(itemWithAssetId('asset-A')));
+      await tester.pumpAndSettle();
+      expect(stub.resolveCalls, 1);
+
+      await tester.pumpWidget(treeFor(itemWithAssetId('asset-B')));
+      await tester.pumpAndSettle();
+      expect(stub.resolveCalls, 2);
+    },
+  );
+
   testWidgets('recomputes future when item.id changes', (tester) async {
     final stub = _StubResolver(
       BytesData(bytes: _pngBytes),

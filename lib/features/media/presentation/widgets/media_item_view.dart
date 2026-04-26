@@ -61,9 +61,13 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
     }
   }
 
+  // MediaItem is Equatable and its props cover every pointer field that can
+  // affect resolution (platformAssetId, localPath, bookmarkRef, url,
+  // imageData, sourceType, etc.), so deep equality on the item is the
+  // correct cache key — it catches both identity changes and in-place
+  // mutations of the same row.
   bool _inputsChanged(MediaItemView old) =>
-      old.item.id != widget.item.id ||
-      old.item.sourceType != widget.item.sourceType ||
+      old.item != widget.item ||
       old.thumbnail != widget.thumbnail ||
       old.targetSize != widget.targetSize;
 
