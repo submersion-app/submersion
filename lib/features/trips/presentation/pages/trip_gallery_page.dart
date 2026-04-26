@@ -11,7 +11,8 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/scan_results_dialog.dart';
-import 'package:submersion/features/media/presentation/widgets/unavailable_photo_placeholder.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/presentation/widgets/unavailable_media_placeholder.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -421,7 +422,9 @@ class _GridThumbnail extends ConsumerWidget {
     return resultAsync.when(
       data: (result) {
         if (result.isUnavailable) {
-          return const UnavailablePhotoPlaceholder();
+          return const UnavailableMediaPlaceholder(
+            data: UnavailableData(kind: UnavailableKind.notFound),
+          );
         }
         if (result.bytes == null) {
           return _buildPlaceholder(colorScheme);

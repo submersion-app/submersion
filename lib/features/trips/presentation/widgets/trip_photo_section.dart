@@ -5,7 +5,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
-import 'package:submersion/features/media/presentation/widgets/unavailable_photo_placeholder.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/presentation/widgets/unavailable_media_placeholder.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 
 /// Maximum number of thumbnail photos to display in the preview row.
@@ -269,7 +270,9 @@ class _PhotoThumbnail extends ConsumerWidget {
     return resultAsync.when(
       data: (result) {
         if (result.isUnavailable) {
-          return const UnavailablePhotoPlaceholder();
+          return const UnavailableMediaPlaceholder(
+            data: UnavailableData(kind: UnavailableKind.notFound),
+          );
         }
         if (result.bytes == null) {
           return _buildPlaceholder(colorScheme);
