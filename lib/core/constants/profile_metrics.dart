@@ -178,10 +178,9 @@ enum MetricDataSource {
       value == 0 ? MetricDataSource.computer : MetricDataSource.calculated;
 }
 
-/// Reports which data source is currently selected for each metric.
 ///
-/// Availability is handled separately from selection. A selected source may
-/// render blank when that source has no data.
+/// When a user prefers `computer` but no computer data exists for that metric,
+/// the actual source falls back to `calculated`.
 typedef MetricSourceInfo = ({
   MetricDataSource ndlActual,
   MetricDataSource ceilingActual,
