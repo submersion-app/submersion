@@ -19,6 +19,11 @@ import Foundation
 ///
 ///   - releaseBookmark(bookmarkRef: String) -> Void
 ///       Stops the security-scoped resource access for the given session ref.
+///
+///   - releaseAllBookmarks() -> Void
+///       Stops security-scoped access for every URL currently held by this
+///       handler. Intended for logout / app-teardown flows where the Dart
+///       side wants to drop every outstanding resolve at once.
 class LocalMediaHandler: NSObject {
     private let channel: FlutterMethodChannel
     /// Active security-scoped URLs that callers must release. Keyed by a
@@ -32,6 +37,18 @@ class LocalMediaHandler: NSObject {
         )
         super.init()
         channel.setMethodCallHandler(handle)
+    }
+
+    deinit {
+        // Defensive cleanup: balance any startAccessingSecurityScopedResource()
+        // calls whose matching releaseBookmark never came in (Dart-side bug,
+        // missed teardown, etc.). On normal app exit the OS would reclaim
+        // these anyway, but draining the dictionary keeps long-lived sandbox
+        // accounting clean if the handler is ever recreated mid-process.
+        for (_, url) in active {
+            url.stopAccessingSecurityScopedResource()
+        }
+        active.removeAll()
     }
 
     private func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -75,6 +92,8 @@ class LocalMediaHandler: NSObject {
                 return
             }
             releaseBookmark(key: key, result: result)
+        case "releaseAllBookmarks":
+            releaseAllBookmarks(result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -138,6 +157,14 @@ class LocalMediaHandler: NSObject {
         if let url = active.removeValue(forKey: key) {
             url.stopAccessingSecurityScopedResource()
         }
+        result(nil)
+    }
+
+    private func releaseAllBookmarks(result: @escaping FlutterResult) {
+        for (_, url) in active {
+            url.stopAccessingSecurityScopedResource()
+        }
+        active.removeAll()
         result(nil)
     }
 }

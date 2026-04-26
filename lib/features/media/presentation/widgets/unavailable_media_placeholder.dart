@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Visual placeholder shown when a [MediaItem] cannot be displayed on the
 /// current device. Renders a grayed thumbnail with an icon and short label
@@ -23,20 +24,23 @@ class UnavailableMediaPlaceholder extends StatelessWidget {
       color: scheme.surfaceContainerHighest,
       alignment: Alignment.center,
       padding: const EdgeInsets.all(8),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(_iconFor(data.kind), size: iconSize, color: scheme.outline),
-          const SizedBox(height: 4),
-          Text(
-            _messageFor(data),
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall?.copyWith(color: scheme.outline),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(_iconFor(data.kind), size: iconSize, color: scheme.outline),
+            const SizedBox(height: 4),
+            Text(
+              _messageFor(context, data),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(color: scheme.outline),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -49,17 +53,24 @@ class UnavailableMediaPlaceholder extends StatelessWidget {
     UnavailableKind.networkError => Icons.cloud_off_outlined,
   };
 
-  String _messageFor(UnavailableData d) {
+  String _messageFor(BuildContext context, UnavailableData d) {
     if (d.userMessage != null) return d.userMessage!;
+    final l10n = context.l10n;
     return switch (d.kind) {
-      UnavailableKind.notFound => 'File not found',
-      UnavailableKind.unauthenticated => 'Sign in to view',
-      UnavailableKind.signInRequired => 'Sign in to view',
+      UnavailableKind.notFound =>
+        l10n.media_unavailablePlaceholder_fileNotFound,
+      UnavailableKind.unauthenticated =>
+        l10n.media_unavailablePlaceholder_signInRequired,
+      UnavailableKind.signInRequired =>
+        l10n.media_unavailablePlaceholder_signInRequired,
       UnavailableKind.fromOtherDevice =>
         d.originDeviceLabel != null
-            ? 'From ${d.originDeviceLabel}'
-            : 'From another device',
-      UnavailableKind.networkError => "Couldn't connect",
+            ? l10n.media_unavailablePlaceholder_fromOtherDeviceLabel(
+                d.originDeviceLabel!,
+              )
+            : l10n.media_unavailablePlaceholder_fromOtherDevice,
+      UnavailableKind.networkError =>
+        l10n.media_unavailablePlaceholder_networkError,
     };
   }
 }

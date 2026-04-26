@@ -15904,11 +15904,41 @@ abstract class AppLocalizations {
   /// **'{count} photos could not be matched to any dive (taken outside dive times)'**
   String media_scanResults_unmatchedWarning(Object count);
 
+  /// No description provided for @media_unavailablePlaceholder_fileNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'File not found'**
+  String get media_unavailablePlaceholder_fileNotFound;
+
+  /// No description provided for @media_unavailablePlaceholder_fromOtherDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'From another device'**
+  String get media_unavailablePlaceholder_fromOtherDevice;
+
+  /// No description provided for @media_unavailablePlaceholder_fromOtherDeviceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'From {device}'**
+  String media_unavailablePlaceholder_fromOtherDeviceLabel(String device);
+
+  /// No description provided for @media_unavailablePlaceholder_networkError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t connect'**
+  String get media_unavailablePlaceholder_networkError;
+
   /// No description provided for @media_unavailablePlaceholder_notOnDevice.
   ///
   /// In en, this message translates to:
   /// **'Not on this device'**
   String get media_unavailablePlaceholder_notOnDevice;
+
+  /// No description provided for @media_unavailablePlaceholder_signInRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to view'**
+  String get media_unavailablePlaceholder_signInRequired;
 
   /// No description provided for @media_writeMetadata_cancelButton.
   ///

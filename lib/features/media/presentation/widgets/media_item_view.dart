@@ -19,7 +19,14 @@ import 'package:submersion/features/media/presentation/widgets/unavailable_media
 ///   * [UnavailableData] — [UnavailableMediaPlaceholder] (badge with reason)
 ///
 /// While the future is loading, shows a [_ShimmerThumbnail] placeholder.
-class MediaItemView extends ConsumerWidget {
+/// If the resolver future completes with an error, falls back to an
+/// [UnavailableMediaPlaceholder] (kind: [UnavailableKind.notFound]) so a
+/// failure never looks like a permanent shimmer.
+///
+/// The resolver Future is memoized: it is computed once in [State.initState]
+/// and recomputed only when [item.id], [item.sourceType], [thumbnail], or
+/// [targetSize] changes. This avoids re-resolution flicker on parent rebuilds.
+class MediaItemView extends ConsumerStatefulWidget {
   final MediaItem item;
   final BoxFit fit;
   final Size? targetSize;
@@ -34,33 +41,66 @@ class MediaItemView extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final registry = ref.watch(mediaSourceResolverRegistryProvider);
-    final resolver = registry.resolverFor(item.sourceType);
+  ConsumerState<MediaItemView> createState() => _MediaItemViewState();
+}
 
-    final future = thumbnail && targetSize != null
-        ? resolver.resolveThumbnail(item, target: targetSize!)
-        : resolver.resolve(item);
+class _MediaItemViewState extends ConsumerState<MediaItemView> {
+  late Future<MediaSourceData> _future;
 
+  @override
+  void initState() {
+    super.initState();
+    _future = _resolve();
+  }
+
+  @override
+  void didUpdateWidget(covariant MediaItemView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_inputsChanged(oldWidget)) {
+      _future = _resolve();
+    }
+  }
+
+  bool _inputsChanged(MediaItemView old) =>
+      old.item.id != widget.item.id ||
+      old.item.sourceType != widget.item.sourceType ||
+      old.thumbnail != widget.thumbnail ||
+      old.targetSize != widget.targetSize;
+
+  Future<MediaSourceData> _resolve() {
+    final registry = ref.read(mediaSourceResolverRegistryProvider);
+    final resolver = registry.resolverFor(widget.item.sourceType);
+    return widget.thumbnail && widget.targetSize != null
+        ? resolver.resolveThumbnail(widget.item, target: widget.targetSize!)
+        : resolver.resolve(widget.item);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return FutureBuilder<MediaSourceData>(
-      future: future,
+      future: _future,
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const UnavailableMediaPlaceholder(
+            data: UnavailableData(kind: UnavailableKind.notFound),
+          );
+        }
         if (!snapshot.hasData) {
           return const _ShimmerThumbnail();
         }
         final data = snapshot.data!;
         return switch (data) {
-          FileData(file: final f) => Image.file(f, fit: fit),
+          FileData(file: final f) => Image.file(f, fit: widget.fit),
           NetworkData(url: final u, headers: final h) => CachedNetworkImage(
             imageUrl: u.toString(),
             httpHeaders: h,
-            fit: fit,
+            fit: widget.fit,
             placeholder: (_, _) => const _ShimmerThumbnail(),
             errorWidget: (_, _, _) => const UnavailableMediaPlaceholder(
               data: UnavailableData(kind: UnavailableKind.networkError),
             ),
           ),
-          BytesData(bytes: final b) => Image.memory(b, fit: fit),
+          BytesData(bytes: final b) => Image.memory(b, fit: widget.fit),
           UnavailableData() => UnavailableMediaPlaceholder(data: data),
         };
       },

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -692,16 +693,27 @@ void main() {
           final item = MediaItem(
             id: '',
             mediaType: MediaType.photo,
-            sourceType: MediaSourceType.platformGallery,
+            sourceType: MediaSourceType.localFile,
+            localPath: '/tmp/x.jpg',
             takenAt: takenAt,
             createdAt: takenAt,
             updatedAt: takenAt,
           );
           final created = await repository.createMedia(item);
+
+          // Force an unknown source_type value directly in the DB to exercise
+          // the _mapRowToMediaItem fallback. This simulates a row written by
+          // a future schema version with a source-type the current build
+          // doesn't know about.
+          final db = DatabaseService.instance.database;
+          await db.customStatement(
+            "UPDATE media SET source_type = 'futureUnknownSource' WHERE id = ?",
+            [created.id],
+          );
+
           final fetched = await repository.getMediaById(created.id);
 
           expect(fetched, isNotNull);
-          // Default value stored and read back correctly
           expect(fetched!.sourceType, equals(MediaSourceType.platformGallery));
         },
       );

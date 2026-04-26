@@ -9322,8 +9322,26 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get media_unavailablePlaceholder_fileNotFound => 'File not found';
+
+  @override
+  String get media_unavailablePlaceholder_fromOtherDevice =>
+      'From another device';
+
+  @override
+  String media_unavailablePlaceholder_fromOtherDeviceLabel(String device) {
+    return 'From $device';
+  }
+
+  @override
+  String get media_unavailablePlaceholder_networkError => 'Couldn\'t connect';
+
+  @override
   String get media_unavailablePlaceholder_notOnDevice =>
       'Non disponible sur cet appareil';
+
+  @override
+  String get media_unavailablePlaceholder_signInRequired => 'Sign in to view';
 
   @override
   String get media_writeMetadata_cancelButton => 'Annuler';

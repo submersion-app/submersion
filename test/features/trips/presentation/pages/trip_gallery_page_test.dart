@@ -323,5 +323,50 @@ void main() {
               as SliverGridDelegateWithFixedCrossAxisCount;
       expect(delegate.crossAxisCount, 4);
     });
+
+    testWidgets(
+      'orphaned media renders distinct error tile (broken_image_outlined)',
+      (tester) async {
+        final testDive = Dive(
+          id: 'dive-1',
+          dateTime: DateTime(2024, 1, 15, 10, 30),
+          diveNumber: 1,
+        );
+
+        final orphanedMedia = MediaItem(
+          id: 'media-orphan',
+          diveId: 'dive-1',
+          mediaType: MediaType.photo,
+          takenAt: DateTime(2024, 1, 15, 10, 45),
+          platformAssetId: 'asset-orphan',
+          isOrphaned: true,
+          createdAt: DateTime(2024, 1, 15),
+          updatedAt: DateTime(2024, 1, 15),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              mediaForTripProvider('test-trip').overrideWith((ref) {
+                return Future.value({
+                  testDive: [orphanedMedia],
+                });
+              }),
+            ],
+            child: const MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: TripGalleryPage(tripId: 'test-trip'),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        // Orphaned items render the broken_image_outlined icon, distinct from
+        // the regular MediaItemView+UnavailableMediaPlaceholder error tile.
+        expect(find.byIcon(Icons.broken_image_outlined), findsOneWidget);
+      },
+    );
   });
 }

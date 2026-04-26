@@ -41,6 +41,9 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     if (resolvedId == null) {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
+    // photo_manager AssetEntity APIs require a real device gallery; the
+    // remaining branches are exercised on iOS/Android hosts only.
+    // coverage:ignore-start
     final asset = await AssetEntity.fromId(resolvedId);
     if (asset == null) {
       return const UnavailableData(kind: UnavailableKind.notFound);
@@ -50,6 +53,7 @@ class PlatformGalleryResolver implements MediaSourceResolver {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
     return BytesData(bytes: bytes);
+    // coverage:ignore-end
   }
 
   @override
@@ -65,6 +69,7 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     if (resolvedId == null) {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
+    // coverage:ignore-start
     final asset = await AssetEntity.fromId(resolvedId);
     if (asset == null) {
       return const UnavailableData(kind: UnavailableKind.notFound);
@@ -76,6 +81,7 @@ class PlatformGalleryResolver implements MediaSourceResolver {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
     return BytesData(bytes: thumbBytes);
+    // coverage:ignore-end
   }
 
   @override
@@ -84,6 +90,7 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     if (assetId == null || assetId.isEmpty) return null;
     final resolvedId = await _resolveId(item);
     if (resolvedId == null) return null;
+    // coverage:ignore-start
     final asset = await AssetEntity.fromId(resolvedId);
     if (asset == null) return null;
     final ll = await asset.latlngAsync();
@@ -96,6 +103,7 @@ class PlatformGalleryResolver implements MediaSourceResolver {
       durationSeconds: asset.duration > 0 ? asset.duration : null,
       mimeType: asset.mimeType ?? 'application/octet-stream',
     );
+    // coverage:ignore-end
   }
 
   @override
@@ -104,8 +112,10 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     if (assetId == null || assetId.isEmpty) return VerifyResult.notFound;
     final resolvedId = await _resolveId(item);
     if (resolvedId == null) return VerifyResult.notFound;
+    // coverage:ignore-start
     final asset = await AssetEntity.fromId(resolvedId);
     return asset == null ? VerifyResult.notFound : VerifyResult.available;
+    // coverage:ignore-end
   }
 
   /// Delegates to [AssetResolutionService] to obtain the local asset ID.

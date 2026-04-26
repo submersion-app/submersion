@@ -506,6 +506,10 @@ class Media extends Table {
   IntColumn get lastVerifiedAt => integer().nullable()();
   BoolColumn get isOrphaned => boolean().withDefault(const Constant(false))();
   // Source-type extension (v72)
+  // Drift's build_runner replaces these getters with `GeneratedColumn`
+  // declarations on the `$MediaTable` subclass, so the bodies below never
+  // execute at runtime — they're DSL the schema generator reads as AST.
+  // coverage:ignore-start
   TextColumn get sourceType =>
       text().withDefault(const Constant('platformGallery'))();
   TextColumn get localPath => text().nullable()();
@@ -516,6 +520,7 @@ class Media extends Table {
   TextColumn get connectorAccountId => text().nullable()();
   TextColumn get remoteAssetId => text().nullable()();
   TextColumn get originDeviceId => text().nullable()();
+  // coverage:ignore-end
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -583,6 +588,13 @@ class PendingPhotoSuggestions extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+// Drift table classes added in v72. The column getter bodies below are
+// pure DSL (read by build_runner to generate `$<Table>Table` subclasses
+// with overriding `GeneratedColumn` fields) and never execute at runtime,
+// so they cannot be covered by tests. The schema is exercised end-to-end
+// in `migration_72_test.dart` and `new_tables_drift_access_test.dart`.
+// coverage:ignore-start
 
 /// Manifest-feed subscriptions (Atom/RSS, JSON, CSV) for periodic polling.
 /// Synced across devices.
@@ -658,6 +670,7 @@ class MediaFetchDiagnostics extends Table {
   @override
   Set<Column> get primaryKey => {mediaItemId};
 }
+// coverage:ignore-end
 
 /// Application settings key-value store (legacy - kept for backward compatibility)
 class Settings extends Table {

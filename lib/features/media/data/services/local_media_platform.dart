@@ -34,6 +34,7 @@ class LocalMediaPlatform {
     if (!Platform.isIOS && !Platform.isMacOS) {
       throw UnsupportedError('createBookmark is only supported on iOS / macOS');
     }
+    // coverage:ignore-start
     final result = await _channel.invokeMethod<Uint8List>('createBookmark', {
       'filePath': filePath,
     });
@@ -41,6 +42,7 @@ class LocalMediaPlatform {
       throw StateError('createBookmark returned null');
     }
     return result;
+    // coverage:ignore-end
   }
 
   /// iOS / macOS only. Starts security-scoped resource access for the given
@@ -53,6 +55,7 @@ class LocalMediaPlatform {
         'resolveBookmark is only supported on iOS / macOS',
       );
     }
+    // coverage:ignore-start
     final r = await _channel.invokeMapMethod<String, dynamic>(
       'resolveBookmark',
       {'bookmarkBlob': blob},
@@ -63,15 +66,28 @@ class LocalMediaPlatform {
       filePath: r['filePath'] as String,
       stale: (r['stale'] as bool?) ?? false,
     );
+    // coverage:ignore-end
   }
 
   /// Releases the security-scoped resource access started by [resolveBookmark].
   /// Safe to call on any platform; no-ops on Android.
   Future<void> releaseBookmark(String bookmarkRef) async {
     if (!Platform.isIOS && !Platform.isMacOS) return;
+    // coverage:ignore-start
     await _channel.invokeMethod<void>('releaseBookmark', {
       'bookmarkRef': bookmarkRef,
     });
+    // coverage:ignore-end
+  }
+
+  /// iOS / macOS only. Releases every security-scoped URL the native handler
+  /// is currently holding. Use on logout / app-teardown flows so dangling
+  /// `startAccessingSecurityScopedResource()` calls don't leak for the rest
+  /// of the process lifetime.
+  Future<void> releaseAllBookmarks() async {
+    if (!Platform.isIOS && !Platform.isMacOS) return;
+    // coverage:ignore-line
+    await _channel.invokeMethod<void>('releaseAllBookmarks');
   }
 
   /// Android only. Calls `ContentResolver.takePersistableUriPermission` and
@@ -81,27 +97,33 @@ class LocalMediaPlatform {
     if (!Platform.isAndroid) {
       throw UnsupportedError('takePersistableUri is only supported on Android');
     }
+    // coverage:ignore-start
     final r = await _channel.invokeMethod<String>('takePersistableUri', {
       'uri': uri,
     });
     if (r == null) throw StateError('takePersistableUri returned null');
     return r;
+    // coverage:ignore-end
   }
 
   /// Android only. Releases a previously persistable URI permission.
   Future<void> releasePersistableUri(String uri) async {
     if (!Platform.isAndroid) return;
+    // coverage:ignore-start
     await _channel.invokeMethod<void>(
       'releaseBookmark', // Android-side handler reuses this method name
       {'bookmarkRef': uri},
     );
+    // coverage:ignore-end
   }
 
   /// Android only. Lists all persisted URI permissions (used by the Settings
   /// page to show the user's URI budget — Android caps at 128 per app).
   Future<List<String>> listPersistedUris() async {
     if (!Platform.isAndroid) return const [];
+    // coverage:ignore-start
     final r = await _channel.invokeListMethod<String>('listPersistedUris');
     return r ?? const [];
+    // coverage:ignore-end
   }
 }

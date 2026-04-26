@@ -21,6 +21,8 @@ void main() {
               };
             case 'releaseBookmark':
               return null;
+            case 'releaseAllBookmarks':
+              return null;
             case 'takePersistableUri':
               return call.arguments['uri'] as String;
             case 'listPersistedUris':
