@@ -63,4 +63,52 @@ void main() {
       ]),
     );
   });
+
+  test('migration to v72 creates new tables', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (rawDb) {
+          rawDb.execute('PRAGMA foreign_keys = ON');
+          rawDb.execute('PRAGMA user_version = 71');
+
+          // v71 schema: minimal schema with media table to test CREATE TABLE
+          // statements during migration.
+          rawDb.execute('''
+            CREATE TABLE IF NOT EXISTS divers (
+              id TEXT NOT NULL PRIMARY KEY,
+              name TEXT NOT NULL,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+          rawDb.execute('''
+            CREATE TABLE IF NOT EXISTS media (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_id TEXT,
+              file_path TEXT NOT NULL,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+        },
+      ),
+    );
+    addTearDown(db.close);
+
+    final tables = await db
+        .customSelect("SELECT name FROM sqlite_master WHERE type='table'")
+        .get();
+    final names = tables.map((r) => r.read<String>('name')).toSet();
+
+    expect(
+      names,
+      containsAll([
+        'media_subscriptions',
+        'media_subscription_state',
+        'connector_accounts',
+        'network_credential_hosts',
+        'media_fetch_diagnostics',
+      ]),
+    );
+  });
 }

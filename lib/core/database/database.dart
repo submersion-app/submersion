@@ -3349,6 +3349,73 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'ALTER TABLE media ADD COLUMN origin_device_id TEXT',
           );
+
+          // Subscription registry (synced across devices).
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS media_subscriptions (
+              id TEXT NOT NULL PRIMARY KEY,
+              manifest_url TEXT NOT NULL,
+              format TEXT NOT NULL,
+              display_name TEXT,
+              poll_interval_seconds INTEGER NOT NULL DEFAULT 86400,
+              is_active INTEGER NOT NULL DEFAULT 1,
+              credentials_host_id TEXT,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+
+          // Per-device polling state (NOT synced).
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS media_subscription_state (
+              subscription_id TEXT NOT NULL PRIMARY KEY
+                REFERENCES media_subscriptions(id) ON DELETE CASCADE,
+              last_polled_at INTEGER,
+              next_poll_at INTEGER,
+              last_etag TEXT,
+              last_modified TEXT,
+              last_error TEXT,
+              last_error_at INTEGER
+            )
+          ''');
+
+          // Service connector accounts (NOT synced).
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS connector_accounts (
+              id TEXT NOT NULL PRIMARY KEY,
+              connector_type TEXT NOT NULL,
+              display_name TEXT NOT NULL,
+              base_url TEXT,
+              account_identifier TEXT,
+              credentials_ref TEXT NOT NULL,
+              added_at INTEGER NOT NULL,
+              last_used_at INTEGER
+            )
+          ''');
+
+          // Per-host credentials for ad-hoc network URLs (NOT synced).
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS network_credential_hosts (
+              id TEXT NOT NULL PRIMARY KEY,
+              hostname TEXT NOT NULL UNIQUE,
+              auth_type TEXT NOT NULL,
+              display_name TEXT,
+              credentials_ref TEXT NOT NULL,
+              added_at INTEGER NOT NULL,
+              last_used_at INTEGER
+            )
+          ''');
+
+          // Per-device fetch diagnostics (NOT synced).
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS media_fetch_diagnostics (
+              media_item_id TEXT NOT NULL PRIMARY KEY
+                REFERENCES media(id) ON DELETE CASCADE,
+              last_error_at INTEGER,
+              last_error_message TEXT,
+              error_count INTEGER NOT NULL DEFAULT 0
+            )
+          ''');
         }
         if (from < 72) await reportProgress();
       },
