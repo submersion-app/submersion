@@ -505,6 +505,17 @@ class Media extends Table {
   IntColumn get thumbnailGeneratedAt => integer().nullable()();
   IntColumn get lastVerifiedAt => integer().nullable()();
   BoolColumn get isOrphaned => boolean().withDefault(const Constant(false))();
+  // Source-type extension (v72)
+  TextColumn get sourceType =>
+      text().withDefault(const Constant('platformGallery'))();
+  TextColumn get localPath => text().nullable()();
+  TextColumn get bookmarkRef => text().nullable()();
+  TextColumn get url => text().nullable()();
+  TextColumn get subscriptionId => text().nullable()();
+  TextColumn get entryKey => text().nullable()();
+  TextColumn get connectorAccountId => text().nullable()();
+  TextColumn get remoteAssetId => text().nullable()();
+  TextColumn get originDeviceId => text().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
