@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import 'package:submersion/features/media/data/resolvers/platform_gallery_resolver.dart';
 import 'package:submersion/features/media/data/resolvers/signature_resolver.dart';
@@ -39,3 +40,8 @@ final mediaSourceResolverRegistryProvider =
         MediaSourceType.signature: ref.watch(signatureResolverProvider),
       });
     });
+
+/// Whether to show the placeholder Files / URL tabs in the picker. Off by
+/// default; enabled via Settings → Data → Media Sources → Diagnostics
+/// (Task 29 wires the toggle).
+final mediaPickerHiddenTabsProvider = StateProvider<bool>((ref) => false);
