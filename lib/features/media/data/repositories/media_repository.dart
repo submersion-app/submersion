@@ -8,6 +8,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart'
     as domain;
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 class MediaRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -108,6 +109,15 @@ class MediaRepository {
               isOrphaned: Value(item.isOrphaned),
               signerId: Value(item.signerId),
               signerName: Value(item.signerName),
+              sourceType: Value(item.sourceType.name),
+              localPath: Value(item.localPath),
+              bookmarkRef: Value(item.bookmarkRef),
+              url: Value(item.url),
+              subscriptionId: Value(item.subscriptionId),
+              entryKey: Value(item.entryKey),
+              connectorAccountId: Value(item.connectorAccountId),
+              remoteAssetId: Value(item.remoteAssetId),
+              originDeviceId: Value(item.originDeviceId),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -161,6 +171,15 @@ class MediaRepository {
           isOrphaned: Value(item.isOrphaned),
           signerId: Value(item.signerId),
           signerName: Value(item.signerName),
+          sourceType: Value(item.sourceType.name),
+          localPath: Value(item.localPath),
+          bookmarkRef: Value(item.bookmarkRef),
+          url: Value(item.url),
+          subscriptionId: Value(item.subscriptionId),
+          entryKey: Value(item.entryKey),
+          connectorAccountId: Value(item.connectorAccountId),
+          remoteAssetId: Value(item.remoteAssetId),
+          originDeviceId: Value(item.originDeviceId),
           updatedAt: Value(now),
         ),
       );
@@ -607,6 +626,17 @@ class MediaRepository {
       isOrphaned: row.isOrphaned,
       signerId: row.signerId,
       signerName: row.signerName,
+      sourceType:
+          MediaSourceType.fromString(row.sourceType) ??
+          MediaSourceType.platformGallery,
+      localPath: row.localPath,
+      bookmarkRef: row.bookmarkRef,
+      url: row.url,
+      subscriptionId: row.subscriptionId,
+      entryKey: row.entryKey,
+      connectorAccountId: row.connectorAccountId,
+      remoteAssetId: row.remoteAssetId,
+      originDeviceId: row.originDeviceId,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
       enrichment: enrichmentRow != null

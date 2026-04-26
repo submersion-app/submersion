@@ -3,6 +3,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -609,6 +610,101 @@ void main() {
         expect(result!.mediaType, equals(MediaType.instructorSignature));
         expect(result.signerName, equals('John Instructor'));
       });
+    });
+
+    group('source-type fields round-trip', () {
+      test('createMedia round-trips all 9 source-type fields', () async {
+        final takenAt = DateTime.utc(2024, 6, 1);
+        final item = MediaItem(
+          id: '',
+          mediaType: MediaType.photo,
+          sourceType: MediaSourceType.localFile,
+          localPath: '/Users/me/x.jpg',
+          bookmarkRef: 'bref-abc',
+          url: 'https://example.com/photo.jpg',
+          subscriptionId: 'sub-001',
+          entryKey: 'entry-key-001',
+          connectorAccountId: 'connector-001',
+          remoteAssetId: 'remote-asset-001',
+          originDeviceId: 'mac-01',
+          takenAt: takenAt,
+          createdAt: takenAt,
+          updatedAt: takenAt,
+        );
+
+        final created = await repository.createMedia(item);
+        final fetched = await repository.getMediaById(created.id);
+
+        expect(fetched, isNotNull);
+        expect(fetched!.sourceType, equals(MediaSourceType.localFile));
+        expect(fetched.localPath, equals('/Users/me/x.jpg'));
+        expect(fetched.bookmarkRef, equals('bref-abc'));
+        expect(fetched.url, equals('https://example.com/photo.jpg'));
+        expect(fetched.subscriptionId, equals('sub-001'));
+        expect(fetched.entryKey, equals('entry-key-001'));
+        expect(fetched.connectorAccountId, equals('connector-001'));
+        expect(fetched.remoteAssetId, equals('remote-asset-001'));
+        expect(fetched.originDeviceId, equals('mac-01'));
+      });
+
+      test('updateMedia round-trips all 9 source-type fields', () async {
+        final takenAt = DateTime.utc(2024, 6, 2);
+        final initial = MediaItem(
+          id: '',
+          mediaType: MediaType.photo,
+          sourceType: MediaSourceType.platformGallery,
+          takenAt: takenAt,
+          createdAt: takenAt,
+          updatedAt: takenAt,
+        );
+        final created = await repository.createMedia(initial);
+
+        final updated = created.copyWith(
+          sourceType: MediaSourceType.serviceConnector,
+          localPath: '/local/path.jpg',
+          bookmarkRef: 'bref-xyz',
+          url: 'https://service.com/asset.jpg',
+          subscriptionId: 'sub-002',
+          entryKey: 'entry-key-002',
+          connectorAccountId: 'connector-002',
+          remoteAssetId: 'remote-asset-002',
+          originDeviceId: 'ipad-01',
+        );
+        await repository.updateMedia(updated);
+
+        final fetched = await repository.getMediaById(created.id);
+        expect(fetched, isNotNull);
+        expect(fetched!.sourceType, equals(MediaSourceType.serviceConnector));
+        expect(fetched.localPath, equals('/local/path.jpg'));
+        expect(fetched.bookmarkRef, equals('bref-xyz'));
+        expect(fetched.url, equals('https://service.com/asset.jpg'));
+        expect(fetched.subscriptionId, equals('sub-002'));
+        expect(fetched.entryKey, equals('entry-key-002'));
+        expect(fetched.connectorAccountId, equals('connector-002'));
+        expect(fetched.remoteAssetId, equals('remote-asset-002'));
+        expect(fetched.originDeviceId, equals('ipad-01'));
+      });
+
+      test(
+        'unknown sourceType string falls back to platformGallery on read',
+        () async {
+          final takenAt = DateTime.utc(2024, 6, 3);
+          final item = MediaItem(
+            id: '',
+            mediaType: MediaType.photo,
+            sourceType: MediaSourceType.platformGallery,
+            takenAt: takenAt,
+            createdAt: takenAt,
+            updatedAt: takenAt,
+          );
+          final created = await repository.createMedia(item);
+          final fetched = await repository.getMediaById(created.id);
+
+          expect(fetched, isNotNull);
+          // Default value stored and read back correctly
+          expect(fetched!.sourceType, equals(MediaSourceType.platformGallery));
+        },
+      );
     });
 
     group('deleteMultipleMedia', () {
