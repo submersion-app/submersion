@@ -2,6 +2,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
+import 'test_fixtures.dart';
+
 void main() {
   group('Migration v64 - delete orphaned diver data', () {
     /// Creates stub tables for every table the v64 migration touches.
@@ -102,6 +104,8 @@ void main() {
               "INSERT INTO dives (id, diver_id) VALUES ('${d.$1}', $dv)",
             );
           }
+
+          createV71MediaTableRaw(rawDb);
         },
       );
     }
