@@ -1335,7 +1335,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 71;
+  static const int currentSchemaVersion = 72;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1410,6 +1410,7 @@ class AppDatabase extends _$AppDatabase {
     69,
     70,
     71,
+    72,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -3324,6 +3325,12 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 71) await reportProgress();
+        if (from < 72) {
+          // Phase 1 of Media Source Extension — see
+          // docs/superpowers/specs/2026-04-25-media-source-extension-design.md
+          // (Schema changes added in subsequent tasks.)
+        }
+        if (from < 72) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
