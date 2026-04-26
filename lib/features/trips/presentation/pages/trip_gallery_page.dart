@@ -9,10 +9,8 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/trip_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
-import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/scan_results_dialog.dart';
-import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
-import 'package:submersion/features/media/presentation/widgets/unavailable_media_placeholder.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -350,14 +348,14 @@ class _PhotoGrid extends StatelessWidget {
 }
 
 /// Individual thumbnail in the grid.
-class _GridThumbnail extends ConsumerWidget {
+class _GridThumbnail extends StatelessWidget {
   final String tripId;
   final MediaItem item;
 
   const _GridThumbnail({required this.tripId, required this.item});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     final mediaType = item.isVideo ? 'Video' : 'Photo';
@@ -367,19 +365,32 @@ class _GridThumbnail extends ConsumerWidget {
       button: true,
       label: '$mediaType thumbnail$statusStr. Tap to view full screen',
       child: GestureDetector(
-        onTap: () => _openViewer(context, ref),
+        onTap: () => _openViewer(context),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Thumbnail or placeholder
+              // Orphaned items show a distinct error tile; all other items
+              // route through MediaItemView which dispatches to the correct
+              // resolver and shows UnavailableMediaPlaceholder for missing assets.
               if (item.isOrphaned)
-                _buildOrphanedPlaceholder(colorScheme)
-              else if (item.platformAssetId != null)
-                _buildResolvedThumbnail(ref, colorScheme)
+                Container(
+                  color: colorScheme.errorContainer,
+                  child: Center(
+                    child: Icon(
+                      Icons.broken_image_outlined,
+                      color: colorScheme.onErrorContainer,
+                    ),
+                  ),
+                )
               else
-                _buildPlaceholder(colorScheme),
+                MediaItemView(
+                  item: item,
+                  thumbnail: true,
+                  targetSize: const Size(200, 200),
+                  fit: BoxFit.cover,
+                ),
 
               // Video icon (top-right)
               if (item.isVideo)
@@ -406,67 +417,12 @@ class _GridThumbnail extends ConsumerWidget {
     );
   }
 
-  void _openViewer(BuildContext context, WidgetRef ref) {
+  void _openViewer(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
         fullscreenDialog: true,
         builder: (_) =>
             TripPhotoViewerPage(tripId: tripId, initialMediaId: item.id),
-      ),
-    );
-  }
-
-  Widget _buildResolvedThumbnail(WidgetRef ref, ColorScheme colorScheme) {
-    final resultAsync = ref.watch(resolvedThumbnailProvider(item));
-
-    return resultAsync.when(
-      data: (result) {
-        if (result.isUnavailable) {
-          return const UnavailableMediaPlaceholder(
-            data: UnavailableData(kind: UnavailableKind.notFound),
-          );
-        }
-        if (result.bytes == null) {
-          return _buildPlaceholder(colorScheme);
-        }
-        return Image.memory(
-          result.bytes!,
-          fit: BoxFit.cover,
-          cacheWidth: 200,
-          cacheHeight: 200,
-          errorBuilder: (context, error, stack) =>
-              _buildPlaceholder(colorScheme),
-        );
-      },
-      loading: () => Container(
-        color: colorScheme.surfaceContainerHighest,
-        child: const Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      ),
-      error: (error, stack) => _buildPlaceholder(colorScheme),
-    );
-  }
-
-  Widget _buildPlaceholder(ColorScheme colorScheme) {
-    return Container(
-      color: colorScheme.surfaceContainerHighest,
-      child: Icon(Icons.photo, color: colorScheme.onSurfaceVariant),
-    );
-  }
-
-  Widget _buildOrphanedPlaceholder(ColorScheme colorScheme) {
-    return Container(
-      color: colorScheme.errorContainer,
-      child: Center(
-        child: Icon(
-          Icons.broken_image_outlined,
-          color: colorScheme.onErrorContainer,
-        ),
       ),
     );
   }
