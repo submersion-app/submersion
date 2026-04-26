@@ -236,6 +236,39 @@ void main() {
     expect(stub.resolveCalls, 1);
   });
 
+  testWidgets(
+    'gracefully handles a registry that has no resolver for the item sourceType',
+    (tester) async {
+      // Registry registered ONLY for signature; the item's sourceType is
+      // platformGallery — `resolverFor` will throw UnsupportedError
+      // synchronously in `_resolve()`. Because `_resolve()` is `async`, the
+      // throw becomes a Future error and FutureBuilder.hasError renders the
+      // UnavailableMediaPlaceholder instead of crashing initState.
+      final unrelated = _StubResolver(
+        const UnavailableData(kind: UnavailableKind.notFound),
+        MediaSourceType.signature,
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            mediaSourceResolverRegistryProvider.overrideWithValue(
+              MediaSourceResolverRegistry({
+                MediaSourceType.signature: unrelated,
+              }),
+            ),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: MediaItemView(item: _item())),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('File not found'), findsOneWidget);
+    },
+  );
+
   testWidgets('recomputes future when item.id changes', (tester) async {
     final stub = _StubResolver(
       BytesData(bytes: _pngBytes),

@@ -67,12 +67,20 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
       old.thumbnail != widget.thumbnail ||
       old.targetSize != widget.targetSize;
 
-  Future<MediaSourceData> _resolve() {
+  // Declared `async` (not just returning a Future from a sync body) so any
+  // synchronous throw — e.g. `MediaSourceResolverRegistry.resolverFor`
+  // throwing UnsupportedError when a row's source_type has no registered
+  // resolver — becomes a Future error caught by FutureBuilder's hasError
+  // branch in [build] instead of escaping initState/didUpdateWidget.
+  Future<MediaSourceData> _resolve() async {
     final registry = ref.read(mediaSourceResolverRegistryProvider);
     final resolver = registry.resolverFor(widget.item.sourceType);
     return widget.thumbnail && widget.targetSize != null
-        ? resolver.resolveThumbnail(widget.item, target: widget.targetSize!)
-        : resolver.resolve(widget.item);
+        ? await resolver.resolveThumbnail(
+            widget.item,
+            target: widget.targetSize!,
+          )
+        : await resolver.resolve(widget.item);
   }
 
   @override
