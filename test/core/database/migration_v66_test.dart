@@ -4,6 +4,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
+import 'test_fixtures.dart';
+
 void main() {
   group('Migration v66 - raw dive data columns and FK rebuild', () {
     /// Creates an in-memory database at v65 with the tables the v66 migration
@@ -130,6 +132,8 @@ void main() {
               "  'Perdix', 'dc', ${ds.$4}, ${ds.$5})",
             );
           }
+
+          createV71MediaTableRaw(rawDb);
         },
       );
     }
@@ -388,6 +392,8 @@ void main() {
               " VALUES ('ds1', 'dive1', 'comp1', 1,"
               "  'dc', 1000, 1000, X'0102', 'Shearwater')",
             );
+
+            createV71MediaTableRaw(rawDb);
           },
         );
 

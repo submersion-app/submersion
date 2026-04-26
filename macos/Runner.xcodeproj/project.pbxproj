@@ -32,6 +32,7 @@
 		AABBCC001122334455667788 /* SecurityScopedBookmarkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABBCC001122334455667789 /* SecurityScopedBookmarkHandler.swift */; };
 		C507DEAA18B2C2BBCAA8F79D /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 777A6CC8C816F9057D0180DB /* Pods_Runner.framework */; };
 		DEAD1234BEEF56780011AABC /* MetadataWriteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAD1234BEEF56780011AABB /* MetadataWriteHandler.swift */; };
+		E9F0A1B42F0D4567001F5061 /* LocalMediaHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F0A1B32F0D4567001F5061 /* LocalMediaHandler.swift */; };
 		F00D1234ABCDEF0011223345 /* ICloudContainerHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00D1234ABCDEF0011223344 /* ICloudContainerHandler.swift */; };
 /* End PBXBuildFile section */
 
@@ -95,6 +96,7 @@
 		A1B2C3D4E5F6A7B80011AABB /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		AABBCC001122334455667789 /* SecurityScopedBookmarkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityScopedBookmarkHandler.swift; sourceTree = "<group>"; };
 		DEAD1234BEEF56780011AABB /* MetadataWriteHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataWriteHandler.swift; sourceTree = "<group>"; };
+		E9F0A1B32F0D4567001F5061 /* LocalMediaHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalMediaHandler.swift; sourceTree = "<group>"; };
 		F00D1234ABCDEF0011223344 /* ICloudContainerHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICloudContainerHandler.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -201,6 +203,7 @@
 				AABBCC001122334455667789 /* SecurityScopedBookmarkHandler.swift */,
 				F00D1234ABCDEF0011223344 /* ICloudContainerHandler.swift */,
 				DEAD1234BEEF56780011AABB /* MetadataWriteHandler.swift */,
+				E9F0A1B32F0D4567001F5061 /* LocalMediaHandler.swift */,
 				A1B2C3D4E5F6A7B80011AABB /* PrivacyInfo.xcprivacy */,
 				33E51913231747F40026EE4D /* DebugProfile.entitlements */,
 				33E51914231749380026EE4D /* Release.entitlements */,
@@ -471,6 +474,7 @@
 				AABBCC001122334455667788 /* SecurityScopedBookmarkHandler.swift in Sources */,
 				F00D1234ABCDEF0011223345 /* ICloudContainerHandler.swift in Sources */,
 				DEAD1234BEEF56780011AABC /* MetadataWriteHandler.swift in Sources */,
+				E9F0A1B42F0D4567001F5061 /* LocalMediaHandler.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

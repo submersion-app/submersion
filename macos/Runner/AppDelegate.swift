@@ -8,6 +8,7 @@ class AppDelegate: FlutterAppDelegate {
   private var bookmarkHandler: SecurityScopedBookmarkHandler?
   private var icloudHandler: ICloudContainerHandler?
   private var metadataHandler: MetadataWriteHandler?
+  private var localMediaHandler: LocalMediaHandler?
   private var updateChannel: FlutterMethodChannel?
 
   /// Mac App Store and TestFlight builds contain a receipt file;
@@ -35,6 +36,7 @@ class AppDelegate: FlutterAppDelegate {
       bookmarkHandler = SecurityScopedBookmarkHandler(messenger: messenger)
       icloudHandler = ICloudContainerHandler(messenger: messenger)
       metadataHandler = MetadataWriteHandler(messenger: messenger)
+      localMediaHandler = LocalMediaHandler(messenger: messenger)
       updateChannel = FlutterMethodChannel(
         name: "app.submersion/updates",
         binaryMessenger: messenger

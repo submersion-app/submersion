@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -609,6 +611,187 @@ void main() {
         expect(result!.mediaType, equals(MediaType.instructorSignature));
         expect(result.signerName, equals('John Instructor'));
       });
+    });
+
+    group('source-type fields round-trip', () {
+      test('createMedia round-trips all 9 source-type fields', () async {
+        final takenAt = DateTime.utc(2024, 6, 1);
+        final item = MediaItem(
+          id: '',
+          mediaType: MediaType.photo,
+          sourceType: MediaSourceType.localFile,
+          localPath: '/Users/me/x.jpg',
+          bookmarkRef: 'bref-abc',
+          url: 'https://example.com/photo.jpg',
+          subscriptionId: 'sub-001',
+          entryKey: 'entry-key-001',
+          connectorAccountId: 'connector-001',
+          remoteAssetId: 'remote-asset-001',
+          originDeviceId: 'mac-01',
+          takenAt: takenAt,
+          createdAt: takenAt,
+          updatedAt: takenAt,
+        );
+
+        final created = await repository.createMedia(item);
+        final fetched = await repository.getMediaById(created.id);
+
+        expect(fetched, isNotNull);
+        expect(fetched!.sourceType, equals(MediaSourceType.localFile));
+        expect(fetched.localPath, equals('/Users/me/x.jpg'));
+        expect(fetched.bookmarkRef, equals('bref-abc'));
+        expect(fetched.url, equals('https://example.com/photo.jpg'));
+        expect(fetched.subscriptionId, equals('sub-001'));
+        expect(fetched.entryKey, equals('entry-key-001'));
+        expect(fetched.connectorAccountId, equals('connector-001'));
+        expect(fetched.remoteAssetId, equals('remote-asset-001'));
+        expect(fetched.originDeviceId, equals('mac-01'));
+      });
+
+      test('updateMedia round-trips all 9 source-type fields', () async {
+        final takenAt = DateTime.utc(2024, 6, 2);
+        final initial = MediaItem(
+          id: '',
+          mediaType: MediaType.photo,
+          sourceType: MediaSourceType.platformGallery,
+          takenAt: takenAt,
+          createdAt: takenAt,
+          updatedAt: takenAt,
+        );
+        final created = await repository.createMedia(initial);
+
+        final updated = created.copyWith(
+          sourceType: MediaSourceType.serviceConnector,
+          localPath: '/local/path.jpg',
+          bookmarkRef: 'bref-xyz',
+          url: 'https://service.com/asset.jpg',
+          subscriptionId: 'sub-002',
+          entryKey: 'entry-key-002',
+          connectorAccountId: 'connector-002',
+          remoteAssetId: 'remote-asset-002',
+          originDeviceId: 'ipad-01',
+        );
+        await repository.updateMedia(updated);
+
+        final fetched = await repository.getMediaById(created.id);
+        expect(fetched, isNotNull);
+        expect(fetched!.sourceType, equals(MediaSourceType.serviceConnector));
+        expect(fetched.localPath, equals('/local/path.jpg'));
+        expect(fetched.bookmarkRef, equals('bref-xyz'));
+        expect(fetched.url, equals('https://service.com/asset.jpg'));
+        expect(fetched.subscriptionId, equals('sub-002'));
+        expect(fetched.entryKey, equals('entry-key-002'));
+        expect(fetched.connectorAccountId, equals('connector-002'));
+        expect(fetched.remoteAssetId, equals('remote-asset-002'));
+        expect(fetched.originDeviceId, equals('ipad-01'));
+      });
+
+      test(
+        'unknown sourceType string falls back to platformGallery on read',
+        () async {
+          final takenAt = DateTime.utc(2024, 6, 3);
+          final item = MediaItem(
+            id: '',
+            mediaType: MediaType.photo,
+            sourceType: MediaSourceType.localFile,
+            localPath: '/tmp/x.jpg',
+            takenAt: takenAt,
+            createdAt: takenAt,
+            updatedAt: takenAt,
+          );
+          final created = await repository.createMedia(item);
+
+          // Force an unknown source_type value directly in the DB to exercise
+          // the _mapRowToMediaItem fallback. This simulates a row written by
+          // a future schema version with a source-type the current build
+          // doesn't know about.
+          final db = DatabaseService.instance.database;
+          await db.customStatement(
+            "UPDATE media SET source_type = 'futureUnknownSource' WHERE id = ?",
+            [created.id],
+          );
+
+          final fetched = await repository.getMediaById(created.id);
+
+          expect(fetched, isNotNull);
+          expect(fetched!.sourceType, equals(MediaSourceType.platformGallery));
+        },
+      );
+    });
+
+    group('originDeviceId auto-population', () {
+      test(
+        'createMedia auto-populates originDeviceId for localFile source',
+        () async {
+          final created = await repository.createMedia(
+            MediaItem(
+              id: '',
+              mediaType: MediaType.photo,
+              sourceType: MediaSourceType.localFile,
+              localPath: '/x.jpg',
+              // originDeviceId intentionally not set — repo should fill it in
+              takenAt: DateTime.utc(2024, 1, 1),
+              createdAt: DateTime.utc(2024, 1, 1),
+              updatedAt: DateTime.utc(2024, 1, 1),
+            ),
+          );
+          expect(created.originDeviceId, isNotNull);
+          expect(created.originDeviceId, isNotEmpty);
+        },
+      );
+
+      test(
+        'createMedia auto-populates originDeviceId for serviceConnector source',
+        () async {
+          final created = await repository.createMedia(
+            MediaItem(
+              id: '',
+              mediaType: MediaType.photo,
+              sourceType: MediaSourceType.serviceConnector,
+              connectorAccountId: 'acc-1',
+              remoteAssetId: 'remote-asset-uuid',
+              takenAt: DateTime.utc(2024, 1, 1),
+              createdAt: DateTime.utc(2024, 1, 1),
+              updatedAt: DateTime.utc(2024, 1, 1),
+            ),
+          );
+          expect(created.originDeviceId, isNotNull);
+        },
+      );
+
+      test('createMedia preserves caller-provided originDeviceId', () async {
+        final created = await repository.createMedia(
+          MediaItem(
+            id: '',
+            mediaType: MediaType.photo,
+            sourceType: MediaSourceType.localFile,
+            localPath: '/x.jpg',
+            originDeviceId: 'mac-explicit',
+            takenAt: DateTime.utc(2024, 1, 1),
+            createdAt: DateTime.utc(2024, 1, 1),
+            updatedAt: DateTime.utc(2024, 1, 1),
+          ),
+        );
+        expect(created.originDeviceId, equals('mac-explicit'));
+      });
+
+      test(
+        'createMedia leaves originDeviceId null for non-device-local sources',
+        () async {
+          final created = await repository.createMedia(
+            MediaItem(
+              id: '',
+              mediaType: MediaType.photo,
+              sourceType: MediaSourceType.networkUrl,
+              url: 'https://example.com/x.jpg',
+              takenAt: DateTime.utc(2024, 1, 1),
+              createdAt: DateTime.utc(2024, 1, 1),
+              updatedAt: DateTime.utc(2024, 1, 1),
+            ),
+          );
+          expect(created.originDeviceId, isNull);
+        },
+      );
     });
 
     group('deleteMultipleMedia', () {

@@ -5,8 +5,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
-import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
-import 'package:submersion/features/media/presentation/widgets/unavailable_photo_placeholder.dart';
+import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
@@ -335,7 +334,7 @@ class _EmptyMediaState extends StatelessWidget {
 /// Purely visual thumbnail content for media items.
 ///
 /// Gestures (tap, long-press, drag) are handled by [DragSelectGridView].
-class _MediaThumbnailContent extends ConsumerWidget {
+class _MediaThumbnailContent extends StatelessWidget {
   final MediaItem item;
   final AppSettings settings;
   final bool isSelectionMode;
@@ -349,7 +348,7 @@ class _MediaThumbnailContent extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final formatter = UnitFormatter(settings);
 
@@ -360,13 +359,20 @@ class _MediaThumbnailContent extends ConsumerWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Thumbnail or placeholder
+            // Thumbnail or placeholder.
+            // Orphaned items show a distinct error tile; all other items
+            // route through MediaItemView which dispatches to the correct
+            // resolver for the item's sourceType (gallery, signature, etc.)
+            // and renders UnavailableMediaPlaceholder for missing assets.
             if (item.isOrphaned)
               const _OrphanedPlaceholder()
-            else if (item.platformAssetId != null)
-              _buildResolvedThumbnail(ref, colorScheme)
             else
-              _buildPlaceholder(colorScheme),
+              MediaItemView(
+                item: item,
+                thumbnail: true,
+                targetSize: const Size(200, 200),
+                fit: BoxFit.cover,
+              ),
 
             // Dimming overlay for unselected items in selection mode
             if (isSelectionMode && !isSelected)
@@ -451,48 +457,6 @@ class _MediaThumbnailContent extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-
-  /// Fetches and displays thumbnail via cross-device resolution
-  Widget _buildResolvedThumbnail(WidgetRef ref, ColorScheme colorScheme) {
-    final resultAsync = ref.watch(resolvedThumbnailProvider(item));
-
-    return resultAsync.when(
-      data: (result) {
-        if (result.isUnavailable) {
-          return const UnavailablePhotoPlaceholder();
-        }
-        if (result.bytes == null) {
-          return _buildPlaceholder(colorScheme);
-        }
-        return Image.memory(
-          result.bytes!,
-          fit: BoxFit.cover,
-          cacheWidth: 200,
-          cacheHeight: 200,
-          errorBuilder: (context, error, stack) =>
-              _buildPlaceholder(colorScheme),
-        );
-      },
-      loading: () => Container(
-        color: colorScheme.surfaceContainerHighest,
-        child: const Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      ),
-      error: (error, stack) => _buildPlaceholder(colorScheme),
-    );
-  }
-
-  Widget _buildPlaceholder(ColorScheme colorScheme) {
-    return Container(
-      color: colorScheme.surfaceContainerHighest,
-      child: Icon(Icons.photo, color: colorScheme.onSurfaceVariant),
     );
   }
 }

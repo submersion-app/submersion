@@ -88,6 +88,7 @@ import 'package:submersion/features/settings/presentation/pages/medical_info_edi
 import 'package:submersion/features/settings/presentation/pages/insurance_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/notes_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
+import 'package:submersion/features/media/presentation/pages/media_sources_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/transfer/presentation/pages/transfer_page.dart';
 import 'package:submersion/features/dive_types/presentation/pages/dive_types_page.dart';
@@ -853,6 +854,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'debug-logs',
                 name: 'debugLogs',
                 builder: (context, state) => const DebugLogViewerPage(),
+              ),
+              GoRoute(
+                path: 'media-sources',
+                name: 'mediaSources',
+                builder: (context, state) => const MediaSourcesPage(),
               ),
               GoRoute(
                 path: 'diver-profile',

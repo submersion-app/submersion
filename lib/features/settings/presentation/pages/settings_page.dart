@@ -1912,6 +1912,22 @@ class _DataSectionContent extends ConsumerWidget {
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          _buildSectionHeader(context, 'Media'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_library_outlined),
+                  title: const Text('Media Sources'),
+                  subtitle: const Text('Photo library, files, URLs, services'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/media-sources'),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

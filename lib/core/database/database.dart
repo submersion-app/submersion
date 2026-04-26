@@ -505,6 +505,22 @@ class Media extends Table {
   IntColumn get thumbnailGeneratedAt => integer().nullable()();
   IntColumn get lastVerifiedAt => integer().nullable()();
   BoolColumn get isOrphaned => boolean().withDefault(const Constant(false))();
+  // Source-type extension (v72)
+  // Drift's build_runner replaces these getters with `GeneratedColumn`
+  // declarations on the `$MediaTable` subclass, so the bodies below never
+  // execute at runtime — they're DSL the schema generator reads as AST.
+  // coverage:ignore-start
+  TextColumn get sourceType =>
+      text().withDefault(const Constant('platformGallery'))();
+  TextColumn get localPath => text().nullable()();
+  TextColumn get bookmarkRef => text().nullable()();
+  TextColumn get url => text().nullable()();
+  TextColumn get subscriptionId => text().nullable()();
+  TextColumn get entryKey => text().nullable()();
+  TextColumn get connectorAccountId => text().nullable()();
+  TextColumn get remoteAssetId => text().nullable()();
+  TextColumn get originDeviceId => text().nullable()();
+  // coverage:ignore-end
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -572,6 +588,97 @@ class PendingPhotoSuggestions extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+// Drift table classes added in v72. The column getter bodies below are
+// pure DSL (read by build_runner to generate `$<Table>Table` subclasses
+// with overriding `GeneratedColumn` fields) and never execute at runtime,
+// so they cannot be covered by tests. The schema is exercised end-to-end
+// in `migration_72_test.dart` and `new_tables_drift_access_test.dart`.
+// coverage:ignore-start
+
+/// Manifest-feed subscriptions (Atom/RSS, JSON, CSV) for periodic polling.
+/// Synced across devices.
+class MediaSubscriptions extends Table {
+  TextColumn get id => text()();
+  TextColumn get manifestUrl => text()();
+  TextColumn get format => text()();
+  TextColumn get displayName => text().nullable()();
+  IntColumn get pollIntervalSeconds =>
+      integer().withDefault(const Constant(86400))();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  TextColumn get credentialsHostId => text().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Per-device polling state for each subscription. Not synced.
+class MediaSubscriptionState extends Table {
+  TextColumn get subscriptionId =>
+      text().references(MediaSubscriptions, #id, onDelete: KeyAction.cascade)();
+  IntColumn get lastPolledAt => integer().nullable()();
+  IntColumn get nextPollAt => integer().nullable()();
+  TextColumn get lastEtag => text().nullable()();
+  TextColumn get lastModified => text().nullable()();
+  TextColumn get lastError => text().nullable()();
+  IntColumn get lastErrorAt => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {subscriptionId};
+}
+
+/// Configured service-connector accounts (Immich, Dropbox, etc.). Not synced —
+/// each device signs in independently.
+class ConnectorAccounts extends Table {
+  TextColumn get id => text()();
+  TextColumn get connectorType => text()();
+  TextColumn get displayName => text()();
+  TextColumn get baseUrl => text().nullable()();
+  TextColumn get accountIdentifier => text().nullable()();
+  TextColumn get credentialsRef => text()();
+  IntColumn get addedAt => integer()();
+  IntColumn get lastUsedAt => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Per-host credentials for ad-hoc HTTP(S) media URLs. Not synced.
+class NetworkCredentialHosts extends Table {
+  TextColumn get id => text()();
+  TextColumn get hostname => text()();
+  TextColumn get authType => text()();
+  TextColumn get displayName => text().nullable()();
+  TextColumn get credentialsRef => text()();
+  IntColumn get addedAt => integer()();
+  IntColumn get lastUsedAt => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  // Match the v72 migration's `hostname TEXT NOT NULL UNIQUE` so fresh
+  // installs (created from the Drift schema) reject duplicate hostnames the
+  // same way upgraded DBs do.
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {hostname},
+  ];
+}
+
+/// Per-device fetch error diagnostics for media items. Not synced.
+class MediaFetchDiagnostics extends Table {
+  TextColumn get mediaItemId =>
+      text().references(Media, #id, onDelete: KeyAction.cascade)();
+  IntColumn get lastErrorAt => integer().nullable()();
+  TextColumn get lastErrorMessage => text().nullable()();
+  IntColumn get errorCount => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {mediaItemId};
+}
+// coverage:ignore-end
 
 /// Application settings key-value store (legacy - kept for backward compatibility)
 class Settings extends Table {
@@ -1326,6 +1433,11 @@ class FieldPresets extends Table {
     // Column view configuration
     ViewConfigs,
     FieldPresets,
+    MediaSubscriptions,
+    MediaSubscriptionState,
+    ConnectorAccounts,
+    NetworkCredentialHosts,
+    MediaFetchDiagnostics,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -1335,7 +1447,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 71;
+  static const int currentSchemaVersion = 72;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1410,6 +1522,7 @@ class AppDatabase extends _$AppDatabase {
     69,
     70,
     71,
+    72,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -3324,6 +3437,142 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 71) await reportProgress();
+        if (from < 72) {
+          // Phase 1 of Media Source Extension.
+          // Add discriminator and new pointer columns to media.
+          await customStatement(
+            "ALTER TABLE media ADD COLUMN source_type TEXT NOT NULL DEFAULT 'platformGallery'",
+          );
+          await customStatement('ALTER TABLE media ADD COLUMN local_path TEXT');
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN bookmark_ref TEXT',
+          );
+          await customStatement('ALTER TABLE media ADD COLUMN url TEXT');
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN subscription_id TEXT',
+          );
+          await customStatement('ALTER TABLE media ADD COLUMN entry_key TEXT');
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN connector_account_id TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN remote_asset_id TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN origin_device_id TEXT',
+          );
+
+          // Subscription registry (synced across devices).
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS media_subscriptions (
+              id TEXT NOT NULL PRIMARY KEY,
+              manifest_url TEXT NOT NULL,
+              format TEXT NOT NULL,
+              display_name TEXT,
+              poll_interval_seconds INTEGER NOT NULL DEFAULT 86400,
+              is_active INTEGER NOT NULL DEFAULT 1,
+              credentials_host_id TEXT,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+
+          // Per-device polling state (NOT synced).
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS media_subscription_state (
+              subscription_id TEXT NOT NULL PRIMARY KEY
+                REFERENCES media_subscriptions(id) ON DELETE CASCADE,
+              last_polled_at INTEGER,
+              next_poll_at INTEGER,
+              last_etag TEXT,
+              last_modified TEXT,
+              last_error TEXT,
+              last_error_at INTEGER
+            )
+          ''');
+
+          // Service connector accounts (NOT synced).
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS connector_accounts (
+              id TEXT NOT NULL PRIMARY KEY,
+              connector_type TEXT NOT NULL,
+              display_name TEXT NOT NULL,
+              base_url TEXT,
+              account_identifier TEXT,
+              credentials_ref TEXT NOT NULL,
+              added_at INTEGER NOT NULL,
+              last_used_at INTEGER
+            )
+          ''');
+
+          // Per-host credentials for ad-hoc network URLs (NOT synced).
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS network_credential_hosts (
+              id TEXT NOT NULL PRIMARY KEY,
+              hostname TEXT NOT NULL UNIQUE,
+              auth_type TEXT NOT NULL,
+              display_name TEXT,
+              credentials_ref TEXT NOT NULL,
+              added_at INTEGER NOT NULL,
+              last_used_at INTEGER
+            )
+          ''');
+
+          // Per-device fetch diagnostics (NOT synced).
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS media_fetch_diagnostics (
+              media_item_id TEXT NOT NULL PRIMARY KEY
+                REFERENCES media(id) ON DELETE CASCADE,
+              last_error_at INTEGER,
+              last_error_message TEXT,
+              error_count INTEGER NOT NULL DEFAULT 0
+            )
+          ''');
+
+          // Backfill source_type for existing rows.
+          // Order matters: signature first (most specific), then platformGallery,
+          // then localFile, with platformGallery as the safe default for the
+          // unreachable "neither pointer set" case.
+          await customStatement('''
+            UPDATE media SET source_type = 'signature'
+            WHERE file_type = 'instructor_signature'
+          ''');
+          await customStatement('''
+            UPDATE media
+            SET source_type = 'platformGallery'
+            WHERE file_type != 'instructor_signature'
+              AND platform_asset_id IS NOT NULL
+          ''');
+          await customStatement('''
+            UPDATE media
+            SET source_type = 'localFile',
+                local_path = file_path
+            WHERE file_type != 'instructor_signature'
+              AND platform_asset_id IS NULL
+              AND file_path IS NOT NULL
+              AND file_path != ''
+          ''');
+
+          // Indexes.
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_media_source_type
+            ON media(source_type)
+          ''');
+          await customStatement('''
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_media_subscription_entry
+            ON media(subscription_id, entry_key)
+            WHERE subscription_id IS NOT NULL
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_media_connector_account
+            ON media(connector_account_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_media_origin_device
+            ON media(origin_device_id)
+          ''');
+        }
+        if (from < 72) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
-import 'package:submersion/features/media/presentation/widgets/unavailable_photo_placeholder.dart';
+import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 
 /// Maximum number of thumbnail photos to display in the preview row.
@@ -206,16 +205,14 @@ class _PhotoRow extends StatelessWidget {
 }
 
 /// Individual photo thumbnail.
-class _PhotoThumbnail extends ConsumerWidget {
+class _PhotoThumbnail extends StatelessWidget {
   final String tripId;
   final MediaItem item;
 
   const _PhotoThumbnail({required this.tripId, required this.item});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-
+  Widget build(BuildContext context) {
     final mediaType = item.isVideo ? 'Video' : 'Photo';
 
     return Semantics(
@@ -231,11 +228,15 @@ class _PhotoThumbnail extends ConsumerWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // Thumbnail
-                if (item.platformAssetId != null)
-                  _buildResolvedThumbnail(ref, colorScheme)
-                else
-                  _buildPlaceholder(colorScheme),
+                // Thumbnail — MediaItemView dispatches to the correct resolver
+                // for the item's sourceType and shows UnavailableMediaPlaceholder
+                // for missing assets.
+                MediaItemView(
+                  item: item,
+                  thumbnail: true,
+                  targetSize: const Size(160, 160),
+                  fit: BoxFit.cover,
+                ),
 
                 // Video icon
                 if (item.isVideo)
@@ -260,47 +261,6 @@ class _PhotoThumbnail extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildResolvedThumbnail(WidgetRef ref, ColorScheme colorScheme) {
-    final resultAsync = ref.watch(resolvedThumbnailProvider(item));
-
-    return resultAsync.when(
-      data: (result) {
-        if (result.isUnavailable) {
-          return const UnavailablePhotoPlaceholder();
-        }
-        if (result.bytes == null) {
-          return _buildPlaceholder(colorScheme);
-        }
-        return Image.memory(
-          result.bytes!,
-          fit: BoxFit.cover,
-          cacheWidth: 160,
-          cacheHeight: 160,
-          errorBuilder: (context, error, stack) =>
-              _buildPlaceholder(colorScheme),
-        );
-      },
-      loading: () => Container(
-        color: colorScheme.surfaceContainerHighest,
-        child: const Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      ),
-      error: (error, stack) => _buildPlaceholder(colorScheme),
-    );
-  }
-
-  Widget _buildPlaceholder(ColorScheme colorScheme) {
-    return Container(
-      color: colorScheme.surfaceContainerHighest,
-      child: Icon(Icons.photo, color: colorScheme.onSurfaceVariant),
     );
   }
 }

@@ -307,6 +307,52 @@ void main() {
     });
   });
 
+  group('app_router media routes', () {
+    test('contains mediaSources route', () {
+      final names = _collectRouteNames(router.configuration.routes);
+      expect(names, contains('mediaSources'));
+    });
+
+    test('mediaSources route path is /settings/media-sources', () {
+      final paths = _collectRoutePaths(router.configuration.routes);
+      expect(paths, contains('media-sources'));
+    });
+
+    testWidgets('mediaSources route builder returns MediaSourcesPage', (
+      tester,
+    ) async {
+      final config = router.configuration;
+      final route = _findRouteByName(config.routes, 'mediaSources');
+      expect(route, isNotNull);
+
+      // Capture a real BuildContext so we can invoke the builder.
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      final state = GoRouterState(
+        config,
+        uri: Uri.parse('/settings/media-sources'),
+        matchedLocation: '/settings/media-sources',
+        fullPath: '/settings/media-sources',
+        pathParameters: const {},
+        pageKey: const ValueKey('/settings/media-sources'),
+      );
+      final widget = route!.builder!(capturedContext, state);
+      // Use a String comparison so this test does not need to import the
+      // MediaSourcesPage class (avoids over-coupling the router test).
+      expect(widget.runtimeType.toString(), 'MediaSourcesPage');
+    });
+  });
+
   group('app_router initialLocation', () {
     test('initial location is /dashboard', () {
       expect(

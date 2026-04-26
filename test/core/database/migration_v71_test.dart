@@ -2,6 +2,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
+import 'test_fixtures.dart';
+
 void main() {
   group('Migration v71 - MacDive dive + site metadata columns', () {
     /// Creates an in-memory database at v70 (pre-migration) with the dives
@@ -44,6 +46,8 @@ void main() {
               updated_at INTEGER NOT NULL
             )
           ''');
+
+          createV71MediaTableRaw(rawDb);
         },
       );
     }

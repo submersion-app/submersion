@@ -2,6 +2,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
+import 'test_fixtures.dart';
+
 void main() {
   group('Migration v70 - source_uuid on dive_data_sources', () {
     /// Creates an in-memory database at v69 (pre-migration) with the
@@ -66,6 +68,8 @@ void main() {
               last_parsed_at INTEGER
             )
           ''');
+
+          createV71MediaTableRaw(rawDb);
         },
       );
     }

@@ -2,6 +2,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
+import 'test_fixtures.dart';
+
 void main() {
   group('Migration v68 - source column on dive_profile_events', () {
     /// Creates an in-memory database at v67 with the tables the v68 migration
@@ -81,6 +83,8 @@ void main() {
               "  '${e.$4}', '${e.$5}', ${e.$6})",
             );
           }
+
+          createV71MediaTableRaw(rawDb);
         },
       );
     }
@@ -185,6 +189,8 @@ void main() {
               " (id, dive_id, timestamp, event_type, severity, source, created_at)"
               " VALUES ('evt1', 'dive1', 120, 'bookmark', 'info', 'user', 1700000000000)",
             );
+
+            createV71MediaTableRaw(rawDb);
           },
         );
 

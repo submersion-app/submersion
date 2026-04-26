@@ -4,6 +4,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
+import 'test_fixtures.dart';
+
 Map<String, dynamic> _detailedConfig(String stat2Field) {
   return {
     'mode': 'detailed',
@@ -49,6 +51,8 @@ void main() {
               [r.$3],
             );
           }
+
+          createV71MediaTableRaw(rawDb);
         },
       );
     }
