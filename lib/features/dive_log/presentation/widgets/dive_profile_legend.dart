@@ -38,7 +38,6 @@ class ProfileLegendConfig {
   final bool hasTtsData;
   final bool hasCnsData;
   final bool hasOtuData;
-
   const ProfileLegendConfig({
     this.hasTemperatureData = false,
     this.hasPressureData = false,

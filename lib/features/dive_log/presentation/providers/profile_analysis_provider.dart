@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
@@ -121,6 +123,67 @@ class _ProfileAnalysisProvider {}
 
 final _log = LoggerService.forClass(_ProfileAnalysisProvider);
 
+/// Builds a time-ordered gas schedule for decompression analysis.
+///
+/// The schedule always starts at timestamp 0 using the primary tank gas when
+/// available, otherwise air. Gas switches then replace the active gas from
+/// their timestamp onward.
+DiveTank? _selectOcPrimaryTank(Dive dive) {
+  if (dive.tanks.isEmpty) return null;
+  return dive.tanks.firstWhere(
+    (t) => t.role == TankRole.backGas,
+    orElse: () => dive.tanks.first,
+  );
+}
+
+List<ProfileGasSegment> buildProfileGasSegments(
+  Dive dive,
+  List<GasSwitchWithTank> gasSwitches,
+) {
+  final primaryMix = _selectOcPrimaryTank(dive)?.gasMix ?? const GasMix();
+
+  final segments = <ProfileGasSegment>[
+    ProfileGasSegment(
+      startTimestamp: 0,
+      fN2: primaryMix.isAir
+          ? airN2Fraction
+          : (100.0 - primaryMix.o2 - primaryMix.he) / 100.0,
+      fHe: primaryMix.he / 100.0,
+    ),
+  ];
+
+  final sortedSwitches = List<GasSwitchWithTank>.from(gasSwitches)
+    ..sort((a, b) {
+      final timestampCompare = a.timestamp.compareTo(b.timestamp);
+      if (timestampCompare != 0) {
+        return timestampCompare;
+      }
+
+      return a.id.compareTo(b.id);
+    });
+
+  for (final gasSwitch in sortedSwitches) {
+    final nextSegment = ProfileGasSegment(
+      startTimestamp: gasSwitch.timestamp,
+      fN2: gasSwitch.isAir ? airN2Fraction : gasSwitch.n2Fraction,
+      fHe: gasSwitch.heFraction,
+    );
+
+    if (segments.last.startTimestamp == nextSegment.startTimestamp) {
+      _log.warning(
+        'Multiple gas switches share timestamp ${nextSegment.startTimestamp}; '
+        'using switch ${gasSwitch.id} after id-based tie-breaker',
+      );
+      segments[segments.length - 1] = nextSegment;
+      continue;
+    }
+
+    segments.add(nextSegment);
+  }
+
+  return segments;
+}
+
 /// Creates a ProfileAnalysisService using dive-specific GF when available,
 /// falling back to user settings.
 ProfileAnalysisService _resolveAnalysisService(
@@ -170,7 +233,6 @@ ProfileAnalysisService _resolveAnalysisService(
   final hasComputerTts = profile.any((p) => p.tts != null && p.tts! > 0);
   final hasComputerCns = profile.any((p) => p.cns != null);
 
-  // Decide per-metric: overlay only when source=computer AND data exists
   final useNdl = ndlSource == MetricDataSource.computer && hasComputerNdl;
   final useCeiling =
       ceilingSource == MetricDataSource.computer && hasComputerCeiling;
@@ -286,6 +348,7 @@ class _ProfileAnalysisInput {
   final double scrVo2;
   final List<TissueCompartment>? startCompartments;
   final double startOtu;
+  final List<ProfileGasSegment>? gasSegments;
 
   const _ProfileAnalysisInput({
     required this.gfLow,
@@ -311,6 +374,7 @@ class _ProfileAnalysisInput {
     this.scrVo2 = ScrCalculator.defaultVo2,
     this.startCompartments,
     this.startOtu = 0.0,
+    this.gasSegments,
   });
 }
 
@@ -343,6 +407,7 @@ ProfileAnalysis _runProfileAnalysis(_ProfileAnalysisInput input) {
     scrVo2: input.scrVo2,
     startCompartments: input.startCompartments,
     startOtu: input.startOtu,
+    gasSegments: input.gasSegments,
   );
 }
 
@@ -379,6 +444,7 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
       return null;
     }
 
+    final repository = ref.watch(diveRepositoryProvider);
     // Resolve GF values: use dive-specific if provided, else user settings
     final double gfLow;
     final double gfHigh;
@@ -461,6 +527,12 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
     // Compute cumulative OTU from earlier same-day dives
     final startOtu = await _computeResidualOtu(ref, diveId);
 
+    final gasSegments = dive.diveMode == DiveMode.oc
+        ? buildProfileGasSegments(
+            dive,
+            await repository.getGasSwitchesForDive(diveId),
+          )
+        : null;
     // Run Buhlmann analysis on a background isolate to keep UI responsive
     _log.debug(
       'Analyzing profile for dive $diveId with ${depths.length} points, '
@@ -493,6 +565,7 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
         scrVo2: dive.assumedVo2 ?? 1.3,
         startCompartments: startCompartments,
         startOtu: startOtu,
+        gasSegments: gasSegments,
       ),
     );
 
@@ -546,7 +619,9 @@ Future<double> _computeResidualCns(Ref ref, String diveId) async {
     final repository = ref.watch(diveRepositoryProvider);
 
     final surfaceInterval = await repository.getSurfaceInterval(diveId);
-    if (surfaceInterval == null || surfaceInterval.inHours >= 24) return 0.0;
+    if (surfaceInterval == null || surfaceInterval.inHours >= 24) {
+      return 0.0;
+    }
 
     final previousDive = await repository.getPreviousDive(diveId);
     if (previousDive == null) return 0.0;
@@ -608,10 +683,14 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
     final repository = ref.watch(diveRepositoryProvider);
 
     final surfaceInterval = await repository.getSurfaceInterval(diveId);
-    if (surfaceInterval == null || surfaceInterval.inHours >= 48) return null;
+    if (surfaceInterval == null || surfaceInterval.inHours >= 48) {
+      return null;
+    }
 
     final previousDive = await repository.getPreviousDive(diveId);
-    if (previousDive == null) return null;
+    if (previousDive == null) {
+      return null;
+    }
 
     // Read (not watch) the previous dive's full analysis to avoid cascading
     // Riverpod invalidations. Each profileAnalysisProvider independently
@@ -816,7 +895,6 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
     // Extract profile data
     final depths = dive.profile.map((p) => p.depth).toList();
     final timestamps = dive.profile.map((p) => p.timestamp).toList();
-
     // Get gas mix from primary tank
     double o2Fraction = 0.21; // Default to air
     double heFraction = 0.0;
@@ -846,9 +924,6 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       startCns: startCns,
       startCompartments: startCompartments,
       startOtu: startOtu,
-      // Pressure data requires async TankPressureRepository access;
-      // this synchronous provider omits it. Use profileAnalysisProvider
-      // (by diveId) for pressure-dependent analysis.
       pressures: null,
       // CCR/SCR parameters
       diveMode: dive.diveMode,

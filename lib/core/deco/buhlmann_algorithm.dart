@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
+import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 
 /// Bühlmann ZH-L16C decompression algorithm implementation.
@@ -519,8 +520,39 @@ class BuhlmannAlgorithm {
     double fN2 = airN2Fraction,
     double fHe = 0.0,
   }) {
+    return processProfileWithGasSegments(
+      depths: depths,
+      timestamps: timestamps,
+      gasSegments: [ProfileGasSegment(startTimestamp: 0, fN2: fN2, fHe: fHe)],
+    );
+  }
+
+  /// Process a dive profile with explicit gas changes over time.
+  ///
+  /// [gasSegments] must be non-empty and sorted by [startTimestamp].
+  /// Each segment becomes active from its start timestamp onward until
+  /// superseded by the next segment.
+  List<DecoStatus> processProfileWithGasSegments({
+    required List<double> depths,
+    required List<int> timestamps,
+    required List<ProfileGasSegment> gasSegments,
+  }) {
     if (depths.length != timestamps.length || depths.isEmpty) {
       return [];
+    }
+    if (gasSegments.isEmpty) {
+      throw ArgumentError('gasSegments must not be empty');
+    }
+    if (gasSegments.first.startTimestamp > timestamps.first) {
+      throw ArgumentError(
+        'gasSegments.first.startTimestamp must be less than or equal to '
+        'the first profile timestamp',
+      );
+    }
+    for (int i = 1; i < gasSegments.length; i++) {
+      if (gasSegments[i].startTimestamp < gasSegments[i - 1].startTimestamp) {
+        throw ArgumentError('gasSegments must be sorted by startTimestamp');
+      }
     }
 
     final results = <DecoStatus>[];
@@ -533,33 +565,101 @@ class BuhlmannAlgorithm {
 
     for (int i = 0; i < depths.length; i++) {
       if (i > 0) {
-        final duration = timestamps[i] - timestamps[i - 1];
-        final avgDepth = (depths[i - 1] + depths[i]) / 2.0;
+        final intervalStart = timestamps[i - 1];
+        final intervalEnd = timestamps[i];
+        final intervalBoundaries = <int>[
+          intervalStart,
+          ...gasSegments
+              .where(
+                (segment) =>
+                    segment.startTimestamp > intervalStart &&
+                    segment.startTimestamp < intervalEnd,
+              )
+              .map((segment) => segment.startTimestamp),
+          intervalEnd,
+        ];
 
-        calculateSegment(
-          depthMeters: avgDepth,
-          durationSeconds: duration,
-          fN2: fN2,
-          fHe: fHe,
-        );
+        for (
+          int boundaryIndex = 1;
+          boundaryIndex < intervalBoundaries.length;
+          boundaryIndex++
+        ) {
+          final subIntervalStart = intervalBoundaries[boundaryIndex - 1];
+          final subIntervalEnd = intervalBoundaries[boundaryIndex];
+          final duration = subIntervalEnd - subIntervalStart;
+          final startDepth = _interpolateDepth(
+            startTimestamp: intervalStart,
+            endTimestamp: intervalEnd,
+            startDepth: depths[i - 1],
+            endDepth: depths[i],
+            targetTimestamp: subIntervalStart,
+          );
+          final endDepth = _interpolateDepth(
+            startTimestamp: intervalStart,
+            endTimestamp: intervalEnd,
+            startDepth: depths[i - 1],
+            endDepth: depths[i],
+            targetTimestamp: subIntervalEnd,
+          );
+          final avgDepth = (startDepth + endDepth) / 2.0;
+          final gas = _activeGasAtTimestamp(subIntervalStart, gasSegments);
 
-        // Accumulate time if average depth was in safety stop zone
-        if (avgDepth >= safetyStopZoneMin && avgDepth <= safetyStopZoneMax) {
-          safetyStopTimeAccumulated += duration;
+          calculateSegment(
+            depthMeters: avgDepth,
+            durationSeconds: duration,
+            fN2: gas.fN2,
+            fHe: gas.fHe,
+          );
+
+          // Accumulate time if average depth was in safety stop zone
+          if (avgDepth >= safetyStopZoneMin && avgDepth <= safetyStopZoneMax) {
+            safetyStopTimeAccumulated += duration;
+          }
         }
       }
 
       results.add(
         getDecoStatus(
           currentDepth: depths[i],
-          fN2: fN2,
-          fHe: fHe,
+          fN2: _activeGasAtTimestamp(timestamps[i], gasSegments).fN2,
+          fHe: _activeGasAtTimestamp(timestamps[i], gasSegments).fHe,
           safetyStopTimeAccumulated: safetyStopTimeAccumulated,
         ),
       );
     }
 
     return results;
+  }
+
+  double _interpolateDepth({
+    required int startTimestamp,
+    required int endTimestamp,
+    required double startDepth,
+    required double endDepth,
+    required int targetTimestamp,
+  }) {
+    if (endTimestamp == startTimestamp) {
+      return endDepth;
+    }
+
+    final progress =
+        (targetTimestamp - startTimestamp) / (endTimestamp - startTimestamp);
+    return startDepth + ((endDepth - startDepth) * progress);
+  }
+
+  ProfileGasSegment _activeGasAtTimestamp(
+    int timestamp,
+    List<ProfileGasSegment> gasSegments,
+  ) {
+    var active = gasSegments.first;
+    for (final segment in gasSegments) {
+      if (segment.startTimestamp <= timestamp) {
+        active = segment;
+      } else {
+        break;
+      }
+    }
+    return active;
   }
 
   /// Get ceiling curve for a dive profile.

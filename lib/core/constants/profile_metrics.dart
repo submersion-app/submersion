@@ -178,8 +178,6 @@ enum MetricDataSource {
       value == 0 ? MetricDataSource.computer : MetricDataSource.calculated;
 }
 
-/// Reports which data source was actually used for each metric after fallback
-/// resolution.
 ///
 /// When a user prefers `computer` but no computer data exists for that metric,
 /// the actual source falls back to `calculated`.

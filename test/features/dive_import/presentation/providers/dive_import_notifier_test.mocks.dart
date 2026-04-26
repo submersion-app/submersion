@@ -141,7 +141,7 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
   @override
   _i5.Future<Map<String, List<_i2.DiveProfilePoint>>> getBatchProfileSummaries(
     List<String>? diveIds, {
-    int? maxSamples = 20,
+    int? maxSamples = 120,
   }) =>
       (super.noSuchMethod(
             Invocation.method(

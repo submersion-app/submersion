@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 
 /// Calculator for oxygen toxicity (CNS and OTU).
@@ -64,7 +65,7 @@ class O2ToxicityCalculator {
       return ((ambientPressure * narcoticFraction) - 1.0) * 10.0;
     } else {
       final n2Pressure = ambientPressure * n2Fraction;
-      return (n2Pressure / 0.79 - 1.0) * 10.0;
+      return (n2Pressure / airN2Fraction - 1.0) * 10.0;
     }
   }
 
