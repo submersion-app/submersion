@@ -128,13 +128,19 @@ final _log = LoggerService.forClass(_ProfileAnalysisProvider);
 /// The schedule always starts at timestamp 0 using the primary tank gas when
 /// available, otherwise air. Gas switches then replace the active gas from
 /// their timestamp onward.
+DiveTank? _selectOcPrimaryTank(Dive dive) {
+  if (dive.tanks.isEmpty) return null;
+  return dive.tanks.firstWhere(
+    (t) => t.role == TankRole.backGas,
+    orElse: () => dive.tanks.first,
+  );
+}
+
 List<ProfileGasSegment> buildProfileGasSegments(
   Dive dive,
   List<GasSwitchWithTank> gasSwitches,
 ) {
-  final primaryMix = dive.tanks.isNotEmpty
-      ? dive.tanks.first.gasMix
-      : const GasMix();
+  final primaryMix = _selectOcPrimaryTank(dive)?.gasMix ?? const GasMix();
 
   final segments = <ProfileGasSegment>[
     ProfileGasSegment(
@@ -521,8 +527,12 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
     // Compute cumulative OTU from earlier same-day dives
     final startOtu = await _computeResidualOtu(ref, diveId);
 
-    final gasSwitches = await repository.getGasSwitchesForDive(diveId);
-    final gasSegments = buildProfileGasSegments(dive, gasSwitches);
+    final gasSegments = dive.diveMode == DiveMode.oc
+        ? buildProfileGasSegments(
+            dive,
+            await repository.getGasSwitchesForDive(diveId),
+          )
+        : null;
     // Run Buhlmann analysis on a background isolate to keep UI responsive
     _log.debug(
       'Analyzing profile for dive $diveId with ${depths.length} points, '

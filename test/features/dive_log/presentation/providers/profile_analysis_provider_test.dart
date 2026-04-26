@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -123,6 +124,35 @@ void main() {
       expect(segments.single.fN2, closeTo(airN2Fraction, 0.000001));
       expect(segments.single.fHe, closeTo(0.0, 0.000001));
     });
+
+    test(
+      'prefers backgas over the first tank when tanks are ordered oddly',
+      () {
+        final dive = Dive(
+          id: 'dive-role-order',
+          dateTime: DateTime.utc(2026, 3, 31),
+          tanks: const [
+            DiveTank(
+              id: 'tank-stage',
+              role: TankRole.stage,
+              gasMix: GasMix(o2: 50, he: 0),
+            ),
+            DiveTank(
+              id: 'tank-backgas',
+              role: TankRole.backGas,
+              gasMix: GasMix(o2: 21, he: 0),
+            ),
+          ],
+        );
+
+        final segments = buildProfileGasSegments(dive, const []);
+
+        expect(segments, hasLength(1));
+        expect(segments.single.startTimestamp, equals(0));
+        expect(segments.single.fN2, closeTo(airN2Fraction, 0.000001));
+        expect(segments.single.fHe, closeTo(0.0, 0.000001));
+      },
+    );
 
     test('adds sorted switch segments using switch tank gas mixes', () {
       final dive = Dive(

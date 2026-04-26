@@ -547,22 +547,23 @@ class ProfileAnalysisService {
     } else {
       _buhlmannAlgorithm.reset();
     }
-    final decoStatuses = gasSegments == null
-        ? _buhlmannAlgorithm.processProfile(
+    final useOcGasSegments = diveMode == DiveMode.oc && gasSegments != null;
+    final decoStatuses = useOcGasSegments
+        ? _buhlmannAlgorithm.processProfileWithGasSegments(
+            depths: depths,
+            timestamps: timestamps,
+            gasSegments: gasSegments,
+          )
+        : _buhlmannAlgorithm.processProfile(
             depths: depths,
             timestamps: timestamps,
             fN2: n2Fraction,
             fHe: heFraction,
-          )
-        : _buhlmannAlgorithm.processProfileWithGasSegments(
-            depths: depths,
-            timestamps: timestamps,
-            gasSegments: gasSegments,
           );
     final ceilingCurve = decoStatuses.map((s) => s.ceilingMeters).toList();
     final ndlCurve = decoStatuses.map((s) => s.ndlSeconds).toList();
 
-    final ocGasMetrics = diveMode == DiveMode.oc && gasSegments != null
+    final ocGasMetrics = useOcGasSegments
         ? _calculateOcGasAwareMetrics(
             depths: depths,
             timestamps: timestamps,
