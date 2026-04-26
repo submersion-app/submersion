@@ -3326,9 +3326,29 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 71) await reportProgress();
         if (from < 72) {
-          // Phase 1 of Media Source Extension — see
-          // docs/superpowers/specs/2026-04-25-media-source-extension-design.md
-          // (Schema changes added in subsequent tasks.)
+          // Phase 1 of Media Source Extension.
+          // Add discriminator and new pointer columns to media.
+          await customStatement(
+            "ALTER TABLE media ADD COLUMN source_type TEXT NOT NULL DEFAULT 'platformGallery'",
+          );
+          await customStatement('ALTER TABLE media ADD COLUMN local_path TEXT');
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN bookmark_ref TEXT',
+          );
+          await customStatement('ALTER TABLE media ADD COLUMN url TEXT');
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN subscription_id TEXT',
+          );
+          await customStatement('ALTER TABLE media ADD COLUMN entry_key TEXT');
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN connector_account_id TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN remote_asset_id TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN origin_device_id TEXT',
+          );
         }
         if (from < 72) await reportProgress();
       },
