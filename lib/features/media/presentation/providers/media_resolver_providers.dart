@@ -4,10 +4,18 @@ import 'package:submersion/features/media/data/resolvers/platform_gallery_resolv
 import 'package:submersion/features/media/data/resolvers/signature_resolver.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 
 /// Singleton [PlatformGalleryResolver].
+///
+/// Injects [AssetResolutionService] so the resolver uses the 3-step fallback
+/// (cache → original ID → metadata search) instead of calling
+/// [AssetEntity.fromId] directly. This makes gallery photos visible on synced
+/// second devices where the stored [platformAssetId] is device-specific.
 final platformGalleryResolverProvider = Provider<PlatformGalleryResolver>(
-  (ref) => PlatformGalleryResolver(),
+  (ref) => PlatformGalleryResolver(
+    resolutionService: ref.watch(assetResolutionServiceProvider),
+  ),
 );
 
 /// Singleton [SignatureResolver].
