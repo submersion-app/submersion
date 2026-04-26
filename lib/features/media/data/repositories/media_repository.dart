@@ -74,12 +74,31 @@ class MediaRepository {
     }
   }
 
+  /// Returns the device ID to record on a new MediaItem, or null if the
+  /// source type is device-portable (gallery, URL, manifest, signature).
+  ///
+  /// Caller-provided originDeviceId is always preserved.
+  Future<String?> _effectiveOriginDeviceId(domain.MediaItem item) async {
+    if (item.originDeviceId != null) return item.originDeviceId;
+    switch (item.sourceType) {
+      case MediaSourceType.localFile:
+      case MediaSourceType.serviceConnector:
+        return _syncRepository.getDeviceId();
+      case MediaSourceType.platformGallery:
+      case MediaSourceType.networkUrl:
+      case MediaSourceType.manifestEntry:
+      case MediaSourceType.signature:
+        return null;
+    }
+  }
+
   /// Create new media, generate UUID if id is empty
   Future<domain.MediaItem> createMedia(domain.MediaItem item) async {
     try {
       _log.info('Creating media: ${item.filePath}');
       final id = item.id.isEmpty ? _uuid.v4() : item.id;
       final now = DateTime.now();
+      final effectiveDeviceId = await _effectiveOriginDeviceId(item);
 
       await _db
           .into(_db.media)
@@ -118,7 +137,7 @@ class MediaRepository {
               entryKey: Value(item.entryKey),
               connectorAccountId: Value(item.connectorAccountId),
               remoteAssetId: Value(item.remoteAssetId),
-              originDeviceId: Value(item.originDeviceId),
+              originDeviceId: Value(effectiveDeviceId),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -132,7 +151,12 @@ class MediaRepository {
       SyncEventBus.notifyLocalChange();
 
       _log.info('Created media with id: $id');
-      return item.copyWith(id: id, createdAt: now, updatedAt: now);
+      return item.copyWith(
+        id: id,
+        createdAt: now,
+        updatedAt: now,
+        originDeviceId: effectiveDeviceId,
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to create media: ${item.filePath}',

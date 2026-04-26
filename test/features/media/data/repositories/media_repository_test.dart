@@ -707,6 +707,81 @@ void main() {
       );
     });
 
+    group('originDeviceId auto-population', () {
+      test(
+        'createMedia auto-populates originDeviceId for localFile source',
+        () async {
+          final created = await repository.createMedia(
+            MediaItem(
+              id: '',
+              mediaType: MediaType.photo,
+              sourceType: MediaSourceType.localFile,
+              localPath: '/x.jpg',
+              // originDeviceId intentionally not set — repo should fill it in
+              takenAt: DateTime.utc(2024, 1, 1),
+              createdAt: DateTime.utc(2024, 1, 1),
+              updatedAt: DateTime.utc(2024, 1, 1),
+            ),
+          );
+          expect(created.originDeviceId, isNotNull);
+          expect(created.originDeviceId, isNotEmpty);
+        },
+      );
+
+      test(
+        'createMedia auto-populates originDeviceId for serviceConnector source',
+        () async {
+          final created = await repository.createMedia(
+            MediaItem(
+              id: '',
+              mediaType: MediaType.photo,
+              sourceType: MediaSourceType.serviceConnector,
+              connectorAccountId: 'acc-1',
+              remoteAssetId: 'remote-asset-uuid',
+              takenAt: DateTime.utc(2024, 1, 1),
+              createdAt: DateTime.utc(2024, 1, 1),
+              updatedAt: DateTime.utc(2024, 1, 1),
+            ),
+          );
+          expect(created.originDeviceId, isNotNull);
+        },
+      );
+
+      test('createMedia preserves caller-provided originDeviceId', () async {
+        final created = await repository.createMedia(
+          MediaItem(
+            id: '',
+            mediaType: MediaType.photo,
+            sourceType: MediaSourceType.localFile,
+            localPath: '/x.jpg',
+            originDeviceId: 'mac-explicit',
+            takenAt: DateTime.utc(2024, 1, 1),
+            createdAt: DateTime.utc(2024, 1, 1),
+            updatedAt: DateTime.utc(2024, 1, 1),
+          ),
+        );
+        expect(created.originDeviceId, equals('mac-explicit'));
+      });
+
+      test(
+        'createMedia leaves originDeviceId null for non-device-local sources',
+        () async {
+          final created = await repository.createMedia(
+            MediaItem(
+              id: '',
+              mediaType: MediaType.photo,
+              sourceType: MediaSourceType.networkUrl,
+              url: 'https://example.com/x.jpg',
+              takenAt: DateTime.utc(2024, 1, 1),
+              createdAt: DateTime.utc(2024, 1, 1),
+              updatedAt: DateTime.utc(2024, 1, 1),
+            ),
+          );
+          expect(created.originDeviceId, isNull);
+        },
+      );
+    });
+
     group('deleteMultipleMedia', () {
       test('deletes multiple media items in a single transaction', () async {
         final dive = await createTestDiveInDb();
