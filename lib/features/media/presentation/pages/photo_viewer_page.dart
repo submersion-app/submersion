@@ -16,7 +16,7 @@ import 'package:submersion/features/media/data/services/metadata_write_service.d
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
-import 'package:submersion/features/media/presentation/widgets/unavailable_photo_placeholder.dart';
+import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/write_metadata_dialog.dart';
 import 'package:submersion/features/media/presentation/widgets/mini_dive_profile_overlay.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -414,54 +414,14 @@ class _PhotoGallery extends ConsumerWidget {
 }
 
 /// Individual photo item that loads full-resolution image.
-class _PhotoItem extends ConsumerWidget {
+class _PhotoItem extends StatelessWidget {
   final MediaItem item;
 
   const _PhotoItem({required this.item});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final imageAsync = ref.watch(resolvedFullResolutionProvider(item));
-
-    return imageAsync.when(
-      data: (result) {
-        if (result.isUnavailable) {
-          return const UnavailablePhotoFullScreen();
-        }
-        if (result.bytes == null) {
-          return const Center(
-            child: Icon(Icons.broken_image, color: Colors.white54, size: 64),
-          );
-        }
-        return PhotoView(
-          imageProvider: MemoryImage(result.bytes!),
-          minScale: PhotoViewComputedScale.contained,
-          maxScale: PhotoViewComputedScale.covered * 3.0,
-          backgroundDecoration: const BoxDecoration(color: Colors.black),
-          loadingBuilder: (context, event) => const Center(
-            child: CircularProgressIndicator(color: Colors.white54),
-          ),
-          errorBuilder: (context, error, stack) => const Center(
-            child: Icon(Icons.error_outline, color: Colors.white54, size: 64),
-          ),
-        );
-      },
-      loading: () =>
-          const Center(child: CircularProgressIndicator(color: Colors.white54)),
-      error: (error, stack) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.white54, size: 64),
-            const SizedBox(height: 16),
-            Text(
-              context.l10n.media_photoViewer_failedToLoadImage,
-              style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
-            ),
-          ],
-        ),
-      ),
-    );
+  Widget build(BuildContext context) {
+    return MediaItemView(item: item, fit: BoxFit.contain);
   }
 }
 
