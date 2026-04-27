@@ -1,9 +1,12 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
 import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
@@ -13,8 +16,13 @@ import 'package:submersion/features/media/presentation/providers/media_resolver_
 ///
 /// Phase 2 / Task 9: minimal skeleton with a "Pick files…" action that
 /// runs EXIF extraction and stashes results in [filesTabNotifierProvider].
-/// Auto-match wiring (Task 10), review pane (Task 11), and commit flow
-/// (Task 13) layer on top.
+///
+/// Phase 2 / Task 10: adds a "Pick a folder…" action that enumerates
+/// eligible media files in a background isolate (via [compute]), an
+/// auto-match-by-date checkbox, and routes extracted files through
+/// [DivePhotoMatcher] before stashing the result.
+///
+/// Review pane (Task 11) and commit flow (Task 13) layer on top.
 class FilesTab extends ConsumerWidget {
   const FilesTab({super.key});
 
@@ -49,8 +57,65 @@ class FilesTab extends ConsumerWidget {
       notifier.setExtractionProgress(done: i + 1, total: result.files.length);
     }
 
-    // Auto-match wiring lands in Task 10 — for now stash with empty match.
-    notifier.setFiles(extracted, match: MatchedSelection.empty());
+    await _applyMatchAndStash(ref, extracted);
+  }
+
+  Future<void> _pickFolder(WidgetRef ref) async {
+    final dirPath = await FilePicker.getDirectoryPath();
+    if (dirPath == null) return;
+
+    // Enumerate eligible files in a background isolate so the main
+    // isolate stays responsive on large folder trees.
+    final paths = await compute(_enumerateMediaFiles, dirPath);
+    if (paths.isEmpty) return;
+
+    final notifier = ref.read(filesTabNotifierProvider.notifier);
+    final extractor = ref.read(exifExtractorProvider);
+
+    notifier.setExtractionProgress(done: 0, total: paths.length);
+
+    final extracted = <ExtractedFile>[];
+    for (var i = 0; i < paths.length; i++) {
+      final file = File(paths[i]);
+      final meta = await extractor.extract(file);
+      if (meta != null) {
+        extracted.add(
+          ExtractedFile(sourcePath: paths[i], file: file, metadata: meta),
+        );
+      }
+      // Advance progress unconditionally — see [_pickFiles].
+      notifier.setExtractionProgress(done: i + 1, total: paths.length);
+    }
+
+    await _applyMatchAndStash(ref, extracted);
+  }
+
+  Future<void> _applyMatchAndStash(
+    WidgetRef ref,
+    List<ExtractedFile> extracted,
+  ) async {
+    final notifier = ref.read(filesTabNotifierProvider.notifier);
+    final state = ref.read(filesTabNotifierProvider);
+    if (!state.autoMatchByDate) {
+      notifier.setFiles(extracted, match: MatchedSelection.empty());
+      return;
+    }
+    final dives = await ref.read(divesProvider.future);
+    final bounds = dives
+        .map(
+          (d) => DiveBounds(
+            diveId: d.id,
+            entryTime: d.effectiveEntryTime,
+            exitTime:
+                d.exitTime ??
+                d.effectiveEntryTime.add(
+                  d.effectiveRuntime ?? const Duration(hours: 1),
+                ),
+          ),
+        )
+        .toList();
+    final result = DivePhotoMatcher().match(files: extracted, dives: bounds);
+    notifier.setFiles(extracted, match: result);
   }
 
   @override
@@ -61,10 +126,37 @@ class FilesTab extends ConsumerWidget {
       child: Column(
         children: [
           // TODO(media): l10n
-          FilledButton.icon(
-            icon: const Icon(Icons.upload_file),
-            label: const Text('Pick files…'),
-            onPressed: () => _pickFiles(ref),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.upload_file),
+                  label: const Text('Pick files…'),
+                  onPressed: () => _pickFiles(ref),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.folder_open),
+                  label: const Text('Pick a folder…'),
+                  onPressed: () => _pickFolder(ref),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Checkbox(
+                value: state.autoMatchByDate,
+                onChanged: (_) => ref
+                    .read(filesTabNotifierProvider.notifier)
+                    .toggleAutoMatch(),
+              ),
+              const Expanded(
+                child: Text('Auto-match photos to dives by EXIF date'),
+              ),
+            ],
           ),
           if (state.isExtracting) ...[
             const SizedBox(height: 16),
@@ -96,4 +188,37 @@ class FilesTab extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Recursively enumerates image/video files under [rootPath].
+///
+/// Top-level (file-private) so it can be passed to [compute] — instance
+/// methods can't be sent across isolates because they'd close over `this`.
+///
+/// Caps at 5,000 files per the Phase 2 spec to bound memory and the
+/// subsequent EXIF extraction loop.
+Future<List<String>> _enumerateMediaFiles(String rootPath) async {
+  const exts = {
+    '.jpg',
+    '.jpeg',
+    '.heic',
+    '.heif',
+    '.png',
+    '.webp',
+    '.gif',
+    '.mp4',
+    '.mov',
+    '.m4v',
+  };
+  final results = <String>[];
+  final dir = Directory(rootPath);
+  if (!dir.existsSync()) return results;
+  await for (final entity in dir.list(recursive: true, followLinks: false)) {
+    if (entity is File) {
+      final ext = '.${entity.path.split('.').last.toLowerCase()}';
+      if (exts.contains(ext)) results.add(entity.path);
+      if (results.length >= 5000) break; // hard ceiling per spec
+    }
+  }
+  return results;
 }
