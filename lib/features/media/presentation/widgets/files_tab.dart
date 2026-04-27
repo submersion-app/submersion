@@ -180,7 +180,35 @@ class FilesTab extends ConsumerWidget {
                   )
                 : FileReviewPane(state: state),
           ),
+          // TODO(media): l10n, pluralization
+          if (state.files.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => _commit(context, ref),
+                  child: Text('Link ${state.files.length} items'),
+                ),
+              ),
+            ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _commit(BuildContext context, WidgetRef ref) async {
+    final notifier = ref.read(filesTabNotifierProvider.notifier);
+    final messenger = ScaffoldMessenger.of(context);
+    final created = await notifier.commit();
+    if (!context.mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('Linked ${created.length} items'),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () => notifier.undoCommit(created),
+        ),
       ),
     );
   }
