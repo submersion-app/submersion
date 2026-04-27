@@ -2895,7 +2895,6 @@
   "media_photoPicker_emptyTitle": "لم يتم العثور على صور",
   "media_photoPicker_grantAccessButton": "متابعة",
   "media_photoPicker_openSettingsButton": "فتح الإعدادات",
-  "media_photoPicker_openSettingsSnackbar": "يرجى فتح الإعدادات وتمكين الوصول إلى الصور",
   "media_photoPicker_permissionDeniedMessage": "تم رفض الوصول إلى مكتبة الصور. يرجى تمكينه في الإعدادات لإضافة صور الغوص.",
   "media_photoPicker_permissionRequestMessage": "يحتاج Submersion إلى الوصول إلى مكتبة الصور لإضافة صور الغوص.",
   "media_photoPicker_permissionTitle": "مطلوب الوصول إلى الصور",

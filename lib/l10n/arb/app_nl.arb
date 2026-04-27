@@ -2895,7 +2895,6 @@
   "media_photoPicker_emptyTitle": "Geen foto's gevonden",
   "media_photoPicker_grantAccessButton": "Doorgaan",
   "media_photoPicker_openSettingsButton": "Instellingen openen",
-  "media_photoPicker_openSettingsSnackbar": "Open Instellingen en schakel fototoegang in",
   "media_photoPicker_permissionDeniedMessage": "Toegang tot de fotobibliotheek is geweigerd. Schakel deze in via Instellingen om duikfoto's toe te voegen.",
   "media_photoPicker_permissionRequestMessage": "Submersion heeft toegang tot je fotobibliotheek nodig om duikfoto's toe te voegen.",
   "media_photoPicker_permissionTitle": "Fototoegang vereist",

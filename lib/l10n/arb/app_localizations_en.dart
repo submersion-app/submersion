@@ -8956,10 +8956,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => 'Open Settings';
 
   @override
-  String get media_photoPicker_openSettingsSnackbar =>
-      'Please open Settings and enable photo access';
-
-  @override
   String get media_photoPicker_permissionDeniedMessage =>
       'Photo library access was denied. Please enable it in Settings to add dive photos.';
 

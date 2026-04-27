@@ -8710,9 +8710,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => '打开设置';
 
   @override
-  String get media_photoPicker_openSettingsSnackbar => '请打开设置并启用照片访问权限';
-
-  @override
   String get media_photoPicker_permissionDeniedMessage =>
       '照片库访问被拒绝。请在设置中启用以添加潜水照片。';
 

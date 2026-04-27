@@ -4835,7 +4835,6 @@
   "media_photoPicker_emptyTitle": "No photos found",
   "media_photoPicker_grantAccessButton": "Continue",
   "media_photoPicker_openSettingsButton": "Open Settings",
-  "media_photoPicker_openSettingsSnackbar": "Please open Settings and enable photo access",
   "media_photoPicker_permissionDeniedMessage": "Photo library access was denied. Please enable it in Settings to add dive photos.",
   "media_photoPicker_permissionRequestMessage": "Submersion needs access to your photo library to add dive photos.",
   "media_photoPicker_permissionTitle": "Photo Access Required",

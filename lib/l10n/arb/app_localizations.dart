@@ -15610,12 +15610,6 @@ abstract class AppLocalizations {
   /// **'Open Settings'**
   String get media_photoPicker_openSettingsButton;
 
-  /// No description provided for @media_photoPicker_openSettingsSnackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'Please open Settings and enable photo access'**
-  String get media_photoPicker_openSettingsSnackbar;
-
   /// No description provided for @media_photoPicker_permissionDeniedMessage.
   ///
   /// In en, this message translates to:

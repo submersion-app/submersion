@@ -2861,7 +2861,6 @@
   "media_photoPicker_emptyTitle": "Aucune photo trouvee",
   "media_photoPicker_grantAccessButton": "Continuer",
   "media_photoPicker_openSettingsButton": "Ouvrir les reglages",
-  "media_photoPicker_openSettingsSnackbar": "Veuillez ouvrir les Reglages et activer l'acces aux photos",
   "media_photoPicker_permissionDeniedMessage": "L'acces a la phototheque a ete refuse. Veuillez l'activer dans les Reglages pour ajouter des photos de plongee.",
   "media_photoPicker_permissionRequestMessage": "Submersion a besoin d'acceder a votre phototheque pour ajouter des photos de plongee.",
   "media_photoPicker_permissionTitle": "Acces aux photos requis",

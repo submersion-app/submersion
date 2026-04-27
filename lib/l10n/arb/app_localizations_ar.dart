@@ -8920,10 +8920,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => 'فتح الإعدادات';
 
   @override
-  String get media_photoPicker_openSettingsSnackbar =>
-      'يرجى فتح الإعدادات وتمكين الوصول إلى الصور';
-
-  @override
   String get media_photoPicker_permissionDeniedMessage =>
       'تم رفض الوصول إلى مكتبة الصور. يرجى تمكينه في الإعدادات لإضافة صور الغوص.';
 

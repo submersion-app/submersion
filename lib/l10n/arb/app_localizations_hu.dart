@@ -9070,10 +9070,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => 'Beallitasok megnyitasa';
 
   @override
-  String get media_photoPicker_openSettingsSnackbar =>
-      'Kerem, nyissa meg a Beallitasokat es engedelyezze a fotohozzaferest';
-
-  @override
   String get media_photoPicker_permissionDeniedMessage =>
       'A fotogaleriahoz valo hozzaferes megtagadva. Kerem, engedelyezze a Beallitasokban a merülesi fotok hozzaadasahoz.';
 

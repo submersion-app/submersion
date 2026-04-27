@@ -2895,7 +2895,6 @@
   "media_photoPicker_emptyTitle": "Keine Fotos gefunden",
   "media_photoPicker_grantAccessButton": "Weiter",
   "media_photoPicker_openSettingsButton": "Einstellungen oeffnen",
-  "media_photoPicker_openSettingsSnackbar": "Bitte oeffnen Sie die Einstellungen und aktivieren Sie den Fotozugriff",
   "media_photoPicker_permissionDeniedMessage": "Der Zugriff auf die Fotobibliothek wurde verweigert. Bitte aktivieren Sie ihn in den Einstellungen, um Tauchfotos hinzuzufuegen.",
   "media_photoPicker_permissionRequestMessage": "Submersion benoetigt Zugriff auf Ihre Fotobibliothek, um Tauchfotos hinzuzufuegen.",
   "media_photoPicker_permissionTitle": "Fotozugriff erforderlich",
