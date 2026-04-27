@@ -79,6 +79,11 @@ class TripMediaScanner {
   /// Falls back to [Dive.dateTime] + [Dive.duration] if entry/exit times are not set.
   ///
   /// Returns null if no dive matches.
+  @Deprecated(
+    'Use DivePhotoMatcher.match() instead. This static helper is retained '
+    'only for legacy test coverage; its symmetric 30-minute buffer differs '
+    'from DivePhotoMatcher\'s asymmetric 30 pre / 60 post (per spec).',
+  )
   static Dive? matchPhotoToDive(
     DateTime photoTime,
     List<Dive> dives, {
