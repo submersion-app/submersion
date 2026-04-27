@@ -181,14 +181,16 @@ class FilesTab extends ConsumerWidget {
                 : FileReviewPane(state: state),
           ),
           // TODO(media): l10n, pluralization
-          if (state.files.isNotEmpty)
+          if (state.match.matched.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: SizedBox(
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: () => _commit(context, ref),
-                  child: Text('Link ${state.files.length} items'),
+                  child: Text(
+                    'Link ${state.match.totalFiles - state.match.unmatched.length} items',
+                  ),
                 ),
               ),
             ),
@@ -202,6 +204,7 @@ class FilesTab extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     final created = await notifier.commit();
     if (!context.mounted) return;
+    // TODO(media): l10n, pluralization
     messenger.showSnackBar(
       SnackBar(
         content: Text('Linked ${created.length} items'),

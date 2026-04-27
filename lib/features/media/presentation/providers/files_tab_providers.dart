@@ -143,7 +143,7 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     for (final entry in state.match.matched.entries) {
       for (final file in entry.value) {
         final id = await _persistOne(file, entry.key);
-        if (id != null) created.add(id);
+        created.add(id);
       }
     }
     clear();
@@ -158,7 +158,7 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     }
   }
 
-  Future<String?> _persistOne(ExtractedFile file, String diveId) async {
+  Future<String> _persistOne(ExtractedFile file, String diveId) async {
     String? localPath;
     String? bookmarkRef;
 
