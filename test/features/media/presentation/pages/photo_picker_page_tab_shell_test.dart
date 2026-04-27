@@ -13,6 +13,7 @@ import 'package:submersion/features/media/data/services/photo_picker_service.dar
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _StubPhotoPickerService implements PhotoPickerService {
@@ -79,9 +80,7 @@ void main() {
     },
   );
 
-  testWidgets('switching to Files tab shows Phase 2 placeholder', (
-    tester,
-  ) async {
+  testWidgets('switching to Files tab shows FilesTab', (tester) async {
     await tester.pumpWidget(_wrap(showHiddenTabs: true));
     await tester.pump();
 
@@ -89,7 +88,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
 
-    expect(find.text('Coming in Phase 2'), findsOneWidget);
+    expect(find.byType(FilesTab), findsOneWidget);
   });
 
   testWidgets('switching to URL tab shows Phase 3 placeholder', (tester) async {
