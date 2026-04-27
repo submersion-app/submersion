@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
@@ -23,6 +24,7 @@ class FileReviewCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // TODO(media): l10n
     return ListTile(
       leading: Image.file(
         file.file,
@@ -33,7 +35,7 @@ class FileReviewCard extends ConsumerWidget {
             const Icon(Icons.broken_image_outlined, size: 32),
       ),
       title: Text(
-        file.sourcePath.split('/').last,
+        p.basename(file.sourcePath),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),

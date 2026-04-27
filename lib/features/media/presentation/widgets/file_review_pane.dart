@@ -21,6 +21,7 @@ class FileReviewPane extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // TODO(media): l10n
     final summary =
         '${state.files.length} photos → '
         '${state.match.diveCount} dive${state.match.diveCount == 1 ? '' : 's'}, '
