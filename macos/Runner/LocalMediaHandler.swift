@@ -94,6 +94,19 @@ class LocalMediaHandler: NSObject {
             releaseBookmark(key: key, result: result)
         case "releaseAllBookmarks":
             releaseAllBookmarks(result: result)
+        case "readBookmarkBytes":
+            guard let args = call.arguments as? [String: Any],
+                let blob = args["bookmarkBlob"] as? FlutterStandardTypedData
+            else {
+                result(
+                    FlutterError(
+                        code: "INVALID_ARGS",
+                        message: "bookmarkBlob required",
+                        details: nil
+                    ))
+                return
+            }
+            readBookmarkBytes(blob: blob.data, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -166,5 +179,36 @@ class LocalMediaHandler: NSObject {
         }
         active.removeAll()
         result(nil)
+    }
+
+    private func readBookmarkBytes(blob: Data, result: @escaping FlutterResult) {
+        var stale = false
+        do {
+            let url = try URL(
+                resolvingBookmarkData: blob,
+                options: .withSecurityScope,
+                relativeTo: nil,
+                bookmarkDataIsStale: &stale
+            )
+            guard url.startAccessingSecurityScopedResource() else {
+                result(
+                    FlutterError(
+                        code: "ACCESS_DENIED",
+                        message: "Security-scoped resource access denied",
+                        details: nil
+                    ))
+                return
+            }
+            defer { url.stopAccessingSecurityScopedResource() }
+            let data = try Data(contentsOf: url)
+            result(FlutterStandardTypedData(bytes: data))
+        } catch {
+            result(
+                FlutterError(
+                    code: "READ_FAILED",
+                    message: "Could not read bookmark bytes: \(error.localizedDescription)",
+                    details: nil
+                ))
+        }
     }
 }
