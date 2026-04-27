@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:photo_manager/photo_manager.dart' as pm;
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
@@ -638,18 +639,7 @@ class _PermissionDeniedView extends StatelessWidget {
             const SizedBox(height: 24),
             if (isPermanentlyDenied)
               FilledButton(
-                onPressed: () {
-                  // Open app settings
-                  // Note: This requires platform-specific handling
-                  // For now, just show a message
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        context.l10n.media_photoPicker_openSettingsSnackbar,
-                      ),
-                    ),
-                  );
-                },
+                onPressed: () => pm.PhotoManager.openSetting(),
                 child: Text(context.l10n.media_photoPicker_openSettingsButton),
               )
             else

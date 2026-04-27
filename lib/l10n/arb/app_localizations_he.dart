@@ -8862,10 +8862,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => 'פתח הגדרות';
 
   @override
-  String get media_photoPicker_openSettingsSnackbar =>
-      'נא לפתוח הגדרות ולאפשר גישה לתמונות';
-
-  @override
   String get media_photoPicker_permissionDeniedMessage =>
       'הגישה לספריית התמונות נדחתה. נא לאפשר אותה בהגדרות כדי להוסיף תמונות צלילה.';
 

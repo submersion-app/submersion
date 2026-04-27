@@ -2895,7 +2895,6 @@
   "media_photoPicker_emptyTitle": "No se encontraron fotos",
   "media_photoPicker_grantAccessButton": "Continuar",
   "media_photoPicker_openSettingsButton": "Abrir ajustes",
-  "media_photoPicker_openSettingsSnackbar": "Por favor, abre Ajustes y activa el acceso a fotos",
   "media_photoPicker_permissionDeniedMessage": "Se denego el acceso a la biblioteca de fotos. Activalo en Ajustes para agregar fotos de buceo.",
   "media_photoPicker_permissionRequestMessage": "Submersion necesita acceso a tu biblioteca de fotos para agregar fotos de buceo.",
   "media_photoPicker_permissionTitle": "Se requiere acceso a fotos",

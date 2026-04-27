@@ -9130,10 +9130,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => 'Ouvrir les reglages';
 
   @override
-  String get media_photoPicker_openSettingsSnackbar =>
-      'Veuillez ouvrir les Reglages et activer l\'acces aux photos';
-
-  @override
   String get media_photoPicker_permissionDeniedMessage =>
       'L\'acces a la phototheque a ete refuse. Veuillez l\'activer dans les Reglages pour ajouter des photos de plongee.';
 

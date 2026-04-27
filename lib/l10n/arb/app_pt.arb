@@ -2895,7 +2895,6 @@
   "media_photoPicker_emptyTitle": "Nenhuma foto encontrada",
   "media_photoPicker_grantAccessButton": "Continuar",
   "media_photoPicker_openSettingsButton": "Abrir Configuracoes",
-  "media_photoPicker_openSettingsSnackbar": "Abra as Configuracoes e habilite o acesso a fotos",
   "media_photoPicker_permissionDeniedMessage": "O acesso a biblioteca de fotos foi negado. Habilite-o nas Configuracoes para adicionar fotos de mergulho.",
   "media_photoPicker_permissionRequestMessage": "O Submersion precisa de acesso a sua biblioteca de fotos para adicionar fotos de mergulho.",
   "media_photoPicker_permissionTitle": "Acesso a Fotos Necessario",

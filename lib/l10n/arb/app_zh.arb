@@ -3045,7 +3045,6 @@
   "media_photoPicker_emptyTitle": "无照片已找到",
   "media_photoPicker_grantAccessButton": "继续",
   "media_photoPicker_openSettingsButton": "打开设置",
-  "media_photoPicker_openSettingsSnackbar": "请打开设置并启用照片访问权限",
   "media_photoPicker_permissionDeniedMessage": "照片库访问被拒绝。请在设置中启用以添加潜水照片。",
   "media_photoPicker_permissionRequestMessage": "Submersion 需要访问您的照片库以添加潜水照片。",
   "media_photoPicker_permissionTitle": "照片访问必填",

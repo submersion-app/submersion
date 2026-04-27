@@ -2861,7 +2861,6 @@
   "media_photoPicker_emptyTitle": "Nincsenek fotok",
   "media_photoPicker_grantAccessButton": "Tovább",
   "media_photoPicker_openSettingsButton": "Beallitasok megnyitasa",
-  "media_photoPicker_openSettingsSnackbar": "Kerem, nyissa meg a Beallitasokat es engedelyezze a fotohozzaferest",
   "media_photoPicker_permissionDeniedMessage": "A fotogaleriahoz valo hozzaferes megtagadva. Kerem, engedelyezze a Beallitasokban a merülesi fotok hozzaadasahoz.",
   "media_photoPicker_permissionRequestMessage": "A Submersion hozzaferest igenyel a fotogaleriajahoz merülesi fotok hozzaadasahoz.",
   "media_photoPicker_permissionTitle": "Foto hozzaferes szukseges",

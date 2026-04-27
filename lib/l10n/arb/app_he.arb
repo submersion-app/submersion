@@ -2861,7 +2861,6 @@
   "media_photoPicker_emptyTitle": "לא נמצאו תמונות",
   "media_photoPicker_grantAccessButton": "המשך",
   "media_photoPicker_openSettingsButton": "פתח הגדרות",
-  "media_photoPicker_openSettingsSnackbar": "נא לפתוח הגדרות ולאפשר גישה לתמונות",
   "media_photoPicker_permissionDeniedMessage": "הגישה לספריית התמונות נדחתה. נא לאפשר אותה בהגדרות כדי להוסיף תמונות צלילה.",
   "media_photoPicker_permissionRequestMessage": "Submersion זקוקה לגישה לספריית התמונות שלך כדי להוסיף תמונות צלילה.",
   "media_photoPicker_permissionTitle": "נדרשת גישה לתמונות",

@@ -9102,10 +9102,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => 'Einstellungen oeffnen';
 
   @override
-  String get media_photoPicker_openSettingsSnackbar =>
-      'Bitte oeffnen Sie die Einstellungen und aktivieren Sie den Fotozugriff';
-
-  @override
   String get media_photoPicker_permissionDeniedMessage =>
       'Der Zugriff auf die Fotobibliothek wurde verweigert. Bitte aktivieren Sie ihn in den Einstellungen, um Tauchfotos hinzuzufuegen.';
 

@@ -9031,10 +9031,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => 'Instellingen openen';
 
   @override
-  String get media_photoPicker_openSettingsSnackbar =>
-      'Open Instellingen en schakel fototoegang in';
-
-  @override
   String get media_photoPicker_permissionDeniedMessage =>
       'Toegang tot de fotobibliotheek is geweigerd. Schakel deze in via Instellingen om duikfoto\'s toe te voegen.';
 

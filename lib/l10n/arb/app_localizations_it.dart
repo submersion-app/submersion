@@ -9099,10 +9099,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => 'Apri Impostazioni';
 
   @override
-  String get media_photoPicker_openSettingsSnackbar =>
-      'Apri Impostazioni e abilita l\'accesso alle foto';
-
-  @override
   String get media_photoPicker_permissionDeniedMessage =>
       'L\'accesso alla libreria foto è stato negato. Abilitalo nelle Impostazioni per aggiungere foto delle immersioni.';
 
