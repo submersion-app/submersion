@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
@@ -38,11 +39,24 @@ class PhotoImportHelper {
     // Check context is still valid after async gap
     if (!context.mounted) return false;
 
-    // Open photo picker with already-linked IDs
+    // Open photo picker with already-linked IDs.
+    //
+    // Dive times are stored as wall-clock-as-UTC (the time on the dive
+    // computer, regardless of timezone), but photo_manager filters by the
+    // device's local time. To produce the same filter window as
+    // TripMediaScanner.scanGalleryForDive, apply the buffer in UTC first
+    // and only then convert to local — this avoids DST-transition
+    // divergence that would arise from applying the buffer in local time
+    // after the conversion. We pass buffer: Duration.zero to disable
+    // showPhotoPicker's internal buffer-in-local logic.
+    const buffer = Duration(minutes: 30);
     final selectedAssets = await showPhotoPicker(
       context: context,
-      diveStartTime: diveStart,
-      diveEndTime: diveEnd,
+      diveStartTime: TripMediaScanner.wallClockUtcToLocal(
+        diveStart.subtract(buffer),
+      ),
+      diveEndTime: TripMediaScanner.wallClockUtcToLocal(diveEnd.add(buffer)),
+      buffer: Duration.zero,
       alreadyLinkedIds: alreadyLinkedIds,
     );
 
