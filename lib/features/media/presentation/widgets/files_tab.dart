@@ -11,6 +11,7 @@ import 'package:submersion/features/media/domain/value_objects/extracted_file.da
 import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/file_review_pane.dart';
 
 /// Files tab in the photo picker.
 ///
@@ -22,7 +23,9 @@ import 'package:submersion/features/media/presentation/providers/media_resolver_
 /// auto-match-by-date checkbox, and routes extracted files through
 /// [DivePhotoMatcher] before stashing the result.
 ///
-/// Review pane (Task 11) and commit flow (Task 13) layer on top.
+/// Phase 2 / Task 11: review pane wired in via [FileReviewPane].
+///
+/// Commit flow (Task 13) layers on top.
 class FilesTab extends ConsumerWidget {
   const FilesTab({super.key});
 
@@ -175,14 +178,7 @@ class FilesTab extends ConsumerWidget {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   )
-                : Center(
-                    child: Text(
-                      '${state.files.length} files staged.'
-                      ' Review pane lands in Task 11.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
+                : FileReviewPane(state: state),
           ),
         ],
       ),

@@ -7,6 +7,7 @@ import 'package:submersion/features/media/domain/value_objects/extracted_file.da
 import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/file_review_pane.dart';
 import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
 
 ExtractedFile _ef(String path) => ExtractedFile(
@@ -67,9 +68,7 @@ void main() {
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('renders staged-files placeholder when files non-empty', (
-    tester,
-  ) async {
+  testWidgets('renders FileReviewPane when files non-empty', (tester) async {
     final files = [_ef('/a.jpg'), _ef('/b.jpg'), _ef('/c.jpg')];
     final seeded = FilesTabState.initial().copyWith(
       files: files,
@@ -85,8 +84,7 @@ void main() {
         child: const MaterialApp(home: Scaffold(body: FilesTab())),
       ),
     );
-    expect(find.textContaining('3 files staged'), findsOneWidget);
-    expect(find.textContaining('Review pane lands in Task 11'), findsOneWidget);
+    expect(find.byType(FileReviewPane), findsOneWidget);
     // The empty-state hint should not be visible when files are staged.
     expect(find.textContaining('Pick files or'), findsNothing);
   });
