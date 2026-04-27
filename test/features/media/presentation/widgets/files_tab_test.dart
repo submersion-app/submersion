@@ -1,7 +1,31 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
+import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
+import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
+
+ExtractedFile _ef(String path) => ExtractedFile(
+  sourcePath: path,
+  file: File(path),
+  metadata: const MediaSourceMetadata(mimeType: 'image/jpeg'),
+);
+
+/// Test-only notifier that seeds an arbitrary initial [FilesTabState] so the
+/// widget can be rendered in any branch without driving it through the
+/// picker flow. Mirrors the seeding approach used in
+/// `files_tab_providers_test.dart` (which uses a [ProviderContainer] and
+/// public mutators), but expressed as a notifier override so widget tests
+/// can pump the seeded state directly.
+class _SeededFilesTabNotifier extends FilesTabNotifier {
+  _SeededFilesTabNotifier(FilesTabState seed) {
+    state = seed;
+  }
+}
 
 void main() {
   testWidgets('renders Pick files action', (tester) async {
@@ -20,5 +44,50 @@ void main() {
       ),
     );
     expect(find.textContaining('Pick files or'), findsOneWidget);
+  });
+
+  testWidgets('renders LinearProgressIndicator while extracting', (
+    tester,
+  ) async {
+    final seeded = FilesTabState.initial().copyWith(
+      isExtracting: true,
+      extractedCount: 2,
+      totalToExtract: 5,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          filesTabNotifierProvider.overrideWith(
+            (ref) => _SeededFilesTabNotifier(seeded),
+          ),
+        ],
+        child: const MaterialApp(home: Scaffold(body: FilesTab())),
+      ),
+    );
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets('renders staged-files placeholder when files non-empty', (
+    tester,
+  ) async {
+    final files = [_ef('/a.jpg'), _ef('/b.jpg'), _ef('/c.jpg')];
+    final seeded = FilesTabState.initial().copyWith(
+      files: files,
+      match: MatchedSelection.empty(),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          filesTabNotifierProvider.overrideWith(
+            (ref) => _SeededFilesTabNotifier(seeded),
+          ),
+        ],
+        child: const MaterialApp(home: Scaffold(body: FilesTab())),
+      ),
+    );
+    expect(find.textContaining('3 files staged'), findsOneWidget);
+    expect(find.textContaining('Review pane lands in Task 11'), findsOneWidget);
+    // The empty-state hint should not be visible when files are staged.
+    expect(find.textContaining('Pick files or'), findsNothing);
   });
 }

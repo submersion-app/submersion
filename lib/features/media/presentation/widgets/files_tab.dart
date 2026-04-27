@@ -18,7 +18,7 @@ import 'package:submersion/features/media/presentation/providers/media_resolver_
 class FilesTab extends ConsumerWidget {
   const FilesTab({super.key});
 
-  Future<void> _pickFiles(BuildContext context, WidgetRef ref) async {
+  Future<void> _pickFiles(WidgetRef ref) async {
     final result = await FilePicker.pickFiles(
       type: FileType.media,
       allowMultiple: true,
@@ -34,13 +34,18 @@ class FilesTab extends ConsumerWidget {
     for (var i = 0; i < result.files.length; i++) {
       final pf = result.files[i];
       final path = pf.path;
-      if (path == null) continue;
-      final file = File(path);
-      final meta = await extractor.extract(file);
-      if (meta == null) continue;
-      extracted.add(
-        ExtractedFile(sourcePath: path, file: file, metadata: meta),
-      );
+      if (path != null) {
+        final file = File(path);
+        final meta = await extractor.extract(file);
+        if (meta != null) {
+          extracted.add(
+            ExtractedFile(sourcePath: path, file: file, metadata: meta),
+          );
+        }
+      }
+      // Advance progress unconditionally so isExtracting flips false even
+      // when files are skipped (null path or null metadata). `done` here
+      // means "files processed", not "files successfully extracted".
       notifier.setExtractionProgress(done: i + 1, total: result.files.length);
     }
 
@@ -59,7 +64,7 @@ class FilesTab extends ConsumerWidget {
           FilledButton.icon(
             icon: const Icon(Icons.upload_file),
             label: const Text('Pick files…'),
-            onPressed: () => _pickFiles(context, ref),
+            onPressed: () => _pickFiles(ref),
           ),
           if (state.isExtracting) ...[
             const SizedBox(height: 16),
