@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:submersion/features/media/data/resolvers/local_file_resolver.dart';
 import 'package:submersion/features/media/data/resolvers/platform_gallery_resolver.dart';
 import 'package:submersion/features/media/data/resolvers/signature_resolver.dart';
+import 'package:submersion/features/media/data/services/exif_extractor.dart';
+import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
+import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
@@ -25,24 +28,28 @@ final signatureResolverProvider = Provider<SignatureResolver>(
   (ref) => SignatureResolver(),
 );
 
-/// Phase 1 stub [LocalFileResolver].
-///
-/// Registered so v72-migrated rows with `source_type = 'localFile'` resolve
-/// to a real file on desktop hosts (where the backfilled `local_path` is a
-/// valid filesystem path) and to [UnavailableData] on iOS / Android (where
-/// Phase 2's bookmark-aware resolver will replace this stub).
+final localBookmarkStorageProvider = Provider<LocalBookmarkStorage>(
+  (ref) => LocalBookmarkStorage(),
+);
+
+final localMediaPlatformProvider = Provider<LocalMediaPlatform>(
+  (ref) => LocalMediaPlatform(),
+);
+
+final exifExtractorProvider = Provider<ExifExtractor>((ref) => ExifExtractor());
+
+/// Singleton [LocalFileResolver] (Phase 2 — multi-platform).
 final localFileResolverProvider = Provider<LocalFileResolver>(
-  (ref) => LocalFileResolver(),
+  (ref) => LocalFileResolver(
+    bookmarkStorage: ref.watch(localBookmarkStorageProvider),
+    platform: ref.watch(localMediaPlatformProvider),
+    exifExtractor: ref.watch(exifExtractorProvider),
+  ),
 );
 
 /// The [MediaSourceResolverRegistry] used by the universal display widget
 /// and any other consumer that resolves [MediaItem]s without caring about
 /// their source type.
-///
-/// Phase 1 registers three resolvers: gallery (existing flow), signature,
-/// and a stub local-file resolver covering rows the v72 migration backfills
-/// to `MediaSourceType.localFile`. Later phases register additional
-/// resolvers for network URLs, manifest entries, and service connectors.
 final mediaSourceResolverRegistryProvider =
     Provider<MediaSourceResolverRegistry>((ref) {
       return MediaSourceResolverRegistry({
