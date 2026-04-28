@@ -44,8 +44,12 @@ Future<MediaSourceMetadata?> _extract(String path) async {
 
   try {
     final exif = await Exif.fromPath(path);
-    final attrs = await exif.getAttributes();
-    await exif.close();
+    Map<String, Object?>? attrs;
+    try {
+      attrs = await exif.getAttributes();
+    } finally {
+      await exif.close();
+    }
 
     if (attrs != null) {
       // DateTimeOriginal is returned as a string in "YYYY:MM:DD HH:MM:SS" format.
