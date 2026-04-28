@@ -16,6 +16,24 @@
 //   the unit-test fake clock can advance time between pumps without the
 //   worker blocking on a real-time delay.
 //
+// Phase 3b extension (Task 10):
+// - `ingestManifestEntries` accepts a list of `ManifestEntry` plus the
+//   owning `subscriptionId`. Each entry is inserted with
+//   `sourceType = 'manifestEntry'` and the manifest-supplied scalars
+//   applied directly. If the manifest already provides every field the
+//   extractor would otherwise populate (`takenAt`, `width`, `height`,
+//   and either both `latitude`/`longitude` or none), the EXIF/range-GET
+//   step is skipped and the row is stamped `lastVerifiedAt = now`
+//   without ever hitting the network. Otherwise the same background
+//   fill path runs, with manifest-supplied fields taking precedence
+//   over extracted ones (manifest is treated as authoritative).
+// - The plan's idealised version of Task 10 used a `_PipelineJob` queue
+//   and a `forTest()` factory; this implementation reuses 3a's existing
+//   `_processOne` machinery instead, threading a `_FillSpec` value
+//   through it so the same worker pool, per-host throttle, and
+//   diagnostics path serve both the URL and manifest paths without
+//   duplication.
+//
 // The pipeline composes `UrlMetadataExtractor` (which itself wraps the
 // `NetworkUrlResolver` + EXIF stack) with the `media` and
 // `media_fetch_diagnostics` tables. It writes directly through Drift
@@ -29,6 +47,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
 import 'package:submersion/features/media/data/services/url_metadata_extractor.dart';
 
 /// Background-fetch pipeline for ad-hoc HTTP(S) media URLs.
@@ -93,6 +112,7 @@ class NetworkFetchPipeline {
     bool autoMatch = true,
   }) async {
     final ids = <String>[];
+    final specs = <_FillSpec>[];
     final nowMillis = _now().millisecondsSinceEpoch;
     for (final uri in urls) {
       final id = _uuid.v4();
@@ -110,13 +130,67 @@ class NetworkFetchPipeline {
             ),
           );
       ids.add(id);
+      specs.add(_FillSpec(id: id, uri: uri));
     }
-    // Fire-and-forget background fill so callers see rows immediately.
-    final fill = _runFill(ids, urls);
-    _running.add(fill);
-    // Remove from `_running` once it settles, so `idle()` doesn't keep
-    // accumulating completed futures.
-    fill.whenComplete(() => _running.remove(fill));
+    _scheduleFill(specs);
+    return ids;
+  }
+
+  /// Synchronously inserts one `media` row per [ManifestEntry] under the
+  /// owning [subscriptionId] and kicks off background metadata extraction.
+  /// Returns the new row IDs in input order.
+  ///
+  /// Each row is inserted with `sourceType = 'manifestEntry'`, the
+  /// `subscriptionId` and `entryKey` filled in for cross-device dedup
+  /// (enforced by the partial unique index `idx_media_subscription_entry`),
+  /// and any manifest-supplied scalars (`takenAt`, `latitude`, `longitude`,
+  /// `width`, `height`, `caption`, `durationSeconds`, `mediaType`) applied
+  /// directly so the row is immediately useful before any background work.
+  ///
+  /// EXIF / range-GET extraction is skipped when the manifest already
+  /// provides every field the extractor would populate (`takenAt`, `width`,
+  /// `height`, and GPS coordinates). In that case the row is simply
+  /// stamped `lastVerifiedAt = now` and no network call is issued.
+  /// Otherwise the same background-fill path used for URL ingest runs,
+  /// but manifest-supplied fields take precedence over extracted ones.
+  Future<List<String>> ingestManifestEntries(
+    List<ManifestEntry> entries,
+    String subscriptionId,
+  ) async {
+    final ids = <String>[];
+    final specs = <_FillSpec>[];
+    final nowMillis = _now().millisecondsSinceEpoch;
+    for (final entry in entries) {
+      final id = _uuid.v4();
+      final fileType = _fileTypeFromMediaType(entry.mediaType);
+      await _db
+          .into(_db.media)
+          .insert(
+            MediaCompanion.insert(
+              id: id,
+              filePath: '',
+              fileType: Value(fileType),
+              sourceType: const Value('manifestEntry'),
+              subscriptionId: Value(subscriptionId),
+              entryKey: Value(entry.entryKey),
+              url: Value(entry.url),
+              latitude: Value(entry.latitude),
+              longitude: Value(entry.longitude),
+              takenAt: Value(entry.takenAt?.millisecondsSinceEpoch),
+              width: Value(entry.width),
+              height: Value(entry.height),
+              durationSeconds: Value(entry.durationSeconds),
+              caption: Value(entry.caption),
+              isOrphaned: const Value(false),
+              createdAt: nowMillis,
+              updatedAt: nowMillis,
+            ),
+          );
+      ids.add(id);
+      final uri = Uri.parse(entry.url);
+      specs.add(_FillSpec.fromManifest(id: id, uri: uri, entry: entry));
+    }
+    _scheduleFill(specs);
     return ids;
   }
 
@@ -128,43 +202,66 @@ class NetworkFetchPipeline {
     }
   }
 
-  Future<void> _runFill(List<String> ids, List<Uri> urls) async {
+  void _scheduleFill(List<_FillSpec> specs) {
+    if (specs.isEmpty) return;
+    // Fire-and-forget background fill so callers see rows immediately.
+    final fill = _runFill(specs);
+    _running.add(fill);
+    // Remove from `_running` once it settles, so `idle()` doesn't keep
+    // accumulating completed futures.
+    fill.whenComplete(() => _running.remove(fill));
+  }
+
+  Future<void> _runFill(List<_FillSpec> specs) async {
     final futures = <Future<void>>[];
-    for (var i = 0; i < ids.length; i++) {
-      futures.add(_processOne(ids[i], urls[i]));
+    for (final spec in specs) {
+      futures.add(_processOne(spec));
     }
     await Future.wait(futures);
   }
 
-  Future<void> _processOne(String id, Uri uri) async {
+  Future<void> _processOne(_FillSpec spec) async {
+    // Manifest entries that already have every field the extractor would
+    // populate skip the network round-trip entirely. Just stamp
+    // `lastVerifiedAt` so the row is treated as verified-against-the-
+    // manifest at this clock tick.
+    if (spec.skipExtract) {
+      try {
+        await _markVerifiedNoExtract(spec.id);
+      } catch (e) {
+        await _markFailed(spec.id, 'pipeline: $e');
+      }
+      return;
+    }
+
     await _acquireSlot();
     try {
       // Serialise per-host so concurrent workers wait for the prior call's
       // throttle window to clear, and observe the previous call's start
       // time atomically rather than racing.
-      final previous = _hostChain[uri.host] ?? Future<void>.value();
+      final previous = _hostChain[spec.uri.host] ?? Future<void>.value();
       final completer = Completer<void>();
-      _hostChain[uri.host] = completer.future;
+      _hostChain[spec.uri.host] = completer.future;
       try {
         await previous;
       } catch (_) {
         // Errors on the previous call don't block subsequent ones.
       }
       try {
-        await _waitForHostThrottle(uri.host);
-        _hostLastCall[uri.host] = _now();
+        await _waitForHostThrottle(spec.uri.host);
+        _hostLastCall[spec.uri.host] = _now();
       } finally {
         completer.complete();
       }
 
-      final result = await _extractor.extract(uri);
+      final result = await _extractor.extract(spec.uri);
       if (result.failure != null) {
-        await _markFailed(id, result.failure!);
+        await _markFailed(spec.id, result.failure!);
       } else {
-        await _patchSuccess(id, result);
+        await _patchSuccess(spec, result);
       }
     } catch (e) {
-      await _markFailed(id, 'pipeline: $e');
+      await _markFailed(spec.id, 'pipeline: $e');
     } finally {
       _releaseSlot();
     }
@@ -204,16 +301,39 @@ class NetworkFetchPipeline {
     }
   }
 
-  Future<void> _patchSuccess(String id, UrlExtractionResult result) async {
+  Future<void> _patchSuccess(_FillSpec spec, UrlExtractionResult result) async {
+    final nowMillis = _now().millisecondsSinceEpoch;
+    // Manifest-supplied fields take precedence over extracted ones —
+    // the manifest is treated as authoritative since the feed publisher
+    // has more context than EXIF inference does. Falls back to the
+    // extractor's value when the manifest didn't provide one.
+    final width = spec.manifestWidth ?? result.width;
+    final height = spec.manifestHeight ?? result.height;
+    final lat = spec.manifestLatitude ?? result.lat;
+    final lon = spec.manifestLongitude ?? result.lon;
+    final takenAt = spec.manifestTakenAt ?? result.takenAt;
+    await (_db.update(_db.media)..where((t) => t.id.equals(spec.id))).write(
+      MediaCompanion(
+        url: Value(result.url),
+        width: Value(width),
+        height: Value(height),
+        latitude: Value(lat),
+        longitude: Value(lon),
+        takenAt: Value(takenAt?.millisecondsSinceEpoch),
+        lastVerifiedAt: Value(nowMillis),
+        updatedAt: Value(nowMillis),
+      ),
+    );
+  }
+
+  /// Stamp `lastVerifiedAt` for a row whose manifest entry was already
+  /// fully prefilled, so no extractor call was needed. The synchronous
+  /// insert step has already populated every metadata column from the
+  /// manifest; here we only mark the row as verified-now.
+  Future<void> _markVerifiedNoExtract(String id) async {
     final nowMillis = _now().millisecondsSinceEpoch;
     await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
       MediaCompanion(
-        url: Value(result.url),
-        width: Value(result.width),
-        height: Value(result.height),
-        latitude: Value(result.lat),
-        longitude: Value(result.lon),
-        takenAt: Value(result.takenAt?.millisecondsSinceEpoch),
         lastVerifiedAt: Value(nowMillis),
         updatedAt: Value(nowMillis),
       ),
@@ -239,6 +359,70 @@ class NetworkFetchPipeline {
           ),
         );
   }
+}
+
+/// Maps a manifest entry's optional `mediaType` hint to the legacy
+/// `media.file_type` column convention used elsewhere in the schema
+/// (`'photo'`, `'video'`). Defaults to `'photo'` when the hint is
+/// absent or unrecognised, matching `MediaRepository._mediaTypeToString`.
+String _fileTypeFromMediaType(String? mediaType) {
+  switch (mediaType) {
+    case 'video':
+      return 'video';
+    case 'photo':
+    default:
+      return 'photo';
+  }
+}
+
+/// Per-row plan for a single background-fill operation. Captures both
+/// the URL path (no manifest fields, always extract) and the manifest
+/// path (manifest-supplied fields, extraction skipped when fully
+/// prefilled). Fields named `manifest*` are non-null only for entries
+/// that came from a manifest.
+class _FillSpec {
+  /// Builds a spec for the URL `ingest` path. No manifest fields are
+  /// set, and extraction is always required.
+  _FillSpec({required this.id, required this.uri})
+    : skipExtract = false,
+      manifestTakenAt = null,
+      manifestLatitude = null,
+      manifestLongitude = null,
+      manifestWidth = null,
+      manifestHeight = null;
+
+  /// Builds a spec for the manifest-entry path, copying any manifest-
+  /// supplied scalars and computing whether the EXIF/range-GET step
+  /// can be skipped because every field the extractor would populate
+  /// is already supplied by the manifest.
+  _FillSpec.fromManifest({
+    required this.id,
+    required this.uri,
+    required ManifestEntry entry,
+  }) : manifestTakenAt = entry.takenAt,
+       manifestLatitude = entry.latitude,
+       manifestLongitude = entry.longitude,
+       manifestWidth = entry.width,
+       manifestHeight = entry.height,
+       // The extractor populates `takenAt`, `width`, `height`, and
+       // `lat`/`lon`. The skip is safe iff the manifest already
+       // provided all of those — partial prefill still goes through
+       // extraction, with manifest fields winning at merge time.
+       skipExtract =
+           entry.takenAt != null &&
+           entry.width != null &&
+           entry.height != null &&
+           entry.latitude != null &&
+           entry.longitude != null;
+
+  final String id;
+  final Uri uri;
+  final bool skipExtract;
+  final DateTime? manifestTakenAt;
+  final double? manifestLatitude;
+  final double? manifestLongitude;
+  final int? manifestWidth;
+  final int? manifestHeight;
 }
 
 DateTime _defaultNow() => DateTime.now().toUtc();
