@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -162,17 +164,37 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   }
 
   /// Prompts the user to pick a replacement file for [item] and updates the
-  /// existing media row's `localPath`. Desktop-only by virtue of the
-  /// right-click gating in the cell builder.
+  /// existing media row's `localPath` (and on macOS regenerates the keychain
+  /// bookmark blob so resolution lands on the new file). Desktop-only by
+  /// virtue of the right-click gating in the cell builder.
+  ///
+  /// Phase 2 photo-only constraint: picker is restricted to `FileType.image`
+  /// (videos aren't supported as local-file media yet, see [FilesTab]).
   Future<void> _replaceLink(MediaItem item) async {
-    final result = await FilePicker.pickFiles(type: FileType.media);
+    final result = await FilePicker.pickFiles(type: FileType.image);
     if (result == null) return;
     final newPath = result.files.first.path;
     if (newPath == null) return;
 
-    await ref
-        .read(mediaListNotifierProvider(widget.diveId).notifier)
-        .updateMedia(item.copyWith(localPath: newPath));
+    final notifier = ref.read(
+      mediaListNotifierProvider(widget.diveId).notifier,
+    );
+
+    if (Platform.isMacOS && item.sourceType == MediaSourceType.localFile) {
+      // Regenerate the security-scoped bookmark for the new path. Reuse the
+      // existing bookmarkRef as the keychain key (LocalBookmarkStorage.write
+      // is an idempotent overwrite) so we don't orphan the prior entry.
+      final platform = ref.read(localMediaPlatformProvider);
+      final storage = ref.read(localBookmarkStorageProvider);
+      final blob = await platform.createBookmark(newPath);
+      final newRef = item.bookmarkRef ?? const Uuid().v4();
+      await storage.write(newRef, blob);
+      await notifier.updateMedia(
+        item.copyWith(localPath: newPath, bookmarkRef: newRef),
+      );
+    } else {
+      await notifier.updateMedia(item.copyWith(localPath: newPath));
+    }
   }
 
   /// Opens the right-click context menu for a local-file media item.

@@ -291,14 +291,22 @@ void main() {
         verify(mockPlatform.createBookmark('/a.jpg')).called(1);
         verify(mockBookmarkStorage.write(any, blob)).called(1);
         // Verify the inserted MediaItem carried sourceType=localFile and a
-        // bookmarkRef (UUID, not asserted by exact value) and no localPath.
+        // bookmarkRef (UUID, not asserted by exact value).
+        // On macOS, localPath is also populated so the desktop right-click
+        // "Show in Finder" gate fires (bookmark stays the source of truth
+        // for resolution). On iOS, localPath stays null — the picker's
+        // sandboxed path is not reusable.
         final captured =
             verify(mockRepo.createMedia(captureAny)).captured.single
                 as MediaItem;
         expect(captured.sourceType, MediaSourceType.localFile);
         expect(captured.bookmarkRef, isNotNull);
         expect(captured.bookmarkRef, isNotEmpty);
-        expect(captured.localPath, isNull);
+        if (Platform.isMacOS) {
+          expect(captured.localPath, '/a.jpg');
+        } else {
+          expect(captured.localPath, isNull);
+        }
         expect(captured.diveId, 'd1');
       },
     );

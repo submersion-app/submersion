@@ -189,6 +189,13 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
       final blob = await platform.createBookmark(file.file.path);
       bookmarkRef = _uuid.v4();
       await bookmarkStorage.write(bookmarkRef, blob);
+      if (Platform.isMacOS) {
+        // macOS desktop UX needs the path for "Show in Finder" + the
+        // right-click context menu's localPath gate; the bookmark stays
+        // the source of truth for resolution. iOS keeps localPath null
+        // because the picker path is sandbox-scoped and not reusable.
+        localPath = file.file.path;
+      }
     }
     // coverage:ignore-start
     // Android branch can only be exercised on an Android host (test suite
