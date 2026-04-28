@@ -1,16 +1,72 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 
 /// Helper to create an AssetInfo for testing.
-AssetInfo _testAsset(String id) => AssetInfo(
+AssetInfo _testAsset(
+  String id, {
+  DateTime? createdAt,
+  double? latitude,
+  double? longitude,
+  AssetType type = AssetType.image,
+  int? durationSeconds,
+}) => AssetInfo(
   id: id,
-  type: AssetType.image,
-  createDateTime: DateTime(2024, 1, 15, 10, 0),
+  type: type,
+  createDateTime: createdAt ?? DateTime(2024, 1, 15, 10, 0),
   width: 1920,
   height: 1080,
+  durationSeconds: durationSeconds,
+  latitude: latitude,
+  longitude: longitude,
 );
+
+/// Stub photo picker that records calls and returns the provided
+/// [_assets] from `getAssetsInDateRange`.
+class _StubPhotoPicker implements PhotoPickerService {
+  _StubPhotoPicker({
+    this.permission = PhotoPermissionStatus.authorized,
+    List<AssetInfo>? assets,
+  }) : _assets = assets ?? const [];
+
+  final PhotoPermissionStatus permission;
+  final List<AssetInfo> _assets;
+
+  DateTime? lastStart;
+  DateTime? lastEnd;
+
+  @override
+  Future<List<AssetInfo>> getAssetsInDateRange(
+    DateTime start,
+    DateTime end,
+  ) async {
+    lastStart = start;
+    lastEnd = end;
+    return _assets;
+  }
+
+  @override
+  Future<PhotoPermissionStatus> requestPermission() async => permission;
+
+  @override
+  Future<PhotoPermissionStatus> checkPermission() async => permission;
+
+  @override
+  Future<Uint8List?> getThumbnail(String assetId, {int size = 200}) async =>
+      null;
+
+  @override
+  Future<Uint8List?> getFileBytes(String assetId) async => null;
+
+  @override
+  Future<String?> getFilePath(String assetId) async => null;
+
+  @override
+  bool get supportsGalleryBrowsing => true;
+}
 
 void main() {
   group('TripMediaScanner', () {
@@ -347,6 +403,207 @@ void main() {
 
         expect(result.totalMatchedPhotos, equals(1));
         expect(result.totalNewPhotos, equals(1));
+      });
+    });
+
+    group('toWallClockUtc / wallClockUtcToLocal helpers', () {
+      test(
+        'toWallClockUtc preserves wall-clock components from local DateTime',
+        () {
+          final local = DateTime(2024, 6, 1, 10, 30, 45, 123);
+          final result = TripMediaScanner.toWallClockUtc(local);
+          expect(result.isUtc, isTrue);
+          expect(result.year, 2024);
+          expect(result.month, 6);
+          expect(result.day, 1);
+          expect(result.hour, 10);
+          expect(result.minute, 30);
+          expect(result.second, 45);
+          expect(result.millisecond, 123);
+        },
+      );
+
+      test('toWallClockUtc returns input unchanged when already UTC', () {
+        final utc = DateTime.utc(2024, 6, 1, 10, 30, 45);
+        final result = TripMediaScanner.toWallClockUtc(utc);
+        expect(identical(result, utc), isTrue);
+      });
+
+      test('wallClockUtcToLocal preserves wall-clock components', () {
+        final utc = DateTime.utc(2024, 6, 1, 10, 30, 45, 123);
+        final result = TripMediaScanner.wallClockUtcToLocal(utc);
+        expect(result.isUtc, isFalse);
+        expect(result.year, 2024);
+        expect(result.month, 6);
+        expect(result.day, 1);
+        expect(result.hour, 10);
+        expect(result.minute, 30);
+        expect(result.second, 45);
+        expect(result.millisecond, 123);
+      });
+
+      test(
+        'wallClockUtcToLocal returns input unchanged when already local',
+        () {
+          final local = DateTime(2024, 6, 1, 10, 30, 45);
+          final result = TripMediaScanner.wallClockUtcToLocal(local);
+          expect(identical(result, local), isTrue);
+        },
+      );
+    });
+
+    group('scanGalleryForDive', () {
+      test('returns null when permission is denied', () async {
+        final picker = _StubPhotoPicker(
+          permission: PhotoPermissionStatus.denied,
+        );
+        final dive = Dive(
+          id: 'dive-1',
+          dateTime: DateTime.utc(2024, 1, 15, 10, 0),
+          entryTime: DateTime.utc(2024, 1, 15, 10, 0),
+          exitTime: DateTime.utc(2024, 1, 15, 11, 0),
+        );
+        final result = await TripMediaScanner.scanGalleryForDive(
+          dive: dive,
+          existingAssetIds: const {},
+          photoPickerService: picker,
+        );
+        expect(result, isNull);
+      });
+
+      test(
+        'returns assets within the buffer window, filtering already-linked',
+        () async {
+          final assets = [
+            _testAsset('a-new', createdAt: DateTime(2024, 1, 15, 10, 30)),
+            _testAsset('a-old', createdAt: DateTime(2024, 1, 15, 10, 45)),
+          ];
+          final picker = _StubPhotoPicker(assets: assets);
+          final dive = Dive(
+            id: 'dive-1',
+            dateTime: DateTime.utc(2024, 1, 15, 10, 0),
+            entryTime: DateTime.utc(2024, 1, 15, 10, 0),
+            exitTime: DateTime.utc(2024, 1, 15, 11, 0),
+          );
+
+          final result = await TripMediaScanner.scanGalleryForDive(
+            dive: dive,
+            existingAssetIds: const {'a-old'},
+            photoPickerService: picker,
+          );
+
+          expect(result, hasLength(1));
+          expect(result!.first.id, 'a-new');
+          // The picker was called with local-time bounds (UTC bounds were
+          // adjusted by pre/post buffers and converted via wallClockUtcToLocal).
+          expect(picker.lastStart, isNotNull);
+          expect(picker.lastEnd, isNotNull);
+          expect(picker.lastStart!.isUtc, isFalse);
+        },
+      );
+
+      test(
+        'uses dateTime + duration fallback when entry/exit not set',
+        () async {
+          final picker = _StubPhotoPicker(
+            assets: [
+              _testAsset('a1', createdAt: DateTime(2024, 1, 15, 10, 30)),
+            ],
+          );
+          final dive = Dive(
+            id: 'dive-1',
+            dateTime: DateTime.utc(2024, 1, 15, 10, 0),
+            // no entryTime / exitTime / runtime
+          );
+          final result = await TripMediaScanner.scanGalleryForDive(
+            dive: dive,
+            existingAssetIds: const {},
+            photoPickerService: picker,
+          );
+          expect(result, hasLength(1));
+        },
+      );
+    });
+
+    group('scanGalleryForTrip', () {
+      test('returns null when permission is denied', () async {
+        final picker = _StubPhotoPicker(
+          permission: PhotoPermissionStatus.denied,
+        );
+        final result = await TripMediaScanner.scanGalleryForTrip(
+          dives: const [],
+          tripStartDate: DateTime.utc(2024, 1, 15),
+          tripEndDate: DateTime.utc(2024, 1, 17),
+          existingAssetIds: const {},
+          photoPickerService: picker,
+        );
+        expect(result, isNull);
+      });
+
+      test('groups matched assets by dive and surfaces unmatched', () async {
+        final dive = Dive(
+          id: 'dive-1',
+          dateTime: DateTime.utc(2024, 1, 15, 10, 0),
+          entryTime: DateTime.utc(2024, 1, 15, 10, 0),
+          exitTime: DateTime.utc(2024, 1, 15, 11, 0),
+        );
+        // a1: during the dive → matched
+        // a2: outside dive bounds → unmatched
+        // a3: already linked → filtered out before matching
+        final assets = [
+          _testAsset(
+            'a1',
+            createdAt: DateTime(2024, 1, 15, 10, 30),
+            latitude: 30.0,
+            longitude: -120.0,
+          ),
+          _testAsset('a2', createdAt: DateTime(2024, 1, 15, 18, 0)),
+          _testAsset('a3', createdAt: DateTime(2024, 1, 15, 10, 45)),
+        ];
+        final picker = _StubPhotoPicker(assets: assets);
+
+        final result = await TripMediaScanner.scanGalleryForTrip(
+          dives: [dive],
+          tripStartDate: DateTime.utc(2024, 1, 15),
+          tripEndDate: DateTime.utc(2024, 1, 16),
+          existingAssetIds: const {'a3'},
+          photoPickerService: picker,
+        );
+
+        expect(result, isNotNull);
+        expect(result!.alreadyLinkedCount, 1);
+        expect(result.matchedByDive[dive], hasLength(1));
+        expect(result.matchedByDive[dive]!.first.id, 'a1');
+        expect(result.unmatched, hasLength(1));
+        expect(result.unmatched.first.id, 'a2');
+      });
+
+      test('handles permission limited (still scans)', () async {
+        final picker = _StubPhotoPicker(
+          permission: PhotoPermissionStatus.limited,
+        );
+        final result = await TripMediaScanner.scanGalleryForTrip(
+          dives: const [],
+          tripStartDate: DateTime.utc(2024, 1, 15),
+          tripEndDate: DateTime.utc(2024, 1, 17),
+          existingAssetIds: const {},
+          photoPickerService: picker,
+        );
+        expect(result, isNotNull);
+      });
+
+      test('returns empty unmatched when no assets', () async {
+        final picker = _StubPhotoPicker();
+        final result = await TripMediaScanner.scanGalleryForTrip(
+          dives: const [],
+          tripStartDate: DateTime.utc(2024, 1, 15),
+          tripEndDate: DateTime.utc(2024, 1, 17),
+          existingAssetIds: const {},
+          photoPickerService: picker,
+        );
+        expect(result, isNotNull);
+        expect(result!.unmatched, isEmpty);
+        expect(result.matchedByDive, isEmpty);
       });
     });
   });
