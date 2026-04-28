@@ -59,9 +59,16 @@ class LocalFileResolver implements MediaSourceResolver {
       try {
         final f = File(localPath);
         if (await f.exists()) return FileData(file: f);
-      } on FileSystemException {
+      }
+      // coverage:ignore-start
+      // FileSystemException from File.exists() requires a permission /
+      // filesystem error that flutter_test's tmpdir-based fixtures don't
+      // produce. Fallback path to bookmark / Unavailable is exercised by
+      // tests above.
+      on FileSystemException {
         // Fall through to bookmark path or unavailable.
       }
+      // coverage:ignore-end
     }
 
     final ref = item.bookmarkRef;
@@ -126,9 +133,14 @@ class LocalFileResolver implements MediaSourceResolver {
         if (await tmp.exists()) {
           try {
             await tmp.delete();
-          } on FileSystemException {
+          }
+          // coverage:ignore-start
+          // FileSystemException on a tmpdir delete is not produced by
+          // flutter_test fixtures; cleanup is best-effort either way.
+          on FileSystemException {
             // Best-effort cleanup.
           }
+          // coverage:ignore-end
         }
       }
     }

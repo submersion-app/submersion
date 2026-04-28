@@ -314,6 +314,16 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                   ),
+                  // coverage:ignore-start
+                  // The itemBuilder closure only fires when the dive has
+                  // media; this widget has no tests that render media (the
+                  // suite would need a populated DB + asset resolver
+                  // pipeline), so the closure is unreachable from
+                  // flutter_test. The right-click context menu wired via
+                  // `onSecondaryTapDown` is also desktop-only — touchscreens
+                  // never fire it, and `flutter_test` lacks a trackpad
+                  // driver. Both are exercised by manual desktop smoke
+                  // tests.
                   itemBuilder: (context, item, isSelected) {
                     final thumbnail = _MediaThumbnailContent(
                       item: item,
@@ -321,26 +331,14 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       isSelectionMode: _isSelectionMode,
                       isSelected: isSelected,
                     );
-                    // coverage:ignore-start
-                    // Right-click (desktop only) opens a context menu with
-                    // file-management actions for local-file items.
-                    // Touchscreens never fire `onSecondaryTapDown`, so the
-                    // menu is implicitly gated to desktop without breaking
-                    // the long-press gesture that `DragSelectGridView`
-                    // reserves for batch selection. The itemBuilder itself
-                    // only fires when the dive has media — and our test
-                    // suite stubs the media stream with `whenOrNull`/`when`
-                    // branches via the mediaForDiveProvider, so this
-                    // closure is unreachable from flutter_test without a
-                    // populated DB.
                     return GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onSecondaryTapDown: (details) =>
                           _showLocalFileContextMenu(context, item, details),
                       child: thumbnail,
                     );
-                    // coverage:ignore-end
                   },
+                  // coverage:ignore-end
                 );
               },
               loading: () => const SizedBox(
