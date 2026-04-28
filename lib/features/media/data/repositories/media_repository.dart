@@ -360,6 +360,70 @@ class MediaRepository {
     }
   }
 
+  /// Get all media items belonging to a specific manifest subscription.
+  ///
+  /// Used by [SubscriptionPoller] to diff existing rows against a freshly
+  /// fetched manifest. Filtered on `subscription_id` to avoid scanning the
+  /// full `manifestEntry` source-type set when many subscriptions share the
+  /// device.
+  Future<List<domain.MediaItem>> getAllBySubscription(
+    String subscriptionId,
+  ) async {
+    try {
+      final query = _db.select(_db.media).join([
+        leftOuterJoin(
+          _db.mediaEnrichment,
+          _db.mediaEnrichment.mediaId.equalsExp(_db.media.id),
+        ),
+      ])..where(_db.media.subscriptionId.equals(subscriptionId));
+
+      final rows = await query.get();
+      return rows.map((row) {
+        final mediaRow = row.readTable(_db.media);
+        final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
+        return _mapRowToMediaItem(mediaRow, enrichmentRow);
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get media by subscription: $subscriptionId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Set the `is_orphaned` flag on a media row.
+  ///
+  /// Unlike [markAsOrphaned] (which always sets to true and is the v1
+  /// gallery-deletion handler), this accepts an explicit boolean so the
+  /// [SubscriptionPoller] can flip rows back to non-orphaned when a
+  /// previously-removed manifest entry reappears.
+  Future<void> markOrphaned(String id, bool isOrphaned) async {
+    try {
+      _log.info('Setting isOrphaned=$isOrphaned for media: $id');
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
+        MediaCompanion(isOrphaned: Value(isOrphaned), updatedAt: Value(now)),
+      );
+
+      await _syncRepository.markRecordPending(
+        entityType: 'media',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set isOrphaned for media: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get all orphaned media
   /// Includes enrichment data (depth, temperature) if available
   Future<List<domain.MediaItem>> getOrphanedMedia() async {
