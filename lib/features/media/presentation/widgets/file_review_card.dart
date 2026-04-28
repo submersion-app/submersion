@@ -31,8 +31,13 @@ class FileReviewCard extends ConsumerWidget {
         width: 48,
         height: 48,
         fit: BoxFit.cover,
+        // coverage:ignore-start
+        // FileImage failure is dispatched on the async decoder isolate and
+        // doesn't fire deterministically under `flutter test` without a real
+        // image-decoding pipeline. Exercised by manual desktop smoke tests.
         errorBuilder: (_, _, _) =>
             const Icon(Icons.broken_image_outlined, size: 32),
+        // coverage:ignore-end
       ),
       title: Text(
         p.basename(file.sourcePath),
