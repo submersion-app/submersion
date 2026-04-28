@@ -94,14 +94,22 @@ class MediaSourcesPage extends ConsumerWidget {
                       title: const Text('Re-verify all local files'),
                       onTap: () async {
                         final messenger = ScaffoldMessenger.of(context);
-                        final updated = await ref
-                            .read(localFilesDiagnosticsServiceProvider)
-                            .reverifyAll();
-                        // TODO(media): l10n
-                        messenger.showSnackBar(
-                          SnackBar(content: Text('$updated items updated')),
+                        final service = ref.read(
+                          localFilesDiagnosticsServiceProvider,
                         );
-                        ref.invalidate(localFilesDiagnosticsProvider);
+                        try {
+                          final updated = await service.reverifyAll();
+                          // TODO(media): l10n, pluralization
+                          messenger.showSnackBar(
+                            SnackBar(content: Text('$updated items updated')),
+                          );
+                          ref.invalidate(localFilesDiagnosticsProvider);
+                        } catch (e) {
+                          // TODO(media): l10n
+                          messenger.showSnackBar(
+                            SnackBar(content: Text('Re-verify failed: $e')),
+                          );
+                        }
                       },
                     );
                   },

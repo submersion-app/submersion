@@ -79,25 +79,35 @@ class LocalFilesDiagnosticsService {
   ///
   /// Always writes `lastVerifiedAt` for every row so the displayed timestamps
   /// reflect a fresh check. Returns the number of items whose orphan status
-  /// changed (used for the snackbar count). The N-write cost (1 UPDATE per
-  /// item even when nothing changed) is acceptable for libraries up to a
-  /// few thousand items; can be optimized in a follow-up if it ever
-  /// becomes a perf concern.
+  /// changed (used for the snackbar count, excluding failed items). The
+  /// N-write cost (1 UPDATE per item even when nothing changed) is acceptable
+  /// for libraries up to a few thousand items; can be optimized in a
+  /// follow-up if it ever becomes a perf concern.
+  ///
+  /// Per-item failures (verify or update errors) are logged and skipped; the
+  /// sweep continues so a single bad row cannot abort the whole pass.
   Future<int> reverifyAll() async {
     _log.info('Starting Re-verify all (local files)');
     final all = await _repository.getAllBySourceType(MediaSourceType.localFile);
     final now = DateTime.now();
     int flipped = 0;
+    int failed = 0;
     for (final item in all) {
-      final result = await _resolver.verify(item);
-      final isOrphan = result != VerifyResult.available;
-      if (item.isOrphaned != isOrphan) flipped++;
-      await _repository.updateMedia(
-        item.copyWith(isOrphaned: isOrphan, lastVerifiedAt: now),
-      );
+      try {
+        final result = await _resolver.verify(item);
+        final isOrphan = result != VerifyResult.available;
+        if (item.isOrphaned != isOrphan) flipped++;
+        await _repository.updateMedia(
+          item.copyWith(isOrphaned: isOrphan, lastVerifiedAt: now),
+        );
+      } catch (e, st) {
+        failed++;
+        _log.error('Re-verify failed for ${item.id}', error: e, stackTrace: st);
+      }
     }
     _log.info(
-      'Re-verify all complete: ${all.length} verified, $flipped flipped',
+      'Re-verify all complete: ${all.length} processed, '
+      '$flipped flipped, $failed failed',
     );
     return flipped;
   }
