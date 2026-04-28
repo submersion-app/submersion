@@ -825,5 +825,68 @@ void main() {
         // Should not throw
       });
     });
+
+    group('getAllBySourceType', () {
+      test('filters by sourceType and returns matching items', () async {
+        final takenAt = DateTime.utc(2024, 6, 1);
+
+        // Seed three items: two localFile, one platformGallery.
+        await repository.createMedia(
+          MediaItem(
+            id: '',
+            mediaType: MediaType.photo,
+            sourceType: MediaSourceType.localFile,
+            localPath: '/Users/me/local-a.jpg',
+            takenAt: takenAt,
+            createdAt: takenAt,
+            updatedAt: takenAt,
+          ),
+        );
+        await repository.createMedia(
+          MediaItem(
+            id: '',
+            mediaType: MediaType.photo,
+            sourceType: MediaSourceType.localFile,
+            localPath: '/Users/me/local-b.jpg',
+            takenAt: takenAt,
+            createdAt: takenAt,
+            updatedAt: takenAt,
+          ),
+        );
+        await repository.createMedia(
+          MediaItem(
+            id: '',
+            mediaType: MediaType.photo,
+            sourceType: MediaSourceType.platformGallery,
+            platformAssetId: 'gallery-id',
+            takenAt: takenAt,
+            createdAt: takenAt,
+            updatedAt: takenAt,
+          ),
+        );
+
+        final localFiles = await repository.getAllBySourceType(
+          MediaSourceType.localFile,
+        );
+        expect(localFiles, hasLength(2));
+        expect(
+          localFiles.every((m) => m.sourceType == MediaSourceType.localFile),
+          isTrue,
+        );
+
+        final gallery = await repository.getAllBySourceType(
+          MediaSourceType.platformGallery,
+        );
+        expect(gallery, hasLength(1));
+        expect(gallery.first.platformAssetId, 'gallery-id');
+      });
+
+      test('returns empty list when no items match', () async {
+        final result = await repository.getAllBySourceType(
+          MediaSourceType.networkUrl,
+        );
+        expect(result, isEmpty);
+      });
+    });
   });
 }
