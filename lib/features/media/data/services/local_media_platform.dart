@@ -126,4 +126,51 @@ class LocalMediaPlatform {
     return r ?? const [];
     // coverage:ignore-end
   }
+
+  /// iOS / macOS only. Reads the bytes of a previously-stored bookmark.
+  ///
+  /// [bookmarkBlob] is the raw bookmark data — callers retrieve it from
+  /// `LocalBookmarkStorage`. The native side resolves the bookmark, starts
+  /// security-scoped resource access, reads the file, releases access, and
+  /// returns the bytes.
+  ///
+  /// On Android use [readUriBytes] instead — Android URIs don't go through
+  /// the bookmark API.
+  Future<Uint8List> readBookmarkBytes(Uint8List bookmarkBlob) async {
+    if (!Platform.isIOS && !Platform.isMacOS) {
+      // coverage:ignore-start
+      // UnsupportedError throw — exercised by
+      // local_media_platform_linux_test.dart on Linux CI hosts; on the
+      // macOS dev host this branch is unreachable.
+      throw UnsupportedError(
+        'readBookmarkBytes is only supported on iOS / macOS',
+      );
+      // coverage:ignore-end
+    }
+    // coverage:ignore-start
+    final result = await _channel.invokeMethod<Uint8List>('readBookmarkBytes', {
+      'bookmarkBlob': bookmarkBlob,
+    });
+    if (result == null) throw StateError('readBookmarkBytes returned null');
+    return result;
+    // coverage:ignore-end
+  }
+
+  /// Android only. Reads the bytes of a persisted content URI via
+  /// `ContentResolver.openInputStream`.
+  ///
+  /// On iOS / macOS use [readBookmarkBytes] instead — those platforms use
+  /// the security-scoped bookmark API.
+  Future<Uint8List> readUriBytes(String uri) async {
+    if (!Platform.isAndroid) {
+      throw UnsupportedError('readUriBytes is only supported on Android');
+    }
+    // coverage:ignore-start
+    final result = await _channel.invokeMethod<Uint8List>('readUriBytes', {
+      'uri': uri,
+    });
+    if (result == null) throw StateError('readUriBytes returned null');
+    return result;
+    // coverage:ignore-end
+  }
 }

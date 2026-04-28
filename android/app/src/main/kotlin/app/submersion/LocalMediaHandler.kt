@@ -41,6 +41,7 @@ class LocalMediaHandler(
             "resolveBookmark" -> resolveBookmark(call, result)
             "releaseBookmark" -> releaseBookmark(call, result)
             "listPersistedUris" -> listPersistedUris(result)
+            "readUriBytes" -> readUriBytes(call, result)
             else -> result.notImplemented()
         }
     }
@@ -94,6 +95,22 @@ class LocalMediaHandler(
         val uris = context.contentResolver.persistedUriPermissions
             .map { it.uri.toString() }
         result.success(uris)
+    }
+
+    private fun readUriBytes(call: MethodCall, result: MethodChannel.Result) {
+        val uriStr = call.argument<String>("uri")
+            ?: return result.error("INVALID_ARGS", "uri required", null)
+        try {
+            val uri = Uri.parse(uriStr)
+            val stream = context.contentResolver.openInputStream(uri)
+                ?: return result.error("READ_FAILED", "openInputStream returned null", null)
+            val bytes = stream.use { it.readBytes() }
+            result.success(bytes)
+        } catch (e: SecurityException) {
+            result.error("PERMISSION_DENIED", e.localizedMessage, null)
+        } catch (e: Exception) {
+            result.error("READ_FAILED", e.localizedMessage, null)
+        }
     }
 
     companion object {

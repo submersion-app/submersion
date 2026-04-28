@@ -1,14 +1,40 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
+
+/// Returns the OS-appropriate label for the "show file in OS file manager"
+/// menu item used by the right-click context menu.
+///
+/// Top-level (public) so it can be unit-tested without a widget tree;
+/// the right-click handlers in [DiveMediaSection] only fire on desktop and
+/// can't be exercised from `flutter test`.
+@visibleForTesting
+String showInOsFileManagerLabel() {
+  if (Platform.isMacOS) return 'Show in Finder';
+  // coverage:ignore-start
+  // Windows-only branch — test suite runs on macOS / Linux. On Linux the
+  // `if (Platform.isWindows)` evaluates false and the function falls
+  // through to 'Show in Files' (covered).
+  if (Platform.isWindows) {
+    return 'Show in Explorer';
+  }
+  // coverage:ignore-end
+  return 'Show in Files';
+}
 
 /// Section widget displaying media (photos/videos) for a dive.
 ///
@@ -117,6 +143,105 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
     }
   }
 
+  // coverage:ignore-start
+  // Right-click context menu helpers (desktop-only). They are only reachable
+  // through `onSecondaryTapDown`, which does not fire under flutter_test
+  // without a real trackpad / mouse driver. All three helpers shell out to
+  // `Process.run` / `FilePicker.pickFiles` / `showMenu`, none of which are
+  // unit-testable from flutter_test. Exercised by manual desktop smoke tests.
+
+  /// Reveals [path] in the platform's native file manager. Failures of the
+  /// spawned process are intentionally swallowed: surfacing them would require
+  /// UX out of scope for the context menu.
+  Future<void> _showInFinder(String path) async {
+    if (Platform.isMacOS) {
+      await Process.run('open', ['-R', path]);
+    } else if (Platform.isWindows) {
+      await Process.run('explorer', ['/select,', path]);
+    } else if (Platform.isLinux) {
+      await Process.run('xdg-open', [File(path).parent.path]);
+    }
+  }
+
+  /// Prompts the user to pick a replacement file for [item] and updates the
+  /// existing media row's `localPath` (and on macOS regenerates the keychain
+  /// bookmark blob so resolution lands on the new file). Desktop-only by
+  /// virtue of the right-click gating in the cell builder.
+  ///
+  /// Phase 2 photo-only constraint: picker is restricted to `FileType.image`
+  /// (videos aren't supported as local-file media yet, see [FilesTab]).
+  Future<void> _replaceLink(MediaItem item) async {
+    final result = await FilePicker.pickFiles(type: FileType.image);
+    if (result == null) return;
+    final newPath = result.files.first.path;
+    if (newPath == null) return;
+
+    final notifier = ref.read(
+      mediaListNotifierProvider(widget.diveId).notifier,
+    );
+
+    if (Platform.isMacOS && item.sourceType == MediaSourceType.localFile) {
+      // Regenerate the security-scoped bookmark for the new path. Reuse the
+      // existing bookmarkRef as the keychain key (LocalBookmarkStorage.write
+      // is an idempotent overwrite) so we don't orphan the prior entry.
+      final platform = ref.read(localMediaPlatformProvider);
+      final storage = ref.read(localBookmarkStorageProvider);
+      final blob = await platform.createBookmark(newPath);
+      final newRef = item.bookmarkRef ?? const Uuid().v4();
+      await storage.write(newRef, blob);
+      await notifier.updateMedia(
+        item.copyWith(localPath: newPath, bookmarkRef: newRef),
+      );
+    } else {
+      await notifier.updateMedia(item.copyWith(localPath: newPath));
+    }
+  }
+
+  /// Opens the right-click context menu for a local-file media item.
+  ///
+  /// Returns immediately for non-`localFile` source types or non-desktop
+  /// platforms. Desktop-only because `onSecondaryTapDown` does not fire on
+  /// touchscreens.
+  Future<void> _showLocalFileContextMenu(
+    BuildContext context,
+    MediaItem item,
+    TapDownDetails details,
+  ) async {
+    if (item.sourceType != MediaSourceType.localFile) return;
+    if (!(Platform.isMacOS || Platform.isWindows || Platform.isLinux)) return;
+
+    final selected = await showMenu<String>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        details.globalPosition.dx,
+        details.globalPosition.dy,
+        details.globalPosition.dx,
+        details.globalPosition.dy,
+      ),
+      items: [
+        if (item.localPath != null)
+          PopupMenuItem<String>(
+            value: 'show',
+            // TODO(media): l10n
+            child: Text(showInOsFileManagerLabel()),
+          ),
+        const PopupMenuItem<String>(
+          value: 'replace',
+          // TODO(media): l10n
+          child: Text('Replace link...'),
+        ),
+      ],
+    );
+
+    if (selected == 'show' && item.localPath != null) {
+      await _showInFinder(item.localPath!);
+    } else if (selected == 'replace') {
+      if (!context.mounted) return;
+      await _replaceLink(item);
+    }
+  }
+  // coverage:ignore-end
+
   @override
   Widget build(BuildContext context) {
     final mediaAsync = ref.watch(mediaForDiveProvider(widget.diveId));
@@ -218,14 +343,31 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                   ),
+                  // coverage:ignore-start
+                  // The itemBuilder closure only fires when the dive has
+                  // media; this widget has no tests that render media (the
+                  // suite would need a populated DB + asset resolver
+                  // pipeline), so the closure is unreachable from
+                  // flutter_test. The right-click context menu wired via
+                  // `onSecondaryTapDown` is also desktop-only — touchscreens
+                  // never fire it, and `flutter_test` lacks a trackpad
+                  // driver. Both are exercised by manual desktop smoke
+                  // tests.
                   itemBuilder: (context, item, isSelected) {
-                    return _MediaThumbnailContent(
+                    final thumbnail = _MediaThumbnailContent(
                       item: item,
                       settings: settings,
                       isSelectionMode: _isSelectionMode,
                       isSelected: isSelected,
                     );
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onSecondaryTapDown: (details) =>
+                          _showLocalFileContextMenu(context, item, details),
+                      child: thumbnail,
+                    );
                   },
+                  // coverage:ignore-end
                 );
               },
               loading: () => const SizedBox(
@@ -333,7 +475,10 @@ class _EmptyMediaState extends StatelessWidget {
 
 /// Purely visual thumbnail content for media items.
 ///
-/// Gestures (tap, long-press, drag) are handled by [DragSelectGridView].
+/// Tap, long-press, and drag gestures are handled by [DragSelectGridView].
+/// Right-click (`onSecondaryTapDown`) is handled by an outer [GestureDetector]
+/// in the grid's `itemBuilder`, which opens a desktop-only context menu for
+/// local-file items.
 class _MediaThumbnailContent extends StatelessWidget {
   final MediaItem item;
   final AppSettings settings;

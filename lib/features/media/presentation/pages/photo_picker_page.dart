@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 
@@ -161,7 +162,7 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
         body: TabBarView(
           children: [
             _galleryTab(context),
-            const _PlaceholderTab(message: 'Coming in Phase 2'),
+            const FilesTab(),
             const _PlaceholderTab(message: 'Coming in Phase 3'),
           ],
         ),

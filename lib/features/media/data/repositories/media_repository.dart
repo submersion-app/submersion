@@ -327,6 +327,39 @@ class MediaRepository {
     }
   }
 
+  /// Get all media items with the given [sourceType].
+  /// Includes enrichment data (depth, temperature) if available.
+  ///
+  /// Used by Settings → Media Sources subsections to enumerate items per
+  /// source type (e.g., the Local files diagnostics view counts orphaned
+  /// vs. available items here).
+  Future<List<domain.MediaItem>> getAllBySourceType(
+    MediaSourceType sourceType,
+  ) async {
+    try {
+      final query = _db.select(_db.media).join([
+        leftOuterJoin(
+          _db.mediaEnrichment,
+          _db.mediaEnrichment.mediaId.equalsExp(_db.media.id),
+        ),
+      ])..where(_db.media.sourceType.equals(sourceType.name));
+
+      final rows = await query.get();
+      return rows.map((row) {
+        final mediaRow = row.readTable(_db.media);
+        final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
+        return _mapRowToMediaItem(mediaRow, enrichmentRow);
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get media by source type: ${sourceType.name}',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get all orphaned media
   /// Includes enrichment data (depth, temperature) if available
   Future<List<domain.MediaItem>> getOrphanedMedia() async {

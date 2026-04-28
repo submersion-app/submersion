@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
@@ -27,6 +29,10 @@ void main() {
               return call.arguments['uri'] as String;
             case 'listPersistedUris':
               return ['content://example/1', 'content://example/2'];
+            case 'readBookmarkBytes':
+              return Uint8List.fromList([4, 5, 6]);
+            case 'readUriBytes':
+              return Uint8List.fromList([7, 8, 9]);
             default:
               return null;
           }
@@ -67,5 +73,19 @@ void main() {
     expect(r.bookmarkRef, 'r');
     expect(r.filePath, '/x');
     expect(r.stale, isTrue);
+  });
+
+  // The host-platform check for readBookmarkBytes lives in
+  // local_media_platform_linux_test.dart (covers non-iOS/macOS hosts).
+  // On macOS hosts the channel call would actually fire — covered by
+  // local_file_resolver_test.dart's BytesData round-trip test.
+
+  test('readBookmarkBytes returns bytes on iOS/macOS hosts', () async {
+    if (!Platform.isIOS && !Platform.isMacOS) return;
+    final platform = LocalMediaPlatform();
+    final result = await platform.readBookmarkBytes(
+      Uint8List.fromList([1, 2, 3]),
+    );
+    expect(result, [4, 5, 6]);
   });
 }

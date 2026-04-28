@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -82,6 +83,10 @@ void main() {
       );
       await expectLater(
         repository.getPendingSuggestionCount('test-id'),
+        throwsA(anything),
+      );
+      await expectLater(
+        repository.getAllBySourceType(MediaSourceType.localFile),
         throwsA(anything),
       );
     });

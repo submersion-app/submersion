@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
+import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
@@ -44,21 +45,30 @@ class PhotoImportHelper {
     // Dive times are stored as wall-clock-as-UTC (the time on the dive
     // computer, regardless of timezone), but photo_manager filters by the
     // device's local time. To produce the same filter window as
-    // TripMediaScanner.scanGalleryForDive, apply the buffer in UTC first
-    // and only then convert to local — this avoids DST-transition
-    // divergence that would arise from applying the buffer in local time
-    // after the conversion. We pass buffer: Duration.zero to disable
-    // showPhotoPicker's internal buffer-in-local logic.
-    const buffer = Duration(minutes: 30);
+    // TripMediaScanner.scanGalleryForDive (which uses DivePhotoMatcher's
+    // asymmetric pre/post buffers), apply the buffers in UTC first and only
+    // then convert to local — this avoids DST-transition divergence that
+    // would arise from applying buffers in local time after the conversion.
+    // We pass buffer: Duration.zero to disable showPhotoPicker's internal
+    // buffer-in-local logic.
+    // coverage:ignore-start
+    // showPhotoPicker drives a full-screen page tied to photo_manager + the
+    // platform photo library. Not unit-testable from flutter_test without
+    // an integration runner. The wallClockUtcToLocal helpers below are
+    // covered by trip_media_scanner_test; the buffer constants by
+    // dive_photo_matcher_test.
     final selectedAssets = await showPhotoPicker(
       context: context,
       diveStartTime: TripMediaScanner.wallClockUtcToLocal(
-        diveStart.subtract(buffer),
+        diveStart.subtract(DivePhotoMatcher.preBuffer),
       ),
-      diveEndTime: TripMediaScanner.wallClockUtcToLocal(diveEnd.add(buffer)),
+      diveEndTime: TripMediaScanner.wallClockUtcToLocal(
+        diveEnd.add(DivePhotoMatcher.postBuffer),
+      ),
       buffer: Duration.zero,
       alreadyLinkedIds: alreadyLinkedIds,
     );
+    // coverage:ignore-end
 
     // User cancelled or context no longer valid
     if (selectedAssets == null || selectedAssets.isEmpty || !context.mounted) {

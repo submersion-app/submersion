@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -58,6 +60,86 @@ class MediaSourcesPage extends ConsumerWidget {
                     );
                   },
                 ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: Column(
+              children: [
+                Consumer(
+                  builder: (context, ref, _) {
+                    final asyncDiag = ref.watch(localFilesDiagnosticsProvider);
+                    return ListTile(
+                      leading: const Icon(Icons.folder_outlined),
+                      title: const Text('Local files'),
+                      subtitle: asyncDiag.when(
+                        data: (d) =>
+                            // TODO(media): l10n
+                            Text(
+                              '${d.available} available, ${d.unavailable} unavailable',
+                            ),
+                        loading: () => const Text('Counting…'),
+                        error: (e, _) => Text('Error: $e'),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                Consumer(
+                  builder: (context, ref, _) {
+                    return ListTile(
+                      leading: const Icon(Icons.refresh),
+                      // TODO(media): l10n
+                      title: const Text('Re-verify all local files'),
+                      onTap: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final service = ref.read(
+                          localFilesDiagnosticsServiceProvider,
+                        );
+                        try {
+                          final updated = await service.reverifyAll();
+                          if (!context.mounted) return;
+                          // TODO(media): l10n, pluralization
+                          messenger.showSnackBar(
+                            SnackBar(content: Text('$updated items updated')),
+                          );
+                          ref.invalidate(localFilesDiagnosticsProvider);
+                        } catch (e) {
+                          // TODO(media): l10n
+                          messenger.showSnackBar(
+                            SnackBar(content: Text('Re-verify failed: $e')),
+                          );
+                        }
+                      },
+                    );
+                  },
+                ),
+                // coverage:ignore-start
+                // Android-only URI usage gauge (Android caps persistable URIs
+                // at 128 per app). Test suite runs on macOS hosts so this
+                // branch is unreachable; provider is unit-tested separately
+                // in media_resolver_providers_test.
+                if (Platform.isAndroid) ...[
+                  const Divider(height: 1),
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final asyncUsage = ref.watch(androidUriUsageProvider);
+                      return ListTile(
+                        leading: const Icon(Icons.lock_outline),
+                        title: const Text('Android URI permissions'),
+                        subtitle: asyncUsage.when(
+                          data: (usage) =>
+                              // TODO(media): l10n
+                              Text('$usage / 128 persistable URIs in use'),
+                          loading: () => const Text('Loading…'),
+                          error: (e, _) => Text('Error: $e'),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+                // coverage:ignore-end
               ],
             ),
           ),
