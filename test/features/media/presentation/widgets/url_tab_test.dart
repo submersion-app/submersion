@@ -7,7 +7,8 @@
 // providers (`url_tab_providers.dart`) and Task 15 lands the widget
 // (`url_tab.dart`) and sign-in sheet. They drive the contract for both:
 //
-// - Mode segmented control (URLs / Manifest); Manifest body is a placeholder.
+// - Mode segmented control (URLs / Manifest); the Manifest body renders
+//   the [ManifestModePanel] (Phase 3b Task 13 swap).
 // - Multi-line text field per-line validation via `UrlValidator`.
 // - "Add URL" single-line entry that appends to the staged set.
 // - Auto-match-by-date checkbox is on by default.
@@ -37,14 +38,36 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
+import 'package:submersion/features/media/data/parsers/manifest_format.dart';
+import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/manifest_fetch_service.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/network_signin_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/url_tab.dart';
 
 import 'url_tab_test.mocks.dart';
+
+/// Stub fetcher used by the Manifest mode tab tests so the widget can
+/// be pumped without a real HTTP stack. The Manifest mode body itself
+/// is exercised in `manifest_mode_panel_test.dart`.
+class _StubManifestFetcher implements ManifestFetchService {
+  @override
+  Future<ManifestFetchOutcome> fetch(
+    Uri url, {
+    ManifestFormat? formatOverride,
+    String? ifNoneMatch,
+    String? ifModifiedSince,
+  }) async => const ManifestFetchSuccess(
+    parsed: ManifestParseResult(format: ManifestFormat.json, entries: []),
+  );
+
+  @override
+  noSuchMethod(Invocation i) => super.noSuchMethod(i);
+}
 
 /// Test-only notifier that seeds an arbitrary initial [UrlTabState] so the
 /// widget can be rendered in any branch without driving it through the
@@ -89,6 +112,12 @@ void main() {
         // not try to construct the real service (which reaches into the
         // not-initialized [DatabaseService] in tests).
         networkCredentialsServiceProvider.overrideWithValue(credentials),
+        // Override the manifest fetch service so the Manifest mode body
+        // (Phase 3b, Task 13) does not try to construct the real
+        // service — the Manifest mode tab tests only assert visible
+        // chrome here; behavior is covered in
+        // `manifest_mode_panel_test.dart`.
+        manifestFetchServiceProvider.overrideWithValue(_StubManifestFetcher()),
         if (seed != null)
           urlTabNotifierProvider.overrideWith(
             (ref) => _SeededUrlTabNotifier(
@@ -118,17 +147,22 @@ void main() {
     // Both segments are present.
     expect(find.text('URLs'), findsOneWidget);
     expect(find.text('Manifest'), findsOneWidget);
-    // Manifest mode is NOT active by default — the placeholder card body
-    // for Phase 3b is hidden, the multi-line URL field is visible.
-    expect(find.textContaining('Manifest mode arrives'), findsNothing);
+    // Manifest mode is NOT active by default — the Phase 3b panel is
+    // hidden, the multi-line URL field is visible.
+    expect(find.text('Manifest URL'), findsNothing);
     expect(find.byType(TextField), findsAtLeastNWidgets(1));
   });
 
-  testWidgets('Manifest mode body is the placeholder card', (tester) async {
+  testWidgets('Manifest mode body renders the ManifestModePanel', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       wrap(const UrlTab(), seed: const UrlTabState(mode: UrlTabMode.manifest)),
     );
-    expect(find.textContaining('Manifest mode arrives'), findsOneWidget);
+    // The panel surfaces a "Manifest URL" labeled field and a "Fetch"
+    // button (see Phase 3b Task 13).
+    expect(find.text('Manifest URL'), findsOneWidget);
+    expect(find.text('Fetch'), findsOneWidget);
   });
 
   testWidgets('per-line validation marks invalid URL inline', (tester) async {

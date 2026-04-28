@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/media/data/utils/url_validator.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/manifest_mode_panel.dart';
 import 'package:submersion/features/media/presentation/widgets/network_signin_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/url_review_pane.dart';
 
@@ -25,8 +26,8 @@ import 'package:submersion/features/media/presentation/widgets/url_review_pane.d
 /// staged set to [NetworkFetchPipeline.ingest] via
 /// [UrlTabNotifier.commit] and shows an Undo snackbar.
 ///
-/// The Manifest mode segment is reserved for Phase 3b — its body is a
-/// placeholder Card.
+/// The Manifest mode segment renders [ManifestModePanel] (Phase 3b,
+/// Task 13).
 class UrlTab extends ConsumerStatefulWidget {
   const UrlTab({super.key});
 
@@ -101,7 +102,7 @@ class _UrlTabState extends ConsumerState<UrlTab> {
           if (state.mode == UrlTabMode.urls)
             ..._buildUrlsBody(context, state)
           else
-            const _ManifestPlaceholderCard(),
+            const Expanded(child: ManifestModePanel()),
         ],
       ),
     );
@@ -219,42 +220,6 @@ class _ModeSegmentedControl extends StatelessWidget {
       ],
       selected: {mode},
       onSelectionChanged: (selected) => onChanged(selected.first),
-    );
-  }
-}
-
-class _ManifestPlaceholderCard extends StatelessWidget {
-  const _ManifestPlaceholderCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              Icons.upcoming_outlined,
-              size: 32,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(height: 12),
-            // TODO(media): l10n
-            Text(
-              'Manifest mode arrives in Phase 3b',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            // TODO(media): l10n
-            Text(
-              'Soon you will be able to point Submersion at a JSON or '
-              'CSV manifest URL and bulk-import its referenced media.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
