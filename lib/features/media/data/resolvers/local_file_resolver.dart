@@ -70,12 +70,17 @@ class LocalFileResolver implements MediaSourceResolver {
     }
 
     if (Platform.isAndroid) {
+      // coverage:ignore-start
+      // Android-only URI-bytes branch; test suite runs on macOS hosts so the
+      // `if` evaluates false. Behaviour mirrored by the iOS/macOS
+      // bookmark-bytes branch below, which is unit-tested.
       try {
         final bytes = await _platform.readUriBytes(ref);
         return BytesData(bytes: bytes);
       } catch (_) {
         return const UnavailableData(kind: UnavailableKind.notFound);
       }
+      // coverage:ignore-end
     }
 
     if (Platform.isIOS || Platform.isMacOS) {
