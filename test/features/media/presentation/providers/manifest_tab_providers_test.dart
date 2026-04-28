@@ -271,6 +271,98 @@ void main() {
       notifier.reset();
       expect(container.read(manifestTabProvider), isA<ManifestTabIdle>());
     });
+
+    test(
+      'commit transitions ShowingPreview -> Committing -> Idle on success',
+      () async {
+        final container = ProviderContainer(
+          overrides: [
+            manifestFetchServiceProvider.overrideWithValue(
+              _FakeFetcher.success(empty: false),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+        final notifier = container.read(manifestTabProvider.notifier);
+        await notifier.fetch('https://example.com/m.json');
+        var saw = false;
+        await notifier.commit(
+          onCommit: (preview) async {
+            saw = true;
+            expect(preview.result.entries, hasLength(1));
+            expect(preview.url, 'https://example.com/m.json');
+          },
+        );
+        expect(saw, isTrue);
+        expect(container.read(manifestTabProvider), isA<ManifestTabIdle>());
+      },
+    );
+
+    test('commit transitions to Error on callback failure', () async {
+      final container = ProviderContainer(
+        overrides: [
+          manifestFetchServiceProvider.overrideWithValue(
+            _FakeFetcher.success(empty: false),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(manifestTabProvider.notifier);
+      await notifier.fetch('https://example.com/m.json');
+      await notifier.commit(onCommit: (_) async => throw 'kaboom');
+      final state = container.read(manifestTabProvider);
+      expect(state, isA<ManifestTabError>());
+      expect((state as ManifestTabError).url, 'https://example.com/m.json');
+      expect(state.message, contains('kaboom'));
+    });
+
+    test('commit is a no-op outside ShowingPreview', () async {
+      final container = ProviderContainer(
+        overrides: [
+          manifestFetchServiceProvider.overrideWithValue(
+            _FakeFetcher.success(empty: false),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(manifestTabProvider.notifier);
+      var called = false;
+      // Idle -> commit should do nothing.
+      await notifier.commit(
+        onCommit: (_) async {
+          called = true;
+        },
+      );
+      expect(called, isFalse);
+      expect(container.read(manifestTabProvider), isA<ManifestTabIdle>());
+    });
+
+    test(
+      'commit forwards subscribe + pollIntervalSeconds to onCommit',
+      () async {
+        final container = ProviderContainer(
+          overrides: [
+            manifestFetchServiceProvider.overrideWithValue(
+              _FakeFetcher.success(empty: false),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+        final notifier = container.read(manifestTabProvider.notifier);
+        await notifier.fetch('https://example.com/m.json');
+        notifier.setSubscribe(true);
+        notifier.setPollInterval(3600);
+        ManifestTabShowingPreview? captured;
+        await notifier.commit(
+          onCommit: (preview) async {
+            captured = preview;
+          },
+        );
+        expect(captured, isNotNull);
+        expect(captured!.subscribe, isTrue);
+        expect(captured!.pollIntervalSeconds, 3600);
+      },
+    );
   });
 }
 

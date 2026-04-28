@@ -305,5 +305,50 @@ void main() {
       );
       expect(find.text('1 entry skipped'), findsOneWidget);
     });
+
+    testWidgets('Import button is disabled when entries list is empty', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        wrap(
+          seed: const ManifestTabShowingPreview(
+            url: 'https://example.com/m.json',
+            result: ManifestParseResult(
+              format: ManifestFormat.json,
+              entries: [],
+            ),
+          ),
+        ),
+      );
+      // Locate the Import button by its label (parameterised on count).
+      final importBtn = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Import 0 entries'),
+      );
+      expect(importBtn.onPressed, isNull);
+    });
+
+    testWidgets('Import button label reflects entry count and is enabled', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        wrap(
+          seed: const ManifestTabShowingPreview(
+            url: 'https://example.com/m.json',
+            result: ManifestParseResult(
+              format: ManifestFormat.json,
+              entries: [
+                ManifestEntry(entryKey: 'a', url: 'https://example.com/a.jpg'),
+                ManifestEntry(entryKey: 'b', url: 'https://example.com/b.jpg'),
+              ],
+            ),
+          ),
+        ),
+      );
+      expect(find.text('Import 2 entries'), findsOneWidget);
+      final importBtn = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Import 2 entries'),
+      );
+      expect(importBtn.onPressed, isNotNull);
+    });
   });
 }

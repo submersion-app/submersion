@@ -1,25 +1,51 @@
-// Manifest mode panel inside the URL tab (Phase 3b, Task 13).
+// Manifest mode panel inside the URL tab (Phase 3b, Tasks 13-14).
 //
 // Adapted from plan
 // `docs/superpowers/plans/2026-04-28-media-source-extension-phase3b.md`
-// Task 13. The panel renders one of four bodies based on the
+// Tasks 13 & 14. The panel renders one of four bodies based on the
 // [ManifestTabState] discriminated union:
 //
 // - [ManifestTabIdle]            -> hint text "Paste a manifest URL to begin."
 // - [ManifestTabFetching]        -> CircularProgressIndicator
 // - [ManifestTabError]           -> red error message
 // - [ManifestTabShowingPreview]  -> [ManifestPreviewPane] + Subscribe
-//                                   checkbox + poll-interval dropdown
+//                                   checkbox + poll-interval dropdown +
+//                                   Import button
+// - [ManifestTabCommitting]      -> CircularProgressIndicator
 //
-// Task 13 is UI-only — the Subscribe checkbox and poll-interval dropdown
-// flip state on the notifier but the actual subscription persistence /
-// import-commit flow is wired in Task 14. The "Import" button is also
-// added in Task 14.
+// Task 14 wires the Import button to a `commit()` flow that:
+//   - If Subscribe is OFF: calls
+//     [NetworkFetchPipeline.ingestManifestEntries] with an ephemeral
+//     subscription row created with `isActive: false`. The schema's
+//     unique partial index `(subscription_id, entry_key)` requires a
+//     non-null subscriptionId, so a sentinel sub row is created per
+//     one-shot import (and torn down on Undo).
+//   - If Subscribe is ON: creates a `MediaSubscription` row via
+//     [ManifestSubscriptionRepository.createSubscription] (active = true),
+//     then ingests the entries with the persisted subscriptionId.
+// Both paths show a snackbar with an Undo action that deletes the
+// inserted [MediaItem] rows AND the subscription created in this commit.
+//
+// Plan deviations:
+//
+// - The plan (lines 3920-3964) routes ingest through
+//   `MediaRepository.createMedia` per entry plus a non-existent
+//   `pipeline.enqueueManifestEntries(items)`. The actual codebase API is
+//   `pipeline.ingestManifestEntries(List<ManifestEntry>, String
+//   subscriptionId)`, which already inserts media rows itself. The plan
+//   code predates Task 10's API choice; we follow the API.
+// - Because the pipeline requires a non-null `subscriptionId`, every
+//   commit creates a `MediaSubscriptions` row (see comment above). For
+//   one-shot imports the row is `isActive: false` and is deleted by
+//   Undo.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/media/presentation/providers/manifest_tab_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/manifest_preview_pane.dart';
 
 /// Standard poll-interval choices surfaced in the dropdown. The plan's
@@ -50,6 +76,101 @@ class _ManifestModePanelState extends ConsumerState<ManifestModePanel> {
   Future<void> _fetch() async {
     final notifier = ref.read(manifestTabProvider.notifier);
     await notifier.fetch(_urlController.text);
+  }
+
+  /// Triggered by the Import button on the preview pane. Drives the
+  /// notifier through `ShowingPreview -> Committing -> Idle` while
+  /// (optionally) creating a `MediaSubscription` row and ingesting the
+  /// manifest entries via [NetworkFetchPipeline.ingestManifestEntries].
+  ///
+  /// Captures the [ScaffoldMessenger] before the await so the snackbar
+  /// fires correctly across the async gap, and bails out via
+  /// `context.mounted` if the user navigated away mid-import.
+  Future<void> _commit() async {
+    final messenger = ScaffoldMessenger.of(context);
+    String? committedSubscriptionId;
+    List<String>? committedMediaIds;
+    bool subscriptionPersisted = false;
+
+    await ref
+        .read(manifestTabProvider.notifier)
+        .commit(
+          onCommit: (preview) async {
+            final subRepo = ref.read(manifestSubscriptionRepositoryProvider);
+            final pipeline = ref.read(networkFetchPipelineProvider);
+            final format = preview.formatOverride ?? preview.result.format;
+            // Every commit creates a subscription row because the pipeline
+            // requires a non-null subscriptionId (the partial unique index
+            // on `(subscription_id, entry_key)` is keyed off it). When the
+            // user did NOT subscribe, the row is created `isActive: false`
+            // so no future poll cycle will pick it up, and Undo deletes
+            // the row entirely.
+            final created = await subRepo.createSubscription(
+              manifestUrl: preview.url,
+              format: format,
+              pollIntervalSeconds: preview.pollIntervalSeconds,
+              isActive: preview.subscribe,
+            );
+            subscriptionPersisted = preview.subscribe;
+            committedSubscriptionId = created.id;
+            final ids = await pipeline.ingestManifestEntries(
+              preview.result.entries,
+              created.id,
+            );
+            committedMediaIds = ids;
+          },
+        );
+
+    if (!mounted) return;
+    if (!context.mounted) return;
+    final ids = committedMediaIds;
+    final subId = committedSubscriptionId;
+    if (ids == null || subId == null) {
+      // Commit failed — the notifier state machine has already moved to
+      // [ManifestTabError]; the panel body renders the message. Nothing
+      // else to do.
+      return;
+    }
+    messenger.showSnackBar(
+      SnackBar(
+        // TODO(media): l10n, pluralization
+        content: Text(
+          'Imported ${ids.length} entr${ids.length == 1 ? 'y' : 'ies'}',
+        ),
+        action: SnackBarAction(
+          // TODO(media): l10n
+          label: 'Undo',
+          onPressed: () => _undoCommit(
+            mediaIds: ids,
+            subscriptionId: subId,
+            // Keep the user-created subscription if Subscribe was on; the
+            // user explicitly opted in to recurring polling. Only the
+            // sentinel one-shot subscription is torn down.
+            deleteSubscription: !subscriptionPersisted,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Reverses a prior [_commit]: deletes each inserted [MediaItem] row,
+  /// and (for one-shot imports only) deletes the sentinel subscription
+  /// row. When the user opted into a real subscription (`Subscribe` ON),
+  /// the subscription stays — only the imported entries are removed.
+  Future<void> _undoCommit({
+    required List<String> mediaIds,
+    required String subscriptionId,
+    required bool deleteSubscription,
+  }) async {
+    final mediaRepo = ref.read(mediaRepositoryProvider);
+    for (final id in mediaIds) {
+      await mediaRepo.deleteMedia(id);
+    }
+    if (deleteSubscription) {
+      await ref
+          .read(manifestSubscriptionRepositoryProvider)
+          .deleteById(subscriptionId);
+    }
   }
 
   @override
@@ -83,7 +204,9 @@ class _ManifestModePanelState extends ConsumerState<ManifestModePanel> {
           ),
         ),
         const SizedBox(height: 16),
-        Expanded(child: _Body(state: state)),
+        Expanded(
+          child: _Body(state: state, onImport: _commit),
+        ),
       ],
     );
   }
@@ -92,9 +215,10 @@ class _ManifestModePanelState extends ConsumerState<ManifestModePanel> {
 /// State-driven body of the panel — separated out so the `switch` over the
 /// sealed [ManifestTabState] reads top-to-bottom in one place.
 class _Body extends ConsumerWidget {
-  const _Body({required this.state});
+  const _Body({required this.state, required this.onImport});
 
   final ManifestTabState state;
+  final Future<void> Function() onImport;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -123,6 +247,7 @@ class _Body extends ConsumerWidget {
         :final subscribe,
         :final pollIntervalSeconds,
       ):
+        final entryCount = result.entries.length;
         return SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,6 +273,18 @@ class _Body extends ConsumerWidget {
                       .read(manifestTabProvider.notifier)
                       .setPollInterval(seconds);
                 },
+              ),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.cloud_upload),
+                  // TODO(media): l10n, pluralization
+                  label: Text(
+                    'Import $entryCount entr${entryCount == 1 ? 'y' : 'ies'}',
+                  ),
+                  onPressed: entryCount == 0 ? null : onImport,
+                ),
               ),
             ],
           ),

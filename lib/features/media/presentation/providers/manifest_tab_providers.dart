@@ -207,6 +207,32 @@ class ManifestTabNotifier extends StateNotifier<ManifestTabState> {
   /// Drop back to the idle state (used by the panel's "try again" /
   /// reset path after an error).
   void reset() => state = const ManifestTabIdle();
+
+  /// Triggered by the Import button. Transitions
+  /// `ShowingPreview` -> `Committing` -> `Idle` (success) or
+  /// `Committing` -> `Error` (failure).
+  ///
+  /// The actual ingest / subscription persistence logic is provided by the
+  /// caller via [onCommit] so the notifier stays decoupled from concrete
+  /// repositories — the panel widget knows how to talk to
+  /// [ManifestSubscriptionRepository] and [NetworkFetchPipeline]; the
+  /// notifier just owns the state transitions.
+  ///
+  /// No-op outside [ManifestTabShowingPreview].
+  Future<void> commit({
+    required Future<void> Function(ManifestTabShowingPreview preview) onCommit,
+  }) async {
+    final s = state;
+    if (s is! ManifestTabShowingPreview) return;
+    state = ManifestTabCommitting(s);
+    try {
+      await onCommit(s);
+      state = const ManifestTabIdle();
+    } catch (e) {
+      // TODO(media): l10n
+      state = ManifestTabError(url: s.url, message: '$e');
+    }
+  }
 }
 
 /// StateNotifierProvider for the Manifest panel. Composes the existing
