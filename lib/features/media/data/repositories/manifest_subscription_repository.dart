@@ -171,6 +171,35 @@ class ManifestSubscriptionRepository {
     }
   }
 
+  /// Every active subscription regardless of `nextPollAt`. Used by
+  /// `SubscriptionPollerScheduler` to compute the polling cadence (the
+  /// scheduler needs to see *all* active subs' `pollIntervalSeconds`, not
+  /// just the ones currently due).
+  Future<List<ManifestSubscription>> listAllActive() async {
+    try {
+      final query = _db.select(_db.mediaSubscriptions).join([
+        leftOuterJoin(
+          _db.mediaSubscriptionState,
+          _db.mediaSubscriptionState.subscriptionId.equalsExp(
+            _db.mediaSubscriptions.id,
+          ),
+        ),
+      ])..where(_db.mediaSubscriptions.isActive.equals(true));
+      final rows = await query.get();
+      return rows
+          .map(
+            (r) => _toEntity(
+              r.readTable(_db.mediaSubscriptions),
+              r.readTableOrNull(_db.mediaSubscriptionState),
+            ),
+          )
+          .toList();
+    } catch (e, st) {
+      _log.error('listAllActive failed', error: e, stackTrace: st);
+      rethrow;
+    }
+  }
+
   Future<void> recordPollSuccess(
     String id, {
     required int pollIntervalSeconds,
