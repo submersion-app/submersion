@@ -100,7 +100,10 @@ class FilesTab extends ConsumerWidget {
     final notifier = ref.read(filesTabNotifierProvider.notifier);
     final state = ref.read(filesTabNotifierProvider);
     if (!state.autoMatchByDate) {
-      notifier.setFiles(extracted, match: MatchedSelection.empty());
+      notifier.setFiles(
+        extracted,
+        match: MatchedSelection(matched: const {}, unmatched: extracted),
+      );
       return;
     }
     final dives = await ref.read(divesProvider.future);
