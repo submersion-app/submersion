@@ -114,6 +114,11 @@ class MediaSourcesPage extends ConsumerWidget {
                     );
                   },
                 ),
+                // coverage:ignore-start
+                // Android-only URI usage gauge (Android caps persistable URIs
+                // at 128 per app). Test suite runs on macOS hosts so this
+                // branch is unreachable; provider is unit-tested separately
+                // in media_resolver_providers_test.
                 if (Platform.isAndroid) ...[
                   const Divider(height: 1),
                   Consumer(
@@ -133,6 +138,7 @@ class MediaSourcesPage extends ConsumerWidget {
                     },
                   ),
                 ],
+                // coverage:ignore-end
               ],
             ),
           ),
