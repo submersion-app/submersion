@@ -26,6 +26,12 @@ import 'package:submersion/features/media/presentation/widgets/file_review_pane.
 /// Phase 2 / Task 11: review pane wired in via [FileReviewPane].
 ///
 /// Commit flow (Task 13) layers on top.
+///
+/// Photos only — local-file video imports are out of scope for Phase 2:
+/// `PhotoViewerPage` does not yet resolve playable file paths for
+/// `MediaSourceType.localFile` videos. The picker is filtered to
+/// `FileType.image`, the folder enumerator excludes video extensions, and
+/// the commit loop drops any video MIME defensively.
 class FilesTab extends ConsumerWidget {
   const FilesTab({super.key});
 
@@ -37,8 +43,10 @@ class FilesTab extends ConsumerWidget {
   // build() rendering branches that this method drives — extraction
   // progress, empty/non-empty file lists — are tested via `files_tab_test`.
   Future<void> _pickFiles(WidgetRef ref) async {
+    // FileType.image excludes video extensions at the OS picker layer.
+    // Phase 2 has no local-file video playback yet; see class doc.
     final result = await FilePicker.pickFiles(
-      type: FileType.media,
+      type: FileType.image,
       allowMultiple: true,
     );
     if (result == null) return;
@@ -262,18 +270,8 @@ class FilesTab extends ConsumerWidget {
 /// Caps at 5,000 files per the Phase 2 spec to bound memory and the
 /// subsequent EXIF extraction loop.
 Future<List<String>> _enumerateMediaFiles(String rootPath) async {
-  const exts = {
-    '.jpg',
-    '.jpeg',
-    '.heic',
-    '.heif',
-    '.png',
-    '.webp',
-    '.gif',
-    '.mp4',
-    '.mov',
-    '.m4v',
-  };
+  // Photos only in Phase 2; see [FilesTab] class doc.
+  const exts = {'.jpg', '.jpeg', '.heic', '.heif', '.png', '.webp', '.gif'};
   final results = <String>[];
   final dir = Directory(rootPath);
   if (!dir.existsSync()) return results;

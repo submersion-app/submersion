@@ -153,10 +153,18 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
   /// Persists the matcher's per-dive assignment as [MediaItem] rows and
   /// returns the list of created IDs. Pass the list back to [undoCommit]
   /// to roll back. State is reset via [clear] before returning.
+  ///
+  /// Video MIME files are skipped: Phase 2 has no local-file video playback
+  /// path. The picker / folder enumerator both restrict to images already;
+  /// this guard is belt-and-suspenders against a future regression at the
+  /// pick layer (see [FilesTab] class doc).
   Future<List<String>> commit() async {
     final created = <String>[];
     for (final entry in state.match.matched.entries) {
       for (final file in entry.value) {
+        if (file.metadata.mimeType.startsWith('video/')) {
+          continue;
+        }
         final id = await _persistOne(file, entry.key);
         created.add(id);
       }

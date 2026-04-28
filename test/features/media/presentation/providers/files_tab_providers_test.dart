@@ -351,36 +351,48 @@ void main() {
       },
     );
 
-    test('commit maps video MIME types to MediaType.video', () async {
-      final a = _ef(
-        '/a.mp4',
-        metadata: const MediaSourceMetadata(mimeType: 'video/mp4'),
-      );
-      final notifier = container.read(filesTabNotifierProvider.notifier);
-      notifier.setFiles(
-        [a],
-        match: MatchedSelection(
-          matched: {
-            'd1': [a],
-          },
-          unmatched: const [],
-        ),
-      );
+    test(
+      'commit skips video MIME files (Phase 2 photo-only constraint)',
+      () async {
+        // Phase 2 doesn't yet support local-file video playback — videos
+        // are filtered at the picker, but `commit()` defends against pick
+        // bypass by skipping any video MIME inside the loop.
+        final photo = _ef(
+          '/a.jpg',
+          metadata: const MediaSourceMetadata(mimeType: 'image/jpeg'),
+        );
+        final video = _ef(
+          '/b.mp4',
+          metadata: const MediaSourceMetadata(mimeType: 'video/mp4'),
+        );
+        final notifier = container.read(filesTabNotifierProvider.notifier);
+        notifier.setFiles(
+          [photo, video],
+          match: MatchedSelection(
+            matched: {
+              'd1': [photo, video],
+            },
+            unmatched: const [],
+          ),
+        );
 
-      when(
-        mockPlatform.createBookmark(any),
-      ).thenAnswer((_) async => Uint8List.fromList([1]));
-      when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
-      when(
-        mockRepo.createMedia(any),
-      ).thenAnswer((_) async => _saved('saved-1'));
+        when(
+          mockPlatform.createBookmark(any),
+        ).thenAnswer((_) async => Uint8List.fromList([1]));
+        when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+        when(
+          mockRepo.createMedia(any),
+        ).thenAnswer((_) async => _saved('saved-1'));
 
-      await notifier.commit();
+        final created = await notifier.commit();
 
-      final captured =
-          verify(mockRepo.createMedia(captureAny)).captured.single as MediaItem;
-      expect(captured.mediaType, MediaType.video);
-    });
+        // Only the photo was persisted — the video MIME entry was dropped.
+        expect(created.length, 1);
+        final captured = verify(mockRepo.createMedia(captureAny)).captured;
+        expect(captured.length, 1);
+        expect((captured.single as MediaItem).mediaType, MediaType.photo);
+      },
+    );
 
     test('commit on empty match returns empty list and clears state', () async {
       final notifier = container.read(filesTabNotifierProvider.notifier);
