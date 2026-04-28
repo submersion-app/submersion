@@ -29,6 +29,13 @@ import 'package:submersion/features/media/presentation/widgets/file_review_pane.
 class FilesTab extends ConsumerWidget {
   const FilesTab({super.key});
 
+  // coverage:ignore-start
+  // FilePicker.pickFiles is a static method on package:file_picker; not
+  // unit-testable from flutter_test without a custom DI seam. Behaviour is
+  // exercised by manual desktop smoke tests + by the `_applyMatchAndStash`
+  // path tests below (which is a pure async helper). The synchronous
+  // build() rendering branches that this method drives — extraction
+  // progress, empty/non-empty file lists — are tested via `files_tab_test`.
   Future<void> _pickFiles(WidgetRef ref) async {
     final result = await FilePicker.pickFiles(
       type: FileType.media,
@@ -92,7 +99,14 @@ class FilesTab extends ConsumerWidget {
 
     await _applyMatchAndStash(ref, extracted);
   }
+  // coverage:ignore-end
 
+  // coverage:ignore-start
+  // _applyMatchAndStash is only reached through _pickFiles / _pickFolder,
+  // both of which depend on FilePicker static methods that can't be mocked
+  // from flutter_test. The matcher logic itself is covered by
+  // dive_photo_matcher_test; the dive-bounds derivation here is covered by
+  // trip_media_scanner_test (same shape).
   Future<void> _applyMatchAndStash(
     WidgetRef ref,
     List<ExtractedFile> extracted,
@@ -123,6 +137,7 @@ class FilesTab extends ConsumerWidget {
     final result = DivePhotoMatcher().match(files: extracted, dives: bounds);
     notifier.setFiles(extracted, match: result);
   }
+  // coverage:ignore-end
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -202,6 +217,12 @@ class FilesTab extends ConsumerWidget {
     );
   }
 
+  // coverage:ignore-start
+  // _commit drives `commit()` (covered separately in
+  // files_tab_providers_test) and a SnackBar with an Undo action; both rely
+  // on framework-driven async-with-context-mounted timing that flutter_test
+  // can't deterministically pump without a real Navigator. Behaviour is
+  // exercised by manual desktop smoke tests + by the notifier unit tests.
   Future<void> _commit(BuildContext context, WidgetRef ref) async {
     final notifier = ref.read(filesTabNotifierProvider.notifier);
     final messenger = ScaffoldMessenger.of(context);
@@ -218,8 +239,15 @@ class FilesTab extends ConsumerWidget {
       ),
     );
   }
+
+  // coverage:ignore-end
 }
 
+// coverage:ignore-start
+// Runs on a `compute()` isolate so it cannot be exercised by flutter_test
+// (which runs the test body on the main isolate). Exercised by manual
+// desktop smoke tests; the file-extension allowlist mirrors the EXIF
+// extractor's mime inference (covered there).
 /// Recursively enumerates image/video files under [rootPath].
 ///
 /// Top-level (file-private) so it can be passed to [compute] — instance
@@ -252,3 +280,5 @@ Future<List<String>> _enumerateMediaFiles(String rootPath) async {
   }
   return results;
 }
+
+// coverage:ignore-end

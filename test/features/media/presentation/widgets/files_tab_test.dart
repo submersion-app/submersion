@@ -117,4 +117,155 @@ void main() {
     // The empty-state hint should not be visible when files are staged.
     expect(find.textContaining('Pick files or'), findsNothing);
   });
+
+  testWidgets('renders both Pick files and Pick a folder buttons', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(home: Scaffold(body: FilesTab())),
+      ),
+    );
+    expect(find.text('Pick files…'), findsOneWidget);
+    expect(find.text('Pick a folder…'), findsOneWidget);
+  });
+
+  testWidgets('renders auto-match Checkbox checked when autoMatchByDate=true', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(home: Scaffold(body: FilesTab())),
+      ),
+    );
+    final checkbox = tester.widget<Checkbox>(find.byType(Checkbox));
+    expect(checkbox.value, isTrue);
+  });
+
+  testWidgets(
+    'renders auto-match Checkbox unchecked when autoMatchByDate=false',
+    (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            filesTabNotifierProvider.overrideWith(
+              (ref) => _SeededFilesTabNotifier(
+                FilesTabState.initial().copyWith(autoMatchByDate: false),
+              ),
+            ),
+          ],
+          child: const MaterialApp(home: Scaffold(body: FilesTab())),
+        ),
+      );
+      final checkbox = tester.widget<Checkbox>(find.byType(Checkbox));
+      expect(checkbox.value, isFalse);
+    },
+  );
+
+  testWidgets(
+    'tapping the auto-match Checkbox toggles state via the notifier',
+    (tester) async {
+      final notifier = _SeededFilesTabNotifier(FilesTabState.initial());
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [filesTabNotifierProvider.overrideWith((ref) => notifier)],
+          child: const MaterialApp(home: Scaffold(body: FilesTab())),
+        ),
+      );
+
+      expect(notifier.state.autoMatchByDate, isTrue);
+      await tester.tap(find.byType(Checkbox));
+      await tester.pump();
+      expect(notifier.state.autoMatchByDate, isFalse);
+    },
+  );
+
+  testWidgets('shows Link N items button when match.matched is non-empty', (
+    tester,
+  ) async {
+    final files = [_ef('/a.jpg'), _ef('/b.jpg')];
+    final seeded = FilesTabState.initial().copyWith(
+      files: files,
+      match: MatchedSelection(matched: {'d1': files}, unmatched: const []),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          filesTabNotifierProvider.overrideWith(
+            (ref) => _SeededFilesTabNotifier(seeded),
+          ),
+        ],
+        child: const MaterialApp(home: Scaffold(body: FilesTab())),
+      ),
+    );
+
+    expect(find.text('Link 2 items'), findsOneWidget);
+  });
+
+  testWidgets('hides Link button when match.matched is empty', (tester) async {
+    final seeded = FilesTabState.initial().copyWith(
+      files: [_ef('/a.jpg')],
+      match: MatchedSelection(matched: const {}, unmatched: [_ef('/a.jpg')]),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          filesTabNotifierProvider.overrideWith(
+            (ref) => _SeededFilesTabNotifier(seeded),
+          ),
+        ],
+        child: const MaterialApp(home: Scaffold(body: FilesTab())),
+      ),
+    );
+    expect(find.textContaining('Link '), findsNothing);
+  });
+
+  testWidgets(
+    'progress indicator value reflects extractedCount / totalToExtract',
+    (tester) async {
+      final seeded = FilesTabState.initial().copyWith(
+        isExtracting: true,
+        extractedCount: 3,
+        totalToExtract: 10,
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            filesTabNotifierProvider.overrideWith(
+              (ref) => _SeededFilesTabNotifier(seeded),
+            ),
+          ],
+          child: const MaterialApp(home: Scaffold(body: FilesTab())),
+        ),
+      );
+      final progress = tester.widget<LinearProgressIndicator>(
+        find.byType(LinearProgressIndicator),
+      );
+      expect(progress.value, 0.3);
+    },
+  );
+
+  testWidgets('progress indicator is indeterminate when totalToExtract is 0', (
+    tester,
+  ) async {
+    final seeded = FilesTabState.initial().copyWith(
+      isExtracting: true,
+      extractedCount: 0,
+      totalToExtract: 0,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          filesTabNotifierProvider.overrideWith(
+            (ref) => _SeededFilesTabNotifier(seeded),
+          ),
+        ],
+        child: const MaterialApp(home: Scaffold(body: FilesTab())),
+      ),
+    );
+    final progress = tester.widget<LinearProgressIndicator>(
+      find.byType(LinearProgressIndicator),
+    );
+    expect(progress.value, isNull); // indeterminate
+  });
 }
