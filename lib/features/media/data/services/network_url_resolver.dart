@@ -1,3 +1,4 @@
+import 'dart:io' show HttpDate, HttpException;
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
@@ -11,10 +12,16 @@ class NetworkBytesOk extends NetworkBytesResult {
     required this.bytes,
     required this.contentType,
     required this.finalUrl,
+    this.lastModified,
   });
   final Uint8List bytes;
   final String? contentType;
   final String finalUrl;
+
+  /// Parsed value of the response `Last-Modified` header, if present and
+  /// well-formed. `HttpDate.parse` returns a UTC `DateTime`, so this
+  /// already conforms to the codebase's wall-clock-UTC convention.
+  final DateTime? lastModified;
 }
 
 class NetworkBytesUnauthenticated extends NetworkBytesResult {
@@ -68,10 +75,28 @@ class NetworkUrlResolver {
           bytes: response.bodyBytes,
           contentType: response.headers['content-type'],
           finalUrl: current.toString(),
+          lastModified: _parseLastModified(response.headers['last-modified']),
         );
       }
       return NetworkBytesError('HTTP $code');
     }
     return const NetworkBytesError('Too many redirects');
+  }
+
+  /// Parses an HTTP `Last-Modified` header into a UTC [DateTime].
+  ///
+  /// `HttpDate.parse` accepts the RFC 1123, RFC 850, and asctime formats
+  /// per RFC 7231 section 7.1.1.1, and always returns a UTC value. Returns
+  /// `null` for missing or malformed input rather than throwing — this is
+  /// metadata that's allowed to be absent.
+  DateTime? _parseLastModified(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      return HttpDate.parse(raw);
+    } on HttpException {
+      return null;
+    } on FormatException {
+      return null;
+    }
   }
 }
