@@ -228,7 +228,8 @@ void main() {
         // Hits the `on FormatException` branch in _parseExifDate, where
         // int.parse on a non-numeric date component throws.
         mockedAttributes = {
-          'DateTimeOriginal': 'YYYY:MM:DD HH:MM:SS', // format-correct, parse-broken
+          'DateTimeOriginal':
+              'YYYY:MM:DD HH:MM:SS', // format-correct, parse-broken
         };
         final f = File('${tempDir.path}/p.jpg')..writeAsBytesSync([0]);
         final meta = await ExifExtractor().extract(f);
@@ -237,23 +238,20 @@ void main() {
     );
   });
 
-  test(
-    'large files (>5 MB) take the compute() isolate path',
-    () async {
-      // Write a 5.1 MB file. The threshold in ExifExtractor is 5 MB; anything
-      // larger is dispatched to a background isolate via compute(). We don't
-      // assert anything specific about the isolate behaviour — only that the
-      // path executes without error and returns a non-null metadata.
-      final big = File('${tempDir.path}/big.jpg');
-      final bytes = List<int>.filled(5 * 1024 * 1024 + 1024, 0); // 5 MB + 1 KB
-      big.writeAsBytesSync(bytes);
-      final meta = await ExifExtractor().extract(big);
-      // The isolate path uses _extract internally — without a mocked channel
-      // (this test is outside the `with mocked native_exif channel` group)
-      // the EXIF parse fails and we fall back to mtime.
-      expect(meta, isNotNull);
-      expect(meta!.takenAt, isNotNull);
-      expect(meta.mimeType, 'image/jpeg');
-    },
-  );
+  test('large files (>5 MB) take the compute() isolate path', () async {
+    // Write a 5.1 MB file. The threshold in ExifExtractor is 5 MB; anything
+    // larger is dispatched to a background isolate via compute(). We don't
+    // assert anything specific about the isolate behaviour — only that the
+    // path executes without error and returns a non-null metadata.
+    final big = File('${tempDir.path}/big.jpg');
+    final bytes = List<int>.filled(5 * 1024 * 1024 + 1024, 0); // 5 MB + 1 KB
+    big.writeAsBytesSync(bytes);
+    final meta = await ExifExtractor().extract(big);
+    // The isolate path uses _extract internally — without a mocked channel
+    // (this test is outside the `with mocked native_exif channel` group)
+    // the EXIF parse fails and we fall back to mtime.
+    expect(meta, isNotNull);
+    expect(meta!.takenAt, isNotNull);
+    expect(meta.mimeType, 'image/jpeg');
+  });
 }
