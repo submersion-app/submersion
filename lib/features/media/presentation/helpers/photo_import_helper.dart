@@ -51,6 +51,12 @@ class PhotoImportHelper {
     // would arise from applying buffers in local time after the conversion.
     // We pass buffer: Duration.zero to disable showPhotoPicker's internal
     // buffer-in-local logic.
+    // coverage:ignore-start
+    // showPhotoPicker drives a full-screen page tied to photo_manager + the
+    // platform photo library. Not unit-testable from flutter_test without
+    // an integration runner. The wallClockUtcToLocal helpers below are
+    // covered by trip_media_scanner_test; the buffer constants by
+    // dive_photo_matcher_test.
     final selectedAssets = await showPhotoPicker(
       context: context,
       diveStartTime: TripMediaScanner.wallClockUtcToLocal(
@@ -62,6 +68,7 @@ class PhotoImportHelper {
       buffer: Duration.zero,
       alreadyLinkedIds: alreadyLinkedIds,
     );
+    // coverage:ignore-end
 
     // User cancelled or context no longer valid
     if (selectedAssets == null || selectedAssets.isEmpty || !context.mounted) {

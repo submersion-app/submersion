@@ -182,9 +182,12 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
       bookmarkRef = _uuid.v4();
       await bookmarkStorage.write(bookmarkRef, blob);
     } else if (Platform.isAndroid) {
+      // coverage:ignore-start
       // file.file.path on Android may already be a content URI from
       // file_picker. takePersistableUri makes it durable across reboots.
+      // Android branch can only be exercised on an Android host.
       bookmarkRef = await platform.takePersistableUri(file.file.path);
+      // coverage:ignore-end
     } else {
       localPath = file.file.path;
     }
