@@ -17,13 +17,13 @@ import 'package:submersion/features/media/domain/value_objects/verify_result.dar
 ///   * Desktop (macOS native, Windows, Linux): reads [MediaItem.localPath]
 ///     directly via dart:io and returns [FileData].
 ///   * iOS / macOS (sandboxed): reads [MediaItem.bookmarkRef] from the
-///     bookmark keychain via [LocalBookmarkStorage], resolves the
-///     security-scoped bookmark via [LocalMediaPlatform.resolveBookmark],
-///     and returns [FileData] pointing at the resolved file. The caller is
-///     responsible for releasing the security-scoped resource access via
-///     [LocalMediaPlatform.releaseBookmark] when done. Display widgets
-///     accept this responsibility implicitly by reading the bytes through
-///     `Image.file` while the resource is still valid.
+///     bookmark keychain via [LocalBookmarkStorage], reads the file bytes
+///     via [LocalMediaPlatform.readBookmarkBytes] (which manages the
+///     security-scoped resource lifecycle natively — start access, read,
+///     release on the same call), and returns [BytesData]. Returning
+///     [BytesData] here (rather than [FileData] from a resolved bookmark
+///     handle) keeps the security-scope ownership self-contained and
+///     avoids leaking native handles when callers forget to release them.
 ///   * Android: reads [MediaItem.bookmarkRef] as a content URI string,
 ///     calls [LocalMediaPlatform.readUriBytes], and returns [BytesData].
 ///
@@ -84,8 +84,13 @@ class LocalFileResolver implements MediaSourceResolver {
         return const UnavailableData(kind: UnavailableKind.notFound);
       }
       try {
-        final resolved = await _platform.resolveBookmark(blob);
-        return FileData(file: File(resolved.filePath));
+        // readBookmarkBytes is self-contained on the native side: it starts
+        // security-scoped resource access, reads the file, and releases
+        // access in a single call. Returning BytesData here (instead of
+        // FileData from a resolved bookmark handle) avoids leaking the
+        // security scope when callers forget to invoke releaseBookmark.
+        final bytes = await _platform.readBookmarkBytes(blob);
+        return BytesData(bytes: bytes);
       } catch (_) {
         return const UnavailableData(kind: UnavailableKind.notFound);
       }
