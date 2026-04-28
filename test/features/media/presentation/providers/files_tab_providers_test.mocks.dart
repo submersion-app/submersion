@@ -4,18 +4,20 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i5;
-import 'dart:typed_data' as _i7;
+import 'dart:typed_data' as _i8;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i8;
+import 'package:mockito/src/dummies.dart' as _i9;
 import 'package:submersion/features/media/data/repositories/media_repository.dart'
     as _i4;
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart'
-    as _i6;
+    as _i7;
 import 'package:submersion/features/media/data/services/local_media_platform.dart'
     as _i3;
 import 'package:submersion/features/media/domain/entities/media_item.dart'
     as _i2;
+import 'package:submersion/features/media/domain/entities/media_source_type.dart'
+    as _i6;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -125,6 +127,18 @@ class MockMediaRepository extends _i1.Mock implements _i4.MediaRepository {
           as _i5.Future<void>);
 
   @override
+  _i5.Future<List<_i2.MediaItem>> getAllBySourceType(
+    _i6.MediaSourceType? sourceType,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getAllBySourceType, [sourceType]),
+            returnValue: _i5.Future<List<_i2.MediaItem>>.value(
+              <_i2.MediaItem>[],
+            ),
+          )
+          as _i5.Future<List<_i2.MediaItem>>);
+
+  @override
   _i5.Future<List<_i2.MediaItem>> getOrphanedMedia() =>
       (super.noSuchMethod(
             Invocation.method(#getOrphanedMedia, []),
@@ -215,13 +229,13 @@ class MockMediaRepository extends _i1.Mock implements _i4.MediaRepository {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockLocalBookmarkStorage extends _i1.Mock
-    implements _i6.LocalBookmarkStorage {
+    implements _i7.LocalBookmarkStorage {
   MockLocalBookmarkStorage() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i5.Future<void> write(String? bookmarkRef, _i7.Uint8List? blob) =>
+  _i5.Future<void> write(String? bookmarkRef, _i8.Uint8List? blob) =>
       (super.noSuchMethod(
             Invocation.method(#write, [bookmarkRef, blob]),
             returnValue: _i5.Future<void>.value(),
@@ -230,12 +244,12 @@ class MockLocalBookmarkStorage extends _i1.Mock
           as _i5.Future<void>);
 
   @override
-  _i5.Future<_i7.Uint8List?> read(String? bookmarkRef) =>
+  _i5.Future<_i8.Uint8List?> read(String? bookmarkRef) =>
       (super.noSuchMethod(
             Invocation.method(#read, [bookmarkRef]),
-            returnValue: _i5.Future<_i7.Uint8List?>.value(),
+            returnValue: _i5.Future<_i8.Uint8List?>.value(),
           )
-          as _i5.Future<_i7.Uint8List?>);
+          as _i5.Future<_i8.Uint8List?>);
 
   @override
   _i5.Future<void> delete(String? bookmarkRef) =>
@@ -257,15 +271,15 @@ class MockLocalMediaPlatform extends _i1.Mock
   }
 
   @override
-  _i5.Future<_i7.Uint8List> createBookmark(String? filePath) =>
+  _i5.Future<_i8.Uint8List> createBookmark(String? filePath) =>
       (super.noSuchMethod(
             Invocation.method(#createBookmark, [filePath]),
-            returnValue: _i5.Future<_i7.Uint8List>.value(_i7.Uint8List(0)),
+            returnValue: _i5.Future<_i8.Uint8List>.value(_i8.Uint8List(0)),
           )
-          as _i5.Future<_i7.Uint8List>);
+          as _i5.Future<_i8.Uint8List>);
 
   @override
-  _i5.Future<_i3.ResolvedBookmark> resolveBookmark(_i7.Uint8List? blob) =>
+  _i5.Future<_i3.ResolvedBookmark> resolveBookmark(_i8.Uint8List? blob) =>
       (super.noSuchMethod(
             Invocation.method(#resolveBookmark, [blob]),
             returnValue: _i5.Future<_i3.ResolvedBookmark>.value(
@@ -300,7 +314,7 @@ class MockLocalMediaPlatform extends _i1.Mock
       (super.noSuchMethod(
             Invocation.method(#takePersistableUri, [uri]),
             returnValue: _i5.Future<String>.value(
-              _i8.dummyValue<String>(
+              _i9.dummyValue<String>(
                 this,
                 Invocation.method(#takePersistableUri, [uri]),
               ),
@@ -326,18 +340,18 @@ class MockLocalMediaPlatform extends _i1.Mock
           as _i5.Future<List<String>>);
 
   @override
-  _i5.Future<_i7.Uint8List> readBookmarkBytes(_i7.Uint8List? bookmarkBlob) =>
+  _i5.Future<_i8.Uint8List> readBookmarkBytes(_i8.Uint8List? bookmarkBlob) =>
       (super.noSuchMethod(
             Invocation.method(#readBookmarkBytes, [bookmarkBlob]),
-            returnValue: _i5.Future<_i7.Uint8List>.value(_i7.Uint8List(0)),
+            returnValue: _i5.Future<_i8.Uint8List>.value(_i8.Uint8List(0)),
           )
-          as _i5.Future<_i7.Uint8List>);
+          as _i5.Future<_i8.Uint8List>);
 
   @override
-  _i5.Future<_i7.Uint8List> readUriBytes(String? uri) =>
+  _i5.Future<_i8.Uint8List> readUriBytes(String? uri) =>
       (super.noSuchMethod(
             Invocation.method(#readUriBytes, [uri]),
-            returnValue: _i5.Future<_i7.Uint8List>.value(_i7.Uint8List(0)),
+            returnValue: _i5.Future<_i8.Uint8List>.value(_i8.Uint8List(0)),
           )
-          as _i5.Future<_i7.Uint8List>);
+          as _i5.Future<_i8.Uint8List>);
 }
