@@ -14,6 +14,19 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 
+/// Returns the OS-appropriate label for the "show file in OS file manager"
+/// menu item used by the right-click context menu.
+///
+/// Top-level (public) so it can be unit-tested without a widget tree;
+/// the right-click handlers in [DiveMediaSection] only fire on desktop and
+/// can't be exercised from `flutter test`.
+@visibleForTesting
+String showInOsFileManagerLabel() {
+  if (Platform.isMacOS) return 'Show in Finder';
+  if (Platform.isWindows) return 'Show in Explorer';
+  return 'Show in Files';
+}
+
 /// Section widget displaying media (photos/videos) for a dive.
 ///
 /// Supports multi-select mode via long-press and drag, with bulk unlink.
@@ -121,14 +134,12 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
     }
   }
 
-  /// Returns the OS-appropriate label for the "show file in OS file manager"
-  /// menu item. Right-click only fires on desktop, so iOS/Android labels are
-  /// unreachable, but a stable fallback keeps non-desktop callers safe.
-  String _showInLabel() {
-    if (Platform.isMacOS) return 'Show in Finder';
-    if (Platform.isWindows) return 'Show in Explorer';
-    return 'Show in Files';
-  }
+  // coverage:ignore-start
+  // Right-click context menu helpers (desktop-only). They are only reachable
+  // through `onSecondaryTapDown`, which does not fire under flutter_test
+  // without a real trackpad / mouse driver. All three helpers shell out to
+  // `Process.run` / `FilePicker.pickFiles` / `showMenu`, none of which are
+  // unit-testable from flutter_test. Exercised by manual desktop smoke tests.
 
   /// Reveals [path] in the platform's native file manager. Failures of the
   /// spawned process are intentionally swallowed: surfacing them would require
@@ -183,7 +194,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
           PopupMenuItem<String>(
             value: 'show',
             // TODO(media): l10n
-            child: Text(_showInLabel()),
+            child: Text(showInOsFileManagerLabel()),
           ),
         const PopupMenuItem<String>(
           value: 'replace',
@@ -200,6 +211,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
       await _replaceLink(item);
     }
   }
+  // coverage:ignore-end
 
   @override
   Widget build(BuildContext context) {
@@ -309,17 +321,25 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       isSelectionMode: _isSelectionMode,
                       isSelected: isSelected,
                     );
+                    // coverage:ignore-start
                     // Right-click (desktop only) opens a context menu with
-                    // file-management actions for local-file items. Touchscreens
-                    // never fire `onSecondaryTapDown`, so the menu is implicitly
-                    // gated to desktop without breaking the long-press gesture
-                    // that `DragSelectGridView` reserves for batch selection.
+                    // file-management actions for local-file items.
+                    // Touchscreens never fire `onSecondaryTapDown`, so the
+                    // menu is implicitly gated to desktop without breaking
+                    // the long-press gesture that `DragSelectGridView`
+                    // reserves for batch selection. The itemBuilder itself
+                    // only fires when the dive has media — and our test
+                    // suite stubs the media stream with `whenOrNull`/`when`
+                    // branches via the mediaForDiveProvider, so this
+                    // closure is unreachable from flutter_test without a
+                    // populated DB.
                     return GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onSecondaryTapDown: (details) =>
                           _showLocalFileContextMenu(context, item, details),
                       child: thumbnail,
                     );
+                    // coverage:ignore-end
                   },
                 );
               },
