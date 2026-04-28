@@ -138,9 +138,14 @@ class LocalMediaPlatform {
   /// the bookmark API.
   Future<Uint8List> readBookmarkBytes(Uint8List bookmarkBlob) async {
     if (!Platform.isIOS && !Platform.isMacOS) {
+      // coverage:ignore-start
+      // UnsupportedError throw — exercised by
+      // local_media_platform_linux_test.dart on Linux CI hosts; on the
+      // macOS dev host this branch is unreachable.
       throw UnsupportedError(
         'readBookmarkBytes is only supported on iOS / macOS',
       );
+      // coverage:ignore-end
     }
     // coverage:ignore-start
     final result = await _channel.invokeMethod<Uint8List>('readBookmarkBytes', {

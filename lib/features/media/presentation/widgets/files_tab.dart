@@ -153,8 +153,9 @@ class FilesTab extends ConsumerWidget {
                 child: FilledButton.icon(
                   icon: const Icon(Icons.upload_file),
                   label: const Text('Pick files…'),
-                  // coverage:ignore-line — invokes coverage:ignore _pickFiles
+                  // coverage:ignore-start
                   onPressed: () => _pickFiles(ref),
+                  // coverage:ignore-end
                 ),
               ),
               const SizedBox(width: 16),
@@ -162,8 +163,9 @@ class FilesTab extends ConsumerWidget {
                 child: FilledButton.icon(
                   icon: const Icon(Icons.folder_open),
                   label: const Text('Pick a folder…'),
-                  // coverage:ignore-line — invokes coverage:ignore _pickFolder
+                  // coverage:ignore-start
                   onPressed: () => _pickFolder(ref),
+                  // coverage:ignore-end
                 ),
               ),
             ],
@@ -207,8 +209,9 @@ class FilesTab extends ConsumerWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  // coverage:ignore-line — invokes coverage:ignore _commit
+                  // coverage:ignore-start
                   onPressed: () => _commit(context, ref),
+                  // coverage:ignore-end
                   child: Text(
                     'Link ${state.match.totalFiles - state.match.unmatched.length} items',
                   ),

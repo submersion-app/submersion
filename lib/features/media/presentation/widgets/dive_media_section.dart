@@ -23,7 +23,14 @@ import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 @visibleForTesting
 String showInOsFileManagerLabel() {
   if (Platform.isMacOS) return 'Show in Finder';
-  if (Platform.isWindows) return 'Show in Explorer';
+  // coverage:ignore-start
+  // Windows-only branch — test suite runs on macOS / Linux. On Linux the
+  // `if (Platform.isWindows)` evaluates false and the function falls
+  // through to 'Show in Files' (covered).
+  if (Platform.isWindows) {
+    return 'Show in Explorer';
+  }
+  // coverage:ignore-end
   return 'Show in Files';
 }
 
