@@ -13,10 +13,12 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// Blobs are stored base64-encoded because flutter_secure_storage exposes
 /// only a string API on its lowest common denominator.
 ///
-/// Phase 2's `LocalFileResolver` reads from this service when resolving a
-/// `MediaItem.bookmarkRef` on iOS / macOS; the resulting blob is passed to
-/// `LocalMediaPlatform.resolveBookmark()` which actually starts the
-/// security-scoped resource access.
+/// Phase 2's `LocalFileResolver` reads bookmark bytes from this service
+/// when resolving a `MediaItem.bookmarkRef` on iOS / macOS.
+///
+/// This service only persists and retrieves bookmark data; callers should
+/// use the current bookmark-bytes resolution flow rather than the older
+/// `resolveBookmark()` session-based API.
 class LocalBookmarkStorage {
   final FlutterSecureStorage _storage;
 
