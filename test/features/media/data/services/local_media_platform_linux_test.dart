@@ -68,4 +68,22 @@ void main() {
     final p = LocalMediaPlatform();
     expect(await p.listPersistedUris(), isEmpty);
   });
+
+  test('readBookmarkBytes throws UnsupportedError on non-iOS/macOS hosts', () {
+    if (!isUnsupportedHost) return;
+    final p = LocalMediaPlatform();
+    expect(
+      () => p.readBookmarkBytes(Uint8List.fromList([1, 2])),
+      throwsA(isA<UnsupportedError>()),
+    );
+  });
+
+  test('readUriBytes throws UnsupportedError on non-Android hosts', () {
+    if (Platform.isAndroid) return;
+    final p = LocalMediaPlatform();
+    expect(
+      () => p.readUriBytes('content://x/1'),
+      throwsA(isA<UnsupportedError>()),
+    );
+  });
 }
