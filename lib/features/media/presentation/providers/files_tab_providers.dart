@@ -129,10 +129,25 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
   }
 
   void removeFile(String sourcePath) {
-    final remaining = state.files
+    final remainingFiles = state.files
         .where((f) => f.sourcePath != sourcePath)
         .toList();
-    state = state.copyWith(files: remaining);
+    final newMatched = <String, List<ExtractedFile>>{};
+    for (final entry in state.match.matched.entries) {
+      final filtered = entry.value
+          .where((f) => f.sourcePath != sourcePath)
+          .toList();
+      if (filtered.isNotEmpty) {
+        newMatched[entry.key] = filtered;
+      }
+    }
+    final newUnmatched = state.match.unmatched
+        .where((f) => f.sourcePath != sourcePath)
+        .toList();
+    state = state.copyWith(
+      files: remainingFiles,
+      match: MatchedSelection(matched: newMatched, unmatched: newUnmatched),
+    );
   }
 
   /// Persists the matcher's per-dive assignment as [MediaItem] rows and

@@ -125,6 +125,39 @@ void main() {
       final state = container.read(filesTabNotifierProvider);
       expect(state.files, [b]);
     });
+
+    test('removeFile removes file from state.files AND state.match', () {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final a = _ef('/a.jpg');
+      final b = _ef('/b.jpg');
+      final c = _ef('/c.jpg');
+      // Seed: a is solo in d1 (group will be dropped on removal),
+      // b is alongside c in d2, c is also unmatched.
+      notifier.setFiles(
+        [a, b, c],
+        match: MatchedSelection(
+          matched: {
+            'd1': [a],
+            'd2': [b, c],
+          },
+          unmatched: [c],
+        ),
+      );
+
+      notifier.removeFile('/a.jpg');
+      final afterA = container.read(filesTabNotifierProvider);
+      expect(afterA.files, [b, c]);
+      // d1 group dropped because it's now empty.
+      expect(afterA.match.matched.containsKey('d1'), isFalse);
+      expect(afterA.match.matched['d2'], [b, c]);
+      expect(afterA.match.unmatched, [c]);
+
+      notifier.removeFile('/c.jpg');
+      final afterC = container.read(filesTabNotifierProvider);
+      expect(afterC.files, [b]);
+      expect(afterC.match.matched['d2'], [b]);
+      expect(afterC.match.unmatched, isEmpty);
+    });
   });
 
   // The platform-conditional branches in _persistOne are exercised on the
