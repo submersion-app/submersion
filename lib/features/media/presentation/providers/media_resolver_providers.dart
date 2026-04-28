@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import 'package:submersion/features/media/data/resolvers/local_file_resolver.dart';
+import 'package:submersion/features/media/data/resolvers/manifest_entry_resolver.dart';
 import 'package:submersion/features/media/data/resolvers/platform_gallery_resolver.dart';
 import 'package:submersion/features/media/data/resolvers/signature_resolver.dart';
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/media/data/services/media_source_resolver_re
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 
 /// Singleton [PlatformGalleryResolver].
 ///
@@ -49,6 +51,20 @@ final localFileResolverProvider = Provider<LocalFileResolver>(
   ),
 );
 
+/// Singleton [ManifestEntryResolver] (Phase 3b).
+///
+/// Manifest-entry items are HTTP(S) URLs that arrived via a feed, so the
+/// resolver delegates byte fetch and metadata extraction to the Phase 3a
+/// HTTP stack ([NetworkUrlResolver] + [UrlMetadataExtractor]). The
+/// providers for those services are co-located with the URL tab in
+/// `url_tab_providers.dart`.
+final manifestEntryResolverProvider = Provider<ManifestEntryResolver>(
+  (ref) => ManifestEntryResolver(
+    networkUrlResolver: ref.watch(networkUrlResolverProvider),
+    urlMetadataExtractor: ref.watch(urlMetadataExtractorProvider),
+  ),
+);
+
 /// The [MediaSourceResolverRegistry] used by the universal display widget
 /// and any other consumer that resolves [MediaItem]s without caring about
 /// their source type.
@@ -60,6 +76,7 @@ final mediaSourceResolverRegistryProvider =
         ),
         MediaSourceType.signature: ref.watch(signatureResolverProvider),
         MediaSourceType.localFile: ref.watch(localFileResolverProvider),
+        MediaSourceType.manifestEntry: ref.watch(manifestEntryResolverProvider),
       });
     });
 
