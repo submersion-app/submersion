@@ -1,23 +1,27 @@
 // Adapted from plan
 // `docs/superpowers/plans/2026-04-28-media-source-extension-phase3a.md`
-// Task 15. Mirrors `FileReviewPane` (Phase 2) in shape, but the URL
-// tab's [UrlTabState] (Task 14) does not yet expose a `match` field —
-// staged URL lines are plain strings without per-dive grouping until a
-// future task adds that pipeline. For now the pane renders a per-line
-// preview list (one card per draft line), reserving the per-dive
+// Task 15 (initial scaffold) + Task 16 (NetworkThumbnail swap).
+//
+// Mirrors `FileReviewPane` (Phase 2) in shape, but the URL tab's
+// [UrlTabState] (Task 14) does not yet expose a `match` field — staged
+// URL lines are plain strings without per-dive grouping until a future
+// task adds that pipeline. For now the pane renders a per-line preview
+// list (one card per draft line), reserving the per-dive
 // `ExpansionTile` shape for the real implementation in Phase 3b/3c.
 //
-// `NetworkThumbnail` (Task 16) is not in the tree yet, so the leading
-// art slot is a neutral [Container] placeholder. Items whose remote
-// metadata has not been verified yet (i.e. the import is still resolving
-// `Last-Modified` / EXIF in the background) display a small spinner —
-// `lastVerifiedAt == null` is the criterion the plan calls out, but
-// during the staged-draft phase no row has been created yet, so every
-// line is treated as "pending verification" until commit lands.
+// Task 16 swapped the original [Container]+spinner placeholder for
+// [NetworkThumbnail] so the leading art slot now resolves the actual
+// remote bytes (with `Authorization` headers from
+// `NetworkCredentialsService` when needed). For invalid URL lines we
+// keep the neutral surface placeholder because [Uri.parse] would still
+// succeed for some malformed inputs and `NetworkThumbnail` would fire
+// off a doomed request — letting the validator gate the network call
+// avoids burning auth lookups on lines the user is still typing.
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/media/data/utils/url_validator.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/network_thumbnail.dart';
 
 /// Review pane shown above the "Add" button in the URL tab.
 ///
@@ -73,33 +77,23 @@ class _UrlReviewRow extends StatelessWidget {
     final ok = result is UrlValidationOk;
     final theme = Theme.of(context);
     return ListTile(
-      // TODO(Task 16): swap for NetworkThumbnail once
-      // `lib/features/media/presentation/widgets/network_thumbnail.dart`
-      // lands. Until then we render a neutral placeholder + a small
-      // spinner because every draft line is unverified pre-commit
-      // (`lastVerifiedAt == null`).
+      // Valid URLs paint via [NetworkThumbnail] (resolves auth headers
+      // from `NetworkCredentialsService` and falls back to
+      // `UnavailableMediaPlaceholder` on error). Invalid lines render a
+      // neutral surface tile so we don't fire a doomed network request
+      // for in-progress text.
       leading: SizedBox(
         width: 48,
         height: 48,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              color: theme.colorScheme.surfaceContainerHighest,
-              width: 48,
-              height: 48,
-              child: Icon(
-                Icons.link,
-                color: theme.colorScheme.onSurfaceVariant,
+        child: ok
+            ? NetworkThumbnail(url: line, size: 48)
+            : Container(
+                color: theme.colorScheme.surfaceContainerHighest,
+                child: Icon(
+                  Icons.link_off,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
-            ),
-            const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ],
-        ),
       ),
       title: Text(line, maxLines: 1, overflow: TextOverflow.ellipsis),
       // TODO(media): l10n. Validation errors are shown inline next to the

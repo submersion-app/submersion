@@ -75,11 +75,20 @@ void main() {
     pipeline = MockNetworkFetchPipeline();
     credentials = MockNetworkCredentialsService();
     repo = MockMediaRepository();
+    // The Task 16 [NetworkThumbnail] inside [UrlReviewPane] reads
+    // `credentials.headersFor(...)`; stub it once for every test so the
+    // widget can paint without a `MissingStubError`. Returning `null`
+    // means "no auth header needed".
+    when(credentials.headersFor(any)).thenAnswer((_) async => null);
   });
 
   Widget wrap(Widget child, {UrlTabState? seed}) {
     return ProviderScope(
       overrides: [
+        // Override the credentials provider so [NetworkThumbnail] does
+        // not try to construct the real service (which reaches into the
+        // not-initialized [DatabaseService] in tests).
+        networkCredentialsServiceProvider.overrideWithValue(credentials),
         if (seed != null)
           urlTabNotifierProvider.overrideWith(
             (ref) => _SeededUrlTabNotifier(
@@ -146,7 +155,12 @@ void main() {
     );
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [urlTabNotifierProvider.overrideWith((ref) => notifier)],
+        overrides: [
+          // Once the URL is appended the review pane renders
+          // [NetworkThumbnail], which reads the credentials provider.
+          networkCredentialsServiceProvider.overrideWithValue(credentials),
+          urlTabNotifierProvider.overrideWith((ref) => notifier),
+        ],
         child: const MaterialApp(home: Scaffold(body: UrlTab())),
       ),
     );
