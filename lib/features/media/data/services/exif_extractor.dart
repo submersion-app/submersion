@@ -32,7 +32,20 @@ Future<MediaSourceMetadata?> _extractIsolate(String path) => _extract(path);
 Future<MediaSourceMetadata?> _extract(String path) async {
   final file = File(path);
   if (!file.existsSync()) return null;
-  final mtime = file.lastModifiedSync();
+  // Match codebase convention: wall-clock-UTC. The matcher (DivePhotoMatcher)
+  // compares photo takenAt against dive times stored as DateTime.utc(...) of
+  // the dive computer's displayed digits. File.lastModifiedSync() returns a
+  // local DateTime; reinterpret its calendar fields as UTC so the matcher
+  // sees a directly comparable instant.
+  final rawMtime = file.lastModifiedSync();
+  final mtime = DateTime.utc(
+    rawMtime.year,
+    rawMtime.month,
+    rawMtime.day,
+    rawMtime.hour,
+    rawMtime.minute,
+    rawMtime.second,
+  );
   final ext = path.split('.').last.toLowerCase();
   final mime = _mimeFromExtension(ext);
 
@@ -97,14 +110,16 @@ int? _parseInt(Object? value) {
 
 DateTime? _parseExifDate(String? raw) {
   if (raw == null) return null;
-  // EXIF format: "YYYY:MM:DD HH:MM:SS"
+  // EXIF format: "YYYY:MM:DD HH:MM:SS". Returned as DateTime.utc(...) so
+  // the digits land in the same wall-clock-UTC frame as dive times. See
+  // DivePhotoMatcher for the comparison side.
   try {
     final parts = raw.split(' ');
     if (parts.length != 2) return null;
     final dateParts = parts[0].split(':');
     final timeParts = parts[1].split(':');
     if (dateParts.length != 3 || timeParts.length != 3) return null;
-    return DateTime(
+    return DateTime.utc(
       int.parse(dateParts[0]),
       int.parse(dateParts[1]),
       int.parse(dateParts[2]),

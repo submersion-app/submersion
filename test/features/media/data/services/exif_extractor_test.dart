@@ -24,8 +24,22 @@ void main() {
     final meta = await extractor.extract(f);
     expect(meta, isNotNull);
     expect(meta!.takenAt, isNotNull); // file mtime fallback
+    // Wall-clock-UTC convention: mtime's local-clock digits are reinterpreted
+    // as UTC so the matcher can compare against dive times directly.
+    expect(meta.takenAt!.isUtc, isTrue);
+    // Compare against a UTC projection of "now" — the wall-clock digits
+    // should match within a few minutes regardless of test-runner timezone.
+    final now = DateTime.now();
+    final nowAsWallUtc = DateTime.utc(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+      now.minute,
+      now.second,
+    );
     expect(
-      meta.takenAt!.difference(DateTime.now()).abs(),
+      meta.takenAt!.difference(nowAsWallUtc).abs(),
       lessThan(const Duration(minutes: 5)),
     );
     expect(meta.mimeType, isNotEmpty);
@@ -118,7 +132,10 @@ void main() {
         final meta = await extractor.extract(f);
 
         expect(meta, isNotNull);
-        expect(meta!.takenAt, DateTime(2024, 6, 1, 12, 30, 45));
+        expect(meta!.takenAt, DateTime.utc(2024, 6, 1, 12, 30, 45));
+        // Wall-clock-UTC convention: DateTimeOriginal digits land on a UTC
+        // DateTime so the matcher can compare against dive times directly.
+        expect(meta.takenAt!.isUtc, isTrue);
         expect(meta.latitude, 30.5);
         // GPSLongitudeRef='W' should negate the longitude.
         expect(meta.longitude, -85.3);
@@ -200,9 +217,21 @@ void main() {
         expect(meta, isNotNull);
         // Falls through to mtime fallback.
         expect(meta!.takenAt, isNotNull);
-        // The mtime should be close to "now" (file was just written).
+        // mtime fallback is wall-clock-UTC (see _extract).
+        expect(meta.takenAt!.isUtc, isTrue);
+        // The mtime digits should be close to "now" (file was just written),
+        // compared in the same wall-clock-UTC frame.
+        final now = DateTime.now();
+        final nowAsWallUtc = DateTime.utc(
+          now.year,
+          now.month,
+          now.day,
+          now.hour,
+          now.minute,
+          now.second,
+        );
         expect(
-          meta.takenAt!.difference(DateTime.now()).abs(),
+          meta.takenAt!.difference(nowAsWallUtc).abs(),
           lessThan(const Duration(minutes: 5)),
         );
       },
