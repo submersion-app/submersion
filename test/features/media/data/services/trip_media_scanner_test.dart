@@ -233,6 +233,70 @@ void main() {
         expect(result, equals(dive1));
       });
 
+      test('two dives with after-exit buffers, second is closer', () {
+        // Dive 1: 10-11 → photo at 11:50 is 50min after exit (within 60 buffer)
+        // Dive 2: 11-12 → photo at 11:50 is during dive2, but use 11:50
+        // outside both dives to force after-exit matching:
+        // Dive 1: 10:00-10:30 → photo 11:00 is 30min after exit
+        // Dive 2: 11:25-11:55 → photo at 11:00 not in dive2, before-entry 25min
+        // Actually simpler: have two dives where photo is after both exits.
+        // Dive 1 ends at 10:00, Dive 2 ends at 10:30. Photo at 11:00.
+        // Dive 1: 30-min after exit = 60min, Dive 2: 30min after exit.
+        final dive1 = Dive(
+          id: 'dive-1',
+          dateTime: DateTime(2024, 1, 15, 9, 0),
+          entryTime: DateTime(2024, 1, 15, 9, 0),
+          exitTime: DateTime(2024, 1, 15, 10, 0),
+          bottomTime: const Duration(minutes: 60),
+        );
+        final dive2 = Dive(
+          id: 'dive-2',
+          dateTime: DateTime(2024, 1, 15, 9, 30),
+          entryTime: DateTime(2024, 1, 15, 9, 30),
+          exitTime: DateTime(2024, 1, 15, 10, 30),
+          bottomTime: const Duration(minutes: 60),
+        );
+        // photo 11:00 = 60min after dive1 exit, 30min after dive2 exit
+        final photoTime = DateTime(2024, 1, 15, 11, 0);
+        final result = TripMediaScanner.matchPhotoToDive(photoTime, [
+          dive1,
+          dive2,
+        ], bufferMinutes: 60);
+
+        expect(result, equals(dive2));
+      });
+
+      test(
+        'when two dives both contain the photo, picks the closest boundary',
+        () {
+          // Dive 1: 10:00-11:00 (photo at 10:30 → 30 min from each boundary)
+          // Dive 2: 10:25-10:55 (photo at 10:30 → 5 min from entry)
+          // Both isDuring → second dive should win (smaller distance).
+          final dive1 = Dive(
+            id: 'dive-1',
+            dateTime: DateTime(2024, 1, 15, 10, 0),
+            entryTime: DateTime(2024, 1, 15, 10, 0),
+            exitTime: DateTime(2024, 1, 15, 11, 0),
+            bottomTime: const Duration(minutes: 60),
+          );
+          final dive2 = Dive(
+            id: 'dive-2',
+            dateTime: DateTime(2024, 1, 15, 10, 25),
+            entryTime: DateTime(2024, 1, 15, 10, 25),
+            exitTime: DateTime(2024, 1, 15, 10, 55),
+            bottomTime: const Duration(minutes: 30),
+          );
+
+          final photoTime = DateTime(2024, 1, 15, 10, 30);
+          final result = TripMediaScanner.matchPhotoToDive(photoTime, [
+            dive1,
+            dive2,
+          ]);
+
+          expect(result, equals(dive2));
+        },
+      );
+
       test('default buffer is 30 minutes', () {
         final dive = Dive(
           id: 'dive-1',
