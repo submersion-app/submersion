@@ -121,7 +121,12 @@ class LocalFilesDiagnosticsService {
   /// trip in tests.
   Future<int> androidUriUsage() async {
     if (!Platform.isAndroid) return 0;
+    // coverage:ignore-start
+    // Android-only branch; test suite runs on macOS where the early-return
+    // above prevents the platform mock from being consulted regardless of
+    // stub setup.
     final uris = await _platform.listPersistedUris();
     return uris.length;
+    // coverage:ignore-end
   }
 }

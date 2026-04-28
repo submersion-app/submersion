@@ -139,6 +139,43 @@ void main() {
       verifyNever(mockResolver.verify(any));
       verifyNever(mockRepo.updateMedia(any));
     });
+
+    test('tolerates per-item failures: skips bad item, continues sweep, '
+        'returns flipped count excluding the failure', () async {
+      final a = item(id: 'a', isOrphaned: false); // throws on verify
+      final b = item(id: 'b', isOrphaned: false); // flips to orphan
+      when(
+        mockRepo.getAllBySourceType(MediaSourceType.localFile),
+      ).thenAnswer((_) async => [a, b]);
+
+      when(mockResolver.verify(a)).thenThrow(Exception('verify boom'));
+      when(
+        mockResolver.verify(b),
+      ).thenAnswer((_) async => VerifyResult.notFound);
+      when(mockRepo.updateMedia(any)).thenAnswer((_) async {});
+
+      final flipped = await subject.reverifyAll();
+
+      // Only `b` flipped — `a` failed and was excluded.
+      expect(flipped, 1);
+      // `a` failed before update; only `b` got an update call.
+      verify(mockRepo.updateMedia(any)).called(1);
+    });
+  });
+
+  group('LocalFilesDiagnostics equality (Equatable)', () {
+    test('two instances with same fields are equal', () {
+      const a = LocalFilesDiagnostics(total: 3, available: 2, unavailable: 1);
+      const b = LocalFilesDiagnostics(total: 3, available: 2, unavailable: 1);
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+    });
+
+    test('instances with different fields are not equal', () {
+      const a = LocalFilesDiagnostics(total: 3, available: 2, unavailable: 1);
+      const b = LocalFilesDiagnostics(total: 3, available: 1, unavailable: 2);
+      expect(a, isNot(equals(b)));
+    });
   });
 
   group('androidUriUsage', () {
