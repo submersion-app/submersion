@@ -99,6 +99,7 @@ class MediaSourcesPage extends ConsumerWidget {
                         );
                         try {
                           final updated = await service.reverifyAll();
+                          if (!context.mounted) return;
                           // TODO(media): l10n, pluralization
                           messenger.showSnackBar(
                             SnackBar(content: Text('$updated items updated')),
