@@ -3,7 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/media/data/services/cached_network_image_diagnostics.dart';
 import 'package:submersion/features/media/data/services/host_rate_limiter.dart';
+import 'package:submersion/features/media/data/services/network_scan_service.dart';
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
+
+import '../../../../helpers/test_database.dart';
 
 class _StubDiag implements CachedNetworkImageDiagnostics {
   _StubDiag(this.size);
@@ -44,16 +47,19 @@ void main() {
 
   test(
     'networkScanServiceProvider builds a service with the registered deps',
-    () {
-      // Smoke test: the provider compiles and reads without throwing. Live
-      // wiring is exercised by the dialog widget test in Task 9.
+    () async {
+      // Read the provider and confirm we got an actual NetworkScanService
+      // instance — the previous assertion (`isA<void Function()>()`) only
+      // tested that a closure was a closure, which is tautological and
+      // never validated the wiring.
+      await setUpTestDatabase();
+      addTearDown(tearDownTestDatabase);
+
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
-      expect(
-        () => container.read(networkScanServiceProvider),
-        isA<void Function()>(),
-      );
+      final svc = container.read(networkScanServiceProvider);
+      expect(svc, isA<NetworkScanService>());
     },
   );
 }
