@@ -43,6 +43,7 @@ dependencies:
   flutter_map_tile_caching: ^10.1.1  # Offline map tile caching
   latlong2: ^0.9.1
   cached_network_image: ^3.4.1
+  flutter_cache_manager: ^3.4.1
   photo_view: ^0.15.0
   video_player: ^2.10.1
 
