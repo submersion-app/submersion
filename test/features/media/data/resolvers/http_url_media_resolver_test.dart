@@ -4,7 +4,7 @@ import 'dart:ui' show Size;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:submersion/features/media/data/resolvers/manifest_entry_resolver.dart';
+import 'package:submersion/features/media/data/resolvers/http_url_media_resolver.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/network_url_resolver.dart';
 import 'package:submersion/features/media/data/services/url_metadata_extractor.dart';
@@ -21,9 +21,10 @@ class _StubCreds implements NetworkCredentialsService {
   noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
-ManifestEntryResolver _makeResolver({
+HttpUrlMediaResolver _makeResolver({
   http.Client? client,
   ExifExtractFn? exif,
+  MediaSourceType sourceType = MediaSourceType.manifestEntry,
 }) {
   final c = client ?? MockClient((_) async => http.Response.bytes([], 200));
   final resolver = NetworkUrlResolver(client: c, credentials: _StubCreds());
@@ -31,7 +32,8 @@ ManifestEntryResolver _makeResolver({
     resolver: resolver,
     exifExtract: exif ?? (_) async => const ExtractedMetadata(),
   );
-  return ManifestEntryResolver(
+  return HttpUrlMediaResolver(
+    sourceType: sourceType,
     networkUrlResolver: resolver,
     urlMetadataExtractor: extractor,
   );
@@ -48,10 +50,15 @@ MediaItem _manifestItem({String? url}) => MediaItem(
 );
 
 void main() {
-  group('ManifestEntryResolver', () {
-    test('reports MediaSourceType.manifestEntry', () {
-      final r = _makeResolver();
+  group('HttpUrlMediaResolver', () {
+    test('reports MediaSourceType.manifestEntry when constructed with it', () {
+      final r = _makeResolver(sourceType: MediaSourceType.manifestEntry);
       expect(r.sourceType, MediaSourceType.manifestEntry);
+    });
+
+    test('reports MediaSourceType.networkUrl when constructed with it', () {
+      final r = _makeResolver(sourceType: MediaSourceType.networkUrl);
+      expect(r.sourceType, MediaSourceType.networkUrl);
     });
 
     group('canResolveOnThisDevice', () {

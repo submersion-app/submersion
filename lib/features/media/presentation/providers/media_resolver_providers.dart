@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
+import 'package:submersion/features/media/data/resolvers/http_url_media_resolver.dart';
 import 'package:submersion/features/media/data/resolvers/local_file_resolver.dart';
-import 'package:submersion/features/media/data/resolvers/manifest_entry_resolver.dart';
 import 'package:submersion/features/media/data/resolvers/platform_gallery_resolver.dart';
 import 'package:submersion/features/media/data/resolvers/signature_resolver.dart';
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
@@ -56,15 +56,39 @@ final localFileResolverProvider = Provider<LocalFileResolver>(
   ),
 );
 
-/// Singleton [ManifestEntryResolver] (Phase 3b).
+/// Singleton [HttpUrlMediaResolver] for [MediaSourceType.manifestEntry]
+/// items (Phase 3b).
 ///
 /// Manifest-entry items are HTTP(S) URLs that arrived via a feed, so the
 /// resolver delegates byte fetch and metadata extraction to the Phase 3a
 /// HTTP stack ([NetworkUrlResolver] + [UrlMetadataExtractor]). The
 /// providers for those services are co-located with the URL tab in
-/// `url_tab_providers.dart`.
-final manifestEntryResolverProvider = Provider<ManifestEntryResolver>(
-  (ref) => ManifestEntryResolver(
+/// `url_tab_providers.dart`. The same [HttpUrlMediaResolver] class also
+/// powers [networkUrlMediaResolverProvider] — see that provider for the
+/// rationale.
+final manifestEntryResolverProvider = Provider<HttpUrlMediaResolver>(
+  (ref) => HttpUrlMediaResolver(
+    sourceType: MediaSourceType.manifestEntry,
+    networkUrlResolver: ref.watch(networkUrlResolverProvider),
+    urlMetadataExtractor: ref.watch(urlMetadataExtractorProvider),
+  ),
+);
+
+/// Singleton [HttpUrlMediaResolver] for [MediaSourceType.networkUrl]
+/// items (Phase 3a's URL bulk import).
+///
+/// `networkUrl` items and `manifestEntry` items are functionally
+/// identical to the resolver: both are HTTP(S) URLs, both fetch via
+/// [NetworkUrlResolver], both extract metadata via
+/// [UrlMetadataExtractor], and both return [NetworkData] for
+/// `cached_network_image` to handle the actual byte transport. The only
+/// difference is provenance (which the eager fetch pipeline reads
+/// directly off the [MediaItem]). Registering a separate provider per
+/// source type lets [MediaSourceResolverRegistry] route each kind
+/// without conflating them, while sharing the implementation.
+final networkUrlMediaResolverProvider = Provider<HttpUrlMediaResolver>(
+  (ref) => HttpUrlMediaResolver(
+    sourceType: MediaSourceType.networkUrl,
     networkUrlResolver: ref.watch(networkUrlResolverProvider),
     urlMetadataExtractor: ref.watch(urlMetadataExtractorProvider),
   ),
@@ -82,6 +106,7 @@ final mediaSourceResolverRegistryProvider =
         MediaSourceType.signature: ref.watch(signatureResolverProvider),
         MediaSourceType.localFile: ref.watch(localFileResolverProvider),
         MediaSourceType.manifestEntry: ref.watch(manifestEntryResolverProvider),
+        MediaSourceType.networkUrl: ref.watch(networkUrlMediaResolverProvider),
       });
     });
 
