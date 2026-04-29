@@ -18,6 +18,8 @@ import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
@@ -25,6 +27,7 @@ import 'package:submersion/features/settings/presentation/pages/language_setting
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_channel.dart';
@@ -127,6 +130,8 @@ class SettingsPage extends ConsumerWidget {
         return const _DataSourcesSectionContent();
       case 'about':
         return const _AboutSectionContent();
+      case 'sharedData':
+        return const SharedDataSectionContent();
       case 'debug':
         return const DebugLogViewerPage();
       default:
@@ -142,8 +147,12 @@ class SettingsMobileContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final debugEnabled = ref.watch(debugModeNotifierProvider);
+    final allDiversAsync = ref.watch(allDiversProvider);
+    final diverCount = allDiversAsync.valueOrNull?.length ?? 0;
+
     final sections = settingsSections
         .where((s) => s.id != 'dataSources' || Platform.isIOS)
+        .where((s) => s.id != 'sharedData' || diverCount >= 2)
         .toList();
 
     // Insert Debug section just before About when debug mode is enabled
@@ -216,6 +225,7 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
       'data' => context.l10n.settings_section_data_title,
       'about' => context.l10n.settings_section_about_title,
       'dataSources' => context.l10n.settings_section_dataSources_title,
+      'sharedData' => context.l10n.settings_sharedData_sectionTitle,
       'debug' => 'Debug',
       _ => context.l10n.settings_appBar_title,
     };
@@ -241,6 +251,8 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
         return const _DataSourcesSectionContent();
       case 'about':
         return const _AboutSectionContent();
+      case 'sharedData':
+        return const SharedDataSectionContent();
       case 'debug':
         return const DebugLogViewerPage();
       default:
@@ -298,6 +310,7 @@ class _MobileSettingsTile extends StatelessWidget {
       'data' => context.l10n.settings_section_data_title,
       'about' => context.l10n.settings_section_about_title,
       'dataSources' => context.l10n.settings_section_dataSources_title,
+      'sharedData' => context.l10n.settings_sharedData_sectionTitle,
       _ => section.title,
     };
   }
@@ -1602,6 +1615,209 @@ class _ManageSectionContent extends StatelessWidget {
                   subtitle: Text(context.l10n.settings_manage_tags_subtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/tags'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// SHARED DATA SECTION
+// ============================================================================
+
+/// Confirms and bulk-shares all private sites for the current diver.
+Future<void> _confirmAndBulkShareSites(
+  BuildContext context,
+  WidgetRef ref,
+) async {
+  final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+  if (diverId == null) return;
+  if (!context.mounted) return;
+
+  final siteRepo = ref.read(siteRepositoryProvider);
+  final allSites = await siteRepo.getAllSites(diverId: diverId);
+  final privateCount = allSites.where((s) => !s.isShared).length;
+
+  if (privateCount == 0) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.settings_shareAll_noneToShare)),
+    );
+    return;
+  }
+
+  if (!context.mounted) return;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      content: Text(context.l10n.settings_shareAllSites_confirm(privateCount)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: Text(context.l10n.common_action_share),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true) return;
+
+  try {
+    final count = await siteRepo.shareAllForDiver(diverId);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.settings_shareAllSites_snackbar(count)),
+      ),
+    );
+  } catch (_) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.common_error_tryAgain),
+        backgroundColor: Theme.of(context).colorScheme.errorContainer,
+      ),
+    );
+  }
+}
+
+/// Confirms and bulk-shares all private trips for the current diver.
+Future<void> _confirmAndBulkShareTrips(
+  BuildContext context,
+  WidgetRef ref,
+) async {
+  final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+  if (diverId == null) return;
+  if (!context.mounted) return;
+
+  final tripRepo = ref.read(tripRepositoryProvider);
+  final allTrips = await tripRepo.getAllTrips(diverId: diverId);
+  final privateCount = allTrips.where((t) => !t.isShared).length;
+
+  if (privateCount == 0) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.settings_shareAll_noneToShare)),
+    );
+    return;
+  }
+
+  if (!context.mounted) return;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      content: Text(context.l10n.settings_shareAllTrips_confirm(privateCount)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: Text(context.l10n.common_action_share),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true) return;
+
+  try {
+    final count = await tripRepo.shareAllForDiver(diverId);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.settings_shareAllTrips_snackbar(count)),
+      ),
+    );
+  } catch (_) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.common_error_tryAgain),
+        backgroundColor: Theme.of(context).colorScheme.errorContainer,
+      ),
+    );
+  }
+}
+
+/// Shared data section content: default-sharing toggle and bulk-share actions.
+///
+/// Visible only when 2+ diver profiles exist. Contains:
+///   1. A toggle to share new sites and trips by default.
+///   2. An action to share all existing private sites.
+///   3. An action to share all existing private trips.
+class SharedDataSectionContent extends ConsumerWidget {
+  const SharedDataSectionContent({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final shareByDefaultAsync = ref.watch(shareByDefaultProvider);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_sharedData_sectionTitle,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                shareByDefaultAsync.when(
+                  data: (shareByDefault) => SwitchListTile(
+                    title: Text(context.l10n.settings_shareByDefault_title),
+                    value: shareByDefault,
+                    onChanged: (value) async {
+                      try {
+                        await ref
+                            .read(appSettingsRepositoryProvider)
+                            .setShareByDefault(value);
+                        ref.invalidate(shareByDefaultProvider);
+                      } catch (_) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(context.l10n.common_error_tryAgain),
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.errorContainer,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  loading: () => SwitchListTile(
+                    title: Text(context.l10n.settings_shareByDefault_title),
+                    value: false,
+                    onChanged: null,
+                  ),
+                  error: (e, st) => SwitchListTile(
+                    title: Text(context.l10n.settings_shareByDefault_title),
+                    value: false,
+                    onChanged: null,
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: Text(context.l10n.settings_shareAllSites_title),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _confirmAndBulkShareSites(context, ref),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: Text(context.l10n.settings_shareAllTrips_title),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _confirmAndBulkShareTrips(context, ref),
                 ),
               ],
             ),

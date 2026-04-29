@@ -32,11 +32,14 @@ import 'package:submersion/features/universal_import/presentation/providers/csv_
 import 'package:submersion/features/universal_import/data/parsers/csv_import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/fit_import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/macdive_sqlite_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/macdive_xml_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/placeholder_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/shearwater_cloud_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/uddf_import_parser.dart';
 import 'package:submersion/features/universal_import/data/services/format_detector.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/presentation/providers/import_consolidation_service.dart';
@@ -80,11 +83,21 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     var detection = detector.detect(bytes);
 
     if (detection.format == ImportFormat.sqlite) {
-      final isShearwater = await ShearwaterDbReader.isShearwaterCloudDb(bytes);
-      if (isShearwater) {
+      // Probe the SQLite table set once and reuse for each DB flavor
+      // check. Without this, every flavor would re-write the full byte
+      // array to its own temp file and re-open sqlite — wasteful for
+      // large dive databases on mobile/low-end devices.
+      final tables = await ShearwaterDbReader.probeSqliteTableNames(bytes);
+      if (ShearwaterDbReader.matchesTables(tables)) {
         detection = const DetectionResult(
           format: ImportFormat.shearwaterDb,
           sourceApp: SourceApp.shearwater,
+          confidence: 0.95,
+        );
+      } else if (MacDiveDbReader.matchesTables(tables)) {
+        detection = const DetectionResult(
+          format: ImportFormat.macdiveSqlite,
+          sourceApp: SourceApp.macdive,
           confidence: 0.95,
         );
       }
@@ -425,6 +438,8 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         pipeline: registry != null ? CsvPipeline(registry: registry) : null,
       ),
       ImportFormat.uddf => UddfImportParser(),
+      ImportFormat.macdiveXml => const MacDiveXmlParser(),
+      ImportFormat.macdiveSqlite => const MacDiveSqliteParser(),
       ImportFormat.subsurfaceXml => SubsurfaceXmlParser(),
       ImportFormat.fit => const FitImportParser(),
       ImportFormat.shearwaterDb => ShearwaterCloudParser(),
@@ -447,6 +462,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     final existingDiveTypes = await _ref.read(diveTypesProvider.future);
     final diveRepo = _ref.read(diveRepositoryProvider);
     final existingDives = await diveRepo.getAllDives();
+    final existingSourceUuidByDiveId = await diveRepo.getSourceUuidByDiveId();
 
     return checker.check(
       payload: payload,
@@ -459,6 +475,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       existingCertifications: existingCertifications,
       existingTags: existingTags,
       existingDiveTypes: existingDiveTypes,
+      existingSourceUuidByDiveId: existingSourceUuidByDiveId,
     );
   }
 

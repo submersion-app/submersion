@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
@@ -365,6 +366,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
     bool retainSourceDiveNumbers = false,
     ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
   }) async {
     final comp = computer;
     if (comp == null) {
@@ -431,10 +433,12 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     var imported = 0;
     var consolidated = 0;
     var updated = 0;
-    final importedDives = <DownloadedDive>[];
+    final processedDives = <DownloadedDive>[];
     final importedDiveIds = <String>[];
 
     for (var i = 0; i < allIndices.length; i++) {
+      if (cancelToken?.isCancelled ?? false) break;
+
       final index = allIndices[i];
       if (index >= _downloadedDives.length) continue;
 
@@ -489,16 +493,25 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           libdivecomputerVersion: _libdivecomputerVersion,
         );
         imported++;
-        importedDives.add(dive);
         importedDiveIds.add(diveId);
       }
 
+      processedDives.add(dive);
       onProgress?.call(ImportPhase.dives, i + 1, total);
     }
 
-    // Update computer metadata. Use ALL downloaded dives for the fingerprint
-    // so skipped/consolidated dives aren't re-downloaded next session.
-    await _updateComputerAfterImport(comp, imported, _downloadedDives);
+    // Update computer metadata.
+    //
+    // Normal completion uses ALL downloaded dives so skipped/consolidated
+    // dives aren't re-downloaded next session. On cancellation we only advance
+    // the fingerprint for the dives we actually processed, so the user can
+    // re-import the remainder next time.
+    final wasCancelled = cancelToken?.isCancelled ?? false;
+    await _updateComputerAfterImport(
+      comp,
+      imported,
+      wasCancelled ? processedDives : _downloadedDives,
+    );
 
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},

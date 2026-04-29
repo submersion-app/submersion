@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/accessibility/shortcuts_help_dialog.dart';
+import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
 
 /// Creates a platform-appropriate shortcut activator.
 ///
@@ -105,6 +106,12 @@ class AppShortcuts {
         activator: platformShortcut(LogicalKeyboardKey.comma),
         isGlobal: true,
       ),
+      ShortcutEntry(
+        label: 'Switch diver',
+        category: 'Navigation',
+        activator: platformShortcut(LogicalKeyboardKey.keyD, shift: true),
+        isGlobal: true,
+      ),
 
       // Help
       const ShortcutEntry(
@@ -156,6 +163,9 @@ class AppShortcuts {
       // Settings
       platformShortcut(LogicalKeyboardKey.comma): () {
         context.go('/settings');
+      },
+      platformShortcut(LogicalKeyboardKey.keyD, shift: true): () {
+        showDiverSwitcherSheet(context);
       },
 
       // Help overlay (bare "?" key, no modifier — matches convention)

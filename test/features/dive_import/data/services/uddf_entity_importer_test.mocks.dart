@@ -6,11 +6,11 @@
 import 'dart:async' as _i17;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i32;
+import 'package:mockito/src/dummies.dart' as _i33;
 import 'package:submersion/core/constants/enums.dart' as _i20;
-import 'package:submersion/core/constants/sort_options.dart' as _i31;
-import 'package:submersion/core/database/database.dart' as _i34;
-import 'package:submersion/core/models/sort_state.dart' as _i30;
+import 'package:submersion/core/constants/sort_options.dart' as _i32;
+import 'package:submersion/core/database/database.dart' as _i28;
+import 'package:submersion/core/models/sort_state.dart' as _i31;
 import 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart'
     as _i22;
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart'
@@ -21,7 +21,7 @@ import 'package:submersion/features/certifications/data/repositories/certificati
 import 'package:submersion/features/certifications/domain/entities/certification.dart'
     as _i8;
 import 'package:submersion/features/courses/data/repositories/course_repository.dart'
-    as _i36;
+    as _i37;
 import 'package:submersion/features/courses/domain/entities/course.dart'
     as _i15;
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart'
@@ -31,16 +31,18 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart'
     as _i13;
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart'
-    as _i35;
+    as _i36;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart' as _i12;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart'
-    as _i33;
+    as _i35;
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart'
-    as _i28;
+    as _i29;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart'
     as _i14;
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
+    as _i34;
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart'
-    as _i29;
+    as _i30;
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart'
     as _i27;
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
@@ -221,6 +223,23 @@ class MockTripRepository extends _i1.Mock implements _i16.TripRepository {
           as _i17.Future<void>);
 
   @override
+  _i17.Future<void> setShared(String? id, bool? isShared) =>
+      (super.noSuchMethod(
+            Invocation.method(#setShared, [id, isShared]),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
+  _i17.Future<int> shareAllForDiver(String? diverId) =>
+      (super.noSuchMethod(
+            Invocation.method(#shareAllForDiver, [diverId]),
+            returnValue: _i17.Future<int>.value(0),
+          )
+          as _i17.Future<int>);
+
+  @override
   _i17.Future<void> deleteTrip(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteTrip, [id]),
@@ -230,17 +249,28 @@ class MockTripRepository extends _i1.Mock implements _i16.TripRepository {
           as _i17.Future<void>);
 
   @override
-  _i17.Future<List<String>> getDiveIdsForTrip(String? tripId) =>
+  _i17.Future<List<String>> getDiveIdsForTrip(
+    String? tripId, {
+    String? diverId,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#getDiveIdsForTrip, [tripId]),
+            Invocation.method(
+              #getDiveIdsForTrip,
+              [tripId],
+              {#diverId: diverId},
+            ),
             returnValue: _i17.Future<List<String>>.value(<String>[]),
           )
           as _i17.Future<List<String>>);
 
   @override
-  _i17.Future<int> getDiveCountForTrip(String? tripId) =>
+  _i17.Future<int> getDiveCountForTrip(String? tripId, {String? diverId}) =>
       (super.noSuchMethod(
-            Invocation.method(#getDiveCountForTrip, [tripId]),
+            Invocation.method(
+              #getDiveCountForTrip,
+              [tripId],
+              {#diverId: diverId},
+            ),
             returnValue: _i17.Future<int>.value(0),
           )
           as _i17.Future<int>);
@@ -293,13 +323,20 @@ class MockTripRepository extends _i1.Mock implements _i16.TripRepository {
           as _i17.Future<void>);
 
   @override
-  _i17.Future<_i2.TripWithStats> getTripWithStats(String? tripId) =>
+  _i17.Future<_i2.TripWithStats> getTripWithStats(
+    String? tripId, {
+    String? diverId,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#getTripWithStats, [tripId]),
+            Invocation.method(#getTripWithStats, [tripId], {#diverId: diverId}),
             returnValue: _i17.Future<_i2.TripWithStats>.value(
               _FakeTripWithStats_1(
                 this,
-                Invocation.method(#getTripWithStats, [tripId]),
+                Invocation.method(
+                  #getTripWithStats,
+                  [tripId],
+                  {#diverId: diverId},
+                ),
               ),
             ),
           )
@@ -1390,6 +1427,35 @@ class MockSiteRepository extends _i1.Mock implements _i27.SiteRepository {
           as _i17.Future<void>);
 
   @override
+  _i17.Future<void> applyImportedMetadata(
+    String? siteId,
+    _i28.DiveSitesCompanion? patch,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#applyImportedMetadata, [siteId, patch]),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
+  _i17.Future<void> setShared(String? id, bool? isShared) =>
+      (super.noSuchMethod(
+            Invocation.method(#setShared, [id, isShared]),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
+  _i17.Future<int> shareAllForDiver(String? diverId) =>
+      (super.noSuchMethod(
+            Invocation.method(#shareAllForDiver, [diverId]),
+            returnValue: _i17.Future<int>.value(0),
+          )
+          as _i17.Future<int>);
+
+  @override
   _i17.Future<void> deleteSite(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteSite, [id]),
@@ -1603,13 +1669,13 @@ class MockDiveRepository extends _i1.Mock implements _i13.DiveRepository {
           as _i17.Future<List<_i12.Dive>>);
 
   @override
-  _i17.Future<List<_i28.DiveSummary>> getDiveSummaries({
+  _i17.Future<List<_i29.DiveSummary>> getDiveSummaries({
     String? diverId,
-    _i29.DiveFilterState? filter = const _i29.DiveFilterState(),
-    _i28.DiveSummaryCursor? cursor,
+    _i30.DiveFilterState? filter = const _i30.DiveFilterState(),
+    _i29.DiveSummaryCursor? cursor,
     int? offset,
     int? limit = 50,
-    _i30.SortState<_i31.DiveSortField>? sort,
+    _i31.SortState<_i32.DiveSortField>? sort,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#getDiveSummaries, [], {
@@ -1620,16 +1686,16 @@ class MockDiveRepository extends _i1.Mock implements _i13.DiveRepository {
               #limit: limit,
               #sort: sort,
             }),
-            returnValue: _i17.Future<List<_i28.DiveSummary>>.value(
-              <_i28.DiveSummary>[],
+            returnValue: _i17.Future<List<_i29.DiveSummary>>.value(
+              <_i29.DiveSummary>[],
             ),
           )
-          as _i17.Future<List<_i28.DiveSummary>>);
+          as _i17.Future<List<_i29.DiveSummary>>);
 
   @override
   _i17.Future<int> getDiveCount({
     String? diverId,
-    _i29.DiveFilterState? filter = const _i29.DiveFilterState(),
+    _i30.DiveFilterState? filter = const _i30.DiveFilterState(),
   }) =>
       (super.noSuchMethod(
             Invocation.method(#getDiveCount, [], {
@@ -1794,7 +1860,7 @@ class MockDiveRepository extends _i1.Mock implements _i13.DiveRepository {
               {#actualDateTime: actualDateTime},
             ),
             returnValue: _i17.Future<String>.value(
-              _i32.dummyValue<String>(
+              _i33.dummyValue<String>(
                 this,
                 Invocation.method(
                   #convertPlanToActualDive,
@@ -1862,6 +1928,36 @@ class MockDiveRepository extends _i1.Mock implements _i13.DiveRepository {
   _i17.Future<void> insertGasSwitches(List<_i14.GasSwitch>? switches) =>
       (super.noSuchMethod(
             Invocation.method(#insertGasSwitches, [switches]),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
+  _i17.Future<void> insertProfileEvents(List<_i34.ProfileEvent>? events) =>
+      (super.noSuchMethod(
+            Invocation.method(#insertProfileEvents, [events]),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
+  _i17.Future<List<_i34.ProfileEvent>> getProfileEventsForDive(
+    String? diveId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getProfileEventsForDive, [diveId]),
+            returnValue: _i17.Future<List<_i34.ProfileEvent>>.value(
+              <_i34.ProfileEvent>[],
+            ),
+          )
+          as _i17.Future<List<_i34.ProfileEvent>>);
+
+  @override
+  _i17.Future<void> deleteProfileEventsForDive(String? diveId) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteProfileEventsForDive, [diveId]),
             returnValue: _i17.Future<void>.value(),
             returnValueForMissingStub: _i17.Future<void>.value(),
           )
@@ -1952,14 +2048,24 @@ class MockDiveRepository extends _i1.Mock implements _i13.DiveRepository {
           as _i17.Future<void>);
 
   @override
-  _i17.Future<List<_i33.DiveDataSource>> getDataSources(String? diveId) =>
+  _i17.Future<List<_i35.DiveDataSource>> getDataSources(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#getDataSources, [diveId]),
-            returnValue: _i17.Future<List<_i33.DiveDataSource>>.value(
-              <_i33.DiveDataSource>[],
+            returnValue: _i17.Future<List<_i35.DiveDataSource>>.value(
+              <_i35.DiveDataSource>[],
             ),
           )
-          as _i17.Future<List<_i33.DiveDataSource>>);
+          as _i17.Future<List<_i35.DiveDataSource>>);
+
+  @override
+  _i17.Future<Map<String, String>> getSourceUuidByDiveId({String? diverId}) =>
+      (super.noSuchMethod(
+            Invocation.method(#getSourceUuidByDiveId, [], {#diverId: diverId}),
+            returnValue: _i17.Future<Map<String, String>>.value(
+              <String, String>{},
+            ),
+          )
+          as _i17.Future<Map<String, String>>);
 
   @override
   _i17.Future<bool> hasMultipleDataSources(String? diveId) =>
@@ -1970,8 +2076,20 @@ class MockDiveRepository extends _i1.Mock implements _i13.DiveRepository {
           as _i17.Future<bool>);
 
   @override
+  _i17.Future<void> applyImportedMetadata(
+    String? diveId,
+    _i28.DivesCompanion? patch,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#applyImportedMetadata, [diveId, patch]),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
   _i17.Future<void> saveComputerReading(
-    _i34.DiveDataSourcesCompanion? reading,
+    _i28.DiveDataSourcesCompanion? reading,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#saveComputerReading, [reading]),
@@ -2001,8 +2119,8 @@ class MockDiveRepository extends _i1.Mock implements _i13.DiveRepository {
   @override
   _i17.Future<void> consolidateComputer({
     required String? targetDiveId,
-    required _i34.DiveDataSourcesCompanion? secondaryReading,
-    required List<_i34.DiveProfilesCompanion>? secondaryProfile,
+    required _i28.DiveDataSourcesCompanion? secondaryReading,
+    required List<_i28.DiveProfilesCompanion>? secondaryProfile,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#consolidateComputer, [], {
@@ -2041,7 +2159,7 @@ class MockDiveRepository extends _i1.Mock implements _i13.DiveRepository {
               #computerReadingId: computerReadingId,
             }),
             returnValue: _i17.Future<String>.value(
-              _i32.dummyValue<String>(
+              _i33.dummyValue<String>(
                 this,
                 Invocation.method(#unlinkComputer, [], {
                   #diveId: diveId,
@@ -2072,7 +2190,7 @@ class MockDiveRepository extends _i1.Mock implements _i13.DiveRepository {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockTankPressureRepository extends _i1.Mock
-    implements _i35.TankPressureRepository {
+    implements _i36.TankPressureRepository {
   MockTankPressureRepository() {
     _i1.throwOnMissingStub(this);
   }
@@ -2147,7 +2265,7 @@ class MockTankPressureRepository extends _i1.Mock
 /// A class which mocks [CourseRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCourseRepository extends _i1.Mock implements _i36.CourseRepository {
+class MockCourseRepository extends _i1.Mock implements _i37.CourseRepository {
   MockCourseRepository() {
     _i1.throwOnMissingStub(this);
   }

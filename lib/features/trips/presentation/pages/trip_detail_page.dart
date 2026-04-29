@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -397,7 +398,7 @@ class _TripDetailContent extends ConsumerWidget {
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {
         if (value == 'delete') {
-          final confirmed = await _showDeleteConfirmation(context);
+          final confirmed = await _showDeleteConfirmation(context, ref, trip);
           if (confirmed && context.mounted) {
             await ref
                 .read(tripListNotifierProvider.notifier)
@@ -447,27 +448,40 @@ class _TripDetailContent extends ConsumerWidget {
     );
   }
 
-  Future<bool> _showDeleteConfirmation(BuildContext context) async {
+  Future<bool> _showDeleteConfirmation(
+    BuildContext context,
+    WidgetRef ref,
+    Trip trip,
+  ) async {
+    final divers = await ref.read(allDiversProvider.future);
+    if (!context.mounted) return false;
+    final diverCount = divers.length;
+    final isSharedDelete = trip.isShared && diverCount >= 2;
+
     return await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: Text(context.l10n.trips_detail_dialog_deleteTitle),
+          builder: (ctx) => AlertDialog(
+            title: Text(
+              isSharedDelete
+                  ? ctx.l10n.trips_deleteShared_title
+                  : ctx.l10n.trips_detail_dialog_deleteTitle,
+            ),
             content: Text(
-              context.l10n.trips_detail_dialog_deleteContent(
-                tripWithStats.trip.name,
-              ),
+              isSharedDelete
+                  ? ctx.l10n.trips_deleteShared_body(trip.name)
+                  : ctx.l10n.trips_detail_dialog_deleteContent(trip.name),
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(context.l10n.trips_detail_dialog_cancel),
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text(ctx.l10n.trips_detail_dialog_cancel),
               ),
               FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
+                onPressed: () => Navigator.of(ctx).pop(true),
                 style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
+                  backgroundColor: Theme.of(ctx).colorScheme.error,
                 ),
-                child: Text(context.l10n.trips_detail_dialog_deleteConfirm),
+                child: Text(ctx.l10n.trips_detail_dialog_deleteConfirm),
               ),
             ],
           ),

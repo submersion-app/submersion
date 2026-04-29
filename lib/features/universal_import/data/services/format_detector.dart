@@ -143,6 +143,20 @@ class FormatDetector {
       );
     }
 
+    // MacDive native XML: root <dives>, DOCTYPE macdive_logbook.dtd, <schema>.
+    // Must precede the UDDF check because both are XML but MacDive's native
+    // XML is a different format entirely. Match opening tags as prefixes so
+    // attributes/namespace declarations (`<dives xmlns=...>`) or trailing
+    // whitespace (`<dives >`) don't defeat detection.
+    if (lower.contains('mac-dive.com/macdive_logbook.dtd') ||
+        (lower.contains('<dives') && lower.contains('<schema'))) {
+      return const DetectionResult(
+        format: ImportFormat.macdiveXml,
+        sourceApp: SourceApp.macdive,
+        confidence: 0.95,
+      );
+    }
+
     // UDDF: <uddf> root element
     if (lower.contains('<uddf')) {
       // Check if it's a Submersion export

@@ -11,6 +11,7 @@ import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -315,22 +316,35 @@ class _SiteDetailContent extends ConsumerWidget {
     DiveSite site,
   ) async {
     if (action == 'delete') {
+      final divers = await ref.read(allDiversProvider.future);
+      if (!context.mounted) return;
+      final diverCount = divers.length;
+      final isSharedDelete = site.isShared && diverCount >= 2;
+
       final confirmed = await showDialog<bool>(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Text(context.l10n.diveSites_detail_deleteDialog_title),
-          content: Text(context.l10n.diveSites_detail_deleteDialog_content),
+        builder: (ctx) => AlertDialog(
+          title: Text(
+            isSharedDelete
+                ? ctx.l10n.sites_deleteShared_title
+                : ctx.l10n.diveSites_detail_deleteDialog_title,
+          ),
+          content: Text(
+            isSharedDelete
+                ? ctx.l10n.sites_deleteShared_body(site.name)
+                : ctx.l10n.diveSites_detail_deleteDialog_content,
+          ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(context.l10n.diveSites_detail_deleteDialog_cancel),
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(ctx.l10n.diveSites_detail_deleteDialog_cancel),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
+              onPressed: () => Navigator.of(ctx).pop(true),
               style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
+                backgroundColor: Theme.of(ctx).colorScheme.error,
               ),
-              child: Text(context.l10n.diveSites_detail_deleteDialog_confirm),
+              child: Text(ctx.l10n.diveSites_detail_deleteDialog_confirm),
             ),
           ],
         ),

@@ -69,6 +69,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get accessibility_label_sharedWithAllProfiles =>
+      'Megosztva az összes búvárprofillal';
+
+  @override
   String get accessibility_label_showList => 'Lista megjelenitese';
 
   @override
@@ -1394,6 +1398,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get common_action_search => 'Kereses';
 
   @override
+  String get common_action_share => 'Megosztás';
+
+  @override
   String get common_label_error => 'Hiba';
 
   @override
@@ -1401,6 +1408,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get common_placeholder_noValue => '--';
+
+  @override
+  String get common_error_tryAgain =>
+      'Valami hiba történt. Kérjük, próbáld újra.';
 
   @override
   String get courses_action_add => 'Tanfolyam hozzáadása';
@@ -9943,6 +9954,46 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_appearance_theme_system => 'Rendszer alapertelmezett';
 
   @override
+  String get settings_navCustomization_title => 'Navigation bar';
+
+  @override
+  String get settings_navCustomization_description =>
+      'Drag items to reorder. The top three appear in your bottom navigation bar.';
+
+  @override
+  String get settings_navCustomization_dividerLabel =>
+      'Items below appear in the More menu';
+
+  @override
+  String get settings_navCustomization_resetButton => 'Reset to defaults';
+
+  @override
+  String get settings_navCustomization_pinnedTooltip => 'Always shown';
+
+  @override
+  String settings_navCustomization_moveUpLabel(String destination) {
+    return 'Move $destination up';
+  }
+
+  @override
+  String settings_navCustomization_moveDownLabel(String destination) {
+    return 'Move $destination down';
+  }
+
+  @override
+  String settings_navCustomization_subtitlePreview(
+    String first,
+    String second,
+    String third,
+  ) {
+    return '$first · $second · $third';
+  }
+
+  @override
+  String get settings_navCustomization_saveError =>
+      'Could not save navigation layout. Please try again.';
+
+  @override
   String get settings_backToSettings_tooltip => 'Vissza a beallitasokhoz';
 
   @override
@@ -10514,6 +10565,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_gfPreset_medium_name => 'Közepes';
+
+  @override
+  String get settings_import_cancelButton => 'Importalas megszakitasa';
+
+  @override
+  String get settings_import_cancelling => 'Megszakitas...';
 
   @override
   String get settings_import_dialog_title => 'Adatok importalasa';
@@ -16276,4 +16333,101 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_label_consolidated => 'Összevont';
+
+  @override
+  String get common_label_shareWithAllProfiles =>
+      'Megosztás az összes búvárprofillal';
+
+  @override
+  String get settings_shareByDefault_title =>
+      'Új helyszínek és túrák megosztása alapértelmezetten';
+
+  @override
+  String get settings_shareAllSites_title => 'Az összes helyszínem megosztása';
+
+  @override
+  String get settings_shareAllTrips_title => 'Az összes túrám megosztása';
+
+  @override
+  String settings_shareAllSites_confirm(int count) {
+    return 'Mind a(z) $count helyszínedet láthatóvá teszed minden búvárprofilnak az alkalmazásban? Később egyesével megszüntetheted a megosztást.';
+  }
+
+  @override
+  String settings_shareAllTrips_confirm(int count) {
+    return 'Mind a(z) $count túrádat láthatóvá teszed minden búvárprofilnak az alkalmazásban? Később egyesével megszüntetheted a megosztást.';
+  }
+
+  @override
+  String settings_shareAllSites_snackbar(int count) {
+    return '$count helyszín megosztva minden búvárprofillal.';
+  }
+
+  @override
+  String settings_shareAllTrips_snackbar(int count) {
+    return '$count túra megosztva minden búvárprofillal.';
+  }
+
+  @override
+  String get settings_shareAll_noneToShare => 'Nincs mit megosztani.';
+
+  @override
+  String get settings_sharedData_sectionTitle => 'Megosztott adatok';
+
+  @override
+  String get settings_sharedData_sectionSubtitle =>
+      'Helyszínek és túrák megosztása profilok között';
+
+  @override
+  String get common_action_unshare => 'Megosztás megszüntetése';
+
+  @override
+  String get trips_unshareConfirm_title => 'Megszünteted a túra megosztását?';
+
+  @override
+  String trips_unshareConfirm_body(String name) {
+    return 'Ez eltávolítja a(z) „$name\" elemet a többi búvárprofil nézetéből. Később újra megoszthatod.';
+  }
+
+  @override
+  String get sites_unshareConfirm_title =>
+      'Megszünteted a helyszín megosztását?';
+
+  @override
+  String sites_unshareConfirm_body(String name) {
+    return 'Ez eltávolítja a(z) „$name\" elemet a többi búvárprofil nézetéből. Később újra megoszthatod.';
+  }
+
+  @override
+  String get trips_deleteShared_title => 'Megosztott túra törlése?';
+
+  @override
+  String trips_deleteShared_body(String name) {
+    return 'A(z) „$name\" meg van osztva más búvárprofilokkal. Ha itt törlöd, mindenkinél eltávolítódik.';
+  }
+
+  @override
+  String get sites_deleteShared_title => 'Megosztott helyszín törlése?';
+
+  @override
+  String sites_deleteShared_body(String name) {
+    return 'A(z) „$name\" meg van osztva más búvárprofilokkal. Ha itt törlöd, mindenkinél eltávolítódik.';
+  }
+
+  @override
+  String divers_delete_reassigned_snackbar(int trips, int sites, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      trips,
+      locale: localeName,
+      other: 'túra',
+      one: 'túra',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: 'helyszín',
+      one: 'helyszín',
+    );
+    return 'Búvár törölve. $trips megosztott $_temp0 és $sites megosztott $_temp1 átrendelve ehhez: $name.';
+  }
 }

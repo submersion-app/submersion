@@ -68,6 +68,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   bool _isLoading = false;
   bool _isInitialized = false;
   bool _hasChanges = false;
+  bool _isShared = false;
   bool _isApplyingInitialValues = false;
   DiveSite? _originalSite;
   List<Species> _expectedSpecies = [];
@@ -98,6 +99,13 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _parkingInfoController.addListener(_onFieldChanged);
     _altitudeController.addListener(_onFieldChanged);
     _mergeLoadFuture = widget.isMerging ? _loadMergeData() : null;
+    if (!widget.isEditing && !widget.isMerging) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final shareByDefault = await ref.read(shareByDefaultProvider.future);
+        if (!mounted) return;
+        setState(() => _isShared = shareByDefault);
+      });
+    }
   }
 
   void _onFieldChanged() {
@@ -151,6 +159,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _parkingInfoController.text = site.parkingInfo ?? '';
     _rating = site.rating ?? 0;
     _difficulty = site.difficulty;
+    _isShared = site.isShared;
     _altitudeController.text = site.altitude != null
         ? units.convertAltitude(site.altitude!).toStringAsFixed(0)
         : '';
@@ -164,6 +173,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     if (_isInitialized) return;
     _isInitialized = true;
     _originalSite = data.sites.first;
+    _isShared = data.sites.first.isShared;
     _expectedSpecies = data.expectedSpecies;
     _originalExpectedSpeciesIds = _expectedSpecies.map((s) => s.id).toSet();
     _isApplyingInitialValues = true;
@@ -583,6 +593,36 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             maxLines: 4,
           ),
 
+          // Share toggle — only shown when multiple diver profiles exist
+          ref
+              .watch(allDiversProvider)
+              .maybeWhen(
+                data: (divers) => divers.length >= 2
+                    ? SwitchListTile(
+                        title: Text(
+                          context.l10n.common_label_shareWithAllProfiles,
+                        ),
+                        value: _isShared,
+                        onChanged: (v) async {
+                          if (!v &&
+                              widget.isEditing &&
+                              (_originalSite?.isShared ?? false)) {
+                            final confirmed = await _showUnshareConfirmDialog(
+                              context,
+                            );
+                            if (!mounted) return;
+                            if (confirmed != true) return;
+                          }
+                          setState(() {
+                            _isShared = v;
+                            _hasChanges = true;
+                          });
+                        },
+                      )
+                    : const SizedBox.shrink(),
+                orElse: () => const SizedBox.shrink(),
+              ),
+
           if (!widget.embedded) ...[
             const SizedBox(height: 32),
             // Save Button
@@ -769,6 +809,31 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(context.l10n.diveSites_edit_discardDialog_discard),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Asks the user to confirm un-sharing an existing shared site.
+  /// Returns [true] if confirmed, [false] or [null] to cancel.
+  Future<bool?> _showUnshareConfirmDialog(BuildContext ctx) {
+    final siteName = _nameController.text.trim().isNotEmpty
+        ? _nameController.text.trim()
+        : (_originalSite?.name ?? '');
+    return showDialog<bool>(
+      context: ctx,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text(dialogCtx.l10n.sites_unshareConfirm_title),
+        content: Text(dialogCtx.l10n.sites_unshareConfirm_body(siteName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: Text(MaterialLocalizations.of(dialogCtx).cancelButtonLabel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: Text(dialogCtx.l10n.common_action_unshare),
           ),
         ],
       ),
@@ -1901,6 +1966,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             ? null
             : _parkingInfoController.text.trim(),
         altitude: altitudeMeters,
+        isShared: _isShared,
       );
 
       final notifier = ref.read(siteListNotifierProvider.notifier);

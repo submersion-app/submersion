@@ -69,6 +69,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get accessibility_label_sharedWithAllProfiles =>
+      'Partilhado com todos os perfis de mergulho';
+
+  @override
   String get accessibility_label_showList => 'Mostrar Lista';
 
   @override
@@ -1399,6 +1403,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get common_action_search => 'Buscar';
 
   @override
+  String get common_action_share => 'Partilhar';
+
+  @override
   String get common_label_error => 'Erro';
 
   @override
@@ -1406,6 +1413,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get common_placeholder_noValue => '--';
+
+  @override
+  String get common_error_tryAgain => 'Algo correu mal. Tenta novamente.';
 
   @override
   String get courses_action_add => 'Adicionar Curso';
@@ -9980,6 +9990,46 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_appearance_theme_system => 'Padrao do sistema';
 
   @override
+  String get settings_navCustomization_title => 'Navigation bar';
+
+  @override
+  String get settings_navCustomization_description =>
+      'Drag items to reorder. The top three appear in your bottom navigation bar.';
+
+  @override
+  String get settings_navCustomization_dividerLabel =>
+      'Items below appear in the More menu';
+
+  @override
+  String get settings_navCustomization_resetButton => 'Reset to defaults';
+
+  @override
+  String get settings_navCustomization_pinnedTooltip => 'Always shown';
+
+  @override
+  String settings_navCustomization_moveUpLabel(String destination) {
+    return 'Move $destination up';
+  }
+
+  @override
+  String settings_navCustomization_moveDownLabel(String destination) {
+    return 'Move $destination down';
+  }
+
+  @override
+  String settings_navCustomization_subtitlePreview(
+    String first,
+    String second,
+    String third,
+  ) {
+    return '$first · $second · $third';
+  }
+
+  @override
+  String get settings_navCustomization_saveError =>
+      'Could not save navigation layout. Please try again.';
+
+  @override
   String get settings_backToSettings_tooltip => 'Voltar para configuracoes';
 
   @override
@@ -10547,6 +10597,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_gfPreset_medium_name => 'Medio';
+
+  @override
+  String get settings_import_cancelButton => 'Cancelar importacao';
+
+  @override
+  String get settings_import_cancelling => 'Cancelando...';
 
   @override
   String get settings_import_dialog_title => 'Importando Dados';
@@ -16328,4 +16384,101 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get universalImport_label_consolidated => 'Consolidados';
+
+  @override
+  String get common_label_shareWithAllProfiles =>
+      'Partilhar com todos os perfis de mergulho';
+
+  @override
+  String get settings_shareByDefault_title =>
+      'Partilhar novos locais e viagens por predefinição';
+
+  @override
+  String get settings_shareAllSites_title => 'Partilhar todos os meus locais';
+
+  @override
+  String get settings_shareAllTrips_title =>
+      'Partilhar todas as minhas viagens';
+
+  @override
+  String settings_shareAllSites_confirm(int count) {
+    return 'Tornar os teus $count locais visíveis a todos os perfis de mergulho desta app? Poderás deixar de partilhar locais individuais mais tarde.';
+  }
+
+  @override
+  String settings_shareAllTrips_confirm(int count) {
+    return 'Tornar as tuas $count viagens visíveis a todos os perfis de mergulho desta app? Poderás deixar de partilhar viagens individuais mais tarde.';
+  }
+
+  @override
+  String settings_shareAllSites_snackbar(int count) {
+    return '$count locais partilhados com todos os perfis de mergulho.';
+  }
+
+  @override
+  String settings_shareAllTrips_snackbar(int count) {
+    return '$count viagens partilhadas com todos os perfis de mergulho.';
+  }
+
+  @override
+  String get settings_shareAll_noneToShare => 'Nada para partilhar.';
+
+  @override
+  String get settings_sharedData_sectionTitle => 'Dados partilhados';
+
+  @override
+  String get settings_sharedData_sectionSubtitle =>
+      'Partilhar locais e viagens entre perfis';
+
+  @override
+  String get common_action_unshare => 'Deixar de partilhar';
+
+  @override
+  String get trips_unshareConfirm_title => 'Deixar de partilhar esta viagem?';
+
+  @override
+  String trips_unshareConfirm_body(String name) {
+    return 'Isto irá remover «$name» das vistas dos outros perfis de mergulho. Poderás voltar a partilhar mais tarde.';
+  }
+
+  @override
+  String get sites_unshareConfirm_title => 'Deixar de partilhar este local?';
+
+  @override
+  String sites_unshareConfirm_body(String name) {
+    return 'Isto irá remover «$name» das vistas dos outros perfis de mergulho. Poderás voltar a partilhar mais tarde.';
+  }
+
+  @override
+  String get trips_deleteShared_title => 'Eliminar viagem partilhada?';
+
+  @override
+  String trips_deleteShared_body(String name) {
+    return '«$name» está partilhada com outros perfis de mergulho. Eliminá-la aqui remove-a para todos.';
+  }
+
+  @override
+  String get sites_deleteShared_title => 'Eliminar local partilhado?';
+
+  @override
+  String sites_deleteShared_body(String name) {
+    return '«$name» está partilhado com outros perfis de mergulho. Eliminá-lo aqui remove-o para todos.';
+  }
+
+  @override
+  String divers_delete_reassigned_snackbar(int trips, int sites, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      trips,
+      locale: localeName,
+      other: 'viagens partilhadas',
+      one: 'viagem partilhada',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: 'locais partilhados',
+      one: 'local partilhado',
+    );
+    return 'Mergulhador eliminado. $trips $_temp0 e $sites $_temp1 reatribuídos a $name.';
+  }
 }

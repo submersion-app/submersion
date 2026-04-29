@@ -68,6 +68,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get accessibility_label_sharedWithAllProfiles =>
+      'משותף עם כל פרופילי הצלילה';
+
+  @override
   String get accessibility_label_showList => 'הצגת רשימה';
 
   @override
@@ -1354,6 +1358,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_search => 'חיפוש';
 
   @override
+  String get common_action_share => 'שיתוף';
+
+  @override
   String get common_label_error => 'שגיאה';
 
   @override
@@ -1361,6 +1368,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get common_placeholder_noValue => '--';
+
+  @override
+  String get common_error_tryAgain => 'משהו השתבש. יש לנסות שוב.';
 
   @override
   String get courses_action_add => 'הוסף קורס';
@@ -9712,6 +9722,46 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_theme_system => 'ברירת מחדל של המערכת';
 
   @override
+  String get settings_navCustomization_title => 'Navigation bar';
+
+  @override
+  String get settings_navCustomization_description =>
+      'Drag items to reorder. The top three appear in your bottom navigation bar.';
+
+  @override
+  String get settings_navCustomization_dividerLabel =>
+      'Items below appear in the More menu';
+
+  @override
+  String get settings_navCustomization_resetButton => 'Reset to defaults';
+
+  @override
+  String get settings_navCustomization_pinnedTooltip => 'Always shown';
+
+  @override
+  String settings_navCustomization_moveUpLabel(String destination) {
+    return 'Move $destination up';
+  }
+
+  @override
+  String settings_navCustomization_moveDownLabel(String destination) {
+    return 'Move $destination down';
+  }
+
+  @override
+  String settings_navCustomization_subtitlePreview(
+    String first,
+    String second,
+    String third,
+  ) {
+    return '$first · $second · $third';
+  }
+
+  @override
+  String get settings_navCustomization_saveError =>
+      'Could not save navigation layout. Please try again.';
+
+  @override
   String get settings_backToSettings_tooltip => 'חזרה להגדרות';
 
   @override
@@ -10263,6 +10313,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_gfPreset_medium_name => 'בינוני';
+
+  @override
+  String get settings_import_cancelButton => 'ביטול ייבוא';
+
+  @override
+  String get settings_import_cancelling => 'מבטל...';
 
   @override
   String get settings_import_dialog_title => 'ייבוא נתונים';
@@ -15894,4 +15950,99 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_label_consolidated => 'אוחדו';
+
+  @override
+  String get common_label_shareWithAllProfiles => 'שיתוף עם כל פרופילי הצלילה';
+
+  @override
+  String get settings_shareByDefault_title =>
+      'שתף אתרים וטיולים חדשים כברירת מחדל';
+
+  @override
+  String get settings_shareAllSites_title => 'שתף את כל האתרים שלי';
+
+  @override
+  String get settings_shareAllTrips_title => 'שתף את כל הטיולים שלי';
+
+  @override
+  String settings_shareAllSites_confirm(int count) {
+    return 'להציג את כל $count האתרים שלך לכל פרופיל צלילה באפליקציה? תוכל לבטל שיתוף של אתרים בודדים בהמשך.';
+  }
+
+  @override
+  String settings_shareAllTrips_confirm(int count) {
+    return 'להציג את כל $count הטיולים שלך לכל פרופיל צלילה באפליקציה? תוכל לבטל שיתוף של טיולים בודדים בהמשך.';
+  }
+
+  @override
+  String settings_shareAllSites_snackbar(int count) {
+    return '$count אתרים שותפו עם כל פרופילי הצלילה.';
+  }
+
+  @override
+  String settings_shareAllTrips_snackbar(int count) {
+    return '$count טיולים שותפו עם כל פרופילי הצלילה.';
+  }
+
+  @override
+  String get settings_shareAll_noneToShare => 'אין מה לשתף.';
+
+  @override
+  String get settings_sharedData_sectionTitle => 'נתונים משותפים';
+
+  @override
+  String get settings_sharedData_sectionSubtitle =>
+      'שיתוף אתרים וטיולים בין פרופילים';
+
+  @override
+  String get common_action_unshare => 'ביטול שיתוף';
+
+  @override
+  String get trips_unshareConfirm_title => 'לבטל שיתוף של טיול זה?';
+
+  @override
+  String trips_unshareConfirm_body(String name) {
+    return 'פעולה זו תסיר את «$name» מתצוגות של פרופילי צלילה אחרים. תוכל לשתף שוב בהמשך.';
+  }
+
+  @override
+  String get sites_unshareConfirm_title => 'לבטל שיתוף של אתר זה?';
+
+  @override
+  String sites_unshareConfirm_body(String name) {
+    return 'פעולה זו תסיר את «$name» מתצוגות של פרופילי צלילה אחרים. תוכל לשתף שוב בהמשך.';
+  }
+
+  @override
+  String get trips_deleteShared_title => 'למחוק את הטיול המשותף?';
+
+  @override
+  String trips_deleteShared_body(String name) {
+    return '«$name» משותף עם פרופילי צלילה אחרים. מחיקה כאן תסיר אותו עבור כולם.';
+  }
+
+  @override
+  String get sites_deleteShared_title => 'למחוק את האתר המשותף?';
+
+  @override
+  String sites_deleteShared_body(String name) {
+    return '«$name» משותף עם פרופילי צלילה אחרים. מחיקה כאן תסיר אותו עבור כולם.';
+  }
+
+  @override
+  String divers_delete_reassigned_snackbar(int trips, int sites, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      trips,
+      locale: localeName,
+      other: 'טיולים משותפים הועברו',
+      one: 'טיול משותף הועבר',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: 'אתרים משותפים הועברו',
+      one: 'אתר משותף הועבר',
+    );
+    return 'הצולל נמחק. $trips $_temp0 ו-$sites $_temp1 אל $name.';
+  }
 }

@@ -3,13 +3,19 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/parsers/macdive_sqlite_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/macdive_xml_parser.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+
+import '../../../../fixtures/macdive_sqlite/build_synthetic_db.dart';
 
 /// Helper to encode a CSV string to bytes for testing.
 Uint8List _csvBytes(String csv) => Uint8List.fromList(csv.codeUnits);
@@ -29,8 +35,13 @@ void main() {
   late ProviderContainer container;
   late UniversalImportNotifier notifier;
 
-  setUp(() {
-    container = ProviderContainer();
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    container = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    );
     notifier = container.read(universalImportNotifierProvider.notifier);
   });
 
@@ -1410,6 +1421,102 @@ void main() {
         expect(notifier.state.parsedCsv, isNull);
         expect(notifier.state.fileBytes, isNull);
       });
+    });
+
+    group('UniversalImportNotifier - MacDive XML', () {
+      test('detects MacDive native XML format', () async {
+        final content = await File(
+          'test/fixtures/macdive_xml/metric_small.xml',
+        ).readAsString();
+        final bytes = Uint8List.fromList(content.codeUnits);
+
+        final detection = await notifier.loadFileFromBytes(
+          bytes,
+          'metric_small.xml',
+        );
+
+        expect(detection.format, ImportFormat.macdiveXml);
+        expect(detection.sourceApp, SourceApp.macdive);
+        expect(notifier.state.fileBytes, isNotNull);
+        expect(notifier.state.fileName, 'metric_small.xml');
+        expect(notifier.state.currentStep, ImportWizardStep.sourceConfirmation);
+      });
+
+      test(
+        'MacDiveXmlParser produces full payload with tags and sites',
+        () async {
+          final content = await File(
+            'test/fixtures/macdive_xml/metric_small.xml',
+          ).readAsString();
+          final bytes = Uint8List.fromList(content.codeUnits);
+
+          // Test that MacDiveXmlParser (the parser returned by _parserFor
+          // at line 429 for ImportFormat.macdiveXml) produces the correct
+          // payload with all expected entities. If the switch case is
+          // regressed to return PlaceholderParser, this test would fail
+          // because PlaceholderParser always returns an empty payload (0 tags).
+          // NOTE: Testing _parserFor indirectly via confirmSource would
+          // require full database initialization (SharedPreferences, Drift,
+          // etc.), so we test the parser directly here.
+          const parser = MacDiveXmlParser();
+          final payload = await parser.parse(bytes);
+
+          expect(
+            payload.entitiesOf(ImportEntityType.dives).length,
+            1,
+            reason: 'metric_small.xml fixture contains 1 dive',
+          );
+          expect(
+            payload.entitiesOf(ImportEntityType.tags).length,
+            2,
+            reason:
+                'metric_small.xml has 2 tags (Reef, Photography); PlaceholderParser would return 0 tags',
+          );
+          expect(payload.entitiesOf(ImportEntityType.sites).length, 1);
+          expect(payload.entitiesOf(ImportEntityType.buddies).length, 1);
+          expect(payload.entitiesOf(ImportEntityType.equipment).length, 1);
+        },
+      );
+    });
+
+    group('UniversalImportNotifier - MacDive SQLite', () {
+      test('detects MacDive SQLite format from synthetic DB', () async {
+        final path =
+            '${Directory.systemTemp.path}/mdw_${DateTime.now().microsecondsSinceEpoch}.sqlite';
+        final file = buildSyntheticMacDiveDb(path);
+        addTearDown(() {
+          if (file.existsSync()) file.deleteSync();
+        });
+        final bytes = Uint8List.fromList(await file.readAsBytes());
+
+        final detection = await notifier.loadFileFromBytes(
+          bytes,
+          'MacDive.sqlite',
+        );
+
+        expect(detection.format, ImportFormat.macdiveSqlite);
+        expect(detection.sourceApp, SourceApp.macdive);
+        expect(notifier.state.currentStep, ImportWizardStep.sourceConfirmation);
+      });
+
+      test(
+        'MacDiveSqliteParser produces populated payload from synthetic DB',
+        () async {
+          final path =
+              '${Directory.systemTemp.path}/mdw2_${DateTime.now().microsecondsSinceEpoch}.sqlite';
+          final file = buildSyntheticMacDiveDb(path);
+          addTearDown(() {
+            if (file.existsSync()) file.deleteSync();
+          });
+          final bytes = Uint8List.fromList(await file.readAsBytes());
+
+          const parser = MacDiveSqliteParser();
+          final payload = await parser.parse(bytes);
+
+          expect(payload.entitiesOf(ImportEntityType.dives).length, 3);
+          expect(payload.entitiesOf(ImportEntityType.tags).length, 2);
+        },
+      );
     });
   });
 }

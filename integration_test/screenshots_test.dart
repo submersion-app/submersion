@@ -35,6 +35,8 @@ import 'package:submersion/features/dive_types/data/repositories/dive_type_repos
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -78,6 +80,8 @@ void main() {
   late AppDatabase testDb;
   late ScreenshotHelper screenshotHelper;
   late SharedPreferences prefs;
+  late LogFileService logFileService;
+  late Directory tempLogDir;
 
   setUpAll(() async {
     // Initialize SharedPreferences with empty values
@@ -133,11 +137,21 @@ void main() {
     // Initialize screenshot helper
     // Device name and output dir are passed via --dart-define from capture script
     screenshotHelper = ScreenshotHelper(binding: binding);
+
+    // LogFileService is transitively watched by the Settings page via
+    // debugModeNotifierProvider; the nav customization tests need it
+    // initialized even though they never exercise logging.
+    tempLogDir = Directory.systemTemp.createTempSync('submersion_itest_');
+    logFileService = LogFileService(logDirectory: tempLogDir.path);
+    await logFileService.initialize();
   });
 
   tearDownAll(() async {
     await testDb.close();
     DatabaseService.instance.resetForTesting();
+    if (tempLogDir.existsSync()) {
+      tempLogDir.deleteSync(recursive: true);
+    }
   });
 
   group('App Store Screenshots', () {
@@ -500,6 +514,96 @@ void main() {
           await screenshotHelper.waitForContent(tester);
           await screenshotHelper.takeScreenshot(tester, 'records');
         }
+      }
+    });
+  });
+
+  group('Bottom Nav Customization', () {
+    Future<void> bootApp(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            logFileServiceProvider.overrideWithValue(logFileService),
+          ],
+          child: const SubmersionApp(),
+        ),
+      );
+      await _settle(tester, frames: 40);
+    }
+
+    Future<void> openNavCustomization(WidgetTester tester) async {
+      await tester.tap(find.widgetWithText(NavigationDestination, 'More'));
+      await _settle(tester);
+      await tester.tap(find.widgetWithText(ListTile, 'Settings').first);
+      await _settle(tester);
+      await tester.tap(find.widgetWithText(ListTile, 'Appearance').first);
+      await _settle(tester);
+      await tester.tap(find.widgetWithText(ListTile, 'Navigation bar').first);
+      await _settle(tester);
+    }
+
+    Future<void> popToBottomNav(WidgetTester tester) async {
+      for (int i = 0; i < 6; i++) {
+        if (find.byType(NavigationBar).evaluate().isNotEmpty) return;
+        final back = find.byTooltip('Back');
+        if (back.evaluate().isEmpty) break;
+        await tester.tap(back.first);
+        await _settle(tester);
+      }
+    }
+
+    testWidgets('customizing nav order updates the bottom bar', (tester) async {
+      await bootApp(tester);
+      await openNavCustomization(tester);
+
+      final moveEquipmentUp = find.byTooltip('Move Equipment up');
+      expect(moveEquipmentUp, findsOneWidget);
+      await tester.tap(moveEquipmentUp);
+      await _settle(tester);
+
+      await popToBottomNav(tester);
+
+      expect(
+        find.widgetWithText(NavigationDestination, 'Equipment'),
+        findsOneWidget,
+      );
+      expect(find.widgetWithText(NavigationDestination, 'Trips'), findsNothing);
+    });
+
+    testWidgets('reset to defaults restores original order', (tester) async {
+      await bootApp(tester);
+      await openNavCustomization(tester);
+
+      // Some residual customization may exist from the prior test, or the
+      // page may already reflect defaults. In either case, the Reset button
+      // should restore defaults afterward.
+      final resetBtn = find.widgetWithText(TextButton, 'Reset to defaults');
+      expect(resetBtn, findsOneWidget);
+
+      // If Reset is disabled (already defaults), tap Move Equipment up to
+      // create a customization the button can undo.
+      final resetWidget = tester.widget<TextButton>(resetBtn);
+      if (resetWidget.onPressed == null) {
+        await tester.tap(find.byTooltip('Move Equipment up'));
+        await _settle(tester);
+      }
+
+      await tester.tap(find.widgetWithText(TextButton, 'Reset to defaults'));
+      await _settle(tester);
+
+      await popToBottomNav(tester);
+
+      for (final label in const ['Home', 'Dives', 'Sites', 'Trips', 'More']) {
+        expect(
+          find.widgetWithText(NavigationDestination, label),
+          findsOneWidget,
+          reason: '"$label" should be in default bottom nav',
+        );
       }
     });
   });

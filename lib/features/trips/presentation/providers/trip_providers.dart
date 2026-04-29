@@ -170,32 +170,47 @@ final tripByIdProvider = FutureProvider.family<Trip?, String>((ref, id) async {
   return repository.getTripById(id);
 });
 
-/// Trip with stats provider
+/// Trip with stats provider.
+///
+/// Scopes aggregate stats to the currently-active diver so that shared trips
+/// only show that diver's dive count, bottom time, and depth figures.
 final tripWithStatsProvider = FutureProvider.family<TripWithStats, String>((
   ref,
   tripId,
 ) async {
   final repository = ref.watch(tripRepositoryProvider);
-  return repository.getTripWithStats(tripId);
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getTripWithStats(tripId, diverId: diverId);
 });
 
-/// Dives for a trip provider (IDs only)
+/// Dives for a trip provider (IDs only).
+///
+/// Scoped to the currently-active diver so that shared trips only show that
+/// diver's dives on the detail page.
 final diveIdsForTripProvider = FutureProvider.family<List<String>, String>((
   ref,
   tripId,
 ) async {
   final repository = ref.watch(tripRepositoryProvider);
-  return repository.getDiveIdsForTrip(tripId);
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getDiveIdsForTrip(tripId, diverId: diverId);
 });
 
-/// Full dive entities for a trip provider
+/// Full dive entities for a trip provider.
+///
+/// Scoped to the currently-active diver so that shared trips only show that
+/// diver's dives.
 final divesForTripProvider = FutureProvider.family<List<domain.Dive>, String>((
   ref,
   tripId,
 ) async {
   final tripRepository = ref.watch(tripRepositoryProvider);
   final diveRepository = DiveRepository();
-  final diveIds = await tripRepository.getDiveIdsForTrip(tripId);
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  final diveIds = await tripRepository.getDiveIdsForTrip(
+    tripId,
+    diverId: diverId,
+  );
   if (diveIds.isEmpty) return [];
   return diveRepository.getDivesByIds(diveIds);
 });

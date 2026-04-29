@@ -68,6 +68,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get accessibility_label_sharedWithAllProfiles => '已与所有潜水员资料共享';
+
+  @override
   String get accessibility_label_showList => '显示列表';
 
   @override
@@ -1326,6 +1329,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_action_search => '搜索';
 
   @override
+  String get common_action_share => '共享';
+
+  @override
   String get common_label_error => '错误';
 
   @override
@@ -1333,6 +1339,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get common_placeholder_noValue => '--';
+
+  @override
+  String get common_error_tryAgain => '发生错误，请重试。';
 
   @override
   String get courses_action_add => '添加课程';
@@ -9511,6 +9520,46 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_theme_system => '系统默认';
 
   @override
+  String get settings_navCustomization_title => 'Navigation bar';
+
+  @override
+  String get settings_navCustomization_description =>
+      'Drag items to reorder. The top three appear in your bottom navigation bar.';
+
+  @override
+  String get settings_navCustomization_dividerLabel =>
+      'Items below appear in the More menu';
+
+  @override
+  String get settings_navCustomization_resetButton => 'Reset to defaults';
+
+  @override
+  String get settings_navCustomization_pinnedTooltip => 'Always shown';
+
+  @override
+  String settings_navCustomization_moveUpLabel(String destination) {
+    return 'Move $destination up';
+  }
+
+  @override
+  String settings_navCustomization_moveDownLabel(String destination) {
+    return 'Move $destination down';
+  }
+
+  @override
+  String settings_navCustomization_subtitlePreview(
+    String first,
+    String second,
+    String third,
+  ) {
+    return '$first · $second · $third';
+  }
+
+  @override
+  String get settings_navCustomization_saveError =>
+      'Could not save navigation layout. Please try again.';
+
+  @override
   String get settings_backToSettings_tooltip => '返回设置';
 
   @override
@@ -10048,6 +10097,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_gfPreset_medium_name => '中等';
+
+  @override
+  String get settings_import_cancelButton => '取消导入';
+
+  @override
+  String get settings_import_cancelling => '正在取消...';
 
   @override
   String get settings_import_dialog_title => '正在导入数据';
@@ -15530,4 +15585,97 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get universalImport_label_consolidated => '已合并';
+
+  @override
+  String get common_label_shareWithAllProfiles => '与所有潜水员资料共享';
+
+  @override
+  String get settings_shareByDefault_title => '默认共享新潜点和行程';
+
+  @override
+  String get settings_shareAllSites_title => '共享我的所有潜点';
+
+  @override
+  String get settings_shareAllTrips_title => '共享我的所有行程';
+
+  @override
+  String settings_shareAllSites_confirm(int count) {
+    return '将您的全部 $count 个潜点向此应用中的每个潜水员资料开放？您之后可以单独取消共享。';
+  }
+
+  @override
+  String settings_shareAllTrips_confirm(int count) {
+    return '将您的全部 $count 个行程向此应用中的每个潜水员资料开放？您之后可以单独取消共享。';
+  }
+
+  @override
+  String settings_shareAllSites_snackbar(int count) {
+    return '已将 $count 个潜点与所有潜水员资料共享。';
+  }
+
+  @override
+  String settings_shareAllTrips_snackbar(int count) {
+    return '已将 $count 个行程与所有潜水员资料共享。';
+  }
+
+  @override
+  String get settings_shareAll_noneToShare => '没有可共享的内容。';
+
+  @override
+  String get settings_sharedData_sectionTitle => '共享数据';
+
+  @override
+  String get settings_sharedData_sectionSubtitle => '在资料之间共享潜点和行程';
+
+  @override
+  String get common_action_unshare => '取消共享';
+
+  @override
+  String get trips_unshareConfirm_title => '取消共享此行程？';
+
+  @override
+  String trips_unshareConfirm_body(String name) {
+    return '此操作会将「$name」从其他潜水员资料的视图中移除。您之后可以再次共享。';
+  }
+
+  @override
+  String get sites_unshareConfirm_title => '取消共享此潜点？';
+
+  @override
+  String sites_unshareConfirm_body(String name) {
+    return '此操作会将「$name」从其他潜水员资料的视图中移除。您之后可以再次共享。';
+  }
+
+  @override
+  String get trips_deleteShared_title => '删除共享行程？';
+
+  @override
+  String trips_deleteShared_body(String name) {
+    return '「$name」已与其他潜水员资料共享。在此处删除会对所有人生效。';
+  }
+
+  @override
+  String get sites_deleteShared_title => '删除共享潜点？';
+
+  @override
+  String sites_deleteShared_body(String name) {
+    return '「$name」已与其他潜水员资料共享。在此处删除会对所有人生效。';
+  }
+
+  @override
+  String divers_delete_reassigned_snackbar(int trips, int sites, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      trips,
+      locale: localeName,
+      other: '行程',
+      one: '行程',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '潜点',
+      one: '潜点',
+    );
+    return '已删除潜水员。$trips 个共享$_temp0和 $sites 个共享$_temp1已重新分配给 $name。';
+  }
 }

@@ -842,6 +842,7 @@ class ProfileAnalysisService {
             severity: EventSeverity.alert,
             depth: depths[i],
             value: ppO2Curve[i],
+            source: EventSource.computed,
             createdAt: now,
           ),
         );
@@ -859,6 +860,7 @@ class ProfileAnalysisService {
             severity: EventSeverity.warning,
             depth: depths[i],
             value: ppO2Curve[i],
+            source: EventSource.computed,
             createdAt: now,
           ),
         );

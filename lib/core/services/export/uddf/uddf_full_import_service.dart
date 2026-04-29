@@ -210,6 +210,12 @@ class UddfFullImportService {
     final equipmentSets = <Map<String, dynamic>>[];
     final courses = <Map<String, dynamic>>[];
 
+    // Standard UDDF location: <diver><owner><equipment> with child elements
+    // like <variouspieces>, <suit>, <divecomputer>, <regulator>, <bcd>, etc.
+    // MacDive and other UDDF-compliant exporters use this location rather
+    // than the Submersion-private <applicationdata><submersion><equipment>.
+    _collectStandardEquipment(uddfElement, equipment);
+
     final appDataElement = uddfElement
         .findElements('applicationdata')
         .firstOrNull;
@@ -218,16 +224,25 @@ class UddfFullImportService {
           .findElements('submersion')
           .firstOrNull;
       if (submersionElement != null) {
-        // Parse equipment
+        // Parse equipment from the Submersion-private extension path.
+        // Dedup against items already extracted from the standard location.
+        final existingGearUuids = <String>{
+          for (final e in equipment)
+            if (e['sourceUuid'] is String) e['sourceUuid'] as String,
+        };
         final equipmentSection = submersionElement
             .findElements('equipment')
             .firstOrNull;
         if (equipmentSection != null) {
           for (final itemElement in equipmentSection.findElements('item')) {
             final itemData = UddfImportParsers.parseEquipmentItem(itemElement);
-            if (itemData.isNotEmpty) {
-              equipment.add(itemData);
+            if (itemData.isEmpty) continue;
+            final uddfId = itemData['uddfId'];
+            if (uddfId is String && existingGearUuids.contains(uddfId)) {
+              continue;
             }
+            equipment.add(itemData);
+            if (uddfId is String) existingGearUuids.add(uddfId);
           }
         }
 
@@ -459,6 +474,23 @@ class UddfFullImportService {
       'notes',
     );
 
+    // Extract MacDive-specific site fields
+    final siteId = siteElement.getAttribute('id');
+    if (siteId != null && siteId.isNotEmpty) {
+      site['sourceUuid'] = siteId;
+    }
+
+    for (final entry in const {
+      'watertype': 'waterType',
+      'bodyofwater': 'bodyOfWater',
+      'difficulty': 'difficulty',
+    }.entries) {
+      final v = UddfImportParsers.getElementText(siteElement, entry.key);
+      if (v != null && v.isNotEmpty) {
+        site[entry.value] = v;
+      }
+    }
+
     return site;
   }
 
@@ -479,6 +511,13 @@ class UddfFullImportService {
       decoModels,
       diveComputers,
     );
+
+    // Capture the source UUID from the <dive> element's id attribute so
+    // downstream consumers (e.g., dive_data_sources sidecar) can persist it.
+    final diveId = diveElement.getAttribute('id');
+    if (diveId != null && diveId.isNotEmpty) {
+      diveData['sourceUuid'] = diveId;
+    }
 
     // Parse additional fields from informationbeforedive
     final beforeElement = diveElement
@@ -622,6 +661,21 @@ class UddfFullImportService {
         .findElements('informationafterdive')
         .firstOrNull;
     if (afterElement != null) {
+      // MacDive-specific string fields that the standard UDDF parser ignores.
+      // Element local name -> diveData map key.
+      for (final entry in const {
+        'weather': 'weather',
+        'surfaceconditions': 'surfaceConditions',
+        'boatname': 'boatName',
+        'boatcaptain': 'boatCaptain',
+        'diveoperator': 'diveOperator',
+      }.entries) {
+        final text = UddfImportParsers.getElementText(afterElement, entry.key);
+        if (text != null && text.isNotEmpty) {
+          diveData[entry.value] = text;
+        }
+      }
+
       final waterType = UddfImportParsers.getElementText(
         afterElement,
         'watertype',
@@ -1156,14 +1210,25 @@ class UddfFullImportService {
           }
         }
 
-        // Parse equipment references
+        // Parse equipment references (both <equipmentref> and <link ref="..."/>)
         final equipmentRefs = <String>[];
+
+        // Collect <equipmentref> elements
         for (final equipRef in equipmentElement.findElements('equipmentref')) {
           final ref = equipRef.innerText.trim();
           if (ref.isNotEmpty) {
             equipmentRefs.add(ref);
           }
         }
+
+        // Collect <link ref="..."/> elements from equipmentused
+        for (final linkElement in equipmentElement.findElements('link')) {
+          final ref = linkElement.getAttribute('ref');
+          if (ref != null && ref.isNotEmpty && !equipmentRefs.contains(ref)) {
+            equipmentRefs.add(ref);
+          }
+        }
+
         if (equipmentRefs.isNotEmpty) {
           diveData['equipmentRefs'] = equipmentRefs;
         }
@@ -1230,6 +1295,43 @@ class UddfFullImportService {
       }
     }
 
+    // Also parse equipment refs from informationafterdive (if they exist there)
+    final afterDiveElement = diveElement
+        .findElements('informationafterdive')
+        .firstOrNull;
+    if (afterDiveElement != null) {
+      final afterEquipmentElement = afterDiveElement
+          .findElements('equipmentused')
+          .firstOrNull;
+      if (afterEquipmentElement != null) {
+        // Get existing refs if any (from beforeElement)
+        final existingRefs =
+            (diveData['equipmentRefs'] as List<String>?) ?? <String>[];
+
+        // Collect <link ref="..."/> elements from afterDiveElement.equipmentused
+        for (final linkElement in afterEquipmentElement.findElements('link')) {
+          final ref = linkElement.getAttribute('ref');
+          if (ref != null && ref.isNotEmpty && !existingRefs.contains(ref)) {
+            existingRefs.add(ref);
+          }
+        }
+
+        // Collect <equipmentref> elements from afterDiveElement.equipmentused
+        for (final equipRef in afterEquipmentElement.findElements(
+          'equipmentref',
+        )) {
+          final ref = equipRef.innerText.trim();
+          if (ref.isNotEmpty && !existingRefs.contains(ref)) {
+            existingRefs.add(ref);
+          }
+        }
+
+        if (existingRefs.isNotEmpty) {
+          diveData['equipmentRefs'] = existingRefs;
+        }
+      }
+    }
+
     // Parse tank data
     final tanks = <Map<String, dynamic>>[];
     for (final tankDataElement in diveElement.findElements('tankdata')) {
@@ -1260,9 +1362,16 @@ class UddfFullImportService {
       // Get linked gas mix
       final mixLink = tankDataElement.findElements('link').firstOrNull;
       if (mixLink != null) {
-        final mixRef = mixLink.getAttribute('ref');
-        if (mixRef != null && gasMixes.containsKey(mixRef)) {
-          tankInfo['gasMix'] = gasMixes[mixRef];
+        final rawMixRef = mixLink.getAttribute('ref');
+        final mixRef = rawMixRef?.trim();
+        if (mixRef != null && mixRef.isNotEmpty) {
+          // Record the UDDF gas-mix UUID on the tank so the importer can
+          // resolve waypoint-level <switchmix ref> markers (which reference
+          // gas mixes, not tanks) back to a tank for the gas_switches row.
+          tankInfo['uddfGasMixRef'] = mixRef;
+          if (gasMixes.containsKey(mixRef)) {
+            tankInfo['gasMix'] = gasMixes[mixRef];
+          }
         }
       }
 
@@ -1416,6 +1525,11 @@ class UddfFullImportService {
     final samplesElement = diveElement.findElements('samples').firstOrNull;
     if (samplesElement != null) {
       final profile = <Map<String, dynamic>>[];
+      // Gas switches emitted from waypoint-level <switchmix ref="..."/>.
+      // MacDive marks deco gas changes on individual samples this way; we feed
+      // them into the same `diveData['gasSwitches']` pipe as the top-level
+      // <gasswitches> section so the importer has one consumer.
+      final waypointGasSwitches = <Map<String, dynamic>>[];
       GasMix? currentMix;
       GasMix? pendingSwitchMix;
       double? lastWaypointCns;
@@ -1451,18 +1565,41 @@ class UddfFullImportService {
 
         final switchMix = waypoint.findElements('switchmix').firstOrNull;
         if (switchMix != null) {
-          final mixRef = switchMix.getAttribute('ref');
-          if (mixRef != null && gasMixes.containsKey(mixRef)) {
-            currentMix = gasMixes[mixRef];
-            pendingSwitchMix = currentMix;
+          final rawMixRef = switchMix.getAttribute('ref');
+          final mixRef = rawMixRef?.trim();
+          // Skip emission entirely when the ref is empty or whitespace-only:
+          // the importer would have no way to resolve such a dangling ref
+          // back to a persisted tank row.
+          if (mixRef != null && mixRef.isNotEmpty) {
+            // Emit a gas switch entry for the importer to persist. Shape
+            // matches the top-level <gasswitches> parser (timestamp/depth/
+            // tankRef), plus `gasMixRef` so the importer can resolve the
+            // MacDive-style gas-UUID reference to a tank.
+            final timestamp = point['timestamp'] as int?;
+            if (timestamp != null) {
+              final entry = <String, dynamic>{
+                'timestamp': timestamp,
+                'gasMixRef': mixRef,
+              };
+              final depth = point['depth'];
+              if (depth != null) {
+                entry['depth'] = depth;
+              }
+              waypointGasSwitches.add(entry);
+            }
 
-            if (tanks.length == 1) {
-              UddfImportParsers.assignGasMixToTankIfMissing(
-                tanks: tanks,
-                tankIndex: 0,
-                gasMix: currentMix!,
-              );
-              pendingSwitchMix = null;
+            if (gasMixes.containsKey(mixRef)) {
+              currentMix = gasMixes[mixRef];
+              pendingSwitchMix = currentMix;
+
+              if (tanks.length == 1) {
+                UddfImportParsers.assignGasMixToTankIfMissing(
+                  tanks: tanks,
+                  tankIndex: 0,
+                  gasMix: currentMix!,
+                );
+                pendingSwitchMix = null;
+              }
             }
           }
         }
@@ -1615,6 +1752,24 @@ class UddfFullImportService {
       // Use gas mix from samples if no tank data was found
       if (currentMix != null && !diveData.containsKey('tanks')) {
         diveData['gasMix'] = currentMix;
+      }
+
+      // Merge waypoint-level gas switches with any entries emitted earlier
+      // from the top-level <gasswitches> section, deduping on
+      // timestamp+gasMixRef+tankRef so both paths feed one consumer.
+      if (waypointGasSwitches.isNotEmpty) {
+        final existing =
+            (diveData['gasSwitches'] as List<Map<String, dynamic>>?) ??
+            const <Map<String, dynamic>>[];
+        final seen = <String>{};
+        final merged = <Map<String, dynamic>>[];
+        for (final gs in [...existing, ...waypointGasSwitches]) {
+          final key = '${gs['timestamp']}|${gs['gasMixRef']}|${gs['tankRef']}';
+          if (seen.add(key)) {
+            merged.add(gs);
+          }
+        }
+        diveData['gasSwitches'] = merged;
       }
     }
 
@@ -1899,5 +2054,171 @@ class UddfFullImportService {
       return 'liveaboard';
     }
     return 'recreational';
+  }
+
+  /// UDDF 3.2 standard equipment child elements that appear under
+  /// `<diver><owner><equipment>`. Each element represents one gear item and
+  /// maps to a human-readable type plus the matching [enums.EquipmentType].
+  static const Map<String, ({String label, enums.EquipmentType type})>
+  _standardGearTags = {
+    'variouspieces': (label: 'Accessory', type: enums.EquipmentType.other),
+    'suit': (label: 'Suit', type: enums.EquipmentType.wetsuit),
+    'divecomputer': (
+      label: 'Dive Computer',
+      type: enums.EquipmentType.computer,
+    ),
+    'regulator': (label: 'Regulator', type: enums.EquipmentType.regulator),
+    'bcd': (label: 'BCD', type: enums.EquipmentType.bcd),
+    'boots': (label: 'Boots', type: enums.EquipmentType.boots),
+    'fins': (label: 'Fins', type: enums.EquipmentType.fins),
+    'compass': (label: 'Compass', type: enums.EquipmentType.other),
+    'knife': (label: 'Knife', type: enums.EquipmentType.knife),
+    'tankrelatedequipment': (label: 'Tank', type: enums.EquipmentType.tank),
+  };
+
+  /// Scans the standard UDDF location (`<diver><owner><equipment>`) for
+  /// gear entries and appends them to [equipment]. Dedupes by the `id`
+  /// attribute against anything already collected.
+  void _collectStandardEquipment(
+    XmlElement uddfElement,
+    List<Map<String, dynamic>> equipment,
+  ) {
+    final existingGearUuids = <String>{
+      for (final e in equipment)
+        if (e['sourceUuid'] is String) e['sourceUuid'] as String,
+    };
+    for (final diverEl in uddfElement.findElements('diver')) {
+      for (final ownerEl in diverEl.findElements('owner')) {
+        final equipContainer = ownerEl.findElements('equipment').firstOrNull;
+        if (equipContainer == null) continue;
+        for (final entry in _standardGearTags.entries) {
+          final tagName = entry.key;
+          final tagMeta = entry.value;
+          for (final itemEl in equipContainer.findElements(tagName)) {
+            final id = itemEl.getAttribute('id');
+            if (id != null && existingGearUuids.contains(id)) continue;
+            final itemData = _parseStandardEquipmentItem(
+              itemEl,
+              tagName: tagName,
+              label: tagMeta.label,
+              type: tagMeta.type,
+            );
+            if (itemData.isEmpty) continue;
+            equipment.add(itemData);
+            if (id != null && id.isNotEmpty) existingGearUuids.add(id);
+          }
+        }
+      }
+    }
+  }
+
+  /// Parses a single UDDF standard equipment element (e.g. `<divecomputer>`,
+  /// `<variouspieces>`, `<suit>`) into a map with the same key conventions
+  /// used by the Submersion-extension path (`parseEquipmentItem`), plus a
+  /// `sourceUuid` carrying the element's `id` attribute.
+  Map<String, dynamic> _parseStandardEquipmentItem(
+    XmlElement itemElement, {
+    required String tagName,
+    required String label,
+    required enums.EquipmentType type,
+  }) {
+    final item = <String, dynamic>{};
+    final id = itemElement.getAttribute('id');
+    if (id != null && id.isNotEmpty) {
+      item['sourceUuid'] = id;
+      item['uddfId'] = id;
+    }
+
+    final name = UddfImportParsers.getElementText(itemElement, 'name');
+    if (name != null && name.isNotEmpty) {
+      item['name'] = name;
+    }
+
+    // UDDF wraps manufacturer in a nested element with its own <name> child.
+    final manufacturerEl = itemElement.findElements('manufacturer').firstOrNull;
+    String? manufacturer;
+    if (manufacturerEl != null) {
+      manufacturer = UddfImportParsers.getElementText(manufacturerEl, 'name');
+    }
+    manufacturer ??= UddfImportParsers.getElementText(
+      itemElement,
+      'manufacturer',
+    );
+    if (manufacturer != null && manufacturer.isNotEmpty) {
+      item['manufacturer'] = manufacturer;
+      // Also store under 'brand' so the downstream duplicate checker and
+      // entity importer (which read 'brand') find the same value.
+      item['brand'] = manufacturer;
+    }
+
+    final model = UddfImportParsers.getElementText(itemElement, 'model');
+    if (model != null && model.isNotEmpty) {
+      item['model'] = model;
+    }
+
+    final serial = UddfImportParsers.getElementText(
+      itemElement,
+      'serialnumber',
+    );
+    if (serial != null && serial.isNotEmpty) {
+      item['serial'] = serial;
+      item['serialNumber'] = serial;
+    }
+
+    // Narrow the suit type for wet-suit vs dry-suit when the sub-element
+    // is present; defaults to wetsuit.
+    if (tagName == 'suit') {
+      final suitType = UddfImportParsers.getElementText(
+        itemElement,
+        'suittype',
+      );
+      if (suitType != null && suitType.toLowerCase().contains('dry')) {
+        item['type'] = enums.EquipmentType.drysuit;
+      } else {
+        item['type'] = type;
+      }
+    } else {
+      item['type'] = type;
+    }
+    item['typeLabel'] = label;
+
+    final purchase = itemElement.findElements('purchase').firstOrNull;
+    if (purchase != null) {
+      final dateText =
+          UddfImportParsers.getElementText(purchase, 'date') ??
+          UddfImportParsers.getElementText(purchase, 'datetime');
+      if (dateText != null) {
+        final parsed = DateTime.tryParse(dateText);
+        if (parsed != null) {
+          item['purchaseDate'] = parsed;
+        }
+      }
+      final price = UddfImportParsers.getElementText(purchase, 'price');
+      if (price != null) {
+        item['purchasePrice'] = double.tryParse(price);
+      }
+      final currency = UddfImportParsers.getElementText(purchase, 'currency');
+      if (currency != null && currency.isNotEmpty) {
+        item['purchaseCurrency'] = currency;
+      }
+    } else {
+      final purchaseDateText = UddfImportParsers.getElementText(
+        itemElement,
+        'purchasedate',
+      );
+      if (purchaseDateText != null) {
+        final parsed = DateTime.tryParse(purchaseDateText);
+        if (parsed != null) {
+          item['purchaseDate'] = parsed;
+        }
+      }
+    }
+
+    final notes = UddfImportParsers.getElementText(itemElement, 'notes');
+    if (notes != null && notes.isNotEmpty) {
+      item['notes'] = notes;
+    }
+
+    return item;
   }
 }
