@@ -63,7 +63,11 @@ class CachedNetworkImageDiagnostics {
     }
   }
 
-  /// Clears every cache entry. Surfaces errors via the logger; never throws.
+  /// Clears every cache entry. Logs the failure and rethrows on error so
+  /// callers can surface cache-clear failures (disk I/O, permission denied,
+  /// etc.) in the UI rather than silently swallowing them.
+  ///
+  /// Throws on cache-clear failure (rare).
   Future<void> clearCache() async {
     try {
       _log.info('Clearing cached_network_image disk cache');
