@@ -105,6 +105,9 @@ class NetworkScanService {
       }
 
       // Drain inflight + close the controller when all are done.
+      // Assign `_lastReport` BEFORE emitting the `finished` event so any
+      // consumer that reads `lastReport` synchronously on the finished
+      // event sees a populated report (no race window).
       Future<void>.microtask(() async {
         await Future.wait<void>(inflight);
         progress = NetworkScanProgress(
@@ -114,6 +117,12 @@ class NetworkScanService {
           available: progress.available,
           unreachable: progress.unreachable,
         );
+        stopwatch.stop();
+        _lastReport = NetworkScanReport.fromProgress(
+          progress,
+          skippedNoUrl: skippedNoUrl,
+          durationMs: stopwatch.elapsedMilliseconds,
+        );
         controller.add(progress);
         await controller.close();
       });
@@ -122,12 +131,6 @@ class NetworkScanService {
         yield p;
       }
 
-      stopwatch.stop();
-      _lastReport = NetworkScanReport.fromProgress(
-        progress,
-        skippedNoUrl: skippedNoUrl,
-        durationMs: stopwatch.elapsedMilliseconds,
-      );
       _log.info(
         'Network scan complete: total=${_lastReport!.total}, '
         'available=${_lastReport!.available}, '

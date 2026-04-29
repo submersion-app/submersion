@@ -262,6 +262,50 @@ void main() {
     verify(mockRepo.updateMedia(any)).called(1);
   });
 
+  test('lastReport is populated synchronously on the finished event', () async {
+    // Regression: previously `_lastReport` was assigned AFTER the
+    // `finished` event was emitted, so a consumer reading
+    // `service.lastReport` immediately on the finished event saw `null`.
+    // The fix moves the assignment ahead of `controller.add(finished)`.
+    when(mockRepo.getAllBySourceType(MediaSourceType.networkUrl)).thenAnswer(
+      (_) async => [
+        row(
+          id: 'a',
+          type: MediaSourceType.networkUrl,
+          url: 'https://example.com/a.jpg',
+        ),
+      ],
+    );
+    when(
+      mockRepo.getAllBySourceType(MediaSourceType.manifestEntry),
+    ).thenAnswer((_) async => []);
+
+    final client = MockClient((req) async => http.Response('', 200));
+    final svc = NetworkScanService(
+      repository: mockRepo,
+      credentials: mockCreds,
+      subscriptions: mockSubs,
+      rateLimiter: limiter,
+      httpClientFactory: () => client,
+    );
+
+    NetworkScanReport? reportOnFinished;
+    await for (final p in svc.scanAll()) {
+      if (p.phase == NetworkScanPhase.finished) {
+        reportOnFinished = svc.lastReport;
+      }
+    }
+
+    expect(
+      reportOnFinished,
+      isNotNull,
+      reason:
+          'lastReport must be assigned before the finished event is emitted',
+    );
+    expect(reportOnFinished!.total, 1);
+    expect(reportOnFinished.available, 1);
+  });
+
   test('looks up auth headers per host and forwards them', () async {
     when(mockRepo.getAllBySourceType(MediaSourceType.networkUrl)).thenAnswer(
       (_) async => [
