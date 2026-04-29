@@ -5,7 +5,7 @@ import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 
 /// Create a list of ZH-L16C compartments with uniform tissue tension.
 List<TissueCompartment> createCompartments({
-  double pN2 = 0.79,
+  double pN2 = inspiredSurfaceN2Bar,
   double pHe = 0.0,
 }) {
   return List.generate(zhl16CompartmentCount, (i) {
@@ -49,7 +49,7 @@ void main() {
         compartments: createCompartments(),
         ambientPressureBar: 1.0,
       );
-      // Surface-saturated tissues (0.79 bar) at 1.0 bar ambient
+      // Surface-saturated tissues (inspired surface N2) at 1.0 bar ambient
       // GF is clamped at 0 (undersaturated, but negatives not displayed)
       expect(status.gf99, equals(0.0));
     });

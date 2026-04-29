@@ -7,6 +7,7 @@ import workmanager_apple
   private var bookmarkHandler: SecurityScopedBookmarkHandler?
   private var icloudHandler: ICloudContainerHandler?
   private var metadataHandler: MetadataWriteHandler?
+  private var localMediaHandler: LocalMediaHandler?
 
   override func application(
     _ application: UIApplication,
@@ -29,6 +30,9 @@ import workmanager_apple
     }
     if let metadataRegistrar = self.registrar(forPlugin: "MetadataWriteHandler") {
       metadataHandler = MetadataWriteHandler(messenger: metadataRegistrar.messenger())
+    }
+    if let localMediaRegistrar = self.registrar(forPlugin: "LocalMediaHandler") {
+      localMediaHandler = LocalMediaHandler(messenger: localMediaRegistrar.messenger())
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)

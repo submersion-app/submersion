@@ -9130,10 +9130,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => 'Ouvrir les reglages';
 
   @override
-  String get media_photoPicker_openSettingsSnackbar =>
-      'Veuillez ouvrir les Reglages et activer l\'acces aux photos';
-
-  @override
   String get media_photoPicker_permissionDeniedMessage =>
       'L\'acces a la phototheque a ete refuse. Veuillez l\'activer dans les Reglages pour ajouter des photos de plongee.';
 
@@ -9322,8 +9318,26 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get media_unavailablePlaceholder_fileNotFound => 'File not found';
+
+  @override
+  String get media_unavailablePlaceholder_fromOtherDevice =>
+      'From another device';
+
+  @override
+  String media_unavailablePlaceholder_fromOtherDeviceLabel(String device) {
+    return 'From $device';
+  }
+
+  @override
+  String get media_unavailablePlaceholder_networkError => 'Couldn\'t connect';
+
+  @override
   String get media_unavailablePlaceholder_notOnDevice =>
       'Non disponible sur cet appareil';
+
+  @override
+  String get media_unavailablePlaceholder_signInRequired => 'Sign in to view';
 
   @override
   String get media_writeMetadata_cancelButton => 'Annuler';

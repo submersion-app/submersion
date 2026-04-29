@@ -812,9 +812,9 @@ void main() {
       );
 
       expect(sourceInfo.ndlActual, MetricDataSource.computer);
-      expect(sourceInfo.ceilingActual, MetricDataSource.calculated); // Fallback
-      expect(sourceInfo.ttsActual, MetricDataSource.calculated); // Fallback
-      expect(sourceInfo.cnsActual, MetricDataSource.calculated); // Fallback
+      expect(sourceInfo.ceilingActual, MetricDataSource.calculated);
+      expect(sourceInfo.ttsActual, MetricDataSource.calculated);
+      expect(sourceInfo.cnsActual, MetricDataSource.calculated);
     });
 
     test('all sources=calculated ignores all computer data', () {

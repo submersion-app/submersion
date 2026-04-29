@@ -9031,10 +9031,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => 'Instellingen openen';
 
   @override
-  String get media_photoPicker_openSettingsSnackbar =>
-      'Open Instellingen en schakel fototoegang in';
-
-  @override
   String get media_photoPicker_permissionDeniedMessage =>
       'Toegang tot de fotobibliotheek is geweigerd. Schakel deze in via Instellingen om duikfoto\'s toe te voegen.';
 
@@ -9219,7 +9215,25 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get media_unavailablePlaceholder_fileNotFound => 'File not found';
+
+  @override
+  String get media_unavailablePlaceholder_fromOtherDevice =>
+      'From another device';
+
+  @override
+  String media_unavailablePlaceholder_fromOtherDeviceLabel(String device) {
+    return 'From $device';
+  }
+
+  @override
+  String get media_unavailablePlaceholder_networkError => 'Couldn\'t connect';
+
+  @override
   String get media_unavailablePlaceholder_notOnDevice => 'Niet op dit apparaat';
+
+  @override
+  String get media_unavailablePlaceholder_signInRequired => 'Sign in to view';
 
   @override
   String get media_writeMetadata_cancelButton => 'Annuleren';

@@ -199,6 +199,32 @@ void main() {
       expect(logbook.units, MacDiveUnitSystem.unknown);
       expect(logbook.dives.first.maxDepthMeters, 50);
     });
+
+    test('parses sample <time> emitted as decimal seconds (real MacDive)', () {
+      // Real MacDive exports format <time> with two decimals (e.g.
+      // "10.00") even though the unit is whole seconds. The synthetic test
+      // fixtures used bare integers, so int.tryParse silently failed on the
+      // real format and every sample collapsed to timestamp=0 — visible to
+      // users as a 0-depth, flat profile chart despite N points present.
+      const xml = '''<?xml version="1.0"?>
+<dives>
+  <units>Imperial</units>
+  <schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 00:00:00</date>
+    <samples>
+      <sample><time>0.00</time><depth>0.00</depth></sample>
+      <sample><time>10.00</time><depth>14.50</depth></sample>
+      <sample><time>20.00</time><depth>20.30</depth></sample>
+    </samples>
+  </dive>
+</dives>''';
+      final dive = MacDiveXmlReader.parse(xml).dives.first;
+      expect(dive.samples.length, 3);
+      expect(dive.samples[0].time, Duration.zero);
+      expect(dive.samples[1].time, const Duration(seconds: 10));
+      expect(dive.samples[2].time, const Duration(seconds: 20));
+    });
   });
 
   group('MacDiveXmlReader (imperial fixture)', () {

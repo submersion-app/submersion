@@ -9070,10 +9070,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => 'Beallitasok megnyitasa';
 
   @override
-  String get media_photoPicker_openSettingsSnackbar =>
-      'Kerem, nyissa meg a Beallitasokat es engedelyezze a fotohozzaferest';
-
-  @override
   String get media_photoPicker_permissionDeniedMessage =>
       'A fotogaleriahoz valo hozzaferes megtagadva. Kerem, engedelyezze a Beallitasokban a merülesi fotok hozzaadasahoz.';
 
@@ -9261,7 +9257,25 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get media_unavailablePlaceholder_fileNotFound => 'File not found';
+
+  @override
+  String get media_unavailablePlaceholder_fromOtherDevice =>
+      'From another device';
+
+  @override
+  String media_unavailablePlaceholder_fromOtherDeviceLabel(String device) {
+    return 'From $device';
+  }
+
+  @override
+  String get media_unavailablePlaceholder_networkError => 'Couldn\'t connect';
+
+  @override
   String get media_unavailablePlaceholder_notOnDevice => 'Nem ezen az eszközön';
+
+  @override
+  String get media_unavailablePlaceholder_signInRequired => 'Sign in to view';
 
   @override
   String get media_writeMetadata_cancelButton => 'Megse';

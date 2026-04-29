@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+
 /// Represents a single tissue compartment in the Bühlmann decompression model.
 ///
 /// The Bühlmann ZH-L16C model uses 16 tissue compartments with different
@@ -40,7 +42,7 @@ class TissueCompartment extends Equatable {
     required this.mValueBN2,
     required this.mValueAHe,
     required this.mValueBHe,
-    this.currentPN2 = 0.79, // Surface N2 tension at sea level
+    this.currentPN2 = inspiredSurfaceN2Bar,
     this.currentPHe = 0.0,
   });
 

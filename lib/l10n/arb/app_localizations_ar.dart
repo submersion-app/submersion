@@ -8920,10 +8920,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => 'فتح الإعدادات';
 
   @override
-  String get media_photoPicker_openSettingsSnackbar =>
-      'يرجى فتح الإعدادات وتمكين الوصول إلى الصور';
-
-  @override
   String get media_photoPicker_permissionDeniedMessage =>
       'تم رفض الوصول إلى مكتبة الصور. يرجى تمكينه في الإعدادات لإضافة صور الغوص.';
 
@@ -9102,8 +9098,26 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get media_unavailablePlaceholder_fileNotFound => 'File not found';
+
+  @override
+  String get media_unavailablePlaceholder_fromOtherDevice =>
+      'From another device';
+
+  @override
+  String media_unavailablePlaceholder_fromOtherDeviceLabel(String device) {
+    return 'From $device';
+  }
+
+  @override
+  String get media_unavailablePlaceholder_networkError => 'Couldn\'t connect';
+
+  @override
   String get media_unavailablePlaceholder_notOnDevice =>
       'غير متوفر على هذا الجهاز';
+
+  @override
+  String get media_unavailablePlaceholder_signInRequired => 'Sign in to view';
 
   @override
   String get media_writeMetadata_cancelButton => 'إلغاء';

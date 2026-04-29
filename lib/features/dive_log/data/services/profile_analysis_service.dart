@@ -9,6 +9,7 @@ import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
@@ -493,6 +494,8 @@ class ProfileAnalysisService {
   /// [startCompartments] is optional pre-loaded tissue state from a previous
   /// dive (must have exactly [zhl16CompartmentCount] elements if provided).
   /// [startOtu] is cumulative OTU from earlier same-day dives (non-negative).
+  /// [gasSegments] optionally provides a time-ordered gas schedule for
+  /// decompression calculations across the profile.
   ProfileAnalysis analyze({
     required String diveId,
     required List<double> depths,
@@ -510,6 +513,7 @@ class ProfileAnalysisService {
     double scrVo2 = ScrCalculator.defaultVo2,
     List<TissueCompartment>? startCompartments,
     double startOtu = 0.0,
+    List<ProfileGasSegment>? gasSegments,
   }) {
     if (depths.isEmpty || depths.length != timestamps.length) {
       return ProfileAnalysis.empty();
@@ -543,14 +547,34 @@ class ProfileAnalysisService {
     } else {
       _buhlmannAlgorithm.reset();
     }
-    final decoStatuses = _buhlmannAlgorithm.processProfile(
-      depths: depths,
-      timestamps: timestamps,
-      fN2: n2Fraction,
-      fHe: heFraction,
-    );
+    final useOcGasSegments = diveMode == DiveMode.oc && gasSegments != null;
+    final decoStatuses = useOcGasSegments
+        ? _buhlmannAlgorithm.processProfileWithGasSegments(
+            depths: depths,
+            timestamps: timestamps,
+            gasSegments: gasSegments,
+          )
+        : _buhlmannAlgorithm.processProfile(
+            depths: depths,
+            timestamps: timestamps,
+            fN2: n2Fraction,
+            fHe: heFraction,
+          );
     final ceilingCurve = decoStatuses.map((s) => s.ceilingMeters).toList();
     final ndlCurve = decoStatuses.map((s) => s.ndlSeconds).toList();
+
+    final ocGasMetrics = useOcGasSegments
+        ? _calculateOcGasAwareMetrics(
+            depths: depths,
+            timestamps: timestamps,
+            gasSegments: gasSegments,
+            startCns: startCns,
+          )
+        : null;
+
+    final pointO2Fractions = ocGasMetrics?.o2Fractions;
+    final pointN2Fractions = ocGasMetrics?.n2Fractions;
+    final pointHeFractions = ocGasMetrics?.heFractions;
 
     // Calculate ppO2 curve based on dive mode
     final List<double> ppO2Curve;
@@ -589,22 +613,23 @@ class ProfileAnalysisService {
         }
       case DiveMode.oc:
         // OC: ppO2 = ambient pressure × FO2
-        ppO2Curve = _o2ToxicityCalculator.calculatePpO2Curve(
-          depths,
-          o2Fraction,
-        );
+        ppO2Curve =
+            ocGasMetrics?.ppO2Curve ??
+            _o2ToxicityCalculator.calculatePpO2Curve(depths, o2Fraction);
     }
 
     // Calculate O2 exposure using the ppO2 curve
     // For CCR/SCR, we need to calculate based on actual ppO2 values
     final O2Exposure rawO2Exposure;
     if (diveMode == DiveMode.oc) {
-      rawO2Exposure = _o2ToxicityCalculator.calculateDiveExposure(
-        depths: depths,
-        timestamps: timestamps,
-        o2Fraction: o2Fraction,
-        startCns: startCns,
-      );
+      rawO2Exposure =
+          ocGasMetrics?.o2Exposure ??
+          _o2ToxicityCalculator.calculateDiveExposure(
+            depths: depths,
+            timestamps: timestamps,
+            o2Fraction: o2Fraction,
+            startCns: startCns,
+          );
     } else {
       // For CCR/SCR, calculate O2 exposure from ppO2 curve
       rawO2Exposure = _calculateO2ExposureFromPpO2Curve(
@@ -695,30 +720,39 @@ class ProfileAnalysisService {
     }
 
     // Calculate additional gas/deco curves
-    final ppN2Curve = _calculatePpN2Curve(depths, n2Fraction);
-    final ppHeCurve = heFraction > 0
-        ? _calculatePpHeCurve(depths, heFraction)
+    final ppN2Curve = pointN2Fractions != null
+        ? _calculatePpCurve(depths, pointN2Fractions)
+        : _calculatePpCurve(depths, List.filled(depths.length, n2Fraction));
+    final ppHeCurve = pointHeFractions != null
+        ? (pointHeFractions.any((f) => f > 0.001)
+              ? _calculatePpCurve(depths, pointHeFractions)
+              : null)
+        : heFraction > 0
+        ? _calculatePpCurve(depths, List.filled(depths.length, heFraction))
         : null;
-    final modCurve = _calculateModCurve(depths, o2Fraction);
+    final modCurve = _calculateModCurve(
+      pointO2Fractions ?? List.filled(depths.length, o2Fraction),
+    );
     final densityCurve = _calculateDensityCurve(
-      depths,
-      o2Fraction,
-      n2Fraction,
-      heFraction,
+      depths: depths,
+      o2Fractions: pointO2Fractions ?? List.filled(depths.length, o2Fraction),
+      n2Fractions: pointN2Fractions ?? List.filled(depths.length, n2Fraction),
+      heFractions: pointHeFractions ?? List.filled(depths.length, heFraction),
     );
     final gfCurve = _calculateGfCurve(decoStatuses);
     final surfaceGfCurve = _calculateSurfaceGfCurve(decoStatuses);
     final meanDepthCurve = _calculateMeanDepthCurve(depths);
     final ttsCurve = decoStatuses.map((s) => s.ttsSeconds).toList();
-    final cnsCurve = _calculateCnsCurve(
-      ppO2Curve: ppO2Curve,
-      timestamps: timestamps,
-      startCns: startCns,
-    );
-    final otuCurve = _calculateOtuCurve(
-      ppO2Curve: ppO2Curve,
-      timestamps: timestamps,
-    );
+    final cnsCurve =
+        ocGasMetrics?.cnsCurve ??
+        _calculateCnsCurve(
+          ppO2Curve: ppO2Curve,
+          timestamps: timestamps,
+          startCns: startCns,
+        );
+    final otuCurve =
+        ocGasMetrics?.otuCurve ??
+        _calculateOtuCurve(ppO2Curve: ppO2Curve, timestamps: timestamps);
 
     return ProfileAnalysis(
       ascentRates: ascentRates,
@@ -1434,34 +1468,161 @@ class ProfileAnalysisService {
     );
   }
 
-  /// Calculate ppN2 (partial pressure of nitrogen) curve.
-  ///
-  /// ppN2 = ambient_pressure × N2_fraction
-  List<double> _calculatePpN2Curve(List<double> depths, double n2Fraction) {
-    return depths.map((depth) {
-      final ambientPressure = 1.0 + (depth / 10.0);
-      return ambientPressure * n2Fraction;
-    }).toList();
+  ({
+    List<double> o2Fractions,
+    List<double> n2Fractions,
+    List<double> heFractions,
+    List<double> ppO2Curve,
+    O2Exposure o2Exposure,
+    List<double> cnsCurve,
+    List<double> otuCurve,
+  })
+  _calculateOcGasAwareMetrics({
+    required List<double> depths,
+    required List<int> timestamps,
+    required List<ProfileGasSegment> gasSegments,
+    required double startCns,
+  }) {
+    final o2Fractions = <double>[];
+    final n2Fractions = <double>[];
+    final heFractions = <double>[];
+
+    for (final timestamp in timestamps) {
+      final gas = _activeGasSegmentAtTimestamp(timestamp, gasSegments);
+      final o2Fraction = (1.0 - gas.fN2 - gas.fHe).clamp(0.0, 1.0);
+      o2Fractions.add(o2Fraction);
+      n2Fractions.add(gas.fN2);
+      heFractions.add(gas.fHe);
+    }
+
+    final ppO2Curve = _calculatePpCurve(depths, o2Fractions);
+    final cnsCurve = <double>[startCns];
+    final otuCurve = <double>[0.0];
+    double cumulativeCns = startCns;
+    double cumulativeOtu = 0.0;
+    double maxPpO2 = 0.0;
+    double depthAtMaxPpO2 = 0.0;
+    int timeAboveWarning = 0;
+    int timeAboveCritical = 0;
+
+    for (int i = 1; i < depths.length; i++) {
+      final intervalStart = timestamps[i - 1];
+      final intervalEnd = timestamps[i];
+
+      if (intervalEnd <= intervalStart) {
+        cnsCurve.add(cumulativeCns);
+        otuCurve.add(cumulativeOtu);
+        continue;
+      }
+
+      final intervalBoundaries = <int>[
+        intervalStart,
+        ...gasSegments
+            .where(
+              (segment) =>
+                  segment.startTimestamp > intervalStart &&
+                  segment.startTimestamp < intervalEnd,
+            )
+            .map((segment) => segment.startTimestamp),
+        intervalEnd,
+      ];
+
+      for (
+        int boundaryIndex = 1;
+        boundaryIndex < intervalBoundaries.length;
+        boundaryIndex++
+      ) {
+        final subIntervalStart = intervalBoundaries[boundaryIndex - 1];
+        final subIntervalEnd = intervalBoundaries[boundaryIndex];
+        final duration = subIntervalEnd - subIntervalStart;
+        if (duration <= 0) {
+          continue;
+        }
+
+        final gas = _activeGasSegmentAtTimestamp(subIntervalStart, gasSegments);
+        final o2Fraction = (1.0 - gas.fN2 - gas.fHe).clamp(0.0, 1.0);
+        final startDepth = _interpolateDepth(
+          startTimestamp: intervalStart,
+          endTimestamp: intervalEnd,
+          startDepth: depths[i - 1],
+          endDepth: depths[i],
+          targetTimestamp: subIntervalStart,
+        );
+        final endDepth = _interpolateDepth(
+          startTimestamp: intervalStart,
+          endTimestamp: intervalEnd,
+          startDepth: depths[i - 1],
+          endDepth: depths[i],
+          targetTimestamp: subIntervalEnd,
+        );
+        final avgDepth = (startDepth + endDepth) / 2.0;
+        final avgPpO2 = O2ToxicityCalculator.calculatePpO2(
+          avgDepth,
+          o2Fraction,
+        );
+
+        if (avgPpO2 > maxPpO2) {
+          maxPpO2 = avgPpO2;
+          depthAtMaxPpO2 = avgDepth;
+        }
+
+        cumulativeCns += _o2ToxicityCalculator.calculateCnsForSegment(
+          avgPpO2,
+          duration,
+        );
+        cumulativeOtu += _o2ToxicityCalculator.calculateOtuForSegment(
+          avgPpO2,
+          duration,
+        );
+
+        if (avgPpO2 > _o2ToxicityCalculator.ppO2CriticalThreshold) {
+          timeAboveCritical += duration;
+          timeAboveWarning += duration;
+        } else if (avgPpO2 > _o2ToxicityCalculator.ppO2WarningThreshold) {
+          timeAboveWarning += duration;
+        }
+      }
+
+      cnsCurve.add(cumulativeCns);
+      otuCurve.add(cumulativeOtu);
+    }
+
+    return (
+      o2Fractions: o2Fractions,
+      n2Fractions: n2Fractions,
+      heFractions: heFractions,
+      ppO2Curve: ppO2Curve,
+      o2Exposure: O2Exposure(
+        cnsStart: startCns,
+        cnsEnd: cumulativeCns,
+        otu: cumulativeOtu,
+        maxPpO2: maxPpO2,
+        maxPpO2Depth: depthAtMaxPpO2,
+        timeAboveWarning: timeAboveWarning,
+        timeAboveCritical: timeAboveCritical,
+      ),
+      cnsCurve: cnsCurve,
+      otuCurve: otuCurve,
+    );
   }
 
-  /// Calculate ppHe (partial pressure of helium) curve.
-  ///
-  /// ppHe = ambient_pressure × He_fraction
-  List<double> _calculatePpHeCurve(List<double> depths, double heFraction) {
-    return depths.map((depth) {
+  /// Calculate partial pressure curve from per-point gas fractions.
+  List<double> _calculatePpCurve(List<double> depths, List<double> fractions) {
+    return List<double>.generate(depths.length, (i) {
+      final depth = depths[i];
       final ambientPressure = 1.0 + (depth / 10.0);
-      return ambientPressure * heFraction;
-    }).toList();
+      return ambientPressure * fractions[i];
+    });
   }
 
   /// Calculate MOD (Maximum Operating Depth) curve.
   ///
   /// MOD = ((maxPpO2 / O2_fraction) - 1) × 10
   /// Using 1.4 bar as the standard recreational MOD limit.
-  List<double> _calculateModCurve(List<double> depths, double o2Fraction) {
-    // MOD is constant for a given gas, but we return it per point for consistency
-    final mod = O2ToxicityCalculator.calculateMod(o2Fraction, maxPpO2: 1.4);
-    return List.filled(depths.length, mod);
+  List<double> _calculateModCurve(List<double> o2Fractions) {
+    return o2Fractions.map((o2Fraction) {
+      return O2ToxicityCalculator.calculateMod(o2Fraction, maxPpO2: 1.4);
+    }).toList();
   }
 
   /// Calculate gas density curve (g/L).
@@ -1472,30 +1633,59 @@ class ProfileAnalysisService {
   ///
   /// Molecular weights (g/mol): O2=32, N2=28, He=4
   /// At STP, 1 mole of gas = 24.04 L
-  List<double> _calculateDensityCurve(
-    List<double> depths,
-    double o2Fraction,
-    double n2Fraction,
-    double heFraction,
-  ) {
+  List<double> _calculateDensityCurve({
+    required List<double> depths,
+    required List<double> o2Fractions,
+    required List<double> n2Fractions,
+    required List<double> heFractions,
+  }) {
     // Average molecular weight of gas mix
     const o2MolWeight = 32.0;
     const n2MolWeight = 28.0;
     const heMolWeight = 4.0;
     const molarVolume = 24.04; // L/mol at STP
 
-    final avgMolWeight =
-        (o2Fraction * o2MolWeight) +
-        (n2Fraction * n2MolWeight) +
-        (heFraction * heMolWeight);
-
-    // Density at surface (1 bar)
-    final surfaceDensity = avgMolWeight / molarVolume;
-
-    return depths.map((depth) {
+    return List<double>.generate(depths.length, (i) {
+      final avgMolWeight =
+          (o2Fractions[i] * o2MolWeight) +
+          (n2Fractions[i] * n2MolWeight) +
+          (heFractions[i] * heMolWeight);
+      final surfaceDensity = avgMolWeight / molarVolume;
+      final depth = depths[i];
       final ambientPressure = 1.0 + (depth / 10.0);
       return surfaceDensity * ambientPressure;
-    }).toList();
+    });
+  }
+
+  ProfileGasSegment _activeGasSegmentAtTimestamp(
+    int timestamp,
+    List<ProfileGasSegment> gasSegments,
+  ) {
+    var active = gasSegments.first;
+    for (final segment in gasSegments) {
+      if (segment.startTimestamp <= timestamp) {
+        active = segment;
+      } else {
+        break;
+      }
+    }
+    return active;
+  }
+
+  double _interpolateDepth({
+    required int startTimestamp,
+    required int endTimestamp,
+    required double startDepth,
+    required double endDepth,
+    required int targetTimestamp,
+  }) {
+    if (endTimestamp == startTimestamp) {
+      return endDepth;
+    }
+
+    final progress =
+        (targetTimestamp - startTimestamp) / (endTimestamp - startTimestamp);
+    return startDepth + ((endDepth - startDepth) * progress);
   }
 
   /// Calculate GF99 curve at current depth.

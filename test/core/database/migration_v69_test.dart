@@ -2,6 +2,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
+import 'test_fixtures.dart';
+
 void main() {
   group('Migration v69 - is_shared on trips and dive_sites', () {
     /// Creates an in-memory database at v68 (pre-migration) with the tables the
@@ -101,6 +103,8 @@ void main() {
               " VALUES ('${s.$1}', 'diver1', '${s.$2}', ${s.$3}, ${s.$4})",
             );
           }
+
+          createV71MediaTableRaw(rawDb);
         },
       );
     }
@@ -276,6 +280,8 @@ void main() {
               " created_at, updated_at)"
               " VALUES ('site1', 'diver1', 'Existing Site', 1, $now, $now)",
             );
+
+            createV71MediaTableRaw(rawDb);
           },
         );
 

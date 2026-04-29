@@ -1,22 +1,55 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart'
+    as divers;
+import 'package:submersion/features/divers/domain/entities/diver.dart'
+    as domain;
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class _SettingsNotifier extends StateNotifier<AppSettings>
-    implements SettingsNotifier {
-  _SettingsNotifier() : super(const AppSettings());
+late SharedPreferences _prefs;
+
+class _FakeDiverRepository extends divers.DiverRepository {
+  @override
+  Future<domain.Diver?> getDiverById(String id) async => null;
 
   @override
-  Future<void> setMapStyle(MapStyle style) async =>
-      state = state.copyWith(mapStyle: style);
+  Future<domain.Diver?> getDefaultDiver() async => null;
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  Future<String?> getActiveDiverIdFromSettings() async => null;
+
+  @override
+  Future<void> setActiveDiverIdInSettings(String? diverId) async {}
+}
+
+class _FakeDiverSettingsRepository extends DiverSettingsRepository {
+  @override
+  Future<AppSettings> getOrCreateSettingsForDiver(
+    String diverId, {
+    AppSettings? defaultSettings,
+  }) async {
+    return const AppSettings(notificationsEnabled: false);
+  }
+
+  @override
+  Future<void> updateSettingsForDiver(
+    String diverId,
+    AppSettings settings,
+  ) async {}
+}
+
+class _SettingsNotifier extends SettingsNotifier {
+  _SettingsNotifier(Ref ref) : super(_FakeDiverSettingsRepository(), ref);
 }
 
 /// Generate a simple square-profile dive for testing:
@@ -57,6 +90,194 @@ List<DiveProfilePoint> _generateSquareProfile({
 }
 
 void main() {
+  setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
+    _prefs = await SharedPreferences.getInstance();
+  });
+
+  group('buildProfileGasSegments', () {
+    test('defaults to air when dive has no tanks', () {
+      final dive = Dive(
+        id: 'dive-no-tanks',
+        dateTime: DateTime.utc(2026, 3, 31),
+      );
+
+      final segments = buildProfileGasSegments(dive, const []);
+
+      expect(segments, hasLength(1));
+      expect(segments.single.startTimestamp, equals(0));
+      expect(segments.single.fN2, closeTo(airN2Fraction, 0.000001));
+      expect(segments.single.fHe, closeTo(0.0, 0.000001));
+    });
+
+    test('returns primary tank gas when there are no switches', () {
+      final dive = Dive(
+        id: 'dive-1',
+        dateTime: DateTime.utc(2026, 3, 31),
+        tanks: const [DiveTank(id: 'tank-air', gasMix: GasMix(o2: 21, he: 0))],
+      );
+
+      final segments = buildProfileGasSegments(dive, const []);
+
+      expect(segments, hasLength(1));
+      expect(segments.single.startTimestamp, equals(0));
+      expect(segments.single.fN2, closeTo(airN2Fraction, 0.000001));
+      expect(segments.single.fHe, closeTo(0.0, 0.000001));
+    });
+
+    test(
+      'prefers backgas over the first tank when tanks are ordered oddly',
+      () {
+        final dive = Dive(
+          id: 'dive-role-order',
+          dateTime: DateTime.utc(2026, 3, 31),
+          tanks: const [
+            DiveTank(
+              id: 'tank-stage',
+              role: TankRole.stage,
+              gasMix: GasMix(o2: 50, he: 0),
+            ),
+            DiveTank(
+              id: 'tank-backgas',
+              role: TankRole.backGas,
+              gasMix: GasMix(o2: 21, he: 0),
+            ),
+          ],
+        );
+
+        final segments = buildProfileGasSegments(dive, const []);
+
+        expect(segments, hasLength(1));
+        expect(segments.single.startTimestamp, equals(0));
+        expect(segments.single.fN2, closeTo(airN2Fraction, 0.000001));
+        expect(segments.single.fHe, closeTo(0.0, 0.000001));
+      },
+    );
+
+    test('adds sorted switch segments using switch tank gas mixes', () {
+      final dive = Dive(
+        id: 'dive-2',
+        dateTime: DateTime.utc(2026, 3, 31),
+        tanks: const [
+          DiveTank(id: 'tank-air', gasMix: GasMix(o2: 21, he: 0)),
+          DiveTank(id: 'tank-ean32', gasMix: GasMix(o2: 32, he: 0)),
+          DiveTank(id: 'tank-tx50', gasMix: GasMix(o2: 50, he: 0)),
+        ],
+      );
+
+      final switches = [
+        GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: 'switch-2',
+            diveId: dive.id,
+            timestamp: 1200,
+            tankId: 'tank-tx50',
+            createdAt: DateTime.utc(2026, 3, 31),
+          ),
+          tankName: '50%',
+          gasMix: 'EAN50',
+          o2Fraction: 0.50,
+        ),
+        GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: 'switch-1',
+            diveId: dive.id,
+            timestamp: 600,
+            tankId: 'tank-ean32',
+            createdAt: DateTime.utc(2026, 3, 31),
+          ),
+          tankName: '32%',
+          gasMix: 'EAN32',
+          o2Fraction: 0.32,
+        ),
+      ];
+
+      final segments = buildProfileGasSegments(dive, switches);
+
+      expect(segments, hasLength(3));
+      expect(segments[0].startTimestamp, equals(0));
+      expect(segments[0].fN2, closeTo(airN2Fraction, 0.000001));
+      expect(segments[1].startTimestamp, equals(600));
+      expect(segments[1].fN2, closeTo(0.68, 0.000001));
+      expect(segments[2].startTimestamp, equals(1200));
+      expect(segments[2].fN2, closeTo(0.5, 0.000001));
+    });
+
+    test('later switch replaces earlier one at the same timestamp', () {
+      final dive = Dive(
+        id: 'dive-same-time',
+        dateTime: DateTime.utc(2026, 3, 31),
+        tanks: const [
+          DiveTank(id: 'tank-air', gasMix: GasMix(o2: 21, he: 0)),
+          DiveTank(id: 'tank-ean32', gasMix: GasMix(o2: 32, he: 0)),
+          DiveTank(id: 'tank-ean50', gasMix: GasMix(o2: 50, he: 0)),
+        ],
+      );
+
+      final segments = buildProfileGasSegments(dive, [
+        GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: 'switch-1',
+            diveId: dive.id,
+            timestamp: 600,
+            tankId: 'tank-ean32',
+            createdAt: DateTime.utc(2026, 3, 31),
+          ),
+          tankName: '32%',
+          gasMix: 'EAN32',
+          o2Fraction: 0.32,
+        ),
+        GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: 'switch-2',
+            diveId: dive.id,
+            timestamp: 600,
+            tankId: 'tank-ean50',
+            createdAt: DateTime.utc(2026, 3, 31),
+          ),
+          tankName: '50%',
+          gasMix: 'EAN50',
+          o2Fraction: 0.50,
+        ),
+      ]);
+
+      expect(segments, hasLength(2));
+      expect(segments[1].startTimestamp, equals(600));
+      expect(segments[1].fN2, closeTo(0.5, 0.000001));
+      expect(segments[1].fHe, closeTo(0.0, 0.000001));
+    });
+
+    test('treats an existing default-air tank as an air segment', () {
+      final dive = Dive(
+        id: 'dive-air-default',
+        dateTime: DateTime.utc(2026, 3, 31),
+        tanks: const [
+          DiveTank(id: 'tank-1', gasMix: GasMix()),
+          DiveTank(id: 'tank-2', gasMix: GasMix()),
+        ],
+      );
+
+      final segments = buildProfileGasSegments(dive, [
+        GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: 'switch-air',
+            diveId: dive.id,
+            timestamp: 300,
+            tankId: 'tank-2',
+            createdAt: DateTime.utc(2026, 3, 31),
+          ),
+          tankName: 'Backgas 2',
+          gasMix: 'Air',
+          o2Fraction: 0.21,
+          heFraction: 0.0,
+        ),
+      ]);
+
+      expect(segments, hasLength(2));
+      expect(segments[1].fN2, closeTo(airN2Fraction, 0.000001));
+    });
+  });
+
   group('ProfileAnalysisService - Gradient Factor override', () {
     test('different GF values produce different NDL curves', () {
       // Conservative GF 30/70
@@ -260,7 +481,7 @@ void main() {
       // Points with computer NDL should use computer value
       expect(result.ndlCurve[150], equals(600));
 
-      // Points without computer NDL should use calculated value
+      // Points without computer NDL should fall back to calculated values
       expect(result.ndlCurve[50], equals(baseAnalysis.ndlCurve[50]));
 
       expect(sourceInfo.ndlActual, MetricDataSource.computer);
@@ -285,7 +506,7 @@ void main() {
       // Points with computer ceiling should use computer value
       expect(result.ceilingCurve[250], closeTo(3.0, 0.001));
 
-      // Points without computer ceiling should use calculated value
+      // Points without computer ceiling should fall back to calculated values
       expect(
         result.ceilingCurve[50],
         closeTo(baseAnalysis.ceilingCurve[50], 0.001),
@@ -313,7 +534,7 @@ void main() {
       // Points with computer TTS should use computer value
       expect(result.ttsCurve![200], equals(120));
 
-      // Points without computer TTS should use calculated value
+      // Points without computer TTS should fall back to calculated values
       expect(result.ttsCurve![50], equals(baseAnalysis.ttsCurve![50]));
 
       expect(sourceInfo.ttsActual, MetricDataSource.computer);
@@ -338,43 +559,40 @@ void main() {
       // Points with computer CNS should use computer value
       expect(result.cnsCurve![150], closeTo(25.0, 0.001));
 
-      // Points without computer CNS should use calculated value
+      // Points without computer CNS should fall back to calculated values
       expect(result.cnsCurve![50], closeTo(baseAnalysis.cnsCurve![50], 0.001));
 
       expect(sourceInfo.cnsActual, MetricDataSource.computer);
     });
 
-    test(
-      'handles mixed computer data - some points have data, some do not',
-      () {
-        // Alternate: every other point has computer NDL
-        final profileMixed = <DiveProfilePoint>[];
-        for (int i = 0; i < baseProfile.length; i++) {
-          if (i % 2 == 0 && i >= 60 && i < 660) {
-            profileMixed.add(baseProfile[i].copyWith(ndl: 777));
-          } else {
-            profileMixed.add(baseProfile[i]);
-          }
+    test('handles mixed computer data - some points have data, some do not', () {
+      // Alternate: every other point has computer NDL
+      final profileMixed = <DiveProfilePoint>[];
+      for (int i = 0; i < baseProfile.length; i++) {
+        if (i % 2 == 0 && i >= 60 && i < 660) {
+          profileMixed.add(baseProfile[i].copyWith(ndl: 777));
+        } else {
+          profileMixed.add(baseProfile[i]);
         }
+      }
 
-        final (result, sourceInfo) = overlayComputerDecoData(
-          baseAnalysis,
-          profileMixed,
-          ndlSource: MetricDataSource.computer,
-          ceilingSource: MetricDataSource.computer,
-          ttsSource: MetricDataSource.computer,
-          cnsSource: MetricDataSource.computer,
-        );
+      final (result, sourceInfo) = overlayComputerDecoData(
+        baseAnalysis,
+        profileMixed,
+        ndlSource: MetricDataSource.computer,
+        ceilingSource: MetricDataSource.computer,
+        ttsSource: MetricDataSource.computer,
+        cnsSource: MetricDataSource.computer,
+      );
 
-        // Even indices in range should have computer value
-        expect(result.ndlCurve[100], equals(777));
+      // Even indices in range should have computer value
+      expect(result.ndlCurve[100], equals(777));
 
-        // Odd indices should use calculated value
-        expect(result.ndlCurve[101], equals(baseAnalysis.ndlCurve[101]));
+      // Odd indices without computer data should fall back to calculated values
+      expect(result.ndlCurve[101], equals(baseAnalysis.ndlCurve[101]));
 
-        expect(sourceInfo.ndlActual, MetricDataSource.computer);
-      },
-    );
+      expect(sourceInfo.ndlActual, MetricDataSource.computer);
+    });
 
     test('overlays multiple curves simultaneously', () {
       final profileMulti = <DiveProfilePoint>[];
@@ -503,7 +721,9 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
-          settingsProvider.overrideWith((ref) => _SettingsNotifier()),
+          sharedPreferencesProvider.overrideWithValue(_prefs),
+          diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
+          settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
         ],
       );
       addTearDown(container.dispose);
@@ -522,7 +742,9 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
-          settingsProvider.overrideWith((ref) => _SettingsNotifier()),
+          sharedPreferencesProvider.overrideWithValue(_prefs),
+          diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
+          settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
         ],
       );
       addTearDown(container.dispose);

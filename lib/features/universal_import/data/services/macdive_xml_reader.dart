@@ -181,11 +181,15 @@ class MacDiveXmlReader {
     return container
         .findElements('sample')
         .map((s) {
-          final timeSec = _int(_text(s, 'time')) ?? 0;
+          // Real MacDive XML formats sample <time> as decimals (e.g.
+          // "10.00") even though the unit is whole seconds, so int.tryParse
+          // returns null and timestamps collapse to 0. Parse as a double and
+          // round to microseconds to accept both formats.
+          final timeSeconds = _double(_text(s, 'time')) ?? 0.0;
           // MacDive emits ndt in minutes per spec; convert to seconds here.
           final ndtMin = _int(_text(s, 'ndt'));
           return MacDiveXmlSample(
-            time: Duration(seconds: timeSec),
+            time: Duration(microseconds: (timeSeconds * 1e6).round()),
             depthMeters: c.depthToMeters(_double(_text(s, 'depth'))),
             pressureBar: c.pressureToBar(_double(_text(s, 'pressure'))),
             temperatureCelsius: c.tempToCelsius(

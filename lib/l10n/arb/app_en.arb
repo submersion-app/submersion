@@ -4835,7 +4835,6 @@
   "media_photoPicker_emptyTitle": "No photos found",
   "media_photoPicker_grantAccessButton": "Continue",
   "media_photoPicker_openSettingsButton": "Open Settings",
-  "media_photoPicker_openSettingsSnackbar": "Please open Settings and enable photo access",
   "media_photoPicker_permissionDeniedMessage": "Photo library access was denied. Please enable it in Settings to add dive photos.",
   "media_photoPicker_permissionRequestMessage": "Submersion needs access to your photo library to add dive photos.",
   "media_photoPicker_permissionTitle": "Photo Access Required",
@@ -4884,7 +4883,12 @@
   "media_scanResults_okButton": "OK",
   "media_scanResults_unknownSite": "Unknown site",
   "media_scanResults_unmatchedWarning": "{count} photos could not be matched to any dive (taken outside dive times)",
+  "media_unavailablePlaceholder_fileNotFound": "File not found",
+  "media_unavailablePlaceholder_fromOtherDevice": "From another device",
+  "media_unavailablePlaceholder_fromOtherDeviceLabel": "From {device}",
+  "media_unavailablePlaceholder_networkError": "Couldn't connect",
   "media_unavailablePlaceholder_notOnDevice": "Not on this device",
+  "media_unavailablePlaceholder_signInRequired": "Sign in to view",
   "media_writeMetadata_cancelButton": "Cancel",
   "media_writeMetadata_depthLabel": "Depth",
   "media_writeMetadata_descriptionPhoto": "The following metadata will be written to the photo:",
@@ -5114,6 +5118,13 @@
     "placeholders": {
       "count": {
         "type": "Object"
+      }
+    }
+  },
+  "@media_unavailablePlaceholder_fromOtherDeviceLabel": {
+    "placeholders": {
+      "device": {
+        "type": "String"
       }
     }
   },

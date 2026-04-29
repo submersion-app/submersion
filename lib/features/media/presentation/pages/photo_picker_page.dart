@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:photo_manager/photo_manager.dart' as pm;
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 
@@ -109,31 +112,68 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(photoPickerNotifierProvider);
-    final colorScheme = Theme.of(context).colorScheme;
+    final showHiddenTabs = ref.watch(mediaPickerHiddenTabsProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          tooltip: context.l10n.media_photoPicker_closeTooltip,
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(context.l10n.media_photoPicker_appBarTitle),
-        actions: [
-          TextButton(
-            onPressed: state.selectionCount > 0 ? _handleDone : null,
-            child: Text(
-              state.selectionCount > 0
-                  ? context.l10n.media_photoPicker_doneCountButton(
-                      state.selectionCount,
-                    )
-                  : context.l10n.media_photoPicker_doneButton,
-            ),
-          ),
-        ],
-      ),
-      body: _buildBody(context, state, colorScheme),
+    final appBarLeading = IconButton(
+      icon: const Icon(Icons.close),
+      tooltip: context.l10n.media_photoPicker_closeTooltip,
+      onPressed: () => Navigator.of(context).pop(),
     );
+    final appBarActions = [
+      TextButton(
+        onPressed: state.selectionCount > 0 ? _handleDone : null,
+        child: Text(
+          state.selectionCount > 0
+              ? context.l10n.media_photoPicker_doneCountButton(
+                  state.selectionCount,
+                )
+              : context.l10n.media_photoPicker_doneButton,
+        ),
+      ),
+    ];
+
+    if (!showHiddenTabs) {
+      return Scaffold(
+        appBar: AppBar(
+          leading: appBarLeading,
+          title: Text(context.l10n.media_photoPicker_appBarTitle),
+          actions: appBarActions,
+        ),
+        body: _galleryTab(context),
+      );
+    }
+
+    // TODO(media): localize tab labels when phases 2/3 ship
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: appBarLeading,
+          title: Text(context.l10n.media_photoPicker_appBarTitle),
+          actions: appBarActions,
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Gallery'),
+              Tab(text: 'Files'),
+              Tab(text: 'URL'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            _galleryTab(context),
+            const FilesTab(),
+            const _PlaceholderTab(message: 'Coming in Phase 3'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _galleryTab(BuildContext context) {
+    final state = ref.watch(photoPickerNotifierProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+    return _buildBody(context, state, colorScheme);
   }
 
   Set<int> _computeSelectedIndices(Set<String> selectedIds) {
@@ -600,18 +640,7 @@ class _PermissionDeniedView extends StatelessWidget {
             const SizedBox(height: 24),
             if (isPermanentlyDenied)
               FilledButton(
-                onPressed: () {
-                  // Open app settings
-                  // Note: This requires platform-specific handling
-                  // For now, just show a message
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        context.l10n.media_photoPicker_openSettingsSnackbar,
-                      ),
-                    ),
-                  );
-                },
+                onPressed: () => pm.PhotoManager.openSetting(),
                 child: Text(context.l10n.media_photoPicker_openSettingsButton),
               )
             else
@@ -649,4 +678,26 @@ Future<List<AssetInfo>?> showPhotoPicker({
       ),
     ),
   );
+}
+
+/// Placeholder shown in the Files and URL tabs while those features are
+/// pending (Phase 2 / Phase 3). Visible only when the debug toggle
+/// [mediaPickerHiddenTabsProvider] is enabled.
+class _PlaceholderTab extends StatelessWidget {
+  const _PlaceholderTab({required this.message});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ),
+    );
+  }
 }

@@ -6,13 +6,15 @@
 import 'dart:async' as _i5;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:submersion/features/dive_log/domain/entities/dive.dart' as _i6;
+import 'package:submersion/features/dive_log/domain/entities/dive.dart' as _i7;
 import 'package:submersion/features/media/data/repositories/media_repository.dart'
     as _i4;
 import 'package:submersion/features/media/data/services/enrichment_service.dart'
     as _i3;
 import 'package:submersion/features/media/domain/entities/media_item.dart'
     as _i2;
+import 'package:submersion/features/media/domain/entities/media_source_type.dart'
+    as _i6;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -122,6 +124,18 @@ class MockMediaRepository extends _i1.Mock implements _i4.MediaRepository {
           as _i5.Future<void>);
 
   @override
+  _i5.Future<List<_i2.MediaItem>> getAllBySourceType(
+    _i6.MediaSourceType? sourceType,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getAllBySourceType, [sourceType]),
+            returnValue: _i5.Future<List<_i2.MediaItem>>.value(
+              <_i2.MediaItem>[],
+            ),
+          )
+          as _i5.Future<List<_i2.MediaItem>>);
+
+  @override
   _i5.Future<List<_i2.MediaItem>> getOrphanedMedia() =>
       (super.noSuchMethod(
             Invocation.method(#getOrphanedMedia, []),
@@ -218,7 +232,7 @@ class MockEnrichmentService extends _i1.Mock implements _i3.EnrichmentService {
 
   @override
   _i3.EnrichmentResult calculateEnrichment({
-    required List<_i6.DiveProfilePoint>? profile,
+    required List<_i7.DiveProfilePoint>? profile,
     required DateTime? diveStartTime,
     required DateTime? photoTime,
   }) =>

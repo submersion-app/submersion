@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:equatable/equatable.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 /// Type of media (photo, video, instructor signature)
 enum MediaType {
@@ -78,6 +81,16 @@ class MediaItem extends Equatable {
   final bool isOrphaned;
   final String? signerId;
   final String? signerName;
+  final Uint8List? imageData;
+  final MediaSourceType sourceType;
+  final String? localPath;
+  final String? bookmarkRef;
+  final String? url;
+  final String? subscriptionId;
+  final String? entryKey;
+  final String? connectorAccountId;
+  final String? remoteAssetId;
+  final String? originDeviceId;
   final DateTime createdAt;
   final DateTime updatedAt;
   final MediaEnrichment? enrichment;
@@ -104,6 +117,16 @@ class MediaItem extends Equatable {
     this.isOrphaned = false,
     this.signerId,
     this.signerName,
+    this.imageData,
+    this.sourceType = MediaSourceType.platformGallery,
+    this.localPath,
+    this.bookmarkRef,
+    this.url,
+    this.subscriptionId,
+    this.entryKey,
+    this.connectorAccountId,
+    this.remoteAssetId,
+    this.originDeviceId,
     required this.createdAt,
     required this.updatedAt,
     this.enrichment,
@@ -145,6 +168,16 @@ class MediaItem extends Equatable {
     bool? isOrphaned,
     Object? signerId = _undefined,
     Object? signerName = _undefined,
+    Object? imageData = _undefined,
+    MediaSourceType? sourceType,
+    Object? localPath = _undefined,
+    Object? bookmarkRef = _undefined,
+    Object? url = _undefined,
+    Object? subscriptionId = _undefined,
+    Object? entryKey = _undefined,
+    Object? connectorAccountId = _undefined,
+    Object? remoteAssetId = _undefined,
+    Object? originDeviceId = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
     Object? enrichment = _undefined,
@@ -187,6 +220,30 @@ class MediaItem extends Equatable {
       signerName: signerName == _undefined
           ? this.signerName
           : signerName as String?,
+      imageData: imageData == _undefined
+          ? this.imageData
+          : imageData as Uint8List?,
+      sourceType: sourceType ?? this.sourceType,
+      localPath: localPath == _undefined
+          ? this.localPath
+          : localPath as String?,
+      bookmarkRef: bookmarkRef == _undefined
+          ? this.bookmarkRef
+          : bookmarkRef as String?,
+      url: url == _undefined ? this.url : url as String?,
+      subscriptionId: subscriptionId == _undefined
+          ? this.subscriptionId
+          : subscriptionId as String?,
+      entryKey: entryKey == _undefined ? this.entryKey : entryKey as String?,
+      connectorAccountId: connectorAccountId == _undefined
+          ? this.connectorAccountId
+          : connectorAccountId as String?,
+      remoteAssetId: remoteAssetId == _undefined
+          ? this.remoteAssetId
+          : remoteAssetId as String?,
+      originDeviceId: originDeviceId == _undefined
+          ? this.originDeviceId
+          : originDeviceId as String?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       enrichment: enrichment == _undefined
@@ -218,6 +275,16 @@ class MediaItem extends Equatable {
     isOrphaned,
     signerId,
     signerName,
+    imageData,
+    sourceType,
+    localPath,
+    bookmarkRef,
+    url,
+    subscriptionId,
+    entryKey,
+    connectorAccountId,
+    remoteAssetId,
+    originDeviceId,
     createdAt,
     updatedAt,
     enrichment,

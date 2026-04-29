@@ -2,6 +2,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
+import 'test_fixtures.dart';
+
 /// Tests for the v57 -> v58 migration that converts pressure columns
 /// from INTEGER to REAL in dive_tanks and tank_presets tables.
 void main() {
@@ -124,6 +126,8 @@ void main() {
             INSERT INTO tank_presets (id, diver_id, name, display_name, volume_liters, working_pressure_bar, material, created_at, updated_at)
             VALUES ('p1', 'diver1', 'custom', 'Custom', 12.0, 232, 'steel', 0, 0)
           ''');
+
+          createV71MediaTableRaw(rawDb);
         },
       );
 

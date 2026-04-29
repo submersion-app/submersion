@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 
@@ -101,14 +102,14 @@ void main() {
     group('calculateEnd', () {
       test('should calculate END for air dive', () {
         // Air at 30m: END should equal actual depth (no advantage)
-        final end = O2ToxicityCalculator.calculateEnd(30, 0.79);
+        final end = O2ToxicityCalculator.calculateEnd(30, airN2Fraction);
         expect(end, closeTo(30, 0.5));
       });
 
       test('should calculate reduced END for trimix', () {
         // Trimix 18/45 at 60m (45% He, 37% N2)
         // N2 pressure at 60m = 7.0 * 0.37 = 2.59 bar
-        // END = (2.59 / 0.79 - 1) * 10 = 22.8m
+        // END = (2.59 / air N2 fraction - 1) * 10 = 22.8m
         final end = O2ToxicityCalculator.calculateEnd(60, 0.37);
         expect(end, closeTo(22.8, 1.0));
       });

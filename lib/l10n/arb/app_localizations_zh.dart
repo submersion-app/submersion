@@ -8710,9 +8710,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => '打开设置';
 
   @override
-  String get media_photoPicker_openSettingsSnackbar => '请打开设置并启用照片访问权限';
-
-  @override
   String get media_photoPicker_permissionDeniedMessage =>
       '照片库访问被拒绝。请在设置中启用以添加潜水照片。';
 
@@ -8883,7 +8880,25 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get media_unavailablePlaceholder_fileNotFound => 'File not found';
+
+  @override
+  String get media_unavailablePlaceholder_fromOtherDevice =>
+      'From another device';
+
+  @override
+  String media_unavailablePlaceholder_fromOtherDeviceLabel(String device) {
+    return 'From $device';
+  }
+
+  @override
+  String get media_unavailablePlaceholder_networkError => 'Couldn\'t connect';
+
+  @override
   String get media_unavailablePlaceholder_notOnDevice => '不在此设备上';
+
+  @override
+  String get media_unavailablePlaceholder_signInRequired => 'Sign in to view';
 
   @override
   String get media_writeMetadata_cancelButton => '取消';

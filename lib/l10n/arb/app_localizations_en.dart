@@ -8956,10 +8956,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => 'Open Settings';
 
   @override
-  String get media_photoPicker_openSettingsSnackbar =>
-      'Please open Settings and enable photo access';
-
-  @override
   String get media_photoPicker_permissionDeniedMessage =>
       'Photo library access was denied. Please enable it in Settings to add dive photos.';
 
@@ -9139,7 +9135,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get media_unavailablePlaceholder_fileNotFound => 'File not found';
+
+  @override
+  String get media_unavailablePlaceholder_fromOtherDevice =>
+      'From another device';
+
+  @override
+  String media_unavailablePlaceholder_fromOtherDeviceLabel(String device) {
+    return 'From $device';
+  }
+
+  @override
+  String get media_unavailablePlaceholder_networkError => 'Couldn\'t connect';
+
+  @override
   String get media_unavailablePlaceholder_notOnDevice => 'Not on this device';
+
+  @override
+  String get media_unavailablePlaceholder_signInRequired => 'Sign in to view';
 
   @override
   String get media_writeMetadata_cancelButton => 'Cancel';

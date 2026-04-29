@@ -8,6 +8,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart'
     as domain;
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 class MediaRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -73,12 +74,31 @@ class MediaRepository {
     }
   }
 
+  /// Returns the device ID to record on a new MediaItem, or null if the
+  /// source type is device-portable (gallery, URL, manifest, signature).
+  ///
+  /// Caller-provided originDeviceId is always preserved.
+  Future<String?> _effectiveOriginDeviceId(domain.MediaItem item) async {
+    if (item.originDeviceId != null) return item.originDeviceId;
+    switch (item.sourceType) {
+      case MediaSourceType.localFile:
+      case MediaSourceType.serviceConnector:
+        return _syncRepository.getDeviceId();
+      case MediaSourceType.platformGallery:
+      case MediaSourceType.networkUrl:
+      case MediaSourceType.manifestEntry:
+      case MediaSourceType.signature:
+        return null;
+    }
+  }
+
   /// Create new media, generate UUID if id is empty
   Future<domain.MediaItem> createMedia(domain.MediaItem item) async {
     try {
       _log.info('Creating media: ${item.filePath}');
       final id = item.id.isEmpty ? _uuid.v4() : item.id;
       final now = DateTime.now();
+      final effectiveDeviceId = await _effectiveOriginDeviceId(item);
 
       await _db
           .into(_db.media)
@@ -108,6 +128,16 @@ class MediaRepository {
               isOrphaned: Value(item.isOrphaned),
               signerId: Value(item.signerId),
               signerName: Value(item.signerName),
+              imageData: Value(item.imageData),
+              sourceType: Value(item.sourceType.name),
+              localPath: Value(item.localPath),
+              bookmarkRef: Value(item.bookmarkRef),
+              url: Value(item.url),
+              subscriptionId: Value(item.subscriptionId),
+              entryKey: Value(item.entryKey),
+              connectorAccountId: Value(item.connectorAccountId),
+              remoteAssetId: Value(item.remoteAssetId),
+              originDeviceId: Value(effectiveDeviceId),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -121,7 +151,12 @@ class MediaRepository {
       SyncEventBus.notifyLocalChange();
 
       _log.info('Created media with id: $id');
-      return item.copyWith(id: id, createdAt: now, updatedAt: now);
+      return item.copyWith(
+        id: id,
+        createdAt: now,
+        updatedAt: now,
+        originDeviceId: effectiveDeviceId,
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to create media: ${item.filePath}',
@@ -161,6 +196,16 @@ class MediaRepository {
           isOrphaned: Value(item.isOrphaned),
           signerId: Value(item.signerId),
           signerName: Value(item.signerName),
+          imageData: Value(item.imageData),
+          sourceType: Value(item.sourceType.name),
+          localPath: Value(item.localPath),
+          bookmarkRef: Value(item.bookmarkRef),
+          url: Value(item.url),
+          subscriptionId: Value(item.subscriptionId),
+          entryKey: Value(item.entryKey),
+          connectorAccountId: Value(item.connectorAccountId),
+          remoteAssetId: Value(item.remoteAssetId),
+          originDeviceId: Value(item.originDeviceId),
           updatedAt: Value(now),
         ),
       );
@@ -275,6 +320,39 @@ class MediaRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to mark media as verified: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Get all media items with the given [sourceType].
+  /// Includes enrichment data (depth, temperature) if available.
+  ///
+  /// Used by Settings → Media Sources subsections to enumerate items per
+  /// source type (e.g., the Local files diagnostics view counts orphaned
+  /// vs. available items here).
+  Future<List<domain.MediaItem>> getAllBySourceType(
+    MediaSourceType sourceType,
+  ) async {
+    try {
+      final query = _db.select(_db.media).join([
+        leftOuterJoin(
+          _db.mediaEnrichment,
+          _db.mediaEnrichment.mediaId.equalsExp(_db.media.id),
+        ),
+      ])..where(_db.media.sourceType.equals(sourceType.name));
+
+      final rows = await query.get();
+      return rows.map((row) {
+        final mediaRow = row.readTable(_db.media);
+        final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
+        return _mapRowToMediaItem(mediaRow, enrichmentRow);
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get media by source type: ${sourceType.name}',
         error: e,
         stackTrace: stackTrace,
       );
@@ -607,6 +685,18 @@ class MediaRepository {
       isOrphaned: row.isOrphaned,
       signerId: row.signerId,
       signerName: row.signerName,
+      imageData: row.imageData,
+      sourceType:
+          MediaSourceType.fromString(row.sourceType) ??
+          MediaSourceType.platformGallery,
+      localPath: row.localPath,
+      bookmarkRef: row.bookmarkRef,
+      url: row.url,
+      subscriptionId: row.subscriptionId,
+      entryKey: row.entryKey,
+      connectorAccountId: row.connectorAccountId,
+      remoteAssetId: row.remoteAssetId,
+      originDeviceId: row.originDeviceId,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
       enrichment: enrichmentRow != null

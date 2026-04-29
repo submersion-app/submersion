@@ -2,6 +2,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
+import 'test_fixtures.dart';
+
 /// Tests for the v58 -> v59 migration that copies legacy pressure data
 /// from dive_profiles.pressure into tank_pressure_profiles.
 void main() {
@@ -97,6 +99,8 @@ void main() {
               pressure, is_primary)
             VALUES ('p4', 'd1', 180, 10.0, NULL, 1)
           ''');
+
+            createV71MediaTableRaw(rawDb);
           },
         );
 
@@ -194,6 +198,8 @@ void main() {
               pressure, is_primary)
             VALUES ('p1', 'd-no-tank', 0, 0.0, 200.0, 1)
           ''');
+
+          createV71MediaTableRaw(rawDb);
         },
       );
 
@@ -289,6 +295,8 @@ void main() {
               timestamp, pressure)
             VALUES ('existing-tpp', 'd-existing', 't1', 0, 200.0)
           ''');
+
+          createV71MediaTableRaw(rawDb);
         },
       );
 
@@ -385,6 +393,8 @@ void main() {
               pressure, is_primary)
             VALUES ('p1', 'd-multi', 0, 0.0, 200.0, 1)
           ''');
+
+          createV71MediaTableRaw(rawDb);
         },
       );
 
