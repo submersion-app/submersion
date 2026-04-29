@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
@@ -88,31 +89,9 @@ class JsonManifestParser {
     );
   }
 
-  // Matches a trailing `Z` or `+hh:mm` / `-hh:mm` / `+hhmm` / `-hhmm`
-  // offset on an ISO-8601 timestamp. Used to detect "no offset given" so
-  // we can reinterpret as UTC rather than shifting from local time.
-  static final RegExp _isoOffset = RegExp(r'(Z|[+\-]\d{2}:?\d{2})$');
-
   static DateTime? _parseTakenAt(Object? value) {
     if (value is! String || value.isEmpty) return null;
-    final parsed = DateTime.tryParse(value);
-    if (parsed == null) return null;
-    if (parsed.isUtc) return parsed;
-    if (_isoOffset.hasMatch(value)) {
-      // Has a zone offset; convert to UTC.
-      return parsed.toUtc();
-    }
-    // No offset: reinterpret wall-clock as UTC per manifest_json_v1 spec.
-    return DateTime.utc(
-      parsed.year,
-      parsed.month,
-      parsed.day,
-      parsed.hour,
-      parsed.minute,
-      parsed.second,
-      parsed.millisecond,
-      parsed.microsecond,
-    );
+    return parseExternalDateAsWallClockUtc(value);
   }
 
   static double? _asDouble(Object? v) {

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
@@ -83,11 +84,6 @@ class AtomManifestParser {
 
   // --- helpers ---
 
-  // Matches a trailing `Z` or `+hh:mm` / `-hh:mm` / `+hhmm` / `-hhmm`
-  // offset on an ISO-8601 timestamp. Used to detect "no offset given" so
-  // we can reinterpret as UTC rather than shifting from local time.
-  static final RegExp _isoOffset = RegExp(r'(Z|[+\-]\d{2}:?\d{2})$');
-
   static String _localName(XmlElement el) => el.name.local;
 
   static XmlElement? _rssChannel(XmlElement rssRoot) =>
@@ -149,12 +145,12 @@ class AtomManifestParser {
   static DateTime? _extractTakenAt(XmlElement entry) {
     final published = _firstText(entry, 'published');
     if (published != null) {
-      final parsed = _parseIso8601AsUtc(published);
+      final parsed = parseExternalDateAsWallClockUtc(published);
       if (parsed != null) return parsed;
     }
     final updated = _firstText(entry, 'updated');
     if (updated != null) {
-      final parsed = _parseIso8601AsUtc(updated);
+      final parsed = parseExternalDateAsWallClockUtc(updated);
       if (parsed != null) return parsed;
     }
     final pubDate = _firstText(entry, 'pubDate');
@@ -163,34 +159,6 @@ class AtomManifestParser {
       if (parsed != null) return parsed.toUtc();
     }
     return null;
-  }
-
-  /// Parses an ISO 8601 string and returns it as UTC.
-  ///
-  /// If the input has a zone designator (`Z` or `±HH:MM` / `±HHMM`),
-  /// the result is converted to UTC, preserving the absolute moment.
-  /// If the input has no offset, the wall-clock components are
-  /// reinterpreted as UTC (matching the manifest_json_v1 spec — feeds
-  /// without offsets are assumed to be local-time-as-UTC).
-  static DateTime? _parseIso8601AsUtc(String value) {
-    final parsed = DateTime.tryParse(value);
-    if (parsed == null) return null;
-    if (parsed.isUtc) return parsed;
-    if (_isoOffset.hasMatch(value)) {
-      // Has a zone offset; convert to UTC.
-      return parsed.toUtc();
-    }
-    // No offset: reinterpret wall-clock as UTC.
-    return DateTime.utc(
-      parsed.year,
-      parsed.month,
-      parsed.day,
-      parsed.hour,
-      parsed.minute,
-      parsed.second,
-      parsed.millisecond,
-      parsed.microsecond,
-    );
   }
 
   static double? _extractLat(XmlElement entry) {
