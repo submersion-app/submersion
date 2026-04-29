@@ -121,4 +121,12 @@ class NetworkCredentialsService {
   /// Returns all stored credential-host rows. Used by the Settings page
   /// (Phase 3c) to render the credentials list.
   Future<List<NetworkCredentialHost>> list() => _repo.list();
+
+  /// Updates the `displayName` for the row identified by [id]. Pass `null`
+  /// to clear it. The secret blob in secure storage is left untouched.
+  ///
+  /// Phase 3c seam: needed by the Saved hosts card's Edit action (Task 6)
+  /// so users can rename a credential without re-typing username/password.
+  Future<void> updateDisplayName(String id, String? displayName) =>
+      _repo.updateDisplayName(id, displayName);
 }

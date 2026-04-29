@@ -85,4 +85,18 @@ class NetworkCredentialsRepository {
       ),
     );
   }
+
+  /// Updates the `displayName` for the row identified by [id]. Pass `null`
+  /// to clear the display name. No-op if the row does not exist.
+  ///
+  /// Phase 3c seam: needed by the Saved hosts card's Edit action so the user
+  /// can rename a credential without re-supplying their secret. The schema
+  /// `display_name` column is nullable, so passing `null` is meaningful.
+  Future<void> updateDisplayName(String id, String? displayName) async {
+    await (_db.update(
+      _db.networkCredentialHosts,
+    )..where((t) => t.id.equals(id))).write(
+      NetworkCredentialHostsCompanion(displayName: Value(displayName)),
+    );
+  }
 }
