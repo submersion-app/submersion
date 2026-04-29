@@ -75,6 +75,34 @@ class SubscriptionPoller {
   final NetworkFetchPipeline pipeline;
   final _log = LoggerService.forClass(SubscriptionPoller);
 
+  /// Poll a single subscription right now, ignoring its `nextPollAt`.
+  /// Returns `true` if the subscription was found and polled (success, 304,
+  /// or recorded failure), `false` if no row matches [subscriptionId].
+  ///
+  /// Phase 3c seam: needed by the Manifest subscriptions card's "Poll now"
+  /// action (Task 7). Mirrors the same error-isolation as [pollAllDue] —
+  /// the user can re-trigger from the UI if a transient error occurs.
+  Future<bool> pollNow(String subscriptionId, DateTime now) async {
+    final sub = await subscriptions.getById(subscriptionId);
+    if (sub == null) return false;
+    try {
+      await _pollOne(sub, now);
+    } catch (e, st) {
+      _log.error('pollNow failed: $subscriptionId', error: e, stackTrace: st);
+      try {
+        await subscriptions.recordPollFailure(
+          sub.id,
+          pollIntervalSeconds: sub.pollIntervalSeconds,
+          error: '$e',
+          now: now,
+        );
+      } catch (_) {
+        // Already in error path; swallow secondary failure.
+      }
+    }
+    return true;
+  }
+
   /// Run one polling cycle. Returns the number of subscriptions visited
   /// (success + 304 + failure all counted). The caller is responsible for
   /// scheduling the next cycle (Task 12).

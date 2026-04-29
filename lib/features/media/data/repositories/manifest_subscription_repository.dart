@@ -295,6 +295,40 @@ class ManifestSubscriptionRepository {
     }
   }
 
+  /// Updates the manifest URL and/or display name for the row identified by
+  /// [id]. Pass `null` for [displayName] to clear it. The synced row's
+  /// `updatedAt` timestamp is bumped on every call.
+  ///
+  /// Phase 3c seam: needed by the Manifest subscriptions card's Edit action
+  /// (Task 7) so users can fix a typo'd URL or rename a subscription
+  /// without re-creating the row (which would lose all per-device polling
+  /// state and orphan every imported entry).
+  Future<void> updateUrlAndDisplayName(
+    String id, {
+    required String manifestUrl,
+    required String? displayName,
+  }) async {
+    try {
+      final nowMs = DateTime.now().toUtc().millisecondsSinceEpoch;
+      await (_db.update(
+        _db.mediaSubscriptions,
+      )..where((t) => t.id.equals(id))).write(
+        MediaSubscriptionsCompanion(
+          manifestUrl: Value(manifestUrl),
+          displayName: Value(displayName),
+          updatedAt: Value(nowMs),
+        ),
+      );
+    } catch (e, st) {
+      _log.error(
+        'updateUrlAndDisplayName failed: $id',
+        error: e,
+        stackTrace: st,
+      );
+      rethrow;
+    }
+  }
+
   Future<void> deleteById(String id) async {
     try {
       await _db.transaction(() async {
