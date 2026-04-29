@@ -214,4 +214,83 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test(
+    'headersFor returns null on corrupted JSON blob (and deletes the key)',
+    () async {
+      when(
+        storage.read(key: 'media_network_cred_example.com'),
+      ).thenAnswer((_) async => 'not-json{');
+
+      final headers = await service.headersFor(
+        Uri.parse('https://example.com/x'),
+      );
+      expect(headers, isNull);
+      verify(storage.delete(key: 'media_network_cred_example.com')).called(1);
+    },
+  );
+
+  test(
+    'headersFor returns null on missing authType field (and deletes the key)',
+    () async {
+      final blob = jsonEncode({'username': 'eric', 'password': 'hunter2'});
+      when(
+        storage.read(key: 'media_network_cred_example.com'),
+      ).thenAnswer((_) async => blob);
+
+      final headers = await service.headersFor(
+        Uri.parse('https://example.com/x'),
+      );
+      expect(headers, isNull);
+      verify(storage.delete(key: 'media_network_cred_example.com')).called(1);
+    },
+  );
+
+  test(
+    'headersFor returns null on basic with missing username (and deletes the key)',
+    () async {
+      final blob = jsonEncode({'authType': 'basic', 'password': 'hunter2'});
+      when(
+        storage.read(key: 'media_network_cred_example.com'),
+      ).thenAnswer((_) async => blob);
+
+      final headers = await service.headersFor(
+        Uri.parse('https://example.com/x'),
+      );
+      expect(headers, isNull);
+      verify(storage.delete(key: 'media_network_cred_example.com')).called(1);
+    },
+  );
+
+  test(
+    'headersFor returns null on bearer with missing token (and deletes the key)',
+    () async {
+      final blob = jsonEncode({'authType': 'bearer'});
+      when(
+        storage.read(key: 'media_network_cred_example.com'),
+      ).thenAnswer((_) async => blob);
+
+      final headers = await service.headersFor(
+        Uri.parse('https://example.com/x'),
+      );
+      expect(headers, isNull);
+      verify(storage.delete(key: 'media_network_cred_example.com')).called(1);
+    },
+  );
+
+  test(
+    'headersFor returns null on unknown authType (and deletes the key)',
+    () async {
+      final blob = jsonEncode({'authType': 'mystery', 'token': 'abc'});
+      when(
+        storage.read(key: 'media_network_cred_example.com'),
+      ).thenAnswer((_) async => blob);
+
+      final headers = await service.headersFor(
+        Uri.parse('https://example.com/x'),
+      );
+      expect(headers, isNull);
+      verify(storage.delete(key: 'media_network_cred_example.com')).called(1);
+    },
+  );
 }

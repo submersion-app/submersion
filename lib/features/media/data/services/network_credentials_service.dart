@@ -83,28 +83,65 @@ class NetworkCredentialsService {
 
   /// Returns the `Authorization`-bearing header map for [uri]'s host, or
   /// `null` if no credentials are stored for that host (or the secret
-  /// blob is missing). Successful lookups are cached and bump the
-  /// `lastUsedAt` timestamp on the underlying row.
+  /// blob is missing / corrupted / from a stale schema). Successful
+  /// lookups are cached and bump the `lastUsedAt` timestamp on the
+  /// underlying row.
+  ///
+  /// Tolerates malformed blobs: any decode failure or missing/wrong-type
+  /// field deletes the offending key (so the user is prompted to re-enter
+  /// credentials) and returns `null` rather than letting the exception
+  /// propagate into network fetches and break URL/manifest imports.
   Future<Map<String, String>?> headersFor(Uri uri) async {
     final host = uri.host;
     final cached = _headerCache[host];
     if (cached != null) return cached;
     final raw = await _storage.read(key: _keyPrefix + host);
     if (raw == null) return null;
-    final map = (jsonDecode(raw) as Map).cast<String, dynamic>();
-    final headers = <String, String>{};
-    if (map['authType'] == 'basic') {
-      final token = base64Encode(
-        utf8.encode('${map['username']}:${map['password']}'),
-      );
-      headers['Authorization'] = 'Basic $token';
-    } else if (map['authType'] == 'bearer') {
-      headers['Authorization'] = 'Bearer ${map['token']}';
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) {
+        await _storage.delete(key: _keyPrefix + host);
+        _headerCache.remove(host);
+        return null;
+      }
+
+      final map = decoded.cast<String, dynamic>();
+      final authType = map['authType'];
+      final headers = <String, String>{};
+
+      if (authType == 'basic') {
+        final username = map['username'];
+        final password = map['password'];
+        if (username is! String || password is! String) {
+          await _storage.delete(key: _keyPrefix + host);
+          _headerCache.remove(host);
+          return null;
+        }
+        final token = base64Encode(utf8.encode('$username:$password'));
+        headers['Authorization'] = 'Basic $token';
+      } else if (authType == 'bearer') {
+        final token = map['token'];
+        if (token is! String) {
+          await _storage.delete(key: _keyPrefix + host);
+          _headerCache.remove(host);
+          return null;
+        }
+        headers['Authorization'] = 'Bearer $token';
+      } else {
+        await _storage.delete(key: _keyPrefix + host);
+        _headerCache.remove(host);
+        return null;
+      }
+
+      _headerCache[host] = headers;
+      final row = await _repo.findByHostname(host);
+      if (row != null) await _repo.touchLastUsed(row.id);
+      return headers;
+    } catch (_) {
+      await _storage.delete(key: _keyPrefix + host);
+      _headerCache.remove(host);
+      return null;
     }
-    _headerCache[host] = headers;
-    final row = await _repo.findByHostname(host);
-    if (row != null) await _repo.touchLastUsed(row.id);
-    return headers;
   }
 
   /// Deletes the row for [id] and the associated secret blob, and
