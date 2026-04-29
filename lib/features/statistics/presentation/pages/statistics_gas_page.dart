@@ -256,7 +256,7 @@ class StatisticsGasPage extends ConsumerWidget {
                 ValueRankingCard(
                   title: context.l10n.statistics_gas_sacRecords_best,
                   value: formatSacRecord(records.best!.value),
-                  subtitle: records.best!.subtitle,
+                  subtitle: units.formatDate(records.best!.date),
                   icon: Icons.emoji_events,
                   iconColor: Colors.green,
                   onTap: () => context.push('/dives/${records.best!.id}'),
@@ -267,7 +267,7 @@ class StatisticsGasPage extends ConsumerWidget {
                 ValueRankingCard(
                   title: context.l10n.statistics_gas_sacRecords_highest,
                   value: formatSacRecord(records.worst!.value),
-                  subtitle: records.worst!.subtitle,
+                  subtitle: units.formatDate(records.worst!.date),
                   icon: Icons.speed,
                   iconColor: Colors.orange,
                   onTap: () => context.push('/dives/${records.worst!.id}'),

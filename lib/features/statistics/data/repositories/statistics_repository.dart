@@ -25,6 +25,7 @@ class RankingItem {
   final int count;
   final double? value;
   final String? subtitle;
+  final DateTime? date;
 
   RankingItem({
     required this.id,
@@ -32,6 +33,7 @@ class RankingItem {
     required this.count,
     this.value,
     this.subtitle,
+    this.date,
   });
 }
 
@@ -242,7 +244,7 @@ class StatisticsRepository {
           name: siteName ?? 'Dive #${diveNum ?? "?"}',
           count: 0,
           value: row.read<double>('sac'),
-          subtitle: '${date.day}/${date.month}/${date.year}',
+          date: date,
         );
       }
 
@@ -294,7 +296,7 @@ class StatisticsRepository {
           name: siteName ?? 'Dive #${diveNum ?? "?"}',
           count: 0,
           value: row.read<double>('sac'),
-          subtitle: '${date.day}/${date.month}/${date.year}',
+          date: date,
         );
       }
 
