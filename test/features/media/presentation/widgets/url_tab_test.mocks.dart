@@ -6,17 +6,19 @@
 import 'dart:async' as _i4;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:submersion/core/database/database.dart' as _i6;
-import 'package:submersion/features/media/data/repositories/media_repository.dart'
-    as _i7;
-import 'package:submersion/features/media/data/services/network_credentials_service.dart'
+import 'package:submersion/core/database/database.dart' as _i7;
+import 'package:submersion/features/media/data/parsers/manifest_entry.dart'
     as _i5;
+import 'package:submersion/features/media/data/repositories/media_repository.dart'
+    as _i8;
+import 'package:submersion/features/media/data/services/network_credentials_service.dart'
+    as _i6;
 import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart'
     as _i3;
 import 'package:submersion/features/media/domain/entities/media_item.dart'
     as _i2;
 import 'package:submersion/features/media/domain/entities/media_source_type.dart'
-    as _i8;
+    as _i9;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -56,6 +58,20 @@ class MockNetworkFetchPipeline extends _i1.Mock
           as _i4.Future<List<String>>);
 
   @override
+  _i4.Future<List<String>> ingestManifestEntries(
+    List<_i5.ManifestEntry>? entries,
+    String? subscriptionId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#ingestManifestEntries, [
+              entries,
+              subscriptionId,
+            ]),
+            returnValue: _i4.Future<List<String>>.value(<String>[]),
+          )
+          as _i4.Future<List<String>>);
+
+  @override
   _i4.Future<void> idle() =>
       (super.noSuchMethod(
             Invocation.method(#idle, []),
@@ -69,7 +85,7 @@ class MockNetworkFetchPipeline extends _i1.Mock
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockNetworkCredentialsService extends _i1.Mock
-    implements _i5.NetworkCredentialsService {
+    implements _i6.NetworkCredentialsService {
   MockNetworkCredentialsService() {
     _i1.throwOnMissingStub(this);
   }
@@ -115,20 +131,20 @@ class MockNetworkCredentialsService extends _i1.Mock
           as _i4.Future<void>);
 
   @override
-  _i4.Future<List<_i6.NetworkCredentialHost>> list() =>
+  _i4.Future<List<_i7.NetworkCredentialHost>> list() =>
       (super.noSuchMethod(
             Invocation.method(#list, []),
-            returnValue: _i4.Future<List<_i6.NetworkCredentialHost>>.value(
-              <_i6.NetworkCredentialHost>[],
+            returnValue: _i4.Future<List<_i7.NetworkCredentialHost>>.value(
+              <_i7.NetworkCredentialHost>[],
             ),
           )
-          as _i4.Future<List<_i6.NetworkCredentialHost>>);
+          as _i4.Future<List<_i7.NetworkCredentialHost>>);
 }
 
 /// A class which mocks [MediaRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockMediaRepository extends _i1.Mock implements _i7.MediaRepository {
+class MockMediaRepository extends _i1.Mock implements _i8.MediaRepository {
   MockMediaRepository() {
     _i1.throwOnMissingStub(this);
   }
@@ -208,7 +224,7 @@ class MockMediaRepository extends _i1.Mock implements _i7.MediaRepository {
 
   @override
   _i4.Future<List<_i2.MediaItem>> getAllBySourceType(
-    _i8.MediaSourceType? sourceType,
+    _i9.MediaSourceType? sourceType,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#getAllBySourceType, [sourceType]),
@@ -217,6 +233,27 @@ class MockMediaRepository extends _i1.Mock implements _i7.MediaRepository {
             ),
           )
           as _i4.Future<List<_i2.MediaItem>>);
+
+  @override
+  _i4.Future<List<_i2.MediaItem>> getAllBySubscription(
+    String? subscriptionId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getAllBySubscription, [subscriptionId]),
+            returnValue: _i4.Future<List<_i2.MediaItem>>.value(
+              <_i2.MediaItem>[],
+            ),
+          )
+          as _i4.Future<List<_i2.MediaItem>>);
+
+  @override
+  _i4.Future<void> markOrphaned(String? id, bool? isOrphaned) =>
+      (super.noSuchMethod(
+            Invocation.method(#markOrphaned, [id, isOrphaned]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
 
   @override
   _i4.Future<List<_i2.MediaItem>> getOrphanedMedia() =>
