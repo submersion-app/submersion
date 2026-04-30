@@ -51,8 +51,9 @@ const int kMemoryCacheCapObjects = 200;
 /// Disk-side caps ([kDiskCacheCapBytes]) are *not* wired here — see the
 /// constant's doc comment. Idempotent; safe to call multiple times.
 //
-// coverage:ignore-start — configures global Flutter image cache; exercised
-// at app boot by `MediaSourcesApp.bootstrap()` in Phase 3c.
+// Configures global Flutter image cache; exercised at app boot by
+// `MediaSourcesApp.bootstrap()` in Phase 3c.
+// coverage:ignore-start
 void applyMediaCacheCaps() {
   final cache = PaintingBinding.instance.imageCache;
   cache.maximumSizeBytes = kMemoryCacheCapBytes;
