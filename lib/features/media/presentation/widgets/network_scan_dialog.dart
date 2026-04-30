@@ -3,8 +3,10 @@
 // Task 9. The dialog subscribes to `NetworkScanService.scanAll()` once in
 // `initState`, holds the latest progress event in widget state, and flips
 // to a "Done" summary when the stream emits `NetworkScanPhase.finished`.
-// Cancel always closes the dialog; the in-flight scan continues to run in
-// the background and persists results normally.
+// Cancel closes the dialog and cancels the stream subscription, which
+// terminates the underlying generator and aborts any in-flight HTTP
+// requests. Rows that completed before cancellation keep their persisted
+// `isOrphaned` / `lastVerifiedAt` state.
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -18,8 +20,10 @@ import 'package:submersion/features/media/presentation/providers/network_sources
 /// Subscribes to `NetworkScanService.scanAll()` and rebuilds on each
 /// progress event. When the scan reaches [NetworkScanPhase.finished], the
 /// dialog flips to a summary view with a Done button. Cancel is always
-/// available; it closes the dialog while the in-flight scan keeps running
-/// in the background (results are still persisted by the service).
+/// available; it closes the dialog and cancels the stream subscription,
+/// which terminates the generator and aborts any in-flight HTTP requests.
+/// Rows that completed before cancellation keep their persisted
+/// `isOrphaned` / `lastVerifiedAt` state.
 class NetworkScanDialog extends ConsumerStatefulWidget {
   const NetworkScanDialog({super.key}) : _injectedStream = null;
 

@@ -66,6 +66,14 @@ class NetworkScanService {
   /// events as each one completes. The final event has
   /// `phase == NetworkScanPhase.finished`. The accompanying final report is
   /// stored in [lastReport] and persists until the next scan starts.
+  ///
+  /// When the consumer cancels the stream subscription (e.g. user dismisses
+  /// the dialog), the generator terminates and any in-flight HTTP requests
+  /// are aborted. Rows that completed before cancellation keep their
+  /// updated `isOrphaned` / `lastVerifiedAt` state in the DB; rows that
+  /// were mid-fetch are left untouched. Re-running the scan picks up
+  /// where the previous one left off (since unverified rows still have
+  /// stale state).
   Stream<NetworkScanProgress> scanAll() async* {
     final stopwatch = Stopwatch()..start();
     final client = _httpClientFactory();
