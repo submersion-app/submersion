@@ -1,19 +1,31 @@
 // Coverage for the tab-shell branches in PhotoPickerPage.build():
 //   - When mediaPickerHiddenTabsProvider == false → simple Scaffold body.
 //   - When mediaPickerHiddenTabsProvider == true  → DefaultTabController
-//     with Gallery / Files / URL tabs and the _PlaceholderTab in the
-//     non-Gallery slots.
+//     with Gallery / Files / URL tabs.
+//
+// Phase 3a / Task 17 swapped the URL placeholder for [UrlTab]. The tab's
+// notifier eagerly reads [networkFetchPipelineProvider], which constructs
+// a [NetworkFetchPipeline] from `DatabaseService.instance.database` —
+// uninitialized in widget tests. We therefore override
+// [urlTabNotifierProvider] (and [networkCredentialsServiceProvider], which
+// `NetworkThumbnail` reads directly) with hand-rolled fakes so the URL tab
+// can paint its empty review pane without touching the database.
 
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/network_credentials_service.dart';
+import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
+import 'package:submersion/features/media/presentation/widgets/url_tab.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _StubPhotoPickerService implements PhotoPickerService {
@@ -37,11 +49,56 @@ class _StubPhotoPickerService implements PhotoPickerService {
   Future<String?> getFilePath(String assetId) async => null;
 }
 
+/// `noSuchMethod`-based fake for [NetworkFetchPipeline]. The tab-shell
+/// test only constructs [UrlTabNotifier] to satisfy the provider override
+/// — the notifier never invokes pipeline methods because the test does
+/// not commit any URLs.
+class _FakeNetworkFetchPipeline implements NetworkFetchPipeline {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// `noSuchMethod`-based fake for [NetworkCredentialsService]. Returning
+/// `null` from `headersFor` means "no auth header needed", which is the
+/// branch the URL tab's review pane hits when the draft list is empty.
+class _FakeNetworkCredentialsService implements NetworkCredentialsService {
+  @override
+  Future<Map<String, String>?> headersFor(Uri uri) async => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// `noSuchMethod`-based fake for [MediaRepository]. The URL tab only
+/// reaches into the repository on undo; the tab-shell test never commits.
+class _FakeMediaRepository implements MediaRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Widget _wrap({required bool showHiddenTabs}) {
+  final pipeline = _FakeNetworkFetchPipeline();
+  final credentials = _FakeNetworkCredentialsService();
+  final mediaRepo = _FakeMediaRepository();
   return ProviderScope(
     overrides: [
       photoPickerServiceProvider.overrideWithValue(_StubPhotoPickerService()),
       mediaPickerHiddenTabsProvider.overrideWith((ref) => showHiddenTabs),
+      // [UrlTab] watches [urlTabNotifierProvider]. The default factory
+      // pulls `DatabaseService.instance.database` (uninitialized in tests),
+      // so swap it for a notifier built from the fakes above.
+      urlTabNotifierProvider.overrideWith(
+        (ref) => UrlTabNotifier(
+          pipeline: pipeline,
+          credentials: credentials,
+          mediaRepository: mediaRepo,
+        ),
+      ),
+      // `NetworkThumbnail` (inside `UrlReviewPane`) reads this provider
+      // directly. Even when the staged draft list is empty we override it
+      // defensively so future test edits cannot accidentally trip the
+      // real `DatabaseService` path.
+      networkCredentialsServiceProvider.overrideWithValue(credentials),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -91,7 +148,7 @@ void main() {
     expect(find.byType(FilesTab), findsOneWidget);
   });
 
-  testWidgets('switching to URL tab shows Phase 3 placeholder', (tester) async {
+  testWidgets('switching to URL tab shows UrlTab', (tester) async {
     await tester.pumpWidget(_wrap(showHiddenTabs: true));
     await tester.pump();
 
@@ -99,6 +156,6 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
 
-    expect(find.text('Coming in Phase 3'), findsOneWidget);
+    expect(find.byType(UrlTab), findsOneWidget);
   });
 }

@@ -7,6 +7,7 @@ import 'package:submersion/features/media/data/services/photo_picker_service.dar
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
+import 'package:submersion/features/media/presentation/widgets/url_tab.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 
@@ -160,11 +161,7 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
           ),
         ),
         body: TabBarView(
-          children: [
-            _galleryTab(context),
-            const FilesTab(),
-            const _PlaceholderTab(message: 'Coming in Phase 3'),
-          ],
+          children: [_galleryTab(context), const FilesTab(), const UrlTab()],
         ),
       ),
     );
@@ -655,6 +652,30 @@ class _PermissionDeniedView extends StatelessWidget {
   }
 }
 
+/// Placeholder shown in tabs whose features are still pending. Currently
+/// unused after Phase 3a wired the URL tab to [UrlTab]; kept for future
+/// phases that may temporarily reintroduce a placeholder in the picker
+/// shell.
+// ignore: unused_element
+class _PlaceholderTab extends StatelessWidget {
+  const _PlaceholderTab({required this.message});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ),
+    );
+  }
+}
+
 /// Shows the photo picker as a full-screen modal.
 ///
 /// Returns the list of selected [AssetInfo] objects, or null if cancelled.
@@ -678,26 +699,4 @@ Future<List<AssetInfo>?> showPhotoPicker({
       ),
     ),
   );
-}
-
-/// Placeholder shown in the Files and URL tabs while those features are
-/// pending (Phase 2 / Phase 3). Visible only when the debug toggle
-/// [mediaPickerHiddenTabsProvider] is enabled.
-class _PlaceholderTab extends StatelessWidget {
-  const _PlaceholderTab({required this.message});
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-      ),
-    );
-  }
 }

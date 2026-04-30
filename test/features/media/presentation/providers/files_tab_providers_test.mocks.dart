@@ -139,6 +139,27 @@ class MockMediaRepository extends _i1.Mock implements _i4.MediaRepository {
           as _i5.Future<List<_i2.MediaItem>>);
 
   @override
+  _i5.Future<List<_i2.MediaItem>> getAllBySubscription(
+    String? subscriptionId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getAllBySubscription, [subscriptionId]),
+            returnValue: _i5.Future<List<_i2.MediaItem>>.value(
+              <_i2.MediaItem>[],
+            ),
+          )
+          as _i5.Future<List<_i2.MediaItem>>);
+
+  @override
+  _i5.Future<void> markOrphaned(String? id, bool? isOrphaned) =>
+      (super.noSuchMethod(
+            Invocation.method(#markOrphaned, [id, isOrphaned]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
   _i5.Future<List<_i2.MediaItem>> getOrphanedMedia() =>
       (super.noSuchMethod(
             Invocation.method(#getOrphanedMedia, []),
