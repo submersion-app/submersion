@@ -178,6 +178,12 @@ class AtomManifestParser {
   }
 
   /// Minimal RFC 822 parser for `pubDate` (e.g. "Sat, 12 Apr 2024 14:32:00 +0000").
+  ///
+  /// Strict offset format: feeds using TZ abbreviations (EST, EDT, etc.)
+  /// parse as null (caller falls through to other date sources or marks
+  /// the entry as unmatched). The historical alternation that accepted
+  /// abbreviations only honoured `+/-HHMM`, silently treating everything
+  /// else as UTC — an off-by-hours bug we'd rather fail-fast on than ship.
   static DateTime? _parseRfc822(String input) {
     final months = {
       'Jan': 1,
@@ -194,7 +200,7 @@ class AtomManifestParser {
       'Dec': 12,
     };
     final m = RegExp(
-      r'^(?:\w{3},\s+)?(\d{1,2})\s+(\w{3})\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+([+-]\d{4}|GMT|UT|Z|EST|EDT|CST|CDT|MST|MDT|PST|PDT)$',
+      r'^(?:\w{3},\s+)?(\d{1,2})\s+(\w{3})\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+([+-]\d{4})$',
     ).firstMatch(input.trim());
     if (m == null) return null;
     final day = int.parse(m.group(1)!);
@@ -205,13 +211,10 @@ class AtomManifestParser {
     final min = int.parse(m.group(5)!);
     final sec = int.parse(m.group(6)!);
     final tz = m.group(7)!;
-    int offsetMinutes = 0;
-    if (tz.startsWith('+') || tz.startsWith('-')) {
-      final sign = tz.startsWith('-') ? -1 : 1;
-      final hh = int.parse(tz.substring(1, 3));
-      final mm = int.parse(tz.substring(3, 5));
-      offsetMinutes = sign * (hh * 60 + mm);
-    }
+    final sign = tz.startsWith('-') ? -1 : 1;
+    final hh = int.parse(tz.substring(1, 3));
+    final mm = int.parse(tz.substring(3, 5));
+    final offsetMinutes = sign * (hh * 60 + mm);
     final dt = DateTime.utc(year, mon, day, hour, min, sec);
     return dt.subtract(Duration(minutes: offsetMinutes));
   }

@@ -74,6 +74,25 @@ void main() {
       expect(e.caption, 'Reef shark');
     });
 
+    test('rejects pubDate with TZ-abbreviation offset', () {
+      // RFC 822 abbreviations like EDT/EST were historically tolerated but
+      // silently parsed as UTC, producing wall-clock-off-by-hours bugs.
+      // Strict parser now returns null — the entry has no `takenAt`.
+      const body = '''<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+  <channel>
+    <item>
+      <guid>tz-abbr</guid>
+      <pubDate>Mon, 12 Apr 2024 14:32:00 EDT</pubDate>
+      <enclosure url="https://example.com/d.jpg" type="image/jpeg" />
+    </item>
+  </channel>
+</rss>''';
+      final r = AtomManifestParser().parse(body);
+      expect(r.entries, hasLength(1));
+      expect(r.entries.single.takenAt, isNull);
+    });
+
     test(
       'mixed RSS+Atom roots: rss outer with Atom-style entry children works',
       () {
