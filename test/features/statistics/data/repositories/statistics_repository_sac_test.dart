@@ -251,11 +251,54 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
-  // SAC By Tank Role
+  // SAC In Volume By Tank Role
   // ---------------------------------------------------------------------------
 
-  group('getSacByTankRole', () {
-    test('groups SAC by tank role using runtime', () async {
+  group('getSacVolumeByTankRole', () {
+    test('groups SAC in volume by tank role using runtime', () async {
+      await insertDiveWithTank(
+        id: 'dive-back',
+        bottomTimeSeconds: 35 * 60,
+        runtimeSeconds: 42 * 60,
+        avgDepth: 20.0,
+        startPressure: 200,
+        endPressure: 50,
+        tankRole: 'backGas',
+        volume: 12.0,
+      );
+
+      final sacByRole = await repository.getSacVolumeByTankRole();
+
+      expect(sacByRole, isNotEmpty);
+      expect(sacByRole.containsKey('backGas'), isTrue);
+      expect(sacByRole['backGas']!, greaterThan(0));
+    });
+
+    test('falls back to bottom_time when runtime null', () async {
+      await insertDiveWithTank(
+        id: 'dive-norunt',
+        bottomTimeSeconds: 40 * 60,
+        runtimeSeconds: null,
+        avgDepth: 20.0,
+        startPressure: 200,
+        endPressure: 50,
+        tankRole: 'backGas',
+        volume: 12.0,
+      );
+
+      final sacByRole = await repository.getSacVolumeByTankRole();
+
+      expect(sacByRole, isNotEmpty);
+      expect(sacByRole['backGas']!, greaterThan(0));
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // SAC In Pressure By Tank Role
+  // ---------------------------------------------------------------------------
+
+  group('getSacPressureByTankRole', () {
+    test('groups SAC in pressure by tank role using runtime', () async {
       await insertDiveWithTank(
         id: 'dive-back',
         bottomTimeSeconds: 35 * 60,
@@ -266,7 +309,7 @@ void main() {
         tankRole: 'backGas',
       );
 
-      final sacByRole = await repository.getSacByTankRole();
+      final sacByRole = await repository.getSacPressureByTankRole();
 
       expect(sacByRole, isNotEmpty);
       expect(sacByRole.containsKey('backGas'), isTrue);
@@ -284,7 +327,7 @@ void main() {
         tankRole: 'backGas',
       );
 
-      final sacByRole = await repository.getSacByTankRole();
+      final sacByRole = await repository.getSacPressureByTankRole();
 
       expect(sacByRole, isNotEmpty);
       expect(sacByRole['backGas']!, greaterThan(0));

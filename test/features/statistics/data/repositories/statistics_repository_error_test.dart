@@ -62,7 +62,8 @@ void main() {
       expect(sacPressureRecords.worst, isNull);
 
       // Methods that return empty map
-      expect(await repository.getSacByTankRole(), isEmpty);
+      expect(await repository.getSacVolumeByTankRole(), isEmpty);
+      expect(await repository.getSacPressureByTankRole(), isEmpty);
 
       // Methods that return tuple defaults
       final soloVsBuddy = await repository.getSoloVsBuddyCount();

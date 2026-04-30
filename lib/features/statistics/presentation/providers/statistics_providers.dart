@@ -73,7 +73,13 @@ final sacByTankRoleProvider = FutureProvider<Map<String, double>>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getSacByTankRole(diverId: currentDiverId);
+  final sacUnit = ref.watch(sacUnitProvider);
+
+  if (sacUnit == SacUnit.litersPerMin) {
+    return repository.getSacVolumeByTankRole(diverId: currentDiverId);
+  } else {
+    return repository.getSacPressureByTankRole(diverId: currentDiverId);
+  }
 });
 
 // ============================================================================
