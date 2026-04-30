@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/features/media/data/services/local_files_diagnostics_service.dart';
 import 'package:submersion/features/media/presentation/pages/media_sources_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
@@ -205,5 +206,52 @@ void main() {
 
     expect(stub.reverifyCallCount, 1);
     expect(find.textContaining('Re-verify failed'), findsOneWidget);
+  });
+
+  testWidgets('renders Network sources entry that pushes to network-sources', (
+    tester,
+  ) async {
+    var pushed = false;
+    final router = GoRouter(
+      initialLocation: '/settings/media-sources',
+      routes: [
+        GoRoute(
+          path: '/settings/media-sources',
+          builder: (context, state) => const MediaSourcesPage(),
+          routes: [
+            GoRoute(
+              path: 'network-sources',
+              builder: (context, state) {
+                pushed = true;
+                return const Scaffold(body: Text('NETWORK_SOURCES_PAGE'));
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Network sources'), findsOneWidget);
+    expect(
+      find.text('Saved hosts, manifest subscriptions, cache, and scan.'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Network sources'));
+    await tester.pumpAndSettle();
+
+    expect(pushed, isTrue);
+    expect(find.text('NETWORK_SOURCES_PAGE'), findsOneWidget);
   });
 }

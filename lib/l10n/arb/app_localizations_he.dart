@@ -3887,6 +3887,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_sacRate => 'קצב SAC';
 
   @override
+  String get diveLog_legend_label_showGas => 'גזים';
+
+  @override
   String get diveLog_legend_label_surfaceGf => 'GF פני השטח';
 
   @override

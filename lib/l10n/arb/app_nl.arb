@@ -1349,6 +1349,7 @@
   "diveLog_legend_label_pressure": "Druk",
   "diveLog_legend_label_pressureThresholds": "Drukdrempels",
   "diveLog_legend_label_sacRate": "SAC-verbruik",
+  "diveLog_legend_label_showGas": "Gassen",
   "diveLog_legend_label_surfaceGf": "Oppervlakte GF",
   "diveLog_legend_label_temp": "Temp",
   "diveLog_legend_label_tts": "TTS",

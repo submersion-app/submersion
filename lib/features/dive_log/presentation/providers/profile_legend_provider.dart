@@ -55,6 +55,9 @@ class ProfileLegendState {
   // Per-tank pressure visibility (keyed by tank ID)
   final Map<String, bool> showTankPressure;
 
+  // Gas timeline strip visibility
+  final bool showGas;
+
   // Collapsible section expanded/collapsed state (session-only)
   final Map<String, bool> sectionExpanded;
 
@@ -88,6 +91,7 @@ class ProfileLegendState {
     this.ttsSource = MetricDataSource.calculated,
     this.cnsSource = MetricDataSource.calculated,
     this.showTankPressure = const {},
+    this.showGas = true,
     this.sectionExpanded = const {
       'overlays': true,
       'decompression': true,
@@ -159,6 +163,7 @@ class ProfileLegendState {
     MetricDataSource? ttsSource,
     MetricDataSource? cnsSource,
     Map<String, bool>? showTankPressure,
+    bool? showGas,
     Map<String, bool>? sectionExpanded,
   }) {
     return ProfileLegendState(
@@ -193,6 +198,7 @@ class ProfileLegendState {
       ttsSource: ttsSource ?? this.ttsSource,
       cnsSource: cnsSource ?? this.cnsSource,
       showTankPressure: showTankPressure ?? this.showTankPressure,
+      showGas: showGas ?? this.showGas,
       sectionExpanded: sectionExpanded ?? this.sectionExpanded,
     );
   }
@@ -231,6 +237,7 @@ class ProfileLegendState {
           ttsSource == other.ttsSource &&
           cnsSource == other.cnsSource &&
           mapEquals(showTankPressure, other.showTankPressure) &&
+          showGas == other.showGas &&
           mapEquals(sectionExpanded, other.sectionExpanded);
 
   @override
@@ -264,6 +271,7 @@ class ProfileLegendState {
     ttsSource,
     cnsSource,
     ...showTankPressure.entries,
+    showGas,
     ...sectionExpanded.entries,
   ]);
 }
@@ -456,6 +464,11 @@ class ProfileLegend extends _$ProfileLegend {
     state = state.copyWith(
       sectionExpanded: {...state.sectionExpanded, sectionKey: expanded},
     );
+  }
+
+  /// Toggle visibility of the gas-usage timeline strip below the chart.
+  void toggleGas() {
+    state = state.copyWith(showGas: !state.showGas);
   }
 
   /// Toggle visibility for a specific tank's pressure line

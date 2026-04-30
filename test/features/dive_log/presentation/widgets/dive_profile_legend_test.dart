@@ -292,5 +292,86 @@ void main() {
       // Badge should show 2
       expect(find.text('2'), findsOneWidget);
     });
+
+    testWidgets('badge includes gas strip when hasGasData is true', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DiveProfileLegend(
+            config: const ProfileLegendConfig(hasGasData: true),
+            zoomLevel: 1.0,
+            onZoomIn: () {},
+            onZoomOut: () {},
+            onResetZoom: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // showGas defaults to true, so gas contributes 1 to the badge
+      expect(find.text('1'), findsOneWidget);
+    });
+  });
+
+  group('ProfileLegendConfig.hasSecondaryToggles', () {
+    test('is true when hasGasData is true', () {
+      const config = ProfileLegendConfig(hasGasData: true);
+      expect(config.hasSecondaryToggles, isTrue);
+    });
+
+    test('is false when only non-toggle fields are set', () {
+      const config = ProfileLegendConfig();
+      expect(config.hasSecondaryToggles, isFalse);
+    });
+  });
+
+  group('gas toggle in _ChartOptionsDialog', () {
+    testWidgets(
+      'gas strip toggle appears in Overlays when hasGasData is true',
+      (tester) async {
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            ],
+            child: DiveProfileLegend(
+              config: const ProfileLegendConfig(hasGasData: true),
+              zoomLevel: 1.0,
+              onZoomIn: () {},
+              onZoomOut: () {},
+              onResetZoom: () {},
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.tune), warnIfMissed: false);
+        await tester.pumpAndSettle();
+        expect(find.text('Gases'), findsOneWidget);
+      },
+    );
+
+    testWidgets('gas strip toggle is absent when hasGasData is false', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DiveProfileLegend(
+            config: const ProfileLegendConfig(),
+            zoomLevel: 1.0,
+            onZoomIn: () {},
+            onZoomOut: () {},
+            onResetZoom: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.tune), findsNothing);
+    });
   });
 }

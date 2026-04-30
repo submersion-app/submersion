@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
+import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -386,6 +387,16 @@ class _DiveProfilePanelContentState
                   tanks: dive.tanks,
                   tankPressures: tankPressures,
                   gasSwitches: gasSwitches,
+                  gasSegments: (dive.tanks.isEmpty || dive.profile.isEmpty)
+                      ? null
+                      : buildGasUsageSegments(
+                          tanks: dive.tanks,
+                          gasSwitches: gasSwitches ?? const [],
+                          diveDurationSeconds: dive.profile.last.timestamp,
+                        ),
+                  diveDurationSeconds: dive.profile.isEmpty
+                      ? null
+                      : dive.profile.last.timestamp,
                   tooltipBelow: true,
                   highlightedTimestamp:
                       trackingIndex != null &&

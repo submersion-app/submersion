@@ -3971,6 +3971,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_sacRate => 'SAC-verbruik';
 
   @override
+  String get diveLog_legend_label_showGas => 'Gassen';
+
+  @override
   String get diveLog_legend_label_surfaceGf => 'Oppervlakte GF';
 
   @override

@@ -3987,6 +3987,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_sacRate => 'SAC ertek';
 
   @override
+  String get diveLog_legend_label_showGas => 'Gazok';
+
+  @override
   String get diveLog_legend_label_surfaceGf => 'Felszini GF';
 
   @override

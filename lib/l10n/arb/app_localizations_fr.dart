@@ -4023,6 +4023,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_legend_label_sacRate => 'Consommation SAC';
 
   @override
+  String get diveLog_legend_label_showGas => 'Gaz';
+
+  @override
   String get diveLog_legend_label_surfaceGf => 'GF surface';
 
   @override

@@ -1,6 +1,9 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/performance/perf_timer.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -238,10 +241,16 @@ void main() {
           ),
         );
 
-        final updatedDive = dive.copyWith(
+        // Fetch the dive to get the generated tank IDs
+        final fetchedDive = await repository.getDiveById(dive.id);
+        expect(fetchedDive, isNotNull);
+        expect(fetchedDive!.tanks.isNotEmpty, isTrue);
+        final tankId = fetchedDive.tanks[0].id;
+
+        final updatedDive = fetchedDive.copyWith(
           tanks: [
-            const DiveTank(
-              id: '',
+            DiveTank(
+              id: tankId,
               volume: 15.0,
               startPressure: 210,
               endPressure: 40,
@@ -255,6 +264,140 @@ void main() {
         expect(result!.tanks.length, equals(1));
         expect(result.tanks[0].volume, equals(15.0));
         expect(result.tanks[0].startPressure, equals(210));
+      });
+
+      test(
+        'should throw error when updating dive with empty tank IDs',
+        () async {
+          final dive = await repository.createDive(
+            createTestDive(
+              tanks: [
+                const DiveTank(
+                  id: '',
+                  volume: 12.0,
+                  startPressure: 200,
+                  endPressure: 50,
+                ),
+              ],
+            ),
+          );
+
+          // Try to update with tanks that have empty IDs (which should fail)
+          final updatedDive = dive.copyWith(
+            tanks: [
+              const DiveTank(
+                id: '', // Empty ID - this should trigger validation error
+                volume: 15.0,
+                startPressure: 210,
+                endPressure: 40,
+              ),
+            ],
+          );
+
+          expect(
+            () => repository.updateDive(updatedDive),
+            throwsA(
+              isA<ArgumentError>().having(
+                (e) => e.message,
+                'message',
+                contains('tank(s) at index(es) 0 have empty IDs'),
+              ),
+            ),
+          );
+        },
+      );
+
+      test('should preserve tank_pressure_profiles and gas_switches', () async {
+        final database = DatabaseService.instance.database;
+
+        // Create a dive with one tank
+        final dive = await repository.createDive(
+          createTestDive(
+            tanks: [
+              const DiveTank(
+                id: '',
+                volume: 12.0,
+                startPressure: 200,
+                endPressure: 50,
+              ),
+            ],
+          ),
+        );
+
+        // Get the actual tank ID
+        final createdDive = await repository.getDiveById(dive.id);
+        expect(createdDive!.tanks.length, equals(1));
+        final tankId = createdDive.tanks[0].id;
+
+        // Insert tank pressure profiles
+        await database
+            .into(database.tankPressureProfiles)
+            .insert(
+              db.TankPressureProfilesCompanion(
+                id: const Value('profile1'),
+                diveId: Value(dive.id),
+                tankId: Value(tankId),
+                timestamp: const Value(0),
+                pressure: const Value(200.0),
+              ),
+            );
+
+        // Insert gas switches
+        await database
+            .into(database.gasSwitches)
+            .insert(
+              db.GasSwitchesCompanion(
+                id: const Value('switch1'),
+                diveId: Value(dive.id),
+                tankId: Value(tankId),
+                timestamp: const Value(300),
+                createdAt: Value(DateTime.now().millisecondsSinceEpoch),
+              ),
+            );
+
+        // Verify initial data
+        var pressureProfiles = await (database.select(
+          database.tankPressureProfiles,
+        )..where((t) => t.diveId.equals(dive.id))).get();
+        expect(pressureProfiles.length, equals(1));
+
+        var gasSwitches = await (database.select(
+          database.gasSwitches,
+        )..where((t) => t.diveId.equals(dive.id))).get();
+        expect(gasSwitches.length, equals(1));
+
+        // Update the dive WITHOUT changing tanks (just update dive fields)
+        final updatedDive = createdDive.copyWith(
+          maxDepth: 25.0,
+          notes: 'Updated dive notes',
+          rating: 5,
+        );
+
+        await repository.updateDive(updatedDive);
+
+        // Verify that tank_pressure_profiles and gas_switches are still present
+        pressureProfiles = await (database.select(
+          database.tankPressureProfiles,
+        )..where((t) => t.diveId.equals(dive.id))).get();
+        expect(
+          pressureProfiles.length,
+          equals(1),
+          reason:
+              'Tank pressure profiles should not be deleted when updating dive',
+        );
+
+        gasSwitches = await (database.select(
+          database.gasSwitches,
+        )..where((t) => t.diveId.equals(dive.id))).get();
+        expect(
+          gasSwitches.length,
+          equals(1),
+          reason: 'Gas switches should not be deleted when updating dive',
+        );
+
+        // Verify the data is unchanged
+        expect(pressureProfiles[0].pressure, equals(200.0));
+        expect(gasSwitches[0].timestamp, equals(300));
       });
     });
 

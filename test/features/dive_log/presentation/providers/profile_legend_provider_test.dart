@@ -1,6 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+class _StubSettingsNotifier extends StateNotifier<AppSettings>
+    implements SettingsNotifier {
+  _StubSettingsNotifier() : super(const AppSettings());
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   group('ProfileLegendState', () {
@@ -97,6 +107,63 @@ void main() {
         );
         expect(updated.sectionExpanded['overlays'], false);
       });
+    });
+
+    group('showGas', () {
+      test('defaults to true', () {
+        const state = ProfileLegendState();
+        expect(state.showGas, isTrue);
+      });
+
+      test('copyWith sets showGas to false', () {
+        const state = ProfileLegendState();
+        final updated = state.copyWith(showGas: false);
+        expect(updated.showGas, isFalse);
+      });
+
+      test('copyWith without showGas preserves current value', () {
+        const state = ProfileLegendState(showGas: false);
+        final updated = state.copyWith(showMaxDepthMarker: true);
+        expect(updated.showGas, isFalse);
+      });
+
+      test('equality distinguishes showGas true vs false', () {
+        const stateOn = ProfileLegendState(showGas: true);
+        const stateOff = ProfileLegendState(showGas: false);
+        expect(stateOn, isNot(equals(stateOff)));
+      });
+
+      test('states with same showGas value are equal (other fields equal)', () {
+        const a = ProfileLegendState(showGas: false);
+        const b = ProfileLegendState(showGas: false);
+        expect(a, equals(b));
+      });
+    });
+  });
+
+  group('ProfileLegend.toggleGas', () {
+    ProviderContainer makeContainer() => ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => _StubSettingsNotifier()),
+      ],
+    );
+
+    test('toggles showGas from true to false', () {
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(profileLegendProvider.notifier);
+      expect(container.read(profileLegendProvider).showGas, isTrue);
+      notifier.toggleGas();
+      expect(container.read(profileLegendProvider).showGas, isFalse);
+    });
+
+    test('toggles showGas from false back to true', () {
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(profileLegendProvider.notifier);
+      notifier.toggleGas();
+      notifier.toggleGas();
+      expect(container.read(profileLegendProvider).showGas, isTrue);
     });
   });
 }

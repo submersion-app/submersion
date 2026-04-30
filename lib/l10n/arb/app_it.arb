@@ -1315,6 +1315,7 @@
   "diveLog_legend_label_pressure": "Pressione",
   "diveLog_legend_label_pressureThresholds": "Soglie di pressione",
   "diveLog_legend_label_sacRate": "Consumo SAC",
+  "diveLog_legend_label_showGas": "Gas",
   "diveLog_legend_label_surfaceGf": "GF superficie",
   "diveLog_legend_label_temp": "Temp",
   "diveLog_legend_label_tts": "TTS",

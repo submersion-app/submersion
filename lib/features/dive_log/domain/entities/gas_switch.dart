@@ -108,6 +108,9 @@ class GasSwitchWithTank extends Equatable {
   /// Whether this is air
   bool get isAir => o2Fraction >= 0.20 && o2Fraction <= 0.22 && heFraction == 0;
 
+  /// Whether this is pure oxygen (used as deco gas)
+  bool get isOxygen => o2Fraction >= 0.99 && heFraction == 0;
+
   /// ppO2 at switch depth
   double get ppO2AtDepth {
     if (gasSwitch.depth == null) return o2Fraction;

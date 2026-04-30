@@ -129,6 +129,36 @@ void main() {
     });
 
     test(
+      'should throw ArgumentError when updating dive with a tank that has an empty id',
+      () async {
+        final createdDive = await repository.createDive(
+          Dive(
+            id: 'test-dive',
+            dateTime: DateTime.now(),
+            tanks: const [
+              DiveTank(
+                id: '',
+                volume: 12.0,
+                startPressure: 200,
+                endPressure: 50,
+              ),
+            ],
+          ),
+        );
+
+        final updatedDive = createdDive.copyWith(
+          tanks: [createdDive.tanks[0].copyWith(id: '')],
+          notes: 'Attempt update with empty tank id',
+        );
+
+        await expectLater(
+          repository.updateDive(updatedDive),
+          throwsA(isA<ArgumentError>()),
+        );
+      },
+    );
+
+    test(
       'methods that return defaults return correct values on error',
       () async {
         await DatabaseService.instance.database.close();

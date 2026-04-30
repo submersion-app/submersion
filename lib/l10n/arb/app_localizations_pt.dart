@@ -4001,6 +4001,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_legend_label_sacRate => 'Taxa SAC';
 
   @override
+  String get diveLog_legend_label_showGas => 'Gases';
+
+  @override
   String get diveLog_legend_label_surfaceGf => 'GF de Superficie';
 
   @override

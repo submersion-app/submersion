@@ -3806,6 +3806,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_sacRate => '气体消耗率';
 
   @override
+  String get diveLog_legend_label_showGas => '气体';
+
+  @override
   String get diveLog_legend_label_surfaceGf => '水面 GF';
 
   @override

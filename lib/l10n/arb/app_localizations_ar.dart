@@ -3902,6 +3902,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_legend_label_sacRate => 'معدل SAC';
 
   @override
+  String get diveLog_legend_label_showGas => 'الغازات';
+
+  @override
   String get diveLog_legend_label_surfaceGf => 'GF السطح';
 
   @override

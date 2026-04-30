@@ -6796,6 +6796,12 @@ abstract class AppLocalizations {
   /// **'SAC Rate'**
   String get diveLog_legend_label_sacRate;
 
+  /// No description provided for @diveLog_legend_label_showGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gases'**
+  String get diveLog_legend_label_showGas;
+
   /// No description provided for @diveLog_legend_label_surfaceGf.
   ///
   /// In en, this message translates to:

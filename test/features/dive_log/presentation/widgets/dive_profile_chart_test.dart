@@ -6,11 +6,13 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_strip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -103,6 +105,8 @@ Widget _buildChart({
   bool showMaxDepthMarker = false,
   bool showPressureThresholdMarkers = false,
   List<GasSwitchWithTank>? gasSwitches,
+  List<GasUsageSegment>? gasSegments,
+  int? diveDurationSeconds,
   bool tooltipBelow = false,
   void Function(List<TooltipRow>? rows)? onTooltipData,
   void Function(int? index)? onPointSelected,
@@ -150,6 +154,8 @@ Widget _buildChart({
             showMaxDepthMarker: showMaxDepthMarker,
             showPressureThresholdMarkers: showPressureThresholdMarkers,
             gasSwitches: gasSwitches,
+            gasSegments: gasSegments,
+            diveDurationSeconds: diveDurationSeconds,
             tooltipBelow: tooltipBelow,
             onTooltipData: onTooltipData,
             onPointSelected: onPointSelected,
@@ -1097,6 +1103,142 @@ void main() {
 
     test('rightAxisSize returns larger value for wide width', () {
       expect(DiveProfileChart.rightAxisSize(500), 38.0);
+    });
+
+    test('gasTimelineHeight constant is 22.0', () {
+      expect(DiveProfileChart.gasTimelineHeight, 22.0);
+    });
+  });
+
+  // =========================================================================
+  // Gas timeline strip integration
+  // =========================================================================
+
+  group('DiveProfileChart - gas timeline strip', () {
+    List<GasUsageSegment> makeSegments() => [
+      const GasUsageSegment(
+        startSeconds: 0,
+        endSeconds: 150,
+        gasMix: GasMix(o2: 21),
+        label: 'Air',
+      ),
+      const GasUsageSegment(
+        startSeconds: 150,
+        endSeconds: 300,
+        gasMix: GasMix(o2: 50),
+        label: 'EAN50',
+      ),
+    ];
+
+    testWidgets(
+      'renders GasTimelineStrip when segments and duration provided',
+      (tester) async {
+        await tester.pumpWidget(
+          _buildChart(gasSegments: makeSegments(), diveDurationSeconds: 300),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(GasTimelineStrip), findsOneWidget);
+      },
+    );
+
+    testWidgets('does not render GasTimelineStrip when segments is empty', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildChart(gasSegments: const [], diveDurationSeconds: 300),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(GasTimelineStrip), findsNothing);
+    });
+
+    testWidgets(
+      'does not render GasTimelineStrip when diveDurationSeconds is null',
+      (tester) async {
+        await tester.pumpWidget(
+          _buildChart(gasSegments: makeSegments(), diveDurationSeconds: null),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(GasTimelineStrip), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'does not render GasTimelineStrip when diveDurationSeconds is zero',
+      (tester) async {
+        await tester.pumpWidget(
+          _buildChart(gasSegments: makeSegments(), diveDurationSeconds: 0),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(GasTimelineStrip), findsNothing);
+      },
+    );
+
+    testWidgets('renders with gas strip and playback cursor extension', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildChart(
+          gasSegments: makeSegments(),
+          diveDurationSeconds: 300,
+          playbackTimestamp: 150,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(GasTimelineStrip), findsOneWidget);
+      expect(find.byType(DiveProfileChart), findsOneWidget);
+    });
+
+    testWidgets(
+      'renders with gas strip and highlighted timestamp cursor extension',
+      (tester) async {
+        await tester.pumpWidget(
+          _buildChart(
+            gasSegments: makeSegments(),
+            diveDurationSeconds: 300,
+            highlightedTimestamp: 90,
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(GasTimelineStrip), findsOneWidget);
+        expect(find.byType(DiveProfileChart), findsOneWidget);
+      },
+    );
+
+    testWidgets('renders with both cursors active over gas strip', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildChart(
+          gasSegments: makeSegments(),
+          diveDurationSeconds: 300,
+          playbackTimestamp: 100,
+          highlightedTimestamp: 50,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(GasTimelineStrip), findsOneWidget);
+    });
+
+    testWidgets('gas strip renders alongside ceiling curve', (tester) async {
+      final profile = _makeProfile(points: 10);
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profile,
+          gasSegments: makeSegments(),
+          diveDurationSeconds: 300,
+          ceilingCurve: List.generate(10, (i) => i < 5 ? 0.0 : i * 0.5),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(GasTimelineStrip), findsOneWidget);
+    });
+
+    testWidgets('chart renders correctly without gasSegments (no strip)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildChart());
+      await tester.pumpAndSettle();
+      expect(find.byType(GasTimelineStrip), findsNothing);
     });
   });
 

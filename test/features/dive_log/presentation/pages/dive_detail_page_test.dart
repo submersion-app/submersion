@@ -12,6 +12,40 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
+// ---------------------------------------------------------------------------
+// Helpers shared by gas-segment tests
+// ---------------------------------------------------------------------------
+
+Widget _buildDetailPage(Dive dive, List<Override> overrides) {
+  return ProviderScope(
+    overrides: [
+      ...overrides,
+      diveProvider(dive.id).overrideWith((ref) async => dive),
+      diveDataSourcesProvider(
+        dive.id,
+      ).overrideWith((ref) async => <DiveDataSource>[]),
+    ],
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: DiveDetailPage(diveId: dive.id, embedded: true),
+    ),
+  );
+}
+
+Future<void> _pumpDetailPage(WidgetTester tester, Dive dive) async {
+  final overrides = await getBaseOverrides();
+  final originalOnError = FlutterError.onError;
+  FlutterError.onError = (d) {
+    if (d.toString().contains('overflowed')) return;
+    originalOnError?.call(d);
+  };
+  await tester.pumpWidget(_buildDetailPage(dive, overrides));
+  await tester.pump();
+  await tester.pump(const Duration(seconds: 1));
+  FlutterError.onError = originalOnError;
+}
+
 void main() {
   group('DiveDetailPage bottomTime coverage', () {
     testWidgets('displays bottomTime in stat row', (tester) async {
@@ -194,5 +228,99 @@ void main() {
       // Should render with attribution badges
       expect(find.byType(DiveDetailPage), findsOneWidget);
     });
+  });
+
+  // =========================================================================
+  // Gas segments wiring — exercises the inline buildGasUsageSegments logic
+  // added to DiveDetailPage._buildProfilePanel in the latest commit.
+  // =========================================================================
+
+  group('DiveDetailPage - gas segments wiring', () {
+    Dive makeDiveWithTanksAndProfile() {
+      return Dive(
+        id: 'dive-gas-tanks',
+        diveNumber: 1,
+        dateTime: DateTime(2026, 5, 4, 10, 0),
+        entryTime: DateTime(2026, 5, 4, 10, 5),
+        exitTime: DateTime(2026, 5, 4, 10, 55),
+        bottomTime: const Duration(minutes: 45),
+        runtime: const Duration(minutes: 50),
+        maxDepth: 25.0,
+        avgDepth: 18.0,
+        waterTemp: 22.0,
+        tanks: [
+          const DiveTank(
+            id: 'tank-1',
+            startPressure: 200,
+            endPressure: 80,
+            gasMix: GasMix(o2: 21),
+          ),
+        ],
+        profile: [
+          const DiveProfilePoint(timestamp: 0, depth: 0),
+          const DiveProfilePoint(timestamp: 300, depth: 15),
+          const DiveProfilePoint(timestamp: 2700, depth: 20),
+          const DiveProfilePoint(timestamp: 3000, depth: 0),
+        ],
+        equipment: const [],
+        notes: '',
+        photoIds: const [],
+        sightings: const [],
+        weights: const [],
+        tags: const [],
+      );
+    }
+
+    testWidgets('renders without crash when dive has tanks and a profile', (
+      tester,
+    ) async {
+      final dive = makeDiveWithTanksAndProfile();
+      await _pumpDetailPage(tester, dive);
+      expect(find.byType(DiveDetailPage), findsOneWidget);
+    });
+
+    testWidgets(
+      'renders without crash when dive has no tanks (null gas path)',
+      (tester) async {
+        final dive = createTestDiveWithBottomTime();
+        await _pumpDetailPage(tester, dive);
+        expect(find.byType(DiveDetailPage), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'renders without crash when dive has tanks but empty profile (null diveDurationSeconds path)',
+      (tester) async {
+        final dive = Dive(
+          id: 'dive-notanks-noprofile',
+          diveNumber: 2,
+          dateTime: DateTime(2026, 5, 4, 11, 0),
+          entryTime: null,
+          exitTime: null,
+          bottomTime: const Duration(minutes: 30),
+          runtime: const Duration(minutes: 35),
+          maxDepth: 20.0,
+          avgDepth: 15.0,
+          waterTemp: null,
+          tanks: [
+            const DiveTank(
+              id: 'tank-1',
+              startPressure: 200,
+              endPressure: 80,
+              gasMix: GasMix(o2: 21),
+            ),
+          ],
+          profile: const [],
+          equipment: const [],
+          notes: '',
+          photoIds: const [],
+          sightings: const [],
+          weights: const [],
+          tags: const [],
+        );
+        await _pumpDetailPage(tester, dive);
+        expect(find.byType(DiveDetailPage), findsOneWidget);
+      },
+    );
   });
 }

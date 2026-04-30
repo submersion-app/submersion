@@ -22,6 +22,7 @@ class ProfileLegendConfig {
   final bool hasPressureMarkers;
   final bool hasGasSwitches;
   final bool hasMultiTankPressure;
+  final bool hasGasData;
   final List<DiveTank>? tanks;
   final Map<String, List<TankPressurePoint>>? tankPressures;
 
@@ -50,6 +51,7 @@ class ProfileLegendConfig {
     this.hasPressureMarkers = false,
     this.hasGasSwitches = false,
     this.hasMultiTankPressure = false,
+    this.hasGasData = false,
     this.tanks,
     this.tankPressures,
     this.hasNdlData = false,
@@ -79,6 +81,7 @@ class ProfileLegendConfig {
       hasPressureMarkers ||
       hasGasSwitches ||
       hasTankListSection ||
+      hasGasData ||
       hasMultiTankPressure ||
       hasNdlData ||
       hasPpO2Data ||
@@ -303,6 +306,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     if (config.hasTtsData && legendState.showTts) count++;
     if (config.hasCnsData && legendState.showCns) count++;
     if (config.hasOtuData && legendState.showOtu) count++;
+    if (config.hasGasData && legendState.showGas) count++;
 
     // Count active tank pressure toggles
     if (config.hasMultiTankPressure && config.tankPressures != null) {
@@ -462,6 +466,13 @@ class _ChartOptionsDialog extends StatelessWidget {
           color: Colors.lime.shade700,
           isEnabled: legendState.showAscentRateColors,
           onTap: legendNotifier.toggleAscentRateColors,
+        ),
+      if (config.hasGasData)
+        _buildGasToggleItem(
+          context,
+          label: context.l10n.diveLog_legend_label_showGas,
+          isEnabled: legendState.showGas,
+          onTap: legendNotifier.toggleGas,
         ),
     ];
     if (overlayItems.isNotEmpty) {
@@ -844,6 +855,61 @@ class _ChartOptionsDialog extends StatelessWidget {
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Variant of [_buildToggleItem] for the gas-timeline visibility toggle.
+  /// Replaces the single-color decoration stripe with four stacked bars in
+  /// the air → nitrox → oxygen → trimix colors so the indicator visually
+  /// advertises every gas type the strip can render, not just one.
+  Widget _buildGasToggleItem(
+    BuildContext context, {
+    required String label,
+    required bool isEnabled,
+    required VoidCallback onTap,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final iconColor = isEnabled
+        ? colorScheme.primary
+        : colorScheme.onSurfaceVariant;
+    Widget bar(Color color) => Container(
+      width: 16,
+      height: 3,
+      decoration: BoxDecoration(
+        color: isEnabled ? color : color.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(2),
+      ),
+    );
+
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          children: [
+            Icon(
+              isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
+              size: 20,
+              color: iconColor,
+            ),
+            const SizedBox(width: 8),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                bar(GasColors.air),
+                const SizedBox(height: 1),
+                bar(GasColors.nitrox),
+                const SizedBox(height: 1),
+                bar(GasColors.oxygen),
+                const SizedBox(height: 1),
+                bar(GasColors.trimix),
+              ],
+            ),
+            const SizedBox(width: 8),
+            Expanded(child: Text(label)),
           ],
         ),
       ),

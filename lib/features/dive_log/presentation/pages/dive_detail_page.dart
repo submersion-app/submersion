@@ -28,6 +28,7 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
@@ -1289,6 +1290,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         tanks: dive.tanks,
                         tankPressures: tankPressures,
                         gasSwitches: gasSwitchesAsync.valueOrNull,
+                        gasSegments:
+                            (dive.tanks.isEmpty || dive.profile.isEmpty)
+                            ? null
+                            : buildGasUsageSegments(
+                                tanks: dive.tanks,
+                                gasSwitches:
+                                    gasSwitchesAsync.valueOrNull ?? const [],
+                                diveDurationSeconds:
+                                    dive.profile.last.timestamp,
+                              ),
+                        diveDurationSeconds: dive.profile.isEmpty
+                            ? null
+                            : dive.profile.last.timestamp,
                         computerProfiles: multiComputerProfiles,
                         visibleComputers: effectiveVisible,
                         computerLineColors: computerLineColors,
@@ -3813,9 +3827,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// time-series data sources before falling back to stored metadata.
   ///
   /// Priority:
-  /// 1. Per-tank pressure time-series (TankPressurePoint) — most accurate
-  /// 2. Legacy profile pressure (DiveProfilePoint.pressure) — single-tank only
-  /// 3. Stored tank metadata (DiveTank.startPressure/endPressure) — fallback
+  /// 1. Stored tank metadata (DiveTank.startPressure/endPressure) when non-null
+  /// 2. Per-tank pressure time-series (TankPressurePoint) — potentially more accurate
+  ///    but maybe not the value preferred by user if they manually entered pressures
   (double?, double?) _resolveTankPressures({
     required DiveTank tank,
     required Map<String, List<TankPressurePoint>>? tankPressures,
@@ -3825,8 +3839,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     if (tankPressures != null && tankPressures.containsKey(tank.id)) {
       final points = tankPressures[tank.id]!;
       if (points.isNotEmpty) {
-        final startPressure = points.first.pressure;
-        final endPressure = points.last.pressure;
+        final startPressure =
+            tank.startPressure ??
+            points.first.pressure; // Only use time series if metadata is null
+        final endPressure =
+            tank.endPressure ??
+            points.last.pressure; // Only use time series if metadata is null
         return (startPressure, endPressure);
       }
     }
@@ -4939,6 +4957,21 @@ class _FullscreenProfilePageState
                       tanks: dive.tanks,
                       tankPressures: widget.tankPressures,
                       gasSwitches: widget.gasSwitches,
+                      gasSegments: (dive.tanks.isEmpty || dive.profile.isEmpty)
+                          ? null
+                          : buildGasUsageSegments(
+                              tanks: dive.tanks,
+                              gasSwitches: widget.gasSwitches ?? const [],
+                              diveDurationSeconds: dive.profile.last.timestamp,
+                            ),
+                      diveDurationSeconds: dive.profile.isEmpty
+                          ? null
+                          : dive.profile.last.timestamp,
+                      highlightedTimestamp:
+                          _selectedPointIndex != null &&
+                              _selectedPointIndex! < dive.profile.length
+                          ? dive.profile[_selectedPointIndex!].timestamp
+                          : null,
                       onPointSelected: (index) {
                         setState(() {
                           _selectedPoint = index != null
