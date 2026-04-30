@@ -1,5 +1,5 @@
 // Adapted from plan `docs/superpowers/plans/2026-04-28-media-source-extension-phase3b.md`
-// Task 12. Unit tests cover the two pure surfaces of
+// Task 12. Unit tests cover the pure surfaces of
 // `SubscriptionPollerScheduler`:
 //
 // 1. `computeInterval` — the cadence rule (smallest of `pollIntervalSeconds /
@@ -7,12 +7,14 @@
 // 2. `pollNow()` — the user-triggered single-cycle entry point. Verified by
 //    constructing the scheduler via the test seam and asserting that it
 //    awaits the injected `pollAllDue` callback.
+// 3. `dispose()` warm-up cancellation — fakeAsync-driven test that arms
+//    `startAfterWarmup`, advances time partway, calls `dispose`, then
+//    advances past the warm-up duration and asserts the poller never ran.
 //
-// The 30 s warm-up timer and the periodic timer in `startAfterWarmup()` /
-// `_scheduleNext()` are flagged `coverage:ignore` in the implementation —
-// real-`Timer` integration concerns. The plan's recommended technique (drive
-// time forward via `package:fake_async`) is feasible here but adds no signal
-// beyond verifying `Timer.periodic` semantics, which the SDK already covers.
+// The periodic timer in `_scheduleNext()` is flagged `coverage:ignore` in
+// the implementation — driving it through `fake_async` would only
+// re-verify SDK semantics rather than this class's behaviour.
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/data/services/subscription_poller_scheduler.dart';
 
@@ -66,5 +68,33 @@ void main() {
     );
     await scheduler.pollNow();
     expect(calls, 1);
+  });
+
+  test('dispose cancels the warm-up timer if it has not yet fired', () {
+    fakeAsync((async) {
+      var calls = 0;
+      final scheduler = SubscriptionPollerScheduler.forTest(
+        pollAllDue: (now) async {
+          calls++;
+          return 0;
+        },
+        activePollIntervals: () async => const [],
+      );
+
+      // Arm the 30 s warm-up.
+      scheduler.startAfterWarmup();
+      // Advance partway through the warm-up window — the timer must not
+      // have fired yet.
+      async.elapse(const Duration(seconds: 15));
+      expect(calls, 0);
+
+      // Tear the scheduler down before the warm-up callback runs.
+      scheduler.dispose();
+
+      // Push past the original 30 s mark plus a generous margin. If the
+      // warm-up timer leaked, `pollAllDue` would be invoked here.
+      async.elapse(const Duration(seconds: 60));
+      expect(calls, 0);
+    });
   });
 }

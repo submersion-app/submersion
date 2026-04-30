@@ -77,23 +77,32 @@ class SubscriptionPollerScheduler {
   final Future<List<int>> Function() _activePollIntervals;
   final _log = LoggerService.forClass(SubscriptionPollerScheduler);
   Timer? _timer;
+  Timer? _warmupTimer;
 
-  // coverage:ignore-start
-  // App-launch warm-up + periodic scheduling are integration concerns;
-  // unit-tested via `pollNow()` and `computeInterval()`. Driving real
-  // `Timer`s through `package:fake_async` would only re-verify SDK
-  // semantics, not anything specific to this class.
   /// Sleep [warmup] (30 s by default) so first-frame work isn't blocked by
   /// the network, then run a cycle and schedule the next periodic one.
+  ///
+  /// The warm-up [Timer] is tracked so [dispose] can cancel it before it
+  /// fires, preventing leaked callbacks during hot-restart, test teardown,
+  /// or provider disposal. Calling [startAfterWarmup] more than once
+  /// without disposing in between is a no-op (the existing warm-up
+  /// continues).
   Future<void> startAfterWarmup({
     Duration warmup = const Duration(seconds: 30),
   }) async {
-    Timer(warmup, () async {
+    if (_warmupTimer != null) return;
+    _warmupTimer = Timer(warmup, () async {
+      _warmupTimer = null;
       await pollNow();
       await _scheduleNext();
     });
   }
 
+  // coverage:ignore-start
+  // Periodic scheduling is an integration concern; unit-tested via
+  // `pollNow()` and `computeInterval()`. Driving real `Timer`s through
+  // `package:fake_async` would only re-verify SDK semantics, not anything
+  // specific to this class.
   Future<void> _scheduleNext() async {
     final intervals = await _activePollIntervals();
     final next = computeInterval(intervals);
@@ -107,14 +116,18 @@ class SubscriptionPollerScheduler {
       await _scheduleNext();
     });
   }
+  // coverage:ignore-end
 
-  /// Cancel the outstanding periodic timer. Called from
+  /// Cancel the outstanding warm-up + periodic timers. Called from
   /// `ref.onDispose(scheduler.dispose)` in [Provider] registration.
+  /// The warm-up timer is cancelled first so its callback (which would
+  /// schedule the periodic timer) cannot run after disposal.
   void dispose() {
+    _warmupTimer?.cancel();
+    _warmupTimer = null;
     _timer?.cancel();
     _timer = null;
   }
-  // coverage:ignore-end
 
   /// Run one cycle now. Returns the number of subscriptions the cycle
   /// touched (success + 304 + failure all counted), straight from the
