@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 
@@ -141,6 +142,21 @@ class MediaSourcesPage extends ConsumerWidget {
                 ],
                 // coverage:ignore-end
               ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.cloud_outlined),
+              // TODO(media): l10n
+              title: const Text('Network sources'),
+              // TODO(media): l10n
+              subtitle: const Text(
+                'Saved hosts, manifest subscriptions, cache, and scan.',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  context.push('/settings/media-sources/network-sources'),
             ),
           ),
         ],

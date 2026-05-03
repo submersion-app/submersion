@@ -12,11 +12,18 @@ import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
+import 'package:submersion/features/media/data/network_cache_config.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Apply the global Flutter image-cache byte / object caps for cached
+  // network media. Must run after `ensureInitialized()` (which constructs
+  // `PaintingBinding.instance`) and before `runApp`, so the very first
+  // image decode honours the 75 MB ceiling.
+  applyMediaCacheCaps();
 
   // Initialize SharedPreferences first (needed for storage config)
   final prefs = await SharedPreferences.getInstance();

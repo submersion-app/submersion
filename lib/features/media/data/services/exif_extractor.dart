@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show compute;
 import 'package:native_exif/native_exif.dart';
 
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 
 const _isolateThresholdBytes = 5 * 1024 * 1024;
@@ -37,15 +38,7 @@ Future<MediaSourceMetadata?> _extract(String path) async {
   // the dive computer's displayed digits. File.lastModifiedSync() returns a
   // local DateTime; reinterpret its calendar fields as UTC so the matcher
   // sees a directly comparable instant.
-  final rawMtime = file.lastModifiedSync();
-  final mtime = DateTime.utc(
-    rawMtime.year,
-    rawMtime.month,
-    rawMtime.day,
-    rawMtime.hour,
-    rawMtime.minute,
-    rawMtime.second,
-  );
+  final mtime = asWallClockUtc(file.lastModifiedSync());
   final ext = path.split('.').last.toLowerCase();
   final mime = _mimeFromExtension(ext);
 
@@ -110,26 +103,17 @@ int? _parseInt(Object? value) {
 
 DateTime? _parseExifDate(String? raw) {
   if (raw == null) return null;
-  // EXIF format: "YYYY:MM:DD HH:MM:SS". Returned as DateTime.utc(...) so
-  // the digits land in the same wall-clock-UTC frame as dive times. See
-  // DivePhotoMatcher for the comparison side.
-  try {
-    final parts = raw.split(' ');
-    if (parts.length != 2) return null;
-    final dateParts = parts[0].split(':');
-    final timeParts = parts[1].split(':');
-    if (dateParts.length != 3 || timeParts.length != 3) return null;
-    return DateTime.utc(
-      int.parse(dateParts[0]),
-      int.parse(dateParts[1]),
-      int.parse(dateParts[2]),
-      int.parse(timeParts[0]),
-      int.parse(timeParts[1]),
-      int.parse(timeParts[2]),
-    );
-  } on FormatException {
-    return null;
-  }
+  // EXIF format: "YYYY:MM:DD HH:MM:SS" (colons in date, not dashes).
+  // DateTime.parse cannot consume that, so rewrite into an ISO-8601-ish
+  // string and hand off to the shared wall-clock-UTC helper. The EXIF
+  // tag carries no timezone, so the helper's offset-less branch applies:
+  // the digits land in the same wall-clock-UTC frame as dive times.
+  final parts = raw.split(' ');
+  if (parts.length != 2) return null;
+  final dateParts = parts[0].split(':');
+  if (dateParts.length != 3) return null;
+  final iso = '${dateParts[0]}-${dateParts[1]}-${dateParts[2]}T${parts[1]}';
+  return parseExternalDateAsWallClockUtc(iso);
 }
 
 String _mimeFromExtension(String ext) {

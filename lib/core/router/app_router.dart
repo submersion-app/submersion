@@ -89,6 +89,7 @@ import 'package:submersion/features/settings/presentation/pages/insurance_edit_p
 import 'package:submersion/features/settings/presentation/pages/notes_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
 import 'package:submersion/features/media/presentation/pages/media_sources_page.dart';
+import 'package:submersion/features/media/presentation/pages/network_sources_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/transfer/presentation/pages/transfer_page.dart';
 import 'package:submersion/features/dive_types/presentation/pages/dive_types_page.dart';
@@ -859,6 +860,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'media-sources',
                 name: 'mediaSources',
                 builder: (context, state) => const MediaSourcesPage(),
+                routes: [
+                  GoRoute(
+                    path: 'network-sources',
+                    name: 'networkSources',
+                    builder: (context, state) => const NetworkSourcesPage(),
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'diver-profile',
