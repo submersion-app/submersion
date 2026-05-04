@@ -12,12 +12,13 @@ final gasSwitchesProvider =
     });
 
 /// Gas type classification for coloring
-enum GasType { air, nitrox, trimix }
+enum GasType { air, nitrox, oxygen, trimix }
 
 /// Extension to determine gas type from GasSwitchWithTank
 extension GasSwitchWithTankGasType on GasSwitchWithTank {
   GasType get gasType {
     if (isTrimix) return GasType.trimix;
+    if (isOxygen) return GasType.oxygen;
     if (isNitrox) return GasType.nitrox;
     return GasType.air;
   }
@@ -27,6 +28,7 @@ extension GasSwitchWithTankGasType on GasSwitchWithTank {
 extension GasTypeFromFractions on ({double o2, double he}) {
   GasType get gasType {
     if (he > 0) return GasType.trimix;
+    if (o2 >= 0.99) return GasType.oxygen;
     if (o2 > 0.22) return GasType.nitrox;
     return GasType.air;
   }

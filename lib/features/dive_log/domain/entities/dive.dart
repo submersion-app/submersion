@@ -918,10 +918,12 @@ class GasMix extends Equatable {
   bool get isAir => o2 >= 20 && o2 <= 22 && he == 0;
   bool get isNitrox => o2 > 22 && he == 0;
   bool get isTrimix => he > 0;
+  bool get isOxygen => o2 >= 99 && he == 0;
 
   String get name {
     if (isAir) return 'Air';
     if (isTrimix) return 'Tx $roundedO2/$roundedHe';
+    if (isOxygen) return 'O2';
     if (isNitrox) return 'EAN$roundedO2';
     return '$roundedO2% O2';
   }

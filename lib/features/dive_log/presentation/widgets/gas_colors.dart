@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 /// line ([AppColors.chartDepth]) and match common diving conventions:
 /// - Air: Orange (contrasts with depth line, standard pressure color)
 /// - Nitrox: Green (enriched air = "greener" for your body)
+/// - Oxygen: Blue (pure O2 deco gas)
 /// - Trimix: Purple (technical diving = more exotic)
 class GasColors {
   GasColors._(); // Prevent instantiation
@@ -18,6 +19,9 @@ class GasColors {
 
   /// Color for Nitrox (>21% O2, no He)
   static const Color nitrox = Color(0xFF4CAF50); // Green
+
+  /// Color for pure Oxygen (>=99% O2, no He) - deco gas
+  static const Color oxygen = Color(0xFF1976D2); // Blue (blue.shade700)
 
   /// Color for Trimix (contains He)
   static const Color trimix = Color(0xFF9C27B0); // Purple
@@ -29,6 +33,8 @@ class GasColors {
         return air;
       case GasType.nitrox:
         return nitrox;
+      case GasType.oxygen:
+        return oxygen;
       case GasType.trimix:
         return trimix;
     }
@@ -37,6 +43,7 @@ class GasColors {
   /// Get color for a GasMix object
   static Color forGasMix(GasMix gasMix) {
     if (gasMix.isTrimix) return trimix;
+    if (gasMix.isOxygen) return oxygen;
     if (gasMix.isNitrox) return nitrox;
     return air;
   }
@@ -44,6 +51,7 @@ class GasColors {
   /// Get color for O2 and He percentages (0-100 scale)
   static Color forMixPercent(double o2Percent, double hePercent) {
     if (hePercent > 0) return trimix;
+    if (o2Percent >= 99) return oxygen;
     if (o2Percent > 22) return nitrox;
     return air;
   }
@@ -51,6 +59,7 @@ class GasColors {
   /// Get color for O2 and He fractions (0-1 scale)
   static Color forMixFraction(double o2Fraction, double heFraction) {
     if (heFraction > 0) return trimix;
+    if (o2Fraction >= 0.99) return oxygen;
     if (o2Fraction > 0.22) return nitrox;
     return air;
   }
