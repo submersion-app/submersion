@@ -2446,9 +2446,9 @@ class DiveRepository {
           : null,
       tanks: tankRows.map((t) {
         // Derive start/end pressure from profile data when available.
-        // Profile time-series from AI transmitters is the authoritative
-        // source, preferred over stored values (which may be stale or
-        // defaulted from a tank preset's working pressure).
+        // Profile time-series from AI transmitters is the fallback
+        // source, if values entered by the user are not available in the
+        // dive tanks table.
         final profilePoints = tankPressuresByTankId[t.id];
         final profileStartPressure =
             profilePoints != null && profilePoints.isNotEmpty
@@ -2464,8 +2464,8 @@ class DiveRepository {
           name: t.tankName,
           volume: t.volume,
           workingPressure: t.workingPressure,
-          startPressure: profileStartPressure ?? t.startPressure,
-          endPressure: profileEndPressure ?? t.endPressure,
+          startPressure: t.startPressure ?? profileStartPressure,
+          endPressure: t.endPressure ?? profileEndPressure,
           gasMix: domain.GasMix(o2: t.o2Percent, he: t.hePercent),
           role: TankRole.values.firstWhere(
             (r) => r.name == t.tankRole,
