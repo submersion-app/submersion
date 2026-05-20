@@ -319,6 +319,11 @@ jobs:
 
       - name: Read Flutter version
         id: flutter-ver
+        # Windows runners default to PowerShell, where the bash-style
+        # $(...) command substitution and $GITHUB_OUTPUT do not work. Without
+        # this the version output is empty and subosito installs the latest
+        # stable Flutter instead of the pinned version. See flutter-version.txt.
+        shell: bash
         run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
 
       - name: Setup Flutter
