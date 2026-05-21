@@ -2,6 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 
+/// One file returned by [LocalMediaPlatform.enumerateTree]: its [basename]
+/// and the per-file document [contentUri] under the persisted tree.
+class TreeDocEntry {
+  final String basename;
+  final String contentUri;
+  const TreeDocEntry({required this.basename, required this.contentUri});
+}
+
 /// One file returned by [LocalMediaPlatform.enumerateScopedDirectory]: its
 /// [basename] and the security-scoped [bookmarkBlob] the native side created
 /// while the directory scope was held.
@@ -193,6 +201,32 @@ class LocalMediaPlatform {
     });
     if (result == null) throw StateError('readBookmarkBytes returned null');
     return result;
+    // coverage:ignore-end
+  }
+
+  /// Android only. Enumerates the persisted document tree [treeUri]
+  /// (returned by ACTION_OPEN_DOCUMENT_TREE) recursively via
+  /// `DocumentsContract`, returning one [TreeDocEntry] per file. The tree's
+  /// persistable permission (taken when the user granted the folder) keeps
+  /// each document URI readable across reboots.
+  Future<List<TreeDocEntry>> enumerateTree(String treeUri) async {
+    if (!Platform.isAndroid) {
+      throw UnsupportedError('enumerateTree is only supported on Android');
+    }
+    // coverage:ignore-start
+    final raw = await _channel.invokeListMethod<Map<Object?, Object?>>(
+      'enumerateTree',
+      {'treeUri': treeUri},
+    );
+    if (raw == null) return const [];
+    return raw
+        .map(
+          (m) => TreeDocEntry(
+            basename: m['basename'] as String,
+            contentUri: m['contentUri'] as String,
+          ),
+        )
+        .toList();
     // coverage:ignore-end
   }
 

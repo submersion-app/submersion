@@ -10,6 +10,7 @@ import 'package:submersion/features/media/data/services/local_media_linker.dart'
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/universal_import/data/services/android_directory_scanner.dart';
 import 'package:submersion/features/universal_import/data/services/desktop_directory_scanner.dart';
 import 'package:submersion/features/universal_import/data/services/directory_scanner.dart';
 import 'package:submersion/features/universal_import/data/services/ios_directory_scanner.dart';
@@ -17,9 +18,10 @@ import 'package:submersion/features/universal_import/presentation/providers/impo
 
 /// Session-scoped controller for the post-import photo-locate flow.
 ///
-/// Desktop-only scanner for now: the prompt unconditionally builds a
-/// [DesktopDirectoryScanner]. Mobile scanners (iOS / Android tree-URI) are
-/// added in later tasks, at which point [scannerFor] gains platform branches.
+/// [scannerFor] selects the platform scanner: [AndroidDirectoryScanner] on
+/// Android (SAF tree URI), [IosDirectoryScanner] on iOS (security-scoped
+/// directory), and [DesktopDirectoryScanner] on all other platforms
+/// (dart:io POSIX path).
 final importPhotoLinkControllerProvider =
     StateNotifierProvider<ImportPhotoLinkController, ImportPhotoLinkState>((
       ref,
@@ -30,6 +32,9 @@ final importPhotoLinkControllerProvider =
       final exif = ExifExtractor();
       return ImportPhotoLinkController(
         scannerFor: (_) {
+          if (!kIsWeb && Platform.isAndroid) {
+            return AndroidDirectoryScanner(platform);
+          }
           if (!kIsWeb && Platform.isIOS) return IosDirectoryScanner(platform);
           return DesktopDirectoryScanner();
         },

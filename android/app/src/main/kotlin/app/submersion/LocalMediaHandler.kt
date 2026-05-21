@@ -3,6 +3,7 @@ package app.submersion
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -42,6 +43,7 @@ class LocalMediaHandler(
             "releaseBookmark" -> releaseBookmark(call, result)
             "listPersistedUris" -> listPersistedUris(result)
             "readUriBytes" -> readUriBytes(call, result)
+            "enumerateTree" -> enumerateTree(call, result)
             else -> result.notImplemented()
         }
     }
@@ -110,6 +112,46 @@ class LocalMediaHandler(
             result.error("PERMISSION_DENIED", e.localizedMessage, null)
         } catch (e: Exception) {
             result.error("READ_FAILED", e.localizedMessage, null)
+        }
+    }
+
+    private fun enumerateTree(call: MethodCall, result: MethodChannel.Result) {
+        val treeUriStr = call.argument<String>("treeUri")
+            ?: return result.error("INVALID_ARGS", "treeUri required", null)
+        try {
+            val resolver = context.contentResolver
+            val treeUri = Uri.parse(treeUriStr)
+            val out = ArrayList<HashMap<String, Any>>()
+            val stack = ArrayDeque<String>()
+            stack.addLast(DocumentsContract.getTreeDocumentId(treeUri))
+            while (stack.isNotEmpty()) {
+                val parentDocId = stack.removeLast()
+                val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, parentDocId)
+                resolver.query(
+                    childrenUri,
+                    arrayOf(
+                        DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                        DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                        DocumentsContract.Document.COLUMN_MIME_TYPE,
+                    ),
+                    null, null, null,
+                )?.use { c ->
+                    while (c.moveToNext()) {
+                        val docId = c.getString(0)
+                        val name = c.getString(1)
+                        val mime = c.getString(2) ?: ""
+                        if (mime == DocumentsContract.Document.MIME_TYPE_DIR) {
+                            stack.addLast(docId)
+                        } else {
+                            val docUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, docId)
+                            out.add(hashMapOf("basename" to name, "contentUri" to docUri.toString()))
+                        }
+                    }
+                }
+            }
+            result.success(out)
+        } catch (e: Exception) {
+            result.error("ENUMERATE_FAILED", e.message, null)
         }
     }
 

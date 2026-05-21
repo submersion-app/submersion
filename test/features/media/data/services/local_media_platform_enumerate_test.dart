@@ -56,4 +56,19 @@ void main() {
       expect(entries.first.bookmarkBlob, [1, 2]);
     },
   );
+
+  test('enumerateTree returns basename+contentUri entries (Android)', () async {
+    if (!Platform.isAndroid) {
+      expect(
+        () => LocalMediaPlatform().enumerateTree('content://tree/x'),
+        throwsUnsupportedError,
+      );
+      return;
+    }
+    final entries = await LocalMediaPlatform().enumerateTree(
+      'content://tree/x',
+    );
+    expect(entries.single.basename, 'c.jpg');
+    expect(entries.single.contentUri, 'content://tree/doc/c');
+  });
 }
