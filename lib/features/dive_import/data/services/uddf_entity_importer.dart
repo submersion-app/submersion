@@ -133,6 +133,15 @@ class UddfEntityImportResult {
   final int courses;
   final List<String> diveIds;
 
+  /// Maps source-side dive UUID -> the newly-created dive's internal ID.
+  ///
+  /// Populated for every imported dive whose source record carried a
+  /// non-null `sourceUuid` key. Used by the post-import photo-linking
+  /// pipeline to resolve `ImportImageRef.diveSourceUuid` to the new dive
+  /// row. Dives whose source record had no UUID are absent — callers MUST
+  /// treat missing entries as "no mapping" rather than as an error.
+  final Map<String, String> sourceUuidToDiveId;
+
   const UddfEntityImportResult({
     this.trips = 0,
     this.equipment = 0,
@@ -146,6 +155,7 @@ class UddfEntityImportResult {
     this.dives = 0,
     this.courses = 0,
     this.diveIds = const [],
+    this.sourceUuidToDiveId = const {},
   });
 
   int get total =>
@@ -372,6 +382,7 @@ class UddfEntityImporter {
       dives: divesResult.count,
       courses: coursesCount,
       diveIds: divesResult.diveIds,
+      sourceUuidToDiveId: divesResult.sourceUuidToDiveId,
     );
   }
 
@@ -971,10 +982,13 @@ class UddfEntityImporter {
     ImportProgressCallback? onProgress,
     ImportCancellationToken? cancelToken,
   }) async {
-    if (selected.isEmpty) return const _DiveImportResult(0, 0);
+    if (selected.isEmpty) {
+      return const _DiveImportResult(count: 0, inlineBuddies: 0);
+    }
     onProgress?.call(ImportPhase.dives, 0, selected.length);
     var count = 0;
     final importedDiveIds = <String>[];
+    final sourceUuidToDiveId = <String, String>{};
     final inlineBuddyIds = <String>{};
 
     // Sort selected indices by dateTime (oldest first) for sequential numbering.
@@ -1206,6 +1220,15 @@ class UddfEntityImporter {
 
       await repos.diveRepository.createDive(dive);
       importedDiveIds.add(diveId);
+
+      // Capture source UUID -> new dive ID so the post-import photo
+      // pipeline can resolve ImportImageRef.diveSourceUuid to this row.
+      // Only dives whose source record carried a non-null sourceUuid land
+      // in the map.
+      final sourceUuidValue = diveData['sourceUuid'] as String?;
+      if (sourceUuidValue != null && sourceUuidValue.isNotEmpty) {
+        sourceUuidToDiveId[sourceUuidValue] = diveId;
+      }
 
       // Write MacDive dive metadata columns that don't flow through the Dive
       // domain entity. Also plug `weather` into the existing weatherDescription
@@ -1527,7 +1550,12 @@ class UddfEntityImporter {
       onProgress?.call(ImportPhase.dives, count, selected.length);
     }
 
-    return _DiveImportResult(count, inlineBuddyIds.length, importedDiveIds);
+    return _DiveImportResult(
+      count: count,
+      inlineBuddies: inlineBuddyIds.length,
+      diveIds: importedDiveIds,
+      sourceUuidToDiveId: sourceUuidToDiveId,
+    );
   }
 
   // -- Dive helper methods --
@@ -1822,10 +1850,12 @@ class _DiveImportResult {
   final int count;
   final int inlineBuddies;
   final List<String> diveIds;
+  final Map<String, String> sourceUuidToDiveId;
 
-  const _DiveImportResult(
-    this.count,
-    this.inlineBuddies, [
+  const _DiveImportResult({
+    required this.count,
+    required this.inlineBuddies,
     this.diveIds = const [],
-  ]);
+    this.sourceUuidToDiveId = const {},
+  });
 }
