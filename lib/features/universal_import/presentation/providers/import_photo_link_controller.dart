@@ -72,7 +72,7 @@ class ImportPhotoLinkController extends StateNotifier<ImportPhotoLinkState> {
     required DirectoryScanner Function(GrantedFolder folder) scannerFor,
     required LocalMediaLinker linker,
     required Future<MediaSourceMetadata> Function(ScannedFile file) metadataFor,
-    required Set<String> Function(String diveId) alreadyLinkedBasenames,
+    required Future<Set<String>> Function(String diveId) alreadyLinkedBasenames,
     required DateTime Function(ImportImageRef ref) fallbackTakenAtFor,
   }) : _scannerFor = scannerFor,
        _linker = linker,
@@ -84,7 +84,7 @@ class ImportPhotoLinkController extends StateNotifier<ImportPhotoLinkState> {
   final DirectoryScanner Function(GrantedFolder) _scannerFor;
   final LocalMediaLinker _linker;
   final Future<MediaSourceMetadata> Function(ScannedFile) _metadataFor;
-  final Set<String> Function(String diveId) _alreadyLinkedBasenames;
+  final Future<Set<String>> Function(String diveId) _alreadyLinkedBasenames;
   final DateTime Function(ImportImageRef) _fallbackTakenAtFor;
 
   final _log = LoggerService.forClass(ImportPhotoLinkController);
@@ -142,7 +142,7 @@ class ImportPhotoLinkController extends StateNotifier<ImportPhotoLinkState> {
               break;
             }
             final basename = r.scannedFile!.basename;
-            final already = _alreadyLinkedBasenames(diveId);
+            final already = await _alreadyLinkedBasenames(diveId);
             final run = linkedThisRun.putIfAbsent(diveId, () => <String>{});
             if (already.contains(basename) || run.contains(basename)) {
               // Already linked (persisted or this run) -- count as linked.

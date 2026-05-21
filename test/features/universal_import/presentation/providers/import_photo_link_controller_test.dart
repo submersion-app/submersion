@@ -69,13 +69,14 @@ ImportPhotoLinkController _controller({
   required LocalMediaLinker linker,
   required List<ImportImageRef> imageRefs,
   required Map<String, String> sourceUuidToDiveId,
-  Set<String> Function(String diveId)? alreadyLinkedBasenames,
+  Future<Set<String>> Function(String diveId)? alreadyLinkedBasenames,
 }) {
   return ImportPhotoLinkController(
     scannerFor: (_) => scanner,
     linker: linker,
     metadataFor: (_) async => const MediaSourceMetadata(mimeType: 'image/jpeg'),
-    alreadyLinkedBasenames: alreadyLinkedBasenames ?? (_) => const <String>{},
+    alreadyLinkedBasenames:
+        alreadyLinkedBasenames ?? (_) async => const <String>{},
     fallbackTakenAtFor: (_) => DateTime(2020),
   )..seed(imageRefs: imageRefs, sourceUuidToDiveId: sourceUuidToDiveId);
 }
@@ -140,8 +141,8 @@ void main() {
         ImportImageRef(originalPath: '/x/shark.jpg', diveSourceUuid: 'src-1'),
       ],
       sourceUuidToDiveId: const {'src-1': 'dive-1'},
-      alreadyLinkedBasenames: (diveId) =>
-          diveId == 'dive-1' ? {'shark.jpg'} : const {},
+      alreadyLinkedBasenames: (diveId) async =>
+          diveId == 'dive-1' ? {'shark.jpg'} : const <String>{},
     );
     await controller.pickedFolder(const GrantedFolder(path: '/picked'));
     expect(linker.linked, isEmpty);
@@ -158,7 +159,7 @@ void main() {
           linker: linker,
           metadataFor: (_) async =>
               const MediaSourceMetadata(mimeType: 'image/jpeg'),
-          alreadyLinkedBasenames: (diveId) =>
+          alreadyLinkedBasenames: (diveId) async =>
               alreadyLinked[diveId] ?? const <String>{},
           fallbackTakenAtFor: (_) => DateTime(2020),
         )..seed(
@@ -208,7 +209,7 @@ void main() {
             linker: _FakeLinker(),
             metadataFor: (_) async =>
                 const MediaSourceMetadata(mimeType: 'image/jpeg'),
-            alreadyLinkedBasenames: (_) => const <String>{},
+            alreadyLinkedBasenames: (_) async => const <String>{},
             fallbackTakenAtFor: (_) => DateTime(2020),
           )..seed(
             imageRefs: const [

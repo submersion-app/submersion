@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/import_photo_locate_prompt.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The summary step shown after the import completes.
@@ -43,13 +44,33 @@ class ImportSummaryStep extends ConsumerWidget {
       return _ErrorView(errorMessage: result.errorMessage!, onDone: onDone);
     }
 
-    return _SuccessView(
-      importedCounts: result.importedCounts,
-      consolidatedCount: result.consolidatedCount,
-      updatedCount: result.updatedCount,
-      skippedCount: result.skippedCount,
-      onDone: onDone,
-      onViewDives: onViewDives,
+    // Hand the parsed photo refs + combined UUID->diveId map to the photo-
+    // locate controller once the frame is built. Seeding outside build avoids
+    // mutating provider state during the widget tree's build pass.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      ref
+          .read(importPhotoLinkControllerProvider.notifier)
+          .seed(
+            imageRefs: result.imageRefs,
+            sourceUuidToDiveId: result.sourceUuidToDiveId,
+          );
+    });
+
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _SuccessView(
+            importedCounts: result.importedCounts,
+            consolidatedCount: result.consolidatedCount,
+            updatedCount: result.updatedCount,
+            skippedCount: result.skippedCount,
+            onDone: onDone,
+            onViewDives: onViewDives,
+          ),
+          const ImportPhotoLocatePrompt(),
+        ],
+      ),
     );
   }
 }
