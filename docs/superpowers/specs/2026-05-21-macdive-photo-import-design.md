@@ -179,8 +179,7 @@ All best-effort; the already-completed dive import is never compromised.
   folder never double-links. This same invariant makes linking to
   matched-existing dives safe against re-imports.
 - **Video refs:** photos only; non-image extensions skipped and counted.
-- **Captions:** stored via `MediaEnrichment` if a field fits, else dropped with a
-  logged note (`MediaItem` has no caption field).
+- **Captions:** stored directly on the existing `MediaItem.caption` column.
 - **EXIF:** copy lat/long/takenAt/dimensions like the Files tab; on failure fall
   back to file mtime / dive date.
 
