@@ -13,6 +13,8 @@ class DiveDetailUiKeys {
   static const String equipmentSectionExpanded =
       'dive_detail_equipment_expanded';
   static const String tideSectionExpanded = 'dive_detail_tide_expanded';
+  static const String surfaceGpsSectionExpanded =
+      'dive_detail_surface_gps_expanded';
 }
 
 /// State class for collapsible section preferences
@@ -22,6 +24,7 @@ class CollapsibleSectionState {
   final bool sacSegmentsExpanded;
   final bool equipmentExpanded;
   final bool tideExpanded;
+  final bool surfaceGpsExpanded;
 
   const CollapsibleSectionState({
     this.decoExpanded = false,
@@ -29,6 +32,7 @@ class CollapsibleSectionState {
     this.sacSegmentsExpanded = true,
     this.equipmentExpanded = true,
     this.tideExpanded = true,
+    this.surfaceGpsExpanded = false,
   });
 
   CollapsibleSectionState copyWith({
@@ -37,6 +41,7 @@ class CollapsibleSectionState {
     bool? sacSegmentsExpanded,
     bool? equipmentExpanded,
     bool? tideExpanded,
+    bool? surfaceGpsExpanded,
   }) {
     return CollapsibleSectionState(
       decoExpanded: decoExpanded ?? this.decoExpanded,
@@ -44,6 +49,7 @@ class CollapsibleSectionState {
       sacSegmentsExpanded: sacSegmentsExpanded ?? this.sacSegmentsExpanded,
       equipmentExpanded: equipmentExpanded ?? this.equipmentExpanded,
       tideExpanded: tideExpanded ?? this.tideExpanded,
+      surfaceGpsExpanded: surfaceGpsExpanded ?? this.surfaceGpsExpanded,
     );
   }
 }
@@ -70,6 +76,8 @@ class CollapsibleSectionNotifier
           _prefs.getBool(DiveDetailUiKeys.equipmentSectionExpanded) ?? true,
       tideExpanded:
           _prefs.getBool(DiveDetailUiKeys.tideSectionExpanded) ?? true,
+      surfaceGpsExpanded:
+          _prefs.getBool(DiveDetailUiKeys.surfaceGpsSectionExpanded) ?? false,
     );
   }
 
@@ -96,6 +104,11 @@ class CollapsibleSectionNotifier
   Future<void> setTideExpanded(bool expanded) async {
     state = state.copyWith(tideExpanded: expanded);
     await _prefs.setBool(DiveDetailUiKeys.tideSectionExpanded, expanded);
+  }
+
+  Future<void> setSurfaceGpsExpanded(bool expanded) async {
+    state = state.copyWith(surfaceGpsExpanded: expanded);
+    await _prefs.setBool(DiveDetailUiKeys.surfaceGpsSectionExpanded, expanded);
   }
 }
 
@@ -133,4 +146,10 @@ final equipmentSectionExpandedProvider = Provider<bool>((ref) {
 
 final tideSectionExpandedProvider = Provider<bool>((ref) {
   return ref.watch(collapsibleSectionProvider.select((s) => s.tideExpanded));
+});
+
+final surfaceGpsSectionExpandedProvider = Provider<bool>((ref) {
+  return ref.watch(
+    collapsibleSectionProvider.select((s) => s.surfaceGpsExpanded),
+  );
 });
