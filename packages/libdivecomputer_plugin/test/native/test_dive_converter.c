@@ -223,6 +223,21 @@ static void test_temperature_sentinels(void) {
     printf("PASS: test_temperature_sentinels\n");
 }
 
+static void test_gps_sentinels(void) {
+    libdc_parsed_dive_t dive = {0};
+    dive.entry_latitude = NAN;
+    dive.entry_longitude = NAN;
+    dive.exit_latitude = 12.34567;
+    dive.exit_longitude = -98.76543;
+
+    assert(isnan(dive.entry_latitude));
+    assert(isnan(dive.entry_longitude));
+    assert(!isnan(dive.exit_latitude));
+    assert(dive.exit_latitude == 12.34567);
+    assert(dive.exit_longitude == -98.76543);
+    printf("PASS: test_gps_sentinels\n");
+}
+
 int main(void) {
     test_sample_sentinels();
     test_sample_valid_values();
@@ -236,6 +251,7 @@ int main(void) {
     test_tank_fields();
     test_dive_mode_values();
     test_temperature_sentinels();
+    test_gps_sentinels();
     printf("\nAll tests passed.\n");
     return 0;
 }

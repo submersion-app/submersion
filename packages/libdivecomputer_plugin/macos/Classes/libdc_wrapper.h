@@ -184,6 +184,11 @@ typedef struct {
     unsigned int duration;     // seconds
     double min_temp;           // celsius (NAN if unavailable)
     double max_temp;           // celsius (NAN if unavailable)
+    // GPS entry/exit fixes (Shearwater Swift). Decimal degrees, NAN if unavailable.
+    double entry_latitude;
+    double entry_longitude;
+    double exit_latitude;
+    double exit_longitude;
     unsigned int dive_mode;    // 0=freedive, 1=gauge, 2=OC, 3=CCR, 4=SCR
 
     // Fingerprint
