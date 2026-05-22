@@ -14,7 +14,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// On error, shows an error icon and message with a "Done" button.
 ///
 /// While the import is still running, shows a loading indicator.
-class ImportSummaryStep extends ConsumerWidget {
+class ImportSummaryStep extends ConsumerStatefulWidget {
   /// Called when the user taps the "Done" button.
   final VoidCallback onDone;
 
@@ -28,34 +28,48 @@ class ImportSummaryStep extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ImportSummaryStep> createState() => _ImportSummaryStepState();
+}
+
+class _ImportSummaryStepState extends ConsumerState<ImportSummaryStep> {
+  /// Guards the one-time seed so rebuilds never re-seed and wipe the summary.
+  bool _seeded = false;
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(importWizardNotifierProvider);
     final result = state.importResult;
 
     if (result == null) {
       final error = state.error;
       if (error != null) {
-        return _ErrorView(errorMessage: error, onDone: onDone);
+        return _ErrorView(errorMessage: error, onDone: widget.onDone);
       }
       return const Center(child: CircularProgressIndicator());
     }
 
     if (result.errorMessage != null) {
-      return _ErrorView(errorMessage: result.errorMessage!, onDone: onDone);
+      return _ErrorView(
+        errorMessage: result.errorMessage!,
+        onDone: widget.onDone,
+      );
     }
 
     // Hand the parsed photo refs + combined UUID->diveId map to the photo-
-    // locate controller once the frame is built. Seeding outside build avoids
-    // mutating provider state during the widget tree's build pass.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!context.mounted) return;
-      ref
-          .read(importPhotoLinkControllerProvider.notifier)
-          .seed(
-            imageRefs: result.imageRefs,
-            sourceUuidToDiveId: result.sourceUuidToDiveId,
-          );
-    });
+    // locate controller exactly once. The guard prevents a rebuild from
+    // re-seeding and wiping a summary that is already being displayed.
+    if (!_seeded) {
+      _seeded = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref
+            .read(importPhotoLinkControllerProvider.notifier)
+            .seed(
+              imageRefs: result.imageRefs,
+              sourceUuidToDiveId: result.sourceUuidToDiveId,
+            );
+      });
+    }
 
     return SingleChildScrollView(
       child: Column(
@@ -65,8 +79,8 @@ class ImportSummaryStep extends ConsumerWidget {
             consolidatedCount: result.consolidatedCount,
             updatedCount: result.updatedCount,
             skippedCount: result.skippedCount,
-            onDone: onDone,
-            onViewDives: onViewDives,
+            onDone: widget.onDone,
+            onViewDives: widget.onViewDives,
           ),
           const ImportPhotoLocatePrompt(),
         ],
