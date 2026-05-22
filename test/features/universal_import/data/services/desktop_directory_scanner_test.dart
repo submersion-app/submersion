@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/universal_import/data/services/desktop_directory_scanner.dart';
 import 'package:submersion/features/universal_import/data/services/directory_scanner.dart';
-import 'package:submersion/features/universal_import/data/value_objects/scanned_file.dart';
 
 void main() {
   late Directory tmp;

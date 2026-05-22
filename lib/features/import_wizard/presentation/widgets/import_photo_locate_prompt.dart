@@ -92,6 +92,10 @@ class ImportPhotoLocatePrompt extends ConsumerWidget {
       }
       if (!kIsWeb && Platform.isIOS) {
         final platform = ref.read(localMediaPlatformProvider);
+        // SecurityScopedBookmarkHandler.pickFolderWithSecurityScope write-probes
+        // the chosen folder, so a read-only source (e.g. the Photos library) is
+        // rejected and returns null here (silently treated as cancel).
+        // Follow-up: parameterize the picker to skip the write-probe for read-only photo import.
         final picked = await platform.pickFolderBookmark();
         if (picked == null) return;
         await controller.pickedFolder(
