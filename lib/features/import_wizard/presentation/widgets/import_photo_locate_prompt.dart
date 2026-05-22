@@ -80,6 +80,25 @@ class ImportPhotoLocatePrompt extends ConsumerWidget {
     final controller = ref.read(importPhotoLinkControllerProvider.notifier);
 
     Future<void> pick() async {
+      // Mobile pickers preserve a durable grant token (Android SAF tree URI /
+      // iOS security-scoped folder bookmark) that the native enumerators need.
+      // Desktop keeps the plain directory-path picker.
+      if (!kIsWeb && Platform.isAndroid) {
+        final platform = ref.read(localMediaPlatformProvider);
+        final uri = await platform.pickPersistableTreeUri();
+        if (uri == null) return;
+        await controller.pickedFolder(GrantedFolder(path: uri));
+        return;
+      }
+      if (!kIsWeb && Platform.isIOS) {
+        final platform = ref.read(localMediaPlatformProvider);
+        final picked = await platform.pickFolderBookmark();
+        if (picked == null) return;
+        await controller.pickedFolder(
+          GrantedFolder(path: picked.path, iosFolderBookmark: picked.bookmark),
+        );
+        return;
+      }
       final picked = await FilePicker.getDirectoryPath();
       if (picked == null) return;
       await controller.pickedFolder(GrantedFolder(path: picked));

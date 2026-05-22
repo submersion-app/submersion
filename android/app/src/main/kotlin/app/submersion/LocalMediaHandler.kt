@@ -1,5 +1,6 @@
 package app.submersion
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -18,6 +19,12 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
  *       Calls ContentResolver.takePersistableUriPermission with read flag
  *       and returns the URI string itself (which Dart-side stores as
  *       MediaItem.bookmarkRef).
+ *   - pickPersistableTreeUri(): String?
+ *       Launches ACTION_OPEN_DOCUMENT_TREE, takes a persistable READ
+ *       permission on the chosen tree, and returns its content://tree/...
+ *       URI string. Returns null if the user cancelled. Requires an Activity
+ *       (set via [attachActivity]) to launch the picker and receive its
+ *       result through [onPickTreeResult].
  *   - resolveBookmark(bookmarkRef: String): String?
  *       Returns the URI as a string if the resource still exists, null if
  *       the underlying file is gone.
@@ -32,13 +39,31 @@ class LocalMediaHandler(
     private val channel: MethodChannel,
 ) : MethodCallHandler {
 
+    /**
+     * The hosting Activity, required to launch the document-tree picker.
+     * FlutterActivity extends plain android.app.Activity (not a
+     * ComponentActivity), so we cannot use the AndroidX ActivityResult APIs;
+     * instead MainActivity forwards startActivityForResult outcomes to
+     * [onPickTreeResult].
+     */
+    private var activity: Activity? = null
+
+    /** Result callback awaiting the folder-tree picker outcome, if any. */
+    private var pendingPickResult: MethodChannel.Result? = null
+
     init {
         channel.setMethodCallHandler(this)
+    }
+
+    /** Wire (or clear) the hosting Activity. Called from MainActivity. */
+    fun attachActivity(activity: Activity?) {
+        this.activity = activity
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "takePersistableUri" -> takePersistableUri(call, result)
+            "pickPersistableTreeUri" -> pickPersistableTreeUri(result)
             "resolveBookmark" -> resolveBookmark(call, result)
             "releaseBookmark" -> releaseBookmark(call, result)
             "listPersistedUris" -> listPersistedUris(result)
@@ -46,6 +71,58 @@ class LocalMediaHandler(
             "enumerateTree" -> enumerateTree(call, result)
             else -> result.notImplemented()
         }
+    }
+
+    private fun pickPersistableTreeUri(result: MethodChannel.Result) {
+        val act = activity
+        if (act == null) {
+            result.error("NO_ACTIVITY", "No Activity available to launch picker", null)
+            return
+        }
+        if (pendingPickResult != null) {
+            result.error("ALREADY_PICKING", "A folder pick is already in progress", null)
+            return
+        }
+        pendingPickResult = result
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+            addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION,
+            )
+        }
+        try {
+            act.startActivityForResult(intent, REQUEST_PICK_TREE)
+        } catch (e: Exception) {
+            pendingPickResult = null
+            result.error("PICK_FAILED", e.localizedMessage, null)
+        }
+    }
+
+    /**
+     * Forwarded from MainActivity.onActivityResult. Takes a persistable READ
+     * permission on the chosen tree and completes the pending Dart result
+     * with the tree URI string (or null on cancellation). Returns true if
+     * this handler consumed the result.
+     */
+    fun onPickTreeResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+        if (requestCode != REQUEST_PICK_TREE) return false
+        val result = pendingPickResult ?: return true
+        pendingPickResult = null
+        val treeUri = data?.data
+        if (resultCode != Activity.RESULT_OK || treeUri == null) {
+            result.success(null) // cancelled / no selection
+            return true
+        }
+        try {
+            context.contentResolver.takePersistableUriPermission(
+                treeUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION,
+            )
+            result.success(treeUri.toString())
+        } catch (e: SecurityException) {
+            result.error("PERMISSION_DENIED", e.localizedMessage, null)
+        }
+        return true
     }
 
     private fun takePersistableUri(call: MethodCall, result: MethodChannel.Result) {
@@ -157,5 +234,8 @@ class LocalMediaHandler(
 
     companion object {
         const val CHANNEL = "com.submersion.app/local_media"
+
+        /** startActivityForResult request code for the document-tree picker. */
+        const val REQUEST_PICK_TREE = 0x5542 // 'SU'
     }
 }

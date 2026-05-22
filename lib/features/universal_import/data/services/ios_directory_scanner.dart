@@ -11,7 +11,9 @@ class IosDirectoryScanner implements DirectoryScanner {
 
   @override
   Stream<ScannedFile> scan(GrantedFolder folder) async* {
-    final entries = await _platform.enumerateScopedDirectory(folder.path);
+    final entries = await _platform.enumerateScopedDirectory(
+      folder.iosFolderBookmark!,
+    );
     for (final e in entries) {
       yield ScannedFile(
         basename: e.basename,

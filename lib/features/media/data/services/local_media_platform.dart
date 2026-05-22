@@ -43,6 +43,13 @@ class ResolvedBookmark {
 class LocalMediaPlatform {
   static const _channel = MethodChannel('com.submersion.app/local_media');
 
+  /// Channel for the iOS / macOS document-folder picker that returns a
+  /// security-scoped FOLDER bookmark. Owned natively by
+  /// `SecurityScopedBookmarkHandler` (iOS). See [pickFolderBookmark].
+  static const _bookmarkChannel = MethodChannel(
+    'app.submersion/security_scoped_bookmark',
+  );
+
   /// iOS / macOS only. Creates a security-scoped bookmark for [filePath]
   /// and returns the raw bookmark blob. Callers store this in the keychain
   /// (via flutter_secure_storage) and pass it back to [resolveBookmark]
@@ -107,14 +114,14 @@ class LocalMediaPlatform {
     await _channel.invokeMethod<void>('releaseAllBookmarks');
   }
 
-  /// iOS / macOS only. Enumerates [directoryUrl] (a security-scoped folder
-  /// URL string the user granted via the document picker) and returns one
-  /// [ScopedDirEntry] per file. The native side holds the directory's
-  /// security scope for the whole walk and creates each file's bookmark
-  /// inside that window, so the returned blobs remain resolvable after the
-  /// scope is released.
+  /// iOS / macOS only. Enumerates the folder referenced by [folderBookmark]
+  /// (a security-scoped FOLDER bookmark the user granted via the document
+  /// picker) and returns one [ScopedDirEntry] per file. The native side
+  /// resolves the bookmark, holds the directory's security scope for the
+  /// whole walk, and creates each file's bookmark inside that window, so the
+  /// returned blobs remain resolvable after the scope is released.
   Future<List<ScopedDirEntry>> enumerateScopedDirectory(
-    String directoryUrl,
+    Uint8List folderBookmark,
   ) async {
     if (!Platform.isIOS && !Platform.isMacOS) {
       throw UnsupportedError(
@@ -124,7 +131,7 @@ class LocalMediaPlatform {
     // coverage:ignore-start
     final raw = await _channel.invokeListMethod<Map<Object?, Object?>>(
       'enumerateScopedDirectory',
-      {'directoryUrl': directoryUrl},
+      {'bookmark': folderBookmark},
     );
     if (raw == null) return const [];
     return raw
@@ -135,6 +142,43 @@ class LocalMediaPlatform {
           ),
         )
         .toList();
+    // coverage:ignore-end
+  }
+
+  /// Android only. Presents `ACTION_OPEN_DOCUMENT_TREE`, takes a persistable
+  /// READ permission on the chosen tree, and returns its
+  /// `content://tree/...` URI string (suitable for [enumerateTree]). Returns
+  /// null if the user cancelled.
+  Future<String?> pickPersistableTreeUri() async {
+    if (!Platform.isAndroid) {
+      throw UnsupportedError(
+        'pickPersistableTreeUri is only supported on Android',
+      );
+    }
+    // coverage:ignore-start
+    return _channel.invokeMethod<String>('pickPersistableTreeUri');
+    // coverage:ignore-end
+  }
+
+  /// iOS / macOS only. Presents the document folder picker (via the existing
+  /// `app.submersion/security_scoped_bookmark` channel's
+  /// `pickFolderWithSecurityScope`) and returns the chosen folder's cosmetic
+  /// [path] plus its security-scoped FOLDER [bookmark]. Returns null if the
+  /// user cancelled. The [bookmark] is fed to [enumerateScopedDirectory].
+  Future<({String path, Uint8List bookmark})?> pickFolderBookmark() async {
+    if (!Platform.isIOS && !Platform.isMacOS) {
+      throw UnsupportedError(
+        'pickFolderBookmark is only supported on iOS / macOS',
+      );
+    }
+    // coverage:ignore-start
+    final r = await _bookmarkChannel.invokeMapMethod<String, dynamic>(
+      'pickFolderWithSecurityScope',
+    );
+    if (r == null) return null; // user cancelled
+    final path = r['path'] as String;
+    final bookmark = (r['bookmarkData'] as Uint8List?) ?? Uint8List(0);
+    return (path: path, bookmark: bookmark);
     // coverage:ignore-end
   }
 

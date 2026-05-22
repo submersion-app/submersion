@@ -130,16 +130,11 @@ class LocalMediaHandler: NSObject {
             readBookmarkBytes(blob: blob.data, result: result)
         case "enumerateScopedDirectory":
             guard let args = call.arguments as? [String: Any],
-                  let urlString = args["directoryUrl"] as? String else {
-                result(FlutterError(code: "INVALID_ARGS", message: "directoryUrl required", details: nil))
+                  let bookmark = args["bookmark"] as? FlutterStandardTypedData else {
+                result(FlutterError(code: "INVALID_ARGS", message: "bookmark required", details: nil))
                 return
             }
-            // file_picker returns a POSIX path (not a URL string), so build a file URL.
-            // NOTE (iOS, manual-verify): a security-scoped folder URL cannot be fully
-            // reconstructed from a bare path; real-device verification is required for
-            // the iOS scoped-access path. Desktop/macOS use the dart:io scanner.
-            let dirURL = URL(fileURLWithPath: urlString)
-            enumerateScopedDirectory(dirURL: dirURL, result: result)
+            enumerateScopedDirectory(folderBookmark: bookmark.data, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -214,7 +209,30 @@ class LocalMediaHandler: NSObject {
         result(nil)
     }
 
-    private func enumerateScopedDirectory(dirURL: URL, result: @escaping FlutterResult) {
+    /// Resolves a security-scoped FOLDER bookmark, holds its scope for the
+    /// whole walk, and mints a per-file bookmark for every regular file under
+    /// it. On iOS the folder bookmark resolves with `options: []` (security
+    /// scope is implicit for picker-supplied URLs) and per-file bookmarks use
+    /// `.minimalBookmark`, matching SecurityScopedBookmarkHandler.
+    private func enumerateScopedDirectory(folderBookmark: Data, result: @escaping FlutterResult) {
+        var stale = false
+        let dirURL: URL
+        do {
+            dirURL = try URL(
+                resolvingBookmarkData: folderBookmark,
+                options: [],
+                relativeTo: nil,
+                bookmarkDataIsStale: &stale
+            )
+        } catch {
+            result(
+                FlutterError(
+                    code: "RESOLVE_FAILED",
+                    message: "Could not resolve folder bookmark: \(error.localizedDescription)",
+                    details: nil
+                ))
+            return
+        }
         let didAccess = dirURL.startAccessingSecurityScopedResource()
         defer { if didAccess { dirURL.stopAccessingSecurityScopedResource() } }
         var entries: [[String: Any]] = []
@@ -226,7 +244,7 @@ class LocalMediaHandler: NSObject {
                 #if os(macOS)
                 let bookmarkOptions: URL.BookmarkCreationOptions = [.withSecurityScope]
                 #else
-                let bookmarkOptions: URL.BookmarkCreationOptions = []
+                let bookmarkOptions: URL.BookmarkCreationOptions = .minimalBookmark
                 #endif
                 if let blob = try? fileURL.bookmarkData(
                     options: bookmarkOptions,

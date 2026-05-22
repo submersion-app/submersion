@@ -41,15 +41,16 @@ void main() {
   test(
     'enumerateScopedDirectory returns basename+blob entries (iOS/macOS)',
     () async {
+      final folderBookmark = Uint8List.fromList([1, 2, 3]);
       if (!Platform.isIOS && !Platform.isMacOS) {
         expect(
-          () => LocalMediaPlatform().enumerateScopedDirectory('/dir'),
+          () => LocalMediaPlatform().enumerateScopedDirectory(folderBookmark),
           throwsUnsupportedError,
         );
         return;
       }
       final entries = await LocalMediaPlatform().enumerateScopedDirectory(
-        '/dir',
+        folderBookmark,
       );
       expect(entries.length, 2);
       expect(entries.first.basename, 'a.jpg');
