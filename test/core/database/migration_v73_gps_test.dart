@@ -49,5 +49,47 @@ void main() {
       expect(row.entryLatitude, 12.34567);
       expect(row.exitLongitude, 98.76489);
     });
+
+    test(
+      'v72 -> v73 upgrade adds GPS columns to an existing dives table',
+      () async {
+        // Minimal pre-v73 dives table at user_version = 72 (no GPS columns).
+        final native = NativeDatabase.memory(
+          setup: (rawDb) {
+            rawDb.execute('PRAGMA user_version = 72');
+            rawDb.execute('''
+            CREATE TABLE dives (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_date_time INTEGER NOT NULL DEFAULT 0,
+              dive_type TEXT NOT NULL DEFAULT 'recreational',
+              notes TEXT NOT NULL DEFAULT '',
+              is_favorite INTEGER NOT NULL DEFAULT 0,
+              dive_mode TEXT NOT NULL DEFAULT 'oc',
+              cns_start REAL NOT NULL DEFAULT 0,
+              is_planned INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+          },
+        );
+        final db = AppDatabase(native);
+        addTearDown(db.close);
+
+        // Opening the database runs onUpgrade from 72, executing the v73
+        // ALTER TABLE statements.
+        final cols = await db.customSelect("PRAGMA table_info('dives')").get();
+        final names = cols.map((c) => c.read<String>('name')).toSet();
+        expect(
+          names,
+          containsAll(<String>[
+            'entry_latitude',
+            'entry_longitude',
+            'exit_latitude',
+            'exit_longitude',
+          ]),
+        );
+      },
+    );
   });
 }

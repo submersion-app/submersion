@@ -1135,7 +1135,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       'https://www.openstreetmap.org/?mlat=${point.latitude}'
       '&mlon=${point.longitude}#map=16/${point.latitude}/${point.longitude}',
     );
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   /// Format runtime: use stored value, or calculate from entry/exit times

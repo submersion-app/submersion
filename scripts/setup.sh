@@ -27,6 +27,7 @@ echo "🩹 Applying vendored libdivecomputer patches..."
 LIBDC_DIR="$PROJECT_ROOT/packages/libdivecomputer_plugin/third_party/libdivecomputer"
 PATCH_DIR="$PROJECT_ROOT/packages/libdivecomputer_plugin/patches"
 if [ -d "$PATCH_DIR" ] && [ -d "$LIBDC_DIR/src" ]; then
+  patches_skipped=0
   for patch in "$PATCH_DIR"/*.patch; do
     [ -e "$patch" ] || continue
     name="$(basename "$patch")"
@@ -37,8 +38,14 @@ if [ -d "$PATCH_DIR" ] && [ -d "$LIBDC_DIR/src" ]; then
       echo "  applied: $name"
     else
       echo "  ⚠️  skipped (does not apply cleanly): $name"
+      patches_skipped=1
     fi
   done
+  if [ "$patches_skipped" -ne 0 ]; then
+    echo "❌ One or more libdivecomputer patches did not apply cleanly."
+    echo "   These patches affect dive parsing; resolve before building."
+    exit 1
+  fi
   echo "✅ libdivecomputer patches applied"
 else
   echo "  (skipped: submodule or patches/ not present)"
