@@ -223,6 +223,24 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
         std::isnan(dive.max_temp) ? std::nullopt
                                   : std::optional<double>(dive.max_temp);
 
+    // Nullable GPS entry/exit (Shearwater Swift).
+    std::optional<double> entry_lat =
+        std::isnan(dive.entry_latitude)
+            ? std::nullopt
+            : std::optional<double>(dive.entry_latitude);
+    std::optional<double> entry_lon =
+        std::isnan(dive.entry_longitude)
+            ? std::nullopt
+            : std::optional<double>(dive.entry_longitude);
+    std::optional<double> exit_lat =
+        std::isnan(dive.exit_latitude)
+            ? std::nullopt
+            : std::optional<double>(dive.exit_latitude);
+    std::optional<double> exit_lon =
+        std::isnan(dive.exit_longitude)
+            ? std::nullopt
+            : std::optional<double>(dive.exit_longitude);
+
     // GF/conservatism: 0 means unknown -> null.
     std::optional<int64_t> gf_low =
         (dive.gf_low == 0)
@@ -273,7 +291,11 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
         gf_high ? &*gf_high : nullptr,
         deco_conservatism ? &*deco_conservatism : nullptr,
         raw_data ? &*raw_data : nullptr,
-        raw_fp ? &*raw_fp : nullptr);
+        raw_fp ? &*raw_fp : nullptr,
+        entry_lat ? &*entry_lat : nullptr,
+        entry_lon ? &*entry_lon : nullptr,
+        exit_lat ? &*exit_lat : nullptr,
+        exit_lon ? &*exit_lon : nullptr);
 }
 
 }  // namespace libdivecomputer_plugin

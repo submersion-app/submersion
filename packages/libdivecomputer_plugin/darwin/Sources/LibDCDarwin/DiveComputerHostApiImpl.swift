@@ -571,7 +571,11 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             // Cannot distinguish these without a C layer change.
             decoConservatism: dive.deco_conservatism == 0 ? nil : Int64(dive.deco_conservatism),
             rawData: rawData,
-            rawFingerprint: rawFingerprint
+            rawFingerprint: rawFingerprint,
+            entryLatitude: dive.entry_latitude.isNaN ? nil : dive.entry_latitude,
+            entryLongitude: dive.entry_longitude.isNaN ? nil : dive.entry_longitude,
+            exitLatitude: dive.exit_latitude.isNaN ? nil : dive.exit_latitude,
+            exitLongitude: dive.exit_longitude.isNaN ? nil : dive.exit_longitude
         )
     }
 

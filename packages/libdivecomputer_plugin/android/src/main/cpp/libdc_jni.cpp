@@ -730,6 +730,34 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveMaxTemp(
     return dive->max_temp;
 }
 
+extern "C" JNIEXPORT jdouble JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveEntryLatitude(
+    JNIEnv *, jclass, jlong divePtr) {
+    auto *dive = reinterpret_cast<const libdc_parsed_dive_t *>(divePtr);
+    return dive->entry_latitude;
+}
+
+extern "C" JNIEXPORT jdouble JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveEntryLongitude(
+    JNIEnv *, jclass, jlong divePtr) {
+    auto *dive = reinterpret_cast<const libdc_parsed_dive_t *>(divePtr);
+    return dive->entry_longitude;
+}
+
+extern "C" JNIEXPORT jdouble JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveExitLatitude(
+    JNIEnv *, jclass, jlong divePtr) {
+    auto *dive = reinterpret_cast<const libdc_parsed_dive_t *>(divePtr);
+    return dive->exit_latitude;
+}
+
+extern "C" JNIEXPORT jdouble JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveExitLongitude(
+    JNIEnv *, jclass, jlong divePtr) {
+    auto *dive = reinterpret_cast<const libdc_parsed_dive_t *>(divePtr);
+    return dive->exit_longitude;
+}
+
 extern "C" JNIEXPORT jint JNICALL
 Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveMode(
     JNIEnv *, jclass, jlong divePtr) {

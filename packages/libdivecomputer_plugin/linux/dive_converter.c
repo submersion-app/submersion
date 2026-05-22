@@ -221,6 +221,16 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
     double max_t_val = dive->max_temp;
     double* max_temp = isnan(max_t_val) ? NULL : &max_t_val;
 
+    // GPS entry/exit (Shearwater Swift): NULL when unavailable.
+    double entry_lat_val = dive->entry_latitude;
+    double* entry_lat = isnan(entry_lat_val) ? NULL : &entry_lat_val;
+    double entry_lon_val = dive->entry_longitude;
+    double* entry_lon = isnan(entry_lon_val) ? NULL : &entry_lon_val;
+    double exit_lat_val = dive->exit_latitude;
+    double* exit_lat = isnan(exit_lat_val) ? NULL : &exit_lat_val;
+    double exit_lon_val = dive->exit_longitude;
+    double* exit_lon = isnan(exit_lon_val) ? NULL : &exit_lon_val;
+
     // GF/conservatism: 0 means unknown -> NULL.
     int64_t gf_low_val = (int64_t)dive->gf_low;
     int64_t* gf_low = (dive->gf_low == 0) ? NULL : &gf_low_val;
@@ -251,7 +261,8 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
             tz_offset, dive->max_depth, dive->avg_depth,
             (int64_t)dive->duration, min_temp, max_temp, samples, tanks,
             gas_mixes, events, dive_mode, deco_algorithm, gf_low, gf_high,
-            conservatism, raw_data, raw_data_length, raw_fp, raw_fp_length);
+            conservatism, raw_data, raw_data_length, raw_fp, raw_fp_length,
+            entry_lat, entry_lon, exit_lat, exit_lon);
 
     fl_value_unref(samples);
     fl_value_unref(gas_mixes);
