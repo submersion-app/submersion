@@ -142,6 +142,10 @@ class ParsedDive {
     this.decoConservatism,
     this.rawData,
     this.rawFingerprint,
+    this.entryLatitude,
+    this.entryLongitude,
+    this.exitLatitude,
+    this.exitLongitude,
   });
   final String fingerprint;
   final int dateTimeYear;
@@ -167,6 +171,11 @@ class ParsedDive {
   final int? decoConservatism;
   final Uint8List? rawData;
   final Uint8List? rawFingerprint;
+  // GPS entry/exit fixes (Shearwater Swift); decimal degrees, null if unavailable.
+  final double? entryLatitude;
+  final double? entryLongitude;
+  final double? exitLatitude;
+  final double? exitLongitude;
 }
 
 class DownloadProgress {

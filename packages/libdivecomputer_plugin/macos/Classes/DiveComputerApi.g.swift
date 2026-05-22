@@ -337,6 +337,10 @@ struct ParsedDive {
   var decoConservatism: Int64? = nil
   var rawData: FlutterStandardTypedData? = nil
   var rawFingerprint: FlutterStandardTypedData? = nil
+  var entryLatitude: Double? = nil
+  var entryLongitude: Double? = nil
+  var exitLatitude: Double? = nil
+  var exitLongitude: Double? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -365,6 +369,10 @@ struct ParsedDive {
     let decoConservatism: Int64? = nilOrValue(pigeonVar_list[21])
     let rawData: FlutterStandardTypedData? = nilOrValue(pigeonVar_list[22])
     let rawFingerprint: FlutterStandardTypedData? = nilOrValue(pigeonVar_list[23])
+    let entryLatitude: Double? = nilOrValue(pigeonVar_list[24])
+    let entryLongitude: Double? = nilOrValue(pigeonVar_list[25])
+    let exitLatitude: Double? = nilOrValue(pigeonVar_list[26])
+    let exitLongitude: Double? = nilOrValue(pigeonVar_list[27])
 
     return ParsedDive(
       fingerprint: fingerprint,
@@ -390,7 +398,11 @@ struct ParsedDive {
       gfHigh: gfHigh,
       decoConservatism: decoConservatism,
       rawData: rawData,
-      rawFingerprint: rawFingerprint
+      rawFingerprint: rawFingerprint,
+      entryLatitude: entryLatitude,
+      entryLongitude: entryLongitude,
+      exitLatitude: exitLatitude,
+      exitLongitude: exitLongitude
     )
   }
   func toList() -> [Any?] {
@@ -419,6 +431,10 @@ struct ParsedDive {
       decoConservatism,
       rawData,
       rawFingerprint,
+      entryLatitude,
+      entryLongitude,
+      exitLatitude,
+      exitLongitude,
     ]
   }
 }

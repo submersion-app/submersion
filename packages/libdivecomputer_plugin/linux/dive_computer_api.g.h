@@ -539,12 +539,16 @@ G_DECLARE_FINAL_TYPE(LibdivecomputerPluginParsedDive, libdivecomputer_plugin_par
  * raw_data_length: length of @raw_data.
  * raw_fingerprint: field in this object.
  * raw_fingerprint_length: length of @raw_fingerprint.
+ * entry_latitude: field in this object.
+ * entry_longitude: field in this object.
+ * exit_latitude: field in this object.
+ * exit_longitude: field in this object.
  *
  * Creates a new #ParsedDive object.
  *
  * Returns: a new #LibdivecomputerPluginParsedDive
  */
-LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new(const gchar* fingerprint, int64_t date_time_year, int64_t date_time_month, int64_t date_time_day, int64_t date_time_hour, int64_t date_time_minute, int64_t date_time_second, int64_t* date_time_timezone_offset, double max_depth_meters, double avg_depth_meters, int64_t duration_seconds, double* min_temperature_celsius, double* max_temperature_celsius, FlValue* samples, FlValue* tanks, FlValue* gas_mixes, FlValue* events, const gchar* dive_mode, const gchar* deco_algorithm, int64_t* gf_low, int64_t* gf_high, int64_t* deco_conservatism, const uint8_t* raw_data, size_t raw_data_length, const uint8_t* raw_fingerprint, size_t raw_fingerprint_length);
+LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new(const gchar* fingerprint, int64_t date_time_year, int64_t date_time_month, int64_t date_time_day, int64_t date_time_hour, int64_t date_time_minute, int64_t date_time_second, int64_t* date_time_timezone_offset, double max_depth_meters, double avg_depth_meters, int64_t duration_seconds, double* min_temperature_celsius, double* max_temperature_celsius, FlValue* samples, FlValue* tanks, FlValue* gas_mixes, FlValue* events, const gchar* dive_mode, const gchar* deco_algorithm, int64_t* gf_low, int64_t* gf_high, int64_t* deco_conservatism, const uint8_t* raw_data, size_t raw_data_length, const uint8_t* raw_fingerprint, size_t raw_fingerprint_length, double* entry_latitude, double* entry_longitude, double* exit_latitude, double* exit_longitude);
 
 /**
  * libdivecomputer_plugin_parsed_dive_get_fingerprint
@@ -787,6 +791,46 @@ const uint8_t* libdivecomputer_plugin_parsed_dive_get_raw_data(LibdivecomputerPl
  * Returns: the field value.
  */
 const uint8_t* libdivecomputer_plugin_parsed_dive_get_raw_fingerprint(LibdivecomputerPluginParsedDive* object, size_t* length);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_entry_latitude
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the entryLatitude field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_parsed_dive_get_entry_latitude(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_entry_longitude
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the entryLongitude field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_parsed_dive_get_entry_longitude(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_exit_latitude
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the exitLatitude field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_parsed_dive_get_exit_latitude(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_exit_longitude
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the exitLongitude field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_parsed_dive_get_exit_longitude(LibdivecomputerPluginParsedDive* object);
 
 /**
  * LibdivecomputerPluginDownloadProgress:
