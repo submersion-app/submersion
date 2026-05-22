@@ -468,11 +468,25 @@ class UniversalAdapter implements ImportSourceAdapter {
       cancelToken: cancelToken,
     );
 
+    // Combine new-dive UUIDs (from the importer) with matched-existing
+    // dives so photos link to duplicates the user kept. getSourceUuidByDiveId
+    // returns { diveId -> sourceUuid }; invert it for our needs.
+    final existingByDiveId = await _ref
+        .read(diveRepositoryProvider)
+        .getSourceUuidByDiveId(diverId: currentDiver.id);
+    final combinedSourceUuidToDiveId = <String, String>{
+      for (final entry in existingByDiveId.entries) entry.value: entry.key,
+      // New dives win over existing on UUID collision (we just created them).
+      ...result.sourceUuidToDiveId,
+    };
+
     return UnifiedImportResult(
       importedCounts: _convertImportCounts(result),
       consolidatedCount: 0,
       skippedCount: skipped,
       importedDiveIds: result.diveIds,
+      imageRefs: payload.imageRefs,
+      sourceUuidToDiveId: combinedSourceUuidToDiveId,
     );
   }
 

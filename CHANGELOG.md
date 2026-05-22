@@ -7,6 +7,16 @@ All notable changes to Submersion are documented in this file.
 
 ### Added
 
+- **MacDive photo import.** Photos referenced by MacDive native XML
+  (`<photos>`) and SQLite (`ZDIVEIMAGE`) imports are now linked to dives.
+  After importing dives, the summary screen offers to locate the photos:
+  pick a folder and Submersion scans it, matches each recorded photo by
+  path (direct/rebase) or filename, and links matches to their dive as
+  standard local-file media that reference the files in place (no copying).
+  Works on desktop and mobile; re-picking another folder is safe (linking
+  is idempotent per dive + filename). Photos link to both newly-imported
+  and matched-existing duplicate dives. Non-image references are skipped
+  and counted; missing photos are reported in a summary.
 - MacDive UDDF imports now capture substantially richer dive data: boat
   name and captain, dive operator, surface conditions, weather (stored
   in the existing weather description field), plus site water type, body

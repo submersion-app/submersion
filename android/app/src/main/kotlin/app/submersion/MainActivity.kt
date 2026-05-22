@@ -1,5 +1,6 @@
 package app.submersion
 
+import android.content.Intent
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -21,6 +22,25 @@ class MainActivity : FlutterActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             LocalMediaHandler.CHANNEL,
         )
-        localMediaHandler = LocalMediaHandler(applicationContext, localMediaChannel)
+        // ContentResolver work runs against the application context, but the
+        // document-tree picker needs an Activity to startActivityForResult and
+        // a path back through onActivityResult (FlutterActivity is a plain
+        // android.app.Activity, so the AndroidX ActivityResult APIs are not
+        // available here).
+        localMediaHandler = LocalMediaHandler(applicationContext, localMediaChannel).also {
+            it.attachActivity(this)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (localMediaHandler?.onPickTreeResult(requestCode, resultCode, data) == true) {
+            return
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onDestroy() {
+        localMediaHandler?.attachActivity(null)
+        super.onDestroy()
     }
 }
