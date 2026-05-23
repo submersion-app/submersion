@@ -3586,18 +3586,29 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 72) await reportProgress();
         if (from < 73) {
-          await customStatement(
-            'ALTER TABLE dives ADD COLUMN entry_latitude REAL',
-          );
-          await customStatement(
-            'ALTER TABLE dives ADD COLUMN entry_longitude REAL',
-          );
-          await customStatement(
-            'ALTER TABLE dives ADD COLUMN exit_latitude REAL',
-          );
-          await customStatement(
-            'ALTER TABLE dives ADD COLUMN exit_longitude REAL',
-          );
+          // Guard: dives may not exist in older migration-test contexts.
+          final divesCols = await customSelect(
+            "PRAGMA table_info('dives')",
+          ).get();
+          if (divesCols.isNotEmpty) {
+            final divesExisting = divesCols
+                .map((c) => c.read<String>('name'))
+                .toSet();
+            if (!divesExisting.contains('entry_latitude')) {
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN entry_latitude REAL',
+              );
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN entry_longitude REAL',
+              );
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN exit_latitude REAL',
+              );
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN exit_longitude REAL',
+              );
+            }
+          }
         }
         if (from < 73) await reportProgress();
         if (from < 74) {
