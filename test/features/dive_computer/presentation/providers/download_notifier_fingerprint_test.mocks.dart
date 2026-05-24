@@ -300,6 +300,10 @@ class MockDiveComputerRepository extends _i1.Mock
     String? descriptorProduct,
     int? descriptorModel,
     String? libdivecomputerVersion,
+    double? entryLatitude,
+    double? entryLongitude,
+    double? exitLatitude,
+    double? exitLongitude,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#importProfile, [], {
@@ -325,6 +329,10 @@ class MockDiveComputerRepository extends _i1.Mock
               #descriptorProduct: descriptorProduct,
               #descriptorModel: descriptorModel,
               #libdivecomputerVersion: libdivecomputerVersion,
+              #entryLatitude: entryLatitude,
+              #entryLongitude: entryLongitude,
+              #exitLatitude: exitLatitude,
+              #exitLongitude: exitLongitude,
             }),
             returnValue: _i4.Future<String>.value(
               _i7.dummyValue<String>(
@@ -352,6 +360,10 @@ class MockDiveComputerRepository extends _i1.Mock
                   #descriptorProduct: descriptorProduct,
                   #descriptorModel: descriptorModel,
                   #libdivecomputerVersion: libdivecomputerVersion,
+                  #entryLatitude: entryLatitude,
+                  #entryLongitude: entryLongitude,
+                  #exitLatitude: exitLatitude,
+                  #exitLongitude: exitLongitude,
                 }),
               ),
             ),

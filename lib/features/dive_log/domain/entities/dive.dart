@@ -23,6 +23,9 @@ class Dive extends Equatable {
   final Duration? runtime; // Total runtime (includes descent/ascent)
   final double? maxDepth; // meters
   final double? avgDepth; // meters
+  // GPS entry/exit fixes from the dive computer (Shearwater Swift)
+  final GeoPoint? entryLocation;
+  final GeoPoint? exitLocation;
   final DiveSite? site;
   final DiveCenter? diveCenter;
   final Trip? trip;
@@ -134,6 +137,8 @@ class Dive extends Equatable {
     this.runtime,
     this.maxDepth,
     this.avgDepth,
+    this.entryLocation,
+    this.exitLocation,
     this.site,
     this.diveCenter,
     this.trip,
@@ -465,6 +470,8 @@ class Dive extends Equatable {
     Duration? runtime,
     double? maxDepth,
     double? avgDepth,
+    GeoPoint? entryLocation,
+    GeoPoint? exitLocation,
     DiveSite? site,
     DiveCenter? diveCenter,
     Trip? trip,
@@ -550,6 +557,8 @@ class Dive extends Equatable {
       runtime: runtime ?? this.runtime,
       maxDepth: maxDepth ?? this.maxDepth,
       avgDepth: avgDepth ?? this.avgDepth,
+      entryLocation: entryLocation ?? this.entryLocation,
+      exitLocation: exitLocation ?? this.exitLocation,
       site: site ?? this.site,
       diveCenter: diveCenter ?? this.diveCenter,
       trip: trip ?? this.trip,
@@ -638,6 +647,8 @@ class Dive extends Equatable {
     runtime,
     maxDepth,
     avgDepth,
+    entryLocation,
+    exitLocation,
     site,
     diveCenter,
     trip,

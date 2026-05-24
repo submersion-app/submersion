@@ -152,7 +152,7 @@ void main() {
       expect(result['heartRate'], equals('Garmin Descent Mk2'));
     });
 
-    test('attributes GPS to GPS-capable source (Apple Watch)', () {
+    test('does not attribute GPS to a wearable without stored coordinates', () {
       final primary = _makeSource(
         id: 's1',
         diveId: diveId,
@@ -174,11 +174,11 @@ void main() {
         watch,
       ]);
 
-      expect(result['gps'], equals('Apple Watch Ultra'));
+      expect(result.containsKey('gps'), isFalse);
     });
 
     test(
-      'falls back heartRate and gps to active source when no capable source',
+      'falls back heartRate to active source; gps absent without coordinates',
       () {
         final primary = _makeSource(
           id: 's1',
@@ -202,7 +202,7 @@ void main() {
         ]);
 
         expect(result['heartRate'], equals('Suunto D5'));
-        expect(result['gps'], equals('Suunto D5'));
+        expect(result.containsKey('gps'), isFalse);
       },
     );
 

@@ -344,6 +344,10 @@ class DiveComputerHostApiImpl(
         val avgDepth = LibdcWrapper.nativeGetDiveAvgDepth(divePtr)
         val minTemp = LibdcWrapper.nativeGetDiveMinTemp(divePtr)
         val maxTemp = LibdcWrapper.nativeGetDiveMaxTemp(divePtr)
+        val entryLat = LibdcWrapper.nativeGetDiveEntryLatitude(divePtr)
+        val entryLon = LibdcWrapper.nativeGetDiveEntryLongitude(divePtr)
+        val exitLat = LibdcWrapper.nativeGetDiveExitLatitude(divePtr)
+        val exitLon = LibdcWrapper.nativeGetDiveExitLongitude(divePtr)
 
         // Convert events.
         val eventCount = LibdcWrapper.nativeGetDiveEventCount(divePtr)
@@ -390,6 +394,10 @@ class DiveComputerHostApiImpl(
             durationSeconds = LibdcWrapper.nativeGetDiveDuration(divePtr).toLong(),
             minTemperatureCelsius = if (minTemp.isNaN()) null else minTemp,
             maxTemperatureCelsius = if (maxTemp.isNaN()) null else maxTemp,
+            entryLatitude = if (entryLat.isNaN()) null else entryLat,
+            entryLongitude = if (entryLon.isNaN()) null else entryLon,
+            exitLatitude = if (exitLat.isNaN()) null else exitLat,
+            exitLongitude = if (exitLon.isNaN()) null else exitLon,
             samples = samples,
             tanks = tanks,
             gasMixes = gasMixes,

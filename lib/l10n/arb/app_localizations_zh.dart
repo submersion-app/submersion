@@ -9310,6 +9310,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_tide_description => '潮汐周期图和时间';
 
   @override
+  String get diveDetailSection_surfaceGps_name => 'Surface GPS';
+
+  @override
+  String get diveDetailSection_surfaceGps_description =>
+      'GPS entry/exit points and surface drift';
+
+  @override
+  String get diveLog_detail_section_surfaceGps => 'Surface GPS';
+
+  @override
+  String get diveLog_detail_surfaceGps_entry => 'Entry';
+
+  @override
+  String get diveLog_detail_surfaceGps_exit => 'Exit';
+
+  @override
+  String get diveLog_detail_label_drift => 'Drift';
+
+  @override
+  String get diveLog_detail_surfaceGps_entryOnly => 'Entry point recorded';
+
+  @override
+  String get diveLog_detail_surfaceGps_exitOnly => 'Exit point recorded';
+
+  @override
+  String get diveLog_detail_openInMaps => 'Open in Maps';
+
+  @override
   String get diveDetailSection_weights_name => '重量';
 
   @override

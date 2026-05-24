@@ -505,5 +505,36 @@ void main() {
       expect(dataSources.first.gradientFactorLow, equals(30));
       expect(dataSources.first.gradientFactorHigh, equals(70));
     });
+
+    test('importProfile persists GPS entry/exit on the dive row', () async {
+      final computerId = await insertComputer();
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: DateTime(2026, 5, 22, 9, 14),
+        points: [const ProfilePointData(timestamp: 0, depth: 0.0)],
+        durationSeconds: 38 * 60,
+        maxDepth: 30.0,
+        entryLatitude: 12.34567,
+        entryLongitude: 98.76543,
+        exitLatitude: 12.34612,
+        exitLongitude: 98.76489,
+      );
+
+      final row = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(row.entryLatitude, 12.34567);
+      expect(row.entryLongitude, 98.76543);
+      expect(row.exitLatitude, 12.34612);
+      expect(row.exitLongitude, 98.76489);
+
+      // The provenance (data source) row carries GPS too, for attribution.
+      final source = await (db.select(
+        db.diveDataSources,
+      )..where((t) => t.diveId.equals(diveId))).getSingle();
+      expect(source.entryLatitude, 12.34567);
+      expect(source.exitLongitude, 98.76489);
+    });
   });
 }

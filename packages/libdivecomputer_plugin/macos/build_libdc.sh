@@ -12,6 +12,16 @@ OUTPUT_LIB="${BUILD_DIR}/libdivecomputer.a"
 
 mkdir -p "${BUILD_DIR}"
 
+# Force a rebuild when any libdivecomputer source/header/config is newer than
+# the built library. The architecture check below never inspects source
+# freshness, so without this an applied patch (e.g. the Swift GPS exit fix in
+# shearwater_predator_parser.c) is compiled into the sources but never into the
+# linked .a, and flutter clean does not remove this pod-local build directory.
+if [ -f "${OUTPUT_LIB}" ] && [ -n "$(find "${LIBDC_DIR}/src" "${LIBDC_DIR}/include" "${CONFIG_DIR}" -newer "${OUTPUT_LIB}" -print -quit 2>/dev/null)" ]; then
+    echo "libdivecomputer sources changed since ${OUTPUT_LIB} was built; rebuilding."
+    rm -f "${OUTPUT_LIB}"
+fi
+
 # Determine architectures to build for.
 # ARCHS is set by Xcode during the build phase.
 if [ -z "${ARCHS:-}" ]; then

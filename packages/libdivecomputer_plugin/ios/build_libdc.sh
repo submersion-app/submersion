@@ -11,6 +11,16 @@ CONFIG_DIR="${SCRIPT_DIR}/config"
 BUILD_DIR="${SCRIPT_DIR}/build"
 OUTPUT_LIB="${BUILD_DIR}/libdivecomputer.a"
 
+# Force a rebuild when any libdivecomputer source/header/config is newer than
+# the built library. Without this, an applied patch (e.g. the Swift GPS exit
+# fix in shearwater_predator_parser.c) is compiled into the sources but never
+# into the linked .a, and flutter clean does not remove this pod-local build
+# directory.
+if [ -f "${OUTPUT_LIB}" ] && [ -n "$(find "${LIBDC_DIR}/src" "${LIBDC_DIR}/include" "${CONFIG_DIR}" -newer "${OUTPUT_LIB}" -print -quit 2>/dev/null)" ]; then
+    echo "libdivecomputer sources changed since ${OUTPUT_LIB} was built; rebuilding."
+    rm -f "${OUTPUT_LIB}"
+fi
+
 # Skip rebuild if already built
 if [ -f "${OUTPUT_LIB}" ]; then
     echo "libdivecomputer.a already built, skipping."

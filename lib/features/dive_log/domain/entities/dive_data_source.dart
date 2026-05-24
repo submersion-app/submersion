@@ -14,6 +14,10 @@ class DiveDataSource extends Equatable {
   final double? avgDepth;
   final int? duration;
   final double? waterTemp;
+  final double? entryLatitude;
+  final double? entryLongitude;
+  final double? exitLatitude;
+  final double? exitLongitude;
   final DateTime? entryTime;
   final DateTime? exitTime;
   final double? maxAscentRate;
@@ -41,6 +45,10 @@ class DiveDataSource extends Equatable {
     this.avgDepth,
     this.duration,
     this.waterTemp,
+    this.entryLatitude,
+    this.entryLongitude,
+    this.exitLatitude,
+    this.exitLongitude,
     this.entryTime,
     this.exitTime,
     this.maxAscentRate,
@@ -72,6 +80,10 @@ class DiveDataSource extends Equatable {
     double? avgDepth,
     int? duration,
     double? waterTemp,
+    double? entryLatitude,
+    double? entryLongitude,
+    double? exitLatitude,
+    double? exitLongitude,
     DateTime? entryTime,
     DateTime? exitTime,
     double? maxAscentRate,
@@ -99,6 +111,10 @@ class DiveDataSource extends Equatable {
       avgDepth: avgDepth ?? this.avgDepth,
       duration: duration ?? this.duration,
       waterTemp: waterTemp ?? this.waterTemp,
+      entryLatitude: entryLatitude ?? this.entryLatitude,
+      entryLongitude: entryLongitude ?? this.entryLongitude,
+      exitLatitude: exitLatitude ?? this.exitLatitude,
+      exitLongitude: exitLongitude ?? this.exitLongitude,
       entryTime: entryTime ?? this.entryTime,
       exitTime: exitTime ?? this.exitTime,
       maxAscentRate: maxAscentRate ?? this.maxAscentRate,
@@ -129,6 +145,10 @@ class DiveDataSource extends Equatable {
     avgDepth,
     duration,
     waterTemp,
+    entryLatitude,
+    entryLongitude,
+    exitLatitude,
+    exitLongitude,
     entryTime,
     exitTime,
     maxAscentRate,

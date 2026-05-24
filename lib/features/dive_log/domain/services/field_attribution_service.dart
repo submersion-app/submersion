@@ -9,9 +9,6 @@ class FieldAttributionService {
   /// HR-capable source formats (wearables with heart rate sensors).
   static const _hrCapableSources = {'appleWatch', 'garmin'};
 
-  /// GPS-capable source formats.
-  static const _gpsCapableSources = {'appleWatch', 'garmin'};
-
   static Map<String, String> computeAttribution(
     List<DiveDataSource> sources, {
     String? viewedSourceId,
@@ -49,12 +46,12 @@ class FieldAttributionService {
     );
     attribution['heartRate'] = hrSource.displayName;
 
-    // Best-available: GPS — prefer GPS-capable source
-    final gpsSource = sources.firstWhere(
-      (s) => _gpsCapableSources.contains(s.sourceFormat),
-      orElse: () => activeSource,
-    );
-    attribution['gps'] = gpsSource.displayName;
+    // GPS — attributed to the active source only when it actually has
+    // entry/exit coordinates (e.g. a Shearwater Swift dive).
+    if (activeSource.entryLatitude != null ||
+        activeSource.exitLatitude != null) {
+      attribution['gps'] = name;
+    }
 
     return attribution;
   }

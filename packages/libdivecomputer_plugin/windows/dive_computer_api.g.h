@@ -427,7 +427,11 @@ class ParsedDive {
     const int64_t* gf_high,
     const int64_t* deco_conservatism,
     const std::vector<uint8_t>* raw_data,
-    const std::vector<uint8_t>* raw_fingerprint);
+    const std::vector<uint8_t>* raw_fingerprint,
+    const double* entry_latitude,
+    const double* entry_longitude,
+    const double* exit_latitude,
+    const double* exit_longitude);
 
   const std::string& fingerprint() const;
   void set_fingerprint(std::string_view value_arg);
@@ -511,6 +515,22 @@ class ParsedDive {
   void set_raw_fingerprint(const std::vector<uint8_t>* value_arg);
   void set_raw_fingerprint(const std::vector<uint8_t>& value_arg);
 
+  const double* entry_latitude() const;
+  void set_entry_latitude(const double* value_arg);
+  void set_entry_latitude(double value_arg);
+
+  const double* entry_longitude() const;
+  void set_entry_longitude(const double* value_arg);
+  void set_entry_longitude(double value_arg);
+
+  const double* exit_latitude() const;
+  void set_exit_latitude(const double* value_arg);
+  void set_exit_latitude(double value_arg);
+
+  const double* exit_longitude() const;
+  void set_exit_longitude(const double* value_arg);
+  void set_exit_longitude(double value_arg);
+
 
  private:
   static ParsedDive FromEncodableList(const flutter::EncodableList& list);
@@ -542,6 +562,10 @@ class ParsedDive {
   std::optional<int64_t> deco_conservatism_;
   std::optional<std::vector<uint8_t>> raw_data_;
   std::optional<std::vector<uint8_t>> raw_fingerprint_;
+  std::optional<double> entry_latitude_;
+  std::optional<double> entry_longitude_;
+  std::optional<double> exit_latitude_;
+  std::optional<double> exit_longitude_;
 
 };
 

@@ -27,11 +27,15 @@ Pod::Spec.new do |s|
     'CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES' => 'YES',
   }
 
-  # Build libdivecomputer from source before compiling Swift
+  # Build libdivecomputer from source before compiling Swift.
+  # No :output_files on purpose: with an output declared and no inputs, Xcode
+  # skips this phase whenever build/libdivecomputer.a already exists, so a
+  # patched source (e.g. the Swift GPS exit fix) would never be recompiled.
+  # build_libdc.sh does its own source-freshness check, so always running it is
+  # cheap when nothing changed.
   s.script_phase = {
     :name => 'Build libdivecomputer',
     :script => '"${PODS_TARGET_SRCROOT}/build_libdc.sh"',
     :execution_position => :before_compile,
-    :output_files => ['$(PODS_TARGET_SRCROOT)/build/libdivecomputer.a'],
   }
 end

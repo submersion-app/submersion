@@ -2063,6 +2063,12 @@ class DiveRepository {
       runtime: row.runtime != null ? Duration(seconds: row.runtime!) : null,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
+      entryLocation: row.entryLatitude != null && row.entryLongitude != null
+          ? domain.GeoPoint(row.entryLatitude!, row.entryLongitude!)
+          : null,
+      exitLocation: row.exitLatitude != null && row.exitLongitude != null
+          ? domain.GeoPoint(row.exitLatitude!, row.exitLongitude!)
+          : null,
       waterTemp: row.waterTemp,
       airTemp: row.airTemp,
       visibility: row.visibility != null
@@ -2405,6 +2411,12 @@ class DiveRepository {
       runtime: row.runtime != null ? Duration(seconds: row.runtime!) : null,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
+      entryLocation: row.entryLatitude != null && row.entryLongitude != null
+          ? domain.GeoPoint(row.entryLatitude!, row.entryLongitude!)
+          : null,
+      exitLocation: row.exitLatitude != null && row.exitLongitude != null
+          ? domain.GeoPoint(row.exitLatitude!, row.exitLongitude!)
+          : null,
       waterTemp: effectiveWaterTemp,
       airTemp: row.airTemp,
       visibility: row.visibility != null
@@ -4198,6 +4210,10 @@ class DiveRepository {
       avgDepth: row.avgDepth,
       duration: row.duration,
       waterTemp: row.waterTemp,
+      entryLatitude: row.entryLatitude,
+      entryLongitude: row.entryLongitude,
+      exitLatitude: row.exitLatitude,
+      exitLongitude: row.exitLongitude,
       entryTime: row.entryTime,
       exitTime: row.exitTime,
       maxAscentRate: row.maxAscentRate,

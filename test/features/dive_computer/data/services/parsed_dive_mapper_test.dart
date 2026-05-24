@@ -26,6 +26,10 @@ void main() {
       int? gfLow,
       int? gfHigh,
       int? decoConservatism,
+      double? entryLatitude,
+      double? entryLongitude,
+      double? exitLatitude,
+      double? exitLongitude,
     }) {
       return pigeon.ParsedDive(
         fingerprint: fingerprint,
@@ -49,6 +53,10 @@ void main() {
         gfLow: gfLow,
         gfHigh: gfHigh,
         decoConservatism: decoConservatism,
+        entryLatitude: entryLatitude,
+        entryLongitude: entryLongitude,
+        exitLatitude: exitLatitude,
+        exitLongitude: exitLongitude,
       );
     }
 
@@ -701,6 +709,42 @@ void main() {
       final downloaded = parsedDiveToDownloaded(parsed);
 
       expect(downloaded.events, isEmpty);
+    });
+
+    // --- GPS entry/exit (Shearwater Swift) ---
+
+    test('copies entry and exit coordinates', () {
+      final d = parsedDiveToDownloaded(
+        makeParsedDive(
+          entryLatitude: 12.34567,
+          entryLongitude: 98.76543,
+          exitLatitude: 12.34612,
+          exitLongitude: 98.76489,
+        ),
+      );
+      expect(d.entryLatitude, 12.34567);
+      expect(d.entryLongitude, 98.76543);
+      expect(d.exitLatitude, 12.34612);
+      expect(d.exitLongitude, 98.76489);
+    });
+
+    test('GPS null when absent', () {
+      final d = parsedDiveToDownloaded(makeParsedDive());
+      expect(d.entryLatitude, isNull);
+      expect(d.exitLatitude, isNull);
+    });
+
+    test('rejects sentinel (0,0) and (-1,-1) GPS coordinates', () {
+      final zero = parsedDiveToDownloaded(
+        makeParsedDive(entryLatitude: 0.0, entryLongitude: 0.0),
+      );
+      expect(zero.entryLatitude, isNull);
+      expect(zero.entryLongitude, isNull);
+      final neg = parsedDiveToDownloaded(
+        makeParsedDive(exitLatitude: -1.0, exitLongitude: -1.0),
+      );
+      expect(neg.exitLatitude, isNull);
+      expect(neg.exitLongitude, isNull);
     });
   });
 }

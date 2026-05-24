@@ -304,6 +304,10 @@ class ParsedDive {
     this.decoConservatism,
     this.rawData,
     this.rawFingerprint,
+    this.entryLatitude,
+    this.entryLongitude,
+    this.exitLatitude,
+    this.exitLongitude,
   });
 
   String fingerprint;
@@ -354,6 +358,14 @@ class ParsedDive {
 
   Uint8List? rawFingerprint;
 
+  double? entryLatitude;
+
+  double? entryLongitude;
+
+  double? exitLatitude;
+
+  double? exitLongitude;
+
   Object encode() {
     return <Object?>[
       fingerprint,
@@ -380,6 +392,10 @@ class ParsedDive {
       decoConservatism,
       rawData,
       rawFingerprint,
+      entryLatitude,
+      entryLongitude,
+      exitLatitude,
+      exitLongitude,
     ];
   }
 
@@ -410,6 +426,10 @@ class ParsedDive {
       decoConservatism: result[21] as int?,
       rawData: result[22] as Uint8List?,
       rawFingerprint: result[23] as Uint8List?,
+      entryLatitude: result[24] as double?,
+      entryLongitude: result[25] as double?,
+      exitLatitude: result[26] as double?,
+      exitLongitude: result[27] as double?,
     );
   }
 }

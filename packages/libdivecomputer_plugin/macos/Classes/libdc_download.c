@@ -279,6 +279,18 @@ static int extract_dive_fields(dc_parser_t *parser, libdc_parsed_dive_t *dive) {
         dive->gf_high = decomodel.params.gf.high;
     }
 
+    // Extract GPS entry/exit fixes (Shearwater Swift). flags: 0=entry, 1=exit.
+    // Patched libdivecomputer maps these to opening[9]/closing[9] record 9.
+    dc_location_t loc = {0};
+    if (dc_parser_get_field(parser, DC_FIELD_LOCATION, 0, &loc) == DC_STATUS_SUCCESS) {
+        dive->entry_latitude = loc.latitude;
+        dive->entry_longitude = loc.longitude;
+    }
+    if (dc_parser_get_field(parser, DC_FIELD_LOCATION, 1, &loc) == DC_STATUS_SUCCESS) {
+        dive->exit_latitude = loc.latitude;
+        dive->exit_longitude = loc.longitude;
+    }
+
     // Extract gas mixes.
     unsigned int gasmix_count = 0;
     if (dc_parser_get_field(parser, DC_FIELD_GASMIX_COUNT, 0, &gasmix_count) == DC_STATUS_SUCCESS) {
@@ -326,6 +338,10 @@ static int parse_dive(download_state_t *state,
     memset(dive, 0, sizeof(*dive));
     dive->min_temp = NAN;
     dive->max_temp = NAN;
+    dive->entry_latitude = NAN;
+    dive->entry_longitude = NAN;
+    dive->exit_latitude = NAN;
+    dive->exit_longitude = NAN;
     dive->deco_model_type = 0;  // DC_DECOMODEL_NONE
     dive->deco_conservatism = 0;
     dive->gf_low = 0;
@@ -679,6 +695,10 @@ int libdc_parse_raw_dive(
     memset(result, 0, sizeof(*result));
     result->min_temp = NAN;
     result->max_temp = NAN;
+    result->entry_latitude = NAN;
+    result->entry_longitude = NAN;
+    result->exit_latitude = NAN;
+    result->exit_longitude = NAN;
     result->events = NULL;
     result->event_count = 0;
     result->event_capacity = 0;

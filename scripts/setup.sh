@@ -19,6 +19,38 @@ echo "🔗 Configuring git hooks..."
 git config core.hooksPath hooks
 echo "✅ Git hooks configured"
 
+# Apply vendored libdivecomputer patches (kept in the plugin's patches/ dir).
+# The submodule is left modified-in-place; this step is idempotent so it is safe
+# to re-run and to run after `git submodule update` resets the submodule.
+echo ""
+echo "🩹 Applying vendored libdivecomputer patches..."
+LIBDC_DIR="$PROJECT_ROOT/packages/libdivecomputer_plugin/third_party/libdivecomputer"
+PATCH_DIR="$PROJECT_ROOT/packages/libdivecomputer_plugin/patches"
+if [ -d "$PATCH_DIR" ] && [ -d "$LIBDC_DIR/src" ]; then
+  patches_skipped=0
+  for patch in "$PATCH_DIR"/*.patch; do
+    [ -e "$patch" ] || continue
+    name="$(basename "$patch")"
+    if git -C "$LIBDC_DIR" apply --reverse --check "$patch" 2>/dev/null; then
+      echo "  already applied: $name"
+    elif git -C "$LIBDC_DIR" apply --check "$patch" 2>/dev/null; then
+      git -C "$LIBDC_DIR" apply "$patch"
+      echo "  applied: $name"
+    else
+      echo "  ⚠️  skipped (does not apply cleanly): $name"
+      patches_skipped=1
+    fi
+  done
+  if [ "$patches_skipped" -ne 0 ]; then
+    echo "❌ One or more libdivecomputer patches did not apply cleanly."
+    echo "   These patches affect dive parsing; resolve before building."
+    exit 1
+  fi
+  echo "✅ libdivecomputer patches applied"
+else
+  echo "  (skipped: submodule or patches/ not present)"
+fi
+
 # Install Flutter dependencies
 echo ""
 echo "📦 Installing Flutter dependencies..."

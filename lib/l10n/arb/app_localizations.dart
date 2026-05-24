@@ -16720,6 +16720,60 @@ abstract class AppLocalizations {
   /// **'Tide cycle graph and timing'**
   String get diveDetailSection_tide_description;
 
+  /// No description provided for @diveDetailSection_surfaceGps_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface GPS'**
+  String get diveDetailSection_surfaceGps_name;
+
+  /// No description provided for @diveDetailSection_surfaceGps_description.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS entry/exit points and surface drift'**
+  String get diveDetailSection_surfaceGps_description;
+
+  /// No description provided for @diveLog_detail_section_surfaceGps.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface GPS'**
+  String get diveLog_detail_section_surfaceGps;
+
+  /// No description provided for @diveLog_detail_surfaceGps_entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry'**
+  String get diveLog_detail_surfaceGps_entry;
+
+  /// No description provided for @diveLog_detail_surfaceGps_exit.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit'**
+  String get diveLog_detail_surfaceGps_exit;
+
+  /// No description provided for @diveLog_detail_label_drift.
+  ///
+  /// In en, this message translates to:
+  /// **'Drift'**
+  String get diveLog_detail_label_drift;
+
+  /// No description provided for @diveLog_detail_surfaceGps_entryOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry point recorded'**
+  String get diveLog_detail_surfaceGps_entryOnly;
+
+  /// No description provided for @diveLog_detail_surfaceGps_exitOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit point recorded'**
+  String get diveLog_detail_surfaceGps_exitOnly;
+
+  /// No description provided for @diveLog_detail_openInMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Maps'**
+  String get diveLog_detail_openInMaps;
+
   /// No description provided for @diveDetailSection_weights_name.
   ///
   /// In en, this message translates to:

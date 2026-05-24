@@ -778,7 +778,11 @@ ParsedDive::ParsedDive(
   const int64_t* gf_high,
   const int64_t* deco_conservatism,
   const std::vector<uint8_t>* raw_data,
-  const std::vector<uint8_t>* raw_fingerprint)
+  const std::vector<uint8_t>* raw_fingerprint,
+  const double* entry_latitude,
+  const double* entry_longitude,
+  const double* exit_latitude,
+  const double* exit_longitude)
  : fingerprint_(fingerprint),
     date_time_year_(date_time_year),
     date_time_month_(date_time_month),
@@ -802,7 +806,11 @@ ParsedDive::ParsedDive(
     gf_high_(gf_high ? std::optional<int64_t>(*gf_high) : std::nullopt),
     deco_conservatism_(deco_conservatism ? std::optional<int64_t>(*deco_conservatism) : std::nullopt),
     raw_data_(raw_data ? std::optional<std::vector<uint8_t>>(*raw_data) : std::nullopt),
-    raw_fingerprint_(raw_fingerprint ? std::optional<std::vector<uint8_t>>(*raw_fingerprint) : std::nullopt) {}
+    raw_fingerprint_(raw_fingerprint ? std::optional<std::vector<uint8_t>>(*raw_fingerprint) : std::nullopt),
+    entry_latitude_(entry_latitude ? std::optional<double>(*entry_latitude) : std::nullopt),
+    entry_longitude_(entry_longitude ? std::optional<double>(*entry_longitude) : std::nullopt),
+    exit_latitude_(exit_latitude ? std::optional<double>(*exit_latitude) : std::nullopt),
+    exit_longitude_(exit_longitude ? std::optional<double>(*exit_longitude) : std::nullopt) {}
 
 const std::string& ParsedDive::fingerprint() const {
   return fingerprint_;
@@ -1060,9 +1068,61 @@ void ParsedDive::set_raw_fingerprint(const std::vector<uint8_t>& value_arg) {
 }
 
 
+const double* ParsedDive::entry_latitude() const {
+  return entry_latitude_ ? &(*entry_latitude_) : nullptr;
+}
+
+void ParsedDive::set_entry_latitude(const double* value_arg) {
+  entry_latitude_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ParsedDive::set_entry_latitude(double value_arg) {
+  entry_latitude_ = value_arg;
+}
+
+
+const double* ParsedDive::entry_longitude() const {
+  return entry_longitude_ ? &(*entry_longitude_) : nullptr;
+}
+
+void ParsedDive::set_entry_longitude(const double* value_arg) {
+  entry_longitude_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ParsedDive::set_entry_longitude(double value_arg) {
+  entry_longitude_ = value_arg;
+}
+
+
+const double* ParsedDive::exit_latitude() const {
+  return exit_latitude_ ? &(*exit_latitude_) : nullptr;
+}
+
+void ParsedDive::set_exit_latitude(const double* value_arg) {
+  exit_latitude_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ParsedDive::set_exit_latitude(double value_arg) {
+  exit_latitude_ = value_arg;
+}
+
+
+const double* ParsedDive::exit_longitude() const {
+  return exit_longitude_ ? &(*exit_longitude_) : nullptr;
+}
+
+void ParsedDive::set_exit_longitude(const double* value_arg) {
+  exit_longitude_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ParsedDive::set_exit_longitude(double value_arg) {
+  exit_longitude_ = value_arg;
+}
+
+
 EncodableList ParsedDive::ToEncodableList() const {
   EncodableList list;
-  list.reserve(24);
+  list.reserve(28);
   list.push_back(EncodableValue(fingerprint_));
   list.push_back(EncodableValue(date_time_year_));
   list.push_back(EncodableValue(date_time_month_));
@@ -1087,6 +1147,10 @@ EncodableList ParsedDive::ToEncodableList() const {
   list.push_back(deco_conservatism_ ? EncodableValue(*deco_conservatism_) : EncodableValue());
   list.push_back(raw_data_ ? EncodableValue(*raw_data_) : EncodableValue());
   list.push_back(raw_fingerprint_ ? EncodableValue(*raw_fingerprint_) : EncodableValue());
+  list.push_back(entry_latitude_ ? EncodableValue(*entry_latitude_) : EncodableValue());
+  list.push_back(entry_longitude_ ? EncodableValue(*entry_longitude_) : EncodableValue());
+  list.push_back(exit_latitude_ ? EncodableValue(*exit_latitude_) : EncodableValue());
+  list.push_back(exit_longitude_ ? EncodableValue(*exit_longitude_) : EncodableValue());
   return list;
 }
 
@@ -1145,6 +1209,22 @@ ParsedDive ParsedDive::FromEncodableList(const EncodableList& list) {
   auto& encodable_raw_fingerprint = list[23];
   if (!encodable_raw_fingerprint.IsNull()) {
     decoded.set_raw_fingerprint(std::get<std::vector<uint8_t>>(encodable_raw_fingerprint));
+  }
+  auto& encodable_entry_latitude = list[24];
+  if (!encodable_entry_latitude.IsNull()) {
+    decoded.set_entry_latitude(std::get<double>(encodable_entry_latitude));
+  }
+  auto& encodable_entry_longitude = list[25];
+  if (!encodable_entry_longitude.IsNull()) {
+    decoded.set_entry_longitude(std::get<double>(encodable_entry_longitude));
+  }
+  auto& encodable_exit_latitude = list[26];
+  if (!encodable_exit_latitude.IsNull()) {
+    decoded.set_exit_latitude(std::get<double>(encodable_exit_latitude));
+  }
+  auto& encodable_exit_longitude = list[27];
+  if (!encodable_exit_longitude.IsNull()) {
+    decoded.set_exit_longitude(std::get<double>(encodable_exit_longitude));
   }
   return decoded;
 }

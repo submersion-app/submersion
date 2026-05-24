@@ -107,6 +107,12 @@ class DownloadedDive {
   /// Maximum temperature in Celsius (if available)
   final double? maxTemperature;
 
+  /// GPS entry/exit fixes in decimal degrees (Shearwater Swift), if available
+  final double? entryLatitude;
+  final double? entryLongitude;
+  final double? exitLatitude;
+  final double? exitLongitude;
+
   /// Depth-time profile points
   final List<ProfileSample> profile;
 
@@ -148,6 +154,10 @@ class DownloadedDive {
     this.avgDepth,
     this.minTemperature,
     this.maxTemperature,
+    this.entryLatitude,
+    this.entryLongitude,
+    this.exitLatitude,
+    this.exitLongitude,
     required this.profile,
     this.tanks = const [],
     this.gasSwitches = const [],

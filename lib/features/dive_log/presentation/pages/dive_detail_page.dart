@@ -9,6 +9,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
@@ -35,6 +37,7 @@ import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
@@ -317,6 +320,31 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       DiveDetailSectionId.tide: () {
         // _buildTideSection includes its own internal spacing
         return [_buildTideSection(context, ref, dive)];
+      },
+      DiveDetailSectionId.surfaceGps: () {
+        if (dive.entryLocation == null && dive.exitLocation == null) return [];
+        return [
+          const SizedBox(height: 24),
+          ValueListenableBuilder<String?>(
+            valueListenable: _viewedSourceIdNotifier,
+            builder: (context, viewedSourceId, _) {
+              final dataSources = computerReadingsAsync.valueOrNull ?? [];
+              final attribution = FieldAttributionService.computeAttribution(
+                dataSources,
+                viewedSourceId: viewedSourceId,
+              );
+              final showBadges =
+                  settings.showDataSourceBadges && attribution.isNotEmpty;
+              return _buildSurfaceGpsSection(
+                context,
+                ref,
+                dive,
+                units,
+                sourceName: showBadges ? attribution['gps'] : null,
+              );
+            },
+          ),
+        ];
       },
       DiveDetailSectionId.weights: () {
         if (!_hasWeights(dive)) return [];
@@ -743,7 +771,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     UnitFormatter units, {
     Map<String, String>? attribution,
   }) {
-    final hasLocation = dive.site?.location != null;
+    final entryLoc = dive.entryLocation;
+    final exitLoc = dive.exitLocation;
+    final siteLoc = dive.site?.location;
+    final hasGps = entryLoc != null || exitLoc != null;
+    final hasLocation = siteLoc != null || hasGps;
     final colorScheme = Theme.of(context).colorScheme;
     final cardColor = Theme.of(context).cardColor;
 
@@ -861,26 +893,55 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       return Card(clipBehavior: Clip.antiAlias, child: content);
     }
 
-    final site = dive.site!;
-    final siteLocation = LatLng(
-      site.location!.latitude,
-      site.location!.longitude,
-    );
+    final site = dive.site;
+    final LatLng mapCenter = entryLoc != null
+        ? LatLng(entryLoc.latitude, entryLoc.longitude)
+        : exitLoc != null
+        ? LatLng(exitLoc.latitude, exitLoc.longitude)
+        : LatLng(siteLoc!.latitude, siteLoc.longitude);
+
+    final markers = <Marker>[
+      if (siteLoc != null && !hasGps)
+        Marker(
+          point: LatLng(siteLoc.latitude, siteLoc.longitude),
+          width: 32,
+          height: 32,
+          child: _mapPin(colorScheme, Icons.scuba_diving, colorScheme.primary),
+        ),
+      if (entryLoc != null)
+        Marker(
+          key: const ValueKey('gps-entry-marker'),
+          point: LatLng(entryLoc.latitude, entryLoc.longitude),
+          width: 28,
+          height: 28,
+          child: _mapPin(colorScheme, Icons.south, const Color(0xFF34C759)),
+        ),
+      if (exitLoc != null)
+        Marker(
+          key: const ValueKey('gps-exit-marker'),
+          point: LatLng(exitLoc.latitude, exitLoc.longitude),
+          width: 28,
+          height: 28,
+          child: _mapPin(colorScheme, Icons.north, const Color(0xFFFF9F0A)),
+        ),
+    ];
 
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Semantics(
-        button: true,
-        label: '${context.l10n.diveLog_detail_viewSite} ${site.name}',
+        button: site != null,
+        label: site != null
+            ? '${context.l10n.diveLog_detail_viewSite} ${site.name}'
+            : '',
         child: InkWell(
-          onTap: () => context.push('/sites/${site.id}'),
+          onTap: site != null ? () => context.push('/sites/${site.id}') : null,
           child: Stack(
             children: [
               // Map background
               Positioned.fill(
                 child: FlutterMap(
                   options: MapOptions(
-                    initialCenter: siteLocation,
+                    initialCenter: mapCenter,
                     initialZoom: 12.0,
                     interactionOptions: const InteractionOptions(
                       flags: InteractiveFlag.none,
@@ -895,32 +956,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                           ? TileCacheService.instance.getTileProvider()
                           : null,
                     ),
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: siteLocation,
-                          width: 32,
-                          height: 32,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: colorScheme.primary,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: colorScheme.onPrimary,
-                                width: 2,
-                              ),
-                            ),
-                            child: Center(
-                              child: Icon(
-                                Icons.scuba_diving,
-                                size: 16,
-                                color: colorScheme.onPrimary,
-                              ),
-                            ),
+                    if (entryLoc != null && exitLoc != null)
+                      PolylineLayer(
+                        polylines: [
+                          Polyline(
+                            points: [
+                              LatLng(entryLoc.latitude, entryLoc.longitude),
+                              LatLng(exitLoc.latitude, exitLoc.longitude),
+                            ],
+                            strokeWidth: 3.0,
+                            color: colorScheme.onSurface.withValues(alpha: 0.7),
+                            pattern: const StrokePattern.dotted(),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    MarkerLayer(markers: markers),
                     const MapAttribution(),
                   ],
                 ),
@@ -946,50 +996,148 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               // Content
               content,
               // View Site button
-              Positioned(
-                right: 8,
-                top: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.open_in_new,
-                        size: 14,
-                        color: colorScheme.onPrimaryContainer,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        context.l10n.diveLog_detail_viewSite,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.w600,
+              if (site != null)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.open_in_new,
+                          size: 14,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          context.l10n.diveLog_detail_viewSite,
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _mapPin(ColorScheme colorScheme, IconData icon, Color color) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: colorScheme.onPrimary, width: 2),
+      ),
+      child: Center(child: Icon(icon, size: 14, color: colorScheme.onPrimary)),
+    );
+  }
+
+  Widget _buildSurfaceGpsSection(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+    UnitFormatter units, {
+    String? sourceName,
+  }) {
+    final isExpanded = ref.watch(surfaceGpsSectionExpandedProvider);
+    final entry = dive.entryLocation;
+    final exit = dive.exitLocation;
+
+    String? driftText;
+    if (entry != null && exit != null) {
+      final dist = distanceMeters(entry, exit);
+      final bearing = initialBearingDegrees(entry, exit);
+      driftText = '${units.formatDistance(dist)} · ${formatBearing(bearing)}';
+    }
+
+    final collapsedSubtitle = driftText != null
+        ? '${context.l10n.diveLog_detail_label_drift}: $driftText'
+        : (entry != null
+              ? context.l10n.diveLog_detail_surfaceGps_entryOnly
+              : context.l10n.diveLog_detail_surfaceGps_exitOnly);
+
+    return CollapsibleCardSection(
+      title: context.l10n.diveLog_detail_section_surfaceGps,
+      icon: Icons.my_location,
+      collapsedSubtitle: collapsedSubtitle,
+      isExpanded: isExpanded,
+      onToggle: (expanded) {
+        ref
+            .read(collapsibleSectionProvider.notifier)
+            .setSurfaceGpsExpanded(expanded);
+      },
+      contentBuilder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Divider(),
+            if (entry != null)
+              _buildDetailRow(
+                context,
+                context.l10n.diveLog_detail_surfaceGps_entry,
+                '${entry.latitude.toStringAsFixed(5)}, ${entry.longitude.toStringAsFixed(5)}',
+                sourceName: sourceName,
+              ),
+            if (exit != null)
+              _buildDetailRow(
+                context,
+                context.l10n.diveLog_detail_surfaceGps_exit,
+                '${exit.latitude.toStringAsFixed(5)}, ${exit.longitude.toStringAsFixed(5)}',
+                sourceName: sourceName,
+              ),
+            if (driftText != null)
+              _buildDetailRow(
+                context,
+                context.l10n.diveLog_detail_label_drift,
+                driftText,
+              ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                icon: const Icon(Icons.open_in_new, size: 16),
+                label: Text(context.l10n.diveLog_detail_openInMaps),
+                onPressed: () => _openInMaps(entry ?? exit!),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openInMaps(GeoPoint point) async {
+    final uri = Uri.parse(
+      'https://www.openstreetmap.org/?mlat=${point.latitude}'
+      '&mlon=${point.longitude}#map=16/${point.latitude}/${point.longitude}',
+    );
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   /// Format runtime: use stored value, or calculate from entry/exit times

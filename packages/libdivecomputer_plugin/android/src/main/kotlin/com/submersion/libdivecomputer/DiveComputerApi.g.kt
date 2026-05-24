@@ -282,7 +282,11 @@ data class ParsedDive (
   val gfHigh: Long? = null,
   val decoConservatism: Long? = null,
   val rawData: ByteArray? = null,
-  val rawFingerprint: ByteArray? = null
+  val rawFingerprint: ByteArray? = null,
+  val entryLatitude: Double? = null,
+  val entryLongitude: Double? = null,
+  val exitLatitude: Double? = null,
+  val exitLongitude: Double? = null
 )
  {
   companion object {
@@ -311,7 +315,11 @@ data class ParsedDive (
       val decoConservatism = pigeonVar_list[21] as Long?
       val rawData = pigeonVar_list[22] as ByteArray?
       val rawFingerprint = pigeonVar_list[23] as ByteArray?
-      return ParsedDive(fingerprint, dateTimeYear, dateTimeMonth, dateTimeDay, dateTimeHour, dateTimeMinute, dateTimeSecond, dateTimeTimezoneOffset, maxDepthMeters, avgDepthMeters, durationSeconds, minTemperatureCelsius, maxTemperatureCelsius, samples, tanks, gasMixes, events, diveMode, decoAlgorithm, gfLow, gfHigh, decoConservatism, rawData, rawFingerprint)
+      val entryLatitude = pigeonVar_list[24] as Double?
+      val entryLongitude = pigeonVar_list[25] as Double?
+      val exitLatitude = pigeonVar_list[26] as Double?
+      val exitLongitude = pigeonVar_list[27] as Double?
+      return ParsedDive(fingerprint, dateTimeYear, dateTimeMonth, dateTimeDay, dateTimeHour, dateTimeMinute, dateTimeSecond, dateTimeTimezoneOffset, maxDepthMeters, avgDepthMeters, durationSeconds, minTemperatureCelsius, maxTemperatureCelsius, samples, tanks, gasMixes, events, diveMode, decoAlgorithm, gfLow, gfHigh, decoConservatism, rawData, rawFingerprint, entryLatitude, entryLongitude, exitLatitude, exitLongitude)
     }
   }
   fun toList(): List<Any?> {
@@ -340,6 +348,10 @@ data class ParsedDive (
       decoConservatism,
       rawData,
       rawFingerprint,
+      entryLatitude,
+      entryLongitude,
+      exitLatitude,
+      exitLongitude,
     )
   }
 }

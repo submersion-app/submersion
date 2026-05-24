@@ -481,6 +481,10 @@ class DiveImportService {
       descriptorProduct: descriptorProduct,
       descriptorModel: descriptorModel,
       libdivecomputerVersion: libdivecomputerVersion,
+      entryLatitude: dive.entryLatitude,
+      entryLongitude: dive.entryLongitude,
+      exitLatitude: dive.exitLatitude,
+      exitLongitude: dive.exitLongitude,
     );
 
     return diveId;
@@ -555,6 +559,10 @@ class DiveImportService {
       descriptorProduct: descriptorProduct,
       descriptorModel: descriptorModel,
       libdivecomputerVersion: libdivecomputerVersion,
+      entryLatitude: dive.entryLatitude,
+      entryLongitude: dive.entryLongitude,
+      exitLatitude: dive.exitLatitude,
+      exitLongitude: dive.exitLongitude,
     );
   }
 

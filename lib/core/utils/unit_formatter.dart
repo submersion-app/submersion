@@ -36,6 +36,13 @@ class UnitFormatter {
     return settings.depthUnit.convert(value, DepthUnit.meters);
   }
 
+  /// Format a horizontal distance (meters) in the diver's depth unit (m/ft).
+  /// Used for surface drift between GPS entry and exit points.
+  String formatDistance(double meters, {int decimals = 0}) {
+    final converted = DepthUnit.meters.convert(meters, settings.depthUnit);
+    return '${converted.toStringAsFixed(decimals)}${settings.depthUnit.symbol}';
+  }
+
   // ============================================================================
   // Temperature
   // ============================================================================
