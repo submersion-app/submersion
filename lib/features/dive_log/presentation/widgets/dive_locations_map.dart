@@ -75,6 +75,10 @@ class DiveLocationsMap extends ConsumerWidget {
       fit = CameraFit.bounds(
         bounds: LatLngBounds.fromPoints(points),
         padding: const EdgeInsets.all(48),
+        // Entry/exit/site fixes are often within meters of each other; fitting
+        // that tight bounds would zoom past the tile provider's max zoom and
+        // leave the map blank. Cap at 16 so tiles stay visible with context.
+        maxZoom: 16.0,
       );
     } else {
       center = points.first;

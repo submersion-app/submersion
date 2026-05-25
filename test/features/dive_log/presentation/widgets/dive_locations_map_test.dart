@@ -65,4 +65,24 @@ void main() {
     await _pump(tester, const DiveLocationsMap());
     expect(find.byType(FlutterMap), findsNothing);
   });
+
+  testWidgets('clamps fit zoom so tiles render for tightly clustered points', (
+    tester,
+  ) async {
+    final controller = MapController();
+    await _pump(
+      tester,
+      DiveLocationsMap(
+        controller: controller,
+        entry: const GeoPoint(12.345670, 98.765430),
+        exit: const GeoPoint(12.345690, 98.765450),
+        site: const GeoPoint(12.345680, 98.765440),
+      ),
+    );
+
+    // Real entry/exit/site fixes sit within meters of each other. Fitting their
+    // bounds must not zoom past the tile provider's max (~19 for OSM), or the
+    // map renders blank with only markers showing.
+    expect(controller.camera.zoom, lessThanOrEqualTo(16.0));
+  });
 }
