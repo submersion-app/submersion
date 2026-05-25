@@ -145,7 +145,11 @@ void main() {
   group('ProfileLegend.toggleGas', () {
     ProviderContainer makeContainer() => ProviderContainer(
       overrides: [
-        settingsProvider.overrideWith((ref) => _StubSettingsNotifier()),
+        settingsProvider.overrideWith(
+          (ref) => _StubSettingsNotifier(
+            const AppSettings(defaultShowGasTimeline: true),
+          ),
+        ),
       ],
     );
 

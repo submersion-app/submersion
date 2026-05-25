@@ -22,7 +22,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier() : super(const AppSettings());
+  _TestSettingsNotifier()
+    : super(const AppSettings(defaultShowGasTimeline: true));
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>

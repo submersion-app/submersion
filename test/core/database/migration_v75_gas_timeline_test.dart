@@ -19,7 +19,7 @@ void main() {
   );
 
   test(
-    'v74 -> v75 upgrade adds default_show_gas_timeline defaulting to 1',
+    'v74 -> v75 upgrade adds default_show_gas_timeline defaulting to 0',
     () async {
       // Minimal pre-v75 diver_settings table at user_version = 74 (no gas
       // timeline column) so the v75 ALTER TABLE path runs.
@@ -44,7 +44,7 @@ void main() {
         (c) => c.read<String>('name') == 'default_show_gas_timeline',
       );
       expect(col.read<int>('notnull'), 1);
-      expect(col.read<String?>('dflt_value'), '1');
+      expect(col.read<String?>('dflt_value'), '0');
     },
   );
 }

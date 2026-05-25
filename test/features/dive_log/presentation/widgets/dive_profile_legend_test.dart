@@ -13,7 +13,8 @@ import '../../../../helpers/test_app.dart';
 /// Minimal [SettingsNotifier] stub that returns default [AppSettings].
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier() : super(const AppSettings());
+  _TestSettingsNotifier()
+    : super(const AppSettings(defaultShowGasTimeline: true));
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>

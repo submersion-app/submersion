@@ -34,21 +34,21 @@ void main() {
   });
 
   group('AppSettings defaultShowGasTimeline', () {
-    test('defaults to true', () {
+    test('defaults to false', () {
       const settings = AppSettings();
-      expect(settings.defaultShowGasTimeline, isTrue);
+      expect(settings.defaultShowGasTimeline, isFalse);
     });
 
     test('copyWith updates defaultShowGasTimeline', () {
       const settings = AppSettings();
-      final updated = settings.copyWith(defaultShowGasTimeline: false);
-      expect(updated.defaultShowGasTimeline, isFalse);
+      final updated = settings.copyWith(defaultShowGasTimeline: true);
+      expect(updated.defaultShowGasTimeline, isTrue);
     });
 
     test('copyWith preserves defaultShowGasTimeline when not specified', () {
-      const settings = AppSettings(defaultShowGasTimeline: false);
+      const settings = AppSettings(defaultShowGasTimeline: true);
       final updated = settings.copyWith(themePresetId: 'dark');
-      expect(updated.defaultShowGasTimeline, isFalse);
+      expect(updated.defaultShowGasTimeline, isTrue);
     });
   });
 

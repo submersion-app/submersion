@@ -836,7 +836,7 @@ class DiverSettings extends Table {
   BoolColumn get defaultShowGasSwitchMarkers =>
       boolean().withDefault(const Constant(true))();
   BoolColumn get defaultShowGasTimeline =>
-      boolean().withDefault(const Constant(true))();
+      boolean().withDefault(const Constant(false))();
   // Notification settings (v26)
   BoolColumn get notificationsEnabled =>
       boolean().withDefault(const Constant(true))();
@@ -3639,7 +3639,7 @@ class AppDatabase extends _$AppDatabase {
         if (from < 74) await reportProgress();
         if (from < 75) {
           await customStatement(
-            'ALTER TABLE diver_settings ADD COLUMN default_show_gas_timeline INTEGER NOT NULL DEFAULT 1',
+            'ALTER TABLE diver_settings ADD COLUMN default_show_gas_timeline INTEGER NOT NULL DEFAULT 0',
           );
         }
         if (from < 75) await reportProgress();

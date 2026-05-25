@@ -1092,13 +1092,13 @@ void main() {
       expect(gasTimelineSwitch, findsOneWidget);
 
       var switchWidget = tester.widget<SwitchListTile>(gasTimelineSwitch);
-      expect(switchWidget.value, isTrue);
+      expect(switchWidget.value, isFalse);
 
       await tester.tap(gasTimelineSwitch);
       await tester.pumpAndSettle();
 
       switchWidget = tester.widget<SwitchListTile>(gasTimelineSwitch);
-      expect(switchWidget.value, isFalse);
+      expect(switchWidget.value, isTrue);
     });
   });
 }

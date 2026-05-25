@@ -31,22 +31,22 @@ void main() {
       DatabaseService.instance.resetForTesting();
     });
 
-    test('new settings default defaultShowGasTimeline to true', () async {
+    test('new settings default defaultShowGasTimeline to false', () async {
       await repository.createSettingsForDiver('d1');
-      final loaded = await repository.getSettingsForDiver('d1');
-      expect(loaded, isNotNull);
-      expect(loaded!.defaultShowGasTimeline, isTrue);
-    });
-
-    test('round-trips defaultShowGasTimeline = false through update', () async {
-      await repository.createSettingsForDiver('d1');
-      await repository.updateSettingsForDiver(
-        'd1',
-        const AppSettings(defaultShowGasTimeline: false),
-      );
       final loaded = await repository.getSettingsForDiver('d1');
       expect(loaded, isNotNull);
       expect(loaded!.defaultShowGasTimeline, isFalse);
+    });
+
+    test('round-trips defaultShowGasTimeline = true through update', () async {
+      await repository.createSettingsForDiver('d1');
+      await repository.updateSettingsForDiver(
+        'd1',
+        const AppSettings(defaultShowGasTimeline: true),
+      );
+      final loaded = await repository.getSettingsForDiver('d1');
+      expect(loaded, isNotNull);
+      expect(loaded!.defaultShowGasTimeline, isTrue);
     });
   });
 }

@@ -345,7 +345,7 @@ class AppSettings {
     this.defaultShowCns = false,
     this.defaultShowOtu = false,
     this.defaultShowGasSwitchMarkers = true,
-    this.defaultShowGasTimeline = true,
+    this.defaultShowGasTimeline = false,
     // Notification defaults
     this.notificationsEnabled = true,
     this.serviceReminderDays = const [7, 14, 30],
