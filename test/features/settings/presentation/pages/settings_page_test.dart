@@ -34,6 +34,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   _MockSettingsNotifier() : super(const AppSettings());
 
   @override
+  Future<void> setDefaultShowGasTimeline(bool value) async =>
+      state = state.copyWith(defaultShowGasTimeline: value);
+  @override
   Future<void> setDepthUnit(DepthUnit unit) async =>
       state = state.copyWith(depthUnit: unit);
   @override
