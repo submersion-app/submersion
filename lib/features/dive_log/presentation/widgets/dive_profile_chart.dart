@@ -112,7 +112,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   final int? diveDurationSeconds;
 
   /// Height of the integrated gas timeline strip in logical pixels.
-  static const double gasTimelineHeight = 22.0;
+  /// Kept slim so the bar reads as a thin band beneath the plot; the floor is
+  /// the label's line box (`labelSmall` ~16px), below which the centered gas
+  /// name would start to clip.
+  static const double gasTimelineHeight = 18.0;
 
   /// fl_chart default axisNameSize used for left and right axes.
   static const double _leftRightAxisNameSize = 16.0;
@@ -203,6 +206,40 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Needs extra room for 4-digit values like PSI pressure (e.g. "3000").
   static double rightAxisSize(double availableWidth) =>
       availableWidth < 350 ? 32.0 : 38.0;
+
+  /// Builds the label for a tank's pressure row in the profile tooltip,
+  /// appending the gas type when the tank is known, e.g. "Tank 1 (EAN32)".
+  ///
+  /// [fallbackLabel] is used when the tank has no custom name; callers pass a
+  /// localized default (e.g. "Tank 1") so labeling stays translatable.
+  @visibleForTesting
+  static String tankTooltipLabel(DiveTank? tank, String fallbackLabel) {
+    final base = tank?.name ?? fallbackLabel;
+    if (tank == null) return base;
+    return '$base (${tank.gasMix.name})';
+  }
+
+  /// Formats one tooltip row into aligned monospace label/value columns.
+  ///
+  /// The label is padded to [labelWidth] but never truncated; when it already
+  /// fills (or overruns) the column a single separating space is kept so a long
+  /// label such as "Tank 1 (EAN32)" never abuts the value. The value is clamped
+  /// only if it would overflow [valueWidth].
+  @visibleForTesting
+  static String tooltipRowText(
+    String label,
+    String value,
+    int labelWidth,
+    int valueWidth,
+  ) {
+    final labelText = label.length >= labelWidth
+        ? '$label '
+        : label.padRight(labelWidth);
+    final valueText = value.length > valueWidth
+        ? value.substring(0, valueWidth)
+        : value.padRight(valueWidth);
+    return (labelText + valueText).trimRight();
+  }
 
   const DiveProfileChart({
     super.key,
@@ -782,7 +819,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         final color = tank != null
             ? GasColors.forGasMix(tank.gasMix)
             : _getTankColor(i);
-        final tankLabel = tank?.name ?? 'Tank ${i + 1}';
+        final tankLabel = DiveProfileChart.tankTooltipLabel(
+          tank,
+          'Tank ${i + 1}',
+        );
         rows.add(
           TooltipRow(
             label: tankLabel,
@@ -1547,7 +1587,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 }
               },
               touchTooltipData: LineTouchTooltipData(
-                maxContentWidth: 220,
+                // Wide enough for a tank row carrying the gas type, e.g.
+                // "Tank 1 (EAN32) 2064 psi", without wrapping. Narrower
+                // tooltips still size to their content (this is only a cap).
+                maxContentWidth: 320,
                 fitInsideHorizontally: true,
                 fitInsideVertically: false,
                 showOnTopOfTheChartBoxArea: true,
@@ -1585,8 +1628,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     final seconds = point.timestamp % 60;
 
                     // Build tooltip with all enabled metrics
-                    final lines = <TextSpan>[];
-
                     // Text style constants for consistent column layout
                     final onSurface = colorScheme.onInverseSurface;
                     final rowStyle = TextStyle(
@@ -1596,19 +1637,26 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       fontFeatures: const [FontFeature.tabularFigures()],
                     );
 
+                    // fl_chart tooltips are a single TextSpan tree, so columns
+                    // are aligned with monospace padding rather than layout
+                    // widgets. A fixed label column keeps the common rows
+                    // compact and within the tooltip's max content width; a
+                    // long label (e.g. "Tank 1 (EAN32)") overflows its own row
+                    // instead of widening every row.
                     const labelWidth = 8;
                     const valueWidth = 16;
-                    const rowWidth = labelWidth + valueWidth;
-                    final rowFiller = List.filled(rowWidth, '0').join();
 
-                    String clampText(String text, int maxChars) {
-                      if (text.length <= maxChars) {
-                        return text;
-                      }
-                      return text.substring(0, maxChars);
-                    }
+                    final tooltipRows =
+                        <
+                          ({
+                            String label,
+                            String value,
+                            Color bulletColor,
+                            String bullet,
+                            double bulletSize,
+                          })
+                        >[];
 
-                    // Helper to add a formatted row with constant width
                     void addRow(
                       String label,
                       String value,
@@ -1616,38 +1664,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       String bullet = '●',
                       double bulletSize = 12,
                     }) {
-                      if (lines.isNotEmpty) {
-                        lines.add(const TextSpan(text: '\n'));
-                      }
-                      lines.add(
-                        TextSpan(
-                          text: '$bullet ',
-                          style: TextStyle(
-                            color: bulletColor,
-                            fontSize: bulletSize,
-                          ),
-                        ),
-                      );
-                      final labelText = clampText(
-                        label,
-                        labelWidth,
-                      ).padRight(labelWidth);
-                      final valueText = clampText(
-                        value,
-                        valueWidth,
-                      ).padRight(valueWidth);
-                      final rowText = (labelText + valueText).trimRight();
-                      lines.add(TextSpan(text: rowText, style: rowStyle));
-
-                      final fillerCount = rowWidth - rowText.length;
-                      if (fillerCount > 0) {
-                        lines.add(
-                          TextSpan(
-                            text: rowFiller.substring(0, fillerCount),
-                            style: rowStyle.copyWith(color: Colors.transparent),
-                          ),
-                        );
-                      }
+                      tooltipRows.add((
+                        label: label,
+                        value: value,
+                        bulletColor: bulletColor,
+                        bullet: bullet,
+                        bulletSize: bulletSize,
+                      ));
                     }
 
                     // Time (always shown)
@@ -1998,9 +2021,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         final color = tank != null
                             ? GasColors.forGasMix(tank.gasMix)
                             : _getTankColor(i);
-                        final tankLabel =
-                            tank?.name ??
-                            context.l10n.diveLog_tank_title(i + 1);
+                        final tankLabel = DiveProfileChart.tankTooltipLabel(
+                          tank,
+                          context.l10n.diveLog_tank_title(i + 1),
+                        );
                         final pressValue = pressure != null
                             ? units.formatPressure(pressure)
                             : '—';
@@ -2038,6 +2062,40 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                             bulletSize: 10,
                           );
                         }
+                      }
+                    }
+
+                    const rowWidth = labelWidth + valueWidth;
+                    final rowFiller = List.filled(rowWidth, '0').join();
+                    final lines = <TextSpan>[];
+                    for (final row in tooltipRows) {
+                      if (lines.isNotEmpty) {
+                        lines.add(const TextSpan(text: '\n'));
+                      }
+                      lines.add(
+                        TextSpan(
+                          text: '${row.bullet} ',
+                          style: TextStyle(
+                            color: row.bulletColor,
+                            fontSize: row.bulletSize,
+                          ),
+                        ),
+                      );
+                      final rowText = DiveProfileChart.tooltipRowText(
+                        row.label,
+                        row.value,
+                        labelWidth,
+                        valueWidth,
+                      );
+                      lines.add(TextSpan(text: rowText, style: rowStyle));
+                      final fillerCount = rowWidth - rowText.length;
+                      if (fillerCount > 0) {
+                        lines.add(
+                          TextSpan(
+                            text: rowFiller.substring(0, fillerCount),
+                            style: rowStyle.copyWith(color: Colors.transparent),
+                          ),
+                        );
                       }
                     }
 

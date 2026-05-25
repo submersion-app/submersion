@@ -1089,6 +1089,82 @@ void main() {
   // Static helper coverage
   // =========================================================================
 
+  group('DiveProfileChart.tankTooltipLabel', () {
+    test('appends the gas type to the fallback label', () {
+      final label = DiveProfileChart.tankTooltipLabel(
+        const DiveTank(id: 'tank-1', gasMix: GasMix(o2: 32)),
+        'Tank 1',
+      );
+      expect(label, 'Tank 1 (EAN32)');
+    });
+
+    test('uses the caller-provided fallback label', () {
+      final label = DiveProfileChart.tankTooltipLabel(
+        const DiveTank(id: 'tank-2', gasMix: GasMix(o2: 50)),
+        'Tank 2',
+      );
+      expect(label, 'Tank 2 (EAN50)');
+    });
+
+    test('honors a localized fallback label', () {
+      // The built-in tooltip passes a localized default (e.g. l10n
+      // diveLog_tank_title); the gas type is appended to whatever is given.
+      final label = DiveProfileChart.tankTooltipLabel(
+        const DiveTank(id: 'tank-1', gasMix: GasMix(o2: 32)),
+        'Cilindro 1',
+      );
+      expect(label, 'Cilindro 1 (EAN32)');
+    });
+
+    test('shows Air for a 21% mix', () {
+      final label = DiveProfileChart.tankTooltipLabel(
+        const DiveTank(id: 'tank-1', gasMix: GasMix(o2: 21)),
+        'Tank 1',
+      );
+      expect(label, 'Tank 1 (Air)');
+    });
+
+    test('appends the gas type to a custom tank name', () {
+      final label = DiveProfileChart.tankTooltipLabel(
+        const DiveTank(id: 'tank-1', name: 'Backgas', gasMix: GasMix(o2: 32)),
+        'Tank 1',
+      );
+      expect(label, 'Backgas (EAN32)');
+    });
+
+    test('falls back to the label without gas when tank is null', () {
+      expect(DiveProfileChart.tankTooltipLabel(null, 'Tank 1'), 'Tank 1');
+    });
+  });
+
+  group('DiveProfileChart.tooltipRowText', () {
+    test('keeps a full long label and its value with a separator', () {
+      // Regression for two prior bugs: the 8-char column truncated to
+      // "Tank 1 (1648 psi", and padding alone produced "Tank 1 (EAN32)2064".
+      final row = DiveProfileChart.tooltipRowText(
+        'Tank 1 (EAN32)',
+        '2064 psi',
+        8,
+        16,
+      );
+      expect(row, 'Tank 1 (EAN32) 2064 psi');
+    });
+
+    test('pads a short label to align the value column', () {
+      expect(
+        DiveProfileChart.tooltipRowText('Time', '29:20', 8, 16),
+        'Time    29:20',
+      );
+    });
+
+    test('clamps an over-long value to the value column', () {
+      expect(
+        DiveProfileChart.tooltipRowText('NDL', '12345678', 8, 4),
+        'NDL     1234',
+      );
+    });
+  });
+
   group('DiveProfileChart - static axis size helpers', () {
     test('leftAxisSize returns smaller value for narrow width', () {
       expect(DiveProfileChart.leftAxisSize(300), 28.0);
@@ -1106,8 +1182,8 @@ void main() {
       expect(DiveProfileChart.rightAxisSize(500), 38.0);
     });
 
-    test('gasTimelineHeight constant is 22.0', () {
-      expect(DiveProfileChart.gasTimelineHeight, 22.0);
+    test('gasTimelineHeight constant is 18.0', () {
+      expect(DiveProfileChart.gasTimelineHeight, 18.0);
     });
   });
 

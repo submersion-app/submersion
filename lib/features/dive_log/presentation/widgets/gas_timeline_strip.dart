@@ -23,7 +23,8 @@ class GasTimelineStrip extends StatelessWidget {
   final List<GasUsageSegment> segments;
   final int diveDurationSeconds;
 
-  /// Strip height. Matches Subsurface's gas bar (slim — single label line).
+  /// Strip height. Slim single-label band; kept in sync with
+  /// [DiveProfileChart.gasTimelineHeight], which the chart passes explicitly.
   final double height;
 
   /// Horizontal insets to align with the chart's plot area. When null (the
@@ -44,7 +45,7 @@ class GasTimelineStrip extends StatelessWidget {
     super.key,
     required this.segments,
     required this.diveDurationSeconds,
-    this.height = 22,
+    this.height = 18,
     this.leftPadding,
     this.rightPadding,
     this.visibleMinSeconds,
