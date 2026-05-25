@@ -3,27 +3,21 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
-import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
-import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
@@ -37,7 +31,6 @@ import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
@@ -50,6 +43,8 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_play
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/dive_log/domain/services/field_attribution_service.dart';
@@ -335,11 +330,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               );
               final showBadges =
                   settings.showDataSourceBadges && attribution.isNotEmpty;
-              return _buildSurfaceGpsSection(
-                context,
-                ref,
-                dive,
-                units,
+              return SurfaceGpsSection(
+                dive: dive,
                 sourceName: showBadges ? attribution['gps'] : null,
               );
             },
@@ -900,32 +892,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ? LatLng(exitLoc.latitude, exitLoc.longitude)
         : LatLng(siteLoc!.latitude, siteLoc.longitude);
 
-    final markers = <Marker>[
-      if (siteLoc != null && !hasGps)
-        Marker(
-          point: LatLng(siteLoc.latitude, siteLoc.longitude),
-          width: 32,
-          height: 32,
-          child: _mapPin(colorScheme, Icons.scuba_diving, colorScheme.primary),
-        ),
-      if (entryLoc != null)
-        Marker(
-          key: const ValueKey('gps-entry-marker'),
-          point: LatLng(entryLoc.latitude, entryLoc.longitude),
-          width: 28,
-          height: 28,
-          child: _mapPin(colorScheme, Icons.south, const Color(0xFF34C759)),
-        ),
-      if (exitLoc != null)
-        Marker(
-          key: const ValueKey('gps-exit-marker'),
-          point: LatLng(exitLoc.latitude, exitLoc.longitude),
-          width: 28,
-          height: 28,
-          child: _mapPin(colorScheme, Icons.north, const Color(0xFFFF9F0A)),
-        ),
-    ];
-
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Semantics(
@@ -937,42 +903,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           onTap: site != null ? () => context.push('/sites/${site.id}') : null,
           child: Stack(
             children: [
-              // Map background
+              // Map background (decorative, non-interactive).
               Positioned.fill(
-                child: FlutterMap(
-                  options: MapOptions(
-                    initialCenter: mapCenter,
-                    initialZoom: 12.0,
-                    interactionOptions: const InteractionOptions(
-                      flags: InteractiveFlag.none,
-                    ),
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate: ref.watch(mapTileUrlProvider),
-                      userAgentPackageName: 'app.submersion',
-                      maxZoom: ref.watch(mapTileMaxZoomProvider),
-                      tileProvider: TileCacheService.instance.isInitialized
-                          ? TileCacheService.instance.getTileProvider()
-                          : null,
-                    ),
-                    if (entryLoc != null && exitLoc != null)
-                      PolylineLayer(
-                        polylines: [
-                          Polyline(
-                            points: [
-                              LatLng(entryLoc.latitude, entryLoc.longitude),
-                              LatLng(exitLoc.latitude, exitLoc.longitude),
-                            ],
-                            strokeWidth: 3.0,
-                            color: colorScheme.onSurface.withValues(alpha: 0.7),
-                            pattern: const StrokePattern.dotted(),
-                          ),
-                        ],
-                      ),
-                    MarkerLayer(markers: markers),
-                    const MapAttribution(),
-                  ],
+                child: DiveLocationsMap(
+                  entry: entryLoc,
+                  exit: exitLoc,
+                  site: hasGps ? null : siteLoc,
+                  interactive: false,
+                  initialCenter: mapCenter,
+                  initialZoom: 12.0,
                 ),
               ),
               // Gradient overlay from top to bottom
@@ -1042,102 +981,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ),
       ),
     );
-  }
-
-  Widget _mapPin(ColorScheme colorScheme, IconData icon, Color color) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(color: colorScheme.onPrimary, width: 2),
-      ),
-      child: Center(child: Icon(icon, size: 14, color: colorScheme.onPrimary)),
-    );
-  }
-
-  Widget _buildSurfaceGpsSection(
-    BuildContext context,
-    WidgetRef ref,
-    Dive dive,
-    UnitFormatter units, {
-    String? sourceName,
-  }) {
-    final isExpanded = ref.watch(surfaceGpsSectionExpandedProvider);
-    final entry = dive.entryLocation;
-    final exit = dive.exitLocation;
-
-    String? driftText;
-    if (entry != null && exit != null) {
-      final dist = distanceMeters(entry, exit);
-      final bearing = initialBearingDegrees(entry, exit);
-      driftText = '${units.formatDistance(dist)} · ${formatBearing(bearing)}';
-    }
-
-    final collapsedSubtitle = driftText != null
-        ? '${context.l10n.diveLog_detail_label_drift}: $driftText'
-        : (entry != null
-              ? context.l10n.diveLog_detail_surfaceGps_entryOnly
-              : context.l10n.diveLog_detail_surfaceGps_exitOnly);
-
-    return CollapsibleCardSection(
-      title: context.l10n.diveLog_detail_section_surfaceGps,
-      icon: Icons.my_location,
-      collapsedSubtitle: collapsedSubtitle,
-      isExpanded: isExpanded,
-      onToggle: (expanded) {
-        ref
-            .read(collapsibleSectionProvider.notifier)
-            .setSurfaceGpsExpanded(expanded);
-      },
-      contentBuilder: (context) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Divider(),
-            if (entry != null)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_surfaceGps_entry,
-                '${entry.latitude.toStringAsFixed(5)}, ${entry.longitude.toStringAsFixed(5)}',
-                sourceName: sourceName,
-              ),
-            if (exit != null)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_surfaceGps_exit,
-                '${exit.latitude.toStringAsFixed(5)}, ${exit.longitude.toStringAsFixed(5)}',
-                sourceName: sourceName,
-              ),
-            if (driftText != null)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_drift,
-                driftText,
-              ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                icon: const Icon(Icons.open_in_new, size: 16),
-                label: Text(context.l10n.diveLog_detail_openInMaps),
-                onPressed: () => _openInMaps(entry ?? exit!),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openInMaps(GeoPoint point) async {
-    final uri = Uri.parse(
-      'https://www.openstreetmap.org/?mlat=${point.latitude}'
-      '&mlon=${point.longitude}#map=16/${point.latitude}/${point.longitude}',
-    );
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
   }
 
   /// Format runtime: use stored value, or calculate from entry/exit times
