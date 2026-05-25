@@ -132,6 +132,7 @@ class DiverSettingsRepository {
               defaultShowCns: Value(s.defaultShowCns),
               defaultShowOtu: Value(s.defaultShowOtu),
               defaultShowGasSwitchMarkers: Value(s.defaultShowGasSwitchMarkers),
+              defaultShowGasTimeline: Value(s.defaultShowGasTimeline),
               notificationsEnabled: Value(s.notificationsEnabled),
               serviceReminderDays: Value(
                 _formatReminderDays(s.serviceReminderDays),
@@ -266,6 +267,7 @@ class DiverSettingsRepository {
           defaultShowGasSwitchMarkers: Value(
             settings.defaultShowGasSwitchMarkers,
           ),
+          defaultShowGasTimeline: Value(settings.defaultShowGasTimeline),
           notificationsEnabled: Value(settings.notificationsEnabled),
           serviceReminderDays: Value(
             _formatReminderDays(settings.serviceReminderDays),
@@ -429,6 +431,7 @@ class DiverSettingsRepository {
       defaultShowCns: row.defaultShowCns,
       defaultShowOtu: row.defaultShowOtu,
       defaultShowGasSwitchMarkers: row.defaultShowGasSwitchMarkers,
+      defaultShowGasTimeline: row.defaultShowGasTimeline,
       notificationsEnabled: row.notificationsEnabled,
       serviceReminderDays: _parseReminderDays(row.serviceReminderDays),
       reminderTime: _parseReminderTime(row.reminderTime),
