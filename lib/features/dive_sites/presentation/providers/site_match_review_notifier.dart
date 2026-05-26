@@ -8,41 +8,64 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 class SiteMatchReviewState {
   final bool isLoading;
-  final List<DiveMatchEntry> entries;
   final String? errorMessage;
+  final List<MatchProposal> proposals;
+  final String? focusedDiveId;
+  final Map<String, String> selections; // diveId -> chosen candidateId
+  final bool isApplying;
 
   const SiteMatchReviewState({
     this.isLoading = true,
-    this.entries = const [],
     this.errorMessage,
+    this.proposals = const [],
+    this.focusedDiveId,
+    this.selections = const {},
+    this.isApplying = false,
   });
 
   SiteMatchReviewState copyWith({
     bool? isLoading,
-    List<DiveMatchEntry>? entries,
     String? errorMessage,
+    List<MatchProposal>? proposals,
+    String? focusedDiveId,
+    Map<String, String>? selections,
+    bool? isApplying,
   }) => SiteMatchReviewState(
     isLoading: isLoading ?? this.isLoading,
-    entries: entries ?? this.entries,
     errorMessage: errorMessage,
+    proposals: proposals ?? this.proposals,
+    focusedDiveId: focusedDiveId ?? this.focusedDiveId,
+    selections: selections ?? this.selections,
+    isApplying: isApplying ?? this.isApplying,
   );
 
-  int get matchedCount =>
-      entries.where((e) => e.status == MatchEntryStatus.autoMatched).length;
-  int get reviewCount =>
-      entries.where((e) => e.status == MatchEntryStatus.needsReview).length;
+  int get selectedCount => selections.length;
+  int get reviewCount => proposals
+      .where(
+        (p) =>
+            p.status == ProposalStatus.review &&
+            !selections.containsKey(p.dive.id),
+      )
+      .length;
   int get noMatchCount =>
-      entries.where((e) => e.status == MatchEntryStatus.noMatch).length;
+      proposals.where((p) => p.status == ProposalStatus.none).length;
+
+  MatchProposal? get focusedProposal {
+    for (final p in proposals) {
+      if (p.dive.id == focusedDiveId) return p;
+    }
+    return null;
+  }
 }
 
 class SiteMatchReviewNotifier extends StateNotifier<SiteMatchReviewState> {
   SiteMatchReviewNotifier(this._ref, this._diveIds, {bool autoInit = true})
     : super(const SiteMatchReviewState()) {
-    if (autoInit) _init(); // tests pass autoInit:false and seed state directly
+    if (autoInit) _init();
   }
 
   final Ref _ref;
-  final List<String>? _diveIds; // null = backlog (all eligible)
+  final List<String>? _diveIds;
   SiteMatchingService? _service;
 
   Future<void> _init() async {
@@ -64,9 +87,33 @@ class SiteMatchReviewNotifier extends StateNotifier<SiteMatchReviewState> {
         thresholds: sensitivity.thresholds,
       );
 
-      final entries = await _service!.run(dives);
+      final proposals = await _service!.computeProposals(dives);
       if (!mounted) return;
-      state = state.copyWith(isLoading: false, entries: entries);
+
+      // Seed selections from clear matches; focus the first review (else first).
+      final selections = <String, String>{};
+      for (final p in proposals) {
+        if (p.status == ProposalStatus.clear &&
+            p.recommendedCandidateId != null) {
+          selections[p.dive.id] = p.recommendedCandidateId!;
+        }
+      }
+      String? focus;
+      if (proposals.isNotEmpty) {
+        final firstReview = proposals
+            .where((p) => p.status == ProposalStatus.review)
+            .map((p) => p.dive.id);
+        focus = firstReview.isNotEmpty
+            ? firstReview.first
+            : proposals.first.dive.id;
+      }
+
+      state = state.copyWith(
+        isLoading: false,
+        proposals: proposals,
+        selections: selections,
+        focusedDiveId: focus,
+      );
     } catch (e) {
       if (!mounted) return;
       state = state.copyWith(
@@ -76,44 +123,43 @@ class SiteMatchReviewNotifier extends StateNotifier<SiteMatchReviewState> {
     }
   }
 
-  Future<void> link(String diveId, String candidateId) async {
-    final applied = await _service?.link(diveId, candidateId);
-    if (applied == null) return;
-    _replace(diveId, (e) {
-      final chosen = e.candidates.firstWhere((c) => c.id == candidateId);
-      return e.copyWith(
-        status: MatchEntryStatus.autoMatched,
-        siteId:
-            applied.siteId, // real created/linked id, not bundled externalId
-        siteName: applied.siteName,
-        distanceMeters: chosen.distanceMeters,
-        isNewlyCreated: applied.isNewlyCreated,
-        // Candidates are retained so the row can still offer "Change".
-      );
-    });
+  void focusDive(String diveId) =>
+      state = state.copyWith(focusedDiveId: diveId);
+
+  /// Toggles the selected candidate for a dive (tap again to deselect).
+  void select(String diveId, String candidateId) {
+    final next = Map<String, String>.from(state.selections);
+    if (next[diveId] == candidateId) {
+      next.remove(diveId);
+    } else {
+      next[diveId] = candidateId;
+    }
+    state = state.copyWith(selections: next);
   }
 
-  Future<void> unlink(String diveId) async {
-    await _service?.unlink(diveId);
-    // Drop back to review when alternatives remain, otherwise no match.
-    _replace(
-      diveId,
-      (e) => e.copyWith(
-        status: e.candidates.isNotEmpty
-            ? MatchEntryStatus.needsReview
-            : MatchEntryStatus.noMatch,
-        clearSite: true,
-      ),
-    );
-  }
-
-  void _replace(String diveId, DiveMatchEntry Function(DiveMatchEntry) f) {
-    state = state.copyWith(
-      entries: [
-        for (final e in state.entries)
-          if (e.dive.id == diveId) f(e) else e,
-      ],
-    );
+  /// Applies all selections in one transaction. Returns the result, or null on
+  /// error (errorMessage set). The page handles pop + snackbar.
+  Future<ApplyResult?> confirm() async {
+    final service = _service;
+    if (service == null) return null;
+    state = state.copyWith(isApplying: true);
+    try {
+      final confirmed = [
+        for (final e in state.selections.entries)
+          ConfirmedMatch(e.key, e.value),
+      ];
+      final result = await service.applyConfirmed(confirmed);
+      if (mounted) state = state.copyWith(isApplying: false);
+      return result;
+    } catch (e) {
+      if (mounted) {
+        state = state.copyWith(
+          isApplying: false,
+          errorMessage: 'Could not apply matches: $e',
+        );
+      }
+      return null;
+    }
   }
 }
 
