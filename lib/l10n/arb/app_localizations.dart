@@ -6934,12 +6934,6 @@ abstract class AppLocalizations {
   /// **'Match Sites'**
   String get siteMatchReview_title;
 
-  /// No description provided for @siteMatchReview_done.
-  ///
-  /// In en, this message translates to:
-  /// **'Done'**
-  String get siteMatchReview_done;
-
   /// No description provided for @siteMatchReview_empty.
   ///
   /// In en, this message translates to:
@@ -6949,44 +6943,80 @@ abstract class AppLocalizations {
   /// No description provided for @siteMatchReview_summary.
   ///
   /// In en, this message translates to:
-  /// **'{matched} matched · {review} to review · {noMatch} no match'**
-  String siteMatchReview_summary(int matched, int review, int noMatch);
+  /// **'{selected} selected · {review} to review · {none} no match'**
+  String siteMatchReview_summary(int selected, int review, int none);
 
-  /// No description provided for @siteMatchReview_matchedSubtitle.
+  /// No description provided for @siteMatchReview_confirm.
   ///
   /// In en, this message translates to:
-  /// **'{site} · {meters} m'**
-  String siteMatchReview_matchedSubtitle(String site, int meters);
+  /// **'Confirm {count} matches'**
+  String siteMatchReview_confirm(int count);
 
-  /// No description provided for @siteMatchReview_newlyAdded.
+  /// No description provided for @siteMatchReview_cancel.
   ///
   /// In en, this message translates to:
-  /// **'newly added'**
-  String get siteMatchReview_newlyAdded;
+  /// **'Cancel'**
+  String get siteMatchReview_cancel;
 
-  /// No description provided for @siteMatchReview_change.
+  /// No description provided for @siteMatchReview_tapToChoose.
   ///
   /// In en, this message translates to:
-  /// **'Change'**
-  String get siteMatchReview_change;
+  /// **'Tap to choose a site'**
+  String get siteMatchReview_tapToChoose;
 
-  /// No description provided for @siteMatchReview_unlink.
+  /// No description provided for @siteMatchReview_awayMeters.
   ///
   /// In en, this message translates to:
-  /// **'Unlink'**
-  String get siteMatchReview_unlink;
+  /// **'{meters} m away'**
+  String siteMatchReview_awayMeters(int meters);
 
-  /// No description provided for @siteMatchReview_nearbySites.
+  /// No description provided for @siteMatchReview_depthTo.
   ///
   /// In en, this message translates to:
-  /// **'{count} nearby sites'**
-  String siteMatchReview_nearbySites(int count);
+  /// **'to {meters} m'**
+  String siteMatchReview_depthTo(int meters);
 
-  /// No description provided for @siteMatchReview_candidateSubtitle.
+  /// No description provided for @siteMatchReview_depthRange.
   ///
   /// In en, this message translates to:
-  /// **'{meters} m · {source}'**
-  String siteMatchReview_candidateSubtitle(int meters, String source);
+  /// **'{min}–{max} m'**
+  String siteMatchReview_depthRange(int min, int max);
+
+  /// No description provided for @siteMatchReview_appliedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked {dives} dives · added {sites} sites'**
+  String siteMatchReview_appliedSnack(int dives, int sites);
+
+  /// No description provided for @siteMatchReview_applyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t apply matches'**
+  String get siteMatchReview_applyError;
+
+  /// No description provided for @siteMatchReview_discardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard matches?'**
+  String get siteMatchReview_discardTitle;
+
+  /// No description provided for @siteMatchReview_discardMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your selections won\'t be saved.'**
+  String get siteMatchReview_discardMessage;
+
+  /// No description provided for @siteMatchReview_discardConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get siteMatchReview_discardConfirm;
+
+  /// No description provided for @siteMatchReview_keepReviewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep reviewing'**
+  String get siteMatchReview_keepReviewing;
 
   /// No description provided for @siteMatchReview_sourceExisting.
   ///

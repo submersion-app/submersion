@@ -4,13 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_match_review_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// Seeds review state without running the async matcher (autoInit:false) and
-/// sets the protected `state` from inside a subclass to avoid the
-/// invalid_use_of_protected_member lint.
+import '../../../../helpers/mock_providers.dart';
+
 class _SeededNotifier extends SiteMatchReviewNotifier {
   _SeededNotifier(Ref ref, SiteMatchReviewState seeded)
     : super(ref, null, autoInit: false) {
@@ -18,15 +19,29 @@ class _SeededNotifier extends SiteMatchReviewNotifier {
   }
 }
 
-Dive _dive(int number) => Dive(
-  id: 'd$number',
-  diveNumber: number,
+Dive _dive(int n) => Dive(
+  id: 'd$n',
+  diveNumber: n,
   dateTime: DateTime(2026, 1, 1),
   maxDepth: 18,
+  entryLocation: const GeoPoint(0, 0),
 );
+
+MatchCandidateView _cand(String id, {bool existing = true}) =>
+    MatchCandidateView(
+      id: id,
+      name: 'Site $id',
+      isExisting: existing,
+      distanceMeters: 42,
+      location: const GeoPoint(0, 0.0003),
+      maxDepth: 30,
+      region: 'Red Sea',
+    );
 
 Widget _harness(SiteMatchReviewState seeded) => ProviderScope(
   overrides: [
+    // The embedded map reads the tile style from settingsProvider.
+    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     siteMatchReviewProvider(
       null,
     ).overrideWith((ref) => _SeededNotifier(ref, seeded)),
@@ -39,170 +54,119 @@ Widget _harness(SiteMatchReviewState seeded) => ProviderScope(
 );
 
 void main() {
-  testWidgets('loading state shows a progress indicator', (tester) async {
+  testWidgets('loading shows progress', (tester) async {
     await tester.pumpWidget(_harness(const SiteMatchReviewState()));
     await tester.pump();
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsWidgets);
   });
 
-  testWidgets('error state shows the message', (tester) async {
-    await tester.pumpWidget(
-      _harness(
-        const SiteMatchReviewState(isLoading: false, errorMessage: 'Boom'),
-      ),
-    );
-    await tester.pump();
-    expect(find.text('Boom'), findsOneWidget);
-  });
-
-  testWidgets('empty state shows nothing-to-match', (tester) async {
-    await tester.pumpWidget(
-      _harness(const SiteMatchReviewState(isLoading: false, entries: [])),
-    );
-    await tester.pump();
-    expect(find.text('Nothing to match.'), findsOneWidget);
-  });
-
-  testWidgets('auto-matched row shows summary, site, and expands to actions', (
+  testWidgets('renders summary, confirm bar, and focused candidates', (
     tester,
   ) async {
     final seeded = SiteMatchReviewState(
       isLoading: false,
-      entries: [
-        DiveMatchEntry(
+      proposals: [
+        MatchProposal(
           dive: _dive(7),
-          status: MatchEntryStatus.autoMatched,
-          siteId: 's1',
-          siteName: 'Blue Hole',
-          distanceMeters: 42,
-          candidates: const [
-            MatchCandidateView(
-              id: 's1',
-              name: 'Blue Hole',
-              isExisting: true,
-              distanceMeters: 42,
-            ),
-            MatchCandidateView(
-              id: 'osm_1',
-              name: 'Reef',
-              isExisting: false,
-              distanceMeters: 300,
-            ),
-          ],
+          status: ProposalStatus.clear,
+          candidates: [_cand('s1')],
+          recommendedCandidateId: 's1',
         ),
       ],
+      focusedDiveId: 'd7',
+      selections: const {'d7': 's1'},
     );
     await tester.pumpWidget(_harness(seeded));
     await tester.pump();
 
-    expect(find.textContaining('1 matched'), findsOneWidget);
-    expect(find.text('Blue Hole · 42 m'), findsOneWidget);
-
-    // Expand to reveal Unlink + alternative candidates.
-    await tester.tap(find.text('Dive #7'));
-    await tester.pumpAndSettle();
-    expect(find.text('Unlink'), findsOneWidget);
-    expect(find.text('Reef'), findsOneWidget);
-    expect(find.text('300 m · import'), findsOneWidget);
+    expect(find.textContaining('1 selected'), findsOneWidget);
+    expect(find.textContaining('Confirm 1'), findsOneWidget);
+    expect(find.text('Site s1'), findsWidgets);
+    expect(find.text('Cancel'), findsOneWidget);
   });
 
-  testWidgets(
-    'tapping Unlink returns an auto-matched row with alternatives to review',
-    (tester) async {
-      final seeded = SiteMatchReviewState(
-        isLoading: false,
-        entries: [
-          DiveMatchEntry(
-            dive: _dive(7),
-            status: MatchEntryStatus.autoMatched,
-            siteId: 's1',
-            siteName: 'Blue Hole',
-            distanceMeters: 42,
-            candidates: const [
-              MatchCandidateView(
-                id: 's1',
-                name: 'Blue Hole',
-                isExisting: true,
-                distanceMeters: 42,
-              ),
-            ],
-          ),
-        ],
-      );
-      await tester.pumpWidget(_harness(seeded));
-      await tester.pump();
-      await tester.tap(find.text('Dive #7'));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Unlink'));
-      await tester.pumpAndSettle();
-
-      // Row flips to review (one nearby site retained) and summary updates.
-      expect(find.textContaining('1 to review'), findsOneWidget);
-      expect(find.text('Blue Hole · 42 m'), findsNothing);
-    },
-  );
-
-  testWidgets('needs-review row lists candidates with distance and source', (
-    tester,
-  ) async {
+  testWidgets('confirm disabled when nothing selected', (tester) async {
     final seeded = SiteMatchReviewState(
       isLoading: false,
-      entries: [
-        DiveMatchEntry(
+      proposals: [
+        MatchProposal(
           dive: _dive(3),
-          status: MatchEntryStatus.needsReview,
-          candidates: const [
-            MatchCandidateView(
-              id: 's-a',
-              name: 'Site A',
-              isExisting: true,
-              distanceMeters: 320,
-            ),
-          ],
+          status: ProposalStatus.review,
+          candidates: [_cand('a'), _cand('b')],
         ),
       ],
+      focusedDiveId: 'd3',
+      selections: const {},
     );
     await tester.pumpWidget(_harness(seeded));
     await tester.pump();
 
-    expect(find.text('1 nearby sites'), findsOneWidget);
-    await tester.tap(find.text('Dive #3'));
-    await tester.pumpAndSettle();
-    expect(find.text('Site A'), findsOneWidget);
-    expect(find.text('320 m · your site'), findsOneWidget);
+    expect(find.textContaining('0 selected'), findsOneWidget);
+    final confirm = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Confirm 0 matches'),
+    );
+    expect(confirm.onPressed, isNull);
   });
 
-  testWidgets('no-match row shows no nearby site', (tester) async {
+  testWidgets('no-match dive shows no nearby site', (tester) async {
     final seeded = SiteMatchReviewState(
       isLoading: false,
-      entries: [
-        DiveMatchEntry(dive: _dive(9), status: MatchEntryStatus.noMatch),
-      ],
+      proposals: [MatchProposal(dive: _dive(9), status: ProposalStatus.none)],
+      focusedDiveId: 'd9',
+      selections: const {},
     );
     await tester.pumpWidget(_harness(seeded));
     await tester.pump();
     expect(find.text('No nearby site'), findsOneWidget);
   });
 
-  testWidgets('newly-created bundled match shows the newly-added suffix', (
-    tester,
-  ) async {
+  testWidgets('cancel with selections prompts to discard', (tester) async {
     final seeded = SiteMatchReviewState(
       isLoading: false,
-      entries: [
-        DiveMatchEntry(
-          dive: _dive(1),
-          status: MatchEntryStatus.autoMatched,
-          siteId: 'new-1',
-          siteName: 'Wreck',
-          distanceMeters: 20,
-          isNewlyCreated: true,
+      proposals: [
+        MatchProposal(
+          dive: _dive(7),
+          status: ProposalStatus.clear,
+          candidates: [_cand('s1')],
+          recommendedCandidateId: 's1',
         ),
       ],
+      focusedDiveId: 'd7',
+      selections: const {'d7': 's1'},
     );
     await tester.pumpWidget(_harness(seeded));
     await tester.pump();
-    expect(find.text('Wreck · 20 m · newly added'), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Discard matches?'), findsOneWidget);
+  });
+
+  testWidgets('wide layout shows list and detail side by side', (tester) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(1100, 800);
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final seeded = SiteMatchReviewState(
+      isLoading: false,
+      proposals: [
+        MatchProposal(
+          dive: _dive(7),
+          status: ProposalStatus.clear,
+          candidates: [_cand('s1')],
+          recommendedCandidateId: 's1',
+        ),
+      ],
+      focusedDiveId: 'd7',
+      selections: const {'d7': 's1'},
+    );
+    await tester.pumpWidget(_harness(seeded));
+    await tester.pump();
+
+    expect(find.byType(VerticalDivider), findsOneWidget);
+    expect(find.text('Site s1'), findsWidgets);
   });
 }

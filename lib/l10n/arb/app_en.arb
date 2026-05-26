@@ -2020,39 +2020,42 @@
   "diveLog_listPage_menuDiveNumbering": "Dive Numbering",
   "diveLog_listPage_menuMatchSites": "Match Dives to Sites",
   "siteMatchReview_title": "Match Sites",
-  "siteMatchReview_done": "Done",
   "siteMatchReview_empty": "Nothing to match.",
-  "siteMatchReview_summary": "{matched} matched · {review} to review · {noMatch} no match",
+  "siteMatchReview_summary": "{selected} selected · {review} to review · {none} no match",
   "@siteMatchReview_summary": {
     "placeholders": {
-      "matched": { "type": "int" },
+      "selected": { "type": "int" },
       "review": { "type": "int" },
-      "noMatch": { "type": "int" }
+      "none": { "type": "int" }
     }
   },
-  "siteMatchReview_matchedSubtitle": "{site} · {meters} m",
-  "@siteMatchReview_matchedSubtitle": {
-    "placeholders": {
-      "site": { "type": "String" },
-      "meters": { "type": "int" }
-    }
+  "siteMatchReview_confirm": "Confirm {count} matches",
+  "@siteMatchReview_confirm": {
+    "placeholders": { "count": { "type": "int" } }
   },
-  "siteMatchReview_newlyAdded": "newly added",
-  "siteMatchReview_change": "Change",
-  "siteMatchReview_unlink": "Unlink",
-  "siteMatchReview_nearbySites": "{count} nearby sites",
-  "@siteMatchReview_nearbySites": {
-    "placeholders": {
-      "count": { "type": "int" }
-    }
+  "siteMatchReview_cancel": "Cancel",
+  "siteMatchReview_tapToChoose": "Tap to choose a site",
+  "siteMatchReview_awayMeters": "{meters} m away",
+  "@siteMatchReview_awayMeters": {
+    "placeholders": { "meters": { "type": "int" } }
   },
-  "siteMatchReview_candidateSubtitle": "{meters} m · {source}",
-  "@siteMatchReview_candidateSubtitle": {
-    "placeholders": {
-      "meters": { "type": "int" },
-      "source": { "type": "String" }
-    }
+  "siteMatchReview_depthTo": "to {meters} m",
+  "@siteMatchReview_depthTo": {
+    "placeholders": { "meters": { "type": "int" } }
   },
+  "siteMatchReview_depthRange": "{min}–{max} m",
+  "@siteMatchReview_depthRange": {
+    "placeholders": { "min": { "type": "int" }, "max": { "type": "int" } }
+  },
+  "siteMatchReview_appliedSnack": "Linked {dives} dives · added {sites} sites",
+  "@siteMatchReview_appliedSnack": {
+    "placeholders": { "dives": { "type": "int" }, "sites": { "type": "int" } }
+  },
+  "siteMatchReview_applyError": "Couldn't apply matches",
+  "siteMatchReview_discardTitle": "Discard matches?",
+  "siteMatchReview_discardMessage": "Your selections won't be saved.",
+  "siteMatchReview_discardConfirm": "Discard",
+  "siteMatchReview_keepReviewing": "Keep reviewing",
   "siteMatchReview_sourceExisting": "your site",
   "siteMatchReview_sourceBundled": "import",
   "siteMatchReview_noNearbySite": "No nearby site",

@@ -4072,39 +4072,59 @@ class AppLocalizationsEs extends AppLocalizations {
   String get siteMatchReview_title => 'Match Sites';
 
   @override
-  String get siteMatchReview_done => 'Done';
-
-  @override
   String get siteMatchReview_empty => 'Nothing to match.';
 
   @override
-  String siteMatchReview_summary(int matched, int review, int noMatch) {
-    return '$matched matched · $review to review · $noMatch no match';
+  String siteMatchReview_summary(int selected, int review, int none) {
+    return '$selected selected · $review to review · $none no match';
   }
 
   @override
-  String siteMatchReview_matchedSubtitle(String site, int meters) {
-    return '$site · $meters m';
+  String siteMatchReview_confirm(int count) {
+    return 'Confirm $count matches';
   }
 
   @override
-  String get siteMatchReview_newlyAdded => 'newly added';
+  String get siteMatchReview_cancel => 'Cancel';
 
   @override
-  String get siteMatchReview_change => 'Change';
+  String get siteMatchReview_tapToChoose => 'Tap to choose a site';
 
   @override
-  String get siteMatchReview_unlink => 'Unlink';
-
-  @override
-  String siteMatchReview_nearbySites(int count) {
-    return '$count nearby sites';
+  String siteMatchReview_awayMeters(int meters) {
+    return '$meters m away';
   }
 
   @override
-  String siteMatchReview_candidateSubtitle(int meters, String source) {
-    return '$meters m · $source';
+  String siteMatchReview_depthTo(int meters) {
+    return 'to $meters m';
   }
+
+  @override
+  String siteMatchReview_depthRange(int min, int max) {
+    return '$min–$max m';
+  }
+
+  @override
+  String siteMatchReview_appliedSnack(int dives, int sites) {
+    return 'Linked $dives dives · added $sites sites';
+  }
+
+  @override
+  String get siteMatchReview_applyError => 'Couldn\'t apply matches';
+
+  @override
+  String get siteMatchReview_discardTitle => 'Discard matches?';
+
+  @override
+  String get siteMatchReview_discardMessage =>
+      'Your selections won\'t be saved.';
+
+  @override
+  String get siteMatchReview_discardConfirm => 'Discard';
+
+  @override
+  String get siteMatchReview_keepReviewing => 'Keep reviewing';
 
   @override
   String get siteMatchReview_sourceExisting => 'your site';
