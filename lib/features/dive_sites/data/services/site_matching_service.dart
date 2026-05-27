@@ -160,21 +160,18 @@ class SiteMatchingService {
       }
       _refsByDive[dive.id] = refs;
 
-      final views =
-          candidates
-              .map(
-                (c) =>
-                    _viewFor(c, refs[c.id]!, distanceMeters(point, c.location)),
-              )
-              .where((v) => v.distanceMeters <= thresholds.outerRadiusMeters)
-              .toList()
-            ..sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
+      // Rank once; reuse for both the UI candidate list and the matcher
+      // decision so distances are computed a single time per dive/site pair.
+      final ranked = rankCandidates(point, candidates);
+      final views = ranked
+          .where((r) => r.distanceMeters <= thresholds.outerRadiusMeters)
+          .map(
+            (r) =>
+                _viewFor(r.candidate, refs[r.candidate.id]!, r.distanceMeters),
+          )
+          .toList();
 
-      final outcome = matchDive(
-        point: point,
-        candidates: candidates,
-        thresholds: thresholds,
-      );
+      final outcome = matchRanked(ranked, thresholds);
 
       proposals.add(switch (outcome) {
         NoMatch() => MatchProposal(dive: dive, status: ProposalStatus.none),

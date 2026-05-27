@@ -206,12 +206,14 @@ void main() {
       final container = makeContainer([_dive('d1', _eastMeters(33))]);
 
       final ids = await container.read(
-        eligibleImportedDivesProvider(['d1', 'd2']).future,
+        eligibleImportedDivesProvider(
+          const ImportedDiveIds(['d1', 'd2']),
+        ).future,
       );
       expect(ids, ['d1']);
 
       final empty = await container.read(
-        eligibleImportedDivesProvider(const []).future,
+        eligibleImportedDivesProvider(const ImportedDiveIds([])).future,
       );
       expect(empty, isEmpty);
     },

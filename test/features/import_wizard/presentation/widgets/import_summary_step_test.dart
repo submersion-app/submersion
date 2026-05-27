@@ -177,8 +177,6 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(800, 600));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      // Same list instance passed to the result and the provider override so
-      // the autoDispose family key matches.
       final ids = ['d1'];
       final notifier = _makeNotifier();
       notifier.state = notifier.state.copyWith(
@@ -210,7 +208,10 @@ void main() {
         ProviderScope(
           overrides: [
             importWizardNotifierProvider.overrideWith((_) => notifier),
-            eligibleImportedDivesProvider(ids).overrideWith((ref) => ids),
+            // Value-equality key: matches by contents regardless of instance.
+            eligibleImportedDivesProvider(
+              ImportedDiveIds(ids),
+            ).overrideWith((ref) => ids),
           ],
           child: MaterialApp.router(
             routerConfig: router,

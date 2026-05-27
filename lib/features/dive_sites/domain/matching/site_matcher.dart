@@ -4,11 +4,21 @@ import 'package:submersion/features/dive_sites/domain/matching/match_candidate.d
 import 'package:submersion/features/dive_sites/domain/matching/match_thresholds.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_outcome.dart';
 
-/// Matches one dive GPS [point] against [candidates].
-///
-/// Rules, in order:
-/// 1. Rank candidates by distance; keep those within the outer radius.
-///    None -> [NoMatch].
+/// Ranks [candidates] by great-circle distance from [point], nearest first.
+/// Computed once and shared by the matcher decision and the UI candidate list,
+/// so distances are never recomputed for the same dive/site pair.
+List<RankedCandidate> rankCandidates(
+  GeoPoint point,
+  List<MatchCandidate> candidates,
+) {
+  return candidates
+      .map((c) => RankedCandidate(c, distanceMeters(point, c.location)))
+      .toList()
+    ..sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
+}
+
+/// The confidence rule over pre-ranked candidates, in order:
+/// 1. Keep candidates within the outer radius. None -> [NoMatch].
 /// 2. Pool selection: if any existing site is within the inner radius, the
 ///    auto-decision considers only those (existing-site precedence — never
 ///    auto-create a bundled duplicate when the user already has a site here);
@@ -16,17 +26,10 @@ import 'package:submersion/features/dive_sites/domain/matching/site_match_outcom
 /// 3. The nearest in the pool is a clear [AutoMatch] when it has no in-pool
 ///    competitor, or the runner-up is farther by at least the separation
 ///    margin. Otherwise -> [Suggested] (all in-range candidates, both pools).
-SiteMatchOutcome matchDive({
-  required GeoPoint point,
-  required List<MatchCandidate> candidates,
-  required MatchThresholds thresholds,
-}) {
-  final ranked =
-      candidates
-          .map((c) => RankedCandidate(c, distanceMeters(point, c.location)))
-          .toList()
-        ..sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
-
+SiteMatchOutcome matchRanked(
+  List<RankedCandidate> ranked,
+  MatchThresholds thresholds,
+) {
   final inRange = ranked
       .where((r) => r.distanceMeters <= thresholds.outerRadiusMeters)
       .toList();
@@ -61,3 +64,13 @@ SiteMatchOutcome matchDive({
   }
   return Suggested(inRange);
 }
+
+/// Matches one dive GPS [point] against [candidates] by ranking them and
+/// applying [matchRanked]. Convenience entry point for callers that have raw
+/// candidates; callers that also need the ranked list should rank once with
+/// [rankCandidates] and call [matchRanked] directly.
+SiteMatchOutcome matchDive({
+  required GeoPoint point,
+  required List<MatchCandidate> candidates,
+  required MatchThresholds thresholds,
+}) => matchRanked(rankCandidates(point, candidates), thresholds);

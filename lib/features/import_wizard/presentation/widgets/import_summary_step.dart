@@ -189,7 +189,9 @@ class _SuccessView extends StatelessWidget {
               builder: (context, ref, _) {
                 if (importedDiveIds.isEmpty) return const SizedBox.shrink();
                 final eligible = ref.watch(
-                  eligibleImportedDivesProvider(importedDiveIds),
+                  eligibleImportedDivesProvider(
+                    ImportedDiveIds(importedDiveIds),
+                  ),
                 );
                 return eligible.maybeWhen(
                   data: (ids) => ids.isEmpty

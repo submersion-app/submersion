@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -168,15 +170,24 @@ final siteMatchReviewProvider = StateNotifierProvider.autoDispose
       (ref, diveIds) => SiteMatchReviewNotifier(ref, diveIds),
     );
 
+/// Value-equality key for [eligibleImportedDivesProvider] so the autoDispose
+/// family caches by the id set's contents (deep `==`), not list identity.
+class ImportedDiveIds extends Equatable {
+  const ImportedDiveIds(this.ids);
+  final List<String> ids;
+  @override
+  List<Object?> get props => [ids];
+}
+
 /// Of the given imported dive ids, which are eligible for site matching
 /// (have GPS and no assigned site). Used to decide whether to surface the
 /// post-download "match" button and what count to show.
 final eligibleImportedDivesProvider = FutureProvider.autoDispose
-    .family<List<String>, List<String>>((ref, importedIds) async {
-      if (importedIds.isEmpty) return const [];
+    .family<List<String>, ImportedDiveIds>((ref, arg) async {
+      if (arg.ids.isEmpty) return const [];
       final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
       final dives = await ref
           .read(diveRepositoryProvider)
-          .getDivesNeedingSiteMatch(diverId: diverId, limitToIds: importedIds);
+          .getDivesNeedingSiteMatch(diverId: diverId, limitToIds: arg.ids);
       return dives.map((d) => d.id).toList();
     });
