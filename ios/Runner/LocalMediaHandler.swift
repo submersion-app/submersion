@@ -128,6 +128,13 @@ class LocalMediaHandler: NSObject {
                 return
             }
             readBookmarkBytes(blob: blob.data, result: result)
+        case "enumerateScopedDirectory":
+            guard let args = call.arguments as? [String: Any],
+                  let bookmark = args["bookmark"] as? FlutterStandardTypedData else {
+                result(FlutterError(code: "INVALID_ARGS", message: "bookmark required", details: nil))
+                return
+            }
+            enumerateScopedDirectory(folderBookmark: bookmark.data, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -200,6 +207,58 @@ class LocalMediaHandler: NSObject {
         }
         active.removeAll()
         result(nil)
+    }
+
+    /// Resolves a security-scoped FOLDER bookmark, holds its scope for the
+    /// whole walk, and mints a per-file bookmark for every regular file under
+    /// it. On iOS the folder bookmark resolves with `options: []` (security
+    /// scope is implicit for picker-supplied URLs) and per-file bookmarks use
+    /// `.minimalBookmark`, matching SecurityScopedBookmarkHandler.
+    private func enumerateScopedDirectory(folderBookmark: Data, result: @escaping FlutterResult) {
+        var stale = false
+        let dirURL: URL
+        do {
+            dirURL = try URL(
+                resolvingBookmarkData: folderBookmark,
+                options: [],
+                relativeTo: nil,
+                bookmarkDataIsStale: &stale
+            )
+        } catch {
+            result(
+                FlutterError(
+                    code: "RESOLVE_FAILED",
+                    message: "Could not resolve folder bookmark: \(error.localizedDescription)",
+                    details: nil
+                ))
+            return
+        }
+        let didAccess = dirURL.startAccessingSecurityScopedResource()
+        defer { if didAccess { dirURL.stopAccessingSecurityScopedResource() } }
+        var entries: [[String: Any]] = []
+        let fm = FileManager.default
+        if let walker = fm.enumerator(at: dirURL, includingPropertiesForKeys: [.isRegularFileKey]) {
+            for case let fileURL as URL in walker {
+                let isFile = (try? fileURL.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile ?? false
+                if !isFile { continue }
+                #if os(macOS)
+                let bookmarkOptions: URL.BookmarkCreationOptions = [.withSecurityScope]
+                #else
+                let bookmarkOptions: URL.BookmarkCreationOptions = .minimalBookmark
+                #endif
+                if let blob = try? fileURL.bookmarkData(
+                    options: bookmarkOptions,
+                    includingResourceValuesForKeys: nil,
+                    relativeTo: nil
+                ) {
+                    entries.append([
+                        "basename": fileURL.lastPathComponent,
+                        "bookmarkBlob": FlutterStandardTypedData(bytes: blob),
+                    ])
+                }
+            }
+        }
+        result(entries)
     }
 
     private func readBookmarkBytes(blob: Data, result: @escaping FlutterResult) {

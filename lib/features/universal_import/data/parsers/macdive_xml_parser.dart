@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_image_ref.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
@@ -189,9 +190,27 @@ class MacDiveXmlParser implements ImportParser {
       entities[ImportEntityType.tags] = tagsByName.values.toList();
     }
 
+    final imageRefs = <ImportImageRef>[];
+    for (final dive in logbook.dives) {
+      final diveUuid = dive.identifier;
+      if (diveUuid == null || diveUuid.isEmpty) continue;
+      for (final p in dive.photos) {
+        if (p.path.isEmpty) continue;
+        imageRefs.add(
+          ImportImageRef(
+            originalPath: p.path,
+            diveSourceUuid: diveUuid,
+            caption: p.caption,
+            position: p.position,
+          ),
+        );
+      }
+    }
+
     return ImportPayload(
       entities: entities,
       warnings: warnings,
+      imageRefs: imageRefs,
       metadata: {
         'source': 'macdive_xml',
         'diveCount': logbook.dives.length,

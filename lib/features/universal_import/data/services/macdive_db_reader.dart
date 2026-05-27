@@ -78,6 +78,7 @@ class MacDiveDbReader {
         final certifications = _readCertifications(db);
         final serviceRecords = _readServiceRecords(db);
         final events = _readEvents(db);
+        final diveImages = _readDiveImages(db);
         final tankAndGases = _readTankAndGases(db);
         final dives = _readDives(db);
 
@@ -119,6 +120,7 @@ class MacDiveDbReader {
           certifications: certifications,
           serviceRecords: serviceRecords,
           events: events,
+          diveImages: diveImages,
           diveToBuddyPks: diveToBuddyPks,
           diveToTagPks: diveToTagPks,
           diveToGearPks: diveToGearPks,
@@ -314,6 +316,22 @@ class MacDiveDbReader {
         serviceDate: _nsDateFromSeconds(_double(r['ZSERVICEDATE'])),
         servicedBy: _str(r['ZSERVICEDBY']),
         notes: _str(r['ZNOTES']),
+      ),
+    );
+  }
+
+  static List<MacDiveRawDiveImage> _readDiveImages(Database db) {
+    return _selectOrEmpty<MacDiveRawDiveImage>(
+      db,
+      'SELECT * FROM ZDIVEIMAGE',
+      (r) => MacDiveRawDiveImage(
+        pk: r['Z_PK'] as int,
+        uuid: _str(r['ZUUID']) ?? '',
+        diveFk: (r['ZRELATIONSHIPDIVE'] as int?) ?? 0,
+        position: (r['ZPOSITION'] as int?) ?? 0,
+        caption: _str(r['ZCAPTION']),
+        path: _str(r['ZPATH']),
+        originalPath: _str(r['ZORIGINALPATH']),
       ),
     );
   }

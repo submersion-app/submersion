@@ -1,6 +1,7 @@
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_image_ref.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_raw_types.dart';
@@ -63,6 +64,28 @@ class MacDiveDiveMapper {
       );
     }
 
+    final diveUuidByPk = <int, String>{
+      for (final d in logbook.dives)
+        if (d.uuid.isNotEmpty) d.pk: d.uuid,
+    };
+
+    final imageRefs = <ImportImageRef>[];
+    for (final img in logbook.diveImages) {
+      final diveUuid = diveUuidByPk[img.diveFk];
+      if (diveUuid == null) continue;
+      final path = img.path ?? img.originalPath;
+      if (path == null || path.isEmpty) continue;
+      imageRefs.add(
+        ImportImageRef(
+          originalPath: path,
+          diveSourceUuid: diveUuid,
+          caption: img.caption,
+          position: img.position,
+          sourceUuid: img.uuid.isEmpty ? null : img.uuid,
+        ),
+      );
+    }
+
     final entities = <ImportEntityType, List<Map<String, dynamic>>>{};
     if (diveMaps.isNotEmpty) entities[ImportEntityType.dives] = diveMaps;
     if (siteMaps.isNotEmpty) entities[ImportEntityType.sites] = siteMaps;
@@ -73,6 +96,7 @@ class MacDiveDiveMapper {
     return ImportPayload(
       entities: entities,
       warnings: warnings,
+      imageRefs: imageRefs,
       metadata: {
         'source': 'macdive_sqlite',
         'diveCount': logbook.dives.length,
