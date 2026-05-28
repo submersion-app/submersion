@@ -3,6 +3,60 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.4.8 (2026-05-27)
+
+### Features
+
+- staged map + confirm review screen (responsive) + l10n
+- add MatchSitesMap (dive + candidate pins, tap to select)
+- add sensitivity setting UI and wire it through
+- persist configurable siteMatchSensitivity setting
+- wire route, dives-list action, and post-download match button
+- add SiteMatchReviewNotifier and review page
+- add SiteMatchingService with dedup, coincidence guard, and rollback
+- add DiveRepository.setSite and getDivesNeedingSiteMatch
+- add pure matcher, domain types, and sensitivity presets
+
+### Bug Fixes
+
+- localize dive-row title + short-circuit empty confirm
+- use the diver icon for the surface-GPS site marker
+- partition review summary + v76 migration step
+- make apply errors transient; preserve fatal error in copyWith
+- refresh dive list after applying site matches
+- show 'Match Dives to Sites' in default list view menu, not only table mode
+- address PR review (unlink guard, in-query id filter, l10n, Change action, settings tile)
+- prevent popup menu overflow with flexible match-sites label
+
+### Refactoring
+
+- address review — value-equality provider key + rank candidates once
+- staged notifier (proposals/selections/confirm)
+- split service into computeProposals + applyConfirmed
+
+### Documentation
+
+- add site-match review map + staged-confirm implementation plan
+- add site-match review map + staged-confirm design spec
+- add GPS site-matching implementation plan
+- add GPS site-matching design spec
+
+### Tests
+
+- cover notifier/page/map for staged review (patch >=90%); drop dead map didUpdateWidget
+- raise patch coverage above 90% (notifier, page, repo, import-summary, settings)
+- add setSiteMatchSensitivity override to remaining settings mocks
+
+### Chores
+
+- bump version to 1.4.8+94
+- regenerate mocks for new DiveRepository methods
+
+### Other
+
+- i18n: translate site-matching strings across 10 locales
+
+
 ## 1.4.7 (2026-05-25)
 
 ### Features
