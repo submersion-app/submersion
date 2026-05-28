@@ -800,6 +800,9 @@ class DiverSettings extends Table {
   // Map style (v67)
   TextColumn get mapStyle =>
       text().withDefault(const Constant('openStreetMap'))();
+  // Auto site matching sensitivity (v76): strict | balanced | relaxed
+  TextColumn get siteMatchSensitivity =>
+      text().withDefault(const Constant('balanced'))();
   // Dive profile chart defaults
   TextColumn get defaultRightAxisMetric =>
       text().withDefault(const Constant('temperature'))();
@@ -1459,7 +1462,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 75;
+  static const int currentSchemaVersion = 76;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1538,6 +1541,7 @@ class AppDatabase extends _$AppDatabase {
     73,
     74,
     75,
+    76,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -3651,6 +3655,20 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 75) await reportProgress();
+        if (from < 76) {
+          final cols = await customSelect(
+            "PRAGMA table_info('diver_settings')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('site_match_sensitivity')) {
+              await customStatement(
+                "ALTER TABLE diver_settings ADD COLUMN site_match_sensitivity TEXT NOT NULL DEFAULT 'balanced'",
+              );
+            }
+          }
+        }
+        if (from < 76) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys

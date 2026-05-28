@@ -218,6 +218,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
             onSelected: (value) {
               if (value == 'advanced_search') {
                 context.push('/dives/search');
+              } else if (value == 'match_sites') {
+                context.push('/dives/match-sites');
               } else if (value == 'numbering') {
                 showDiveNumberingDialog(context);
               } else if (value.startsWith('view_')) {
@@ -257,6 +259,20 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                       const Icon(Icons.format_list_numbered, size: 20),
                       const SizedBox(width: 12),
                       Text(context.l10n.diveLog_listPage_menuDiveNumbering),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'match_sites',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.add_location_alt_outlined, size: 20),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          context.l10n.diveLog_listPage_menuMatchSites,
+                        ),
+                      ),
                     ],
                   ),
                 ),

@@ -43,6 +43,14 @@ void main() {
     expect(find.byKey(const ValueKey('gps-entry-marker')), findsOneWidget);
     expect(find.byKey(const ValueKey('gps-exit-marker')), findsOneWidget);
     expect(find.byKey(const ValueKey('gps-site-marker')), findsOneWidget);
+    // The site marker uses the diver glyph, matching the Sites map.
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('gps-site-marker')),
+        matching: find.byIcon(Icons.scuba_diving),
+      ),
+      findsOneWidget,
+    );
     expect(find.byType(PolylineLayer), findsOneWidget);
   });
 

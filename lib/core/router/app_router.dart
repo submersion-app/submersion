@@ -48,6 +48,7 @@ import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page
 import 'package:submersion/features/dive_sites/presentation/pages/site_merge_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_import_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_map_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_match_review_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
@@ -257,6 +258,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'search',
                 name: 'diveSearch',
                 builder: (context, state) => const DiveSearchPage(),
+              ),
+              GoRoute(
+                path: 'match-sites',
+                name: 'siteMatchReview',
+                builder: (context, state) {
+                  final ids = (state.extra as List<dynamic>?)?.cast<String>();
+                  return SiteMatchReviewPage(diveIds: ids);
+                },
               ),
               GoRoute(
                 path: ':diveId',

@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_preset.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
@@ -159,6 +160,9 @@ class AppSettings {
 
   /// Which map tile style to use
   final MapStyle mapStyle;
+
+  /// How aggressively downloaded dives are auto-matched to sites.
+  final SiteMatchSensitivity siteMatchSensitivity;
 
   /// Name of the selected gradient preset ('ocean', 'thermal', etc.)
   final String cardColorGradientPreset;
@@ -317,6 +321,7 @@ class AppSettings {
     this.buddyListViewMode = ListViewMode.detailed,
     this.diveCenterListViewMode = ListViewMode.detailed,
     this.mapStyle = MapStyle.openStreetMap,
+    this.siteMatchSensitivity = SiteMatchSensitivity.balanced,
     this.cardColorGradientPreset = 'ocean',
     this.cardColorGradientStart,
     this.cardColorGradientEnd,
@@ -441,6 +446,7 @@ class AppSettings {
     ListViewMode? buddyListViewMode,
     ListViewMode? diveCenterListViewMode,
     MapStyle? mapStyle,
+    SiteMatchSensitivity? siteMatchSensitivity,
     String? cardColorGradientPreset,
     int? cardColorGradientStart,
     int? cardColorGradientEnd,
@@ -535,6 +541,7 @@ class AppSettings {
       diveCenterListViewMode:
           diveCenterListViewMode ?? this.diveCenterListViewMode,
       mapStyle: mapStyle ?? this.mapStyle,
+      siteMatchSensitivity: siteMatchSensitivity ?? this.siteMatchSensitivity,
       cardColorGradientPreset:
           cardColorGradientPreset ?? this.cardColorGradientPreset,
       cardColorGradientStart: clearCardColorGradientStart
@@ -966,6 +973,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setMapStyle(MapStyle style) async {
     state = state.copyWith(mapStyle: style);
+    await _saveSettings();
+  }
+
+  Future<void> setSiteMatchSensitivity(SiteMatchSensitivity value) async {
+    state = state.copyWith(siteMatchSensitivity: value);
     await _saveSettings();
   }
 

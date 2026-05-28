@@ -4090,6 +4090,88 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_listPage_menuDiveNumbering => 'Numerotation des plongees';
 
   @override
+  String get diveLog_listPage_menuMatchSites =>
+      'Associer les plongées aux sites';
+
+  @override
+  String get siteMatchReview_title => 'Associer les sites';
+
+  @override
+  String siteMatchReview_diveNumber(Object number) {
+    return 'Plongee n°$number';
+  }
+
+  @override
+  String get siteMatchReview_empty => 'Rien à associer.';
+
+  @override
+  String siteMatchReview_summary(int selected, int review, int none) {
+    return '$selected sélectionnées · $review à vérifier · $none sans correspondance';
+  }
+
+  @override
+  String siteMatchReview_confirm(int count) {
+    return 'Confirmer $count associations';
+  }
+
+  @override
+  String get siteMatchReview_cancel => 'Annuler';
+
+  @override
+  String get siteMatchReview_tapToChoose => 'Appuyez pour choisir un site';
+
+  @override
+  String siteMatchReview_awayMeters(int meters) {
+    return 'à $meters m';
+  }
+
+  @override
+  String siteMatchReview_depthTo(int meters) {
+    return 'jusqu\'à $meters m';
+  }
+
+  @override
+  String siteMatchReview_depthRange(int min, int max) {
+    return '$min–$max m';
+  }
+
+  @override
+  String siteMatchReview_appliedSnack(int dives, int sites) {
+    return '$dives plongées associées · $sites sites ajoutés';
+  }
+
+  @override
+  String get siteMatchReview_applyError =>
+      'Impossible d\'appliquer les associations';
+
+  @override
+  String get siteMatchReview_discardTitle => 'Abandonner les associations ?';
+
+  @override
+  String get siteMatchReview_discardMessage =>
+      'Votre sélection ne sera pas enregistrée.';
+
+  @override
+  String get siteMatchReview_discardConfirm => 'Abandonner';
+
+  @override
+  String get siteMatchReview_keepReviewing => 'Continuer la vérification';
+
+  @override
+  String get siteMatchReview_sourceExisting => 'votre site';
+
+  @override
+  String get siteMatchReview_sourceBundled => 'import';
+
+  @override
+  String get siteMatchReview_noNearbySite => 'Aucun site à proximité';
+
+  @override
+  String importSummary_matchSitesButton(int count) {
+    return 'Associer $count plongées aux sites';
+  }
+
+  @override
   String get diveLog_listPage_searchFieldLabel => 'Rechercher des plongees...';
 
   @override
@@ -16071,6 +16153,22 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_section_dataSources_subtitle =>
       'Connected services & integrations';
+
+  @override
+  String get settings_siteMatch_title => 'Association automatique des sites';
+
+  @override
+  String get settings_siteMatch_subtitle =>
+      'À quel point les plongées téléchargées sont associées aux sites';
+
+  @override
+  String get settings_siteMatch_strict => 'Strict';
+
+  @override
+  String get settings_siteMatch_balanced => 'Équilibré';
+
+  @override
+  String get settings_siteMatch_relaxed => 'Souple';
 
   @override
   String get settings_dataSources_header => 'Data Sources';

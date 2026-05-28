@@ -6,6 +6,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 
 // ---------------------------------------------------------------------------
 // Mock dependencies that avoid touching the real database.
@@ -111,6 +112,23 @@ void main() {
           .read(settingsProvider.notifier)
           .setShowDetailsPaneForSection('dives', true);
       expect(container.read(settingsProvider).showDetailsPaneDives, isTrue);
+    });
+
+    test('sets siteMatchSensitivity', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(
+        container.read(settingsProvider).siteMatchSensitivity,
+        SiteMatchSensitivity.balanced,
+      );
+      await container
+          .read(settingsProvider.notifier)
+          .setSiteMatchSensitivity(SiteMatchSensitivity.strict);
+      expect(
+        container.read(settingsProvider).siteMatchSensitivity,
+        SiteMatchSensitivity.strict,
+      );
     });
 
     test('sets showDetailsPaneSites to true', () async {

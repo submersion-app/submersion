@@ -800,6 +800,32 @@ class MockDiveRepository extends _i1.Mock implements _i5.DiveRepository {
           as _i7.Future<_i4.Dive?>);
 
   @override
+  _i7.Future<void> setSite(String? diveId, String? siteId) =>
+      (super.noSuchMethod(
+            Invocation.method(#setSite, [diveId, siteId]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<List<_i4.Dive>> getDivesNeedingSiteMatch({
+    String? diverId,
+    List<String>? limitToIds,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getDivesNeedingSiteMatch, [], {
+              #diverId: diverId,
+              #limitToIds: limitToIds,
+            }),
+            returnValue: _i7.Future<List<_i4.Dive>>.value(<_i4.Dive>[]),
+            returnValueForMissingStub: _i7.Future<List<_i4.Dive>>.value(
+              <_i4.Dive>[],
+            ),
+          )
+          as _i7.Future<List<_i4.Dive>>);
+
+  @override
   _i7.Future<List<_i4.DiveProfilePoint>> getDiveProfile(String? diveId) =>
       (super.noSuchMethod(
             Invocation.method(#getDiveProfile, [diveId]),

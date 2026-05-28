@@ -3968,6 +3968,85 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_listPage_menuDiveNumbering => 'ترقيم الغوصات';
 
   @override
+  String get diveLog_listPage_menuMatchSites => 'مطابقة الغوصات بالمواقع';
+
+  @override
+  String get siteMatchReview_title => 'مطابقة المواقع';
+
+  @override
+  String siteMatchReview_diveNumber(Object number) {
+    return 'الغوصة #$number';
+  }
+
+  @override
+  String get siteMatchReview_empty => 'لا شيء للمطابقة.';
+
+  @override
+  String siteMatchReview_summary(int selected, int review, int none) {
+    return '$selected محددة · $review للمراجعة · $none بدون تطابق';
+  }
+
+  @override
+  String siteMatchReview_confirm(int count) {
+    return 'تأكيد $count مطابقات';
+  }
+
+  @override
+  String get siteMatchReview_cancel => 'إلغاء';
+
+  @override
+  String get siteMatchReview_tapToChoose => 'اضغط لاختيار موقع';
+
+  @override
+  String siteMatchReview_awayMeters(int meters) {
+    return 'على بعد $meters م';
+  }
+
+  @override
+  String siteMatchReview_depthTo(int meters) {
+    return 'حتى $meters م';
+  }
+
+  @override
+  String siteMatchReview_depthRange(int min, int max) {
+    return '$min–$max م';
+  }
+
+  @override
+  String siteMatchReview_appliedSnack(int dives, int sites) {
+    return 'تم ربط $dives غوصات · تمت إضافة $sites مواقع';
+  }
+
+  @override
+  String get siteMatchReview_applyError => 'تعذّر تطبيق المطابقات';
+
+  @override
+  String get siteMatchReview_discardTitle => 'تجاهل المطابقات؟';
+
+  @override
+  String get siteMatchReview_discardMessage => 'لن يتم حفظ اختياراتك.';
+
+  @override
+  String get siteMatchReview_discardConfirm => 'تجاهل';
+
+  @override
+  String get siteMatchReview_keepReviewing => 'متابعة المراجعة';
+
+  @override
+  String get siteMatchReview_sourceExisting => 'موقعك';
+
+  @override
+  String get siteMatchReview_sourceBundled => 'مستورد';
+
+  @override
+  String get siteMatchReview_noNearbySite => 'لا يوجد موقع قريب';
+
+  @override
+  String importSummary_matchSitesButton(int count) {
+    return 'مطابقة $count غوصات بالمواقع';
+  }
+
+  @override
   String get diveLog_listPage_searchFieldLabel => 'البحث في الغوصات...';
 
   @override
@@ -15704,6 +15783,22 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_section_dataSources_subtitle =>
       'Connected services & integrations';
+
+  @override
+  String get settings_siteMatch_title => 'مطابقة المواقع تلقائيًا';
+
+  @override
+  String get settings_siteMatch_subtitle =>
+      'مدى صرامة مطابقة الغوصات التي تم تنزيلها بالمواقع';
+
+  @override
+  String get settings_siteMatch_strict => 'صارم';
+
+  @override
+  String get settings_siteMatch_balanced => 'متوازن';
+
+  @override
+  String get settings_siteMatch_relaxed => 'متساهل';
 
   @override
   String get settings_dataSources_header => 'Data Sources';

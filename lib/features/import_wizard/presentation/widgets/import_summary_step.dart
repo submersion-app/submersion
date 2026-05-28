@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -48,6 +50,7 @@ class ImportSummaryStep extends ConsumerWidget {
       consolidatedCount: result.consolidatedCount,
       updatedCount: result.updatedCount,
       skippedCount: result.skippedCount,
+      importedDiveIds: result.importedDiveIds,
       onDone: onDone,
       onViewDives: onViewDives,
     );
@@ -63,6 +66,7 @@ class _SuccessView extends StatelessWidget {
   final int consolidatedCount;
   final int updatedCount;
   final int skippedCount;
+  final List<String> importedDiveIds;
   final VoidCallback onDone;
   final VoidCallback onViewDives;
 
@@ -71,6 +75,7 @@ class _SuccessView extends StatelessWidget {
     required this.consolidatedCount,
     this.updatedCount = 0,
     required this.skippedCount,
+    this.importedDiveIds = const [],
     required this.onDone,
     required this.onViewDives,
   });
@@ -179,6 +184,34 @@ class _SuccessView extends StatelessWidget {
                   ),
                 ],
               ],
+            ),
+            Consumer(
+              builder: (context, ref, _) {
+                if (importedDiveIds.isEmpty) return const SizedBox.shrink();
+                final eligible = ref.watch(
+                  eligibleImportedDivesProvider(
+                    ImportedDiveIds(importedDiveIds),
+                  ),
+                );
+                return eligible.maybeWhen(
+                  data: (ids) => ids.isEmpty
+                      ? const SizedBox.shrink()
+                      : Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: FilledButton.icon(
+                            icon: const Icon(Icons.add_location_alt_outlined),
+                            label: Text(
+                              context.l10n.importSummary_matchSitesButton(
+                                ids.length,
+                              ),
+                            ),
+                            onPressed: () =>
+                                context.push('/dives/match-sites', extra: ids),
+                          ),
+                        ),
+                  orElse: () => const SizedBox.shrink(),
+                );
+              },
             ),
           ],
         ),

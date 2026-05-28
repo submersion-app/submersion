@@ -946,6 +946,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               showDiveNumberingDialog(context);
             } else if (value == 'advanced_search') {
               context.go('/dives/search');
+            } else if (value == 'match_sites') {
+              context.push('/dives/match-sites');
             } else if (value.startsWith('view_')) {
               final mode = ListViewMode.fromName(
                 value.replaceFirst('view_', ''),
@@ -983,6 +985,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     const Icon(Icons.format_list_numbered),
                     const SizedBox(width: 12),
                     Text(context.l10n.diveLog_listPage_menuDiveNumbering),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'match_sites',
+                child: Row(
+                  children: [
+                    const Icon(Icons.add_location_alt_outlined),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(context.l10n.diveLog_listPage_menuMatchSites),
+                    ),
                   ],
                 ),
               ),
@@ -1062,6 +1076,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 showDiveNumberingDialog(context);
               } else if (value == 'advanced_search') {
                 context.go('/dives/search');
+              } else if (value == 'match_sites') {
+                context.push('/dives/match-sites');
               } else if (value.startsWith('view_')) {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
@@ -1099,6 +1115,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                       const Icon(Icons.format_list_numbered, size: 20),
                       const SizedBox(width: 12),
                       Text(context.l10n.diveLog_listPage_menuDiveNumbering),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'match_sites',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.add_location_alt_outlined, size: 20),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          context.l10n.diveLog_listPage_menuMatchSites,
+                        ),
+                      ),
                     ],
                   ),
                 ),

@@ -217,6 +217,52 @@ void main() {
       expect(find.byType(MasterDetailScaffold), findsNothing);
     });
 
+    testWidgets('mobile DiveListContent menu match sites navigates', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(400, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await buildBranchOverrides();
+      final router = GoRouter(
+        initialLocation: '/dives',
+        routes: [
+          GoRoute(
+            path: '/dives',
+            builder: (context, state) => const DiveListPage(),
+          ),
+          GoRoute(
+            path: '/dives/match-sites',
+            builder: (_, _) => const Scaffold(body: Text('match sites page')),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveListContent), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('Match Dives'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('match sites page'), findsOneWidget);
+    });
+
     testWidgets('table mode renders TableModeLayout', (tester) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(1200, 800);
@@ -698,6 +744,53 @@ void main() {
 
       // Verify navigation occurred
       expect(find.text('advanced search'), findsOneWidget);
+    });
+
+    testWidgets('table mode popup menu match sites navigates', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await buildBranchOverrides(
+        viewMode: ListViewMode.table,
+      );
+
+      final router = GoRouter(
+        initialLocation: '/dives',
+        routes: [
+          GoRoute(
+            path: '/dives',
+            builder: (context, state) => const DiveListPage(),
+          ),
+          GoRoute(
+            path: '/dives/match-sites',
+            builder: (_, _) => const Scaffold(body: Text('match sites page')),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('Match Dives'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('match sites page'), findsOneWidget);
     });
 
     testWidgets('table mode detail builder invoked via selected query param', (

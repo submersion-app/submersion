@@ -17,6 +17,7 @@ import 'package:submersion/features/settings/data/repositories/app_settings_repo
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
@@ -247,6 +248,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setMapStyle(MapStyle style) async =>
       state = state.copyWith(mapStyle: style);
+  @override
+  Future<void> setSiteMatchSensitivity(SiteMatchSensitivity value) async =>
+      state = state.copyWith(siteMatchSensitivity: value);
   @override
   Future<void> setCardColorGradientPreset(String preset) async =>
       state = state.copyWith(cardColorGradientPreset: preset);

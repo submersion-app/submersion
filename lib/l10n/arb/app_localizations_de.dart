@@ -4067,6 +4067,89 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_listPage_menuDiveNumbering => 'Tauchgangnummerierung';
 
   @override
+  String get diveLog_listPage_menuMatchSites =>
+      'Tauchgänge Tauchplätzen zuordnen';
+
+  @override
+  String get siteMatchReview_title => 'Tauchplätze zuordnen';
+
+  @override
+  String siteMatchReview_diveNumber(Object number) {
+    return 'Tauchgang #$number';
+  }
+
+  @override
+  String get siteMatchReview_empty => 'Nichts zuzuordnen.';
+
+  @override
+  String siteMatchReview_summary(int selected, int review, int none) {
+    return '$selected ausgewählt · $review zu prüfen · $none ohne Treffer';
+  }
+
+  @override
+  String siteMatchReview_confirm(int count) {
+    return '$count Zuordnungen bestätigen';
+  }
+
+  @override
+  String get siteMatchReview_cancel => 'Abbrechen';
+
+  @override
+  String get siteMatchReview_tapToChoose =>
+      'Tippen, um einen Tauchplatz zu wählen';
+
+  @override
+  String siteMatchReview_awayMeters(int meters) {
+    return '$meters m entfernt';
+  }
+
+  @override
+  String siteMatchReview_depthTo(int meters) {
+    return 'bis $meters m';
+  }
+
+  @override
+  String siteMatchReview_depthRange(int min, int max) {
+    return '$min–$max m';
+  }
+
+  @override
+  String siteMatchReview_appliedSnack(int dives, int sites) {
+    return '$dives Tauchgänge verknüpft · $sites Tauchplätze hinzugefügt';
+  }
+
+  @override
+  String get siteMatchReview_applyError =>
+      'Zuordnungen konnten nicht angewendet werden';
+
+  @override
+  String get siteMatchReview_discardTitle => 'Zuordnungen verwerfen?';
+
+  @override
+  String get siteMatchReview_discardMessage =>
+      'Ihre Auswahl wird nicht gespeichert.';
+
+  @override
+  String get siteMatchReview_discardConfirm => 'Verwerfen';
+
+  @override
+  String get siteMatchReview_keepReviewing => 'Weiter prüfen';
+
+  @override
+  String get siteMatchReview_sourceExisting => 'Ihr Tauchplatz';
+
+  @override
+  String get siteMatchReview_sourceBundled => 'Import';
+
+  @override
+  String get siteMatchReview_noNearbySite => 'Kein Tauchplatz in der Nähe';
+
+  @override
+  String importSummary_matchSitesButton(int count) {
+    return '$count Tauchgänge Tauchplätzen zuordnen';
+  }
+
+  @override
   String get diveLog_listPage_searchFieldLabel => 'Tauchgänge suchen...';
 
   @override
@@ -15978,6 +16061,22 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_section_dataSources_subtitle =>
       'Connected services & integrations';
+
+  @override
+  String get settings_siteMatch_title => 'Automatische Tauchplatzzuordnung';
+
+  @override
+  String get settings_siteMatch_subtitle =>
+      'Wie aggressiv heruntergeladene Tauchgänge Tauchplätzen zugeordnet werden';
+
+  @override
+  String get settings_siteMatch_strict => 'Streng';
+
+  @override
+  String get settings_siteMatch_balanced => 'Ausgewogen';
+
+  @override
+  String get settings_siteMatch_relaxed => 'Locker';
 
   @override
   String get settings_dataSources_header => 'Data Sources';

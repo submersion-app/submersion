@@ -108,7 +108,9 @@ class DiveLocationsMap extends ConsumerWidget {
           point: LatLng(site!.latitude, site!.longitude),
           width: 32,
           height: 32,
-          child: _mapPin(colorScheme, Icons.anchor, colorScheme.primary),
+          // Diver glyph, matching the dive-site marker on the Sites map
+          // (site_map_content.dart) and the rest of the app's site/dive maps.
+          child: _mapPin(colorScheme, Icons.scuba_diving, colorScheme.primary),
         ),
     ];
 

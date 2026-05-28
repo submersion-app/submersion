@@ -4054,6 +4054,88 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_listPage_menuDiveNumbering => 'Merules szamozas';
 
   @override
+  String get diveLog_listPage_menuMatchSites =>
+      'Merülések hozzárendelése helyekhez';
+
+  @override
+  String get siteMatchReview_title => 'Helyek hozzárendelése';
+
+  @override
+  String siteMatchReview_diveNumber(Object number) {
+    return '#$number. merules';
+  }
+
+  @override
+  String get siteMatchReview_empty => 'Nincs mit hozzárendelni.';
+
+  @override
+  String siteMatchReview_summary(int selected, int review, int none) {
+    return '$selected kiválasztva · $review ellenőrzendő · $none nincs találat';
+  }
+
+  @override
+  String siteMatchReview_confirm(int count) {
+    return '$count hozzárendelés megerősítése';
+  }
+
+  @override
+  String get siteMatchReview_cancel => 'Mégse';
+
+  @override
+  String get siteMatchReview_tapToChoose => 'Koppints egy hely kiválasztásához';
+
+  @override
+  String siteMatchReview_awayMeters(int meters) {
+    return '$meters m távolságra';
+  }
+
+  @override
+  String siteMatchReview_depthTo(int meters) {
+    return '$meters m-ig';
+  }
+
+  @override
+  String siteMatchReview_depthRange(int min, int max) {
+    return '$min–$max m';
+  }
+
+  @override
+  String siteMatchReview_appliedSnack(int dives, int sites) {
+    return '$dives merülés összekapcsolva · $sites hely hozzáadva';
+  }
+
+  @override
+  String get siteMatchReview_applyError =>
+      'A hozzárendelések nem alkalmazhatók';
+
+  @override
+  String get siteMatchReview_discardTitle => 'Elveted a hozzárendeléseket?';
+
+  @override
+  String get siteMatchReview_discardMessage =>
+      'A kiválasztásod nem lesz mentve.';
+
+  @override
+  String get siteMatchReview_discardConfirm => 'Elvetés';
+
+  @override
+  String get siteMatchReview_keepReviewing => 'Ellenőrzés folytatása';
+
+  @override
+  String get siteMatchReview_sourceExisting => 'saját hely';
+
+  @override
+  String get siteMatchReview_sourceBundled => 'importált';
+
+  @override
+  String get siteMatchReview_noNearbySite => 'Nincs közeli hely';
+
+  @override
+  String importSummary_matchSitesButton(int count) {
+    return '$count merülés hozzárendelése helyekhez';
+  }
+
+  @override
   String get diveLog_listPage_searchFieldLabel => 'Merulesek keresese...';
 
   @override
@@ -15964,6 +16046,22 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_section_dataSources_subtitle =>
       'Connected services & integrations';
+
+  @override
+  String get settings_siteMatch_title => 'Automatikus helyhozzárendelés';
+
+  @override
+  String get settings_siteMatch_subtitle =>
+      'Mennyire agresszíven rendelődnek a letöltött merülések a helyekhez';
+
+  @override
+  String get settings_siteMatch_strict => 'Szigorú';
+
+  @override
+  String get settings_siteMatch_balanced => 'Kiegyensúlyozott';
+
+  @override
+  String get settings_siteMatch_relaxed => 'Laza';
 
   @override
   String get settings_dataSources_header => 'Data Sources';

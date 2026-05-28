@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/import_wizard/domain/models/unified_import_r
 import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_step.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
 
 // ---------------------------------------------------------------------------
 // Fake adapter
@@ -167,6 +169,65 @@ void main() {
 
       expect(find.text('Sites'), findsOneWidget);
       expect(find.text('3'), findsOneWidget);
+    });
+
+    testWidgets('shows match-sites button when imported dives are eligible', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final ids = ['d1'];
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: UnifiedImportResult(
+          importedCounts: const {ImportEntityType.dives: 1},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          importedDiveIds: ids,
+        ),
+      );
+
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => Scaffold(
+              body: ImportSummaryStep(onDone: () {}, onViewDives: () {}),
+            ),
+          ),
+          GoRoute(
+            path: '/dives/match-sites',
+            builder: (_, _) => const Scaffold(body: Text('match review page')),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            importWizardNotifierProvider.overrideWith((_) => notifier),
+            // Value-equality key: matches by contents regardless of instance.
+            eligibleImportedDivesProvider(
+              ImportedDiveIds(ids),
+            ).overrideWith((ref) => ids),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Match 1 dives to sites'), findsOneWidget);
+
+      // Tapping navigates to the review route (covers the push handler).
+      await tester.tap(find.text('Match 1 dives to sites'));
+      await tester.pumpAndSettle();
+      expect(find.text('match review page'), findsOneWidget);
     });
 
     testWidgets('hides rows for entity types with count 0', (tester) async {

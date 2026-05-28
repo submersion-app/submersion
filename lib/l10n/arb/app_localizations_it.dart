@@ -4073,6 +4073,87 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_listPage_menuDiveNumbering => 'Numerazione immersioni';
 
   @override
+  String get diveLog_listPage_menuMatchSites => 'Associa le immersioni ai siti';
+
+  @override
+  String get siteMatchReview_title => 'Associa siti';
+
+  @override
+  String siteMatchReview_diveNumber(Object number) {
+    return 'Immersione #$number';
+  }
+
+  @override
+  String get siteMatchReview_empty => 'Niente da associare.';
+
+  @override
+  String siteMatchReview_summary(int selected, int review, int none) {
+    return '$selected selezionate · $review da rivedere · $none senza corrispondenza';
+  }
+
+  @override
+  String siteMatchReview_confirm(int count) {
+    return 'Conferma $count associazioni';
+  }
+
+  @override
+  String get siteMatchReview_cancel => 'Annulla';
+
+  @override
+  String get siteMatchReview_tapToChoose => 'Tocca per scegliere un sito';
+
+  @override
+  String siteMatchReview_awayMeters(int meters) {
+    return 'a $meters m';
+  }
+
+  @override
+  String siteMatchReview_depthTo(int meters) {
+    return 'fino a $meters m';
+  }
+
+  @override
+  String siteMatchReview_depthRange(int min, int max) {
+    return '$min–$max m';
+  }
+
+  @override
+  String siteMatchReview_appliedSnack(int dives, int sites) {
+    return '$dives immersioni associate · $sites siti aggiunti';
+  }
+
+  @override
+  String get siteMatchReview_applyError =>
+      'Impossibile applicare le associazioni';
+
+  @override
+  String get siteMatchReview_discardTitle => 'Scartare le associazioni?';
+
+  @override
+  String get siteMatchReview_discardMessage =>
+      'La tua selezione non verrà salvata.';
+
+  @override
+  String get siteMatchReview_discardConfirm => 'Scarta';
+
+  @override
+  String get siteMatchReview_keepReviewing => 'Continua a rivedere';
+
+  @override
+  String get siteMatchReview_sourceExisting => 'il tuo sito';
+
+  @override
+  String get siteMatchReview_sourceBundled => 'importato';
+
+  @override
+  String get siteMatchReview_noNearbySite => 'Nessun sito nelle vicinanze';
+
+  @override
+  String importSummary_matchSitesButton(int count) {
+    return 'Associa $count immersioni ai siti';
+  }
+
+  @override
   String get diveLog_listPage_searchFieldLabel => 'Cerca immersioni...';
 
   @override
@@ -16010,6 +16091,22 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_section_dataSources_subtitle =>
       'Connected services & integrations';
+
+  @override
+  String get settings_siteMatch_title => 'Associazione automatica dei siti';
+
+  @override
+  String get settings_siteMatch_subtitle =>
+      'Con quanta intensità le immersioni scaricate vengono associate ai siti';
+
+  @override
+  String get settings_siteMatch_strict => 'Rigoroso';
+
+  @override
+  String get settings_siteMatch_balanced => 'Bilanciato';
+
+  @override
+  String get settings_siteMatch_relaxed => 'Rilassato';
 
   @override
   String get settings_dataSources_header => 'Data Sources';

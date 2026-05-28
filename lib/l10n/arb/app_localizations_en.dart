@@ -3994,6 +3994,86 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_listPage_menuDiveNumbering => 'Dive Numbering';
 
   @override
+  String get diveLog_listPage_menuMatchSites => 'Match Dives to Sites';
+
+  @override
+  String get siteMatchReview_title => 'Match Sites';
+
+  @override
+  String siteMatchReview_diveNumber(Object number) {
+    return 'Dive #$number';
+  }
+
+  @override
+  String get siteMatchReview_empty => 'Nothing to match.';
+
+  @override
+  String siteMatchReview_summary(int selected, int review, int none) {
+    return '$selected selected · $review to review · $none no match';
+  }
+
+  @override
+  String siteMatchReview_confirm(int count) {
+    return 'Confirm $count matches';
+  }
+
+  @override
+  String get siteMatchReview_cancel => 'Cancel';
+
+  @override
+  String get siteMatchReview_tapToChoose => 'Tap to choose a site';
+
+  @override
+  String siteMatchReview_awayMeters(int meters) {
+    return '$meters m away';
+  }
+
+  @override
+  String siteMatchReview_depthTo(int meters) {
+    return 'to $meters m';
+  }
+
+  @override
+  String siteMatchReview_depthRange(int min, int max) {
+    return '$min–$max m';
+  }
+
+  @override
+  String siteMatchReview_appliedSnack(int dives, int sites) {
+    return 'Linked $dives dives · added $sites sites';
+  }
+
+  @override
+  String get siteMatchReview_applyError => 'Couldn\'t apply matches';
+
+  @override
+  String get siteMatchReview_discardTitle => 'Discard matches?';
+
+  @override
+  String get siteMatchReview_discardMessage =>
+      'Your selections won\'t be saved.';
+
+  @override
+  String get siteMatchReview_discardConfirm => 'Discard';
+
+  @override
+  String get siteMatchReview_keepReviewing => 'Keep reviewing';
+
+  @override
+  String get siteMatchReview_sourceExisting => 'your site';
+
+  @override
+  String get siteMatchReview_sourceBundled => 'import';
+
+  @override
+  String get siteMatchReview_noNearbySite => 'No nearby site';
+
+  @override
+  String importSummary_matchSitesButton(int count) {
+    return 'Match $count dives to sites';
+  }
+
+  @override
   String get diveLog_listPage_searchFieldLabel => 'Search dives...';
 
   @override
@@ -15743,6 +15823,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_section_dataSources_subtitle => 'Health data integration';
+
+  @override
+  String get settings_siteMatch_title => 'Auto site matching';
+
+  @override
+  String get settings_siteMatch_subtitle =>
+      'How aggressively downloaded dives are matched to sites';
+
+  @override
+  String get settings_siteMatch_strict => 'Strict';
+
+  @override
+  String get settings_siteMatch_balanced => 'Balanced';
+
+  @override
+  String get settings_siteMatch_relaxed => 'Relaxed';
 
   @override
   String get settings_dataSources_header => 'Apple HealthKit Integration';

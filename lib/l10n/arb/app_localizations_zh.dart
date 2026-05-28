@@ -3871,6 +3871,85 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_listPage_menuDiveNumbering => '潜水编号';
 
   @override
+  String get diveLog_listPage_menuMatchSites => '将潜水匹配到潜水点';
+
+  @override
+  String get siteMatchReview_title => '匹配潜水点';
+
+  @override
+  String siteMatchReview_diveNumber(Object number) {
+    return '潜水 #$number';
+  }
+
+  @override
+  String get siteMatchReview_empty => '没有可匹配的内容。';
+
+  @override
+  String siteMatchReview_summary(int selected, int review, int none) {
+    return '已选择 $selected · 待审核 $review · 无匹配 $none';
+  }
+
+  @override
+  String siteMatchReview_confirm(int count) {
+    return '确认 $count 项匹配';
+  }
+
+  @override
+  String get siteMatchReview_cancel => '取消';
+
+  @override
+  String get siteMatchReview_tapToChoose => '点按以选择潜水点';
+
+  @override
+  String siteMatchReview_awayMeters(int meters) {
+    return '$meters 米外';
+  }
+
+  @override
+  String siteMatchReview_depthTo(int meters) {
+    return '至 $meters 米';
+  }
+
+  @override
+  String siteMatchReview_depthRange(int min, int max) {
+    return '$min–$max 米';
+  }
+
+  @override
+  String siteMatchReview_appliedSnack(int dives, int sites) {
+    return '已关联 $dives 次潜水 · 已添加 $sites 个潜水点';
+  }
+
+  @override
+  String get siteMatchReview_applyError => '无法应用匹配';
+
+  @override
+  String get siteMatchReview_discardTitle => '丢弃匹配？';
+
+  @override
+  String get siteMatchReview_discardMessage => '您的选择将不会被保存。';
+
+  @override
+  String get siteMatchReview_discardConfirm => '丢弃';
+
+  @override
+  String get siteMatchReview_keepReviewing => '继续审核';
+
+  @override
+  String get siteMatchReview_sourceExisting => '您的潜水点';
+
+  @override
+  String get siteMatchReview_sourceBundled => '导入';
+
+  @override
+  String get siteMatchReview_noNearbySite => '附近没有潜水点';
+
+  @override
+  String importSummary_matchSitesButton(int count) {
+    return '将 $count 次潜水匹配到潜水点';
+  }
+
+  @override
   String get diveLog_listPage_searchFieldLabel => '搜索潜水...';
 
   @override
@@ -15238,6 +15317,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_section_dataSources_subtitle => '健康数据集成';
+
+  @override
+  String get settings_siteMatch_title => '自动匹配潜水点';
+
+  @override
+  String get settings_siteMatch_subtitle => '下载的潜水与潜水点匹配的积极程度';
+
+  @override
+  String get settings_siteMatch_strict => '严格';
+
+  @override
+  String get settings_siteMatch_balanced => '平衡';
+
+  @override
+  String get settings_siteMatch_relaxed => '宽松';
 
   @override
   String get settings_dataSources_header => 'Apple HealthKit 集成';

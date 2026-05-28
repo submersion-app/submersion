@@ -4068,6 +4068,86 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_listPage_menuDiveNumbering => 'Numeracao de Mergulhos';
 
   @override
+  String get diveLog_listPage_menuMatchSites => 'Associar mergulhos a pontos';
+
+  @override
+  String get siteMatchReview_title => 'Associar pontos';
+
+  @override
+  String siteMatchReview_diveNumber(Object number) {
+    return 'Mergulho #$number';
+  }
+
+  @override
+  String get siteMatchReview_empty => 'Nada para associar.';
+
+  @override
+  String siteMatchReview_summary(int selected, int review, int none) {
+    return '$selected selecionados · $review para revisar · $none sem correspondência';
+  }
+
+  @override
+  String siteMatchReview_confirm(int count) {
+    return 'Confirmar $count associações';
+  }
+
+  @override
+  String get siteMatchReview_cancel => 'Cancelar';
+
+  @override
+  String get siteMatchReview_tapToChoose => 'Toque para escolher um ponto';
+
+  @override
+  String siteMatchReview_awayMeters(int meters) {
+    return 'a $meters m';
+  }
+
+  @override
+  String siteMatchReview_depthTo(int meters) {
+    return 'até $meters m';
+  }
+
+  @override
+  String siteMatchReview_depthRange(int min, int max) {
+    return '$min–$max m';
+  }
+
+  @override
+  String siteMatchReview_appliedSnack(int dives, int sites) {
+    return '$dives mergulhos associados · $sites pontos adicionados';
+  }
+
+  @override
+  String get siteMatchReview_applyError =>
+      'Não foi possível aplicar as associações';
+
+  @override
+  String get siteMatchReview_discardTitle => 'Descartar associações?';
+
+  @override
+  String get siteMatchReview_discardMessage => 'Sua seleção não será salva.';
+
+  @override
+  String get siteMatchReview_discardConfirm => 'Descartar';
+
+  @override
+  String get siteMatchReview_keepReviewing => 'Continuar revisando';
+
+  @override
+  String get siteMatchReview_sourceExisting => 'seu ponto';
+
+  @override
+  String get siteMatchReview_sourceBundled => 'importado';
+
+  @override
+  String get siteMatchReview_noNearbySite => 'Nenhum ponto próximo';
+
+  @override
+  String importSummary_matchSitesButton(int count) {
+    return 'Associar $count mergulhos a pontos';
+  }
+
+  @override
   String get diveLog_listPage_searchFieldLabel => 'Buscar mergulhos...';
 
   @override
@@ -16012,6 +16092,22 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_section_dataSources_subtitle =>
       'Connected services & integrations';
+
+  @override
+  String get settings_siteMatch_title => 'Associação automática de pontos';
+
+  @override
+  String get settings_siteMatch_subtitle =>
+      'Com que intensidade os mergulhos baixados são associados aos pontos';
+
+  @override
+  String get settings_siteMatch_strict => 'Rigoroso';
+
+  @override
+  String get settings_siteMatch_balanced => 'Equilibrado';
+
+  @override
+  String get settings_siteMatch_relaxed => 'Flexível';
 
   @override
   String get settings_dataSources_header => 'Data Sources';
