@@ -13,6 +13,7 @@
   * [Import & Export](guide/import-export.md)
   * [Dive Computers](guide/dive-computer.md)
   * [Settings](guide/settings.md)
+  * [Debug Mode](guide/debug-mode.md)
 
 * **Features**
   * [Overview](features/)
