@@ -1,7 +1,4 @@
 [submodule "packages/libdivecomputer_plugin/third_party/libdivecomputer"]
 	path = packages/libdivecomputer_plugin/third_party/libdivecomputer
-	url = https://github.com/libdivecomputer/libdivecomputer.git
-	# Vendored patches (see ../patches) are applied to the working tree by
-	# scripts/setup.sh, leaving it permanently "dirty". Ignore that dirtiness in
-	# status/diff; a real pinned-commit change still shows.
-	ignore = dirty
+	url = https://github.com/submersion-app/libdivecomputer.git
+	branch = submersion-patches
