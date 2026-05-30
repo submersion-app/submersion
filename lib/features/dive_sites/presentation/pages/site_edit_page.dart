@@ -13,8 +13,10 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_suggestions.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/suggestion_field.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_picker_dialog.dart';
@@ -474,6 +476,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   }
 
   Widget _buildForm(BuildContext context, UnitFormatter units) {
+    final allSites = ref.watch(sitesProvider).value ?? const <DiveSite>[];
     final body = Form(
       key: _formKey,
       child: ListView(
@@ -518,8 +521,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           Row(
             children: [
               Expanded(
-                child: TextFormField(
+                child: SuggestionField(
                   controller: _countryController,
+                  suggestions: suggestedCountries(allSites),
+                  textCapitalization: TextCapitalization.words,
                   decoration: _withMergeTextDecoration(
                     key: 'country',
                     decoration: InputDecoration(
