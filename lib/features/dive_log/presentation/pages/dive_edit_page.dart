@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
@@ -3187,7 +3188,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       sighting.speciesCategory,
                     ),
                     child: Icon(
-                      _getCategoryIcon(sighting.speciesCategory),
+                      iconForSpeciesCategory(
+                        sighting.speciesCategory ?? SpeciesCategory.other,
+                      ),
                       color: Colors.white,
                       size: 20,
                     ),
@@ -3268,30 +3271,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       case SpeciesCategory.other:
       case null:
         return Colors.grey;
-    }
-  }
-
-  IconData _getCategoryIcon(SpeciesCategory? category) {
-    switch (category) {
-      case SpeciesCategory.fish:
-        return Icons.set_meal;
-      case SpeciesCategory.shark:
-        return Icons.water;
-      case SpeciesCategory.ray:
-        return Icons.water;
-      case SpeciesCategory.mammal:
-        return Icons.pets;
-      case SpeciesCategory.turtle:
-        return Icons.water;
-      case SpeciesCategory.invertebrate:
-        return Icons.bug_report;
-      case SpeciesCategory.coral:
-        return Icons.nature;
-      case SpeciesCategory.plant:
-        return Icons.eco;
-      case SpeciesCategory.other:
-      case null:
-        return Icons.water;
     }
   }
 
@@ -4246,7 +4225,7 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
                     leading: CircleAvatar(
                       backgroundColor: _getCategoryColor(species.category),
                       child: Icon(
-                        _getCategoryIcon(species.category),
+                        iconForSpeciesCategory(species.category),
                         color: Colors.white,
                         size: 20,
                       ),
@@ -4316,29 +4295,6 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
         return Colors.green;
       case SpeciesCategory.other:
         return Colors.grey;
-    }
-  }
-
-  IconData _getCategoryIcon(SpeciesCategory category) {
-    switch (category) {
-      case SpeciesCategory.fish:
-        return Icons.set_meal;
-      case SpeciesCategory.shark:
-        return Icons.water;
-      case SpeciesCategory.ray:
-        return Icons.water;
-      case SpeciesCategory.mammal:
-        return Icons.pets;
-      case SpeciesCategory.turtle:
-        return Icons.water;
-      case SpeciesCategory.invertebrate:
-        return Icons.bug_report;
-      case SpeciesCategory.coral:
-        return Icons.nature;
-      case SpeciesCategory.plant:
-        return Icons.eco;
-      case SpeciesCategory.other:
-        return Icons.water;
     }
   }
 

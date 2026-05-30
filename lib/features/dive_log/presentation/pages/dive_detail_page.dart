@@ -11,6 +11,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -4017,7 +4018,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 radius: 18,
                 backgroundColor: _getCategoryColor(sighting.speciesCategory),
                 child: Icon(
-                  _getCategoryIcon(sighting.speciesCategory),
+                  iconForSpeciesCategory(
+                    sighting.speciesCategory ?? SpeciesCategory.other,
+                  ),
                   color: Colors.white,
                   size: 18,
                 ),
@@ -4092,30 +4095,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       case SpeciesCategory.other:
       case null:
         return Colors.grey;
-    }
-  }
-
-  IconData _getCategoryIcon(SpeciesCategory? category) {
-    switch (category) {
-      case SpeciesCategory.fish:
-        return Icons.set_meal;
-      case SpeciesCategory.shark:
-        return Icons.water;
-      case SpeciesCategory.ray:
-        return Icons.water;
-      case SpeciesCategory.mammal:
-        return Icons.pets;
-      case SpeciesCategory.turtle:
-        return Icons.water;
-      case SpeciesCategory.invertebrate:
-        return Icons.bug_report;
-      case SpeciesCategory.coral:
-        return Icons.nature;
-      case SpeciesCategory.plant:
-        return Icons.eco;
-      case SpeciesCategory.other:
-      case null:
-        return Icons.water;
     }
   }
 

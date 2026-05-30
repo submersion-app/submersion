@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
@@ -244,7 +245,7 @@ class SiteMarineLifeSection extends ConsumerWidget {
                     child: Chip(
                       avatar: ExcludeSemantics(
                         child: Icon(
-                          _getCategoryIcon(s.category),
+                          iconForSpeciesCategory(s.category),
                           size: 16,
                           color: _getCategoryColor(s.category),
                         ),
@@ -284,29 +285,6 @@ class SiteMarineLifeSection extends ConsumerWidget {
       );
       await notifier.setSpecies(result.toList());
       ref.invalidate(siteExpectedSpeciesProvider(siteId));
-    }
-  }
-
-  IconData _getCategoryIcon(SpeciesCategory category) {
-    switch (category) {
-      case SpeciesCategory.fish:
-        return Icons.water;
-      case SpeciesCategory.shark:
-        return Icons.water;
-      case SpeciesCategory.ray:
-        return Icons.water;
-      case SpeciesCategory.mammal:
-        return Icons.water;
-      case SpeciesCategory.turtle:
-        return Icons.water;
-      case SpeciesCategory.invertebrate:
-        return Icons.bug_report;
-      case SpeciesCategory.coral:
-        return Icons.park;
-      case SpeciesCategory.plant:
-        return Icons.grass;
-      case SpeciesCategory.other:
-        return Icons.pets;
     }
   }
 

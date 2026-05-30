@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
@@ -68,7 +70,7 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.pets, color: colorScheme.primary),
+                      Icon(MdiIcons.fish, color: colorScheme.primary),
                       const SizedBox(width: 8),
                       Text(
                         context.l10n.marineLife_speciesPicker_title,
@@ -358,7 +360,7 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
           species.category,
         ).withValues(alpha: 0.2),
         child: Icon(
-          _getCategoryIcon(species.category),
+          iconForSpeciesCategory(species.category),
           size: 18,
           color: _getCategoryColor(species.category),
         ),
@@ -367,29 +369,6 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       visualDensity: VisualDensity.compact,
     );
-  }
-
-  IconData _getCategoryIcon(SpeciesCategory category) {
-    switch (category) {
-      case SpeciesCategory.fish:
-        return Icons.water;
-      case SpeciesCategory.shark:
-        return Icons.water;
-      case SpeciesCategory.ray:
-        return Icons.water;
-      case SpeciesCategory.mammal:
-        return Icons.water;
-      case SpeciesCategory.turtle:
-        return Icons.water;
-      case SpeciesCategory.invertebrate:
-        return Icons.bug_report;
-      case SpeciesCategory.coral:
-        return Icons.park;
-      case SpeciesCategory.plant:
-        return Icons.grass;
-      case SpeciesCategory.other:
-        return Icons.pets;
-    }
   }
 
   Color _getCategoryColor(SpeciesCategory category) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
@@ -54,7 +55,7 @@ class StatisticsMarineLifePage extends ConsumerWidget {
           children: [
             Expanded(
               child: StatValueCard(
-                icon: Icons.pets,
+                icon: MdiIcons.fish,
                 label: context.l10n.statistics_marineLife_speciesSpotted,
                 value: count.toString(),
                 iconColor: Colors.teal,

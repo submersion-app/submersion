@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -67,7 +68,7 @@ List<StatisticsCategory> statisticsCategoriesOf(BuildContext context) => [
   ),
   StatisticsCategory(
     id: 'marine-life',
-    icon: Icons.pets,
+    icon: MdiIcons.fish,
     title: context.l10n.statistics_category_marineLife_title,
     subtitle: context.l10n.statistics_category_marineLife_subtitle,
     color: Colors.cyan,

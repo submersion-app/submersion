@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
@@ -1860,7 +1861,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 children: _expectedSpecies.map((species) {
                   return Chip(
                     avatar: Icon(
-                      Icons.pets,
+                      MdiIcons.fish,
                       size: 16,
                       color: colorScheme.primary,
                     ),

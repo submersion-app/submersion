@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -90,7 +91,7 @@ class SpeciesDetailPage extends ConsumerWidget {
         Row(
           children: [
             Icon(
-              _getCategoryIcon(category),
+              iconForSpeciesCategory(category),
               color: _getCategoryColor(category),
               size: 32,
             ),
@@ -358,29 +359,6 @@ class SpeciesDetailPage extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  IconData _getCategoryIcon(SpeciesCategory category) {
-    switch (category) {
-      case SpeciesCategory.fish:
-        return Icons.water;
-      case SpeciesCategory.shark:
-        return Icons.water;
-      case SpeciesCategory.ray:
-        return Icons.water;
-      case SpeciesCategory.mammal:
-        return Icons.water;
-      case SpeciesCategory.turtle:
-        return Icons.water;
-      case SpeciesCategory.invertebrate:
-        return Icons.bug_report;
-      case SpeciesCategory.coral:
-        return Icons.park;
-      case SpeciesCategory.plant:
-        return Icons.grass;
-      case SpeciesCategory.other:
-        return Icons.pets;
-    }
   }
 
   Color _getCategoryColor(SpeciesCategory category) {

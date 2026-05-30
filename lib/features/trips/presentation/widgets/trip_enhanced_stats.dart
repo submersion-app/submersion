@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -75,7 +76,7 @@ class TripEnhancedStats extends ConsumerWidget {
                   value: sitesVisited.toString(),
                 ),
                 StatRow(
-                  icon: Icons.pets,
+                  icon: MdiIcons.fish,
                   label: context.l10n.trips_detail_stat_speciesSeen,
                   value: _countSpecies(dives).toString(),
                 ),
