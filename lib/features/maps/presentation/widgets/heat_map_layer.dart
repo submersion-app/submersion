@@ -95,8 +95,10 @@ class _HeatMapPainter extends CustomPainter {
   final ui.FragmentShader shader;
   final MapCamera camera;
 
-  /// Density value at which the shader's alpha reaches full opacity.
-  static const double _edgeSoftness = 0.15;
+  /// Density value at which the shader's alpha reaches full opacity. Set near
+  /// the per-point intensity floor so an isolated site renders as a smooth
+  /// dome (gradual alpha across its whole radius) rather than a flat disk.
+  static const double _edgeSoftness = 0.35;
 
   _HeatMapPainter({
     required this.points,
