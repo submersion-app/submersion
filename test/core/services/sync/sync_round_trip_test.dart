@@ -82,11 +82,12 @@ void main() {
             '(${pullResult.message})',
       );
 
-      // The decisive assertion. This currently FAILS: on a receiving device,
-      // _mergeEntity catches an exception thrown while applying the incoming
-      // dive and relabels it as a "conflict" (pull reports hasConflicts with
-      // conflictsFound == 1), so the record never upserts. See the Phase 0
-      // findings doc. Expected to pass once the merge-apply defect is fixed.
+      // The decisive assertion. Regression test for the cross-device sync
+      // no-op: the non-nullable v1.5 field `isPlanned` was missing from the
+      // dive export, so Dive.fromJson threw on every receiving device and
+      // _mergeEntity masked it as a "conflict" -- so nothing ever synced.
+      // Fixed by exporting isPlanned. See
+      // docs/superpowers/findings/2026-06-02-icloud-sync-diagnosis.md.
       final restored = await diveRepo.getDiveById('dive-xfer-1');
       expect(
         restored,

@@ -1510,6 +1510,7 @@ class SyncDataSerializer {
     'weightAmount': r.weightAmount,
     'weightType': r.weightType,
     'isFavorite': r.isFavorite,
+    'isPlanned': r.isPlanned,
     'diveMode': r.diveMode,
     'cnsStart': r.cnsStart,
     'cnsEnd': r.cnsEnd,
