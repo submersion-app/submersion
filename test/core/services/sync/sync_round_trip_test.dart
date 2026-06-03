@@ -95,5 +95,33 @@ void main() {
         reason: 'THE BUG: dive did not propagate A -> B through the round-trip',
       );
     });
+
+    test('dive field values survive A -> B, not just the row', () async {
+      final diveRepo = DiveRepository();
+      await diveRepo.createDive(
+        createTestDiveWithBottomTime(
+          id: 'dive-fields-1',
+          diveNumber: 22,
+          bottomTime: const Duration(minutes: 45),
+          maxDepth: 30.5,
+          waterTemp: 19.0,
+        ),
+      );
+      await buildService().performSync(); // device A push
+
+      await diveRepo.deleteDive('dive-fields-1');
+      await SyncRepository().resetSyncState();
+      await buildService().performSync(); // device B pull
+
+      final restored = await diveRepo.getDiveById('dive-fields-1');
+      expect(restored, isNotNull);
+      expect(
+        restored!.bottomTime,
+        const Duration(minutes: 45),
+        reason: 'bottomTime must survive sync (was dropped via a key mismatch)',
+      );
+      expect(restored.maxDepth, 30.5);
+      expect(restored.waterTemp, 19.0);
+    });
   });
 }

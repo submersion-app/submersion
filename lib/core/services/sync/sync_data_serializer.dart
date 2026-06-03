@@ -994,7 +994,10 @@ class SyncDataSerializer {
       query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
     }
     final rows = await query.get();
-    return rows.map((r) => _diveToJson(r)).toList();
+    // Export via the generated data-class toJson() so the keys are symmetric
+    // with Dive.fromJson used on import. A hand-maintained map silently drops
+    // fields (e.g. bottomTime, GPS) and breaks cross-device sync.
+    return rows.map((r) => r.toJson()).toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportDiveProfiles(int? since) async {
