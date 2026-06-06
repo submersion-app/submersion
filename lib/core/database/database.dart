@@ -1462,7 +1462,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 76;
+  static const int currentSchemaVersion = 77;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -3669,6 +3669,16 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 76) await reportProgress();
+        if (from < 77) {
+          // Support surface-interval derivation from timestamps (issue #235):
+          // the correlated subquery SELECT MAX(exit_time) WHERE diver_id AND
+          // exit_time < entry_time needs this index to stay fast at scale.
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dives_diver_exittime
+            ON dives(diver_id, exit_time DESC)
+          ''');
+        }
+        if (from < 77) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
