@@ -3674,10 +3674,23 @@ class AppDatabase extends _$AppDatabase {
           // Support surface-interval derivation from timestamps (issue #235):
           // the correlated subquery SELECT MAX(exit_time) WHERE diver_id AND
           // exit_time < entry_time needs this index to stay fast at scale.
-          await customStatement('''
-            CREATE INDEX IF NOT EXISTS idx_dives_diver_exittime
-            ON dives(diver_id, exit_time DESC)
-          ''');
+          // Guard with PRAGMA in case partial-schema migration fixtures are
+          // used in tests where dives may not yet have these columns.
+          final divesCols = await customSelect(
+            "PRAGMA table_info('dives')",
+          ).get();
+          if (divesCols.isNotEmpty) {
+            final colNames = divesCols
+                .map((c) => c.read<String>('name'))
+                .toSet();
+            if (colNames.contains('diver_id') &&
+                colNames.contains('exit_time')) {
+              await customStatement('''
+                CREATE INDEX IF NOT EXISTS idx_dives_diver_exittime
+                ON dives(diver_id, exit_time DESC)
+              ''');
+            }
+          }
         }
         if (from < 77) await reportProgress();
       },
