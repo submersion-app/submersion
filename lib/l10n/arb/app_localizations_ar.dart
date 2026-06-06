@@ -16329,4 +16329,53 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return 'تم حذف الغواص. $trips $_temp0 و$sites $_temp1 أُعيد تعيينها إلى $name.';
   }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_title => 'ملفات غواصين مكررة';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_description =>
+      'وجد المزامنة أكثر من ملف شخصي بالاسم نفسه. يحدث ذلك عادةً عندما أنشأ كل جهاز ملفه الشخصي قبل المزامنة. يؤدي الدمج إلى نقل جميع الغطسات والبيانات إلى ملف واحد.';
+
+  @override
+  String settings_cloudSync_duplicateDivers_groupLabel(String name, int count) {
+    return '$name ($count ملفات)';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_mergeButton => 'دمج';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmTitle =>
+      'دمج ملفات الغواصين؟';
+
+  @override
+  String settings_cloudSync_duplicateDivers_confirmBody(
+    int count,
+    String name,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملفات مكررة',
+      one: 'ملف مكرر',
+    );
+    return 'سيتم نقل جميع الغطسات والشهادات والمعدات والبيانات الأخرى من $_temp0 إلى \"$name\". لا يمكن التراجع عن هذا تلقائيًا.';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmCancel => 'إلغاء';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmAction => 'دمج';
+
+  @override
+  String settings_cloudSync_duplicateDivers_successSnack(String name) {
+    return 'تم الدمج في $name';
+  }
+
+  @override
+  String settings_cloudSync_duplicateDivers_failureSnack(String error) {
+    return 'فشل الدمج: $error';
+  }
 }

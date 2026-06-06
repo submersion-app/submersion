@@ -16613,4 +16613,55 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return 'Taucher gelöscht. $trips $_temp0 und $sites $_temp1 wurden $name zugewiesen.';
   }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_title =>
+      'Doppelte Taucherprofile';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_description =>
+      'Die Synchronisierung hat mehr als ein Profil mit demselben Namen gefunden. Das passiert normalerweise, wenn jedes Gerät sein eigenes Profil erstellt hat, bevor die Synchronisierung erfolgte. Beim Zusammenführen werden alle Tauchgänge und Daten in ein Profil verschoben.';
+
+  @override
+  String settings_cloudSync_duplicateDivers_groupLabel(String name, int count) {
+    return '$name ($count Profile)';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_mergeButton => 'Zusammenführen';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmTitle =>
+      'Taucherprofile zusammenführen?';
+
+  @override
+  String settings_cloudSync_duplicateDivers_confirmBody(
+    int count,
+    String name,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count doppelten Profilen',
+      one: 'einem doppelten Profil',
+    );
+    return 'Alle Tauchgänge, Zertifizierungen, Ausrüstung und andere Daten aus $_temp0 werden auf \"$name\" verschoben. Dies kann nicht automatisch rückgängig gemacht werden.';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmCancel => 'Abbrechen';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmAction =>
+      'Zusammenführen';
+
+  @override
+  String settings_cloudSync_duplicateDivers_successSnack(String name) {
+    return 'Zusammengeführt in $name';
+  }
+
+  @override
+  String settings_cloudSync_duplicateDivers_failureSnack(String error) {
+    return 'Zusammenführung fehlgeschlagen: $error';
+  }
 }

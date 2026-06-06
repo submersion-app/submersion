@@ -4720,5 +4720,15 @@
   "trips_deleteShared_body": "«{name}» è condiviso con altri profili subacquei. Eliminandolo qui verrà rimosso per tutti.",
   "trips_deleteShared_title": "Eliminare il viaggio condiviso?",
   "trips_unshareConfirm_body": "Verrà rimosso «{name}» dalle viste degli altri profili subacquei. Potrai condividerlo di nuovo in seguito.",
-  "trips_unshareConfirm_title": "Annullare la condivisione di questo viaggio?"
+  "trips_unshareConfirm_title": "Annullare la condivisione di questo viaggio?",
+  "settings_cloudSync_duplicateDivers_title": "Profili subacquei duplicati",
+  "settings_cloudSync_duplicateDivers_description": "La sincronizzazione ha trovato più di un profilo con lo stesso nome. Ciò accade di solito quando ogni dispositivo ha creato il proprio profilo prima della sincronizzazione. L'unione sposta tutte le immersioni e i dati su un unico profilo.",
+  "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} profili)",
+  "settings_cloudSync_duplicateDivers_mergeButton": "Unisci",
+  "settings_cloudSync_duplicateDivers_confirmTitle": "Unire i profili subacquei?",
+  "settings_cloudSync_duplicateDivers_confirmBody": "Tutte le immersioni, le certificazioni, l'attrezzatura e gli altri dati di {count, plural, =1{un profilo duplicato} other{{count} profili duplicati}} verranno spostati su \"{name}\". Questa operazione non può essere annullata automaticamente.",
+  "settings_cloudSync_duplicateDivers_confirmCancel": "Annulla",
+  "settings_cloudSync_duplicateDivers_confirmAction": "Unisci",
+  "settings_cloudSync_duplicateDivers_successSnack": "Unito in {name}",
+  "settings_cloudSync_duplicateDivers_failureSnack": "Unione non riuscita: {error}"
 }

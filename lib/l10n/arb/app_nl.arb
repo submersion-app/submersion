@@ -4720,5 +4720,15 @@
   "trips_deleteShared_body": "‘{name}’ wordt gedeeld met andere duikersprofielen. Hier verwijderen haalt het voor iedereen weg.",
   "trips_deleteShared_title": "Gedeelde trip verwijderen?",
   "trips_unshareConfirm_body": "Hiermee wordt ‘{name}’ uit de weergaven van andere duikersprofielen verwijderd. Je kunt het later weer delen.",
-  "trips_unshareConfirm_title": "Deze trip ontdelen?"
+  "trips_unshareConfirm_title": "Deze trip ontdelen?",
+  "settings_cloudSync_duplicateDivers_title": "Dubbele duikersprofielen",
+  "settings_cloudSync_duplicateDivers_description": "De synchronisatie vond meer dan één profiel met dezelfde naam. Dit gebeurt gewoonlijk wanneer elk apparaat zijn eigen profiel heeft aangemaakt vóór de synchronisatie. Door samen te voegen worden alle duiken en gegevens naar één profiel verplaatst.",
+  "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} profielen)",
+  "settings_cloudSync_duplicateDivers_mergeButton": "Samenvoegen",
+  "settings_cloudSync_duplicateDivers_confirmTitle": "Duikersprofielen samenvoegen?",
+  "settings_cloudSync_duplicateDivers_confirmBody": "Alle duiken, certificeringen, uitrusting en andere gegevens van {count, plural, =1{één dubbel profiel} other{{count} dubbele profielen}} worden verplaatst naar \"{name}\". Dit kan niet automatisch ongedaan worden gemaakt.",
+  "settings_cloudSync_duplicateDivers_confirmCancel": "Annuleren",
+  "settings_cloudSync_duplicateDivers_confirmAction": "Samenvoegen",
+  "settings_cloudSync_duplicateDivers_successSnack": "Samengevoegd in {name}",
+  "settings_cloudSync_duplicateDivers_failureSnack": "Samenvoegen mislukt: {error}"
 }

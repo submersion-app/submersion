@@ -116,6 +116,7 @@ class CloudSyncPage extends ConsumerWidget {
     if (groups.isEmpty) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
@@ -135,7 +136,7 @@ class CloudSyncPage extends ConsumerWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Duplicate diver profiles',
+                  l10n.settings_cloudSync_duplicateDivers_title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -145,9 +146,7 @@ class CloudSyncPage extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Sync found more than one profile with the same name. This usually '
-            'happens when each device created its own profile before syncing. '
-            'Merging moves all dives and data onto one profile.',
+            l10n.settings_cloudSync_duplicateDivers_description,
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 12),
@@ -158,14 +157,18 @@ class CloudSyncPage extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      '${group.displayName} '
-                      '(${group.duplicates.length + 1} profiles)',
+                      l10n.settings_cloudSync_duplicateDivers_groupLabel(
+                        group.displayName,
+                        group.duplicates.length + 1,
+                      ),
                       style: theme.textTheme.bodyLarge,
                     ),
                   ),
                   FilledButton.tonal(
                     onPressed: () => _confirmAndMerge(context, ref, group),
-                    child: const Text('Merge'),
+                    child: Text(
+                      l10n.settings_cloudSync_duplicateDivers_mergeButton,
+                    ),
                   ),
                 ],
               ),
@@ -181,26 +184,37 @@ class CloudSyncPage extends ConsumerWidget {
     DuplicateDiverGroup group,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Merge diver profiles?'),
-        content: Text(
-          'All dives, certifications, gear, and other data from '
-          '${group.duplicates.length} duplicate profile(s) will be moved onto '
-          '"${group.displayName}". This cannot be undone automatically.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      builder: (context) {
+        final dialogL10n = context.l10n;
+        return AlertDialog(
+          title: Text(
+            dialogL10n.settings_cloudSync_duplicateDivers_confirmTitle,
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Merge'),
+          content: Text(
+            dialogL10n.settings_cloudSync_duplicateDivers_confirmBody(
+              group.duplicates.length,
+              group.displayName,
+            ),
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(
+                dialogL10n.settings_cloudSync_duplicateDivers_confirmCancel,
+              ),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(
+                dialogL10n.settings_cloudSync_duplicateDivers_confirmAction,
+              ),
+            ),
+          ],
+        );
+      },
     );
     if (confirmed != true) return;
 
@@ -214,10 +228,22 @@ class CloudSyncPage extends ConsumerWidget {
       }
       ref.invalidate(allDiversProvider);
       messenger.showSnackBar(
-        SnackBar(content: Text('Merged into ${group.displayName}')),
+        SnackBar(
+          content: Text(
+            l10n.settings_cloudSync_duplicateDivers_successSnack(
+              group.displayName,
+            ),
+          ),
+        ),
       );
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Merge failed: $e')));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.settings_cloudSync_duplicateDivers_failureSnack(e.toString()),
+          ),
+        ),
+      );
     }
   }
 

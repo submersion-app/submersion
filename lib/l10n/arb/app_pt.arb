@@ -4720,5 +4720,15 @@
   "trips_deleteShared_body": "«{name}» está partilhada com outros perfis de mergulho. Eliminá-la aqui remove-a para todos.",
   "trips_deleteShared_title": "Eliminar viagem partilhada?",
   "trips_unshareConfirm_body": "Isto irá remover «{name}» das vistas dos outros perfis de mergulho. Poderás voltar a partilhar mais tarde.",
-  "trips_unshareConfirm_title": "Deixar de partilhar esta viagem?"
+  "trips_unshareConfirm_title": "Deixar de partilhar esta viagem?",
+  "settings_cloudSync_duplicateDivers_title": "Perfis de mergulhador duplicados",
+  "settings_cloudSync_duplicateDivers_description": "A sincronização encontrou mais de um perfil com o mesmo nome. Isso acontece normalmente quando cada dispositivo criou o seu próprio perfil antes de sincronizar. A fusão move todos os mergulhos e dados para um único perfil.",
+  "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} perfis)",
+  "settings_cloudSync_duplicateDivers_mergeButton": "Mesclar",
+  "settings_cloudSync_duplicateDivers_confirmTitle": "Mesclar perfis de mergulhador?",
+  "settings_cloudSync_duplicateDivers_confirmBody": "Todos os mergulhos, certificações, equipamento e outros dados de {count, plural, =1{um perfil duplicado} other{{count} perfis duplicados}} serão movidos para \"{name}\". Esta ação não pode ser desfeita automaticamente.",
+  "settings_cloudSync_duplicateDivers_confirmCancel": "Cancelar",
+  "settings_cloudSync_duplicateDivers_confirmAction": "Mesclar",
+  "settings_cloudSync_duplicateDivers_successSnack": "Mesclado em {name}",
+  "settings_cloudSync_duplicateDivers_failureSnack": "Falha ao mesclar: {error}"
 }

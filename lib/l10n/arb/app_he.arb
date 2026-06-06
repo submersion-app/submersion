@@ -4720,5 +4720,15 @@
   "trips_deleteShared_body": "«{name}» משותף עם פרופילי צלילה אחרים. מחיקה כאן תסיר אותו עבור כולם.",
   "trips_deleteShared_title": "למחוק את הטיול המשותף?",
   "trips_unshareConfirm_body": "פעולה זו תסיר את «{name}» מתצוגות של פרופילי צלילה אחרים. תוכל לשתף שוב בהמשך.",
-  "trips_unshareConfirm_title": "לבטל שיתוף של טיול זה?"
+  "trips_unshareConfirm_title": "לבטל שיתוף של טיול זה?",
+  "settings_cloudSync_duplicateDivers_title": "פרופילי צוללים כפולים",
+  "settings_cloudSync_duplicateDivers_description": "המזכור מצא יותר מפרופיל אחד עם אותו שם. זה קורה בדרך כלל כשכל מכשיר יצר פרופיל משלו לפני הסנכרון. המיזוג מעביר את כל הצלילות והנתונים לפרופיל אחד.",
+  "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} פרופילים)",
+  "settings_cloudSync_duplicateDivers_mergeButton": "מזג",
+  "settings_cloudSync_duplicateDivers_confirmTitle": "למזג פרופילי צוללים?",
+  "settings_cloudSync_duplicateDivers_confirmBody": "כל הצלילות, הסמכות, הציוד ושאר הנתונים מ-{count, plural, =1{פרופיל כפול אחד} other{{count} פרופילים כפולים}} יועברו אל \"{name}\". לא ניתן לבטל פעולה זו באופן אוטומטי.",
+  "settings_cloudSync_duplicateDivers_confirmCancel": "ביטול",
+  "settings_cloudSync_duplicateDivers_confirmAction": "מזג",
+  "settings_cloudSync_duplicateDivers_successSnack": "מוזג אל {name}",
+  "settings_cloudSync_duplicateDivers_failureSnack": "המיזוג נכשל: {error}"
 }

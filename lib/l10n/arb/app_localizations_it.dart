@@ -16647,4 +16647,54 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return 'Subacqueo eliminato. $trips $_temp0 e $sites $_temp1 riassegnati a $name.';
   }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_title =>
+      'Profili subacquei duplicati';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_description =>
+      'La sincronizzazione ha trovato più di un profilo con lo stesso nome. Ciò accade di solito quando ogni dispositivo ha creato il proprio profilo prima della sincronizzazione. L\'unione sposta tutte le immersioni e i dati su un unico profilo.';
+
+  @override
+  String settings_cloudSync_duplicateDivers_groupLabel(String name, int count) {
+    return '$name ($count profili)';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_mergeButton => 'Unisci';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmTitle =>
+      'Unire i profili subacquei?';
+
+  @override
+  String settings_cloudSync_duplicateDivers_confirmBody(
+    int count,
+    String name,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count profili duplicati',
+      one: 'un profilo duplicato',
+    );
+    return 'Tutte le immersioni, le certificazioni, l\'attrezzatura e gli altri dati di $_temp0 verranno spostati su \"$name\". Questa operazione non può essere annullata automaticamente.';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmCancel => 'Annulla';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmAction => 'Unisci';
+
+  @override
+  String settings_cloudSync_duplicateDivers_successSnack(String name) {
+    return 'Unito in $name';
+  }
+
+  @override
+  String settings_cloudSync_duplicateDivers_failureSnack(String error) {
+    return 'Unione non riuscita: $error';
+  }
 }

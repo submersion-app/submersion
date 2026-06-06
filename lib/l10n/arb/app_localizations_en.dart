@@ -16368,4 +16368,54 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return 'Diver deleted. $trips shared $_temp0 and $sites shared $_temp1 reassigned to $name.';
   }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_title =>
+      'Duplicate diver profiles';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_description =>
+      'Sync found more than one profile with the same name. This usually happens when each device created its own profile before syncing. Merging moves all dives and data onto one profile.';
+
+  @override
+  String settings_cloudSync_duplicateDivers_groupLabel(String name, int count) {
+    return '$name ($count profiles)';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_mergeButton => 'Merge';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmTitle =>
+      'Merge diver profiles?';
+
+  @override
+  String settings_cloudSync_duplicateDivers_confirmBody(
+    int count,
+    String name,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'profiles',
+      one: 'profile',
+    );
+    return 'All dives, certifications, gear, and other data from $count duplicate $_temp0 will be moved onto \"$name\". This cannot be undone automatically.';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmCancel => 'Cancel';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmAction => 'Merge';
+
+  @override
+  String settings_cloudSync_duplicateDivers_successSnack(String name) {
+    return 'Merged into $name';
+  }
+
+  @override
+  String settings_cloudSync_duplicateDivers_failureSnack(String error) {
+    return 'Merge failed: $error';
+  }
 }

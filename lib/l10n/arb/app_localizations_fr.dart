@@ -16708,4 +16708,54 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return 'Plongeur supprimé. $trips $_temp0 et $sites $_temp1 réattribués à $name.';
   }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_title =>
+      'Profils de plongeur en double';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_description =>
+      'La synchronisation a trouvé plus d\'un profil portant le même nom. Cela se produit généralement lorsque chaque appareil a créé son propre profil avant la synchronisation. La fusion déplace toutes les plongées et les données vers un seul profil.';
+
+  @override
+  String settings_cloudSync_duplicateDivers_groupLabel(String name, int count) {
+    return '$name ($count profils)';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_mergeButton => 'Fusionner';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmTitle =>
+      'Fusionner les profils de plongeur ?';
+
+  @override
+  String settings_cloudSync_duplicateDivers_confirmBody(
+    int count,
+    String name,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count profils en double',
+      one: 'un profil en double',
+    );
+    return 'Toutes les plongées, certifications, équipements et autres données de $_temp0 seront déplacés vers \"$name\". Cette action ne peut pas être annulée automatiquement.';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmCancel => 'Annuler';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmAction => 'Fusionner';
+
+  @override
+  String settings_cloudSync_duplicateDivers_successSnack(String name) {
+    return 'Fusionné dans $name';
+  }
+
+  @override
+  String settings_cloudSync_duplicateDivers_failureSnack(String error) {
+    return 'Échec de la fusion : $error';
+  }
 }

@@ -24,6 +24,39 @@ class DuplicateDiverGroup {
   String get displayName => keeper.name;
 }
 
+/// Snapshot captured by [DiverMergeRepository.mergeDivers] sufficient to
+/// reverse the merge locally via [DiverMergeRepository.undoMerge].
+///
+/// Note on sync semantics: undo is local-only and safest to call before the
+/// next sync runs after the merge. If sync has already propagated the merge
+/// to other devices, undoing locally on this device will look like a *new*
+/// merge-reversal event from the others' perspective on the next sync; the
+/// remote deletion tombstone for the duplicate has already been delivered.
+class DiverMergeSnapshot {
+  final String keeperId;
+  final String duplicateId;
+
+  /// The full row data of the duplicate diver before deletion, captured so
+  /// it can be reinserted on undo.
+  final Map<String, dynamic> duplicateDiver;
+
+  /// (table, rowId) pairs whose `diver_id` was changed from the duplicate to
+  /// the keeper. Undo flips them back.
+  final List<({String table, String rowId})> repointedRows;
+
+  /// Full row data for rows in singleton-config tables that were deleted as
+  /// part of the merge (keeper-wins policy). Each captures `(table, row)`.
+  final List<({String table, Map<String, dynamic> row})> deletedSingletonRows;
+
+  const DiverMergeSnapshot({
+    required this.keeperId,
+    required this.duplicateId,
+    required this.duplicateDiver,
+    required this.repointedRows,
+    required this.deletedSingletonRows,
+  });
+}
+
 /// Merges two diver profiles that represent the same person.
 ///
 /// The canonical case: each device auto-creates its own owner diver (with a
@@ -54,8 +87,9 @@ class DiverMergeRepository {
   static const _singletonConfigTables = {'diver_settings', 'view_configs'};
 
   /// Repoint all references from [duplicateId] to [keeperId], then delete the
-  /// duplicate diver. Idempotent-safe to call once per duplicate.
-  Future<void> mergeDivers({
+  /// duplicate diver. Returns a [DiverMergeSnapshot] that captures every row
+  /// touched so the merge can be reversed via [undoMerge].
+  Future<DiverMergeSnapshot> mergeDivers({
     required String keeperId,
     required String duplicateId,
   }) async {
@@ -66,6 +100,16 @@ class DiverMergeRepository {
 
     final tables = await _tablesWithDiverId();
     final now = DateTime.now().millisecondsSinceEpoch;
+    final repointed = <({String table, String rowId})>[];
+    final deletedSingleton = <({String table, Map<String, dynamic> row})>[];
+
+    // Capture the duplicate's row BEFORE the transaction so we can restore
+    // it on undo. The select runs outside the txn because we only need a
+    // read-consistent snapshot at the start.
+    final duplicateRow = await _rowAsMap('divers', duplicateId);
+    if (duplicateRow == null) {
+      throw StateError('Cannot merge: no diver with id $duplicateId');
+    }
 
     await _db.transaction(() async {
       // Deferred FK checks: repointing in catalog order may briefly touch
@@ -74,13 +118,22 @@ class DiverMergeRepository {
 
       for (final table in tables) {
         if (_singletonConfigTables.contains(table)) {
-          // Keeper's config wins; drop the duplicate's.
+          // Keeper's config wins; drop the duplicate's. Capture each row
+          // before deletion so undo can reinsert them.
+          final rows = await _rowsByDiverId(table, duplicateId);
+          for (final row in rows) {
+            deletedSingleton.add((table: table, row: row));
+          }
           await _logRowDeletions(table, duplicateId);
           await _db.customStatement('DELETE FROM "$table" WHERE diver_id = ?', [
             duplicateId,
           ]);
         } else {
           // Additive data: repoint onto the keeper and mark pending for sync.
+          final ids = await _rowIds(table, duplicateId);
+          for (final id in ids) {
+            repointed.add((table: table, rowId: id));
+          }
           await _markRowsPending(table, duplicateId, now);
           await _db.customStatement(
             'UPDATE "$table" SET diver_id = ? WHERE diver_id = ?',
@@ -105,6 +158,55 @@ class DiverMergeRepository {
 
     SyncEventBus.notifyLocalChange();
     _log.info('Merge complete: $duplicateId -> $keeperId');
+
+    return DiverMergeSnapshot(
+      keeperId: keeperId,
+      duplicateId: duplicateId,
+      duplicateDiver: duplicateRow,
+      repointedRows: repointed,
+      deletedSingletonRows: deletedSingleton,
+    );
+  }
+
+  /// Reverse a merge previously executed by [mergeDivers], using the snapshot
+  /// it returned. Local-only: see the note on [DiverMergeSnapshot] for sync
+  /// semantics if the merge has already propagated.
+  Future<void> undoMerge(DiverMergeSnapshot snapshot) async {
+    _log.info(
+      'Undoing merge: restoring diver ${snapshot.duplicateId} '
+      '(was merged into ${snapshot.keeperId})',
+    );
+    await _db.transaction(() async {
+      await _db.customStatement('PRAGMA defer_foreign_keys = ON');
+
+      // Restore the duplicate diver row first so subsequent FK repoints land
+      // on a valid target.
+      await _insertRowMap('divers', snapshot.duplicateDiver);
+
+      // Repoint each previously-repointed row back to the duplicate.
+      for (final entry in snapshot.repointedRows) {
+        await _db.customStatement(
+          'UPDATE "${entry.table}" SET diver_id = ? WHERE id = ?',
+          [snapshot.duplicateId, entry.rowId],
+        );
+      }
+
+      // Re-insert any singleton-config rows that the merge deleted.
+      for (final entry in snapshot.deletedSingletonRows) {
+        await _insertRowMap(entry.table, entry.row);
+      }
+
+      // Clear the diver's deletion-log tombstone so a subsequent sync won't
+      // re-delete the restored diver on other devices.
+      await _db.customStatement(
+        "DELETE FROM deletion_log WHERE entity_type = 'divers' "
+        "AND record_id = ?",
+        [snapshot.duplicateId],
+      );
+    });
+
+    SyncEventBus.notifyLocalChange();
+    _log.info('Undo complete: ${snapshot.duplicateId} restored');
   }
 
   /// All tables (except `divers`) that have a `diver_id` column.
@@ -185,6 +287,49 @@ class DiverMergeRepository {
         )
         .get();
     return rows.map((r) => r.read<String>('id')).toList();
+  }
+
+  /// Fetch the single row identified by [id] in [table] as a column->value
+  /// map, or null if none. Used by `mergeDivers` to snapshot the duplicate
+  /// diver row before deleting it.
+  Future<Map<String, dynamic>?> _rowAsMap(String table, String id) async {
+    final result = await _db
+        .customSelect(
+          'SELECT * FROM "$table" WHERE id = ?',
+          variables: [Variable.withString(id)],
+        )
+        .getSingleOrNull();
+    return result?.data;
+  }
+
+  /// Fetch every row in [table] owned by [diverId], each as a column->value
+  /// map. Used to snapshot singleton-config rows before deleting them.
+  Future<List<Map<String, dynamic>>> _rowsByDiverId(
+    String table,
+    String diverId,
+  ) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT * FROM "$table" WHERE diver_id = ?',
+          variables: [Variable.withString(diverId)],
+        )
+        .get();
+    return rows.map((r) => r.data).toList();
+  }
+
+  /// Re-insert [row] into [table] using raw SQL. The row is a column->value
+  /// map as produced by `_rowAsMap` / `_rowsByDiverId` (so the column names
+  /// match the live schema). Used by `undoMerge` to recreate previously
+  /// deleted rows.
+  Future<void> _insertRowMap(String table, Map<String, dynamic> row) async {
+    if (row.isEmpty) return;
+    final cols = row.keys.toList();
+    final placeholders = List.filled(cols.length, '?').join(',');
+    final quotedCols = cols.map((c) => '"$c"').join(',');
+    await _db.customStatement(
+      'INSERT INTO "$table" ($quotedCols) VALUES ($placeholders)',
+      cols.map((c) => row[c]).toList(),
+    );
   }
 
   /// Group [divers] that share a normalized (trimmed, case-insensitive) name

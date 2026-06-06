@@ -16513,4 +16513,54 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return 'Duiker verwijderd. $trips gedeelde $_temp0 en $sites gedeelde $_temp1 toegewezen aan $name.';
   }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_title =>
+      'Dubbele duikersprofielen';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_description =>
+      'De synchronisatie vond meer dan één profiel met dezelfde naam. Dit gebeurt gewoonlijk wanneer elk apparaat zijn eigen profiel heeft aangemaakt vóór de synchronisatie. Door samen te voegen worden alle duiken en gegevens naar één profiel verplaatst.';
+
+  @override
+  String settings_cloudSync_duplicateDivers_groupLabel(String name, int count) {
+    return '$name ($count profielen)';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_mergeButton => 'Samenvoegen';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmTitle =>
+      'Duikersprofielen samenvoegen?';
+
+  @override
+  String settings_cloudSync_duplicateDivers_confirmBody(
+    int count,
+    String name,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dubbele profielen',
+      one: 'één dubbel profiel',
+    );
+    return 'Alle duiken, certificeringen, uitrusting en andere gegevens van $_temp0 worden verplaatst naar \"$name\". Dit kan niet automatisch ongedaan worden gemaakt.';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmCancel => 'Annuleren';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmAction => 'Samenvoegen';
+
+  @override
+  String settings_cloudSync_duplicateDivers_successSnack(String name) {
+    return 'Samengevoegd in $name';
+  }
+
+  @override
+  String settings_cloudSync_duplicateDivers_failureSnack(String error) {
+    return 'Samenvoegen mislukt: $error';
+  }
 }

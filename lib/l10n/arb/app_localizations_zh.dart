@@ -15845,4 +15845,52 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '已删除潜水员。$trips 个共享$_temp0和 $sites 个共享$_temp1已重新分配给 $name。';
   }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_title => '重复的潜水员档案';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_description =>
+      '同步发现多个同名档案。这通常发生在每台设备在同步之前各自创建了档案时。合并会将所有潜水记录和数据迁移到一个档案中。';
+
+  @override
+  String settings_cloudSync_duplicateDivers_groupLabel(String name, int count) {
+    return '$name（$count 个档案）';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_mergeButton => '合并';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmTitle => '合并潜水员档案？';
+
+  @override
+  String settings_cloudSync_duplicateDivers_confirmBody(
+    int count,
+    String name,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个重复档案',
+      one: '1 个重复档案',
+    );
+    return '$_temp0中的所有潜水记录、认证、装备及其他数据将被移入「$name」。此操作无法自动撤销。';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmCancel => '取消';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmAction => '合并';
+
+  @override
+  String settings_cloudSync_duplicateDivers_successSnack(String name) {
+    return '已合并到 $name';
+  }
+
+  @override
+  String settings_cloudSync_duplicateDivers_failureSnack(String error) {
+    return '合并失败：$error';
+  }
 }

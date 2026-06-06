@@ -4720,5 +4720,15 @@
   "trips_deleteShared_body": "«{name}» está compartido con otros perfiles de buceo. Eliminarlo aquí lo elimina para todos.",
   "trips_deleteShared_title": "¿Eliminar el viaje compartido?",
   "trips_unshareConfirm_body": "Esto eliminará «{name}» de la vista de los demás perfiles de buceo. Podrás volver a compartirlo más tarde.",
-  "trips_unshareConfirm_title": "¿Dejar de compartir este viaje?"
+  "trips_unshareConfirm_title": "¿Dejar de compartir este viaje?",
+  "settings_cloudSync_duplicateDivers_title": "Perfiles de buceador duplicados",
+  "settings_cloudSync_duplicateDivers_description": "La sincronización encontró más de un perfil con el mismo nombre. Esto ocurre normalmente cuando cada dispositivo creó su propio perfil antes de sincronizarse. Al fusionar, todos los buceos y datos se mueven a un único perfil.",
+  "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} perfiles)",
+  "settings_cloudSync_duplicateDivers_mergeButton": "Fusionar",
+  "settings_cloudSync_duplicateDivers_confirmTitle": "¿Fusionar perfiles de buceador?",
+  "settings_cloudSync_duplicateDivers_confirmBody": "Todos los buceos, certificaciones, equipo y otros datos de {count, plural, =1{un perfil duplicado} other{{count} perfiles duplicados}} se moverán a \"{name}\". Esto no se puede deshacer automáticamente.",
+  "settings_cloudSync_duplicateDivers_confirmCancel": "Cancelar",
+  "settings_cloudSync_duplicateDivers_confirmAction": "Fusionar",
+  "settings_cloudSync_duplicateDivers_successSnack": "Fusionado en {name}",
+  "settings_cloudSync_duplicateDivers_failureSnack": "Error al fusionar: {error}"
 }

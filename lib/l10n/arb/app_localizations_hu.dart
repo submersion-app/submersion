@@ -16600,4 +16600,54 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return 'Búvár törölve. $trips megosztott $_temp0 és $sites megosztott $_temp1 átrendelve ehhez: $name.';
   }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_title =>
+      'Duplikált búvárprofilok';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_description =>
+      'A szinkronizálás több profilt talált ugyanazzal a névvel. Ez általában akkor fordul elő, amikor minden eszköz létrehozta a saját profilját a szinkronizálás előtt. Az összevonás az összes merülést és adatot egyetlen profilba helyezi át.';
+
+  @override
+  String settings_cloudSync_duplicateDivers_groupLabel(String name, int count) {
+    return '$name ($count profil)';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_mergeButton => 'Összevon';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmTitle =>
+      'Búvárprofilok összevonása?';
+
+  @override
+  String settings_cloudSync_duplicateDivers_confirmBody(
+    int count,
+    String name,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duplikált profilból',
+      one: 'egy duplikált profilból',
+    );
+    return 'Az összes merülés, tanúsítvány, felszerelés és egyéb adat $_temp0 áthelyezésre kerül ide: \"$name\". Ez nem vonható vissza automatikusan.';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmCancel => 'Mégse';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmAction => 'Összevon';
+
+  @override
+  String settings_cloudSync_duplicateDivers_successSnack(String name) {
+    return 'Összevonva ide: $name';
+  }
+
+  @override
+  String settings_cloudSync_duplicateDivers_failureSnack(String error) {
+    return 'Összevonás sikertelen: $error';
+  }
 }

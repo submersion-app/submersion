@@ -4720,5 +4720,15 @@
   "trips_deleteShared_body": "A(z) „{name}\" meg van osztva más búvárprofilokkal. Ha itt törlöd, mindenkinél eltávolítódik.",
   "trips_deleteShared_title": "Megosztott túra törlése?",
   "trips_unshareConfirm_body": "Ez eltávolítja a(z) „{name}\" elemet a többi búvárprofil nézetéből. Később újra megoszthatod.",
-  "trips_unshareConfirm_title": "Megszünteted a túra megosztását?"
+  "trips_unshareConfirm_title": "Megszünteted a túra megosztását?",
+  "settings_cloudSync_duplicateDivers_title": "Duplikált búvárprofilok",
+  "settings_cloudSync_duplicateDivers_description": "A szinkronizálás több profilt talált ugyanazzal a névvel. Ez általában akkor fordul elő, amikor minden eszköz létrehozta a saját profilját a szinkronizálás előtt. Az összevonás az összes merülést és adatot egyetlen profilba helyezi át.",
+  "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} profil)",
+  "settings_cloudSync_duplicateDivers_mergeButton": "Összevon",
+  "settings_cloudSync_duplicateDivers_confirmTitle": "Búvárprofilok összevonása?",
+  "settings_cloudSync_duplicateDivers_confirmBody": "Az összes merülés, tanúsítvány, felszerelés és egyéb adat {count, plural, =1{egy duplikált profilból} other{{count} duplikált profilból}} áthelyezésre kerül ide: \"{name}\". Ez nem vonható vissza automatikusan.",
+  "settings_cloudSync_duplicateDivers_confirmCancel": "Mégse",
+  "settings_cloudSync_duplicateDivers_confirmAction": "Összevon",
+  "settings_cloudSync_duplicateDivers_successSnack": "Összevonva ide: {name}",
+  "settings_cloudSync_duplicateDivers_failureSnack": "Összevonás sikertelen: {error}"
 }

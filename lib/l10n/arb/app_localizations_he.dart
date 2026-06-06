@@ -16212,4 +16212,54 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return 'הצולל נמחק. $trips $_temp0 ו-$sites $_temp1 אל $name.';
   }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_title =>
+      'פרופילי צוללים כפולים';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_description =>
+      'המזכור מצא יותר מפרופיל אחד עם אותו שם. זה קורה בדרך כלל כשכל מכשיר יצר פרופיל משלו לפני הסנכרון. המיזוג מעביר את כל הצלילות והנתונים לפרופיל אחד.';
+
+  @override
+  String settings_cloudSync_duplicateDivers_groupLabel(String name, int count) {
+    return '$name ($count פרופילים)';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_mergeButton => 'מזג';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmTitle =>
+      'למזג פרופילי צוללים?';
+
+  @override
+  String settings_cloudSync_duplicateDivers_confirmBody(
+    int count,
+    String name,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פרופילים כפולים',
+      one: 'פרופיל כפול אחד',
+    );
+    return 'כל הצלילות, הסמכות, הציוד ושאר הנתונים מ-$_temp0 יועברו אל \"$name\". לא ניתן לבטל פעולה זו באופן אוטומטי.';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmCancel => 'ביטול';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmAction => 'מזג';
+
+  @override
+  String settings_cloudSync_duplicateDivers_successSnack(String name) {
+    return 'מוזג אל $name';
+  }
+
+  @override
+  String settings_cloudSync_duplicateDivers_failureSnack(String error) {
+    return 'המיזוג נכשל: $error';
+  }
 }

@@ -4720,5 +4720,15 @@
   "trips_deleteShared_body": "« {name} » est partagé avec d'autres profils de plongée. Le supprimer ici le retire pour tout le monde.",
   "trips_deleteShared_title": "Supprimer le voyage partagé ?",
   "trips_unshareConfirm_body": "« {name} » sera retiré des vues des autres profils de plongée. Vous pourrez le partager à nouveau plus tard.",
-  "trips_unshareConfirm_title": "Ne plus partager ce voyage ?"
+  "trips_unshareConfirm_title": "Ne plus partager ce voyage ?",
+  "settings_cloudSync_duplicateDivers_title": "Profils de plongeur en double",
+  "settings_cloudSync_duplicateDivers_description": "La synchronisation a trouvé plus d'un profil portant le même nom. Cela se produit généralement lorsque chaque appareil a créé son propre profil avant la synchronisation. La fusion déplace toutes les plongées et les données vers un seul profil.",
+  "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} profils)",
+  "settings_cloudSync_duplicateDivers_mergeButton": "Fusionner",
+  "settings_cloudSync_duplicateDivers_confirmTitle": "Fusionner les profils de plongeur ?",
+  "settings_cloudSync_duplicateDivers_confirmBody": "Toutes les plongées, certifications, équipements et autres données de {count, plural, =1{un profil en double} other{{count} profils en double}} seront déplacés vers \"{name}\". Cette action ne peut pas être annulée automatiquement.",
+  "settings_cloudSync_duplicateDivers_confirmCancel": "Annuler",
+  "settings_cloudSync_duplicateDivers_confirmAction": "Fusionner",
+  "settings_cloudSync_duplicateDivers_successSnack": "Fusionné dans {name}",
+  "settings_cloudSync_duplicateDivers_failureSnack": "Échec de la fusion : {error}"
 }

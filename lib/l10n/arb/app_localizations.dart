@@ -28059,6 +28059,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Diver deleted. {trips} shared {trips, plural, one{trip} other{trips}} and {sites} shared {sites, plural, one{site} other{sites}} reassigned to {name}.'**
   String divers_delete_reassigned_snackbar(int trips, int sites, String name);
+
+  /// Title of the banner on the Cloud Sync page when two or more diver profiles share a name.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate diver profiles'**
+  String get settings_cloudSync_duplicateDivers_title;
+
+  /// Explanatory text below the duplicate-divers banner title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync found more than one profile with the same name. This usually happens when each device created its own profile before syncing. Merging moves all dives and data onto one profile.'**
+  String get settings_cloudSync_duplicateDivers_description;
+
+  /// Label for a single duplicate group, e.g. 'Eric (2 profiles)'.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({count} profiles)'**
+  String settings_cloudSync_duplicateDivers_groupLabel(String name, int count);
+
+  /// Button label that triggers the merge confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get settings_cloudSync_duplicateDivers_mergeButton;
+
+  /// Title of the merge confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge diver profiles?'**
+  String get settings_cloudSync_duplicateDivers_confirmTitle;
+
+  /// Body text of the merge confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'All dives, certifications, gear, and other data from {count} duplicate {count, plural, one{profile} other{profiles}} will be moved onto \"{name}\". This cannot be undone automatically.'**
+  String settings_cloudSync_duplicateDivers_confirmBody(int count, String name);
+
+  /// Cancel button on the merge confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get settings_cloudSync_duplicateDivers_confirmCancel;
+
+  /// Confirmation (destructive) button on the merge dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get settings_cloudSync_duplicateDivers_confirmAction;
+
+  /// Snackbar shown after a successful diver merge.
+  ///
+  /// In en, this message translates to:
+  /// **'Merged into {name}'**
+  String settings_cloudSync_duplicateDivers_successSnack(String name);
+
+  /// Snackbar shown when a diver merge throws an exception.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge failed: {error}'**
+  String settings_cloudSync_duplicateDivers_failureSnack(String error);
 }
 
 class _AppLocalizationsDelegate

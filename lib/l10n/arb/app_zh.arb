@@ -4720,5 +4720,15 @@
   "trips_deleteShared_body": "「{name}」已与其他潜水员资料共享。在此处删除会对所有人生效。",
   "trips_deleteShared_title": "删除共享行程？",
   "trips_unshareConfirm_body": "此操作会将「{name}」从其他潜水员资料的视图中移除。您之后可以再次共享。",
-  "trips_unshareConfirm_title": "取消共享此行程？"
+  "trips_unshareConfirm_title": "取消共享此行程？",
+  "settings_cloudSync_duplicateDivers_title": "重复的潜水员档案",
+  "settings_cloudSync_duplicateDivers_description": "同步发现多个同名档案。这通常发生在每台设备在同步之前各自创建了档案时。合并会将所有潜水记录和数据迁移到一个档案中。",
+  "settings_cloudSync_duplicateDivers_groupLabel": "{name}（{count} 个档案）",
+  "settings_cloudSync_duplicateDivers_mergeButton": "合并",
+  "settings_cloudSync_duplicateDivers_confirmTitle": "合并潜水员档案？",
+  "settings_cloudSync_duplicateDivers_confirmBody": "{count, plural, =1{1 个重复档案} other{{count} 个重复档案}}中的所有潜水记录、认证、装备及其他数据将被移入「{name}」。此操作无法自动撤销。",
+  "settings_cloudSync_duplicateDivers_confirmCancel": "取消",
+  "settings_cloudSync_duplicateDivers_confirmAction": "合并",
+  "settings_cloudSync_duplicateDivers_successSnack": "已合并到 {name}",
+  "settings_cloudSync_duplicateDivers_failureSnack": "合并失败：{error}"
 }

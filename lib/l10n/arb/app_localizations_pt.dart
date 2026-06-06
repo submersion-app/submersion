@@ -16649,4 +16649,54 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return 'Mergulhador eliminado. $trips $_temp0 e $sites $_temp1 reatribuídos a $name.';
   }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_title =>
+      'Perfis de mergulhador duplicados';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_description =>
+      'A sincronização encontrou mais de um perfil com o mesmo nome. Isso acontece normalmente quando cada dispositivo criou o seu próprio perfil antes de sincronizar. A fusão move todos os mergulhos e dados para um único perfil.';
+
+  @override
+  String settings_cloudSync_duplicateDivers_groupLabel(String name, int count) {
+    return '$name ($count perfis)';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_mergeButton => 'Mesclar';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmTitle =>
+      'Mesclar perfis de mergulhador?';
+
+  @override
+  String settings_cloudSync_duplicateDivers_confirmBody(
+    int count,
+    String name,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count perfis duplicados',
+      one: 'um perfil duplicado',
+    );
+    return 'Todos os mergulhos, certificações, equipamento e outros dados de $_temp0 serão movidos para \"$name\". Esta ação não pode ser desfeita automaticamente.';
+  }
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmCancel => 'Cancelar';
+
+  @override
+  String get settings_cloudSync_duplicateDivers_confirmAction => 'Mesclar';
+
+  @override
+  String settings_cloudSync_duplicateDivers_successSnack(String name) {
+    return 'Mesclado em $name';
+  }
+
+  @override
+  String settings_cloudSync_duplicateDivers_failureSnack(String error) {
+    return 'Falha ao mesclar: $error';
+  }
 }

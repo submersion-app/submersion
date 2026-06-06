@@ -4720,5 +4720,15 @@
   "trips_deleteShared_body": "„{name}\" wird mit anderen Taucherprofilen geteilt. Löschen entfernt die Reise für alle.",
   "trips_deleteShared_title": "Geteilte Reise löschen?",
   "trips_unshareConfirm_body": "„{name}\" wird aus den Ansichten anderer Taucherprofile entfernt. Du kannst die Reise später wieder teilen.",
-  "trips_unshareConfirm_title": "Diese Reise nicht mehr teilen?"
+  "trips_unshareConfirm_title": "Diese Reise nicht mehr teilen?",
+  "settings_cloudSync_duplicateDivers_title": "Doppelte Taucherprofile",
+  "settings_cloudSync_duplicateDivers_description": "Die Synchronisierung hat mehr als ein Profil mit demselben Namen gefunden. Das passiert normalerweise, wenn jedes Gerät sein eigenes Profil erstellt hat, bevor die Synchronisierung erfolgte. Beim Zusammenführen werden alle Tauchgänge und Daten in ein Profil verschoben.",
+  "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} Profile)",
+  "settings_cloudSync_duplicateDivers_mergeButton": "Zusammenführen",
+  "settings_cloudSync_duplicateDivers_confirmTitle": "Taucherprofile zusammenführen?",
+  "settings_cloudSync_duplicateDivers_confirmBody": "Alle Tauchgänge, Zertifizierungen, Ausrüstung und andere Daten aus {count, plural, =1{einem doppelten Profil} other{{count} doppelten Profilen}} werden auf \"{name}\" verschoben. Dies kann nicht automatisch rückgängig gemacht werden.",
+  "settings_cloudSync_duplicateDivers_confirmCancel": "Abbrechen",
+  "settings_cloudSync_duplicateDivers_confirmAction": "Zusammenführen",
+  "settings_cloudSync_duplicateDivers_successSnack": "Zusammengeführt in {name}",
+  "settings_cloudSync_duplicateDivers_failureSnack": "Zusammenführung fehlgeschlagen: {error}"
 }

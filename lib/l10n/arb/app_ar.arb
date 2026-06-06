@@ -4720,5 +4720,15 @@
   "trips_deleteShared_body": "«{name}» مشتركة مع ملفات غوص أخرى. حذفها من هنا يزيلها للجميع.",
   "trips_deleteShared_title": "حذف الرحلة المشتركة؟",
   "trips_unshareConfirm_body": "سيؤدي هذا إلى إزالة «{name}» من عروض ملفات الغوص الأخرى. يمكنك مشاركتها مرة أخرى لاحقًا.",
-  "trips_unshareConfirm_title": "إلغاء مشاركة هذه الرحلة؟"
+  "trips_unshareConfirm_title": "إلغاء مشاركة هذه الرحلة؟",
+  "settings_cloudSync_duplicateDivers_title": "ملفات غواصين مكررة",
+  "settings_cloudSync_duplicateDivers_description": "وجد المزامنة أكثر من ملف شخصي بالاسم نفسه. يحدث ذلك عادةً عندما أنشأ كل جهاز ملفه الشخصي قبل المزامنة. يؤدي الدمج إلى نقل جميع الغطسات والبيانات إلى ملف واحد.",
+  "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} ملفات)",
+  "settings_cloudSync_duplicateDivers_mergeButton": "دمج",
+  "settings_cloudSync_duplicateDivers_confirmTitle": "دمج ملفات الغواصين؟",
+  "settings_cloudSync_duplicateDivers_confirmBody": "سيتم نقل جميع الغطسات والشهادات والمعدات والبيانات الأخرى من {count, plural, =1{ملف مكرر} other{{count} ملفات مكررة}} إلى \"{name}\". لا يمكن التراجع عن هذا تلقائيًا.",
+  "settings_cloudSync_duplicateDivers_confirmCancel": "إلغاء",
+  "settings_cloudSync_duplicateDivers_confirmAction": "دمج",
+  "settings_cloudSync_duplicateDivers_successSnack": "تم الدمج في {name}",
+  "settings_cloudSync_duplicateDivers_failureSnack": "فشل الدمج: {error}"
 }
