@@ -321,10 +321,48 @@ class SyncRepository {
   Future<void> ensureSyncClockConfigured() async {
     if (SyncClock.instance.isConfigured) return;
     final metadata = await getOrCreateMetadata();
-    SyncClock.instance.configure(
-      nodeId: metadata.deviceId,
-      persisted: _parseHlc(metadata.hlc),
+    // Seed from the greater of the persisted clock and the highest HLC already
+    // stamped on any entity row, then force our own node id. The persisted
+    // clock can lag the rows if the app was killed between syncs (it is only
+    // persisted at sync time but advanced in memory per write); seeding from
+    // the on-disk rows guarantees the next local write is never ordered behind
+    // data this device already wrote -- which would otherwise let a remote win
+    // a record the local device edited more recently.
+    final seed = _seedHlc(
+      metadata.deviceId,
+      _parseHlc(metadata.hlc),
+      _parseHlc(await _maxRowHlc()),
     );
+    SyncClock.instance.configure(nodeId: metadata.deviceId, persisted: seed);
+  }
+
+  /// The highest `hlc` value across every conflict-capable table, or null if
+  /// none has one yet. Lexically comparable because the packed format zero-pads
+  /// physical time and counter.
+  Future<String?> _maxRowHlc() async {
+    final union = _hlcTargets.values
+        .map((t) => 'SELECT MAX(hlc) AS h FROM "${t.table}"')
+        .join(' UNION ALL ');
+    final row = await _db
+        .customSelect('SELECT MAX(h) AS m FROM ($union)')
+        .getSingleOrNull();
+    return row?.read<String?>('m');
+  }
+
+  /// Pick the greater of [a]/[b] by (physicalTime, counter) and rebuild it with
+  /// [nodeId] so the clock always issues under THIS device's identity.
+  Hlc? _seedHlc(String nodeId, Hlc? a, Hlc? b) {
+    Hlc? best;
+    for (final h in [a, b]) {
+      if (h == null) continue;
+      if (best == null ||
+          h.physicalTime > best.physicalTime ||
+          (h.physicalTime == best.physicalTime && h.counter > best.counter)) {
+        best = h;
+      }
+    }
+    if (best == null) return null;
+    return Hlc(best.physicalTime, best.counter, nodeId);
   }
 
   /// Persist the current [SyncClock] value so the logical counter survives an

@@ -907,6 +907,13 @@ class SyncDataSerializer {
             .insertOnConflictUpdate(TideRecord.fromJson(data));
         return;
       case 'settings':
+        // Never let an incoming payload overwrite a device-local settings key
+        // (e.g. active_diver_id). Export filters these, but a peer on an older
+        // build may still ship them; applying would switch this device's
+        // active diver. Symmetric with _exportSettings.
+        if (_deviceLocalSettingsKeys.contains(data['key'])) {
+          return;
+        }
         await _db
             .into(_db.settings)
             .insertOnConflictUpdate(Setting.fromJson(data));

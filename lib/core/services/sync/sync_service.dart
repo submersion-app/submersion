@@ -739,51 +739,75 @@ class SyncService {
   ) async {
     var applied = 0;
     var conflicts = 0;
+    var failed = 0;
 
     for (final entry in deletions.entries) {
       final entityType = entry.key;
       for (final deletion in entry.value) {
         final recordId = deletion.id;
-        if (pendingByEntity[entityType]?.contains(recordId) == true) {
-          continue;
-        }
-        final local = await _serializer.fetchRecord(entityType, recordId);
-        final localUpdatedAt = _extractUpdatedAtMillis(local);
-        final deletionTimestamp = deletion.deletedAt > 0
-            ? deletion.deletedAt
-            : remoteExportedAt;
+        try {
+          if (pendingByEntity[entityType]?.contains(recordId) == true) {
+            continue;
+          }
+          final local = await _serializer.fetchRecord(entityType, recordId);
+          // _extractUpdatedAtMillis falls back to createdAt, so a row that was
+          // created locally after our last sync is protected from a stale
+          // remote tombstone even on append-only child tables that have a
+          // createdAt. The handful of child tables with neither updatedAt nor
+          // createdAt (dive_profiles, dive_tanks, dive_equipment,
+          // tank_pressure_profiles, sightings) have no age signal; they are
+          // regenerated wholesale with fresh ids on re-import, so a stale
+          // tombstone won't match a current row.
+          final localUpdatedAt = _extractUpdatedAtMillis(local);
+          final deletionTimestamp = deletion.deletedAt > 0
+              ? deletion.deletedAt
+              : remoteExportedAt;
 
-        final hasConflict =
-            localUpdatedAt != null &&
-            lastSyncMs != null &&
-            localUpdatedAt > lastSyncMs;
+          final hasConflict =
+              localUpdatedAt != null &&
+              lastSyncMs != null &&
+              localUpdatedAt > lastSyncMs;
 
-        if (hasConflict) {
-          conflicts += 1;
-          await _syncRepository.markRecordConflict(
+          if (hasConflict) {
+            conflicts += 1;
+            await _syncRepository.markRecordConflict(
+              entityType: entityType,
+              recordId: recordId,
+              conflictDataJson: jsonEncode({
+                '_deleted': true,
+                'deletedAt': deletionTimestamp,
+                'recordId': recordId,
+              }),
+              localUpdatedAt: localUpdatedAt,
+            );
+            continue;
+          }
+
+          await _serializer.deleteRecord(entityType, recordId);
+          await _syncRepository.logDeletionIfMissing(
             entityType: entityType,
             recordId: recordId,
-            conflictDataJson: jsonEncode({
-              '_deleted': true,
-              'deletedAt': deletionTimestamp,
-              'recordId': recordId,
-            }),
-            localUpdatedAt: localUpdatedAt,
+            deletedAt: deletionTimestamp,
           );
-          continue;
+          applied += 1;
+        } catch (e, stackTrace) {
+          // A failed deletion is a real failure (surfaced via recordsFailed),
+          // not a conflict, and must not abort the rest of the batch.
+          _log.error(
+            'Failed to apply deletion $entityType/$recordId',
+            error: e,
+            stackTrace: stackTrace,
+          );
+          failed += 1;
         }
-
-        await _serializer.deleteRecord(entityType, recordId);
-        await _syncRepository.logDeletionIfMissing(
-          entityType: entityType,
-          recordId: recordId,
-          deletedAt: deletionTimestamp,
-        );
-        applied += 1;
       }
     }
 
-    return _MergeResult(recordsApplied: applied, conflictsFound: conflicts);
+    return _MergeResult(
+      recordsApplied: applied,
+      conflictsFound: conflicts,
+      recordsFailed: failed,
+    );
   }
 
   Future<_MergeResult> _mergeEntity({
@@ -807,7 +831,10 @@ class SyncService {
       try {
         recordId = _recordIdForEntity(entityType, record);
         if (recordId == null) {
-          conflicts += 1;
+          // A record with no resolvable id is malformed data, not a two-sided
+          // conflict -- count it as a failure so performSync surfaces an error.
+          _log.error('Skipping $entityType record with no resolvable id');
+          failed += 1;
           continue;
         }
 

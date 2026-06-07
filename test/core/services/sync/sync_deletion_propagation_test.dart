@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -159,5 +163,66 @@ void main() {
         );
       },
     );
+
+    test('a remote tombstone does NOT delete a child row created locally after '
+        'the last sync (createdAt-based conflict protection)', () async {
+      final serializer = SyncDataSerializer();
+
+      // Local: a site + species + a site-species link created at t=8000.
+      await serializer.upsertRecord('diveSites', {
+        'id': 'site-m3',
+        'name': 'Wall',
+        'description': '',
+        'notes': '',
+        'isShared': false,
+        'createdAt': 1000,
+        'updatedAt': 1000,
+      });
+      await serializer.upsertRecord('species', {
+        'id': 'sp-m3',
+        'commonName': 'Grouper',
+        'category': 'fish',
+        'isBuiltIn': false,
+      });
+      await serializer.upsertRecord('siteSpecies', {
+        'id': 'ss-keep',
+        'siteId': 'site-m3',
+        'speciesId': 'sp-m3',
+        'notes': 'local edit',
+        'createdAt': 8000, // after the last sync below
+      });
+
+      // A foreign device's payload carrying a tombstone for that same link.
+      const data = SyncData();
+      final checksum = sha256
+          .convert(utf8.encode(jsonEncode(data.toJson())))
+          .toString();
+      final payload = SyncPayload(
+        version: syncFormatVersion,
+        exportedAt: 9000,
+        deviceId: 'remote-dev',
+        checksum: checksum,
+        data: data,
+        deletions: {
+          'siteSpecies': [const SyncDeletion(id: 'ss-keep', deletedAt: 5000)],
+        },
+      );
+      await cloud.uploadFile(
+        Uint8List.fromList(utf8.encode(serializer.serializePayload(payload))),
+        'submersion_sync_remote-dev.json',
+      );
+
+      await impersonateFreshDevice();
+      await setLastSync(DateTime.fromMillisecondsSinceEpoch(4000));
+      await buildService().performSync();
+
+      expect(
+        await serializer.fetchRecord('siteSpecies', 'ss-keep'),
+        isNotNull,
+        reason:
+            'the local row was created (8000) after last sync (4000), so '
+            'a stale remote tombstone must not delete it',
+      );
+    });
   });
 }

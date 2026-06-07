@@ -46,11 +46,13 @@ void main() {
       () async {
         final serializer = SyncDataSerializer();
 
-        await serializer.upsertRecord('settings', {
-          'key': 'active_diver_id',
-          'value': 'diver-A-uuid',
-          'updatedAt': 1000,
-        });
+        // Seed active_diver_id via a DIRECT db write -- upsertRecord now
+        // filters device-local keys on import, so we must bypass it to get the
+        // row into the table and prove the EXPORT filter independently.
+        await DatabaseService.instance.database.customStatement(
+          "INSERT INTO settings (key, value, updated_at) "
+          "VALUES ('active_diver_id', 'diver-A-uuid', 1000)",
+        );
 
         // Seed a second, non-device-local setting so the test also proves the
         // filter is targeted, not a blanket "drop all settings" change.
@@ -81,5 +83,36 @@ void main() {
         );
       },
     );
+
+    test('importing a device-local settings key does not overwrite the local '
+        'value (peer on an older build)', () async {
+      final serializer = SyncDataSerializer();
+      final db = DatabaseService.instance.database;
+
+      // This device has its own active diver pointer.
+      await db.customStatement(
+        "INSERT INTO settings (key, value, updated_at) "
+        "VALUES ('active_diver_id', 'my-diver', 1000)",
+      );
+
+      // A remote payload (from an older build that still exports it) tries to
+      // overwrite it with a foreign diver id.
+      await serializer.upsertRecord('settings', {
+        'key': 'active_diver_id',
+        'value': 'foreign-diver',
+        'updatedAt': 9999,
+      });
+
+      final row = await db
+          .customSelect(
+            "SELECT value FROM settings WHERE key = 'active_diver_id'",
+          )
+          .getSingle();
+      expect(
+        row.read<String>('value'),
+        'my-diver',
+        reason: 'device-local key must not be overwritten on import',
+      );
+    });
   });
 }
