@@ -239,6 +239,81 @@ void main() {
       },
     );
 
+    group('empty and whitespace strings are treated as absent', () {
+      test(
+        'subtitle is null when all three fields are empty strings',
+        () async {
+          final centerId = await insertDiveCenter(
+            id: 'dc-all-empty',
+            name: 'Empty Divers',
+            city: '',
+            stateProvince: '',
+            country: '',
+          );
+          await insertDiveWithCenter(diveCenterId: centerId);
+
+          final results = await repository.getTopDiveCenters();
+
+          expect(results, hasLength(1));
+          expect(results.first.subtitle, isNull);
+        },
+      );
+
+      test(
+        'subtitle is null when all three fields are space-only strings',
+        () async {
+          final centerId = await insertDiveCenter(
+            id: 'dc-all-whitespace',
+            name: 'Whitespace Divers',
+            city: '   ',
+            stateProvince: '  ',
+            country: '  ',
+          );
+          await insertDiveWithCenter(diveCenterId: centerId);
+
+          final results = await repository.getTopDiveCenters();
+
+          expect(results, hasLength(1));
+          expect(results.first.subtitle, isNull);
+        },
+      );
+
+      test('empty city is skipped; state and country are used', () async {
+        final centerId = await insertDiveCenter(
+          id: 'dc-empty-city',
+          name: 'No City Divers',
+          city: '',
+          stateProvince: 'Queensland',
+          country: 'Australia',
+        );
+        await insertDiveWithCenter(diveCenterId: centerId);
+
+        final results = await repository.getTopDiveCenters();
+
+        expect(results, hasLength(1));
+        expect(results.first.subtitle, equals('Queensland, Australia'));
+      });
+
+      test(
+        'whitespace city is skipped; real city is not trimmed away',
+        () async {
+          final centerId = await insertDiveCenter(
+            id: 'dc-real-city',
+            name: 'Real City Divers',
+            city: '  Miami  ',
+            stateProvince: null,
+            country: null,
+          );
+          await insertDiveWithCenter(diveCenterId: centerId);
+
+          final results = await repository.getTopDiveCenters();
+
+          expect(results, hasLength(1));
+          expect(results.first.subtitle, equals('Miami'));
+        },
+      );
+    });
+
     test('ranks centers by dive count descending', () async {
       final center1 = await insertDiveCenter(
         id: 'dc-rank-1',
