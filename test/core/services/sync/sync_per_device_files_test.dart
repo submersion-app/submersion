@@ -104,8 +104,10 @@ void main() {
 
     test('pull applies every other device file in the folder', () async {
       final diveRepo = DiveRepository();
-      final mapA = await validDiveMap('dive-from-A');
-      final mapB = await validDiveMap('dive-from-B');
+      // Distinct maxDepth per device so we verify the actual content merged,
+      // not merely that a row exists (which one file alone could satisfy).
+      final mapA = {...await validDiveMap('dive-from-A'), 'maxDepth': 11.0};
+      final mapB = {...await validDiveMap('dive-from-B'), 'maxDepth': 22.0};
 
       await cloud.uploadFile(
         await craftDeviceFile('device-A', [mapA]),
@@ -119,15 +121,19 @@ void main() {
       final result = await buildService().performSync();
       expect(result.status, isNot(SyncResultStatus.error));
 
+      final a = await diveRepo.getDiveById('dive-from-A');
+      final b = await diveRepo.getDiveById('dive-from-B');
       expect(
-        await diveRepo.getDiveById('dive-from-A'),
-        isNotNull,
-        reason: 'device A\'s file should be applied',
+        a?.maxDepth,
+        11.0,
+        reason: 'device A\'s file should be applied with its field values',
       );
       expect(
-        await diveRepo.getDiveById('dive-from-B'),
-        isNotNull,
-        reason: 'device B\'s file should be applied (all device files merge)',
+        b?.maxDepth,
+        22.0,
+        reason:
+            'device B\'s file should also be applied (all files merge), '
+            'proving both files were read, not just one',
       );
     });
 

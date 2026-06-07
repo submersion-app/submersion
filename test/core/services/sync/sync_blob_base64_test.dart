@@ -104,5 +104,66 @@ void main() {
           : Uint8List.fromList((blob as List).cast<int>());
       expect(bytes, [0x01, 0x02, 0x03]);
     });
+
+    test('a null BLOB round-trips as null (no spurious empty bytes)', () async {
+      final serializer = SyncDataSerializer();
+      final diveRepo = DiveRepository();
+      await diveRepo.createDive(
+        createTestDiveWithBottomTime(id: 'dive-nullblob', diveNumber: 203),
+      );
+      await serializer.upsertRecord('diveDataSources', {
+        'id': 'ds-null',
+        'diveId': 'dive-nullblob',
+        'isPrimary': false,
+        'importedAt': 1700000000000,
+        'createdAt': 1700000000000,
+        'rawFingerprint': null,
+      });
+
+      await buildService().performSync();
+      final payload = serializer.deserializePayload(
+        utf8.decode(cloud.syncFileBytes()!),
+      );
+      final row = payload.data.diveDataSources.firstWhere(
+        (r) => r['id'] == 'ds-null',
+      );
+      expect(
+        row['rawFingerprint'],
+        isNull,
+        reason: 'a null BLOB must export as null, not "" or []',
+      );
+    });
+
+    test('a large BLOB survives the base64 round-trip intact', () async {
+      final serializer = SyncDataSerializer();
+      final diveRepo = DiveRepository();
+      await diveRepo.createDive(
+        createTestDiveWithBottomTime(id: 'dive-bigblob', diveNumber: 204),
+      );
+      // 16 KB with every byte value cycling, to catch any encoding truncation.
+      final big = Uint8List.fromList(List.generate(16384, (i) => i % 256));
+      await serializer.upsertRecord('diveDataSources', {
+        'id': 'ds-big',
+        'diveId': 'dive-bigblob',
+        'isPrimary': false,
+        'importedAt': 1700000000000,
+        'createdAt': 1700000000000,
+        'rawFingerprint': big,
+      });
+
+      final restored = await serializer.fetchRecord(
+        'diveDataSources',
+        'ds-big',
+      );
+      final blob = restored!['rawFingerprint'];
+      final bytes = blob is String
+          ? base64Decode(blob)
+          : Uint8List.fromList((blob as List).cast<int>());
+      expect(
+        bytes,
+        big,
+        reason: 'a large BLOB must not be truncated/corrupted',
+      );
+    });
   });
 }

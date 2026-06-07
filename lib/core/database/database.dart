@@ -1426,7 +1426,7 @@ class ScheduledNotifications extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// User-saved CSV import presets (local-only, not synced)
+/// User-saved CSV import presets (synced across devices; carries an hlc column)
 class CsvPresets extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();

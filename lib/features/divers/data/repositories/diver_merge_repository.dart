@@ -80,10 +80,12 @@ class DiverMergeRepository {
   /// should not accumulate across devices when divers are merged. The keeper's
   /// rows win and the duplicate's rows are dropped rather than repointed.
   ///
-  /// (Note: there are no unique constraints on `diver_id` in these tables, so
-  /// repointing would not crash -- it would just leave the keeper with two of
-  /// every config row, which is worse UX than the keeper's existing config
-  /// winning unconditionally for these auto-generated layouts/settings.)
+  /// `view_configs` has a UNIQUE(diver_id, view_mode) index, so repointing the
+  /// duplicate's rows onto a keeper that already has a row for that view mode
+  /// would violate the constraint -- dropping is required, not just preferred.
+  /// `diver_settings` has no such constraint, but repointing would leave the
+  /// keeper with two settings rows; keeping the keeper's own is the right UX
+  /// for this auto-generated config.
   ///
   /// `field_presets` is intentionally NOT in this set: those are user-named
   /// custom presets and losing them would be real data loss; they are
