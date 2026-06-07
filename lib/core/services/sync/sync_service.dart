@@ -314,12 +314,12 @@ class SyncService {
       var recordsFailed = 0;
 
       for (final file in remoteFiles) {
-        // Per-file freshness: skip files not modified since our last sync.
-        if (lastSyncTime != null && !file.modifiedTime.isAfter(lastSyncTime)) {
-          _log.debug('${file.name} not newer than last sync; skipping.');
-          continue;
-        }
-
+        // NOTE: we intentionally do NOT skip files by their cloud
+        // modifiedTime. iCloud Drive can fail to advance that metadata after a
+        // conflict-copy merge, which would silently skip a file containing new
+        // records; and skipping a file whose record failed to apply once would
+        // drop it forever. Re-applying is idempotent (upsert + HLC), so we
+        // always download and merge every foreign file.
         SyncPayload payload;
         try {
           final remoteData = await provider
@@ -343,8 +343,11 @@ class SyncService {
           continue;
         }
 
-        if (payload.deviceId != deviceId) {
-          _log.info('Remote data from different device: ${payload.deviceId}');
+        // Skip our own data by payload identity (covers a legacy shared file
+        // or an iCloud conflict-copy this device authored) -- applying it to
+        // ourselves is a no-op that only inflates counts.
+        if (payload.deviceId == deviceId) {
+          continue;
         }
 
         final mergeResult = await _withStep(
@@ -409,10 +412,17 @@ class SyncService {
         'store remote file id',
         () => _syncRepository.setRemoteFileId(result.fileId),
       );
-      await _withStep(
-        'store last sync time',
-        () => _syncRepository.updateLastSyncTime(result.uploadTime),
-      );
+      // Only advance lastSyncTime when every record applied. A failed apply
+      // leaves no per-record retry marker, so advancing lastSync would let the
+      // conflict-detection window move past it and the record would never be
+      // retried -- permanent loss. Leaving lastSync unchanged means the next
+      // sync re-pulls and re-applies (idempotent) so the failure is retried.
+      if (recordsFailed == 0) {
+        await _withStep(
+          'store last sync time',
+          () => _syncRepository.updateLastSyncTime(result.uploadTime),
+        );
+      }
       // Persist the HLC so the logical counter survives an app restart (it
       // was advanced by SyncClock.receive() while applying remote payloads).
       await _withStep(
@@ -823,6 +833,21 @@ class SyncService {
           SyncClock.instance.receive(remoteHlc);
         }
 
+        // When BOTH sides carry an HLC it is the authoritative, deterministic
+        // resolution -- it already encodes causal order across devices, so we
+        // do NOT raise a manual conflict (that would defeat the purpose of the
+        // clock for the common concurrent-edit case). A strictly-greater
+        // remote HLC wins; an exact tie or a local-newer HLC keeps local.
+        if (localHlc != null && remoteHlc != null) {
+          if (remoteHlc.compareTo(localHlc) > 0) {
+            await _serializer.upsertRecord(entityType, record);
+            applied += 1;
+          }
+          continue;
+        }
+
+        // Pre-HLC fallback (one or both sides lack an HLC): use updatedAt, and
+        // surface a true two-sided edit since the last sync as a conflict.
         if (localUpdatedAt != null &&
             remoteUpdatedAt != null &&
             lastSyncMs != null &&
@@ -839,20 +864,9 @@ class SyncService {
           continue;
         }
 
-        // Winner selection: prefer the Hybrid Logical Clock when BOTH sides
-        // carry one (immune to wall-clock skew); otherwise fall back to the
-        // updatedAt comparison for rows written before HLC rollout.
-        final bool remoteWins;
-        if (localHlc != null && remoteHlc != null) {
-          remoteWins = remoteHlc.compareTo(localHlc) >= 0;
-        } else {
-          remoteWins =
-              remoteUpdatedAt == null ||
-              localUpdatedAt == null ||
-              remoteUpdatedAt >= localUpdatedAt;
-        }
-
-        if (remoteWins) {
+        if (remoteUpdatedAt == null ||
+            localUpdatedAt == null ||
+            remoteUpdatedAt >= localUpdatedAt) {
           await _serializer.upsertRecord(entityType, record);
           applied += 1;
         }

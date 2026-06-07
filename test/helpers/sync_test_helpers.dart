@@ -23,3 +23,11 @@ Future<void> impersonateFreshDevice() async {
   );
   await repo.resetSyncState();
 }
+
+/// Force a non-null last-sync timestamp on the current device. Conflict
+/// detection in `_mergeEntity` only engages when `lastSync != null`, so tests
+/// that exercise the concurrent-edit / conflict path must set this after
+/// seeding but before the conflicting pull.
+Future<void> setLastSync(DateTime time) async {
+  await SyncRepository().updateLastSyncTime(time);
+}

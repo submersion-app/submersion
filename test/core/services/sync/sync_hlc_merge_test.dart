@@ -152,6 +152,122 @@ void main() {
       );
     });
 
+    test('HLC resolves a concurrent edit (both edited since last sync) instead '
+        'of flagging a conflict', () async {
+      final serializer = SyncDataSerializer();
+      final diveRepo = DiveRepository();
+      final base = await baseDiveMap('dive-concurrent');
+
+      // Local: edited at updatedAt 5000 with a LOWER hlc.
+      await serializer.upsertRecord('dives', {
+        ...base,
+        'maxDepth': 10.0,
+        'updatedAt': 5000,
+        'hlc': hlcAt(1000, 'local'),
+      });
+      // Remote: also edited since last sync (updatedAt 6000) with a HIGHER
+      // hlc. Both > lastSync, so the legacy path would mark a conflict.
+      await uploadDeviceFile('remote-dev', {
+        ...base,
+        'maxDepth': 99.0,
+        'updatedAt': 6000,
+        'hlc': hlcAt(9000, 'remote-dev'),
+      });
+
+      await impersonateFreshDevice();
+      await setLastSync(DateTime.fromMillisecondsSinceEpoch(4000));
+      final result = await buildService().performSync();
+
+      expect(
+        result.conflictsFound,
+        0,
+        reason:
+            'when both sides carry an HLC, it resolves the edit; no '
+            'manual conflict should be raised',
+      );
+      final restored = await diveRepo.getDiveById('dive-concurrent');
+      expect(
+        restored!.maxDepth,
+        99.0,
+        reason: 'higher HLC wins the concurrent edit',
+      );
+    });
+
+    test(
+      'still raises a conflict for a concurrent edit when NEITHER side has an '
+      'HLC (pre-rollout rows)',
+      () async {
+        final serializer = SyncDataSerializer();
+        final diveRepo = DiveRepository();
+        final base = await baseDiveMap('dive-nohlc-conflict');
+
+        await serializer.upsertRecord('dives', {
+          ...base,
+          'maxDepth': 10.0,
+          'updatedAt': 5000,
+          'hlc': null,
+        });
+        await uploadDeviceFile('remote-dev', {
+          ...base,
+          'maxDepth': 99.0,
+          'updatedAt': 6000,
+          'hlc': null,
+        });
+
+        await impersonateFreshDevice();
+        await setLastSync(DateTime.fromMillisecondsSinceEpoch(4000));
+        final result = await buildService().performSync();
+
+        expect(
+          result.conflictsFound,
+          greaterThan(0),
+          reason:
+              'without HLCs, a both-edited-since-last-sync case is still a '
+              'conflict (updatedAt fallback)',
+        );
+        final restored = await diveRepo.getDiveById('dive-nohlc-conflict');
+        expect(
+          restored!.maxDepth,
+          10.0,
+          reason:
+              'a conflict is not auto-applied; local is kept pending review',
+        );
+      },
+    );
+
+    test(
+      'an exact HLC tie keeps the local record (does not overwrite)',
+      () async {
+        final serializer = SyncDataSerializer();
+        final diveRepo = DiveRepository();
+        final base = await baseDiveMap('dive-tie');
+
+        const tie = '000000000005000:000000:same-node';
+        await serializer.upsertRecord('dives', {
+          ...base,
+          'maxDepth': 10.0,
+          'updatedAt': 1000,
+          'hlc': tie,
+        });
+        await uploadDeviceFile('remote-dev', {
+          ...base,
+          'maxDepth': 99.0,
+          'updatedAt': 2000,
+          'hlc': tie,
+        });
+
+        await impersonateFreshDevice();
+        await buildService().performSync();
+
+        final restored = await diveRepo.getDiveById('dive-tie');
+        expect(
+          restored!.maxDepth,
+          10.0,
+          reason: 'an exact HLC tie must not silently overwrite the local row',
+        );
+      },
+    );
+
     test(
       'falls back to updatedAt when an HLC is absent on either side',
       () async {
