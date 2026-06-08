@@ -866,12 +866,34 @@ class StatisticsRepository {
       final params = diverId != null ? [diverId, limit] : [limit];
 
       final results = await _db.customSelect('''
+        WITH dc_clean AS (
+          SELECT
+            id,
+            name,
+            NULLIF(TRIM(city), '')           AS city,
+            NULLIF(TRIM(state_province), '') AS state_province,
+            NULLIF(TRIM(country), '')        AS country
+          FROM dive_centers
+        )
         SELECT
           dc.id,
           dc.name,
-          dc.location,
+          CASE
+            WHEN dc.city IS NOT NULL AND dc.state_province IS NOT NULL AND dc.country IS NOT NULL
+              THEN dc.city || ', ' || dc.state_province || ', ' || dc.country
+            WHEN dc.city IS NOT NULL AND dc.country IS NOT NULL
+              THEN dc.city || ', ' || dc.country
+            WHEN dc.city IS NOT NULL AND dc.state_province IS NOT NULL
+              THEN dc.city || ', ' || dc.state_province
+            WHEN dc.state_province IS NOT NULL AND dc.country IS NOT NULL
+              THEN dc.state_province || ', ' || dc.country
+            WHEN dc.city IS NOT NULL THEN dc.city
+            WHEN dc.state_province IS NOT NULL THEN dc.state_province
+            WHEN dc.country IS NOT NULL THEN dc.country
+            ELSE NULL
+          END AS location,
           COUNT(d.id) AS dive_count
-        FROM dive_centers dc
+        FROM dc_clean dc
         JOIN dives d ON d.dive_center_id = dc.id
         WHERE 1=1 $diverFilter
         GROUP BY dc.id
