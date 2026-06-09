@@ -1368,13 +1368,31 @@ class StatisticsRepository {
 
       final results = await _db.customSelect('''
         SELECT
-          AVG(surface_interval_seconds / 60.0) AS avg_si,
-          MIN(surface_interval_seconds / 60.0) AS min_si,
-          MAX(surface_interval_seconds / 60.0) AS max_si
-        FROM dives
-        $diverFilter
-          ${diverFilter.isEmpty ? 'WHERE' : 'AND'} surface_interval_seconds IS NOT NULL
-          AND surface_interval_seconds > 0
+          AVG(effective_si / 60.0) AS avg_si,
+          MIN(effective_si / 60.0) AS min_si,
+          MAX(effective_si / 60.0) AS max_si
+        FROM (
+          SELECT
+            COALESCE(
+              d.surface_interval_seconds,
+              CASE
+                WHEN d.entry_time IS NOT NULL
+                THEN (
+                  d.entry_time - (
+                    SELECT MAX(d2.exit_time)
+                    FROM dives d2
+                    WHERE d2.diver_id = d.diver_id
+                      AND d2.exit_time IS NOT NULL
+                      AND d2.exit_time < d.entry_time
+                  )
+                ) / 1000.0
+                ELSE NULL
+              END
+            ) AS effective_si
+          FROM dives d
+          $diverFilter
+        )
+        WHERE effective_si IS NOT NULL AND effective_si > 0
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       if (results.isEmpty) {
