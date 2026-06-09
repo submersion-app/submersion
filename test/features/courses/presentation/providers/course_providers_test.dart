@@ -189,10 +189,12 @@ void main() {
       );
     });
 
-    test('silent reload surfaces an AsyncError when getAll throws', () async {
+    test('reports AsyncError when the initial load throws', () async {
       await seedCurrentDiver();
 
-      // Use the throwing repository so the load/silent-reload catch branch runs.
+      // A repository that always throws makes the notifier's initial load
+      // (_loadCourses) fail, exercising its error catch branch. No table-change
+      // tick is involved here.
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),

@@ -190,11 +190,12 @@ void main() {
       );
     });
 
-    test('silent reload surfaces an AsyncError when getAll throws', () async {
+    test('reports AsyncError when the initial load throws', () async {
       await seedCurrentDiver();
 
-      // Use the real repository to drive the table-change tick, but make
-      // getAllCertifications throw so the silent-reload catch branch runs.
+      // A repository whose getAllCertifications always throws makes the
+      // notifier's initial load (_loadCertifications) fail, exercising its
+      // error catch branch. No table-change tick is involved here.
       final throwing = _ThrowingCertificationRepository();
       final container = ProviderContainer(
         overrides: [

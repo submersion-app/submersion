@@ -171,7 +171,7 @@ void main() {
       );
     });
 
-    test('silent reload surfaces AsyncError when getAll throws', () async {
+    test('reports AsyncError when the initial load throws', () async {
       await seedCurrentDiver();
 
       final container = ProviderContainer(
