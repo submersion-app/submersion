@@ -160,6 +160,31 @@ class SyncRepository {
     return metadata.deviceId;
   }
 
+  /// Get this database's instance token, or null if none has been set yet
+  /// (rows predating the column, or a freshly created/restored database).
+  Future<String?> getInstanceToken() async {
+    final metadata = await getOrCreateMetadata();
+    return metadata.instanceToken;
+  }
+
+  /// Generate and persist a fresh instance token, returning it.
+  ///
+  /// Rotating the token on each launch is what lets a later restore of an older
+  /// backup be detected even when the device id is unchanged: the backup
+  /// carries a superseded token that no longer matches the copy mirrored
+  /// outside the database. See [SyncInitializer.reconcileDeviceIdentity].
+  Future<String> rotateInstanceToken() async {
+    await getOrCreateMetadata();
+    final token = _uuid.v4();
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(
+      _db.syncMetadata,
+    )..where((t) => t.id.equals(_globalMetadataId))).write(
+      SyncMetadataCompanion(instanceToken: Value(token), updatedAt: Value(now)),
+    );
+    return token;
+  }
+
   /// Get the last sync timestamp
   Future<DateTime?> getLastSyncTime() async {
     final metadata = await getOrCreateMetadata();

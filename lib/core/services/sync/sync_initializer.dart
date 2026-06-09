@@ -11,9 +11,16 @@ class SyncInitializer {
   static const _lastProviderKey = 'sync_last_provider';
 
   /// Mirrors the in-DB sync device id outside the database (which a restore
-  /// would otherwise rewind silently). A mismatch on launch is the signal that
+  /// would otherwise rewind silently). A mismatch on launch is one signal that
   /// the database was replaced by a restore. See [reconcileDeviceIdentity].
   static const _deviceIdSentinelKey = 'sync_device_id_sentinel';
+
+  /// Mirrors the database instance token outside the database. The token is
+  /// rotated each launch, so a restored backup carries a stale token that no
+  /// longer matches this copy -- the primary restore signal, and the one that
+  /// catches a same-device backup (whose device id is unchanged). See
+  /// [reconcileDeviceIdentity].
+  static const _dbInstanceTokenKey = 'sync_db_instance_token';
 
   final SyncRepository _syncRepository;
   final SharedPreferences _prefs;
@@ -47,51 +54,74 @@ class SyncInitializer {
     }
   }
 
-  /// Reconcile this installation's sync identity against the device id mirrored
+  /// Reconcile this installation's sync identity against the anchors mirrored
   /// outside the database, detecting (and recovering from) a database restore.
   ///
   /// All sync bookkeeping (device id, HLC clock, last-sync timestamp, cursors,
   /// deletion log) lives inside the database, so a whole-DB restore rewinds it
   /// to the backup's snapshot -- which stalls sync and lets a peer's still-live
-  /// copy keep resurrecting deletes. The device id mirrored in SharedPreferences
-  /// survives the restore, so a mismatch between it and the restored in-DB
-  /// device id is the signal that a restore happened.
+  /// copy keep resurrecting deletes. Two values mirrored in SharedPreferences
+  /// survive the restore and reveal it:
   ///
-  /// - No sentinel yet: record the current id ([DeviceIdentityStatus.seeded]).
-  ///   A restore that predates the sentinel cannot be detected this way; such a
-  ///   device needs a one-time manual Reset Sync State to recover.
-  /// - Sentinel matches: nothing to do ([DeviceIdentityStatus.unchanged]).
-  /// - Sentinel differs: a restore swapped the database. Re-baseline sync,
-  ///   preserving the live identity from the sentinel
+  /// - the **instance token** (rotated each launch) -- the primary signal. A
+  ///   restored backup carries a stale token that no longer matches the mirror,
+  ///   so this catches even a same-device backup whose device id is unchanged.
+  /// - the **device id** -- a secondary signal; a restored foreign backup also
+  ///   changes the in-DB device id. It additionally names the identity to
+  ///   preserve through the re-baseline.
+  ///
+  /// Outcomes:
+  /// - No anchors yet: establish them ([DeviceIdentityStatus.seeded]). A restore
+  ///   predating the anchors cannot be detected and needs a one-time manual
+  ///   Reset Sync State to recover.
+  /// - On-disk DB is the one we last wrote: rotate the token and continue
+  ///   ([DeviceIdentityStatus.unchanged]).
+  /// - On-disk DB is not the one we last wrote: a restore swapped it.
+  ///   Re-baseline sync, preserving the live device identity
   ///   ([DeviceIdentityStatus.rebaselined]).
   ///
   /// Never throws: a reconcile failure must not block app launch.
   Future<DeviceIdentityStatus> reconcileDeviceIdentity() async {
     try {
       final deviceId = await _syncRepository.getDeviceId();
-      final sentinel = _prefs.getString(_deviceIdSentinelKey);
+      final dbToken = await _syncRepository.getInstanceToken();
+      final mirroredToken = _prefs.getString(_dbInstanceTokenKey);
+      final sentinelDeviceId = _prefs.getString(_deviceIdSentinelKey);
 
-      if (sentinel == null) {
-        await _prefs.setString(_deviceIdSentinelKey, deviceId);
-        _log.info('Seeded sync device-id sentinel');
+      // First run (or first launch after this detection shipped): nothing to
+      // compare against. Establish the anchors. A restore that predates them
+      // cannot be detected and needs a manual Reset Sync State.
+      if (mirroredToken == null || sentinelDeviceId == null) {
+        await _establishAnchors(deviceId);
+        _log.info('Seeded sync restore-detection anchors');
         return DeviceIdentityStatus.seeded;
       }
 
-      if (sentinel == deviceId) {
-        return DeviceIdentityStatus.unchanged;
+      // The on-disk DB must be the one we last wrote. The instance token is the
+      // primary signal (it catches a same-device backup, whose device id is
+      // unchanged); a device-id change is a secondary signal kept as a belt.
+      final restoreDetected =
+          dbToken == null ||
+          dbToken != mirroredToken ||
+          sentinelDeviceId != deviceId;
+
+      if (restoreDetected) {
+        _log.warning(
+          'On-disk database is not the one we last wrote (restore/overwrite '
+          'detected); re-baselining sync and restoring the live identity',
+        );
+        await _syncRepository.rebaselineAfterRestore(
+          preserveDeviceId: sentinelDeviceId,
+        );
+        // Re-establish anchors on the restored DB, mirroring the preserved id.
+        await _establishAnchors(sentinelDeviceId);
+        return DeviceIdentityStatus.rebaselined;
       }
 
-      // The database carries a different device id than the one we persisted
-      // outside it: the DB was replaced by a restore. Restore the live identity
-      // and clear the rewound baseline so the next sync fully reconciles.
-      _log.warning(
-        'Sync device id changed under us (database restore detected); '
-        're-baselining sync and restoring the live identity',
-      );
-      await _syncRepository.rebaselineAfterRestore(preserveDeviceId: sentinel);
-      // The sentinel already holds the live id we just restored, so it stays
-      // authoritative; no rewrite is needed.
-      return DeviceIdentityStatus.rebaselined;
+      // Normal launch: rotate the token so a backup taken of this state becomes
+      // distinguishable from the live DB on a future restore.
+      await _establishAnchors(deviceId);
+      return DeviceIdentityStatus.unchanged;
     } catch (e, stackTrace) {
       _log.error(
         'Device-identity reconcile failed; continuing launch',
@@ -100,6 +130,15 @@ class SyncInitializer {
       );
       return DeviceIdentityStatus.error;
     }
+  }
+
+  /// Rotate the database instance token and mirror it -- plus [deviceId] --
+  /// into SharedPreferences, so the next launch can tell whether the on-disk DB
+  /// is still the one we last wrote.
+  Future<void> _establishAnchors(String deviceId) async {
+    final token = await _syncRepository.rotateInstanceToken();
+    await _prefs.setString(_dbInstanceTokenKey, token);
+    await _prefs.setString(_deviceIdSentinelKey, deviceId);
   }
 
   /// Check sync status on app launch

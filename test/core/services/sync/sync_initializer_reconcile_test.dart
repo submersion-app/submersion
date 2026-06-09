@@ -157,6 +157,75 @@ void main() {
       );
     });
 
+    test('detects a same-device restore from the instance token alone', () async {
+      // Seed the anchors (device-id sentinel + instance token).
+      expect(
+        await initializer.reconcileDeviceIdentity(),
+        DeviceIdentityStatus.seeded,
+      );
+      final liveId = await repository.getDeviceId();
+
+      // A same-device hand-restore: the device id is unchanged (it is this
+      // device's own backup), so the device-id sentinel still matches. The only
+      // signal is that the restored DB carries a different instance token than
+      // the copy mirrored in prefs -- plus a rewound baseline.
+      await repository.rotateInstanceToken();
+      await repository.updateLastSyncTime(
+        DateTime.fromMillisecondsSinceEpoch(1000),
+      );
+      await repository.logDeletion(
+        entityType: 'dives',
+        recordId: 'old-tombstone',
+      );
+
+      final status = await initializer.reconcileDeviceIdentity();
+
+      expect(
+        status,
+        DeviceIdentityStatus.rebaselined,
+        reason:
+            'a token mismatch must trigger a rebaseline even when the device '
+            'id is unchanged (the same-device-backup blind spot)',
+      );
+      expect(
+        await repository.getDeviceId(),
+        liveId,
+        reason: 'the unchanged same-device identity is preserved',
+      );
+      expect(await repository.getLastSyncTime(), isNull);
+      expect(await repository.getAllDeletions(), isEmpty);
+
+      // The anchors are re-aligned, so the next launch is a plain no-op.
+      expect(
+        await initializer.reconcileDeviceIdentity(),
+        DeviceIdentityStatus.unchanged,
+      );
+    });
+
+    test('rotates the instance token on a normal launch', () async {
+      expect(
+        await initializer.reconcileDeviceIdentity(),
+        DeviceIdentityStatus.seeded,
+      );
+      final t1 = await repository.getInstanceToken();
+      expect(t1, isNotNull);
+
+      expect(
+        await initializer.reconcileDeviceIdentity(),
+        DeviceIdentityStatus.unchanged,
+      );
+      final t2 = await repository.getInstanceToken();
+
+      expect(t2, isNotNull);
+      expect(
+        t2,
+        isNot(t1),
+        reason:
+            'each launch rotates the token so a backup of this state becomes '
+            'detectable once the live token advances past it',
+      );
+    });
+
     test('returns error and never throws when the lookup fails', () async {
       final throwingInitializer = SyncInitializer(
         syncRepository: _ThrowingSyncRepository(),

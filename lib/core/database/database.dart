@@ -1315,6 +1315,12 @@ class SyncMetadata extends Table {
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
 
+  /// Opaque per-database token, rotated on each launch and mirrored outside the
+  /// database. A mismatch between this and the mirrored copy means the on-disk
+  /// database was replaced (restore/overwrite), even when the device id is
+  /// unchanged. Nullable: rows predating this column read as "no token yet".
+  TextColumn get instanceToken => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -1550,7 +1556,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 77;
+  static const int currentSchemaVersion = 78;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1631,6 +1637,7 @@ class AppDatabase extends _$AppDatabase {
     75,
     76,
     77,
+    78,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -3797,6 +3804,22 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 77) await reportProgress();
+        if (from < 78) {
+          // Add the nullable per-database instance token to sync_metadata. Used
+          // to detect a database restore/overwrite that leaves the device id
+          // unchanged (a same-device backup). Nullable so existing rows read as
+          // "no token yet" and are treated like a first-run seed.
+          final cols = await customSelect(
+            "PRAGMA table_info('sync_metadata')",
+          ).get();
+          final existing = cols.map((c) => c.read<String>('name')).toSet();
+          if (cols.isNotEmpty && !existing.contains('instance_token')) {
+            await customStatement(
+              'ALTER TABLE sync_metadata ADD COLUMN instance_token TEXT',
+            );
+          }
+        }
+        if (from < 78) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
