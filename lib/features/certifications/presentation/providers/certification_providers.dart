@@ -190,9 +190,13 @@ class CertificationListNotifier
 
   /// Reload without flipping to a loading state, so table-driven refreshes
   /// (e.g. after a sync write) do not flash a spinner over existing data.
-  /// Reuses the already-resolved [_validatedDiverId].
+  /// Resolves the validated diver id first so a tick arriving before
+  /// initialization completes still scopes the query correctly.
   Future<void> _silentReloadCertifications() async {
     try {
+      _validatedDiverId = await _ref.read(
+        validatedCurrentDiverIdProvider.future,
+      );
       final certifications = await _repository.getAllCertifications(
         diverId: _validatedDiverId,
       );

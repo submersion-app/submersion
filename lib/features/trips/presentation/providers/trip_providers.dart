@@ -318,6 +318,12 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
   /// the dives table, so this fires for both trip and dive table changes.
   Future<void> _silentReload() async {
     try {
+      // Resolve the validated diver id first: a tick can arrive before
+      // _initializeAndLoad() has populated _validatedDiverId, which would
+      // otherwise query with diverId: null and show unscoped stats.
+      _validatedDiverId = await _ref.read(
+        validatedCurrentDiverIdProvider.future,
+      );
       final trips = await _repository.getAllTripsWithStats(
         diverId: _validatedDiverId,
       );

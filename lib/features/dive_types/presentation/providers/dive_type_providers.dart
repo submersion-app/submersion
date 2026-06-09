@@ -122,9 +122,14 @@ class DiveTypeListNotifier
 
   /// Reload without flipping to a loading state, so table-driven refreshes
   /// (e.g. after a sync write) do not flash a spinner over existing data.
-  /// Reuses the already-resolved [_validatedDiverId].
+  /// Resolves the validated diver id first so a tick arriving before
+  /// initialization completes still scopes the query correctly (otherwise a
+  /// null diver id would drop custom dive types).
   Future<void> _silentReloadDiveTypes() async {
     try {
+      _validatedDiverId = await _ref.read(
+        validatedCurrentDiverIdProvider.future,
+      );
       final diveTypes = await _repository.getAllDiveTypes(
         diverId: _validatedDiverId,
       );

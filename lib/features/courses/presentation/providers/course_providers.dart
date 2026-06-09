@@ -231,9 +231,13 @@ class CourseListNotifier extends StateNotifier<AsyncValue<List<Course>>> {
 
   /// Reload without flipping to a loading state, so table-driven refreshes
   /// (e.g. after a sync write) do not flash a spinner over existing data.
-  /// Reuses the already-resolved [_validatedDiverId].
+  /// Resolves the validated diver id first so a tick arriving before
+  /// initialization completes still scopes the query correctly.
   Future<void> _silentReloadCourses() async {
     try {
+      _validatedDiverId = await _ref.read(
+        validatedCurrentDiverIdProvider.future,
+      );
       final courses = await _repository.getAllCourses(
         diverId: _validatedDiverId,
       );

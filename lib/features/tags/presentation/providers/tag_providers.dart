@@ -1,6 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
@@ -43,9 +42,10 @@ final tagStatisticsProvider = FutureProvider<List<TagStatistic>>((ref) async {
     (_) => ref.invalidateSelf(),
   );
   ref.onDispose(tagsSub.cancel);
-  final divesSub = DiveRepository().watchDivesChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
+  final divesSub = ref
+      .read(diveRepositoryProvider)
+      .watchDivesChanges()
+      .listen((_) => ref.invalidateSelf());
   ref.onDispose(divesSub.cancel);
   return repository.getTagStatistics(diverId: validatedDiverId);
 });

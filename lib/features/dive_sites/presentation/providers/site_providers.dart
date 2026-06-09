@@ -4,7 +4,6 @@ import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -202,9 +201,10 @@ final sitesWithCountsProvider = FutureProvider<List<SiteWithDiveCount>>((
     (_) => ref.invalidateSelf(),
   );
   ref.onDispose(sitesSub.cancel);
-  final divesSub = DiveRepository().watchDivesChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
+  final divesSub = ref
+      .read(diveRepositoryProvider)
+      .watchDivesChanges()
+      .listen((_) => ref.invalidateSelf());
   ref.onDispose(divesSub.cancel);
   return repository.getSitesWithDiveCounts(diverId: validatedDiverId);
 });

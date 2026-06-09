@@ -199,6 +199,12 @@ class DiveCenterListNotifier
   /// list refreshes in place without flashing a spinner.
   Future<void> _silentReload() async {
     try {
+      // Resolve the validated diver id first: a tick can arrive before
+      // _initializeAndLoad() has populated _validatedDiverId, which would
+      // otherwise query with diverId: null and return unscoped centers.
+      _validatedDiverId = await _ref.read(
+        validatedCurrentDiverIdProvider.future,
+      );
       final centers = await _repository.getAllDiveCenters(
         diverId: _validatedDiverId,
       );
