@@ -17,11 +17,10 @@ void main() {
       expect(SigV4Signer.hexSha256(const []), emptyPayloadHash);
     });
 
-    test('deriveSigningKey matches the AWS documentation example', () {
-      // AWS "Examples of how to derive a signing key": secret above,
-      // 20120215, us-east-1, iam.
-      // NOTE: Plan document test vector was incorrect. The correct value
-      // verified against AWS's Python implementation and Dart crypto library.
+    test('deriveSigningKey matches the reference HMAC chain', () {
+      // Inputs from AWS "Examples of how to derive a signing key": secret
+      // above, 20120215, us-east-1, iam. Expected value computed with the
+      // Python hmac reference implementation of the SigV4 chain.
       final key = SigV4Signer.deriveSigningKey(
         secretAccessKey: awsSecretKey,
         dateStamp: '20120215',
@@ -64,6 +63,16 @@ void main() {
         'sync/file%20name.json',
       );
     });
+    test(
+      'encodes SigV4-divergent characters that Uri.encodeComponent skips',
+      () {
+        expect(SigV4Signer.uriEncode("!*'()"), '%21%2A%27%28%29');
+      },
+    );
+
+    test('encodes multibyte UTF-8 one percent-escape per byte', () {
+      expect(SigV4Signer.uriEncode('Mākena'), 'M%C4%81kena');
+    });
   });
 
   group('canonicalQueryString', () {
@@ -90,6 +99,112 @@ void main() {
       expect(
         SigV4Signer.hexSha256(body),
         '44ce7dd67c959e0d3524ffac1771dfbba87d2b6b4b4e99e42034a8b803f8b072',
+      );
+    });
+  });
+
+  // AWS worked example "GET object" from sig-v4-examples: GET /test.txt on
+  // examplebucket with a Range header, signed at 20130524T000000Z.
+  group('canonical request and signing (AWS GET object vector)', () {
+    final requestTime = DateTime.utc(2013, 5, 24);
+    final headers = {
+      'host': 'examplebucket.s3.amazonaws.com',
+      'range': 'bytes=0-9',
+      'x-amz-content-sha256': emptyPayloadHash,
+      'x-amz-date': '20130524T000000Z',
+    };
+
+    test('canonicalRequest matches the documented form', () {
+      final canonical = SigV4Signer.canonicalRequest(
+        method: 'GET',
+        canonicalUri: '/test.txt',
+        queryParams: const {},
+        headers: headers,
+        payloadHash: emptyPayloadHash,
+      );
+      expect(canonical, '''
+GET
+/test.txt
+
+host:examplebucket.s3.amazonaws.com
+range:bytes=0-9
+x-amz-content-sha256:$emptyPayloadHash
+x-amz-date:20130524T000000Z
+
+host;range;x-amz-content-sha256;x-amz-date
+$emptyPayloadHash''');
+    });
+
+    test('stringToSign embeds the canonical request hash', () {
+      final canonical = SigV4Signer.canonicalRequest(
+        method: 'GET',
+        canonicalUri: '/test.txt',
+        queryParams: const {},
+        headers: headers,
+        payloadHash: emptyPayloadHash,
+      );
+      final sts = SigV4Signer.stringToSign(
+        amzDate: '20130524T000000Z',
+        credentialScope: '20130524/us-east-1/s3/aws4_request',
+        canonicalRequestStr: canonical,
+      );
+      expect(sts, '''
+AWS4-HMAC-SHA256
+20130524T000000Z
+20130524/us-east-1/s3/aws4_request
+7344ae5b7ee6c3e7e6b0fe0640412a37625d1fbfff95c48bbb2dc43964946972''');
+    });
+
+    test('sign produces the documented signature', () {
+      final signed = SigV4Signer.sign(
+        method: 'GET',
+        host: 'examplebucket.s3.amazonaws.com',
+        canonicalUri: '/test.txt',
+        extraHeaders: const {'range': 'bytes=0-9'},
+        payload: const [],
+        accessKeyId: awsAccessKey,
+        secretAccessKey: awsSecretKey,
+        region: 'us-east-1',
+        requestTime: requestTime,
+      );
+      expect(signed['x-amz-date'], '20130524T000000Z');
+      expect(signed['x-amz-content-sha256'], emptyPayloadHash);
+      expect(
+        signed['authorization'],
+        contains('Credential=$awsAccessKey/20130524/us-east-1/s3/aws4_request'),
+      );
+      expect(
+        signed['authorization'],
+        contains('SignedHeaders=host;range;x-amz-content-sha256;x-amz-date'),
+      );
+      expect(
+        signed['authorization'],
+        contains(
+          'Signature=f0e8bdb87c964420e857bd35b5d6ed310bd44f0170aba48dd91039c6036bdb41',
+        ),
+      );
+    });
+  });
+
+  // AWS worked example "Get bucket (list objects)": GET /?max-keys=2&prefix=J
+  group('signing with query parameters (AWS list objects vector)', () {
+    test('sign produces the documented signature', () {
+      final signed = SigV4Signer.sign(
+        method: 'GET',
+        host: 'examplebucket.s3.amazonaws.com',
+        canonicalUri: '/',
+        queryParams: const {'max-keys': '2', 'prefix': 'J'},
+        payload: const [],
+        accessKeyId: awsAccessKey,
+        secretAccessKey: awsSecretKey,
+        region: 'us-east-1',
+        requestTime: DateTime.utc(2013, 5, 24),
+      );
+      expect(
+        signed['authorization'],
+        contains(
+          'Signature=34b48302e7b5fa45bde8084f4b7868a86f0a534bc59db6670ed5711ef69dc6f7',
+        ),
       );
     });
   });
