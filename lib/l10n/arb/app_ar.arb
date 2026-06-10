@@ -3399,6 +3399,7 @@
   "settings_s3Config_saved": "تم حفظ إعدادات S3",
   "settings_s3Config_test_success": "نجح الاتصال",
   "settings_s3Config_validation_endpointInvalid": "أدخل عنوان URL صالحًا يبدأ بـ http:// أو https://",
+  "settings_s3Config_validation_endpointPath": "يجب ألا يتضمن عنوان URL لنقطة النهاية مسارًا",
   "settings_s3Config_validation_required": "مطلوب",
   "settings_s3Config_warning_http": "تستخدم نقطة النهاية هذه HTTP غير مشفّر. ستنتقل بيانات الاعتماد وبيانات الغوص دون تشفير؛ استخدمه فقط على شبكة موثوقة.",
   "settings_section_about_subtitle": "معلومات التطبيق والتراخيص",

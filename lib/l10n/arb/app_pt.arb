@@ -3399,6 +3399,7 @@
   "settings_s3Config_saved": "Configuração do S3 salva",
   "settings_s3Config_test_success": "Conexão bem-sucedida",
   "settings_s3Config_validation_endpointInvalid": "Insira um URL http:// ou https:// válido",
+  "settings_s3Config_validation_endpointPath": "O URL do endpoint não deve incluir um caminho",
   "settings_s3Config_validation_required": "Obrigatório",
   "settings_s3Config_warning_http": "Este endpoint usa HTTP sem criptografia. Credenciais e dados de mergulho trafegarão sem criptografia; use apenas em uma rede confiável.",
   "settings_section_about_subtitle": "Informacoes e licencas do aplicativo",

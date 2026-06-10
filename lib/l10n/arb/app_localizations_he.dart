@@ -10841,6 +10841,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'יש להזין כתובת http:// או https:// תקינה';
 
   @override
+  String get settings_s3Config_validation_endpointPath =>
+      'כתובת ה-URL של נקודת הקצה לא יכולה לכלול נתיב';
+
+  @override
   String get settings_s3Config_validation_required => 'שדה חובה';
 
   @override

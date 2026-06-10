@@ -3565,6 +3565,7 @@
   "settings_s3Config_saved": "S3 配置已保存",
   "settings_s3Config_test_success": "连接成功",
   "settings_s3Config_validation_endpointInvalid": "请输入有效的 http:// 或 https:// URL",
+  "settings_s3Config_validation_endpointPath": "终端节点 URL 不能包含路径",
   "settings_s3Config_validation_required": "必填",
   "settings_s3Config_warning_http": "此终端节点使用未加密的 HTTP。凭证和潜水数据将以明文传输；仅在可信网络中使用。",
   "settings_section_about_subtitle": "应用信息与许可证",

@@ -10921,6 +10921,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'أدخل عنوان URL صالحًا يبدأ بـ http:// أو https://';
 
   @override
+  String get settings_s3Config_validation_endpointPath =>
+      'يجب ألا يتضمن عنوان URL لنقطة النهاية مسارًا';
+
+  @override
   String get settings_s3Config_validation_required => 'مطلوب';
 
   @override

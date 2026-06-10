@@ -11123,6 +11123,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Gültige http://- oder https://-URL eingeben';
 
   @override
+  String get settings_s3Config_validation_endpointPath =>
+      'Die Endpunkt-URL darf keinen Pfad enthalten';
+
+  @override
   String get settings_s3Config_validation_required => 'Erforderlich';
 
   @override

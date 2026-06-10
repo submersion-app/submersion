@@ -10954,6 +10954,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter a valid http:// or https:// URL';
 
   @override
+  String get settings_s3Config_validation_endpointPath =>
+      'Endpoint URL must not include a path';
+
+  @override
   String get settings_s3Config_validation_required => 'Required';
 
   @override

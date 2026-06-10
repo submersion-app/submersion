@@ -18987,6 +18987,12 @@ abstract class AppLocalizations {
   /// **'Enter a valid http:// or https:// URL'**
   String get settings_s3Config_validation_endpointInvalid;
 
+  /// No description provided for @settings_s3Config_validation_endpointPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Endpoint URL must not include a path'**
+  String get settings_s3Config_validation_endpointPath;
+
   /// No description provided for @settings_s3Config_validation_required.
   ///
   /// In en, this message translates to:

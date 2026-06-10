@@ -3365,6 +3365,7 @@
   "settings_s3Config_saved": "Configuration S3 enregistrée",
   "settings_s3Config_test_success": "Connexion réussie",
   "settings_s3Config_validation_endpointInvalid": "Saisissez une URL http:// ou https:// valide",
+  "settings_s3Config_validation_endpointPath": "L'URL du point de terminaison ne doit pas inclure de chemin",
   "settings_s3Config_validation_required": "Obligatoire",
   "settings_s3Config_warning_http": "Ce point de terminaison utilise HTTP non chiffré. Les identifiants et les données de plongée transiteront en clair ; à n'utiliser que sur un réseau de confiance.",
   "settings_section_about_subtitle": "Infos et licences de l'application",

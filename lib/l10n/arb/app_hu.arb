@@ -3365,6 +3365,7 @@
   "settings_s3Config_saved": "S3-konfiguráció mentve",
   "settings_s3Config_test_success": "Sikeres kapcsolat",
   "settings_s3Config_validation_endpointInvalid": "Adjon meg érvényes http:// vagy https:// URL-t",
+  "settings_s3Config_validation_endpointPath": "A végpont URL-je nem tartalmazhat elérési utat",
   "settings_s3Config_validation_required": "Kötelező",
   "settings_s3Config_warning_http": "Ez a végpont titkosítatlan HTTP-t használ. A hitelesítő adatok és a merülési adatok titkosítatlanul utaznak; csak megbízható hálózaton használja.",
   "settings_section_about_subtitle": "Alkalmazas info es licencek",

@@ -11128,6 +11128,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Introduce una URL http:// o https:// válida';
 
   @override
+  String get settings_s3Config_validation_endpointPath =>
+      'La URL del endpoint no debe incluir una ruta';
+
+  @override
   String get settings_s3Config_validation_required => 'Obligatorio';
 
   @override

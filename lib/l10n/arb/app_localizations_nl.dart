@@ -11047,6 +11047,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Voer een geldige http://- of https://-URL in';
 
   @override
+  String get settings_s3Config_validation_endpointPath =>
+      'De endpoint-URL mag geen pad bevatten';
+
+  @override
   String get settings_s3Config_validation_required => 'Verplicht';
 
   @override

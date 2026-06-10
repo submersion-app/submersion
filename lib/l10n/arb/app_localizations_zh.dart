@@ -10611,6 +10611,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '请输入有效的 http:// 或 https:// URL';
 
   @override
+  String get settings_s3Config_validation_endpointPath => '终端节点 URL 不能包含路径';
+
+  @override
   String get settings_s3Config_validation_required => '必填';
 
   @override

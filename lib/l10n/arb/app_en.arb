@@ -5787,6 +5787,7 @@
   "settings_s3Config_saved": "S3 configuration saved",
   "settings_s3Config_test_success": "Connection successful",
   "settings_s3Config_validation_endpointInvalid": "Enter a valid http:// or https:// URL",
+  "settings_s3Config_validation_endpointPath": "Endpoint URL must not include a path",
   "settings_s3Config_validation_required": "Required",
   "settings_s3Config_warning_http": "This endpoint uses plain HTTP. Credentials and dive data will travel unencrypted; use only on a trusted network.",
   "settings_section_about_subtitle": "App info & licenses",

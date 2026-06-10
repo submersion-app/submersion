@@ -3399,6 +3399,7 @@
   "settings_s3Config_saved": "S3-configuratie opgeslagen",
   "settings_s3Config_test_success": "Verbinding geslaagd",
   "settings_s3Config_validation_endpointInvalid": "Voer een geldige http://- of https://-URL in",
+  "settings_s3Config_validation_endpointPath": "De endpoint-URL mag geen pad bevatten",
   "settings_s3Config_validation_required": "Verplicht",
   "settings_s3Config_warning_http": "Dit endpoint gebruikt onversleuteld HTTP. Inloggegevens en duikgegevens worden onversleuteld verzonden; gebruik dit alleen op een vertrouwd netwerk.",
   "settings_section_about_subtitle": "App-info & licenties",

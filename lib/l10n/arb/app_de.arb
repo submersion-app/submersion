@@ -3399,6 +3399,7 @@
   "settings_s3Config_saved": "S3-Konfiguration gespeichert",
   "settings_s3Config_test_success": "Verbindung erfolgreich",
   "settings_s3Config_validation_endpointInvalid": "Gültige http://- oder https://-URL eingeben",
+  "settings_s3Config_validation_endpointPath": "Die Endpunkt-URL darf keinen Pfad enthalten",
   "settings_s3Config_validation_required": "Erforderlich",
   "settings_s3Config_warning_http": "Dieser Endpunkt verwendet unverschlüsseltes HTTP. Zugangsdaten und Tauchdaten werden unverschlüsselt übertragen; nur in vertrauenswürdigen Netzwerken verwenden.",
   "settings_section_about_subtitle": "App-Info & Lizenzen",

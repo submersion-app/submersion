@@ -11181,6 +11181,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Saisissez une URL http:// ou https:// valide';
 
   @override
+  String get settings_s3Config_validation_endpointPath =>
+      'L\'URL du point de terminaison ne doit pas inclure de chemin';
+
+  @override
   String get settings_s3Config_validation_required => 'Obligatoire';
 
   @override

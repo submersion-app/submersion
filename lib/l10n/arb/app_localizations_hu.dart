@@ -11108,6 +11108,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Adjon meg érvényes http:// vagy https:// URL-t';
 
   @override
+  String get settings_s3Config_validation_endpointPath =>
+      'A végpont URL-je nem tartalmazhat elérési utat';
+
+  @override
   String get settings_s3Config_validation_required => 'Kötelező';
 
   @override
