@@ -92,7 +92,10 @@ class SigV4Signer {
   }) {
     final normalized = <String, String>{
       for (final entry in headers.entries)
-        entry.key.toLowerCase().trim(): entry.value.trim(),
+        entry.key.toLowerCase().trim(): entry.value
+            .trim()
+            .split(RegExp(r'\s+'))
+            .join(' '),
     };
     final names = normalized.keys.toList()..sort();
     final canonicalHeaders = names.map((n) => '$n:${normalized[n]}\n').join();
@@ -124,6 +127,12 @@ class SigV4Signer {
   /// `x-amz-date`, `x-amz-content-sha256`, every entry of [extraHeaders]
   /// (lowercased), and `authorization`. All returned header names are
   /// lowercase; HTTP header names are case-insensitive.
+  ///
+  /// [canonicalUri] must already be SigV4-encoded (uriEncode with
+  /// encodeSlash: false) and is passed through verbatim -- the caller must
+  /// put the identical bytes on the wire. Do not pass host, x-amz-date,
+  /// x-amz-content-sha256, or authorization in [extraHeaders]; sign
+  /// computes those itself.
   static Map<String, String> sign({
     required String method,
     required String host,

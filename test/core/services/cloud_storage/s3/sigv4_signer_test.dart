@@ -103,6 +103,30 @@ void main() {
     });
   });
 
+  group('header normalization', () {
+    test('collapses sequential whitespace inside header values', () {
+      final canonical = SigV4Signer.canonicalRequest(
+        method: 'GET',
+        canonicalUri: '/',
+        queryParams: const {},
+        headers: {'host': 'h', 'x-test': 'a  b\t c'},
+        payloadHash: emptyPayloadHash,
+      );
+      expect(canonical, contains('x-test:a b c\n'));
+    });
+
+    test('pre-encoded canonicalUri passes through verbatim', () {
+      final canonical = SigV4Signer.canonicalRequest(
+        method: 'GET',
+        canonicalUri: '/dive-sync/my%20file.json',
+        queryParams: const {},
+        headers: {'host': 'h'},
+        payloadHash: emptyPayloadHash,
+      );
+      expect(canonical.split('\n')[1], '/dive-sync/my%20file.json');
+    });
+  });
+
   // AWS worked example "GET object" from sig-v4-examples: GET /test.txt on
   // examplebucket with a Range header, signed at 20130524T000000Z.
   group('canonical request and signing (AWS GET object vector)', () {
