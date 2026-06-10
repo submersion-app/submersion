@@ -10284,6 +10284,17 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nao disponivel nesta plataforma';
 
   @override
+  String get settings_cloudSync_provider_s3_edit => 'Editar configuração do S3';
+
+  @override
+  String get settings_cloudSync_provider_s3_subtitle =>
+      'Amazon S3, MinIO, Cloudflare R2, Backblaze B2 e mais';
+
+  @override
+  String get settings_cloudSync_provider_s3_title =>
+      'Armazenamento compatível com S3';
+
+  @override
   String get settings_cloudSync_resetDialog_cancel => 'Cancelar';
 
   @override
@@ -11061,6 +11072,78 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_profileHub_switchDiver => 'Trocar de Mergulhador';
+
+  @override
+  String get settings_s3Config_action_remove => 'Remover configuração';
+
+  @override
+  String get settings_s3Config_action_testConnection => 'Testar conexão';
+
+  @override
+  String get settings_s3Config_appBar_title =>
+      'Armazenamento compatível com S3';
+
+  @override
+  String get settings_s3Config_field_accessKeyId_label => 'Access Key ID';
+
+  @override
+  String get settings_s3Config_field_bucket_label => 'Bucket';
+
+  @override
+  String get settings_s3Config_field_endpoint_helper =>
+      'Deixe em branco para Amazon S3';
+
+  @override
+  String get settings_s3Config_field_endpoint_label => 'URL do endpoint';
+
+  @override
+  String get settings_s3Config_field_pathStyle_label =>
+      'Usar endereçamento path-style';
+
+  @override
+  String get settings_s3Config_field_pathStyle_subtitle =>
+      'Exigido pela maioria dos servidores MinIO e NAS';
+
+  @override
+  String get settings_s3Config_field_prefix_label => 'Prefixo de chaves';
+
+  @override
+  String get settings_s3Config_field_region_label => 'Região';
+
+  @override
+  String get settings_s3Config_field_secretAccessKey_label =>
+      'Secret Access Key';
+
+  @override
+  String get settings_s3Config_remove_confirm_action => 'Remover';
+
+  @override
+  String get settings_s3Config_remove_confirm_body =>
+      'A sincronização via S3 será interrompida neste dispositivo. Seus dados no bucket não são excluídos.';
+
+  @override
+  String get settings_s3Config_remove_confirm_title =>
+      'Remover a configuração do S3?';
+
+  @override
+  String get settings_s3Config_removed => 'Configuração do S3 removida';
+
+  @override
+  String get settings_s3Config_saved => 'Configuração do S3 salva';
+
+  @override
+  String get settings_s3Config_test_success => 'Conexão bem-sucedida';
+
+  @override
+  String get settings_s3Config_validation_endpointInvalid =>
+      'Insira um URL http:// ou https:// válido';
+
+  @override
+  String get settings_s3Config_validation_required => 'Obrigatório';
+
+  @override
+  String get settings_s3Config_warning_http =>
+      'Este endpoint usa HTTP sem criptografia. Credenciais e dados de mergulho trafegarão sem criptografia; use apenas em uma rede confiável.';
 
   @override
   String get settings_section_about_subtitle =>

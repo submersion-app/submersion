@@ -17573,6 +17573,24 @@ abstract class AppLocalizations {
   /// **'Not available on this platform'**
   String get settings_cloudSync_provider_notAvailable;
 
+  /// No description provided for @settings_cloudSync_provider_s3_edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit S3 configuration'**
+  String get settings_cloudSync_provider_s3_edit;
+
+  /// No description provided for @settings_cloudSync_provider_s3_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Amazon S3, MinIO, Cloudflare R2, Backblaze B2, and more'**
+  String get settings_cloudSync_provider_s3_subtitle;
+
+  /// No description provided for @settings_cloudSync_provider_s3_title.
+  ///
+  /// In en, this message translates to:
+  /// **'S3-Compatible Storage'**
+  String get settings_cloudSync_provider_s3_title;
+
   /// No description provided for @settings_cloudSync_resetDialog_cancel.
   ///
   /// In en, this message translates to:
@@ -18854,6 +18872,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Switch Diver'**
   String get settings_profileHub_switchDiver;
+
+  /// No description provided for @settings_s3Config_action_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Configuration'**
+  String get settings_s3Config_action_remove;
+
+  /// No description provided for @settings_s3Config_action_testConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Connection'**
+  String get settings_s3Config_action_testConnection;
+
+  /// No description provided for @settings_s3Config_appBar_title.
+  ///
+  /// In en, this message translates to:
+  /// **'S3-Compatible Storage'**
+  String get settings_s3Config_appBar_title;
+
+  /// No description provided for @settings_s3Config_field_accessKeyId_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Access Key ID'**
+  String get settings_s3Config_field_accessKeyId_label;
+
+  /// No description provided for @settings_s3Config_field_bucket_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Bucket'**
+  String get settings_s3Config_field_bucket_label;
+
+  /// No description provided for @settings_s3Config_field_endpoint_helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave blank for Amazon S3'**
+  String get settings_s3Config_field_endpoint_helper;
+
+  /// No description provided for @settings_s3Config_field_endpoint_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Endpoint URL'**
+  String get settings_s3Config_field_endpoint_label;
+
+  /// No description provided for @settings_s3Config_field_pathStyle_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Use path-style addressing'**
+  String get settings_s3Config_field_pathStyle_label;
+
+  /// No description provided for @settings_s3Config_field_pathStyle_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Required by most MinIO and NAS servers'**
+  String get settings_s3Config_field_pathStyle_subtitle;
+
+  /// No description provided for @settings_s3Config_field_prefix_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Key prefix'**
+  String get settings_s3Config_field_prefix_label;
+
+  /// No description provided for @settings_s3Config_field_region_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Region'**
+  String get settings_s3Config_field_region_label;
+
+  /// No description provided for @settings_s3Config_field_secretAccessKey_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Secret Access Key'**
+  String get settings_s3Config_field_secretAccessKey_label;
+
+  /// No description provided for @settings_s3Config_remove_confirm_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get settings_s3Config_remove_confirm_action;
+
+  /// No description provided for @settings_s3Config_remove_confirm_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync via S3 will stop on this device. Your data in the bucket is not deleted.'**
+  String get settings_s3Config_remove_confirm_body;
+
+  /// No description provided for @settings_s3Config_remove_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove S3 configuration?'**
+  String get settings_s3Config_remove_confirm_title;
+
+  /// No description provided for @settings_s3Config_removed.
+  ///
+  /// In en, this message translates to:
+  /// **'S3 configuration removed'**
+  String get settings_s3Config_removed;
+
+  /// No description provided for @settings_s3Config_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'S3 configuration saved'**
+  String get settings_s3Config_saved;
+
+  /// No description provided for @settings_s3Config_test_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection successful'**
+  String get settings_s3Config_test_success;
+
+  /// No description provided for @settings_s3Config_validation_endpointInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid http:// or https:// URL'**
+  String get settings_s3Config_validation_endpointInvalid;
+
+  /// No description provided for @settings_s3Config_validation_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get settings_s3Config_validation_required;
+
+  /// No description provided for @settings_s3Config_warning_http.
+  ///
+  /// In en, this message translates to:
+  /// **'This endpoint uses plain HTTP. Credentials and dive data will travel unencrypted; use only on a trusted network.'**
+  String get settings_s3Config_warning_http;
 
   /// No description provided for @settings_section_about_subtitle.
   ///

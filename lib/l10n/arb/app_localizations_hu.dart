@@ -10250,6 +10250,17 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem erheto el ezen a platformon';
 
   @override
+  String get settings_cloudSync_provider_s3_edit =>
+      'S3-konfiguráció szerkesztése';
+
+  @override
+  String get settings_cloudSync_provider_s3_subtitle =>
+      'Amazon S3, MinIO, Cloudflare R2, Backblaze B2 és továbbiak';
+
+  @override
+  String get settings_cloudSync_provider_s3_title => 'S3-kompatibilis tároló';
+
+  @override
   String get settings_cloudSync_resetDialog_cancel => 'Megse';
 
   @override
@@ -11031,6 +11042,77 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_profileHub_switchDiver => 'Búvár váltása';
+
+  @override
+  String get settings_s3Config_action_remove => 'Konfiguráció eltávolítása';
+
+  @override
+  String get settings_s3Config_action_testConnection => 'Kapcsolat tesztelése';
+
+  @override
+  String get settings_s3Config_appBar_title => 'S3-kompatibilis tároló';
+
+  @override
+  String get settings_s3Config_field_accessKeyId_label => 'Access Key ID';
+
+  @override
+  String get settings_s3Config_field_bucket_label => 'Bucket';
+
+  @override
+  String get settings_s3Config_field_endpoint_helper =>
+      'Amazon S3 esetén hagyja üresen';
+
+  @override
+  String get settings_s3Config_field_endpoint_label => 'Végpont URL';
+
+  @override
+  String get settings_s3Config_field_pathStyle_label =>
+      'Path-style címzés használata';
+
+  @override
+  String get settings_s3Config_field_pathStyle_subtitle =>
+      'A legtöbb MinIO- és NAS-kiszolgálóhoz szükséges';
+
+  @override
+  String get settings_s3Config_field_prefix_label => 'Kulcs-előtag';
+
+  @override
+  String get settings_s3Config_field_region_label => 'Régió';
+
+  @override
+  String get settings_s3Config_field_secretAccessKey_label =>
+      'Secret Access Key';
+
+  @override
+  String get settings_s3Config_remove_confirm_action => 'Eltávolítás';
+
+  @override
+  String get settings_s3Config_remove_confirm_body =>
+      'Az S3-on keresztüli szinkronizálás leáll ezen az eszközön. A bucketben lévő adatok nem törlődnek.';
+
+  @override
+  String get settings_s3Config_remove_confirm_title =>
+      'Eltávolítja az S3-konfigurációt?';
+
+  @override
+  String get settings_s3Config_removed => 'S3-konfiguráció eltávolítva';
+
+  @override
+  String get settings_s3Config_saved => 'S3-konfiguráció mentve';
+
+  @override
+  String get settings_s3Config_test_success => 'Sikeres kapcsolat';
+
+  @override
+  String get settings_s3Config_validation_endpointInvalid =>
+      'Adjon meg érvényes http:// vagy https:// URL-t';
+
+  @override
+  String get settings_s3Config_validation_required => 'Kötelező';
+
+  @override
+  String get settings_s3Config_warning_http =>
+      'Ez a végpont titkosítatlan HTTP-t használ. A hitelesítő adatok és a merülési adatok titkosítatlanul utaznak; csak megbízható hálózaton használja.';
 
   @override
   String get settings_section_about_subtitle => 'Alkalmazas info es licencek';

@@ -10012,6 +10012,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_provider_notAvailable => 'לא זמין בפלטפורמה זו';
 
   @override
+  String get settings_cloudSync_provider_s3_edit => 'עריכת תצורת S3';
+
+  @override
+  String get settings_cloudSync_provider_s3_subtitle =>
+      'Amazon S3, MinIO, Cloudflare R2, Backblaze B2 ועוד';
+
+  @override
+  String get settings_cloudSync_provider_s3_title => 'אחסון תואם S3';
+
+  @override
   String get settings_cloudSync_resetDialog_cancel => 'ביטול';
 
   @override
@@ -10765,6 +10775,77 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_profileHub_switchDiver => 'החלף צולל';
+
+  @override
+  String get settings_s3Config_action_remove => 'הסרת התצורה';
+
+  @override
+  String get settings_s3Config_action_testConnection => 'בדיקת חיבור';
+
+  @override
+  String get settings_s3Config_appBar_title => 'אחסון תואם S3';
+
+  @override
+  String get settings_s3Config_field_accessKeyId_label => 'Access Key ID';
+
+  @override
+  String get settings_s3Config_field_bucket_label => 'Bucket';
+
+  @override
+  String get settings_s3Config_field_endpoint_helper =>
+      'השאירו ריק עבור Amazon S3';
+
+  @override
+  String get settings_s3Config_field_endpoint_label =>
+      'כתובת URL של נקודת הקצה';
+
+  @override
+  String get settings_s3Config_field_pathStyle_label =>
+      'שימוש במיעון path-style';
+
+  @override
+  String get settings_s3Config_field_pathStyle_subtitle =>
+      'נדרש על ידי רוב שרתי MinIO ו-NAS';
+
+  @override
+  String get settings_s3Config_field_prefix_label => 'קידומת מפתחות';
+
+  @override
+  String get settings_s3Config_field_region_label => 'אזור';
+
+  @override
+  String get settings_s3Config_field_secretAccessKey_label =>
+      'Secret Access Key';
+
+  @override
+  String get settings_s3Config_remove_confirm_action => 'הסרה';
+
+  @override
+  String get settings_s3Config_remove_confirm_body =>
+      'הסנכרון דרך S3 ייפסק במכשיר זה. הנתונים שלכם ב-bucket לא יימחקו.';
+
+  @override
+  String get settings_s3Config_remove_confirm_title => 'להסיר את תצורת S3?';
+
+  @override
+  String get settings_s3Config_removed => 'תצורת S3 הוסרה';
+
+  @override
+  String get settings_s3Config_saved => 'תצורת S3 נשמרה';
+
+  @override
+  String get settings_s3Config_test_success => 'החיבור הצליח';
+
+  @override
+  String get settings_s3Config_validation_endpointInvalid =>
+      'יש להזין כתובת http:// או https:// תקינה';
+
+  @override
+  String get settings_s3Config_validation_required => 'שדה חובה';
+
+  @override
+  String get settings_s3Config_warning_http =>
+      'נקודת קצה זו משתמשת ב-HTTP לא מוצפן. פרטי הגישה ונתוני הצלילה יועברו ללא הצפנה; השתמשו רק ברשת מהימנה.';
 
   @override
   String get settings_section_about_subtitle => 'מידע על האפליקציה ורישיונות';

@@ -10203,6 +10203,16 @@ class AppLocalizationsNl extends AppLocalizations {
       'Niet beschikbaar op dit platform';
 
   @override
+  String get settings_cloudSync_provider_s3_edit => 'S3-configuratie bewerken';
+
+  @override
+  String get settings_cloudSync_provider_s3_subtitle =>
+      'Amazon S3, MinIO, Cloudflare R2, Backblaze B2 en meer';
+
+  @override
+  String get settings_cloudSync_provider_s3_title => 'S3-compatibele opslag';
+
+  @override
   String get settings_cloudSync_resetDialog_cancel => 'Annuleren';
 
   @override
@@ -10971,6 +10981,77 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_profileHub_switchDiver => 'Duiker wisselen';
+
+  @override
+  String get settings_s3Config_action_remove => 'Configuratie verwijderen';
+
+  @override
+  String get settings_s3Config_action_testConnection => 'Verbinding testen';
+
+  @override
+  String get settings_s3Config_appBar_title => 'S3-compatibele opslag';
+
+  @override
+  String get settings_s3Config_field_accessKeyId_label => 'Access Key ID';
+
+  @override
+  String get settings_s3Config_field_bucket_label => 'Bucket';
+
+  @override
+  String get settings_s3Config_field_endpoint_helper =>
+      'Laat leeg voor Amazon S3';
+
+  @override
+  String get settings_s3Config_field_endpoint_label => 'Endpoint-URL';
+
+  @override
+  String get settings_s3Config_field_pathStyle_label =>
+      'Path-style-adressering gebruiken';
+
+  @override
+  String get settings_s3Config_field_pathStyle_subtitle =>
+      'Vereist door de meeste MinIO- en NAS-servers';
+
+  @override
+  String get settings_s3Config_field_prefix_label => 'Sleutelvoorvoegsel';
+
+  @override
+  String get settings_s3Config_field_region_label => 'Regio';
+
+  @override
+  String get settings_s3Config_field_secretAccessKey_label =>
+      'Secret Access Key';
+
+  @override
+  String get settings_s3Config_remove_confirm_action => 'Verwijderen';
+
+  @override
+  String get settings_s3Config_remove_confirm_body =>
+      'Synchronisatie via S3 stopt op dit apparaat. Je gegevens in de bucket worden niet verwijderd.';
+
+  @override
+  String get settings_s3Config_remove_confirm_title =>
+      'S3-configuratie verwijderen?';
+
+  @override
+  String get settings_s3Config_removed => 'S3-configuratie verwijderd';
+
+  @override
+  String get settings_s3Config_saved => 'S3-configuratie opgeslagen';
+
+  @override
+  String get settings_s3Config_test_success => 'Verbinding geslaagd';
+
+  @override
+  String get settings_s3Config_validation_endpointInvalid =>
+      'Voer een geldige http://- of https://-URL in';
+
+  @override
+  String get settings_s3Config_validation_required => 'Verplicht';
+
+  @override
+  String get settings_s3Config_warning_http =>
+      'Dit endpoint gebruikt onversleuteld HTTP. Inloggegevens en duikgegevens worden onversleuteld verzonden; gebruik dit alleen op een vertrouwd netwerk.';
 
   @override
   String get settings_section_about_subtitle => 'App-info & licenties';

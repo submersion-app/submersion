@@ -9810,6 +9810,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_provider_notAvailable => '在此平台上不可用';
 
   @override
+  String get settings_cloudSync_provider_s3_edit => '编辑 S3 配置';
+
+  @override
+  String get settings_cloudSync_provider_s3_subtitle =>
+      'Amazon S3、MinIO、Cloudflare R2、Backblaze B2 等';
+
+  @override
+  String get settings_cloudSync_provider_s3_title => 'S3 兼容存储';
+
+  @override
   String get settings_cloudSync_resetDialog_cancel => '取消';
 
   @override
@@ -10538,6 +10548,74 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_profileHub_switchDiver => '切换潜水员';
+
+  @override
+  String get settings_s3Config_action_remove => '移除配置';
+
+  @override
+  String get settings_s3Config_action_testConnection => '测试连接';
+
+  @override
+  String get settings_s3Config_appBar_title => 'S3 兼容存储';
+
+  @override
+  String get settings_s3Config_field_accessKeyId_label => 'Access Key ID';
+
+  @override
+  String get settings_s3Config_field_bucket_label => '存储桶';
+
+  @override
+  String get settings_s3Config_field_endpoint_helper => '使用 Amazon S3 时留空';
+
+  @override
+  String get settings_s3Config_field_endpoint_label => '终端节点 URL';
+
+  @override
+  String get settings_s3Config_field_pathStyle_label => '使用路径样式寻址';
+
+  @override
+  String get settings_s3Config_field_pathStyle_subtitle =>
+      '大多数 MinIO 和 NAS 服务器需要此项';
+
+  @override
+  String get settings_s3Config_field_prefix_label => '键前缀';
+
+  @override
+  String get settings_s3Config_field_region_label => '区域';
+
+  @override
+  String get settings_s3Config_field_secretAccessKey_label =>
+      'Secret Access Key';
+
+  @override
+  String get settings_s3Config_remove_confirm_action => '移除';
+
+  @override
+  String get settings_s3Config_remove_confirm_body =>
+      '此设备上将停止通过 S3 同步。存储桶中的数据不会被删除。';
+
+  @override
+  String get settings_s3Config_remove_confirm_title => '移除 S3 配置？';
+
+  @override
+  String get settings_s3Config_removed => 'S3 配置已移除';
+
+  @override
+  String get settings_s3Config_saved => 'S3 配置已保存';
+
+  @override
+  String get settings_s3Config_test_success => '连接成功';
+
+  @override
+  String get settings_s3Config_validation_endpointInvalid =>
+      '请输入有效的 http:// 或 https:// URL';
+
+  @override
+  String get settings_s3Config_validation_required => '必填';
+
+  @override
+  String get settings_s3Config_warning_http =>
+      '此终端节点使用未加密的 HTTP。凭证和潜水数据将以明文传输；仅在可信网络中使用。';
 
   @override
   String get settings_section_about_subtitle => '应用信息与许可证';

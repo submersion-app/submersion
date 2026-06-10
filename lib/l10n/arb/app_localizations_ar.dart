@@ -10085,6 +10085,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'غير متاح على هذه المنصة';
 
   @override
+  String get settings_cloudSync_provider_s3_edit => 'تحرير إعدادات S3';
+
+  @override
+  String get settings_cloudSync_provider_s3_subtitle =>
+      'Amazon S3 وMinIO وCloudflare R2 وBackblaze B2 وغيرها';
+
+  @override
+  String get settings_cloudSync_provider_s3_title => 'تخزين متوافق مع S3';
+
+  @override
   String get settings_cloudSync_resetDialog_cancel => 'إلغاء';
 
   @override
@@ -10844,6 +10854,78 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_profileHub_switchDiver => 'تبديل الغواص';
+
+  @override
+  String get settings_s3Config_action_remove => 'إزالة الإعدادات';
+
+  @override
+  String get settings_s3Config_action_testConnection => 'اختبار الاتصال';
+
+  @override
+  String get settings_s3Config_appBar_title => 'تخزين متوافق مع S3';
+
+  @override
+  String get settings_s3Config_field_accessKeyId_label => 'Access Key ID';
+
+  @override
+  String get settings_s3Config_field_bucket_label => 'الحاوية (Bucket)';
+
+  @override
+  String get settings_s3Config_field_endpoint_helper =>
+      'اتركه فارغًا لاستخدام Amazon S3';
+
+  @override
+  String get settings_s3Config_field_endpoint_label =>
+      'عنوان URL لنقطة النهاية';
+
+  @override
+  String get settings_s3Config_field_pathStyle_label =>
+      'استخدام العنونة بنمط المسار (path-style)';
+
+  @override
+  String get settings_s3Config_field_pathStyle_subtitle =>
+      'مطلوب لمعظم خوادم MinIO وNAS';
+
+  @override
+  String get settings_s3Config_field_prefix_label => 'بادئة المفاتيح';
+
+  @override
+  String get settings_s3Config_field_region_label => 'المنطقة';
+
+  @override
+  String get settings_s3Config_field_secretAccessKey_label =>
+      'Secret Access Key';
+
+  @override
+  String get settings_s3Config_remove_confirm_action => 'إزالة';
+
+  @override
+  String get settings_s3Config_remove_confirm_body =>
+      'ستتوقف المزامنة عبر S3 على هذا الجهاز. لن تُحذف بياناتك في الحاوية.';
+
+  @override
+  String get settings_s3Config_remove_confirm_title =>
+      'هل تريد إزالة إعدادات S3؟';
+
+  @override
+  String get settings_s3Config_removed => 'تمت إزالة إعدادات S3';
+
+  @override
+  String get settings_s3Config_saved => 'تم حفظ إعدادات S3';
+
+  @override
+  String get settings_s3Config_test_success => 'نجح الاتصال';
+
+  @override
+  String get settings_s3Config_validation_endpointInvalid =>
+      'أدخل عنوان URL صالحًا يبدأ بـ http:// أو https://';
+
+  @override
+  String get settings_s3Config_validation_required => 'مطلوب';
+
+  @override
+  String get settings_s3Config_warning_http =>
+      'تستخدم نقطة النهاية هذه HTTP غير مشفّر. ستنتقل بيانات الاعتماد وبيانات الغوص دون تشفير؛ استخدمه فقط على شبكة موثوقة.';
 
   @override
   String get settings_section_about_subtitle => 'معلومات التطبيق والتراخيص';
