@@ -323,11 +323,22 @@ class SyncNotifier extends StateNotifier<SyncState> {
   }
 
   /// Sign out from the cloud provider
+  ///
+  /// For S3 the credentials are hand-entered, so disconnecting only
+  /// deselects the provider; the stored configuration survives and the
+  /// S3 settings page offers the explicit, destructive
+  /// "Remove Configuration" instead.
   Future<void> signOut() async {
-    await _syncService.signOut();
+    final selected = _ref.read(selectedCloudProviderTypeProvider);
+    if (selected != CloudProviderType.s3) {
+      await _syncService.signOut();
+    }
     _ref.read(selectedCloudProviderTypeProvider.notifier).state = null;
     // Clear the saved provider from SharedPreferences
     await _ref.read(syncInitializerProvider).saveProvider(null);
+    // The S3 tile watches this; a sign-out (or future config change) must
+    // not leave it showing stale state.
+    _ref.invalidate(s3ConfigProvider);
     state = const SyncState();
   }
 

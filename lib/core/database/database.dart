@@ -1303,7 +1303,7 @@ class SyncMetadata extends Table {
       integer().nullable()(); // Unix timestamp ms of last successful sync
   TextColumn get deviceId => text()(); // This device's unique UUID
   TextColumn get syncProvider =>
-      text().nullable()(); // 'icloud' or 'googledrive'
+      text().nullable()(); // 'icloud', 'googledrive', or 's3'
   TextColumn get remoteFileId =>
       text().nullable()(); // Provider-specific file reference
   IntColumn get syncVersion =>

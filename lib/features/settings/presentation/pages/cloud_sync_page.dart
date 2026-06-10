@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
+import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -421,6 +422,7 @@ class CloudSyncPage extends ConsumerWidget {
           isSelected: selectedProvider == CloudProviderType.googledrive,
           isAvailable: true,
         ),
+        _buildS3ProviderTile(context, ref, selectedProvider),
       ],
     );
   }
@@ -454,6 +456,53 @@ class CloudSyncPage extends ConsumerWidget {
         onTap: isAvailable
             ? () => _selectProvider(context, ref, provider)
             : null,
+      ),
+    );
+  }
+
+  Widget _buildS3ProviderTile(
+    BuildContext context,
+    WidgetRef ref,
+    CloudProviderType? selectedProvider,
+  ) {
+    final l10n = context.l10n;
+    final S3Config? config = ref.watch(s3ConfigProvider).valueOrNull;
+    final isSelected = selectedProvider == CloudProviderType.s3;
+    final isConfigured = config != null;
+
+    return Semantics(
+      selected: isSelected,
+      child: ListTile(
+        leading: const Icon(Icons.dns),
+        title: Text(l10n.settings_cloudSync_provider_s3_title),
+        subtitle: Text(
+          isConfigured
+              ? '${config.bucket} @ ${config.displayHost}'
+              : l10n.settings_cloudSync_provider_s3_subtitle,
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isSelected)
+              const Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                semanticLabel: 'Connected',
+              ),
+            IconButton(
+              icon: const Icon(Icons.settings_outlined),
+              tooltip: l10n.settings_cloudSync_provider_s3_edit,
+              onPressed: () => context.push('/settings/cloud-sync/s3-config'),
+            ),
+          ],
+        ),
+        onTap: () {
+          if (isConfigured) {
+            _selectProvider(context, ref, CloudProviderType.s3);
+          } else {
+            context.push('/settings/cloud-sync/s3-config');
+          }
+        },
       ),
     );
   }

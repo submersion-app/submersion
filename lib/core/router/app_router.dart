@@ -73,6 +73,7 @@ import 'package:submersion/features/statistics/presentation/pages/statistics_equ
 import 'package:submersion/features/statistics/presentation/pages/statistics_profile_page.dart';
 import 'package:submersion/features/backup/presentation/pages/backup_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
+import 'package:submersion/features/settings/presentation/pages/s3_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
@@ -860,6 +861,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'cloud-sync',
                 name: 'cloudSync',
                 builder: (context, state) => const CloudSyncPage(),
+                routes: [
+                  GoRoute(
+                    path: 's3-config',
+                    name: 's3Config',
+                    builder: (context, state) => const S3ConfigPage(),
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'fix-dive-times',
