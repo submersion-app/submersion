@@ -1,21 +1,86 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart'
-    show CloudProviderType;
+    show CloudProviderType, SyncRepository;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
+import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
+import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
+import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart'
-    show ConflictResolution;
+    show ConflictResolution, SyncService;
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
+    show sharedPreferencesProvider;
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../../helpers/mock_providers.dart';
+
+/// In-memory [S3CredentialsStore] for testing -- no FlutterSecureStorage.
+class _MemoryCredentialsStore implements S3CredentialsStore {
+  S3Config? stored;
+
+  @override
+  Future<S3Config?> load() async => stored;
+
+  @override
+  Future<void> save(S3Config config) async => stored = config;
+
+  @override
+  Future<void> clear() async => stored = null;
+}
+
+/// Minimal [SyncRepository] subclass that avoids touching the database.
+/// Only the three methods called by [SyncNotifier.refreshState] need to
+/// be overridden; everything else is unreachable under the test harness.
+class _FakeSyncRepository extends SyncRepository {
+  int signOutCalls = 0;
+
+  @override
+  Future<DateTime?> getLastSyncTime() async => null;
+
+  @override
+  Future<int> getPendingCount() async => 0;
+
+  @override
+  Future<int> getConflictCount() async => 0;
+
+  @override
+  Future<void> setCloudProvider(CloudProviderType? provider) async {
+    signOutCalls++;
+  }
+
+  @override
+  Future<void> setRemoteFileId(String? fileId) async {}
+}
+
+/// Minimal [SyncService] subclass that avoids real I/O.
+class _FakeSyncService extends SyncService {
+  bool signOutCalled = false;
+
+  _FakeSyncService(_FakeSyncRepository repo)
+    : super(
+        syncRepository: repo,
+        serializer: SyncDataSerializer(),
+        cloudProvider: null,
+      );
+
+  @override
+  Future<bool> isSyncAvailable() async => false;
+
+  @override
+  Future<void> signOut() async {
+    signOutCalled = true;
+  }
+}
 
 /// Fake [SyncNotifier] that holds an arbitrary [SyncState] and records calls to
 /// the mutating methods the page invokes, without touching the database.
@@ -143,6 +208,10 @@ void main() {
 
   /// Pump [CloudSyncPage] with controllable overrides. Returns the fake sync
   /// notifier and fake merge repository so tests can assert on recorded calls.
+  ///
+  /// [s3Config] controls what [s3ConfigProvider] resolves to. Defaults to
+  /// null (unconfigured) so tests that do not care about S3 exercise the
+  /// intended unconfigured state rather than hitting FlutterSecureStorage.
   Future<({_FakeSyncNotifier sync, _FakeDiverMergeRepository merge})> pumpPage(
     WidgetTester tester, {
     SyncState syncState = const SyncState(),
@@ -153,6 +222,7 @@ void main() {
     CloudStorageProvider? cloudProvider,
     bool mergeThrows = false,
     bool settle = true,
+    S3Config? s3Config,
     SyncBehaviorSettings behavior = const SyncBehaviorSettings(
       autoSyncEnabled: false,
       syncOnLaunch: false,
@@ -191,6 +261,9 @@ void main() {
                 : (cloudProvider ?? FakeCloudStorageProvider()),
           ),
           conflictsProvider.overrideWith((ref) async => const []),
+          // Override s3ConfigProvider so existing tests never hit
+          // FlutterSecureStorage; individual tests can supply a config.
+          s3ConfigProvider.overrideWith((ref) async => s3Config),
         ],
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -760,6 +833,322 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Merge failed:'), findsOneWidget);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // S3 provider tile
+  // ---------------------------------------------------------------------------
+
+  group('S3 provider tile', () {
+    testWidgets('renders title and marketing subtitle when unconfigured', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+
+      expect(find.text('S3-Compatible Storage'), findsOneWidget);
+      expect(
+        find.text('Amazon S3, MinIO, Cloudflare R2, Backblaze B2, and more'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('subtitle shows bucket @ host when configured', (tester) async {
+      final config = S3Config(
+        endpoint: 'http://nas.local:9000',
+        bucket: 'dive-sync',
+        accessKeyId: 'ak',
+        secretAccessKey: 'sk',
+      );
+      await pumpPage(tester, s3Config: config);
+
+      expect(find.text('dive-sync @ nas.local'), findsOneWidget);
+    });
+
+    testWidgets('check_circle appears when S3 is the selected provider', (
+      tester,
+    ) async {
+      // Not selected: no checkmark on the S3 tile (one checkmark only appears
+      // when a provider is selected, and here we select googledrive instead).
+      await pumpPage(tester, selectedProvider: CloudProviderType.googledrive);
+      // Only one check_circle -- for Google Drive, not S3.
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+
+      // Now select S3: the checkmark moves to the S3 tile.  With no other
+      // provider selected there is exactly one check_circle on screen.
+      await pumpPage(tester, selectedProvider: CloudProviderType.s3);
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    });
+
+    testWidgets('check_circle absent when no provider is selected', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+      expect(find.byIcon(Icons.check_circle), findsNothing);
+    });
+
+    testWidgets('tapping unconfigured tile navigates to s3-config route', (
+      tester,
+    ) async {
+      final base = await getBaseOverrides();
+      await tester.binding.setSurfaceSize(const Size(500, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final router = GoRouter(
+        initialLocation: '/settings/cloud-sync',
+        routes: [
+          GoRoute(
+            path: '/settings/cloud-sync',
+            builder: (context, state) => const CloudSyncPage(),
+          ),
+          GoRoute(
+            path: '/settings/cloud-sync/s3-config',
+            builder: (context, state) =>
+                const Scaffold(body: Text('s3-config-stub')),
+          ),
+          GoRoute(
+            path: '/settings/storage',
+            builder: (context, state) => const Scaffold(),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...base,
+            syncStateProvider.overrideWith(
+              (ref) => _FakeSyncNotifier(const SyncState()),
+            ),
+            syncBehaviorProvider.overrideWith(
+              (ref) => _FakeSyncBehaviorNotifier(
+                const SyncBehaviorSettings(
+                  autoSyncEnabled: false,
+                  syncOnLaunch: false,
+                  syncOnResume: false,
+                ),
+              ),
+            ),
+            selectedCloudProviderTypeProvider.overrideWith((ref) => null),
+            isCloudSyncDisabledByCustomFolderProvider.overrideWithValue(false),
+            duplicateDiverGroupsProvider.overrideWith((ref) async => const []),
+            allDiversProvider.overrideWith((ref) async => const <Diver>[]),
+            diverMergeRepositoryProvider.overrideWithValue(
+              _FakeDiverMergeRepository(),
+            ),
+            cloudStorageProviderProvider.overrideWithValue(
+              FakeCloudStorageProvider(),
+            ),
+            conflictsProvider.overrideWith((ref) async => const []),
+            // Unconfigured: no S3 config stored.
+            s3ConfigProvider.overrideWith((ref) async => null),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('S3-Compatible Storage'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('s3-config-stub'), findsOneWidget);
+    });
+
+    testWidgets(
+      'gear icon always navigates to s3-config route even when configured',
+      (tester) async {
+        final base = await getBaseOverrides();
+        await tester.binding.setSurfaceSize(const Size(500, 2400));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        final router = GoRouter(
+          initialLocation: '/settings/cloud-sync',
+          routes: [
+            GoRoute(
+              path: '/settings/cloud-sync',
+              builder: (context, state) => const CloudSyncPage(),
+            ),
+            GoRoute(
+              path: '/settings/cloud-sync/s3-config',
+              builder: (context, state) =>
+                  const Scaffold(body: Text('s3-config-stub')),
+            ),
+            GoRoute(
+              path: '/settings/storage',
+              builder: (context, state) => const Scaffold(),
+            ),
+          ],
+        );
+
+        final config = S3Config(
+          endpoint: 'http://nas.local:9000',
+          bucket: 'dive-sync',
+          accessKeyId: 'ak',
+          secretAccessKey: 'sk',
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...base,
+              syncStateProvider.overrideWith(
+                (ref) => _FakeSyncNotifier(const SyncState()),
+              ),
+              syncBehaviorProvider.overrideWith(
+                (ref) => _FakeSyncBehaviorNotifier(
+                  const SyncBehaviorSettings(
+                    autoSyncEnabled: false,
+                    syncOnLaunch: false,
+                    syncOnResume: false,
+                  ),
+                ),
+              ),
+              selectedCloudProviderTypeProvider.overrideWith(
+                (ref) => CloudProviderType.s3,
+              ),
+              isCloudSyncDisabledByCustomFolderProvider.overrideWithValue(
+                false,
+              ),
+              duplicateDiverGroupsProvider.overrideWith(
+                (ref) async => const [],
+              ),
+              allDiversProvider.overrideWith((ref) async => const <Diver>[]),
+              diverMergeRepositoryProvider.overrideWithValue(
+                _FakeDiverMergeRepository(),
+              ),
+              cloudStorageProviderProvider.overrideWithValue(
+                FakeCloudStorageProvider(),
+              ),
+              conflictsProvider.overrideWith((ref) async => const []),
+              s3ConfigProvider.overrideWith((ref) async => config),
+            ],
+            child: MaterialApp.router(
+              routerConfig: router,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Tap the gear icon (settings_outlined), not the tile body.
+        await tester.tap(find.byIcon(Icons.settings_outlined));
+        await tester.pumpAndSettle();
+
+        expect(find.text('s3-config-stub'), findsOneWidget);
+      },
+    );
+  });
+
+  // ---------------------------------------------------------------------------
+  // SyncNotifier.signOut -- S3 credential-retention branch
+  // ---------------------------------------------------------------------------
+
+  group('SyncNotifier.signOut S3 branch', () {
+    /// Build a [ProviderContainer] wired with fake sync infrastructure.
+    /// [initialProvider] seeds [selectedCloudProviderTypeProvider] so signOut
+    /// can read the correct current selection.
+    Future<({ProviderContainer container, _FakeSyncService fakeService})>
+    buildContainer({
+      required CloudProviderType? initialProvider,
+      _MemoryCredentialsStore? store,
+    }) async {
+      SharedPreferences.setMockInitialValues({
+        if (initialProvider != null) 'sync_last_provider': initialProvider.name,
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final credStore = store ?? _MemoryCredentialsStore();
+      final fakeRepo = _FakeSyncRepository();
+      final fakeSvc = _FakeSyncService(fakeRepo);
+      final s3Provider = S3StorageProvider(store: credStore);
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          syncRepositoryProvider.overrideWithValue(fakeRepo),
+          syncServiceProvider.overrideWithValue(fakeSvc),
+          s3StorageProviderInstanceProvider.overrideWithValue(s3Provider),
+          selectedCloudProviderTypeProvider.overrideWith(
+            (ref) => initialProvider,
+          ),
+          isCloudSyncDisabledByCustomFolderProvider.overrideWithValue(false),
+        ],
+      );
+      addTearDown(container.dispose);
+      // Allow _initialize / refreshState to complete.
+      await container.read(syncStateProvider.notifier).refreshState();
+      return (container: container, fakeService: fakeSvc);
+    }
+
+    test('S3 signOut does NOT call syncService.signOut', () async {
+      final credStore = _MemoryCredentialsStore()
+        ..stored = S3Config(
+          endpoint: 'http://nas.local:9000',
+          bucket: 'dive-sync',
+          accessKeyId: 'ak',
+          secretAccessKey: 'sk',
+        );
+
+      final (:container, fakeService: svc) = await buildContainer(
+        initialProvider: CloudProviderType.s3,
+        store: credStore,
+      );
+
+      await container.read(syncStateProvider.notifier).signOut();
+
+      // The S3 path must NOT touch the cloud sign-out chain.
+      expect(svc.signOutCalled, isFalse);
+    });
+
+    test('S3 signOut preserves stored S3 credentials', () async {
+      final credStore = _MemoryCredentialsStore()
+        ..stored = S3Config(
+          endpoint: 'http://nas.local:9000',
+          bucket: 'dive-sync',
+          accessKeyId: 'ak',
+          secretAccessKey: 'sk',
+        );
+
+      final (:container, fakeService: _) = await buildContainer(
+        initialProvider: CloudProviderType.s3,
+        store: credStore,
+      );
+
+      await container.read(syncStateProvider.notifier).signOut();
+
+      // Credentials must survive the deselect.
+      expect(credStore.stored, isNotNull);
+      expect(credStore.stored!.bucket, 'dive-sync');
+    });
+
+    test(
+      'S3 signOut deselects provider and clears persisted selection',
+      () async {
+        final (:container, fakeService: _) = await buildContainer(
+          initialProvider: CloudProviderType.s3,
+        );
+
+        await container.read(syncStateProvider.notifier).signOut();
+
+        expect(container.read(selectedCloudProviderTypeProvider), isNull);
+        // SharedPreferences key must be gone.
+        final prefs = container.read(sharedPreferencesProvider);
+        expect(prefs.getString('sync_last_provider'), isNull);
+      },
+    );
+
+    test('non-S3 signOut calls syncService.signOut', () async {
+      final (:container, fakeService: svc) = await buildContainer(
+        initialProvider: CloudProviderType.googledrive,
+      );
+
+      await container.read(syncStateProvider.notifier).signOut();
+
+      expect(svc.signOutCalled, isTrue);
     });
   });
 }
