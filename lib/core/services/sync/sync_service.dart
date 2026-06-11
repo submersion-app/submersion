@@ -8,6 +8,8 @@ import 'package:submersion/core/database/database.dart' show SyncRecord;
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
+import 'package:submersion/core/services/sync/library_epoch.dart';
+import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
@@ -129,6 +131,10 @@ class SyncService {
   final SyncDataSerializer _serializer;
   final CloudStorageProvider? _cloudProvider;
   final SyncInitializer? _syncInitializer;
+
+  /// Library epoch persistence (restore Replace mode). Nullable so existing
+  /// constructions keep working; epoch gating activates only when provided.
+  final LibraryEpochStore? _epochStore;
   final _log = LoggerService.forClass(SyncService);
   final _uuid = const Uuid();
 
@@ -139,10 +145,12 @@ class SyncService {
     required SyncDataSerializer serializer,
     CloudStorageProvider? cloudProvider,
     SyncInitializer? syncInitializer,
+    LibraryEpochStore? epochStore,
   }) : _syncRepository = syncRepository,
        _serializer = serializer,
        _cloudProvider = cloudProvider,
-       _syncInitializer = syncInitializer;
+       _syncInitializer = syncInitializer,
+       _epochStore = epochStore;
 
   /// Set a callback to receive progress updates during sync
   void setProgressCallback(SyncProgressCallback? callback) {
@@ -1467,6 +1475,49 @@ class SyncService {
     } catch (e) {
       _log.warning('Could not retire sync file for $deviceId: $e');
     }
+  }
+
+  /// Download and parse the cloud epoch marker. Returns null when absent.
+  /// Throws on listing/parse failure: "unreadable" must be distinguishable
+  /// from "absent" -- the caller fails the sync closed rather than guessing.
+  Future<LibraryEpochMarker?> readLibraryEpochMarker(
+    CloudStorageProvider provider,
+  ) async {
+    final files = await provider
+        .listFiles(namePattern: libraryEpochFileName)
+        .timeout(const Duration(seconds: 8));
+    final candidates = files
+        .where((f) => !_isConflictCopy(f.name))
+        .where((f) => f.name == libraryEpochFileName)
+        .toList();
+    if (candidates.isEmpty) return null;
+    candidates.sort((a, b) => b.modifiedTime.compareTo(a.modifiedTime));
+    final bytes = await provider
+        .downloadFile(candidates.first.id)
+        .timeout(const Duration(seconds: 30));
+    final decoded = jsonDecode(utf8.decode(bytes));
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException('Library epoch marker is not a JSON object');
+    }
+    return LibraryEpochMarker.fromJson(decoded);
+  }
+
+  /// Upload (or overwrite) the cloud epoch marker.
+  Future<void> writeLibraryEpochMarker(
+    CloudStorageProvider provider,
+    LibraryEpochMarker marker,
+  ) async {
+    final bytes = Uint8List.fromList(utf8.encode(jsonEncode(marker.toJson())));
+    String? folderId;
+    try {
+      folderId = await provider.getOrCreateSyncFolder();
+    } catch (_) {
+      folderId = null;
+    }
+    await provider
+        .uploadFile(bytes, libraryEpochFileName, folderId: folderId)
+        .timeout(const Duration(seconds: 60));
+    _log.info('Wrote library epoch marker ${marker.epochId}');
   }
 
   /// Sign out from the current cloud provider
