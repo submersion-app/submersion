@@ -63,12 +63,14 @@ class EditFormScaffold extends StatelessWidget {
   Future<void> _handlePop(BuildContext context, bool didPop) async {
     if (didPop) return;
     final navigator = Navigator.of(context);
-    if (await _confirmDiscard(context)) navigator.pop();
+    final shouldPop = await _confirmDiscard(context);
+    // The dialog can outlive this route; don't pop a disposed context.
+    if (shouldPop && context.mounted) navigator.pop();
   }
 
   Future<void> _handleCancel(BuildContext context) async {
     if (hasUnsavedChanges && !await _confirmDiscard(context)) return;
-    onCancel?.call();
+    if (context.mounted) onCancel?.call();
   }
 
   Widget _saveButton(BuildContext context, {required bool filled}) {

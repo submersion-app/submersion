@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Boxed numeric input with a unit suffix, for dense clusters inside
 /// expanded editors (tank pressures, weights). Unit symbols always come
@@ -28,6 +29,13 @@ class UnitField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       keyboardType: TextInputType.numberWithOptions(decimal: allowDecimal),
+      inputFormatters: [
+        // keyboardType is only a hint; enforce numeric input against
+        // paste and desktop/physical keyboards.
+        allowDecimal
+            ? FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))
+            : FilteringTextInputFormatter.digitsOnly,
+      ],
       validator: validator,
       onChanged: onChanged,
       decoration: InputDecoration(

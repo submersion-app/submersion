@@ -48,4 +48,45 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Required'), findsOneWidget);
   });
+
+  testWidgets('strips non-numeric characters from pasted/typed input', (
+    tester,
+  ) async {
+    final controller = TextEditingController();
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: UnitField(
+            controller: controller,
+            label: 'Volume',
+            unitSymbol: 'L',
+          ),
+        ),
+      ),
+    );
+    await tester.enterText(find.byType(TextFormField), 'abc11.1xyz');
+    expect(controller.text, '11.1');
+  });
+
+  testWidgets('rejects the decimal separator when allowDecimal is false', (
+    tester,
+  ) async {
+    final controller = TextEditingController();
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: UnitField(
+            controller: controller,
+            label: 'Pressure',
+            unitSymbol: 'bar',
+            allowDecimal: false,
+          ),
+        ),
+      ),
+    );
+    await tester.enterText(find.byType(TextFormField), '20.0');
+    expect(controller.text, '200');
+  });
 }
