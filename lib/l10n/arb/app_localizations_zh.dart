@@ -3877,6 +3877,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get forms_addSection_prefix => '添加：';
 
   @override
+  String get forms_cancel => '取消';
+
+  @override
+  String get forms_discard_body => '您有未保存的更改。如果现在离开，更改将丢失。';
+
+  @override
+  String get forms_discard_discard => '放弃';
+
+  @override
+  String get forms_discard_keepEditing => '继续编辑';
+
+  @override
+  String get forms_discard_title => '放弃更改？';
+
+  @override
+  String get forms_save => '保存';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -4061,6 +4061,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get forms_addSection_prefix => 'Hozzáadás:';
 
   @override
+  String get forms_cancel => 'Mégse';
+
+  @override
+  String get forms_discard_body =>
+      'Nem mentett módosításai vannak. Ha most kilép, elvesznek.';
+
+  @override
+  String get forms_discard_discard => 'Elvetés';
+
+  @override
+  String get forms_discard_keepEditing => 'Szerkesztés folytatása';
+
+  @override
+  String get forms_discard_title => 'Elveti a módosításokat?';
+
+  @override
+  String get forms_save => 'Mentés';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

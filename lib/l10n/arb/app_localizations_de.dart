@@ -4074,6 +4074,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get forms_addSection_prefix => 'Hinzufügen:';
 
   @override
+  String get forms_cancel => 'Abbrechen';
+
+  @override
+  String get forms_discard_body =>
+      'Es gibt ungespeicherte Änderungen. Wenn Sie jetzt verlassen, gehen sie verloren.';
+
+  @override
+  String get forms_discard_discard => 'Verwerfen';
+
+  @override
+  String get forms_discard_keepEditing => 'Weiter bearbeiten';
+
+  @override
+  String get forms_discard_title => 'Änderungen verwerfen?';
+
+  @override
+  String get forms_save => 'Speichern';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

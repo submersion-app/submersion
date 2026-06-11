@@ -4000,6 +4000,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forms_addSection_prefix => 'Add:';
 
   @override
+  String get forms_cancel => 'Cancel';
+
+  @override
+  String get forms_discard_body =>
+      'You have unsaved changes. If you leave now they will be lost.';
+
+  @override
+  String get forms_discard_discard => 'Discard';
+
+  @override
+  String get forms_discard_keepEditing => 'Keep editing';
+
+  @override
+  String get forms_discard_title => 'Discard changes?';
+
+  @override
+  String get forms_save => 'Save';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

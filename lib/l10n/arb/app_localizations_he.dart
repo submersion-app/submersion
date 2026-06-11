@@ -3959,6 +3959,25 @@ class AppLocalizationsHe extends AppLocalizations {
   String get forms_addSection_prefix => 'הוספה:';
 
   @override
+  String get forms_cancel => 'ביטול';
+
+  @override
+  String get forms_discard_body =>
+      'יש לך שינויים שלא נשמרו. אם תצא עכשיו הם יאבדו.';
+
+  @override
+  String get forms_discard_discard => 'ביטול שינויים';
+
+  @override
+  String get forms_discard_keepEditing => 'המשך עריכה';
+
+  @override
+  String get forms_discard_title => 'לבטל את השינויים?';
+
+  @override
+  String get forms_save => 'שמירה';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

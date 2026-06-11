@@ -3974,6 +3974,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get forms_addSection_prefix => 'إضافة:';
 
   @override
+  String get forms_cancel => 'إلغاء';
+
+  @override
+  String get forms_discard_body =>
+      'لديك تغييرات غير محفوظة. إذا غادرت الآن فستفقد.';
+
+  @override
+  String get forms_discard_discard => 'تجاهل';
+
+  @override
+  String get forms_discard_keepEditing => 'متابعة التحرير';
+
+  @override
+  String get forms_discard_title => 'تجاهل التغييرات؟';
+
+  @override
+  String get forms_save => 'حفظ';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

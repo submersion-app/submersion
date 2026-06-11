@@ -4044,6 +4044,25 @@ class AppLocalizationsNl extends AppLocalizations {
   String get forms_addSection_prefix => 'Toevoegen:';
 
   @override
+  String get forms_cancel => 'Annuleren';
+
+  @override
+  String get forms_discard_body =>
+      'Je hebt niet-opgeslagen wijzigingen. Als je nu weggaat, gaan ze verloren.';
+
+  @override
+  String get forms_discard_discard => 'Verwerpen';
+
+  @override
+  String get forms_discard_keepEditing => 'Doorgaan met bewerken';
+
+  @override
+  String get forms_discard_title => 'Wijzigingen verwerpen?';
+
+  @override
+  String get forms_save => 'Opslaan';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

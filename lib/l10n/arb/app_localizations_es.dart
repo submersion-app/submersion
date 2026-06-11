@@ -4073,6 +4073,25 @@ class AppLocalizationsEs extends AppLocalizations {
   String get forms_addSection_prefix => 'Añadir:';
 
   @override
+  String get forms_cancel => 'Cancelar';
+
+  @override
+  String get forms_discard_body =>
+      'Tienes cambios sin guardar. Si sales ahora, se perderán.';
+
+  @override
+  String get forms_discard_discard => 'Descartar';
+
+  @override
+  String get forms_discard_keepEditing => 'Seguir editando';
+
+  @override
+  String get forms_discard_title => '¿Descartar los cambios?';
+
+  @override
+  String get forms_save => 'Guardar';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

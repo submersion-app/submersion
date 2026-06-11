@@ -6934,6 +6934,42 @@ abstract class AppLocalizations {
   /// **'Add:'**
   String get forms_addSection_prefix;
 
+  /// Cancel action on shared edit form scaffold
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get forms_cancel;
+
+  /// Body of the unsaved-changes dialog
+  ///
+  /// In en, this message translates to:
+  /// **'You have unsaved changes. If you leave now they will be lost.'**
+  String get forms_discard_body;
+
+  /// Leave the form, losing changes
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get forms_discard_discard;
+
+  /// Stay on the form
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get forms_discard_keepEditing;
+
+  /// Title of the unsaved-changes dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Discard changes?'**
+  String get forms_discard_title;
+
+  /// Save action on shared edit form scaffold
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get forms_save;
+
   /// Badge on a collapsed form section that contains validation errors
   ///
   /// In en, this message translates to:
