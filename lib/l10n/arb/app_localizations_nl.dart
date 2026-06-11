@@ -10357,6 +10357,26 @@ class AppLocalizationsNl extends AppLocalizations {
       'Cloudsynchronisatie uitgeschakeld';
 
   @override
+  String get settings_cloudSync_firstSync_banner =>
+      'De eerste synchronisatie wacht op bevestiging. Tik op \'Nu synchroniseren\' om te bekijken wat er wordt samengevoegd.';
+
+  @override
+  String get settings_cloudSync_firstSync_dialogConfirm =>
+      'Samenvoegen en synchroniseren';
+
+  @override
+  String settings_cloudSync_firstSync_dialogContent(
+    int deviceCount,
+    int diveCount,
+  ) {
+    return 'Er zijn bestaande synchronisatiegegevens gevonden in de cloud ($deviceCount synchronisatiebestand(en)). Je eerste synchronisatie voegt die gegevens samen met de $diveCount duik(en) op dit apparaat, op alle gesynchroniseerde apparaten.\n\nAls dezelfde duiken op elk apparaat afzonderlijk zijn toegevoegd, verschijnen ze dubbel.';
+  }
+
+  @override
+  String get settings_cloudSync_firstSync_dialogTitle =>
+      'Bibliotheken samenvoegen?';
+
+  @override
   String get settings_cloudSync_header_advanced => 'Geavanceerd';
 
   @override

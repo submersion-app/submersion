@@ -10423,6 +10423,26 @@ class AppLocalizationsEs extends AppLocalizations {
       'Sincronizacion en la nube desactivada';
 
   @override
+  String get settings_cloudSync_firstSync_banner =>
+      'La primera sincronización está esperando confirmación. Toca \'Sincronizar ahora\' para revisar lo que se combinará.';
+
+  @override
+  String get settings_cloudSync_firstSync_dialogConfirm =>
+      'Combinar y sincronizar';
+
+  @override
+  String settings_cloudSync_firstSync_dialogContent(
+    int deviceCount,
+    int diveCount,
+  ) {
+    return 'Se encontraron datos de sincronización existentes en la nube ($deviceCount archivo(s) de sincronización). Tu primera sincronización combinará esos datos con las $diveCount inmersiones de este dispositivo, en todos los dispositivos sincronizados.\n\nSi las mismas inmersiones se agregaron por separado en cada dispositivo, aparecerán dos veces.';
+  }
+
+  @override
+  String get settings_cloudSync_firstSync_dialogTitle =>
+      '¿Combinar Bibliotecas?';
+
+  @override
   String get settings_cloudSync_header_advanced => 'Avanzado';
 
   @override

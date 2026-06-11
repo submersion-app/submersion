@@ -9956,6 +9956,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_disabledBanner_title => '云同步已禁用';
 
   @override
+  String get settings_cloudSync_firstSync_banner =>
+      '首次同步正在等待确认。点击「立即同步」以查看将要合并的内容。';
+
+  @override
+  String get settings_cloudSync_firstSync_dialogConfirm => '合并并同步';
+
+  @override
+  String settings_cloudSync_firstSync_dialogContent(
+    int deviceCount,
+    int diveCount,
+  ) {
+    return '在云端发现了已有的同步数据（$deviceCount 个同步文件）。首次同步会将这些数据与此设备上的 $diveCount 次潜水合并，并应用到所有已同步的设备。\n\n如果相同的潜水是在每台设备上分别添加的，它们将出现两次。';
+  }
+
+  @override
+  String get settings_cloudSync_firstSync_dialogTitle => '合并资料库？';
+
+  @override
   String get settings_cloudSync_header_advanced => '高级';
 
   @override

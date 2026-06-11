@@ -44,6 +44,13 @@ void main() {
         final restored = serializer.deserializePayload(json);
 
         expect(
+          serializer.validateChecksum(payload),
+          isTrue,
+          reason:
+              'a locally built payload (rawDataJson == null) must validate '
+              'via the re-serialization fallback',
+        );
+        expect(
           serializer.validateChecksum(restored),
           isTrue,
           reason: 'checksum should validate after a clean round-trip',

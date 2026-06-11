@@ -774,11 +774,19 @@ class SyncRepository {
     return pendingCount > 0 || conflictCount > 0 || deletions.isNotEmpty;
   }
 
-  /// Reset sync state (useful for testing or switching accounts)
-  Future<void> resetSyncState() async {
+  /// Reset sync state (useful for testing or switching accounts).
+  ///
+  /// [clearDeletionLog] defaults to the historical full wipe (used by
+  /// [rebaselineAfterRestore], where the restored log is the backup's stale
+  /// snapshot). The user-facing Reset Sync State passes false: tombstones are
+  /// data history, and wiping them lets any stale peer file re-insert every
+  /// record deleted since that file was written.
+  Future<void> resetSyncState({bool clearDeletionLog = true}) async {
     try {
       await clearAllSyncRecords();
-      await clearAllDeletions();
+      if (clearDeletionLog) {
+        await clearAllDeletions();
+      }
 
       final now = DateTime.now().millisecondsSinceEpoch;
       await (_db.update(

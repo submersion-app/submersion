@@ -10238,6 +10238,24 @@ class AppLocalizationsAr extends AppLocalizations {
       'المزامنة السحابية معطلة';
 
   @override
+  String get settings_cloudSync_firstSync_banner =>
+      'المزامنة الأولى في انتظار التأكيد. اضغط على \'مزامنة الآن\' لمراجعة ما سيتم دمجه.';
+
+  @override
+  String get settings_cloudSync_firstSync_dialogConfirm => 'دمج ومزامنة';
+
+  @override
+  String settings_cloudSync_firstSync_dialogContent(
+    int deviceCount,
+    int diveCount,
+  ) {
+    return 'تم العثور على بيانات مزامنة موجودة في السحابة ($deviceCount من ملفات المزامنة). ستدمج المزامنة الأولى تلك البيانات مع $diveCount من الغطسات على هذا الجهاز، وذلك عبر جميع الأجهزة المتزامنة.\n\nإذا تمت إضافة الغطسات نفسها بشكل منفصل على كل جهاز، فستظهر مرتين.';
+  }
+
+  @override
+  String get settings_cloudSync_firstSync_dialogTitle => 'دمج المكتبات؟';
+
+  @override
   String get settings_cloudSync_header_advanced => 'متقدم';
 
   @override

@@ -10473,6 +10473,26 @@ class AppLocalizationsFr extends AppLocalizations {
       'Synchronisation cloud desactivee';
 
   @override
+  String get settings_cloudSync_firstSync_banner =>
+      'La première synchronisation attend votre confirmation. Appuyez sur « Synchroniser maintenant » pour vérifier ce qui sera combiné.';
+
+  @override
+  String get settings_cloudSync_firstSync_dialogConfirm =>
+      'Fusionner et synchroniser';
+
+  @override
+  String settings_cloudSync_firstSync_dialogContent(
+    int deviceCount,
+    int diveCount,
+  ) {
+    return 'Des données de synchronisation existantes ont été trouvées dans le cloud ($deviceCount fichier(s) de synchronisation). Votre première synchronisation combinera ces données avec les $diveCount plongée(s) de cet appareil, sur tous les appareils synchronisés.\n\nSi les mêmes plongées ont été ajoutées séparément sur chaque appareil, elles apparaîtront en double.';
+  }
+
+  @override
+  String get settings_cloudSync_firstSync_dialogTitle =>
+      'Combiner les bibliothèques ?';
+
+  @override
   String get settings_cloudSync_header_advanced => 'Avance';
 
   @override

@@ -10166,6 +10166,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_disabledBanner_title => 'סנכרון ענן מושבת';
 
   @override
+  String get settings_cloudSync_firstSync_banner =>
+      'הסנכרון הראשון ממתין לאישור. הקש על \'סנכרן עכשיו\' כדי לבדוק מה ישולב.';
+
+  @override
+  String get settings_cloudSync_firstSync_dialogConfirm => 'מזג וסנכרן';
+
+  @override
+  String settings_cloudSync_firstSync_dialogContent(
+    int deviceCount,
+    int diveCount,
+  ) {
+    return 'נמצאו נתוני סנכרון קיימים בענן ($deviceCount קובצי סנכרון). הסנכרון הראשון ישלב נתונים אלה עם $diveCount הצלילות שבמכשיר זה, בכל המכשירים המסונכרנים.\n\nאם אותן צלילות נוספו בנפרד בכל מכשיר, הן יופיעו פעמיים.';
+  }
+
+  @override
+  String get settings_cloudSync_firstSync_dialogTitle => 'לשלב ספריות?';
+
+  @override
   String get settings_cloudSync_header_advanced => 'מתקדם';
 
   @override

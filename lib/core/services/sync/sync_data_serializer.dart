@@ -85,6 +85,22 @@ class SyncPayload {
   final SyncData data;
   final Map<String, List<SyncDeletion>> deletions;
 
+  /// The `data` section exactly as it appeared in the received document,
+  /// re-encoded from the decoded map (Dart maps preserve key order, and the
+  /// writer used compact jsonEncode, so this reproduces the writer's bytes).
+  /// Checksums must be verified against the WRITER's encoding: re-serializing
+  /// through this build's [SyncData.toJson] adds entity keys older builds
+  /// never wrote, which made every released build's payload "invalid".
+  /// Null for locally constructed payloads (export path).
+  final String? rawDataJson;
+
+  /// Random nonce minted for each upload. An install records its own recent
+  /// nonces (SharedPreferences); finding a nonce it never minted in its OWN
+  /// per-device cloud file means another install is syncing with this
+  /// device's identity (a "twin", typically created by whole-container OS
+  /// migration). Null in payloads written by older builds.
+  final String? uploadNonce;
+
   const SyncPayload({
     required this.version,
     required this.exportedAt,
@@ -93,6 +109,8 @@ class SyncPayload {
     required this.checksum,
     required this.data,
     required this.deletions,
+    this.rawDataJson,
+    this.uploadNonce,
   });
 
   Map<String, dynamic> toJson() => {
@@ -105,6 +123,7 @@ class SyncPayload {
     'deletions': deletions.map(
       (key, value) => MapEntry(key, value.map((d) => d.toJson()).toList()),
     ),
+    'uploadNonce': uploadNonce,
   };
 
   factory SyncPayload.fromJson(Map<String, dynamic> json) {
@@ -117,6 +136,8 @@ class SyncPayload {
       lastSyncTimestamp: json['lastSyncTimestamp'] as int?,
       checksum: json['checksum'] as String,
       data: SyncData.fromJson(json['data'] as Map<String, dynamic>),
+      rawDataJson: jsonEncode(json['data']),
+      uploadNonce: json['uploadNonce'] as String?,
       deletions: rawDeletions.map((key, value) {
         final list = value as List? ?? [];
         final deletions = list
@@ -341,6 +362,7 @@ class SyncDataSerializer {
     DateTime? since,
     int? lastSyncTimestamp,
     required List<DeletionLogData> deletions,
+    String? uploadNonce,
   }) async {
     try {
       final sinceMs = since?.millisecondsSinceEpoch;
@@ -494,6 +516,7 @@ class SyncDataSerializer {
         checksum: checksum,
         data: data,
         deletions: deletionMap,
+        uploadNonce: uploadNonce,
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -516,9 +539,13 @@ class SyncDataSerializer {
     return SyncPayload.fromJson(map);
   }
 
-  /// Validate checksum of payload
+  /// Validate checksum of payload.
+  ///
+  /// Verified over the data section as received ([SyncPayload.rawDataJson])
+  /// so payloads written by builds with fewer/more entity keys still
+  /// validate; falls back to re-serializing for locally built payloads.
   bool validateChecksum(SyncPayload payload) {
-    final dataJson = jsonEncode(payload.data.toJson());
+    final dataJson = payload.rawDataJson ?? jsonEncode(payload.data.toJson());
     final computed = _computeChecksum(dataJson);
     return computed == payload.checksum;
   }

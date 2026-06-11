@@ -90,7 +90,10 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
   _FakeSyncNotifier(this._ref) : super(const SyncState());
 
   @override
-  Future<void> performSync() async {}
+  Future<void> performSync({bool auto = false}) async {}
+
+  @override
+  Future<FirstSyncMergeInfo?> firstSyncMergeInfo() async => null;
 
   @override
   Future<void> refreshState() async {}

@@ -10403,6 +10403,26 @@ class AppLocalizationsHu extends AppLocalizations {
       'Felho szinkronizalas letiltva';
 
   @override
+  String get settings_cloudSync_firstSync_banner =>
+      'Az első szinkronizálás megerősítésre vár. Koppintson a \'Szinkronizálás most\' gombra, hogy átnézze, mi kerül összevonásra.';
+
+  @override
+  String get settings_cloudSync_firstSync_dialogConfirm =>
+      'Összevonás és szinkronizálás';
+
+  @override
+  String settings_cloudSync_firstSync_dialogContent(
+    int deviceCount,
+    int diveCount,
+  ) {
+    return 'Meglévő szinkronizálási adatok találhatók a felhőben ($deviceCount szinkronizálási fájl). Az első szinkronizálás ezeket az adatokat összevonja az ezen az eszközön található $diveCount merüléssel, minden szinkronizált eszközön.\n\nHa ugyanazokat a merüléseket minden eszközön külön adták hozzá, kétszer fognak megjelenni.';
+  }
+
+  @override
+  String get settings_cloudSync_firstSync_dialogTitle =>
+      'Könyvtárak összevonása?';
+
+  @override
   String get settings_cloudSync_header_advanced => 'Halado';
 
   @override
@@ -10562,7 +10582,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_cloudSync_storageSettings => 'Tarolasi beallitasok';
 
   @override
-  String get settings_cloudSync_syncNow => 'Szinkronizalas most';
+  String get settings_cloudSync_syncNow => 'Szinkronizálás most';
 
   @override
   String get settings_cloudSync_syncOnLaunch => 'Szinkronizalas inditaskor';

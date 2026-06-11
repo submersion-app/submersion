@@ -139,13 +139,13 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       // Already logged inside reconcileDeviceIdentity; proceed with the sync.
     }
     if (!mounted) return;
-    ref.read(syncStateProvider.notifier).performSync();
+    ref.read(syncStateProvider.notifier).performSync(auto: true);
   }
 
   void _maybeSyncOnResume() {
     final settings = ref.read(syncBehaviorProvider);
     if (!settings.autoSyncEnabled || !settings.syncOnResume) return;
-    ref.read(syncStateProvider.notifier).performSync();
+    ref.read(syncStateProvider.notifier).performSync(auto: true);
   }
 
   Future<void> _handleIncomingFile(Uint8List bytes, String fileName) async {

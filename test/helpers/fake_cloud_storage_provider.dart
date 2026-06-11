@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -12,6 +13,25 @@ class FakeCloudStorageProvider extends CloudStorageProvider
 
   int get fileCount => _files.length;
   Uint8List? bytesOf(String name) => _files[name]?.data;
+
+  /// Counts every call to [uploadFile], including those that throw.
+  int uploadAttempts = 0;
+
+  /// When true, [uploadFile] throws, modelling an offline/denied provider.
+  bool failUploads = false;
+
+  /// When true, [uploadFile] WRITES the file and then throws
+  /// [TimeoutException], modelling a PUT that landed server-side while the
+  /// response was lost.
+  bool timeoutUploadsAfterWrite = false;
+
+  /// When true, [deleteFile] throws, modelling an offline/denied provider.
+  bool failDeletes = false;
+
+  /// Seed a file as though another device had uploaded it.
+  void seedFile(String name, Uint8List data) {
+    _files[name] = _FakeFile(data, DateTime.now());
+  }
 
   /// Bytes of the single sync payload file present, regardless of its
   /// per-device filename (`submersion_sync_<deviceId>.json`) or the legacy
@@ -57,7 +77,14 @@ class FakeCloudStorageProvider extends CloudStorageProvider
     String filename, {
     String? folderId,
   }) async {
+    uploadAttempts++;
+    if (failUploads) {
+      throw const CloudStorageException('upload failed (test)');
+    }
     _files[filename] = _FakeFile(data, DateTime.now());
+    if (timeoutUploadsAfterWrite) {
+      throw TimeoutException('upload timed out (test)');
+    }
     return UploadResult(
       fileId: filename,
       uploadTime: _files[filename]!.modified,
@@ -105,6 +132,9 @@ class FakeCloudStorageProvider extends CloudStorageProvider
 
   @override
   Future<void> deleteFile(String fileId) async {
+    if (failDeletes) {
+      throw const CloudStorageException('delete failed (test)');
+    }
     _files.remove(fileId);
   }
 
