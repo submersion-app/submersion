@@ -791,7 +791,7 @@ class CloudSyncPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
