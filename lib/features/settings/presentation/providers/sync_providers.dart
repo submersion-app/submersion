@@ -208,6 +208,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
   final _log = LoggerService.forClass(SyncNotifier);
   StreamSubscription<void>? _changeSubscription;
   Timer? _autoSyncTimer;
+  bool _syncInFlight = false;
 
   SyncNotifier(this._syncRepository, this._ref) : super(const SyncState()) {
     _initialize();
@@ -290,7 +291,8 @@ class SyncNotifier extends StateNotifier<SyncState> {
       if (localDives == 0) return null;
       final peers = await _ref
           .read(syncInitializerProvider)
-          .peerSyncFiles(provider);
+          .peerSyncFiles(provider)
+          .timeout(const Duration(seconds: 8));
       if (peers.isEmpty) return null;
       return FirstSyncMergeInfo(
         peerFileCount: peers.length,
@@ -311,77 +313,79 @@ class SyncNotifier extends StateNotifier<SyncState> {
   /// manual, user-confirmed Sync Now instead of merging unannounced.
   Future<void> performSync({bool auto = false}) async {
     _log.debug('performSync() called');
-    if (state.status == SyncStatus.syncing) {
+    if (_syncInFlight || state.status == SyncStatus.syncing) {
       _log.debug('Already syncing, returning early');
       return;
     }
-
-    if (auto) {
-      final info = await firstSyncMergeInfo();
-      if (info != null) {
-        _log.info(
-          'Deferring auto sync: first contact with existing cloud data '
-          'needs user confirmation',
-        );
-        state = state.copyWith(
-          firstSyncAwaitingConfirmation: true,
-          message:
-              'First sync needs confirmation. Open Cloud Sync and tap '
-              'Sync Now.',
-        );
-        return;
-      }
-    }
-
-    state = state.copyWith(
-      status: SyncStatus.syncing,
-      message: 'Starting sync...',
-      progress: 0.0,
-      firstSyncAwaitingConfirmation: false,
-    );
-
-    // Set up progress callback on the current sync service
-    _setupProgressCallback();
-
-    _log.debug('Calling _syncService.performSync()...');
+    _syncInFlight = true;
     try {
-      final result = await _syncService.performSync();
-      _log.debug('Result: ${result.status}, message: ${result.message}');
+      if (auto) {
+        final info = await firstSyncMergeInfo();
+        if (info != null) {
+          _log.info(
+            'Deferring auto sync: first contact with existing cloud data '
+            'needs user confirmation',
+          );
+          state = state.copyWith(
+            firstSyncAwaitingConfirmation: true,
+            message: 'First sync needs confirmation. Tap Sync Now to review.',
+          );
+          return;
+        }
+      }
 
-      if (result.isSuccess) {
-        final defaultMessage = result.conflictsFound > 0
-            ? 'Sync completed with conflicts'
-            : 'Sync completed successfully';
-        state = state.copyWith(
-          status: result.conflictsFound > 0
-              ? SyncStatus.hasConflicts
-              : SyncStatus.success,
-          message: result.message ?? defaultMessage,
-          lastSync: result.lastSyncTime,
-          conflicts: result.conflictsFound,
-          progress: 1.0,
-        );
-      } else {
+      state = state.copyWith(
+        status: SyncStatus.syncing,
+        message: 'Starting sync...',
+        progress: 0.0,
+        firstSyncAwaitingConfirmation: false,
+      );
+
+      // Set up progress callback on the current sync service
+      _setupProgressCallback();
+
+      _log.debug('Calling _syncService.performSync()...');
+      try {
+        final result = await _syncService.performSync();
+        _log.debug('Result: ${result.status}, message: ${result.message}');
+
+        if (result.isSuccess) {
+          final defaultMessage = result.conflictsFound > 0
+              ? 'Sync completed with conflicts'
+              : 'Sync completed successfully';
+          state = state.copyWith(
+            status: result.conflictsFound > 0
+                ? SyncStatus.hasConflicts
+                : SyncStatus.success,
+            message: result.message ?? defaultMessage,
+            lastSync: result.lastSyncTime,
+            conflicts: result.conflictsFound,
+            progress: 1.0,
+          );
+        } else {
+          state = state.copyWith(
+            status: SyncStatus.error,
+            message: result.message ?? 'Sync failed',
+            progress: null,
+          );
+        }
+      } catch (e) {
+        final phase = state.message ?? 'sync';
         state = state.copyWith(
           status: SyncStatus.error,
-          message: result.message ?? 'Sync failed',
+          message: 'Sync error during $phase: $e',
           progress: null,
         );
       }
-    } catch (e) {
-      final phase = state.message ?? 'sync';
-      state = state.copyWith(
-        status: SyncStatus.error,
-        message: 'Sync error during $phase: $e',
-        progress: null,
-      );
-    }
 
-    // Refresh state after a brief delay so status is readable.
-    if (state.status == SyncStatus.success ||
-        state.status == SyncStatus.hasConflicts) {
-      await Future.delayed(const Duration(seconds: 2));
-      await refreshState();
+      // Refresh state after a brief delay so status is readable.
+      if (state.status == SyncStatus.success ||
+          state.status == SyncStatus.hasConflicts) {
+        await Future.delayed(const Duration(seconds: 2));
+        await refreshState();
+      }
+    } finally {
+      _syncInFlight = false;
     }
   }
 

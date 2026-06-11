@@ -149,6 +149,31 @@ void main() {
       );
     });
 
+    test('concurrent triggers run exactly one sync', () async {
+      final container = await makeContainer();
+      final cloud =
+          container.read(cloudStorageProviderProvider)
+              as FakeCloudStorageProvider;
+
+      await seedLocalDive('local-6');
+      // No peer files: neither trigger defers, both want a real sync.
+      final notifier = container.read(syncStateProvider.notifier);
+
+      await Future.wait([
+        notifier.performSync(auto: true),
+        notifier.performSync(),
+      ]);
+
+      expect(
+        cloud.uploadAttempts,
+        1,
+        reason:
+            'simultaneous triggers must collapse into one sync -- two '
+            'concurrent uploads to the same per-device filename is the '
+            'conflicted-copy race the per-device files exist to prevent',
+      );
+    });
+
     test('manual sync proceeds and clears the deferred flag', () async {
       final container = await makeContainer();
       final cloud =

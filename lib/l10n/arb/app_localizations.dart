@@ -17495,7 +17495,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_cloudSync_firstSync_dialogContent.
   ///
   /// In en, this message translates to:
-  /// **'Sync data from {deviceCount} other device(s) was found in the cloud. Your first sync will combine that data with the {diveCount} dive(s) on this device, on every synced device.\n\nIf the same dives were added separately on each device, they will appear twice.'**
+  /// **'Existing sync data was found in the cloud ({deviceCount} sync file(s)). Your first sync will combine that data with the {diveCount} dive(s) on this device, across every synced device.\n\nIf the same dives were added separately on each device, they will appear twice.'**
   String settings_cloudSync_firstSync_dialogContent(
     int deviceCount,
     int diveCount,

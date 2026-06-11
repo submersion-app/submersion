@@ -13,6 +13,9 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   int get fileCount => _files.length;
   Uint8List? bytesOf(String name) => _files[name]?.data;
 
+  /// Counts every call to [uploadFile], including those that throw.
+  int uploadAttempts = 0;
+
   /// When true, [uploadFile] throws, modelling an offline/denied provider.
   bool failUploads = false;
 
@@ -68,6 +71,7 @@ class FakeCloudStorageProvider extends CloudStorageProvider
     String filename, {
     String? folderId,
   }) async {
+    uploadAttempts++;
     if (failUploads) {
       throw const CloudStorageException('upload failed (test)');
     }

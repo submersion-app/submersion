@@ -10260,7 +10260,7 @@ class AppLocalizationsFr extends AppLocalizations {
     int deviceCount,
     int diveCount,
   ) {
-    return 'Sync data from $deviceCount other device(s) was found in the cloud. Your first sync will combine that data with the $diveCount dive(s) on this device, on every synced device.\n\nIf the same dives were added separately on each device, they will appear twice.';
+    return 'Existing sync data was found in the cloud ($deviceCount sync file(s)). Your first sync will combine that data with the $diveCount dive(s) on this device, across every synced device.\n\nIf the same dives were added separately on each device, they will appear twice.';
   }
 
   @override

@@ -93,11 +93,14 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
   int resetSyncStateCalls = 0;
   int signOutCalls = 0;
 
+  /// Set to non-null to simulate first-contact conditions in widget tests.
+  FirstSyncMergeInfo? firstSyncInfo;
+
   @override
   Future<void> performSync({bool auto = false}) async => performSyncCalls++;
 
   @override
-  Future<FirstSyncMergeInfo?> firstSyncMergeInfo() async => null;
+  Future<FirstSyncMergeInfo?> firstSyncMergeInfo() async => firstSyncInfo;
 
   @override
   Future<void> refreshState() async => refreshStateCalls++;
@@ -616,6 +619,66 @@ void main() {
       );
       expect(button.onPressed, isNull);
       expect(handles.sync.performSyncCalls, 0);
+    });
+
+    testWidgets(
+      'Sync Now shows the merge dialog on first contact and syncs only after confirm',
+      (tester) async {
+        final handles = await pumpPage(
+          tester,
+          selectedProvider: CloudProviderType.icloud,
+        );
+        // Configure first-contact info after pump so it's ready when tapped.
+        handles.sync.firstSyncInfo = const FirstSyncMergeInfo(
+          peerFileCount: 2,
+          localDiveCount: 31,
+        );
+
+        await tester.tap(find.widgetWithText(FilledButton, 'Sync Now'));
+        await tester.pumpAndSettle();
+
+        // Dialog should be visible and no sync yet.
+        expect(find.text('Combine Libraries?'), findsOneWidget);
+        expect(handles.sync.performSyncCalls, 0);
+
+        // Confirm triggers performSync.
+        await tester.tap(find.text('Merge and Sync'));
+        await tester.pumpAndSettle();
+        expect(handles.sync.performSyncCalls, 1);
+      },
+    );
+
+    testWidgets('cancelling the merge dialog does not sync', (tester) async {
+      final handles = await pumpPage(
+        tester,
+        selectedProvider: CloudProviderType.icloud,
+      );
+      handles.sync.firstSyncInfo = const FirstSyncMergeInfo(
+        peerFileCount: 2,
+        localDiveCount: 31,
+      );
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Sync Now'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Combine Libraries?'), findsOneWidget);
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(handles.sync.performSyncCalls, 0);
+    });
+
+    testWidgets('shows the first-sync banner while confirmation is pending', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        selectedProvider: CloudProviderType.icloud,
+        syncState: const SyncState(firstSyncAwaitingConfirmation: true),
+      );
+
+      expect(find.textContaining('First sync is waiting'), findsOneWidget);
     });
   });
 
