@@ -1329,6 +1329,7 @@
   "diveLog_listPage_menuAdvancedSearch": "Recherche avancee",
   "diveLog_listPage_menuDiveNumbering": "Numerotation des plongees",
   "diveLog_listPage_menuMatchSites": "Associer les plongées aux sites",
+  "forms_addSection_prefix": "Ajouter :",
   "forms_section_issues": "{count, plural, one{1 problème} other{{count} problèmes}}",
   "forms_statCell_useProfileValue": "Utiliser {value} du profil de plongée",
   "siteMatchReview_title": "Associer les sites",

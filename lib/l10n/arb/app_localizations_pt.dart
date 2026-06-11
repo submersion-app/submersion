@@ -4071,6 +4071,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_listPage_menuMatchSites => 'Associar mergulhos a pontos';
 
   @override
+  String get forms_addSection_prefix => 'Adicionar:';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

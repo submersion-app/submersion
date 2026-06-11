@@ -3997,6 +3997,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_listPage_menuMatchSites => 'Match Dives to Sites';
 
   @override
+  String get forms_addSection_prefix => 'Add:';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -1329,6 +1329,7 @@
   "diveLog_listPage_menuAdvancedSearch": "חיפוש מתקדם",
   "diveLog_listPage_menuDiveNumbering": "מספור צלילות",
   "diveLog_listPage_menuMatchSites": "התאמת צלילות לאתרים",
+  "forms_addSection_prefix": "הוספה:",
   "forms_section_issues": "{count, plural, one{בעיה אחת} other{{count} בעיות}}",
   "forms_statCell_useProfileValue": "שימוש ב-{value} מפרופיל הצלילה",
   "siteMatchReview_title": "התאמת אתרים",

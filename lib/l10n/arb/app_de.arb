@@ -1363,6 +1363,7 @@
   "diveLog_listPage_menuAdvancedSearch": "Erweiterte Suche",
   "diveLog_listPage_menuDiveNumbering": "Tauchgangnummerierung",
   "diveLog_listPage_menuMatchSites": "Tauchgänge Tauchplätzen zuordnen",
+  "forms_addSection_prefix": "Hinzufügen:",
   "forms_section_issues": "{count, plural, one{1 Problem} other{{count} Probleme}}",
   "forms_statCell_useProfileValue": "{value} aus Tauchprofil übernehmen",
   "siteMatchReview_title": "Tauchplätze zuordnen",

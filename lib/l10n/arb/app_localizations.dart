@@ -6928,6 +6928,12 @@ abstract class AppLocalizations {
   /// **'Match Dives to Sites'**
   String get diveLog_listPage_menuMatchSites;
 
+  /// Prefix of the trailing row listing unused optional form sections, e.g. '+ Add: Course / Custom fields'
+  ///
+  /// In en, this message translates to:
+  /// **'Add:'**
+  String get forms_addSection_prefix;
+
   /// Badge on a collapsed form section that contains validation errors
   ///
   /// In en, this message translates to:

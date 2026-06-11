@@ -1363,6 +1363,7 @@
   "diveLog_listPage_menuAdvancedSearch": "بحث متقدم",
   "diveLog_listPage_menuDiveNumbering": "ترقيم الغوصات",
   "diveLog_listPage_menuMatchSites": "مطابقة الغوصات بالمواقع",
+  "forms_addSection_prefix": "إضافة:",
   "forms_section_issues": "{count, plural, one{مشكلة واحدة} other{{count} مشاكل}}",
   "forms_statCell_useProfileValue": "استخدام {value} من ملف الغوصة",
   "siteMatchReview_title": "مطابقة المواقع",

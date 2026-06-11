@@ -4071,6 +4071,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tauchgänge Tauchplätzen zuordnen';
 
   @override
+  String get forms_addSection_prefix => 'Hinzufügen:';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

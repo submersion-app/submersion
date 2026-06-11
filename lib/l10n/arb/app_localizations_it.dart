@@ -4076,6 +4076,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_listPage_menuMatchSites => 'Associa le immersioni ai siti';
 
   @override
+  String get forms_addSection_prefix => 'Aggiungi:';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

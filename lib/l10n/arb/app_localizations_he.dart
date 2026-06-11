@@ -3956,6 +3956,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_listPage_menuMatchSites => 'התאמת צלילות לאתרים';
 
   @override
+  String get forms_addSection_prefix => 'הוספה:';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

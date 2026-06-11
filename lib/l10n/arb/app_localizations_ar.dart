@@ -3971,6 +3971,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_listPage_menuMatchSites => 'مطابقة الغوصات بالمواقع';
 
   @override
+  String get forms_addSection_prefix => 'إضافة:';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

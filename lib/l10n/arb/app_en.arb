@@ -2019,6 +2019,8 @@
   "diveLog_listPage_menuAdvancedSearch": "Advanced Search",
   "diveLog_listPage_menuDiveNumbering": "Dive Numbering",
   "diveLog_listPage_menuMatchSites": "Match Dives to Sites",
+  "forms_addSection_prefix": "Add:",
+  "@forms_addSection_prefix": {"description": "Prefix of the trailing row listing unused optional form sections, e.g. '+ Add: Course / Custom fields'"},
   "forms_section_issues": "{count, plural, one{1 issue} other{{count} issues}}",
   "@forms_section_issues": {"description": "Badge on a collapsed form section that contains validation errors", "placeholders": {"count": {"type": "int"}}},
   "forms_statCell_useProfileValue": "Use {value} from profile",

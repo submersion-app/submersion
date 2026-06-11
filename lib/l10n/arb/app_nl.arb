@@ -1363,6 +1363,7 @@
   "diveLog_listPage_menuAdvancedSearch": "Geavanceerd zoeken",
   "diveLog_listPage_menuDiveNumbering": "Duiknummering",
   "diveLog_listPage_menuMatchSites": "Duiken aan stekken koppelen",
+  "forms_addSection_prefix": "Toevoegen:",
   "forms_section_issues": "{count, plural, one{1 probleem} other{{count} problemen}}",
   "forms_statCell_useProfileValue": "{value} uit duikprofiel overnemen",
   "siteMatchReview_title": "Stekken koppelen",

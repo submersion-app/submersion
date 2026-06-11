@@ -1363,6 +1363,7 @@
   "diveLog_listPage_menuAdvancedSearch": "Busca Avancada",
   "diveLog_listPage_menuDiveNumbering": "Numeracao de Mergulhos",
   "diveLog_listPage_menuMatchSites": "Associar mergulhos a pontos",
+  "forms_addSection_prefix": "Adicionar:",
   "forms_section_issues": "{count, plural, one{1 problema} other{{count} problemas}}",
   "forms_statCell_useProfileValue": "Usar {value} do perfil de mergulho",
   "siteMatchReview_title": "Associar pontos",

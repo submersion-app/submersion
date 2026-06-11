@@ -4058,6 +4058,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülések hozzárendelése helyekhez';
 
   @override
+  String get forms_addSection_prefix => 'Hozzáadás:';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

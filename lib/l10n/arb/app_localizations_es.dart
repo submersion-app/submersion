@@ -4070,6 +4070,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Asociar inmersiones a puntos de buceo';
 
   @override
+  String get forms_addSection_prefix => 'Añadir:';
+
+  @override
   String forms_section_issues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
