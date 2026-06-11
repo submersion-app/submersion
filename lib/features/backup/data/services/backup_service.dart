@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
@@ -12,9 +13,12 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/library_epoch.dart';
+import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
+import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
 /// Thin interface for the database operations BackupService needs.
 ///
@@ -56,6 +60,10 @@ class BackupService {
   final BackupPreferences _preferences;
   final CloudStorageProvider? _cloudProvider;
   final SyncRepository _syncRepository;
+
+  /// Library epoch persistence for restore Replace mode. Nullable so existing
+  /// constructions keep working; Replace mode is a no-op without it.
+  final LibraryEpochStore? _epochStore;
   final _log = LoggerService.forClass(BackupService);
   final _uuid = const Uuid();
 
@@ -67,10 +75,12 @@ class BackupService {
     required BackupPreferences preferences,
     CloudStorageProvider? cloudProvider,
     SyncRepository? syncRepository,
+    LibraryEpochStore? epochStore,
   }) : _dbAdapter = dbAdapter,
        _preferences = preferences,
        _cloudProvider = cloudProvider,
-       _syncRepository = syncRepository ?? SyncRepository();
+       _syncRepository = syncRepository ?? SyncRepository(),
+       _epochStore = epochStore;
 
   // ===========================================================================
   // Backup
@@ -259,9 +269,13 @@ class BackupService {
   ///
   /// Creates a full backup of the current database first (saved to the
   /// configured backup location with a history entry), then replaces
-  /// the database with the backup.
-  Future<void> restoreFromBackup(BackupRecord record) async {
-    _log.info('Starting restore from: ${record.filename}');
+  /// the database with the backup. [RestoreMode.replace] additionally mints
+  /// a pending replace intent (see [RestoreMode]).
+  Future<void> restoreFromBackup(
+    BackupRecord record, {
+    RestoreMode mode = RestoreMode.merge,
+  }) async {
+    _log.info('Starting restore from: ${record.filename} (mode: $mode)');
 
     // Create a proper backup before restoring so the user can find it
     // in their configured backup location and in the history list.
@@ -282,10 +296,22 @@ class BackupService {
       throw const BackupException('Backup file not found locally or in cloud');
     }
 
+    // Parity with the file-picker path: the file on disk (or the fresh
+    // download) may have been corrupted since the record was written.
+    final validation = await validateBackupFile(sourcePath);
+    if (!validation.isValid) {
+      throw BackupException(
+        validation.error ?? 'Backup file failed validation',
+      );
+    }
+
     // Restore using DatabaseService (handles close/copy/reinitialize), then
     // re-baseline sync so the restored data syncs cleanly instead of replaying
     // the backup's stale sync position.
     await _replaceDatabaseAndRebaselineSync(sourcePath);
+    if (mode == RestoreMode.replace) {
+      await _mintPendingReplace();
+    }
 
     _log.info('Restore completed from: ${record.filename}');
   }
@@ -294,10 +320,14 @@ class BackupService {
   ///
   /// Creates a full backup of the current database first (saved to the
   /// configured backup location with a history entry), then replaces
-  /// the database with the specified file.
+  /// the database with the specified file. [RestoreMode.replace] additionally
+  /// mints a pending replace intent (see [RestoreMode]).
   /// Throws [BackupException] if the file is not found.
-  Future<void> restoreFromFile(String filePath) async {
-    _log.info('Starting restore from file: $filePath');
+  Future<void> restoreFromFile(
+    String filePath, {
+    RestoreMode mode = RestoreMode.merge,
+  }) async {
+    _log.info('Starting restore from file: $filePath (mode: $mode)');
 
     final file = File(filePath);
     if (!await file.exists()) {
@@ -311,6 +341,9 @@ class BackupService {
     // Restore using DatabaseService, then re-baseline sync (see
     // _replaceDatabaseAndRebaselineSync).
     await _replaceDatabaseAndRebaselineSync(filePath);
+    if (mode == RestoreMode.replace) {
+      await _mintPendingReplace();
+    }
 
     _log.info('Restore from file completed: ${p.basename(filePath)}');
   }
@@ -344,11 +377,24 @@ class BackupService {
       );
     }
 
+    // Capture the live library epoch alongside the device id: the restored
+    // DB carries the backup's stale epoch, which without this would wrongly
+    // re-prompt this device to adopt its own current library.
+    String? liveEpochId;
+    try {
+      liveEpochId =
+          await _syncRepository.getLastAcceptedEpochId() ??
+          _epochStore?.lastAcceptedEpochId;
+    } catch (_) {
+      liveEpochId = _epochStore?.lastAcceptedEpochId;
+    }
+
     await _dbAdapter.restore(sourcePath);
 
     try {
       await _syncRepository.rebaselineAfterRestore(
         preserveDeviceId: liveDeviceId,
+        preserveEpochId: liveEpochId,
       );
     } catch (e, st) {
       // Non-fatal: the data restore itself succeeded. If re-baselining failed,
@@ -359,6 +405,44 @@ class BackupService {
         stackTrace: st,
       );
     }
+  }
+
+  /// Mint and persist the pending-replace intent. The cloud side executes on
+  /// the next sync (typically the post-restart launch sync); until it lands,
+  /// the intent fences off merging.
+  Future<void> _mintPendingReplace() async {
+    final store = _epochStore;
+    if (store == null) {
+      _log.warning('Replace mode requested but no epoch store is configured');
+      return;
+    }
+    String deviceId;
+    try {
+      deviceId = await _syncRepository.getDeviceId();
+    } catch (_) {
+      deviceId = '';
+    }
+    String? deviceName;
+    try {
+      deviceName = Platform.localHostname;
+    } catch (_) {
+      deviceName = null;
+    }
+    String? appVersion;
+    try {
+      appVersion = (await PackageInfo.fromPlatform()).version;
+    } catch (_) {
+      appVersion = null;
+    }
+    final marker = LibraryEpochMarker(
+      epochId: _uuid.v4(),
+      replacedAt: DateTime.now().millisecondsSinceEpoch,
+      deviceId: deviceId,
+      deviceName: deviceName,
+      appVersion: appVersion,
+    );
+    await store.setPendingReplace(marker);
+    _log.info('Minted pending library replace (epoch ${marker.epochId})');
   }
 
   // ===========================================================================

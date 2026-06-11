@@ -54,14 +54,22 @@ class FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
 class _SpySyncRepository extends SyncRepository {
   int rebaselineCalls = 0;
   String? preservedDeviceId;
+  String? preservedEpochId;
 
   @override
   Future<String> getDeviceId() async => 'live-device-id';
 
   @override
-  Future<void> rebaselineAfterRestore({String? preserveDeviceId}) async {
+  Future<String?> getLastAcceptedEpochId() async => null;
+
+  @override
+  Future<void> rebaselineAfterRestore({
+    String? preserveDeviceId,
+    String? preserveEpochId,
+  }) async {
     rebaselineCalls++;
     preservedDeviceId = preserveDeviceId;
+    preservedEpochId = preserveEpochId;
   }
 }
 
@@ -75,7 +83,14 @@ class _CaptureFailSyncRepository extends SyncRepository {
   Future<String> getDeviceId() async => throw StateError('cannot read id');
 
   @override
-  Future<void> rebaselineAfterRestore({String? preserveDeviceId}) async {
+  Future<String?> getLastAcceptedEpochId() async =>
+      throw StateError('cannot read epoch');
+
+  @override
+  Future<void> rebaselineAfterRestore({
+    String? preserveDeviceId,
+    String? preserveEpochId,
+  }) async {
     rebaselineCalls++;
     preservedDeviceId = preserveDeviceId;
   }

@@ -3,10 +3,12 @@ import 'dart:io';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
+import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -27,6 +29,7 @@ final backupServiceProvider = Provider<BackupService>((ref) {
     dbAdapter: DefaultBackupDatabaseAdapter(DatabaseService.instance),
     preferences: ref.watch(backupPreferencesProvider),
     cloudProvider: ref.watch(cloudStorageProviderProvider),
+    epochStore: LibraryEpochStore(ref.watch(sharedPreferencesProvider)),
   );
 });
 
@@ -180,7 +183,10 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
   }
 
   /// Restore from a specific backup record
-  Future<void> restoreFromBackup(BackupRecord record) async {
+  Future<void> restoreFromBackup(
+    BackupRecord record, {
+    RestoreMode mode = RestoreMode.merge,
+  }) async {
     if (state.status == BackupOperationStatus.inProgress) return;
 
     state = const BackupOperationState(
@@ -189,7 +195,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
     );
 
     try {
-      await _service.restoreFromBackup(record);
+      await _service.restoreFromBackup(record, mode: mode);
       await _syncActiveDiverAfterRestore();
       state = const BackupOperationState(
         status: BackupOperationStatus.restoreComplete,
@@ -279,7 +285,10 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
   }
 
   /// Restore from an arbitrary file path
-  Future<void> restoreFromFilePath(String filePath) async {
+  Future<void> restoreFromFilePath(
+    String filePath, {
+    RestoreMode mode = RestoreMode.merge,
+  }) async {
     if (state.status == BackupOperationStatus.inProgress) return;
 
     state = const BackupOperationState(
@@ -303,7 +312,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
         message: 'Restoring backup...',
       );
 
-      await _service.restoreFromFile(filePath);
+      await _service.restoreFromFile(filePath, mode: mode);
       await _syncActiveDiverAfterRestore();
       state = const BackupOperationState(
         status: BackupOperationStatus.restoreComplete,
