@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -67,5 +68,25 @@ void main() {
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     expect(find.byType(TankEditor), findsNothing);
+  });
+
+  testWidgets('pressure range scales to fit a phone-width cell', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await _pump(tester);
+
+    // The full pressure range renders rather than being clipped/abbreviated.
+    final pressure = find.text('200→50');
+    expect(pressure, findsOneWidget);
+    final paragraph = tester.renderObject<RenderParagraph>(pressure);
+    expect(paragraph.didExceedMaxLines, isFalse);
+    // It stays whole because the dense cell scales it down to fit.
+    expect(
+      find.ancestor(of: pressure, matching: find.byType(FittedBox)),
+      findsOneWidget,
+    );
   });
 }

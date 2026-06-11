@@ -50,11 +50,17 @@ abstract final class FormStyle {
       Theme.of(context).colorScheme.outlineVariant;
 
   /// Big number in a hero stat cell.
-  static TextStyle heroValueStyle(BuildContext context) {
+  ///
+  /// Pass [dense] for nested contexts (e.g. tank cards) where the value
+  /// shares a narrower cell and the full-size number would overflow.
+  static TextStyle heroValueStyle(BuildContext context, {bool dense = false}) {
     final theme = Theme.of(context);
-    return theme.textTheme.titleLarge!.copyWith(
+    final base = dense
+        ? theme.textTheme.titleMedium!
+        : theme.textTheme.titleLarge!;
+    return base.copyWith(
       fontWeight: FontWeight.w800,
-      letterSpacing: -0.5,
+      letterSpacing: dense ? -0.3 : -0.5,
       color: theme.colorScheme.onSurface,
     );
   }

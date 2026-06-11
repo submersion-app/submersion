@@ -51,6 +51,7 @@ class StatCell extends StatefulWidget {
     this.profileValue,
     this.onUseProfileValue,
     this.keyboardType = const TextInputType.numberWithOptions(decimal: true),
+    this.dense = false,
   }) : assert(
          (controller == null) != (displayValue == null),
          'Provide exactly one of controller or displayValue',
@@ -60,6 +61,11 @@ class StatCell extends StatefulWidget {
   final String? unit;
   final TextEditingController? controller;
   final String? displayValue;
+
+  /// Renders the value at a reduced size for nested cells (e.g. tank cards)
+  /// where compound values share a narrow cell. The value scales down to
+  /// fit rather than truncating.
+  final bool dense;
 
   /// Value computed from the dive profile; when it differs from the current
   /// text, a sync glyph offers to apply it via [onUseProfileValue].
@@ -127,6 +133,20 @@ class _StatCellState extends State<StatCell> {
     final text = _editable
         ? (widget.controller!.text.isEmpty ? '--' : widget.controller!.text)
         : widget.displayValue!;
+    final valueStyle = FormStyle.heroValueStyle(context, dense: widget.dense);
+    // Dense cells hold compound values (pressure ranges, psi, trimix names)
+    // that can exceed a narrow cell; scale them down instead of truncating.
+    final Widget value = widget.dense
+        ? FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(text, style: valueStyle, maxLines: 1, softWrap: false),
+          )
+        : Text(
+            text,
+            style: valueStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          );
     return Semantics(
       button: _editable,
       label: widget.label,
@@ -139,17 +159,12 @@ class _StatCellState extends State<StatCell> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.baseline,
+              crossAxisAlignment: widget.dense
+                  ? CrossAxisAlignment.center
+                  : CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Flexible(
-                  child: Text(
-                    text,
-                    style: FormStyle.heroValueStyle(context),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
+                Flexible(child: value),
                 if (widget.unit != null)
                   Text(
                     ' ${widget.unit}',
@@ -215,7 +230,7 @@ class _StatCellState extends State<StatCell> {
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[\d.,:-]')),
             ],
-            style: FormStyle.heroValueStyle(context),
+            style: FormStyle.heroValueStyle(context, dense: widget.dense),
             decoration: const InputDecoration(
               isCollapsed: true,
               border: InputBorder.none,

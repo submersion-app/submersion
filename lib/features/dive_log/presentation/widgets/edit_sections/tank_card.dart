@@ -90,10 +90,12 @@ class _TankCardState extends State<TankCard> {
                 label: l10n.diveLog_edit_tankCard_pressure,
                 unit: widget.units.pressureSymbol,
                 displayValue: _pressureText(),
+                dense: true,
               ),
               StatCell(
                 label: l10n.diveLog_edit_tankCard_mix,
                 displayValue: widget.tank.gasMix.name,
+                dense: true,
               ),
               StatCell(
                 label: l10n.diveLog_edit_tankCard_volume,
@@ -101,6 +103,7 @@ class _TankCardState extends State<TankCard> {
                   widget.tank.volume,
                   widget.tank.workingPressure,
                 ),
+                dense: true,
               ),
             ],
           ),
