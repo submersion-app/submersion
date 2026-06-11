@@ -180,5 +180,59 @@ void main() {
             'half-applied with undefined semantics',
       );
     });
+
+    test('deletes the legacy shared file after merging it', () async {
+      final dive = await validDiveMap('legacy-dive-4');
+      cloud.seedFile(
+        'submersion_sync.json',
+        craftLegacyFile('old-phone', [dive]),
+      );
+
+      final result = await buildService().performSync();
+
+      expect(result.isSuccess, isTrue);
+      expect(
+        await cloud.fileExists('submersion_sync.json'),
+        isFalse,
+        reason:
+            'after its data is merged (and re-exported into our per-device '
+            'file) the legacy shared file must be cleaned up -- left in '
+            'place it is re-merged forever and resurrects deletions once '
+            'their tombstones age out. A still-active old device recreates '
+            'it on its next sync (uploads are full snapshots), so nothing '
+            'is lost.',
+      );
+    });
+
+    test('deletes a legacy file this device itself authored', () async {
+      // Single-device upgrader: the canonical file was written by THIS
+      // device before the upgrade. It is skipped as own data but must
+      // still be cleaned up.
+      final deviceId = await SyncRepository().getDeviceId();
+      cloud.seedFile('submersion_sync.json', craftLegacyFile(deviceId, []));
+
+      final result = await buildService().performSync();
+
+      expect(result.isSuccess, isTrue);
+      expect(await cloud.fileExists('submersion_sync.json'), isFalse);
+    });
+
+    test('keeps a legacy-named file it could not parse', () async {
+      cloud.seedFile(
+        'submersion_sync.json',
+        Uint8List.fromList(utf8.encode('not json at all')),
+      );
+
+      final result = await buildService().performSync();
+
+      expect(result.isSuccess, isTrue);
+      expect(
+        await cloud.fileExists('submersion_sync.json'),
+        isTrue,
+        reason:
+            'an unparseable file was NOT merged; deleting it would discard '
+            'data sight-unseen',
+      );
+    });
   });
 }

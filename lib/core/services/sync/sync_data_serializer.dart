@@ -127,7 +127,7 @@ class SyncPayload {
       lastSyncTimestamp: json['lastSyncTimestamp'] as int?,
       checksum: json['checksum'] as String,
       data: SyncData.fromJson(json['data'] as Map<String, dynamic>),
-      rawDataJson: json['data'] == null ? null : jsonEncode(json['data']),
+      rawDataJson: jsonEncode(json['data']),
       deletions: rawDeletions.map((key, value) {
         final list = value as List? ?? [];
         final deletions = list

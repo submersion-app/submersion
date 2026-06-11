@@ -319,6 +319,7 @@ class SyncService {
       var recordsSynced = 0;
       var conflictsFound = 0;
       var recordsFailed = 0;
+      CloudFileInfo? mergedLegacyFile;
 
       for (final file in remoteFiles) {
         // NOTE: we intentionally do NOT skip files by their cloud
@@ -330,6 +331,14 @@ class SyncService {
         final payload = await _downloadAndParsePayload(provider, file);
         if (payload == null) {
           continue;
+        }
+
+        if (file.name == CloudStorageProviderMixin.canonicalSyncFileName) {
+          // Parsed fine: its content is either our own pre-upgrade upload or
+          // about to be merged below. Either way it is fully represented by
+          // the per-device file we upload at the end of this sync, so it can
+          // be retired afterwards.
+          mergedLegacyFile = file;
         }
 
         // Skip our own data by payload identity (covers a legacy shared file
@@ -412,6 +421,22 @@ class SyncService {
           'store last sync time',
           () => _syncRepository.updateLastSyncTime(result.uploadTime),
         );
+      }
+      // Retire the legacy shared sync file once its content is merged and
+      // re-published in this device's per-device file. Only when every record
+      // applied: a failed apply relies on re-pulling the same file next sync.
+      // Best-effort -- a still-active pre-per-device build recreates the file
+      // on its next sync (uploads are full snapshots), so deletion never
+      // loses data.
+      if (recordsFailed == 0 && mergedLegacyFile != null) {
+        try {
+          await provider
+              .deleteFile(mergedLegacyFile.id)
+              .timeout(const Duration(seconds: 8));
+          _log.info('Retired legacy shared sync file after merging it');
+        } catch (e) {
+          _log.warning('Could not retire legacy sync file: $e');
+        }
       }
       // Persist the HLC so the logical counter survives an app restart (it
       // was advanced by SyncClock.receive() while applying remote payloads).
