@@ -10135,21 +10135,23 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_cloudSync_firstSync_banner =>
-      'First sync is waiting for confirmation. Tap Sync Now to review what will be combined.';
+      'De eerste synchronisatie wacht op bevestiging. Tik op \'Nu synchroniseren\' om te bekijken wat er wordt samengevoegd.';
 
   @override
-  String get settings_cloudSync_firstSync_dialogConfirm => 'Merge and Sync';
+  String get settings_cloudSync_firstSync_dialogConfirm =>
+      'Samenvoegen en synchroniseren';
 
   @override
   String settings_cloudSync_firstSync_dialogContent(
     int deviceCount,
     int diveCount,
   ) {
-    return 'Existing sync data was found in the cloud ($deviceCount sync file(s)). Your first sync will combine that data with the $diveCount dive(s) on this device, across every synced device.\n\nIf the same dives were added separately on each device, they will appear twice.';
+    return 'Er zijn bestaande synchronisatiegegevens gevonden in de cloud ($deviceCount synchronisatiebestand(en)). Je eerste synchronisatie voegt die gegevens samen met de $diveCount duik(en) op dit apparaat, op alle gesynchroniseerde apparaten.\n\nAls dezelfde duiken op elk apparaat afzonderlijk zijn toegevoegd, verschijnen ze dubbel.';
   }
 
   @override
-  String get settings_cloudSync_firstSync_dialogTitle => 'Combine Libraries?';
+  String get settings_cloudSync_firstSync_dialogTitle =>
+      'Bibliotheken samenvoegen?';
 
   @override
   String get settings_cloudSync_header_advanced => 'Geavanceerd';

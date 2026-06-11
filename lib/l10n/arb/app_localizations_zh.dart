@@ -9743,21 +9743,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_cloudSync_firstSync_banner =>
-      'First sync is waiting for confirmation. Tap Sync Now to review what will be combined.';
+      '首次同步正在等待确认。点击「立即同步」以查看将要合并的内容。';
 
   @override
-  String get settings_cloudSync_firstSync_dialogConfirm => 'Merge and Sync';
+  String get settings_cloudSync_firstSync_dialogConfirm => '合并并同步';
 
   @override
   String settings_cloudSync_firstSync_dialogContent(
     int deviceCount,
     int diveCount,
   ) {
-    return 'Existing sync data was found in the cloud ($deviceCount sync file(s)). Your first sync will combine that data with the $diveCount dive(s) on this device, across every synced device.\n\nIf the same dives were added separately on each device, they will appear twice.';
+    return '在云端发现了已有的同步数据（$deviceCount 个同步文件）。首次同步会将这些数据与此设备上的 $diveCount 次潜水合并，并应用到所有已同步的设备。\n\n如果相同的潜水是在每台设备上分别添加的，它们将出现两次。';
   }
 
   @override
-  String get settings_cloudSync_firstSync_dialogTitle => 'Combine Libraries?';
+  String get settings_cloudSync_firstSync_dialogTitle => '合并资料库？';
 
   @override
   String get settings_cloudSync_header_advanced => '高级';

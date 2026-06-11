@@ -10181,21 +10181,23 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_cloudSync_firstSync_banner =>
-      'First sync is waiting for confirmation. Tap Sync Now to review what will be combined.';
+      'Az első szinkronizálás megerősítésre vár. Koppintson a \'Szinkronizálás most\' gombra, hogy átnézze, mi kerül összevonásra.';
 
   @override
-  String get settings_cloudSync_firstSync_dialogConfirm => 'Merge and Sync';
+  String get settings_cloudSync_firstSync_dialogConfirm =>
+      'Összevonás és szinkronizálás';
 
   @override
   String settings_cloudSync_firstSync_dialogContent(
     int deviceCount,
     int diveCount,
   ) {
-    return 'Existing sync data was found in the cloud ($deviceCount sync file(s)). Your first sync will combine that data with the $diveCount dive(s) on this device, across every synced device.\n\nIf the same dives were added separately on each device, they will appear twice.';
+    return 'Meglévő szinkronizálási adatok találhatók a felhőben ($deviceCount szinkronizálási fájl). Az első szinkronizálás ezeket az adatokat összevonja az ezen az eszközön található $diveCount merüléssel, minden szinkronizált eszközön.\n\nHa ugyanazokat a merüléseket minden eszközön külön adták hozzá, kétszer fognak megjelenni.';
   }
 
   @override
-  String get settings_cloudSync_firstSync_dialogTitle => 'Combine Libraries?';
+  String get settings_cloudSync_firstSync_dialogTitle =>
+      'Könyvtárak összevonása?';
 
   @override
   String get settings_cloudSync_header_advanced => 'Halado';
