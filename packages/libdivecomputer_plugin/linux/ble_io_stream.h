@@ -19,7 +19,11 @@ typedef struct {
 
     GMutex read_mutex;
     GCond read_cond;
-    GByteArray* read_buffer;
+    // Queue of GByteArray*, one entry per GATT notification.
+    // libdivecomputer's packet parsers require each read to return bytes
+    // from at most one notification; coalescing them into a flat buffer
+    // loses packet boundaries.
+    GQueue* read_chunks;
 
     gint timeout_ms;
     gchar* device_name;

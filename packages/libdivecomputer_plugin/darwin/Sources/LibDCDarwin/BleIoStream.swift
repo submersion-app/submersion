@@ -49,9 +49,7 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
     private var remainingServiceDiscoveries = 0
     private var discoverySignaled = false
 
-    private let readLock = NSLock()
-    private var readBuffer = Data()
-    private let readSemaphore = DispatchSemaphore(value: 0)
+    private let packetBuffer = PacketReadBuffer()
     private let writeSemaphore = DispatchSemaphore(value: 0)
     private let writeReadySemaphore = DispatchSemaphore(value: 0)
     private let connectSemaphore = DispatchSemaphore(value: 0)
@@ -224,11 +222,7 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         let stream = Unmanaged<BleIoStream>.fromOpaque(userdata!).takeUnretainedValue()
         guard let actual else {
             var transferred: size_t = 0
-            let status = stream.performRead(data: data!, size: size, actual: &transferred)
-            if status != Int32(LIBDC_STATUS_SUCCESS) {
-                return status
-            }
-            return transferred == size ? Int32(LIBDC_STATUS_SUCCESS) : Int32(LIBDC_STATUS_TIMEOUT)
+            return stream.performRead(data: data!, size: size, actual: &transferred)
         }
         return stream.performRead(data: data!, size: size, actual: actual)
     }
@@ -260,21 +254,14 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
 
     private static let cPoll: libdc_io_poll_fn = { userdata, timeout in
         let stream = Unmanaged<BleIoStream>.fromOpaque(userdata!).takeUnretainedValue()
-        stream.readLock.lock()
-        let available = stream.readBuffer.count
-        stream.readLock.unlock()
-        if available > 0 { return Int32(LIBDC_STATUS_SUCCESS) }
+        if stream.packetBuffer.hasData { return Int32(LIBDC_STATUS_SUCCESS) }
 
         if timeout == 0 { return Int32(LIBDC_STATUS_TIMEOUT) }
 
         let deadline: DispatchTime = timeout < 0 ? .distantFuture :
             .now() + .milliseconds(Int(timeout))
-        let result = stream.readSemaphore.wait(timeout: deadline)
-        if result == .timedOut { return Int32(LIBDC_STATUS_TIMEOUT) }
-
-        // Re-signal since we consumed the signal but didn't consume data.
-        stream.readSemaphore.signal()
-        return Int32(LIBDC_STATUS_SUCCESS)
+        return stream.packetBuffer.poll(deadline: deadline)
+            ? Int32(LIBDC_STATUS_SUCCESS) : Int32(LIBDC_STATUS_TIMEOUT)
     }
 
     // MARK: - I/O Operations
@@ -284,28 +271,19 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         let deadline: DispatchTime = timeoutMs == Int.max ? .distantFuture :
             .now() + .milliseconds(timeoutMs)
 
-        while true {
-            readLock.lock()
-            let available = readBuffer.count
-            if available > 0 {
-                let bytesToRead = min(size, readBuffer.count)
-                _ = readBuffer.withUnsafeBytes { ptr in
-                    memcpy(data, ptr.baseAddress!, bytesToRead)
-                }
-                readBuffer.removeFirst(bytesToRead)
-                readLock.unlock()
-                actual.pointee = bytesToRead
-                return Int32(LIBDC_STATUS_SUCCESS)
-            }
-            readLock.unlock()
-
-            if readSemaphore.wait(timeout: deadline) == .timedOut {
-                actual.pointee = 0
-                consecutiveReadTimeouts += 1
-                maybeFlipWriteModeAfterReadTimeout()
-                return Int32(LIBDC_STATUS_TIMEOUT)
-            }
+        // The buffer returns bytes from at most one BLE notification per
+        // call: libdivecomputer's packet parsers size each read from the
+        // packet header and would silently drop a second packet coalesced
+        // into the same read (lost FLAG_LAST ack -> spurious timeout).
+        guard let bytesToRead = packetBuffer.read(
+            into: data, maxBytes: size, deadline: deadline) else {
+            actual.pointee = 0
+            consecutiveReadTimeouts += 1
+            maybeFlipWriteModeAfterReadTimeout()
+            return Int32(LIBDC_STATUS_TIMEOUT)
         }
+        actual.pointee = bytesToRead
+        return Int32(LIBDC_STATUS_SUCCESS)
     }
 
     private func performWrite(data: UnsafeRawPointer, size: size_t,
@@ -391,10 +369,7 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             return Int32(LIBDC_STATUS_SUCCESS)
         }
 
-        readLock.lock()
-        readBuffer.removeAll(keepingCapacity: true)
-        readLock.unlock()
-        drainSemaphore(readSemaphore)
+        packetBuffer.purge()
         return Int32(LIBDC_STATUS_SUCCESS)
     }
 
@@ -636,10 +611,7 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             "notify \(characteristic.uuid.uuidString)"
                 + " bytes=\(value.count)"
                 + " data=\(Self.hexString(value, maxBytes: Self.maxLogBytes))")
-        readLock.lock()
-        readBuffer.append(value)
-        readLock.unlock()
-        readSemaphore.signal()
+        packetBuffer.append(value)
     }
 
     func peripheral(_ peripheral: CBPeripheral,

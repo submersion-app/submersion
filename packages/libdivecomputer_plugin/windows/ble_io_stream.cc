@@ -173,7 +173,7 @@ void BleIoStream::OnCharacteristicValueChanged(
 
     {
         std::lock_guard<std::mutex> lock(read_mutex_);
-        read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
+        read_chunks_.push_back(std::move(data));
     }
     read_cv_.notify_one();
 }
@@ -387,16 +387,16 @@ int BleIoStream::IoctlCallback(void* userdata, unsigned int request,
 int BleIoStream::PollCallback(void* userdata, int timeout) {
     auto* stream = static_cast<BleIoStream*>(userdata);
     std::unique_lock<std::mutex> lock(stream->read_mutex_);
-    if (!stream->read_buffer_.empty()) return LIBDC_STATUS_SUCCESS;
+    if (!stream->read_chunks_.empty()) return LIBDC_STATUS_SUCCESS;
     if (timeout == 0) return LIBDC_STATUS_TIMEOUT;
 
     if (timeout < 0) {
         stream->read_cv_.wait(
-            lock, [stream] { return !stream->read_buffer_.empty(); });
+            lock, [stream] { return !stream->read_chunks_.empty(); });
     } else {
         if (!stream->read_cv_.wait_for(
                 lock, std::chrono::milliseconds(timeout),
-                [stream] { return !stream->read_buffer_.empty(); })) {
+                [stream] { return !stream->read_chunks_.empty(); })) {
             return LIBDC_STATUS_TIMEOUT;
         }
     }
@@ -407,7 +407,7 @@ int BleIoStream::PurgeCallback(void* userdata, unsigned int direction) {
     if ((direction & kDirectionInput) == 0) return LIBDC_STATUS_SUCCESS;
     auto* stream = static_cast<BleIoStream*>(userdata);
     std::lock_guard<std::mutex> lock(stream->read_mutex_);
-    stream->read_buffer_.clear();
+    stream->read_chunks_.clear();
     return LIBDC_STATUS_SUCCESS;
 }
 
@@ -419,24 +419,33 @@ int BleIoStream::PerformRead(void* data, size_t size, size_t* actual) {
                         : std::chrono::steady_clock::now() +
                               std::chrono::milliseconds(timeout_ms_);
 
-    while (read_buffer_.empty()) {
+    while (read_chunks_.empty()) {
         if (timeout_ms_ == INT32_MAX) {
             read_cv_.wait(
-                lock, [this] { return !read_buffer_.empty(); });
+                lock, [this] { return !read_chunks_.empty(); });
         } else {
             if (!read_cv_.wait_until(
                     lock, deadline,
-                    [this] { return !read_buffer_.empty(); })) {
+                    [this] { return !read_chunks_.empty(); })) {
                 *actual = 0;
                 return LIBDC_STATUS_TIMEOUT;
             }
         }
     }
 
-    size_t bytes_to_read = std::min(size, read_buffer_.size());
-    std::memcpy(data, read_buffer_.data(), bytes_to_read);
-    read_buffer_.erase(read_buffer_.begin(),
-                       read_buffer_.begin() + bytes_to_read);
+    // Return bytes from at most one notification per read: the packet
+    // parsers size each read from the packet header and would silently
+    // drop a second packet coalesced into the same read (lost FLAG_LAST
+    // ack -> spurious timeout). A partially consumed notification stays
+    // at the front of the queue.
+    std::vector<uint8_t>& chunk = read_chunks_.front();
+    size_t bytes_to_read = std::min(size, chunk.size());
+    std::memcpy(data, chunk.data(), bytes_to_read);
+    if (bytes_to_read < chunk.size()) {
+        chunk.erase(chunk.begin(), chunk.begin() + bytes_to_read);
+    } else {
+        read_chunks_.pop_front();
+    }
     *actual = bytes_to_read;
     return LIBDC_STATUS_SUCCESS;
 }
