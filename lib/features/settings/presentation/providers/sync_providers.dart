@@ -348,8 +348,15 @@ class SyncNotifier extends StateNotifier<SyncState> {
   }
 
   /// Reset sync state
+  ///
+  /// Also adopts a brand-new device identity. Reset is the user-facing
+  /// recovery for sync gone wrong, and the worst such state -- two installs
+  /// syncing as the same device after cross-device restores -- is only
+  /// fixable with a fresh identity. Restore detection deliberately preserves
+  /// the anchored identity, so a clone survives everything short of this.
   Future<void> resetSyncState() async {
     await _syncService.resetSyncState();
+    await _ref.read(syncInitializerProvider).adoptFreshIdentity();
     await refreshState();
   }
 

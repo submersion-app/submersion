@@ -1,12 +1,16 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 
 /// Handles sync initialization and checks on app launch
 class SyncInitializer {
   static final _log = LoggerService.forClass(SyncInitializer);
+
+  final _uuid = const Uuid();
 
   static const _lastProviderKey = 'sync_last_provider';
 
@@ -139,6 +143,28 @@ class SyncInitializer {
     final token = await _syncRepository.rotateInstanceToken();
     await _prefs.setString(_dbInstanceTokenKey, token);
     await _prefs.setString(_deviceIdSentinelKey, deviceId);
+  }
+
+  /// Mint a brand-new sync identity for this installation: a fresh device id
+  /// persisted to the database and mirrored into the launch anchors, with a
+  /// freshly rotated instance token.
+  ///
+  /// This is the recovery path for a cloned identity -- two installs syncing
+  /// as the same device after cross-device backup/restore choreography. Each
+  /// twin lists the shared per-device sync file as "its own", sees no peers,
+  /// and silently overwrites the other's uploads. [reconcileDeviceIdentity]
+  /// deliberately preserves the anchored identity (correct for same-device
+  /// restores), so a clone survives every restore and reset; only minting a
+  /// new id -- and anchoring it so the next launch does not revert it -- can
+  /// split the twins. Returns the new device id.
+  Future<String> adoptFreshIdentity() async {
+    final newId = _uuid.v4();
+    await _syncRepository.setDeviceId(newId);
+    await _establishAnchors(newId);
+    // Drop the in-memory clock so HLC stamps re-seed under the new node id.
+    SyncClock.instance.reset();
+    _log.info('Adopted a fresh sync identity');
+    return newId;
   }
 
   /// Check sync status on app launch

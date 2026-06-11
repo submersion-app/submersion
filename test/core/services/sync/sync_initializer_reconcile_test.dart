@@ -258,4 +258,56 @@ void main() {
       expect(status, DeviceIdentityStatus.seeded);
     });
   });
+
+  group('adoptFreshIdentity', () {
+    test('mints a new device id, persists it, and re-anchors it', () async {
+      await initializer.reconcileDeviceIdentity();
+      final oldId = await repository.getDeviceId();
+      final oldToken = prefs.getString('sync_db_instance_token');
+
+      final newId = await initializer.adoptFreshIdentity();
+
+      expect(newId, isNot(oldId));
+      expect(await repository.getDeviceId(), newId);
+      expect(prefs.getString('sync_device_id_sentinel'), newId);
+      expect(prefs.getString('sync_db_instance_token'), isNotNull);
+      expect(prefs.getString('sync_db_instance_token'), isNot(oldToken));
+    });
+
+    test('a later launch reconcile keeps the fresh identity', () async {
+      // Restore detection deliberately preserves the anchored identity, so a
+      // regenerated id must be fully re-anchored or the next launch would
+      // read it as a restore and revert it.
+      await initializer.reconcileDeviceIdentity();
+      final newId = await initializer.adoptFreshIdentity();
+
+      final status = await initializer.reconcileDeviceIdentity();
+
+      expect(status, DeviceIdentityStatus.unchanged);
+      expect(await repository.getDeviceId(), newId);
+      expect(prefs.getString('sync_device_id_sentinel'), newId);
+    });
+  });
+
+  group('SyncNotifier.resetSyncState', () {
+    test('adopts a fresh device identity', () async {
+      // The twin-device trap: two installs syncing as the same device write
+      // the same per-device file and each lists zero peers. Reset Sync State
+      // is the user-facing recovery, so it must shed the identity, not just
+      // the baseline.
+      await initializer.reconcileDeviceIdentity();
+      final oldId = await repository.getDeviceId();
+
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(syncStateProvider.notifier).resetSyncState();
+
+      final newId = await repository.getDeviceId();
+      expect(newId, isNot(oldId));
+      expect(prefs.getString('sync_device_id_sentinel'), newId);
+    });
+  });
 }
