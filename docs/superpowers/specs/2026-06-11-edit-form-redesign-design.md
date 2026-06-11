@@ -220,9 +220,12 @@ lib/features/dive_log/presentation/
                                      # equipment_set_picker_sheet.dart,
                                      # computer_source_sheet.dart (behavior unchanged)
 lib/features/dive_sites/presentation/
-  pages/site_edit_page.dart          # thin coordinator
-  widgets/edit_sections/             # identity, location, dive_info,
-                                     # access_safety, life_notes
+  pages/site_edit_page.dart          # coordinator (~2,200 lines): the five
+                                     # groups use FormSection directly with
+                                     # the existing rich interiors (merge
+                                     # cycling, suggestion fields, GPS
+                                     # actions) as slot children — dedicated
+                                     # site section files proved unnecessary
 ```
 
 Section widgets receive the controllers/values they need from the coordinator;
