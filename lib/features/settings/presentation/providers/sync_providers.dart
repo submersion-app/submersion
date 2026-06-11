@@ -15,6 +15,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 
@@ -148,6 +149,7 @@ class SyncState {
   final int pendingChanges;
   final int conflicts;
   final bool isAuthenticated;
+  final bool firstSyncAwaitingConfirmation;
   static const Object _messageSentinel = Object();
 
   const SyncState({
@@ -158,6 +160,7 @@ class SyncState {
     this.pendingChanges = 0,
     this.conflicts = 0,
     this.isAuthenticated = false,
+    this.firstSyncAwaitingConfirmation = false,
   });
 
   SyncState copyWith({
@@ -168,6 +171,7 @@ class SyncState {
     int? pendingChanges,
     int? conflicts,
     bool? isAuthenticated,
+    bool? firstSyncAwaitingConfirmation,
   }) {
     return SyncState(
       status: status ?? this.status,
@@ -179,8 +183,22 @@ class SyncState {
       pendingChanges: pendingChanges ?? this.pendingChanges,
       conflicts: conflicts ?? this.conflicts,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      firstSyncAwaitingConfirmation:
+          firstSyncAwaitingConfirmation ?? this.firstSyncAwaitingConfirmation,
     );
   }
+}
+
+/// What the first sync would combine: shown to the user before the first
+/// library-merging sync is allowed to run.
+class FirstSyncMergeInfo {
+  final int peerFileCount;
+  final int localDiveCount;
+
+  const FirstSyncMergeInfo({
+    required this.peerFileCount,
+    required this.localDiveCount,
+  });
 }
 
 /// Sync state notifier
@@ -201,6 +219,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
 
   Future<void> _initialize() async {
     // Load initial state
+    if (!mounted) return;
     await refreshState();
   }
 
@@ -217,7 +236,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
 
     _autoSyncTimer?.cancel();
     _autoSyncTimer = Timer(const Duration(seconds: 5), () {
-      performSync();
+      performSync(auto: true);
     });
   }
 
@@ -238,6 +257,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
       final conflictCount = await _syncRepository.getConflictCount();
       final isAvailable = await _syncService.isSyncAvailable();
 
+      if (!mounted) return;
       state = state.copyWith(
         lastSync: lastSync,
         pendingChanges: pendingCount,
@@ -247,6 +267,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
         message: null,
       );
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(
         status: SyncStatus.error,
         message: 'Failed to load sync state: $e',
@@ -254,18 +275,69 @@ class SyncNotifier extends StateNotifier<SyncState> {
     }
   }
 
-  /// Perform a sync operation
-  Future<void> performSync() async {
+  /// Non-null when the NEXT sync would be this device's first contact with
+  /// existing cloud data while this device already holds dives -- the case
+  /// where a sync irreversibly combines two libraries (and duplicates any
+  /// dives that were imported separately on each device). The UI must
+  /// confirm before running that sync; auto-sync defers it entirely.
+  Future<FirstSyncMergeInfo?> firstSyncMergeInfo() async {
+    try {
+      final provider = _ref.read(cloudStorageProviderProvider);
+      if (provider == null) return null;
+      final lastSync = await _syncRepository.getLastSyncTime();
+      if (lastSync != null) return null;
+      final localDives = await _ref.read(diveRepositoryProvider).getDiveCount();
+      if (localDives == 0) return null;
+      final peers = await _ref
+          .read(syncInitializerProvider)
+          .peerSyncFiles(provider);
+      if (peers.isEmpty) return null;
+      return FirstSyncMergeInfo(
+        peerFileCount: peers.length,
+        localDiveCount: localDives,
+      );
+    } catch (e) {
+      // The guard must never block sync outright; on failure fall through
+      // to normal behavior.
+      _log.warning('First-contact check failed: $e');
+      return null;
+    }
+  }
+
+  /// Perform a sync operation.
+  ///
+  /// [auto] marks unattended triggers (launch, resume, post-write debounce).
+  /// An auto sync defers this device's FIRST library-combining contact to a
+  /// manual, user-confirmed Sync Now instead of merging unannounced.
+  Future<void> performSync({bool auto = false}) async {
     _log.debug('performSync() called');
     if (state.status == SyncStatus.syncing) {
       _log.debug('Already syncing, returning early');
       return;
     }
 
+    if (auto) {
+      final info = await firstSyncMergeInfo();
+      if (info != null) {
+        _log.info(
+          'Deferring auto sync: first contact with existing cloud data '
+          'needs user confirmation',
+        );
+        state = state.copyWith(
+          firstSyncAwaitingConfirmation: true,
+          message:
+              'First sync needs confirmation. Open Cloud Sync and tap '
+              'Sync Now.',
+        );
+        return;
+      }
+    }
+
     state = state.copyWith(
       status: SyncStatus.syncing,
       message: 'Starting sync...',
       progress: 0.0,
+      firstSyncAwaitingConfirmation: false,
     );
 
     // Set up progress callback on the current sync service

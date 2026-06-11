@@ -254,7 +254,7 @@ class SyncInitializer {
       // any iCloud "conflicted copy" duplicates), not a single canonical remote
       // file -- our own file's mtime tracks our own uploads and would never
       // reveal another device's changes.
-      final peerFiles = await _peerSyncFiles(provider);
+      final peerFiles = await peerSyncFiles(provider);
 
       if (peerFiles.isEmpty) {
         // No other device has uploaded yet. Still surface unsynced local edits
@@ -324,9 +324,9 @@ class SyncInitializer {
   /// Lists every *other* device's sync file. Excludes our own per-device file
   /// and any iCloud "conflicted copy" duplicates. A legacy shared
   /// `submersion_sync.json` (written by pre-per-device builds) still counts as
-  /// a peer file so its data is detected. Mirrors the resolution in
-  /// `SyncService._resolveRemoteSyncFiles`.
-  Future<List<CloudFileInfo>> _peerSyncFiles(
+  /// a peer file so its data is detected. Mirrors the per-device file
+  /// resolution in `SyncService.performSync`.
+  Future<List<CloudFileInfo>> peerSyncFiles(
     CloudStorageProvider provider,
   ) async {
     final deviceId = await _syncRepository.getDeviceId();

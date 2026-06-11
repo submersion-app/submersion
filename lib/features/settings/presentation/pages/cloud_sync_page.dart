@@ -575,10 +575,37 @@ class CloudSyncPage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (syncState.firstSyncAwaitingConfirmation)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Card(
+                color: Theme.of(context).colorScheme.tertiaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onTertiaryContainer,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          context.l10n.settings_cloudSync_firstSync_banner,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           FilledButton.icon(
             onPressed: isSyncing || !hasProvider
                 ? null
-                : () => ref.read(syncStateProvider.notifier).performSync(),
+                : () => _onSyncNowPressed(context, ref),
             icon: isSyncing
                 ? const ExcludeSemantics(
                     child: SizedBox(
@@ -710,6 +737,7 @@ class CloudSyncPage extends ConsumerWidget {
   }
 
   Widget _buildAdvancedSection(BuildContext context, WidgetRef ref) {
+    final isSyncing = ref.watch(syncStateProvider).status == SyncStatus.syncing;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -726,7 +754,8 @@ class CloudSyncPage extends ConsumerWidget {
           leading: const Icon(Icons.refresh),
           title: const Text('Reset Sync State'),
           subtitle: const Text('Clear sync history and start fresh'),
-          onTap: () => _confirmResetSyncState(context, ref),
+          enabled: !isSyncing,
+          onTap: isSyncing ? null : () => _confirmResetSyncState(context, ref),
         ),
         ListTile(
           leading: const Icon(Icons.logout),
@@ -736,6 +765,44 @@ class CloudSyncPage extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  /// Run a sync, first confirming the merge when this would be the device's
+  /// first contact with existing cloud data while it already holds dives.
+  Future<void> _onSyncNowPressed(BuildContext context, WidgetRef ref) async {
+    final notifier = ref.read(syncStateProvider.notifier);
+    final info = await notifier.firstSyncMergeInfo();
+    if (info == null) {
+      await notifier.performSync();
+      return;
+    }
+    if (!context.mounted) return;
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.settings_cloudSync_firstSync_dialogTitle),
+        content: Text(
+          l10n.settings_cloudSync_firstSync_dialogContent(
+            info.peerFileCount,
+            info.localDiveCount,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.settings_cloudSync_firstSync_dialogConfirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await notifier.performSync();
+    }
   }
 
   Future<void> _confirmResetSyncState(

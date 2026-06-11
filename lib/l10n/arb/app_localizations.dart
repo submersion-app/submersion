@@ -17480,6 +17480,33 @@ abstract class AppLocalizations {
   /// **'Cloud Sync Disabled'**
   String get settings_cloudSync_disabledBanner_title;
 
+  /// No description provided for @settings_cloudSync_firstSync_banner.
+  ///
+  /// In en, this message translates to:
+  /// **'First sync is waiting for confirmation. Tap Sync Now to review what will be combined.'**
+  String get settings_cloudSync_firstSync_banner;
+
+  /// No description provided for @settings_cloudSync_firstSync_dialogConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge and Sync'**
+  String get settings_cloudSync_firstSync_dialogConfirm;
+
+  /// No description provided for @settings_cloudSync_firstSync_dialogContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync data from {deviceCount} other device(s) was found in the cloud. Your first sync will combine that data with the {diveCount} dive(s) on this device, on every synced device.\n\nIf the same dives were added separately on each device, they will appear twice.'**
+  String settings_cloudSync_firstSync_dialogContent(
+    int deviceCount,
+    int diveCount,
+  );
+
+  /// No description provided for @settings_cloudSync_firstSync_dialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Combine Libraries?'**
+  String get settings_cloudSync_firstSync_dialogTitle;
+
   /// No description provided for @settings_cloudSync_header_advanced.
   ///
   /// In en, this message translates to:

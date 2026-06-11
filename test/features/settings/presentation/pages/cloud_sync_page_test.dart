@@ -94,7 +94,10 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
   int signOutCalls = 0;
 
   @override
-  Future<void> performSync() async => performSyncCalls++;
+  Future<void> performSync({bool auto = false}) async => performSyncCalls++;
+
+  @override
+  Future<FirstSyncMergeInfo?> firstSyncMergeInfo() async => null;
 
   @override
   Future<void> refreshState() async => refreshStateCalls++;

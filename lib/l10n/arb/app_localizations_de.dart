@@ -10198,6 +10198,24 @@ class AppLocalizationsDe extends AppLocalizations {
       'Cloud-Synchronisierung deaktiviert';
 
   @override
+  String get settings_cloudSync_firstSync_banner =>
+      'First sync is waiting for confirmation. Tap Sync Now to review what will be combined.';
+
+  @override
+  String get settings_cloudSync_firstSync_dialogConfirm => 'Merge and Sync';
+
+  @override
+  String settings_cloudSync_firstSync_dialogContent(
+    int deviceCount,
+    int diveCount,
+  ) {
+    return 'Sync data from $deviceCount other device(s) was found in the cloud. Your first sync will combine that data with the $diveCount dive(s) on this device, on every synced device.\n\nIf the same dives were added separately on each device, they will appear twice.';
+  }
+
+  @override
+  String get settings_cloudSync_firstSync_dialogTitle => 'Combine Libraries?';
+
+  @override
   String get settings_cloudSync_header_advanced => 'Erweitert';
 
   @override
