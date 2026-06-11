@@ -16,6 +16,9 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   /// When true, [uploadFile] throws, modelling an offline/denied provider.
   bool failUploads = false;
 
+  /// When true, [deleteFile] throws, modelling an offline/denied provider.
+  bool failDeletes = false;
+
   /// Seed a file as though another device had uploaded it.
   void seedFile(String name, Uint8List data) {
     _files[name] = _FakeFile(data, DateTime.now());
@@ -116,6 +119,9 @@ class FakeCloudStorageProvider extends CloudStorageProvider
 
   @override
   Future<void> deleteFile(String fileId) async {
+    if (failDeletes) {
+      throw const CloudStorageException('delete failed (test)');
+    }
     _files.remove(fileId);
   }
 

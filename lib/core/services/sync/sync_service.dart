@@ -1330,10 +1330,38 @@ class SyncService {
     return _uuid.v4();
   }
 
-  /// Reset sync state (for debugging or account changes)
+  /// Reset sync state (for debugging or account changes).
+  ///
+  /// Keeps the deletion log: this reset is the user-facing recovery path,
+  /// and the next sync after it runs with a null baseline, where a wiped
+  /// log would let stale peer files resurrect every deleted record.
   Future<void> resetSyncState() async {
-    await _syncRepository.resetSyncState();
+    await _syncRepository.resetSyncState(clearDeletionLog: false);
     _log.info('Sync state reset');
+  }
+
+  /// Best-effort removal of [deviceId]'s per-device sync file from the
+  /// cloud. Used when this install retires an identity (Reset Sync State):
+  /// once the device id changes, its old file would otherwise be merged
+  /// back as a "peer" forever. Never throws; if the provider is offline the
+  /// file simply lingers until a future cleanup.
+  Future<void> deleteDeviceSyncFile(String deviceId) async {
+    final provider = _cloudProvider;
+    if (provider == null) return;
+    try {
+      final filename = _deviceSyncFileName(deviceId);
+      final files = await provider
+          .listFiles(namePattern: CloudStorageProviderMixin.syncFileStem)
+          .timeout(const Duration(seconds: 8));
+      for (final f in files) {
+        if (f.name == filename) {
+          await provider.deleteFile(f.id).timeout(const Duration(seconds: 8));
+          _log.info('Retired per-device sync file $filename');
+        }
+      }
+    } catch (e) {
+      _log.warning('Could not retire sync file for $deviceId: $e');
+    }
   }
 
   /// Sign out from the current cloud provider

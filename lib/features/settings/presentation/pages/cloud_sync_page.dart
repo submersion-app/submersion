@@ -747,9 +747,9 @@ class CloudSyncPage extends ConsumerWidget {
       builder: (context) => AlertDialog(
         title: const Text('Reset Sync State?'),
         content: const Text(
-          'This will clear all sync history and give this device a new '
-          'sync identity. Your data will not be deleted, but you may need '
-          'to resolve conflicts on the next sync.',
+          'This will clear sync history and give this device a new '
+          'sync identity. Your data is not deleted, and the record of '
+          'past deletions is kept so deleted items do not come back.',
         ),
         actions: [
           TextButton(

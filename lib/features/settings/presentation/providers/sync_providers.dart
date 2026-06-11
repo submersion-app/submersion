@@ -354,9 +354,13 @@ class SyncNotifier extends StateNotifier<SyncState> {
   /// syncing as the same device after cross-device restores -- is only
   /// fixable with a fresh identity. Restore detection deliberately preserves
   /// the anchored identity, so a clone survives everything short of this.
+  /// The retired identity's cloud file is removed best-effort: after the id
+  /// changes it would otherwise be merged back as a stale "peer" forever.
   Future<void> resetSyncState() async {
+    final oldDeviceId = await _syncRepository.getDeviceId();
     await _syncService.resetSyncState();
     await _ref.read(syncInitializerProvider).adoptFreshIdentity();
+    await _syncService.deleteDeviceSyncFile(oldDeviceId);
     await refreshState();
   }
 
