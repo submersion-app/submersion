@@ -3374,10 +3374,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_gettingLocation => 'Obtention de la position...';
 
   @override
+  String get diveLog_edit_group_gasGear => 'Gaz et matériel';
+
+  @override
   String get diveLog_edit_group_theDive => 'La plongée';
 
   @override
   String get diveLog_edit_headerNew => 'Nouvelle plongee';
+
+  @override
+  String get diveLog_edit_invite_gasGear =>
+      'Ajouter gaz et matériel : mode, blocs, équipement, lestage';
 
   @override
   String get diveLog_edit_label_airTemp => 'Temp air';
@@ -3631,6 +3638,28 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_edit_snackbar_unableToCalculateRuntime =>
       'Impossible de calculer la duree a partir du profil';
+
+  @override
+  String diveLog_edit_summary_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments',
+      one: '1 élément',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_summary_tanks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count blocs',
+      one: '1 bloc',
+    );
+    return '$_temp0';
+  }
 
   @override
   String diveLog_edit_surfaceInterval(Object interval) {

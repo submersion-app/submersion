@@ -3266,10 +3266,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_gettingLocation => 'מקבל מיקום...';
 
   @override
+  String get diveLog_edit_group_gasGear => 'גז וציוד';
+
+  @override
   String get diveLog_edit_group_theDive => 'הצלילה';
 
   @override
   String get diveLog_edit_headerNew => 'רישום צלילה חדשה';
+
+  @override
+  String get diveLog_edit_invite_gasGear =>
+      'הוספת גז וציוד - מצב, מיכלים, ציוד, משקולות';
 
   @override
   String get diveLog_edit_label_airTemp => 'טמפ\' אוויר';
@@ -3516,6 +3523,28 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_edit_snackbar_unableToCalculateRuntime =>
       'לא ניתן לחשב זמן ריצה מהפרופיל';
+
+  @override
+  String diveLog_edit_summary_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_summary_tanks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מיכלים',
+      one: 'מיכל אחד',
+    );
+    return '$_temp0';
+  }
 
   @override
   String diveLog_edit_surfaceInterval(Object interval) {

@@ -3280,10 +3280,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_gettingLocation => 'جارٍ تحديد الموقع...';
 
   @override
+  String get diveLog_edit_group_gasGear => 'الغاز والمعدات';
+
+  @override
   String get diveLog_edit_group_theDive => 'الغوصة';
 
   @override
   String get diveLog_edit_headerNew => 'تسجيل غوصة جديدة';
+
+  @override
+  String get diveLog_edit_invite_gasGear =>
+      'إضافة الغاز والمعدات - الوضع والأسطوانات والمعدات والأثقال';
 
   @override
   String get diveLog_edit_label_airTemp => 'درجة حرارة الهواء';
@@ -3530,6 +3537,28 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_edit_snackbar_unableToCalculateRuntime =>
       'تعذر حساب وقت التشغيل من الملف';
+
+  @override
+  String diveLog_edit_summary_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر',
+      one: 'عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_summary_tanks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أسطوانات',
+      one: 'أسطوانة واحدة',
+    );
+    return '$_temp0';
+  }
 
   @override
   String diveLog_edit_surfaceInterval(Object interval) {

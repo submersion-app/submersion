@@ -3198,10 +3198,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_gettingLocation => '正在获取位置...';
 
   @override
+  String get diveLog_edit_group_gasGear => '气体与装备';
+
+  @override
   String get diveLog_edit_group_theDive => '本次潜水';
 
   @override
   String get diveLog_edit_headerNew => '记录新潜水';
+
+  @override
+  String get diveLog_edit_invite_gasGear => '添加气体与装备 - 模式、气瓶、装备、配重';
 
   @override
   String get diveLog_edit_label_airTemp => '气温';
@@ -3442,6 +3448,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_snackbar_unableToCalculateRuntime => '无法从轮廓计算运行时间';
+
+  @override
+  String diveLog_edit_summary_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件装备',
+      one: '1 件装备',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_summary_tanks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个气瓶',
+      one: '1 个气瓶',
+    );
+    return '$_temp0';
+  }
 
   @override
   String diveLog_edit_surfaceInterval(Object interval) {

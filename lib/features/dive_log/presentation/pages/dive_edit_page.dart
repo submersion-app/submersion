@@ -36,6 +36,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/custom_field_input_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_gear_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/tank_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/the_dive_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/computer_source_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_sighting_sheet.dart';
@@ -47,7 +49,6 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/dive_log/presentation/widgets/ccr_settings_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/scr_settings_panel.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
@@ -194,6 +195,20 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   // GPS suggestion from photos
   bool _gpsSuggestionDismissed = false;
+
+  /// Smart-collapse expansion state, keyed by group. Defaults are computed
+  /// at the call sites (new dive vs editing); user toggles override them
+  /// for the lifetime of the page.
+  final Map<String, bool> _expanded = {};
+
+  bool _isExpanded(String key, {required bool defaultValue}) =>
+      _expanded[key] ?? defaultValue;
+
+  void _toggleSection(String key, {required bool defaultValue}) {
+    setState(
+      () => _expanded[key] = !_isExpanded(key, defaultValue: defaultValue),
+    );
+  }
 
   @override
   void initState() {
@@ -553,19 +568,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         children: [
           _buildTheDiveSection(units),
           const SizedBox(height: FormStyle.sectionGap),
+          _buildGasGearSection(units),
+          const SizedBox(height: FormStyle.sectionGap),
           _buildTripSection(),
           const SizedBox(height: 16),
           _buildDiveCenterSection(),
           const SizedBox(height: 16),
-          _buildDiveModeSection(),
-          const SizedBox(height: 16),
-          _buildTankSection(),
-          const SizedBox(height: 16),
-          _buildEquipmentSection(),
-          const SizedBox(height: 16),
           _buildEnvironmentSection(units),
-          const SizedBox(height: 16),
-          _buildWeightSection(units),
           const SizedBox(height: 16),
           _buildBuddySection(),
           const SizedBox(height: 16),
@@ -1456,156 +1465,142 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
-  Widget _buildDiveModeSection() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Dive mode selector
-            DiveModeSelector(
-              selectedMode: _diveMode,
-              onChanged: (mode) {
-                setState(() => _diveMode = mode);
-              },
-            ),
-
-            // CCR settings panel (shown when CCR mode selected)
-            if (_diveMode == DiveMode.ccr) ...[
-              const SizedBox(height: 16),
-              CcrSettingsPanel(
-                setpointLow: _setpointLow,
-                setpointHigh: _setpointHigh,
-                setpointDeco: _setpointDeco,
-                diluentGas: _diluentGas,
-                scrubberType: _scrubberType,
-                scrubberDurationMinutes: _scrubberDurationMinutes,
-                scrubberRemainingMinutes: _scrubberRemainingMinutes,
-                loopVolume: _loopVolume,
-                onChanged:
-                    ({
-                      double? setpointLow,
-                      double? setpointHigh,
-                      double? setpointDeco,
-                      GasMix? diluentGas,
-                      String? scrubberType,
-                      int? scrubberDurationMinutes,
-                      int? scrubberRemainingMinutes,
-                      double? loopVolume,
-                    }) {
-                      setState(() {
-                        _setpointLow = setpointLow;
-                        _setpointHigh = setpointHigh;
-                        _setpointDeco = setpointDeco;
-                        _diluentGas = diluentGas;
-                        _scrubberType = scrubberType;
-                        _scrubberDurationMinutes = scrubberDurationMinutes;
-                        _scrubberRemainingMinutes = scrubberRemainingMinutes;
-                        _loopVolume = loopVolume;
-                      });
-                    },
-              ),
-            ],
-
-            // SCR settings panel (shown when SCR mode selected)
-            if (_diveMode == DiveMode.scr) ...[
-              const SizedBox(height: 16),
-              ScrSettingsPanel(
-                scrType: _scrType,
-                injectionRate: _scrInjectionRate,
-                additionRatio: _scrAdditionRatio,
-                orificeSize: _scrOrificeSize,
-                supplyGas: _scrSupplyGas,
-                assumedVo2: _assumedVo2,
-                loopO2Min: _loopO2Min,
-                loopO2Max: _loopO2Max,
-                loopO2Avg: _loopO2Avg,
-                scrubberType: _scrubberType,
-                scrubberDurationMinutes: _scrubberDurationMinutes,
-                scrubberRemainingMinutes: _scrubberRemainingMinutes,
-                onChanged:
-                    ({
-                      ScrType? scrType,
-                      double? injectionRate,
-                      double? additionRatio,
-                      String? orificeSize,
-                      GasMix? supplyGas,
-                      double? assumedVo2,
-                      double? loopO2Min,
-                      double? loopO2Max,
-                      double? loopO2Avg,
-                      String? scrubberType,
-                      int? scrubberDurationMinutes,
-                      int? scrubberRemainingMinutes,
-                    }) {
-                      setState(() {
-                        _scrType = scrType;
-                        _scrInjectionRate = injectionRate;
-                        _scrAdditionRatio = additionRatio;
-                        _scrOrificeSize = orificeSize;
-                        _scrSupplyGas = supplyGas;
-                        _assumedVo2 = assumedVo2;
-                        _loopO2Min = loopO2Min;
-                        _loopO2Max = loopO2Max;
-                        _loopO2Avg = loopO2Avg;
-                        _scrubberType = scrubberType;
-                        _scrubberDurationMinutes = scrubberDurationMinutes;
-                        _scrubberRemainingMinutes = scrubberRemainingMinutes;
-                      });
-                    },
-              ),
-            ],
-          ],
-        ),
+  Widget _buildGasGearSection(UnitFormatter units) {
+    final defaultExpanded = !widget.isEditing;
+    return GasGearSection(
+      expanded: _isExpanded('gasGear', defaultValue: defaultExpanded),
+      onToggle: () => _toggleSection('gasGear', defaultValue: defaultExpanded),
+      summary: _gasGearSummary(),
+      modeSelector: DiveModeSelector(
+        selectedMode: _diveMode,
+        onChanged: (mode) {
+          setState(() => _diveMode = mode);
+        },
       ),
+      rebreatherPanel: _rebreatherPanel(),
+      tankCards: [
+        for (var i = 0; i < _tanks.length; i++)
+          TankCard(
+            key: ValueKey(_tanks[i].id),
+            tank: _tanks[i],
+            tankNumber: i + 1,
+            units: units,
+            onChanged: (updatedTank) {
+              setState(() {
+                _tanksDirty = true;
+                _tanks[i] = updatedTank;
+              });
+            },
+            onRemove: _tanks.length > 1 ? () => _removeTank(i) : null,
+            canRemove: _tanks.length > 1,
+          ),
+      ],
+      onAddTank: _addTank,
+      addTankLabel: context.l10n.diveLog_edit_addTank,
+      equipmentChild: _equipmentChild(),
+      weightChild: _weightChild(units),
     );
   }
 
-  Widget _buildTankSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header with tank count and add button
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                context.l10n.diveLog_edit_section_tanks(_tanks.length),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              TextButton.icon(
-                onPressed: _addTank,
-                icon: const Icon(Icons.add, size: 18),
-                label: Text(context.l10n.diveLog_edit_addTank),
-              ),
-            ],
-          ),
-        ),
-        // Tank editors
-        ..._tanks.asMap().entries.map((entry) {
-          final index = entry.key;
-          final tank = entry.value;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: TankEditor(
-              tank: tank,
-              tankNumber: index + 1,
-              canRemove: _tanks.length > 1,
-              onChanged: (updatedTank) {
+  String _gasGearSummary() {
+    final l10n = context.l10n;
+    final mix = _tanks.isNotEmpty ? _tanks.first.gasMix.name : null;
+    return [
+      l10n.diveLog_edit_summary_tanks(_tanks.length),
+      ?mix,
+      if (_selectedEquipment.isNotEmpty)
+        l10n.diveLog_edit_summary_items(_selectedEquipment.length),
+    ].join(' · ');
+  }
+
+  Widget? _rebreatherPanel() {
+    if (_diveMode == DiveMode.ccr) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+        child: CcrSettingsPanel(
+          setpointLow: _setpointLow,
+          setpointHigh: _setpointHigh,
+          setpointDeco: _setpointDeco,
+          diluentGas: _diluentGas,
+          scrubberType: _scrubberType,
+          scrubberDurationMinutes: _scrubberDurationMinutes,
+          scrubberRemainingMinutes: _scrubberRemainingMinutes,
+          loopVolume: _loopVolume,
+          onChanged:
+              ({
+                double? setpointLow,
+                double? setpointHigh,
+                double? setpointDeco,
+                GasMix? diluentGas,
+                String? scrubberType,
+                int? scrubberDurationMinutes,
+                int? scrubberRemainingMinutes,
+                double? loopVolume,
+              }) {
                 setState(() {
-                  _tanksDirty = true;
-                  _tanks[index] = updatedTank;
+                  _setpointLow = setpointLow;
+                  _setpointHigh = setpointHigh;
+                  _setpointDeco = setpointDeco;
+                  _diluentGas = diluentGas;
+                  _scrubberType = scrubberType;
+                  _scrubberDurationMinutes = scrubberDurationMinutes;
+                  _scrubberRemainingMinutes = scrubberRemainingMinutes;
+                  _loopVolume = loopVolume;
                 });
               },
-              onRemove: () => _removeTank(index),
-            ),
-          );
-        }),
-      ],
-    );
+        ),
+      );
+    }
+    if (_diveMode == DiveMode.scr) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+        child: ScrSettingsPanel(
+          scrType: _scrType,
+          injectionRate: _scrInjectionRate,
+          additionRatio: _scrAdditionRatio,
+          orificeSize: _scrOrificeSize,
+          supplyGas: _scrSupplyGas,
+          assumedVo2: _assumedVo2,
+          loopO2Min: _loopO2Min,
+          loopO2Max: _loopO2Max,
+          loopO2Avg: _loopO2Avg,
+          scrubberType: _scrubberType,
+          scrubberDurationMinutes: _scrubberDurationMinutes,
+          scrubberRemainingMinutes: _scrubberRemainingMinutes,
+          onChanged:
+              ({
+                ScrType? scrType,
+                double? injectionRate,
+                double? additionRatio,
+                String? orificeSize,
+                GasMix? supplyGas,
+                double? assumedVo2,
+                double? loopO2Min,
+                double? loopO2Max,
+                double? loopO2Avg,
+                String? scrubberType,
+                int? scrubberDurationMinutes,
+                int? scrubberRemainingMinutes,
+              }) {
+                setState(() {
+                  _scrType = scrType;
+                  _scrInjectionRate = injectionRate;
+                  _scrAdditionRatio = additionRatio;
+                  _scrOrificeSize = orificeSize;
+                  _scrSupplyGas = supplyGas;
+                  _assumedVo2 = assumedVo2;
+                  _loopO2Min = loopO2Min;
+                  _loopO2Max = loopO2Max;
+                  _loopO2Avg = loopO2Avg;
+                  _scrubberType = scrubberType;
+                  _scrubberDurationMinutes = scrubberDurationMinutes;
+                  _scrubberRemainingMinutes = scrubberRemainingMinutes;
+                });
+              },
+        ),
+      );
+    }
+    return null;
   }
 
   /// Calculate bottom time from dive profile data and update the field
@@ -1799,123 +1794,121 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     });
   }
 
-  Widget _buildEquipmentSection() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  context.l10n.diveLog_edit_section_equipment,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+  Widget _equipmentChild() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                context.l10n.diveLog_edit_section_equipment,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton.icon(
+                    onPressed: _showEquipmentSetPicker,
+                    icon: const Icon(Icons.folder_special, size: 18),
+                    label: Text(context.l10n.diveLog_edit_useSet),
+                  ),
+                  TextButton.icon(
+                    onPressed: _showEquipmentPicker,
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(context.l10n.diveLog_edit_add),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          if (_selectedEquipment.isEmpty) ...[
+            const SizedBox(height: 8),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Column(
                   children: [
-                    TextButton.icon(
-                      onPressed: _showEquipmentSetPicker,
-                      icon: const Icon(Icons.folder_special, size: 18),
-                      label: Text(context.l10n.diveLog_edit_useSet),
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      size: 48,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     ),
-                    TextButton.icon(
-                      onPressed: _showEquipmentPicker,
-                      icon: const Icon(Icons.add, size: 18),
-                      label: Text(context.l10n.diveLog_edit_add),
+                    const SizedBox(height: 8),
+                    Text(
+                      context.l10n.diveLog_edit_noEquipmentSelected,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      context.l10n.diveLog_edit_equipmentHint,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
-                ),
-              ],
-            ),
-            if (_selectedEquipment.isEmpty) ...[
-              const SizedBox(height: 8),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.inventory_2_outlined,
-                        size: 48,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        context.l10n.diveLog_edit_noEquipmentSelected,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        context.l10n.diveLog_edit_equipmentHint,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
-            ] else ...[
-              const Divider(),
-              ...List.generate(_selectedEquipment.length, (index) {
-                final item = _selectedEquipment[index];
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primaryContainer,
-                    child: Icon(
-                      _getEquipmentIcon(item.type),
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      size: 20,
-                    ),
+            ),
+          ] else ...[
+            const Divider(),
+            ...List.generate(_selectedEquipment.length, (index) {
+              final item = _selectedEquipment[index];
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: CircleAvatar(
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer,
+                  child: Icon(
+                    _getEquipmentIcon(item.type),
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    size: 20,
                   ),
-                  title: Text(item.name),
-                  subtitle: Text(item.type.displayName),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.close, size: 18),
-                    tooltip: context.l10n.diveLog_edit_tooltip_removeEquipment,
+                ),
+                title: Text(item.name),
+                subtitle: Text(item.type.displayName),
+                trailing: IconButton(
+                  icon: const Icon(Icons.close, size: 18),
+                  tooltip: context.l10n.diveLog_edit_tooltip_removeEquipment,
+                  onPressed: () {
+                    setState(() {
+                      _selectedEquipment.removeAt(index);
+                    });
+                  },
+                ),
+              );
+            }),
+            if (_selectedEquipment.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: _saveEquipmentAsSet,
+                    icon: const Icon(Icons.save_alt, size: 18),
+                    label: Text(context.l10n.diveLog_edit_saveAsSet),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton(
                     onPressed: () {
                       setState(() {
-                        _selectedEquipment.removeAt(index);
+                        _selectedEquipment.clear();
                       });
                     },
+                    child: Text(context.l10n.diveLog_edit_clearAllEquipment),
                   ),
-                );
-              }),
-              if (_selectedEquipment.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton.icon(
-                      onPressed: _saveEquipmentAsSet,
-                      icon: const Icon(Icons.save_alt, size: 18),
-                      label: Text(context.l10n.diveLog_edit_saveAsSet),
-                    ),
-                    const SizedBox(width: 8),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          _selectedEquipment.clear();
-                        });
-                      },
-                      child: Text(context.l10n.diveLog_edit_clearAllEquipment),
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ],
           ],
-        ),
+        ],
       ),
     );
   }
@@ -2718,57 +2711,55 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
   }
 
-  Widget _buildWeightSection(UnitFormatter units) {
+  Widget _weightChild(UnitFormatter units) {
     final totalWeight = _weights.fold(0.0, (sum, w) => sum + w.amountKg);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                context.l10n.diveLog_edit_section_weight,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              if (_weights.isNotEmpty)
                 Text(
-                  context.l10n.diveLog_edit_section_weight,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                if (_weights.isNotEmpty)
-                  Text(
-                    context.l10n.diveLog_edit_weightTotal(
-                      units.formatWeight(totalWeight),
-                    ),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  context.l10n.diveLog_edit_weightTotal(
+                    units.formatWeight(totalWeight),
                   ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ..._weights.asMap().entries.map((entry) {
-              final index = entry.key;
-              final weight = entry.value;
-              return _buildWeightEntryRow(index, weight, units);
-            }),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: () {
-                setState(() {
-                  _weights.add(
-                    DiveWeight(
-                      id: _uuid.v4(),
-                      diveId: widget.diveId ?? '',
-                      weightType: WeightType.integrated,
-                      amountKg: 0,
-                    ),
-                  );
-                });
-              },
-              icon: const Icon(Icons.add),
-              label: Text(context.l10n.diveLog_edit_addWeightEntry),
-            ),
-          ],
-        ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ..._weights.asMap().entries.map((entry) {
+            final index = entry.key;
+            final weight = entry.value;
+            return _buildWeightEntryRow(index, weight, units);
+          }),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () {
+              setState(() {
+                _weights.add(
+                  DiveWeight(
+                    id: _uuid.v4(),
+                    diveId: widget.diveId ?? '',
+                    weightType: WeightType.integrated,
+                    amountKg: 0,
+                  ),
+                );
+              });
+            },
+            icon: const Icon(Icons.add),
+            label: Text(context.l10n.diveLog_edit_addWeightEntry),
+          ),
+        ],
       ),
     );
   }

@@ -5668,6 +5668,12 @@ abstract class AppLocalizations {
   /// **'Getting location...'**
   String get diveLog_edit_gettingLocation;
 
+  /// Form group: mode, tanks, equipment, weight
+  ///
+  /// In en, this message translates to:
+  /// **'Gas & Gear'**
+  String get diveLog_edit_group_gasGear;
+
   /// Form group: core dive facts
   ///
   /// In en, this message translates to:
@@ -5679,6 +5685,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log New Dive'**
   String get diveLog_edit_headerNew;
+
+  /// Empty-state invitation for the Gas & Gear group
+  ///
+  /// In en, this message translates to:
+  /// **'Add gas & gear - mode, tanks, equipment, weight'**
+  String get diveLog_edit_invite_gasGear;
 
   /// No description provided for @diveLog_edit_label_airTemp.
   ///
@@ -6111,6 +6123,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to calculate runtime from profile'**
   String get diveLog_edit_snackbar_unableToCalculateRuntime;
+
+  /// Collapsed summary fragment: equipment count
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 item} other{{count} items}}'**
+  String diveLog_edit_summary_items(int count);
+
+  /// Collapsed summary fragment: tank count
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 tank} other{{count} tanks}}'**
+  String diveLog_edit_summary_tanks(int count);
 
   /// No description provided for @diveLog_edit_surfaceInterval.
   ///

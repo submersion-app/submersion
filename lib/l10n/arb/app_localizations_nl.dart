@@ -3335,10 +3335,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_gettingLocation => 'Locatie ophalen...';
 
   @override
+  String get diveLog_edit_group_gasGear => 'Gas & uitrusting';
+
+  @override
   String get diveLog_edit_group_theDive => 'De duik';
 
   @override
   String get diveLog_edit_headerNew => 'Nieuwe duik loggen';
+
+  @override
+  String get diveLog_edit_invite_gasGear =>
+      'Gas & uitrusting toevoegen - modus, flessen, uitrusting, lood';
 
   @override
   String get diveLog_edit_label_airTemp => 'Luchttemp.';
@@ -3589,6 +3596,28 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_edit_snackbar_unableToCalculateRuntime =>
       'Kan looptijd niet berekenen uit profiel';
+
+  @override
+  String diveLog_edit_summary_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_summary_tanks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count flessen',
+      one: '1 fles',
+    );
+    return '$_temp0';
+  }
 
   @override
   String diveLog_edit_surfaceInterval(Object interval) {

@@ -3343,10 +3343,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_gettingLocation => 'Helymeghatározás...';
 
   @override
+  String get diveLog_edit_group_gasGear => 'Gáz és felszerelés';
+
+  @override
   String get diveLog_edit_group_theDive => 'A merülés';
 
   @override
   String get diveLog_edit_headerNew => 'Uj merules rogzitese';
+
+  @override
+  String get diveLog_edit_invite_gasGear =>
+      'Gáz és felszerelés hozzáadása - mód, palackok, felszerelés, súly';
 
   @override
   String get diveLog_edit_label_airTemp => 'Levego hom.';
@@ -3599,6 +3606,28 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_edit_snackbar_unableToCalculateRuntime =>
       'A futásidő nem számítható ki a profilból';
+
+  @override
+  String diveLog_edit_summary_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem',
+      one: '1 elem',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_summary_tanks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count palack',
+      one: '1 palack',
+    );
+    return '$_temp0';
+  }
 
   @override
   String diveLog_edit_surfaceInterval(Object interval) {
