@@ -1363,8 +1363,6 @@
   "diveLog_listPage_menuMatchSites": "Associer les plongées aux sites",
   "diveLog_sighting_decreaseCount": "Diminuer le nombre",
   "diveLog_sighting_increaseCount": "Augmenter le nombre",
-  "diveLog_sitePicker_distanceKmAway": "à {distance} km",
-  "diveLog_sitePicker_distanceMAway": "à {distance} m",
   "diveLog_speciesPicker_errorLoading": "Erreur de chargement des espèces : {error}",
   "diveSites_edit_depth_heroMax": "Prof. max",
   "diveSites_edit_depth_heroMin": "Prof. min",

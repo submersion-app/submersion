@@ -4198,16 +4198,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_sighting_increaseCount => 'Darabszám növelése';
 
   @override
-  String diveLog_sitePicker_distanceKmAway(String distance) {
-    return '$distance km-re';
-  }
-
-  @override
-  String diveLog_sitePicker_distanceMAway(String distance) {
-    return '$distance m-re';
-  }
-
-  @override
   String diveLog_speciesPicker_errorLoading(String error) {
     return 'Hiba a fajok betöltésekor: $error';
   }

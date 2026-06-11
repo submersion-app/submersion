@@ -1397,8 +1397,6 @@
   "diveLog_listPage_menuMatchSites": "Tauchgänge Tauchplätzen zuordnen",
   "diveLog_sighting_decreaseCount": "Anzahl verringern",
   "diveLog_sighting_increaseCount": "Anzahl erhöhen",
-  "diveLog_sitePicker_distanceKmAway": "{distance} km entfernt",
-  "diveLog_sitePicker_distanceMAway": "{distance} m entfernt",
   "diveLog_speciesPicker_errorLoading": "Fehler beim Laden der Arten: {error}",
   "diveSites_edit_depth_heroMax": "Max. Tiefe",
   "diveSites_edit_depth_heroMin": "Min. Tiefe",

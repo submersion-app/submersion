@@ -1363,8 +1363,6 @@
   "diveLog_listPage_menuMatchSites": "התאמת צלילות לאתרים",
   "diveLog_sighting_decreaseCount": "הקטנת הכמות",
   "diveLog_sighting_increaseCount": "הגדלת הכמות",
-  "diveLog_sitePicker_distanceKmAway": "במרחק {distance} ק״מ",
-  "diveLog_sitePicker_distanceMAway": "במרחק {distance} מ׳",
   "diveLog_speciesPicker_errorLoading": "שגיאה בטעינת מינים: {error}",
   "diveSites_edit_depth_heroMax": "עומק מקס'",
   "diveSites_edit_depth_heroMin": "עומק מינ'",

@@ -4096,16 +4096,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sighting_increaseCount => 'הגדלת הכמות';
 
   @override
-  String diveLog_sitePicker_distanceKmAway(String distance) {
-    return 'במרחק $distance ק״מ';
-  }
-
-  @override
-  String diveLog_sitePicker_distanceMAway(String distance) {
-    return 'במרחק $distance מ׳';
-  }
-
-  @override
   String diveLog_speciesPicker_errorLoading(String error) {
     return 'שגיאה בטעינת מינים: $error';
   }

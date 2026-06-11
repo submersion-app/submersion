@@ -4010,16 +4010,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sighting_increaseCount => '增加数量';
 
   @override
-  String diveLog_sitePicker_distanceKmAway(String distance) {
-    return '距离 $distance 公里';
-  }
-
-  @override
-  String diveLog_sitePicker_distanceMAway(String distance) {
-    return '距离 $distance 米';
-  }
-
-  @override
   String diveLog_speciesPicker_errorLoading(String error) {
     return '加载物种时出错：$error';
   }

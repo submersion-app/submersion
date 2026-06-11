@@ -1363,8 +1363,6 @@
   "diveLog_listPage_menuMatchSites": "Merülések hozzárendelése helyekhez",
   "diveLog_sighting_decreaseCount": "Darabszám csökkentése",
   "diveLog_sighting_increaseCount": "Darabszám növelése",
-  "diveLog_sitePicker_distanceKmAway": "{distance} km-re",
-  "diveLog_sitePicker_distanceMAway": "{distance} m-re",
   "diveLog_speciesPicker_errorLoading": "Hiba a fajok betöltésekor: {error}",
   "diveSites_edit_depth_heroMax": "Max. mélység",
   "diveSites_edit_depth_heroMin": "Min. mélység",

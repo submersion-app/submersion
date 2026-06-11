@@ -4235,16 +4235,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_sighting_increaseCount => 'Augmenter le nombre';
 
   @override
-  String diveLog_sitePicker_distanceKmAway(String distance) {
-    return 'à $distance km';
-  }
-
-  @override
-  String diveLog_sitePicker_distanceMAway(String distance) {
-    return 'à $distance m';
-  }
-
-  @override
   String diveLog_speciesPicker_errorLoading(String error) {
     return 'Erreur de chargement des espèces : $error';
   }

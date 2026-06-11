@@ -1397,8 +1397,6 @@
   "diveLog_listPage_menuMatchSites": "Duiken aan stekken koppelen",
   "diveLog_sighting_decreaseCount": "Aantal verlagen",
   "diveLog_sighting_increaseCount": "Aantal verhogen",
-  "diveLog_sitePicker_distanceKmAway": "{distance} km verderop",
-  "diveLog_sitePicker_distanceMAway": "{distance} m verderop",
   "diveLog_speciesPicker_errorLoading": "Fout bij laden van soorten: {error}",
   "diveSites_edit_depth_heroMax": "Max. diepte",
   "diveSites_edit_depth_heroMin": "Min. diepte",

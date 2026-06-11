@@ -4111,16 +4111,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sighting_increaseCount => 'زيادة العدد';
 
   @override
-  String diveLog_sitePicker_distanceKmAway(String distance) {
-    return 'على بعد $distance كم';
-  }
-
-  @override
-  String diveLog_sitePicker_distanceMAway(String distance) {
-    return 'على بعد $distance م';
-  }
-
-  @override
   String diveLog_speciesPicker_errorLoading(String error) {
     return 'خطأ في تحميل الأنواع: $error';
   }

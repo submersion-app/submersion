@@ -55,12 +55,12 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
   /// Format distance for display
   String _formatDistance(BuildContext context, double km) {
     if (km < 1) {
-      return context.l10n.diveLog_sitePicker_distanceMAway(
+      return context.l10n.diveLog_sitePicker_distanceMeters(
         (km * 1000).round().toString(),
       );
     }
     final text = km < 10 ? km.toStringAsFixed(1) : km.round().toString();
-    return context.l10n.diveLog_sitePicker_distanceKmAway(text);
+    return context.l10n.diveLog_sitePicker_distanceKm(text);
   }
 
   @override

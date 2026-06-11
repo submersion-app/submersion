@@ -7132,18 +7132,6 @@ abstract class AppLocalizations {
   /// **'Increase count'**
   String get diveLog_sighting_increaseCount;
 
-  /// Distance to a dive site in kilometers
-  ///
-  /// In en, this message translates to:
-  /// **'{distance} km away'**
-  String diveLog_sitePicker_distanceKmAway(String distance);
-
-  /// Distance to a dive site in meters
-  ///
-  /// In en, this message translates to:
-  /// **'{distance} m away'**
-  String diveLog_sitePicker_distanceMAway(String distance);
-
   /// Error shown when the species list fails to load
   ///
   /// In en, this message translates to:

@@ -1526,8 +1526,6 @@
   "diveLog_listPage_menuMatchSites": "将潜水匹配到潜水点",
   "diveLog_sighting_decreaseCount": "减少数量",
   "diveLog_sighting_increaseCount": "增加数量",
-  "diveLog_sitePicker_distanceKmAway": "距离 {distance} 公里",
-  "diveLog_sitePicker_distanceMAway": "距离 {distance} 米",
   "diveLog_speciesPicker_errorLoading": "加载物种时出错：{error}",
   "diveSites_edit_depth_heroMax": "最大深度",
   "diveSites_edit_depth_heroMin": "最小深度",

@@ -1397,8 +1397,6 @@
   "diveLog_listPage_menuMatchSites": "مطابقة الغوصات بالمواقع",
   "diveLog_sighting_decreaseCount": "تقليل العدد",
   "diveLog_sighting_increaseCount": "زيادة العدد",
-  "diveLog_sitePicker_distanceKmAway": "على بعد {distance} كم",
-  "diveLog_sitePicker_distanceMAway": "على بعد {distance} م",
   "diveLog_speciesPicker_errorLoading": "خطأ في تحميل الأنواع: {error}",
   "diveSites_edit_depth_heroMax": "أقصى عمق",
   "diveSites_edit_depth_heroMin": "أدنى عمق",
