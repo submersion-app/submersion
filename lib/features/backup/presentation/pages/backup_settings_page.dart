@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
+import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_history_tile.dart';
@@ -237,13 +238,16 @@ class BackupSettingsPage extends ConsumerWidget {
 
     if (!context.mounted) return;
 
-    final confirmed = await RestoreConfirmationDialog.show(
+    final mode = await RestoreConfirmationDialog.show(
       context,
       record,
       currentSchemaVersion: AppDatabase.currentSchemaVersion,
+      offerReplace: ref.read(cloudStorageProviderProvider) != null,
     );
-    if (confirmed) {
-      ref.read(backupOperationProvider.notifier).restoreFromFilePath(filePath);
+    if (mode != null) {
+      ref
+          .read(backupOperationProvider.notifier)
+          .restoreFromFilePath(filePath, mode: mode);
     }
   }
 
@@ -353,13 +357,16 @@ class BackupSettingsPage extends ConsumerWidget {
   ) async {
     switch (action) {
       case 'restore':
-        final confirmed = await RestoreConfirmationDialog.show(
+        final mode = await RestoreConfirmationDialog.show(
           context,
           record,
           currentSchemaVersion: AppDatabase.currentSchemaVersion,
+          offerReplace: ref.read(cloudStorageProviderProvider) != null,
         );
-        if (confirmed) {
-          ref.read(backupOperationProvider.notifier).restoreFromBackup(record);
+        if (mode != null) {
+          ref
+              .read(backupOperationProvider.notifier)
+              .restoreFromBackup(record, mode: mode);
         }
       case 'delete':
         final confirmed = await _showDeleteConfirmation(context);
