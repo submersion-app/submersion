@@ -284,6 +284,35 @@ class SyncRepository {
     return metadata.remoteFileId;
   }
 
+  /// The library epoch this device last accepted, or null in the pre-epoch
+  /// world. Dual-anchored with LibraryEpochStore's SharedPreferences mirror.
+  Future<String?> getLastAcceptedEpochId() async {
+    final metadata = await getOrCreateMetadata();
+    return metadata.lastAcceptedEpochId;
+  }
+
+  Future<void> setLastAcceptedEpochId(String? epochId) async {
+    try {
+      await getOrCreateMetadata();
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(
+        _db.syncMetadata,
+      )..where((t) => t.id.equals(_globalMetadataId))).write(
+        SyncMetadataCompanion(
+          lastAcceptedEpochId: Value(epochId),
+          updatedAt: Value(now),
+        ),
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set last accepted epoch id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   // ============================================================================
   // Sync Records Operations
   // ============================================================================
@@ -849,11 +878,18 @@ class SyncRepository {
   /// Preserve the live device identity (captured by the caller *before* the
   /// restore) and clear the sync baseline so the next sync performs a clean
   /// full reconcile of the restored data instead of replaying a stale position.
-  Future<void> rebaselineAfterRestore({String? preserveDeviceId}) async {
+  Future<void> rebaselineAfterRestore({
+    String? preserveDeviceId,
+    String? preserveEpochId,
+  }) async {
     if (preserveDeviceId != null && preserveDeviceId.isNotEmpty) {
       await setDeviceId(preserveDeviceId);
     }
     await resetSyncState();
+    // The restored database carries the backup's stale epoch; overwrite it
+    // with the live value captured by the caller before the swap (or null
+    // when this install has never accepted an epoch).
+    await setLastAcceptedEpochId(preserveEpochId);
     // Drop the in-memory clock so it re-seeds from the restored rows under this
     // device's id on the next write. (issue() advances physical time to now()
     // regardless, so local writes are never ordered behind the restored data.)

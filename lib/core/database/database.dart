@@ -1321,6 +1321,11 @@ class SyncMetadata extends Table {
   /// unchanged. Nullable: rows predating this column read as "no token yet".
   TextColumn get instanceToken => text().nullable()();
 
+  /// The library epoch this device last accepted (see library_epoch.dart).
+  /// Dual-anchored: mirrored in SharedPreferences so a database restore
+  /// cannot silently rewind it. Null means the pre-epoch world.
+  TextColumn get lastAcceptedEpochId => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -1556,7 +1561,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 79;
+  static const int currentSchemaVersion = 80;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -3844,6 +3849,21 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 79) await reportProgress();
+        if (from < 80) {
+          // Library epoch anchor for restore Replace mode: the epoch this
+          // device last accepted, dual-anchored with a SharedPreferences
+          // mirror (see library_epoch_store.dart).
+          final cols = await customSelect(
+            "PRAGMA table_info('sync_metadata')",
+          ).get();
+          final existing = cols.map((c) => c.read<String>('name')).toSet();
+          if (cols.isNotEmpty && !existing.contains('last_accepted_epoch_id')) {
+            await customStatement(
+              'ALTER TABLE sync_metadata ADD COLUMN last_accepted_epoch_id TEXT',
+            );
+          }
+        }
+        if (from < 80) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
