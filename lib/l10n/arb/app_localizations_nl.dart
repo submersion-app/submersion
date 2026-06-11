@@ -272,10 +272,39 @@ class AppLocalizationsNl extends AppLocalizations {
   String get backup_location_title => 'Back-uplocatie';
 
   @override
+  String get backup_replaceConfirm_confirm => 'Overal vervangen';
+
+  @override
+  String get backup_replaceConfirm_content =>
+      'De bibliotheek op alle gesynchroniseerde apparaten wordt vervangen door deze back-up. Elk apparaat maakt eerst een veiligheidsback-up van zijn huidige gegevens. Dit kan niet ongedaan worden gemaakt.';
+
+  @override
+  String get backup_replaceConfirm_title => 'Bibliotheek overal vervangen?';
+
+  @override
   String get backup_restore_dialog_cancel => 'Annuleren';
 
   @override
+  String get backup_restore_dialog_modeMerge_subtitle =>
+      'Herstel op dit apparaat. Bij de volgende synchronisatie worden de herstelde gegevens samengevoegd met de cloudbibliotheek.';
+
+  @override
+  String get backup_restore_dialog_modeMerge_title =>
+      'Samenvoegen bij volgende synchronisatie';
+
+  @override
+  String get backup_restore_dialog_modeReplace_subtitle =>
+      'De back-up wordt de bibliotheek op dit apparaat, in de cloud en op elk gesynchroniseerd apparaat.';
+
+  @override
+  String get backup_restore_dialog_modeReplace_title => 'Overal vervangen';
+
+  @override
   String get backup_restore_dialog_restore => 'Herstellen';
+
+  @override
+  String get backup_restore_dialog_restoreReplace =>
+      'Herstellen en overal vervangen';
 
   @override
   String get backup_restore_dialog_safetyNote =>
@@ -10357,6 +10386,25 @@ class AppLocalizationsNl extends AppLocalizations {
       'Cloudsynchronisatie uitgeschakeld';
 
   @override
+  String get settings_cloudSync_adopt_confirm =>
+      'Herstelde bibliotheek overnemen';
+
+  @override
+  String settings_cloudSync_adopt_dialogContent(
+    String deviceName,
+    String date,
+  ) {
+    return 'De bibliotheek is vervangen vanuit een back-up op \"$deviceName\" ($date). Bij overname worden de gegevens van dit apparaat vervangen door de herstelde bibliotheek. Eerst wordt een veiligheidsback-up van de huidige gegevens van dit apparaat gemaakt.';
+  }
+
+  @override
+  String get settings_cloudSync_adopt_dialogTitle =>
+      'Herstelde bibliotheek overnemen?';
+
+  @override
+  String get settings_cloudSync_adopt_notNow => 'Niet nu';
+
+  @override
   String get settings_cloudSync_firstSync_banner =>
       'De eerste synchronisatie wacht op bevestiging. Tik op \'Nu synchroniseren\' om te bekijken wat er wordt samengevoegd.';
 
@@ -10375,6 +10423,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_cloudSync_firstSync_dialogTitle =>
       'Bibliotheken samenvoegen?';
+
+  @override
+  String settings_cloudSync_replace_banner(String deviceName) {
+    return 'Synchronisatie gepauzeerd: de bibliotheek is vervangen vanuit een back-up op \"$deviceName\". Tik op Nu synchroniseren om te controleren.';
+  }
 
   @override
   String get settings_cloudSync_header_advanced => 'Geavanceerd';

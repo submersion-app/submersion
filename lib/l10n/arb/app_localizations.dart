@@ -590,17 +590,65 @@ abstract class AppLocalizations {
   /// **'Backup Location'**
   String get backup_location_title;
 
+  /// No description provided for @backup_replaceConfirm_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace Everywhere'**
+  String get backup_replaceConfirm_confirm;
+
+  /// No description provided for @backup_replaceConfirm_content.
+  ///
+  /// In en, this message translates to:
+  /// **'The library on all synced devices will be replaced with this backup. Each device creates a safety backup of its current data first. This cannot be undone.'**
+  String get backup_replaceConfirm_content;
+
+  /// No description provided for @backup_replaceConfirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace Library Everywhere?'**
+  String get backup_replaceConfirm_title;
+
   /// No description provided for @backup_restore_dialog_cancel.
   ///
   /// In en, this message translates to:
   /// **'Cancel'**
   String get backup_restore_dialog_cancel;
 
+  /// No description provided for @backup_restore_dialog_modeMerge_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore to this device. Your next sync combines the restored data with the cloud library.'**
+  String get backup_restore_dialog_modeMerge_subtitle;
+
+  /// No description provided for @backup_restore_dialog_modeMerge_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge on next sync'**
+  String get backup_restore_dialog_modeMerge_title;
+
+  /// No description provided for @backup_restore_dialog_modeReplace_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup becomes the library on this device, in the cloud, and on every synced device.'**
+  String get backup_restore_dialog_modeReplace_subtitle;
+
+  /// No description provided for @backup_restore_dialog_modeReplace_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace everywhere'**
+  String get backup_restore_dialog_modeReplace_title;
+
   /// No description provided for @backup_restore_dialog_restore.
   ///
   /// In en, this message translates to:
   /// **'Restore'**
   String get backup_restore_dialog_restore;
+
+  /// No description provided for @backup_restore_dialog_restoreReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore and Replace Everywhere'**
+  String get backup_restore_dialog_restoreReplace;
 
   /// No description provided for @backup_restore_dialog_safetyNote.
   ///
@@ -17816,6 +17864,30 @@ abstract class AppLocalizations {
   /// **'Cloud Sync Disabled'**
   String get settings_cloudSync_disabledBanner_title;
 
+  /// No description provided for @settings_cloudSync_adopt_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Adopt Restored Library'**
+  String get settings_cloudSync_adopt_confirm;
+
+  /// No description provided for @settings_cloudSync_adopt_dialogContent.
+  ///
+  /// In en, this message translates to:
+  /// **'The library was replaced from a backup on \"{deviceName}\" ({date}). Adopting replaces this device\'s data with the restored library. A safety backup of this device\'s current data will be created first.'**
+  String settings_cloudSync_adopt_dialogContent(String deviceName, String date);
+
+  /// No description provided for @settings_cloudSync_adopt_dialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adopt Restored Library?'**
+  String get settings_cloudSync_adopt_dialogTitle;
+
+  /// No description provided for @settings_cloudSync_adopt_notNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Now'**
+  String get settings_cloudSync_adopt_notNow;
+
   /// No description provided for @settings_cloudSync_firstSync_banner.
   ///
   /// In en, this message translates to:
@@ -17842,6 +17914,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Combine Libraries?'**
   String get settings_cloudSync_firstSync_dialogTitle;
+
+  /// No description provided for @settings_cloudSync_replace_banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync is paused: the library was replaced from a backup on \"{deviceName}\". Tap Sync Now to review.'**
+  String settings_cloudSync_replace_banner(String deviceName);
 
   /// No description provided for @settings_cloudSync_header_advanced.
   ///

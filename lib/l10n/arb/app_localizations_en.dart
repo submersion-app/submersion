@@ -271,10 +271,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backup_location_title => 'Backup Location';
 
   @override
+  String get backup_replaceConfirm_confirm => 'Replace Everywhere';
+
+  @override
+  String get backup_replaceConfirm_content =>
+      'The library on all synced devices will be replaced with this backup. Each device creates a safety backup of its current data first. This cannot be undone.';
+
+  @override
+  String get backup_replaceConfirm_title => 'Replace Library Everywhere?';
+
+  @override
   String get backup_restore_dialog_cancel => 'Cancel';
 
   @override
+  String get backup_restore_dialog_modeMerge_subtitle =>
+      'Restore to this device. Your next sync combines the restored data with the cloud library.';
+
+  @override
+  String get backup_restore_dialog_modeMerge_title => 'Merge on next sync';
+
+  @override
+  String get backup_restore_dialog_modeReplace_subtitle =>
+      'The backup becomes the library on this device, in the cloud, and on every synced device.';
+
+  @override
+  String get backup_restore_dialog_modeReplace_title => 'Replace everywhere';
+
+  @override
   String get backup_restore_dialog_restore => 'Restore';
+
+  @override
+  String get backup_restore_dialog_restoreReplace =>
+      'Restore and Replace Everywhere';
 
   @override
   String get backup_restore_dialog_safetyNote =>
@@ -10269,6 +10297,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_cloudSync_disabledBanner_title => 'Cloud Sync Disabled';
 
   @override
+  String get settings_cloudSync_adopt_confirm => 'Adopt Restored Library';
+
+  @override
+  String settings_cloudSync_adopt_dialogContent(
+    String deviceName,
+    String date,
+  ) {
+    return 'The library was replaced from a backup on \"$deviceName\" ($date). Adopting replaces this device\'s data with the restored library. A safety backup of this device\'s current data will be created first.';
+  }
+
+  @override
+  String get settings_cloudSync_adopt_dialogTitle => 'Adopt Restored Library?';
+
+  @override
+  String get settings_cloudSync_adopt_notNow => 'Not Now';
+
+  @override
   String get settings_cloudSync_firstSync_banner =>
       'First sync is waiting for confirmation. Tap Sync Now to review what will be combined.';
 
@@ -10285,6 +10330,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_cloudSync_firstSync_dialogTitle => 'Combine Libraries?';
+
+  @override
+  String settings_cloudSync_replace_banner(String deviceName) {
+    return 'Sync is paused: the library was replaced from a backup on \"$deviceName\". Tap Sync Now to review.';
+  }
 
   @override
   String get settings_cloudSync_header_advanced => 'Advanced';

@@ -275,10 +275,39 @@ class AppLocalizationsHu extends AppLocalizations {
   String get backup_location_title => 'Mentés helye';
 
   @override
+  String get backup_replaceConfirm_confirm => 'Csere mindenhol';
+
+  @override
+  String get backup_replaceConfirm_content =>
+      'Az összes szinkronizált eszközön lévő könyvtár erre a biztonsági mentésre cserélődik. Minden eszköz először biztonsági mentést készít a jelenlegi adatairól. Ez nem vonható vissza.';
+
+  @override
+  String get backup_replaceConfirm_title => 'Könyvtár cseréje mindenhol?';
+
+  @override
   String get backup_restore_dialog_cancel => 'Mégse';
 
   @override
+  String get backup_restore_dialog_modeMerge_subtitle =>
+      'Visszaállítás erre az eszközre. A következő szinkronizálás egyesíti a visszaállított adatokat a felhőkönyvtárral.';
+
+  @override
+  String get backup_restore_dialog_modeMerge_title =>
+      'Egyesítés a következő szinkronizáláskor';
+
+  @override
+  String get backup_restore_dialog_modeReplace_subtitle =>
+      'A biztonsági mentés lesz a könyvtár ezen az eszközön, a felhőben és minden szinkronizált eszközön.';
+
+  @override
+  String get backup_restore_dialog_modeReplace_title => 'Csere mindenhol';
+
+  @override
   String get backup_restore_dialog_restore => 'Visszaállítás';
+
+  @override
+  String get backup_restore_dialog_restoreReplace =>
+      'Visszaállítás és csere mindenhol';
 
   @override
   String get backup_restore_dialog_safetyNote =>
@@ -10403,6 +10432,25 @@ class AppLocalizationsHu extends AppLocalizations {
       'Felho szinkronizalas letiltva';
 
   @override
+  String get settings_cloudSync_adopt_confirm =>
+      'Visszaállított könyvtár átvétele';
+
+  @override
+  String settings_cloudSync_adopt_dialogContent(
+    String deviceName,
+    String date,
+  ) {
+    return 'A könyvtárat egy biztonsági mentésből cserélték le a(z) \"$deviceName\" eszközön ($date). Az átvétellel ennek az eszköznek az adatai a visszaállított könyvtárra cserélődnek. Először biztonsági mentés készül az eszköz jelenlegi adatairól.';
+  }
+
+  @override
+  String get settings_cloudSync_adopt_dialogTitle =>
+      'Átveszi a visszaállított könyvtárat?';
+
+  @override
+  String get settings_cloudSync_adopt_notNow => 'Most nem';
+
+  @override
   String get settings_cloudSync_firstSync_banner =>
       'Az első szinkronizálás megerősítésre vár. Koppintson a \'Szinkronizálás most\' gombra, hogy átnézze, mi kerül összevonásra.';
 
@@ -10421,6 +10469,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_cloudSync_firstSync_dialogTitle =>
       'Könyvtárak összevonása?';
+
+  @override
+  String settings_cloudSync_replace_banner(String deviceName) {
+    return 'A szinkronizálás szünetel: a könyvtárat egy biztonsági mentésből cserélték le a(z) \"$deviceName\" eszközön. Koppintson a Szinkronizálás most gombra az áttekintéshez.';
+  }
 
   @override
   String get settings_cloudSync_header_advanced => 'Halado';

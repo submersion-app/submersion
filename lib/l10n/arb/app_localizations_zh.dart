@@ -265,10 +265,37 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_location_title => '备份位置';
 
   @override
+  String get backup_replaceConfirm_confirm => '全部替换';
+
+  @override
+  String get backup_replaceConfirm_content =>
+      '所有已同步设备上的资料库都将被此备份替换。每台设备会先为其当前数据创建安全备份。此操作无法撤销。';
+
+  @override
+  String get backup_replaceConfirm_title => '在所有设备上替换资料库？';
+
+  @override
   String get backup_restore_dialog_cancel => '取消';
 
   @override
+  String get backup_restore_dialog_modeMerge_subtitle =>
+      '恢复到此设备。下次同步时会将恢复的数据与云端资料库合并。';
+
+  @override
+  String get backup_restore_dialog_modeMerge_title => '下次同步时合并';
+
+  @override
+  String get backup_restore_dialog_modeReplace_subtitle =>
+      '此备份将成为本设备、云端及所有已同步设备上的资料库。';
+
+  @override
+  String get backup_restore_dialog_modeReplace_title => '全部替换';
+
+  @override
   String get backup_restore_dialog_restore => '恢复';
+
+  @override
+  String get backup_restore_dialog_restoreReplace => '恢复并全部替换';
 
   @override
   String get backup_restore_dialog_safetyNote => '恢复前将自动创建当前数据的安全备份。';
@@ -9956,6 +9983,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_disabledBanner_title => '云同步已禁用';
 
   @override
+  String get settings_cloudSync_adopt_confirm => '采用恢复的资料库';
+
+  @override
+  String settings_cloudSync_adopt_dialogContent(
+    String deviceName,
+    String date,
+  ) {
+    return '资料库已被 \"$deviceName\" 上的备份替换（$date）。采用后，此设备的数据将被恢复的资料库替换。系统会先为此设备的当前数据创建安全备份。';
+  }
+
+  @override
+  String get settings_cloudSync_adopt_dialogTitle => '采用恢复的资料库？';
+
+  @override
+  String get settings_cloudSync_adopt_notNow => '暂不';
+
+  @override
   String get settings_cloudSync_firstSync_banner =>
       '首次同步正在等待确认。点击「立即同步」以查看将要合并的内容。';
 
@@ -9972,6 +10016,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_cloudSync_firstSync_dialogTitle => '合并资料库？';
+
+  @override
+  String settings_cloudSync_replace_banner(String deviceName) {
+    return '同步已暂停：资料库已被 \"$deviceName\" 上的备份替换。点按\"立即同步\"以查看。';
+  }
 
   @override
   String get settings_cloudSync_header_advanced => '高级';

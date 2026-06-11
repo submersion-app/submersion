@@ -274,10 +274,39 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_location_title => 'موقع النسخة الاحتياطية';
 
   @override
+  String get backup_replaceConfirm_confirm => 'استبدال في كل مكان';
+
+  @override
+  String get backup_replaceConfirm_content =>
+      'سيتم استبدال المكتبة على جميع الأجهزة المتزامنة بهذه النسخة الاحتياطية. يقوم كل جهاز أولاً بإنشاء نسخة احتياطية آمنة من بياناته الحالية. لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get backup_replaceConfirm_title => 'استبدال المكتبة في كل مكان؟';
+
+  @override
   String get backup_restore_dialog_cancel => 'إلغاء';
 
   @override
+  String get backup_restore_dialog_modeMerge_subtitle =>
+      'الاستعادة على هذا الجهاز. ستدمج المزامنة التالية البيانات المستعادة مع مكتبة السحابة.';
+
+  @override
+  String get backup_restore_dialog_modeMerge_title =>
+      'الدمج عند المزامنة التالية';
+
+  @override
+  String get backup_restore_dialog_modeReplace_subtitle =>
+      'تصبح النسخة الاحتياطية هي المكتبة على هذا الجهاز وفي السحابة وعلى كل جهاز متزامن.';
+
+  @override
+  String get backup_restore_dialog_modeReplace_title => 'استبدال في كل مكان';
+
+  @override
   String get backup_restore_dialog_restore => 'استعادة';
+
+  @override
+  String get backup_restore_dialog_restoreReplace =>
+      'استعادة واستبدال في كل مكان';
 
   @override
   String get backup_restore_dialog_safetyNote =>
@@ -10238,6 +10267,24 @@ class AppLocalizationsAr extends AppLocalizations {
       'المزامنة السحابية معطلة';
 
   @override
+  String get settings_cloudSync_adopt_confirm => 'اعتماد المكتبة المستعادة';
+
+  @override
+  String settings_cloudSync_adopt_dialogContent(
+    String deviceName,
+    String date,
+  ) {
+    return 'تم استبدال المكتبة من نسخة احتياطية على \"$deviceName\" ($date). عند الاعتماد، سيتم استبدال بيانات هذا الجهاز بالمكتبة المستعادة. سيتم أولاً إنشاء نسخة احتياطية آمنة من البيانات الحالية لهذا الجهاز.';
+  }
+
+  @override
+  String get settings_cloudSync_adopt_dialogTitle =>
+      'اعتماد المكتبة المستعادة؟';
+
+  @override
+  String get settings_cloudSync_adopt_notNow => 'ليس الآن';
+
+  @override
   String get settings_cloudSync_firstSync_banner =>
       'المزامنة الأولى في انتظار التأكيد. اضغط على \'مزامنة الآن\' لمراجعة ما سيتم دمجه.';
 
@@ -10254,6 +10301,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_cloudSync_firstSync_dialogTitle => 'دمج المكتبات؟';
+
+  @override
+  String settings_cloudSync_replace_banner(String deviceName) {
+    return 'المزامنة متوقفة مؤقتًا: تم استبدال المكتبة من نسخة احتياطية على \"$deviceName\". اضغط على \"مزامنة الآن\" للمراجعة.';
+  }
 
   @override
   String get settings_cloudSync_header_advanced => 'متقدم';

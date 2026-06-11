@@ -270,10 +270,37 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_location_title => 'מיקום הגיבוי';
 
   @override
+  String get backup_replaceConfirm_confirm => 'החלפה בכל מקום';
+
+  @override
+  String get backup_replaceConfirm_content =>
+      'הספרייה בכל המכשירים המסונכרנים תוחלף בגיבוי זה. כל מכשיר יוצר תחילה גיבוי בטיחות של הנתונים הנוכחיים שלו. לא ניתן לבטל פעולה זו.';
+
+  @override
+  String get backup_replaceConfirm_title => 'להחליף את הספרייה בכל מקום?';
+
+  @override
   String get backup_restore_dialog_cancel => 'ביטול';
 
   @override
+  String get backup_restore_dialog_modeMerge_subtitle =>
+      'שחזור במכשיר זה. הסנכרון הבא ישלב את הנתונים המשוחזרים עם ספריית הענן.';
+
+  @override
+  String get backup_restore_dialog_modeMerge_title => 'מיזוג בסנכרון הבא';
+
+  @override
+  String get backup_restore_dialog_modeReplace_subtitle =>
+      'הגיבוי הופך לספרייה במכשיר זה, בענן ובכל מכשיר מסונכרן.';
+
+  @override
+  String get backup_restore_dialog_modeReplace_title => 'החלפה בכל מקום';
+
+  @override
   String get backup_restore_dialog_restore => 'שחזור';
+
+  @override
+  String get backup_restore_dialog_restoreReplace => 'שחזור והחלפה בכל מקום';
 
   @override
   String get backup_restore_dialog_safetyNote =>
@@ -10166,6 +10193,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_disabledBanner_title => 'סנכרון ענן מושבת';
 
   @override
+  String get settings_cloudSync_adopt_confirm => 'אימוץ הספרייה המשוחזרת';
+
+  @override
+  String settings_cloudSync_adopt_dialogContent(
+    String deviceName,
+    String date,
+  ) {
+    return 'הספרייה הוחלפה מגיבוי במכשיר \"$deviceName\" ($date). אימוץ יחליף את נתוני מכשיר זה בספרייה המשוחזרת. תחילה ייווצר גיבוי בטיחות של הנתונים הנוכחיים של מכשיר זה.';
+  }
+
+  @override
+  String get settings_cloudSync_adopt_dialogTitle =>
+      'לאמץ את הספרייה המשוחזרת?';
+
+  @override
+  String get settings_cloudSync_adopt_notNow => 'לא עכשיו';
+
+  @override
   String get settings_cloudSync_firstSync_banner =>
       'הסנכרון הראשון ממתין לאישור. הקש על \'סנכרן עכשיו\' כדי לבדוק מה ישולב.';
 
@@ -10182,6 +10227,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_cloudSync_firstSync_dialogTitle => 'לשלב ספריות?';
+
+  @override
+  String settings_cloudSync_replace_banner(String deviceName) {
+    return 'הסנכרון מושהה: הספרייה הוחלפה מגיבוי במכשיר \"$deviceName\". יש להקיש על \"סנכרן עכשיו\" לבדיקה.';
+  }
 
   @override
   String get settings_cloudSync_header_advanced => 'מתקדם';

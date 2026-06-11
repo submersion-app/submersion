@@ -266,8 +266,16 @@
   "backup_location_change": "Change",
   "backup_location_default": "Default location",
   "backup_location_title": "Backup Location",
+  "backup_replaceConfirm_confirm": "Replace Everywhere",
+  "backup_replaceConfirm_content": "The library on all synced devices will be replaced with this backup. Each device creates a safety backup of its current data first. This cannot be undone.",
+  "backup_replaceConfirm_title": "Replace Library Everywhere?",
   "backup_restore_dialog_cancel": "Cancel",
+  "backup_restore_dialog_modeMerge_subtitle": "Restore to this device. Your next sync combines the restored data with the cloud library.",
+  "backup_restore_dialog_modeMerge_title": "Merge on next sync",
+  "backup_restore_dialog_modeReplace_subtitle": "The backup becomes the library on this device, in the cloud, and on every synced device.",
+  "backup_restore_dialog_modeReplace_title": "Replace everywhere",
   "backup_restore_dialog_restore": "Restore",
+  "backup_restore_dialog_restoreReplace": "Restore and Replace Everywhere",
   "backup_restore_dialog_safetyNote": "A safety backup of your current data will be created automatically before restoring.",
   "backup_restore_dialog_title": "Restore Backup",
   "backup_restore_dialog_warning": "This will replace ALL current data with the backup data. This action cannot be undone.",
@@ -5649,6 +5657,20 @@
   "settings_cloudSync_conflictItems": "{count, plural, =1{1 item needs attention} other{{count} items need attention}}",
   "settings_cloudSync_disabledBanner_content": "App-managed cloud sync is disabled because you're using a custom storage folder. Your folder's sync service (Dropbox, Google Drive, OneDrive, etc.) handles synchronization.",
   "settings_cloudSync_disabledBanner_title": "Cloud Sync Disabled",
+  "settings_cloudSync_adopt_confirm": "Adopt Restored Library",
+  "settings_cloudSync_adopt_dialogContent": "The library was replaced from a backup on \"{deviceName}\" ({date}). Adopting replaces this device's data with the restored library. A safety backup of this device's current data will be created first.",
+  "@settings_cloudSync_adopt_dialogContent": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_cloudSync_adopt_dialogTitle": "Adopt Restored Library?",
+  "settings_cloudSync_adopt_notNow": "Not Now",
   "settings_cloudSync_firstSync_banner": "First sync is waiting for confirmation. Tap Sync Now to review what will be combined.",
   "settings_cloudSync_firstSync_dialogConfirm": "Merge and Sync",
   "settings_cloudSync_firstSync_dialogContent": "Existing sync data was found in the cloud ({deviceCount} sync file(s)). Your first sync will combine that data with the {diveCount} dive(s) on this device, across every synced device.\n\nIf the same dives were added separately on each device, they will appear twice.",
@@ -5663,6 +5685,14 @@
     }
   },
   "settings_cloudSync_firstSync_dialogTitle": "Combine Libraries?",
+  "settings_cloudSync_replace_banner": "Sync is paused: the library was replaced from a backup on \"{deviceName}\". Tap Sync Now to review.",
+  "@settings_cloudSync_replace_banner": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
   "settings_cloudSync_header_advanced": "Advanced",
   "settings_cloudSync_header_cloudProvider": "Cloud Provider",
   "settings_cloudSync_header_conflicts": "Conflicts ({count})",

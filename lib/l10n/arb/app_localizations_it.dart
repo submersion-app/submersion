@@ -276,10 +276,39 @@ class AppLocalizationsIt extends AppLocalizations {
   String get backup_location_title => 'Posizione di backup';
 
   @override
+  String get backup_replaceConfirm_confirm => 'Sostituisci ovunque';
+
+  @override
+  String get backup_replaceConfirm_content =>
+      'La libreria su tutti i dispositivi sincronizzati verrà sostituita con questo backup. Ogni dispositivo crea prima un backup di sicurezza dei propri dati attuali. Questa operazione non può essere annullata.';
+
+  @override
+  String get backup_replaceConfirm_title => 'Sostituire la libreria ovunque?';
+
+  @override
   String get backup_restore_dialog_cancel => 'Annulla';
 
   @override
+  String get backup_restore_dialog_modeMerge_subtitle =>
+      'Ripristina su questo dispositivo. La prossima sincronizzazione combinerà i dati ripristinati con la libreria nel cloud.';
+
+  @override
+  String get backup_restore_dialog_modeMerge_title =>
+      'Unisci alla prossima sincronizzazione';
+
+  @override
+  String get backup_restore_dialog_modeReplace_subtitle =>
+      'Il backup diventa la libreria su questo dispositivo, nel cloud e su ogni dispositivo sincronizzato.';
+
+  @override
+  String get backup_restore_dialog_modeReplace_title => 'Sostituisci ovunque';
+
+  @override
   String get backup_restore_dialog_restore => 'Ripristina';
+
+  @override
+  String get backup_restore_dialog_restoreReplace =>
+      'Ripristina e sostituisci ovunque';
 
   @override
   String get backup_restore_dialog_safetyNote =>
@@ -10435,6 +10464,25 @@ class AppLocalizationsIt extends AppLocalizations {
       'Sincronizzazione cloud disabilitata';
 
   @override
+  String get settings_cloudSync_adopt_confirm =>
+      'Adotta la libreria ripristinata';
+
+  @override
+  String settings_cloudSync_adopt_dialogContent(
+    String deviceName,
+    String date,
+  ) {
+    return 'La libreria è stata sostituita da un backup su \"$deviceName\" ($date). Adottandola, i dati di questo dispositivo verranno sostituiti con la libreria ripristinata. Prima verrà creato un backup di sicurezza dei dati attuali di questo dispositivo.';
+  }
+
+  @override
+  String get settings_cloudSync_adopt_dialogTitle =>
+      'Adottare la libreria ripristinata?';
+
+  @override
+  String get settings_cloudSync_adopt_notNow => 'Non ora';
+
+  @override
   String get settings_cloudSync_firstSync_banner =>
       'La prima sincronizzazione è in attesa di conferma. Tocca \'Sincronizza ora\' per controllare cosa verrà combinato.';
 
@@ -10453,6 +10501,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_cloudSync_firstSync_dialogTitle =>
       'Combinare le librerie?';
+
+  @override
+  String settings_cloudSync_replace_banner(String deviceName) {
+    return 'Sincronizzazione in pausa: la libreria è stata sostituita da un backup su \"$deviceName\". Tocca Sincronizza ora per controllare.';
+  }
 
   @override
   String get settings_cloudSync_header_advanced => 'Avanzate';

@@ -275,10 +275,39 @@ class AppLocalizationsDe extends AppLocalizations {
   String get backup_location_title => 'Sicherungsort';
 
   @override
+  String get backup_replaceConfirm_confirm => 'Überall ersetzen';
+
+  @override
+  String get backup_replaceConfirm_content =>
+      'Die Bibliothek auf allen synchronisierten Geräten wird durch dieses Backup ersetzt. Jedes Gerät erstellt zuerst eine Sicherheitskopie seiner aktuellen Daten. Dies kann nicht rückgängig gemacht werden.';
+
+  @override
+  String get backup_replaceConfirm_title => 'Bibliothek überall ersetzen?';
+
+  @override
   String get backup_restore_dialog_cancel => 'Abbrechen';
 
   @override
+  String get backup_restore_dialog_modeMerge_subtitle =>
+      'Auf diesem Gerät wiederherstellen. Die nächste Synchronisierung führt die wiederhergestellten Daten mit der Cloud-Bibliothek zusammen.';
+
+  @override
+  String get backup_restore_dialog_modeMerge_title =>
+      'Bei nächster Synchronisierung zusammenführen';
+
+  @override
+  String get backup_restore_dialog_modeReplace_subtitle =>
+      'Das Backup wird zur Bibliothek auf diesem Gerät, in der Cloud und auf jedem synchronisierten Gerät.';
+
+  @override
+  String get backup_restore_dialog_modeReplace_title => 'Überall ersetzen';
+
+  @override
   String get backup_restore_dialog_restore => 'Wiederherstellen';
+
+  @override
+  String get backup_restore_dialog_restoreReplace =>
+      'Wiederherstellen und überall ersetzen';
 
   @override
   String get backup_restore_dialog_safetyNote =>
@@ -10421,6 +10450,25 @@ class AppLocalizationsDe extends AppLocalizations {
       'Cloud-Synchronisierung deaktiviert';
 
   @override
+  String get settings_cloudSync_adopt_confirm =>
+      'Wiederhergestellte Bibliothek übernehmen';
+
+  @override
+  String settings_cloudSync_adopt_dialogContent(
+    String deviceName,
+    String date,
+  ) {
+    return 'Die Bibliothek wurde am $date aus einem Backup auf \"$deviceName\" ersetzt. Beim Übernehmen werden die Daten dieses Geräts durch die wiederhergestellte Bibliothek ersetzt. Zuerst wird eine Sicherheitskopie der aktuellen Daten dieses Geräts erstellt.';
+  }
+
+  @override
+  String get settings_cloudSync_adopt_dialogTitle =>
+      'Wiederhergestellte Bibliothek übernehmen?';
+
+  @override
+  String get settings_cloudSync_adopt_notNow => 'Nicht jetzt';
+
+  @override
   String get settings_cloudSync_firstSync_banner =>
       'Die erste Synchronisierung wartet auf Bestätigung. Tippen Sie auf \'Jetzt synchronisieren\', um zu prüfen, was zusammengeführt wird.';
 
@@ -10439,6 +10487,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_cloudSync_firstSync_dialogTitle =>
       'Bibliotheken zusammenführen?';
+
+  @override
+  String settings_cloudSync_replace_banner(String deviceName) {
+    return 'Synchronisierung pausiert: Die Bibliothek wurde aus einem Backup auf \"$deviceName\" ersetzt. Tippen Sie auf \"Jetzt synchronisieren\", um sie zu überprüfen.';
+  }
 
   @override
   String get settings_cloudSync_header_advanced => 'Erweitert';
