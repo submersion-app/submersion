@@ -414,16 +414,9 @@ class CloudSyncPage extends ConsumerWidget {
           isSelected: selectedProvider == CloudProviderType.icloud,
           isAvailable: Platform.isIOS || Platform.isMacOS,
         ),
-        _buildProviderTile(
-          context,
-          ref,
-          provider: CloudProviderType.googledrive,
-          title: 'Google Drive',
-          subtitle: 'Sync via Google Drive',
-          icon: Icons.cloud_circle,
-          isSelected: selectedProvider == CloudProviderType.googledrive,
-          isAvailable: true,
-        ),
+        // Google Drive is hidden until its integration is fully
+        // implemented; the CloudProviderType and provider plumbing remain
+        // so re-enabling is just restoring this tile.
         _buildS3ProviderTile(context, ref, selectedProvider),
       ],
     );
