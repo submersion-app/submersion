@@ -140,6 +140,7 @@ class UniversalAdapter implements ImportSourceAdapter {
   Set<DuplicateAction> get supportedDuplicateActions => const {
     DuplicateAction.skip,
     DuplicateAction.importAsNew,
+    DuplicateAction.replaceSource,
   };
 
   @override
@@ -419,6 +420,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     final uddfSelections = UddfImportSelections(
       dives: resolve(wizard.ImportEntityType.dives),
       sites: resolve(wizard.ImportEntityType.sites),
+      siteOverrides: _resolveSiteOverrides(duplicateActions, bundle),
       buddies: resolve(wizard.ImportEntityType.buddies),
       equipment: resolve(wizard.ImportEntityType.equipment),
       trips: resolve(wizard.ImportEntityType.trips),
@@ -691,6 +693,27 @@ class UniversalAdapter implements ImportSourceAdapter {
   // ---------------------------------------------------------------------------
   // Helpers — import
   // ---------------------------------------------------------------------------
+
+  /// Build a map of import-list index → existing site ID for sites the user
+  /// chose to overwrite ([DuplicateAction.replaceSource]).
+  Map<int, String> _resolveSiteOverrides(
+    Map<wizard.ImportEntityType, Map<int, DuplicateAction>> duplicateActions,
+    ImportBundle bundle,
+  ) {
+    final actions = duplicateActions[wizard.ImportEntityType.sites] ?? const {};
+    final entityMatches =
+        bundle.groups[wizard.ImportEntityType.sites]?.entityMatches ?? const {};
+    final overrides = <int, String>{};
+    for (final entry in actions.entries) {
+      if (entry.value == DuplicateAction.replaceSource) {
+        final existingId = entityMatches[entry.key]?.existingId;
+        if (existingId != null) {
+          overrides[entry.key] = existingId;
+        }
+      }
+    }
+    return overrides;
+  }
 
   /// Resolve the final selection set for [type] by merging the base
   /// selections with duplicate actions. Duplicate items whose action is
