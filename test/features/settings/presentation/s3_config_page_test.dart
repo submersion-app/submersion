@@ -135,7 +135,8 @@ void main() {
     apiClient = _FakeS3ApiClient();
     provider = S3StorageProvider(
       store: store,
-      apiClientFactory: (_) => apiClient,
+      apiClientFactory: (_, {onRegionCorrected}) =>
+          apiClient..onRegionCorrected = onRegionCorrected,
     );
   });
 

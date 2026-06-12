@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -7,7 +8,11 @@ import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.d
 import 'package:submersion/core/services/logger_service.dart';
 
 /// Builds an [S3ApiClient] for a config; injectable for tests.
-typedef S3ApiClientFactory = S3ApiClient Function(S3Config config);
+typedef S3ApiClientFactory =
+    S3ApiClient Function(
+      S3Config config, {
+      void Function(String region)? onRegionCorrected,
+    });
 
 /// S3-compatible object storage implementation of [CloudStorageProvider]
 /// (AWS S3, MinIO, Cloudflare R2, Backblaze B2, NAS appliances).
@@ -75,7 +80,10 @@ class S3StorageProvider
         'bucket details.',
       );
     }
-    final client = _apiClientFactory(config);
+    final client = _apiClientFactory(
+      config,
+      onRegionCorrected: (region) => unawaited(_persistCorrectedRegion(region)),
+    );
     try {
       await _probe(client, config);
     } finally {
@@ -87,10 +95,18 @@ class S3StorageProvider
   /// Validates [config] with the same live read+write probe as
   /// [authenticate], without touching the stored credentials. Used by the
   /// settings form's Test Connection action on unsaved values.
-  Future<void> testConnection(S3Config config) async {
+  /// [onRegionCorrected] reports a server-corrected region to the caller;
+  /// nothing is persisted here.
+  Future<void> testConnection(
+    S3Config config, {
+    void Function(String region)? onRegionCorrected,
+  }) async {
     final error = config.validate();
     if (error != null) throw CloudStorageException(error);
-    final client = _apiClientFactory(config);
+    final client = _apiClientFactory(
+      config,
+      onRegionCorrected: onRegionCorrected,
+    );
     try {
       await _probe(client, config);
     } finally {
@@ -229,7 +245,30 @@ class S3StorageProvider
         throw const CloudStorageException('S3 is not configured');
       }
       if (generation != _generation) continue;
-      return (config: config, client: _client ??= _apiClientFactory(config));
+      return (
+        config: config,
+        client: _client ??= _apiClientFactory(
+          config,
+          onRegionCorrected: (region) =>
+              unawaited(_persistCorrectedRegion(region)),
+        ),
+      );
+    }
+  }
+
+  /// Persists a server-corrected region without invalidating the live
+  /// client, which already signs with the correction. A failed persist is
+  /// harmless: the correction simply recurs on the next launch.
+  Future<void> _persistCorrectedRegion(String region) async {
+    final config = _cachedConfig;
+    if (config == null || config.region == region) return;
+    final updated = config.copyWith(region: region);
+    _cachedConfig = updated;
+    try {
+      await _store.save(updated);
+      _log.info('Persisted server-corrected S3 region: $region');
+    } catch (e) {
+      _log.warning('Could not persist corrected S3 region: $e');
     }
   }
 

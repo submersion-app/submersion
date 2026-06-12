@@ -129,7 +129,7 @@ void main() {
     builtClients = [];
     provider = S3StorageProvider(
       store: store,
-      apiClientFactory: (config) {
+      apiClientFactory: (config, {onRegionCorrected}) {
         final client = _FakeS3ApiClient(config);
         builtClients.add(client);
         return client;
@@ -253,7 +253,7 @@ void main() {
         final client = _FakeS3ApiClient(config());
         provider = S3StorageProvider(
           store: store,
-          apiClientFactory: (_) => client,
+          apiClientFactory: (_, {onRegionCorrected}) => client,
         );
         client.listing = [
           S3ObjectInfo(
@@ -312,7 +312,7 @@ void main() {
       final client = _FakeS3ApiClient(config());
       provider = S3StorageProvider(
         store: store,
-        apiClientFactory: (_) => client,
+        apiClientFactory: (_, {onRegionCorrected}) => client,
       );
       client.listing = [
         S3ObjectInfo(
@@ -371,7 +371,7 @@ void main() {
         final gatedStore = _GatedCredentialsStore(gate)..stored = config();
         provider = S3StorageProvider(
           store: gatedStore,
-          apiClientFactory: (c) {
+          apiClientFactory: (c, {onRegionCorrected}) {
             final client = _FakeS3ApiClient(c);
             builtClients.add(client);
             return client;
@@ -385,5 +385,52 @@ void main() {
         expect(await provider.getUserEmail(), 'new-bucket @ nas.local');
       },
     );
+  });
+
+  group('region correction persistence', () {
+    test(
+      'persists a server-corrected region without dropping the client',
+      () async {
+        store.stored = config(); // region defaults to us-east-1
+        void Function(String region)? captured;
+        final client = _FakeS3ApiClient(config());
+        final correcting = S3StorageProvider(
+          store: store,
+          apiClientFactory: (_, {onRegionCorrected}) {
+            captured = onRegionCorrected;
+            return client;
+          },
+        );
+
+        await correcting.listFiles(); // builds the session client
+        expect(captured, isNotNull);
+        captured!('eu-west-1');
+        await pumpEventQueue();
+
+        expect(store.stored!.region, 'eu-west-1');
+        expect(client.closed, isFalse); // live client keeps its connection
+        expect(await correcting.listFiles(), isEmpty); // still usable
+      },
+    );
+
+    test('testConnection forwards corrections to the caller and does not '
+        'persist', () async {
+      void Function(String region)? captured;
+      final probing = S3StorageProvider(
+        store: store,
+        apiClientFactory: (c, {onRegionCorrected}) {
+          captured = onRegionCorrected;
+          return _FakeS3ApiClient(c);
+        },
+      );
+      final reported = <String>[];
+
+      await probing.testConnection(config(), onRegionCorrected: reported.add);
+      captured!('auto');
+      await pumpEventQueue();
+
+      expect(reported, ['auto']);
+      expect(store.stored, isNull); // unsaved probe never writes the store
+    });
   });
 }
