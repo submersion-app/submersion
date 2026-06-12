@@ -1022,6 +1022,55 @@ void main() {
       expect(t2.endPressure, 100.0);
     });
 
+    test('synthesizes tanks from gas mixes when the computer reports no '
+        'tank records (transmitter-less, e.g. Aqualung i330R)', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+      // No existing tank rows: the original tank-driven import dropped the
+      // gas mixes entirely, so the dive fell back to the 21% air default.
+
+      final parsed = makeParsedDive(
+        tanks: [], // no transmitter: parser reports gas mixes only
+        gasMixes: [
+          pigeon.GasMix(index: 0, o2Percent: 32.0, hePercent: 0.0),
+          pigeon.GasMix(index: 1, o2Percent: 50.0, hePercent: 0.0),
+        ],
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parsed,
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final tanks =
+          await (db.select(db.diveTanks)
+                ..where((t) => t.diveId.equals('dive-1'))
+                ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+              .get();
+
+      expect(tanks.length, 2);
+      expect(tanks[0].tankOrder, 0);
+      expect(tanks[0].o2Percent, 32.0);
+      expect(tanks[0].hePercent, 0.0);
+      // The computer reported gases, not cylinders: no pressures/volume.
+      expect(tanks[0].startPressure, isNull);
+      expect(tanks[0].endPressure, isNull);
+      expect(tanks[0].volume, isNull);
+      expect(tanks[1].tankOrder, 1);
+      expect(tanks[1].o2Percent, 50.0);
+    });
+
     test('re-inserts tank pressure profiles and backfills start/end pressure '
         'from samples when the tank summary has no pressure (AI)', () async {
       await insertDive('dive-1');

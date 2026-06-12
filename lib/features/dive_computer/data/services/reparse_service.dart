@@ -3,6 +3,7 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
 
 /// Service responsible for applying re-parsed dive computer data back to the
 /// database while respecting the computer-authored vs user-authored field
@@ -477,18 +478,11 @@ class ReparseService {
     // Build a set of new tank orders from parsed
     final newTankOrders = <int>{};
 
-    for (final tank in parsed.tanks) {
+    // Gas-mix linking and tankless synthesis (computers that report gas
+    // mixes but no tank records) live in the shared resolver so this path
+    // cannot drift from the live-download mapper.
+    for (final tank in resolveParsedTanks(parsed)) {
       newTankOrders.add(tank.index);
-
-      // Resolve gas mix. The tank's gas-mix link can be DC_GASMIX_UNKNOWN
-      // (e.g. Shearwater single-gas dives); fall back to the primary mix
-      // rather than assuming air, which would mislabel an EAN dive.
-      final gasMix = parsed.gasMixes.firstWhere(
-        (g) => g.index == tank.gasMixIndex,
-        orElse: () => parsed.gasMixes.isNotEmpty
-            ? parsed.gasMixes.first
-            : pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0),
-      );
 
       final existing = existingByOrder[tank.index];
       if (existing != null) {
@@ -500,10 +494,10 @@ class ReparseService {
           DiveTanksCompanion(
             volume: Value(tank.volumeLiters),
             workingPressure: const Value.absent(),
-            startPressure: Value(tank.startPressureBar),
-            endPressure: Value(tank.endPressureBar),
-            o2Percent: Value(gasMix.o2Percent),
-            hePercent: Value(gasMix.hePercent),
+            startPressure: Value(tank.startPressure),
+            endPressure: Value(tank.endPressure),
+            o2Percent: Value(tank.o2Percent),
+            hePercent: Value(tank.hePercent),
             // tankName, presetName, equipmentId, tankRole, tankMaterial
             // are user-authored -- NOT touched
           ),
@@ -519,10 +513,10 @@ class ReparseService {
                 id: Value(newTankId),
                 diveId: Value(diveId),
                 volume: Value(tank.volumeLiters),
-                startPressure: Value(tank.startPressureBar),
-                endPressure: Value(tank.endPressureBar),
-                o2Percent: Value(gasMix.o2Percent),
-                hePercent: Value(gasMix.hePercent),
+                startPressure: Value(tank.startPressure),
+                endPressure: Value(tank.endPressure),
+                o2Percent: Value(tank.o2Percent),
+                hePercent: Value(tank.hePercent),
                 tankOrder: Value(tank.index),
                 tankRole: const Value('backGas'),
               ),

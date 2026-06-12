@@ -1,4 +1,5 @@
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 
 /// Convert a Pigeon ParsedDive to the app's DownloadedDive format.
@@ -66,25 +67,9 @@ DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
           ),
         )
         .toList(),
-    tanks: parsed.tanks.map((t) {
-      // The tank's gas-mix link can be DC_GASMIX_UNKNOWN (e.g. Shearwater
-      // single-gas dives leave the tank unlinked). Fall back to the primary
-      // mix rather than assuming air, which would mislabel an EAN dive.
-      final gasMix = parsed.gasMixes.firstWhere(
-        (g) => g.index == t.gasMixIndex,
-        orElse: () => parsed.gasMixes.isNotEmpty
-            ? parsed.gasMixes.first
-            : pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0),
-      );
-      return DownloadedTank(
-        index: t.index,
-        o2Percent: gasMix.o2Percent,
-        hePercent: gasMix.hePercent,
-        startPressure: t.startPressureBar,
-        endPressure: t.endPressureBar,
-        volumeLiters: t.volumeLiters,
-      );
-    }).toList(),
+    // Gas-mix linking and tankless synthesis live in the shared resolver so
+    // the download and reparse paths cannot drift apart.
+    tanks: resolveParsedTanks(parsed),
     events: parsed.events
         .map(
           (e) => DownloadedEvent(

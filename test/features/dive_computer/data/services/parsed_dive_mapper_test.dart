@@ -257,6 +257,53 @@ void main() {
       expect(downloaded.tanks[0].isAir, isTrue);
     });
 
+    test('synthesizes one tank per gas mix when the computer reports no tanks '
+        '(transmitter-less dives; e.g. Aqualung i330R)', () {
+      // Tank records only exist when an air-integration transmitter
+      // supplied pressure; whole families (Oceanic/Aqualung incl. the
+      // i330R) never report DC_FIELD_TANK at all. The real mix lives in
+      // gasMixes. A purely tank-driven mapping dropped it, so every
+      // transmitter-less EAN dive fell back to the 21% air default.
+      final parsed = makeParsedDive(
+        fingerprint: 'i330r-nitrox',
+        tanks: const [], // no transmitter: no tank records
+        gasMixes: [
+          pigeon.GasMix(index: 0, o2Percent: 32.0, hePercent: 0.0),
+          pigeon.GasMix(index: 1, o2Percent: 50.0, hePercent: 0.0),
+        ],
+      );
+
+      final downloaded = parsedDiveToDownloaded(parsed);
+
+      expect(downloaded.tanks, hasLength(2));
+      // Tank index stays aligned with the gas-mix index so gas-switch
+      // events (which reference gas indices) keep pointing at the right
+      // tank.
+      expect(downloaded.tanks[0].index, 0);
+      expect(downloaded.tanks[0].o2Percent, 32.0);
+      expect(downloaded.tanks[0].isNitrox, isTrue);
+      expect(downloaded.tanks[1].index, 1);
+      expect(downloaded.tanks[1].o2Percent, 50.0);
+      expect(downloaded.tanks[1].gasName, 'EAN50');
+      // No pressures/volume: the computer reported gases, not cylinders.
+      expect(downloaded.tanks[0].startPressure, isNull);
+      expect(downloaded.tanks[0].endPressure, isNull);
+      expect(downloaded.tanks[0].volumeLiters, isNull);
+    });
+
+    test('synthesizes nothing when there are neither tanks nor gas mixes', () {
+      // Gauge / freedive: no gas information at all -> no synthesized tank.
+      final parsed = makeParsedDive(
+        fingerprint: 'gauge-no-gas',
+        tanks: const [],
+        gasMixes: const [],
+      );
+
+      final downloaded = parsedDiveToDownloaded(parsed);
+
+      expect(downloaded.tanks, isEmpty);
+    });
+
     test('handles trimix gas', () {
       final parsed = makeParsedDive(
         fingerprint: 'trimix',
