@@ -624,6 +624,31 @@ void main() {
     });
 
     testWidgets(
+      'persisted googledrive selection reads as no provider since the tile is hidden',
+      (tester) async {
+        // SyncRepository.getCloudProvider() falls back to googledrive when
+        // the stored enum name does not match, and getLastProvider() returns
+        // a previously persisted googledrive choice verbatim. With the tile
+        // removed, the UI must treat that as "no provider" so Sync Now is
+        // disabled and the select-provider hint stays visible. Otherwise the
+        // user sees no selected tile but a green Sync Now -- inconsistent.
+        await pumpPage(tester, selectedProvider: CloudProviderType.googledrive);
+
+        // No tile shows the connected check icon (googledrive tile is hidden).
+        expect(find.byIcon(Icons.check_circle), findsNothing);
+        // Sync Now is disabled and the hint is shown.
+        final button = tester.widget<FilledButton>(
+          find.widgetWithText(FilledButton, 'Sync Now'),
+        );
+        expect(button.onPressed, isNull);
+        expect(
+          find.text('Select a cloud provider to enable sync'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
       'tapping the iCloud tile authenticates and shows snackbar',
       (tester) async {
         final handles = await pumpPage(tester);

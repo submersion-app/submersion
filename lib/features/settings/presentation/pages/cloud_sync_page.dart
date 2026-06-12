@@ -22,7 +22,15 @@ class CloudSyncPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final syncState = ref.watch(syncStateProvider);
-    final selectedProvider = ref.watch(selectedCloudProviderTypeProvider);
+    // Google Drive is hidden until its integration is implemented, but a
+    // persisted selection or SyncRepository's fallback can still surface
+    // `googledrive`. Treat it as no provider so the page can never show
+    // Sync Now enabled with no selected tile.
+    final rawProvider = ref.watch(selectedCloudProviderTypeProvider);
+    final selectedProvider = rawProvider == CloudProviderType.googledrive
+        ? null
+        : rawProvider;
+    final hasProvider = selectedProvider != null;
     final isCustomFolderMode = ref.watch(
       isCloudSyncDisabledByCustomFolderProvider,
     );
@@ -40,7 +48,7 @@ class CloudSyncPage extends ConsumerWidget {
           const Divider(),
           _buildProviderSection(context, ref, selectedProvider),
           const Divider(),
-          _buildSyncActions(context, ref, syncState),
+          _buildSyncActions(context, ref, syncState, hasProvider),
           if (syncState.conflicts > 0) ...[
             const Divider(),
             _buildConflictsSection(context, ref, syncState),
@@ -561,9 +569,9 @@ class CloudSyncPage extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     SyncState syncState,
+    bool hasProvider,
   ) {
     final isSyncing = syncState.status == SyncStatus.syncing;
-    final hasProvider = ref.watch(selectedCloudProviderTypeProvider) != null;
 
     return Padding(
       padding: const EdgeInsets.all(16),
