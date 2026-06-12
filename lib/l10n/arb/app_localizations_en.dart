@@ -11203,7 +11203,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_s3Config_field_endpoint_helper =>
-      'Leave blank for Amazon S3';
+      'For Amazon S3, enter https://s3.amazonaws.com';
 
   @override
   String get settings_s3Config_field_endpoint_label => 'Endpoint URL';

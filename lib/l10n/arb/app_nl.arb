@@ -3460,7 +3460,7 @@
   "settings_s3Config_error_secureStorage": "Kon geen toegang krijgen tot de beveiligde opslag",
   "settings_s3Config_field_accessKeyId_label": "Access Key ID",
   "settings_s3Config_field_bucket_label": "Bucket",
-  "settings_s3Config_field_endpoint_helper": "Laat leeg voor Amazon S3",
+  "settings_s3Config_field_endpoint_helper": "Voer voor Amazon S3 https://s3.amazonaws.com in",
   "settings_s3Config_field_endpoint_label": "Endpoint-URL",
   "settings_s3Config_field_pathStyle_label": "Path-style-adressering gebruiken",
   "settings_s3Config_field_pathStyle_subtitle": "Vereist door de meeste MinIO- en NAS-servers",

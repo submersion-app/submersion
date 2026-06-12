@@ -11302,7 +11302,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_s3Config_field_endpoint_helper =>
-      'Laat leeg voor Amazon S3';
+      'Voer voor Amazon S3 https://s3.amazonaws.com in';
 
   @override
   String get settings_s3Config_field_endpoint_label => 'Endpoint-URL';

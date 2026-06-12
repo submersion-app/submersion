@@ -3460,7 +3460,7 @@
   "settings_s3Config_error_secureStorage": "לא ניתן לגשת לאחסון המאובטח",
   "settings_s3Config_field_accessKeyId_label": "Access Key ID",
   "settings_s3Config_field_bucket_label": "Bucket",
-  "settings_s3Config_field_endpoint_helper": "השאירו ריק עבור Amazon S3",
+  "settings_s3Config_field_endpoint_helper": "עבור Amazon S3, הזינו https://s3.amazonaws.com",
   "settings_s3Config_field_endpoint_label": "כתובת URL של נקודת הקצה",
   "settings_s3Config_field_pathStyle_label": "שימוש במיעון path-style",
   "settings_s3Config_field_pathStyle_subtitle": "נדרש על ידי רוב שרתי MinIO ו-NAS",

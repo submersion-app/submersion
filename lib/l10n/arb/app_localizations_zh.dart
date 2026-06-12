@@ -10852,7 +10852,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_s3Config_field_bucket_label => '存储桶';
 
   @override
-  String get settings_s3Config_field_endpoint_helper => '使用 Amazon S3 时留空';
+  String get settings_s3Config_field_endpoint_helper =>
+      '如使用 Amazon S3，请输入 https://s3.amazonaws.com';
 
   @override
   String get settings_s3Config_field_endpoint_label => '终端节点 URL';

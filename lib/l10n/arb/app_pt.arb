@@ -3460,7 +3460,7 @@
   "settings_s3Config_error_secureStorage": "Não foi possível acessar o armazenamento seguro",
   "settings_s3Config_field_accessKeyId_label": "Access Key ID",
   "settings_s3Config_field_bucket_label": "Bucket",
-  "settings_s3Config_field_endpoint_helper": "Deixe em branco para Amazon S3",
+  "settings_s3Config_field_endpoint_helper": "Para Amazon S3, insira https://s3.amazonaws.com",
   "settings_s3Config_field_endpoint_label": "URL do endpoint",
   "settings_s3Config_field_pathStyle_label": "Usar endereçamento path-style",
   "settings_s3Config_field_pathStyle_subtitle": "Exigido pela maioria dos servidores MinIO e NAS",

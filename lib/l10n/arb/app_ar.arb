@@ -3460,7 +3460,7 @@
   "settings_s3Config_error_secureStorage": "تعذر الوصول إلى التخزين الآمن",
   "settings_s3Config_field_accessKeyId_label": "Access Key ID",
   "settings_s3Config_field_bucket_label": "الحاوية (Bucket)",
-  "settings_s3Config_field_endpoint_helper": "اتركه فارغًا لاستخدام Amazon S3",
+  "settings_s3Config_field_endpoint_helper": "بالنسبة إلى Amazon S3، أدخل https://s3.amazonaws.com",
   "settings_s3Config_field_endpoint_label": "عنوان URL لنقطة النهاية",
   "settings_s3Config_field_pathStyle_label": "استخدام العنونة بنمط المسار (path-style)",
   "settings_s3Config_field_pathStyle_subtitle": "مطلوب لمعظم خوادم MinIO وNAS",

@@ -11171,7 +11171,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_s3Config_field_endpoint_helper =>
-      'اتركه فارغًا لاستخدام Amazon S3';
+      'بالنسبة إلى Amazon S3، أدخل https://s3.amazonaws.com';
 
   @override
   String get settings_s3Config_field_endpoint_label =>

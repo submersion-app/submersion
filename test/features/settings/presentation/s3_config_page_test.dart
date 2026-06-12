@@ -204,7 +204,7 @@ void main() {
     await tester.tap(find.byKey(const Key('s3-save')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Required'), findsNWidgets(3));
+    expect(find.text('Required'), findsNWidgets(4));
     expect(store.stored, isNull);
   });
 
@@ -390,6 +390,25 @@ void main() {
     expect(container.read(selectedCloudProviderTypeProvider), isNull);
   });
 
+  testWidgets('endpoint guidance is an in-field hint, not a floating helper', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    final endpointField = tester.widget<TextField>(
+      find.descendant(
+        of: find.byKey(const Key('s3-endpoint')),
+        matching: find.byType(TextField),
+      ),
+    );
+    // hintText shows only while the field is blank, so it cannot be read
+    // as describing the neighboring Bucket field.
+    expect(
+      endpointField.decoration!.hintText,
+      'For Amazon S3, enter https://s3.amazonaws.com',
+    );
+    expect(endpointField.decoration!.helperText, isNull);
+  });
+
   testWidgets('advanced section is collapsed by default', (tester) async {
     await pumpPage(tester);
     expect(find.byKey(const Key('s3-region')), findsNothing);
@@ -455,6 +474,49 @@ void main() {
     expect(find.text('Region detected: eu-west-1'), findsOneWidget);
     await expandAdvanced(tester);
     expect(find.text('eu-west-1'), findsOneWidget); // field adopted it
+  });
+
+  testWidgets('an amazonaws endpoint does not auto-enable path-style', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    await expandAdvanced(tester);
+    Switch pathStyleSwitch() => tester.widget<Switch>(
+      find.descendant(
+        of: find.byKey(const Key('s3-path-style')),
+        matching: find.byType(Switch),
+      ),
+    );
+
+    await tester.enterText(
+      find.byKey(const Key('s3-endpoint')),
+      'https://s3.amazonaws.com',
+    );
+    await tester.pump();
+    // AWS prefers virtual-hosted addressing, and the global endpoint only
+    // reaches cross-region buckets in that mode.
+    expect(pathStyleSwitch().value, isFalse);
+
+    await tester.enterText(
+      find.byKey(const Key('s3-endpoint')),
+      'http://nas.local:9000',
+    );
+    await tester.pump();
+    expect(pathStyleSwitch().value, isTrue);
+  });
+
+  testWidgets('legacy blank-endpoint config prefills the AWS endpoint', (
+    tester,
+  ) async {
+    store.stored = S3Config(
+      endpoint: '',
+      region: 'eu-west-1',
+      bucket: 'dive-sync',
+      accessKeyId: 'ak',
+      secretAccessKey: 'sk',
+    );
+    await pumpPage(tester);
+    expect(find.text('https://s3.eu-west-1.amazonaws.com'), findsOneWidget);
   });
 
   testWidgets('existing config populates the region field on load', (

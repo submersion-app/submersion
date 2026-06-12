@@ -11090,7 +11090,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_s3Config_field_endpoint_helper =>
-      'השאירו ריק עבור Amazon S3';
+      'עבור Amazon S3, הזינו https://s3.amazonaws.com';
 
   @override
   String get settings_s3Config_field_endpoint_label =>

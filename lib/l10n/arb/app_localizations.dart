@@ -19359,7 +19359,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_s3Config_field_endpoint_helper.
   ///
   /// In en, this message translates to:
-  /// **'Leave blank for Amazon S3'**
+  /// **'For Amazon S3, enter https://s3.amazonaws.com'**
   String get settings_s3Config_field_endpoint_helper;
 
   /// No description provided for @settings_s3Config_field_endpoint_label.

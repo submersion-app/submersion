@@ -73,7 +73,11 @@ class _S3ConfigPageState extends ConsumerState<S3ConfigPage> {
         return;
       }
       setState(() {
-        _endpointController.text = existing.endpoint;
+        // Legacy configs stored AWS as a blank endpoint; surface the real
+        // URL so the (now required) field re-saves without retyping.
+        _endpointController.text = existing.isAws
+            ? 'https://s3.${existing.region}.amazonaws.com'
+            : existing.endpoint;
         _regionController.text = existing.region;
         _bucketController.text = existing.bucket;
         _prefixController.text = existing.prefix;
@@ -94,9 +98,17 @@ class _S3ConfigPageState extends ConsumerState<S3ConfigPage> {
   }
 
   void _onEndpointChanged() {
-    final isCustom = _endpointController.text.trim().isNotEmpty;
+    final trimmed = _endpointController.text.trim();
+    final host = Uri.tryParse(trimmed)?.host.toLowerCase() ?? '';
+    // The auto-flip is for MinIO, NAS, and other self-hosted servers. AWS
+    // prefers virtual-hosted addressing, and the global endpoint only
+    // reaches cross-region buckets in that mode.
+    final wantsPathStyle =
+        trimmed.isNotEmpty &&
+        host != 'amazonaws.com' &&
+        !host.endsWith('.amazonaws.com');
     setState(() {
-      if (!_pathStyleTouched) _pathStyle = isCustom;
+      if (!_pathStyleTouched) _pathStyle = wantsPathStyle;
     });
   }
 
@@ -267,14 +279,18 @@ class _S3ConfigPageState extends ConsumerState<S3ConfigPage> {
               controller: _endpointController,
               decoration: InputDecoration(
                 labelText: l10n.settings_s3Config_field_endpoint_label,
-                helperText: l10n.settings_s3Config_field_endpoint_helper,
+                // In-field hint: visible only while blank, so it cannot be
+                // misread as describing the Bucket field below.
+                hintText: l10n.settings_s3Config_field_endpoint_helper,
               ),
               keyboardType: TextInputType.url,
               autocorrect: false,
               // Sub-paths break SigV4 key addressing; host-only endpoints are accepted.
               validator: (value) {
                 final trimmed = (value ?? '').trim();
-                if (trimmed.isEmpty) return null;
+                if (trimmed.isEmpty) {
+                  return l10n.settings_s3Config_validation_required;
+                }
                 final uri = Uri.tryParse(trimmed);
                 final valid =
                     uri != null &&
@@ -339,7 +355,9 @@ class _S3ConfigPageState extends ConsumerState<S3ConfigPage> {
               key: const Key('s3-advanced'),
               title: Text(l10n.settings_s3Config_advanced_title),
               tilePadding: EdgeInsets.zero,
-              childrenPadding: const EdgeInsets.only(bottom: 8),
+              // Top inset keeps the first child's floating label clear of
+              // the header row.
+              childrenPadding: const EdgeInsets.only(top: 12, bottom: 8),
               // Suppress the M3 outline the tile draws when expanded.
               shape: const Border(),
               collapsedShape: const Border(),

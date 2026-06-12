@@ -11363,7 +11363,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_s3Config_field_endpoint_helper =>
-      'Amazon S3 esetén hagyja üresen';
+      'Amazon S3 esetén adja meg: https://s3.amazonaws.com';
 
   @override
   String get settings_s3Config_field_endpoint_label => 'Végpont URL';

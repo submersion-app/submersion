@@ -39,6 +39,23 @@ Connection / Save buttons, Remove link (existing, conditional). All
 existing validators, the busy state, snackbars, and save/remove flows are
 unchanged.
 
+Amended 2026-06-12 after manual review:
+
+- The Endpoint URL is REQUIRED — no blank-means-AWS assumption in the
+  form. AWS users enter `https://s3.amazonaws.com` (or a regional
+  endpoint); the guidance is an in-field hint ("For Amazon S3, enter
+  `https://s3.amazonaws.com`") rather than helper text below the field,
+  which read as ambiguous between stacked fields.
+- The blank-endpoint AWS mode remains supported in `S3Config` and the
+  client for legacy stored configs; loading one prefills the form with
+  `https://s3.{region}.amazonaws.com` so a re-save needs no retyping.
+- The path-style auto-flip skips `*.amazonaws.com` hosts: AWS prefers
+  virtual-hosted addressing, and the global endpoint only reaches
+  cross-region buckets in that mode (SigV4 scope then self-heals via the
+  region correction).
+- The Advanced expander has top children padding so the first field's
+  floating label clears the header row.
+
 The Advanced section is an `ExpansionTile`, collapsed by default,
 containing in order: Region, Key Prefix, Path-style switch.
 

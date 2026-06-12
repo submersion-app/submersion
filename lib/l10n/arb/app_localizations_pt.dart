@@ -11397,7 +11397,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_s3Config_field_endpoint_helper =>
-      'Deixe em branco para Amazon S3';
+      'Para Amazon S3, insira https://s3.amazonaws.com';
 
   @override
   String get settings_s3Config_field_endpoint_label => 'URL do endpoint';

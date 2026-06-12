@@ -3426,7 +3426,7 @@
   "settings_s3Config_error_secureStorage": "Nem sikerült hozzáférni a biztonságos tárolóhoz",
   "settings_s3Config_field_accessKeyId_label": "Access Key ID",
   "settings_s3Config_field_bucket_label": "Bucket",
-  "settings_s3Config_field_endpoint_helper": "Amazon S3 esetén hagyja üresen",
+  "settings_s3Config_field_endpoint_helper": "Amazon S3 esetén adja meg: https://s3.amazonaws.com",
   "settings_s3Config_field_endpoint_label": "Végpont URL",
   "settings_s3Config_field_pathStyle_label": "Path-style címzés használata",
   "settings_s3Config_field_pathStyle_subtitle": "A legtöbb MinIO- és NAS-kiszolgálóhoz szükséges",

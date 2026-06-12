@@ -3626,7 +3626,7 @@
   "settings_s3Config_error_secureStorage": "无法访问安全存储",
   "settings_s3Config_field_accessKeyId_label": "Access Key ID",
   "settings_s3Config_field_bucket_label": "存储桶",
-  "settings_s3Config_field_endpoint_helper": "使用 Amazon S3 时留空",
+  "settings_s3Config_field_endpoint_helper": "如使用 Amazon S3，请输入 https://s3.amazonaws.com",
   "settings_s3Config_field_endpoint_label": "终端节点 URL",
   "settings_s3Config_field_pathStyle_label": "使用路径样式寻址",
   "settings_s3Config_field_pathStyle_subtitle": "大多数 MinIO 和 NAS 服务器需要此项",
