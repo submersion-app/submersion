@@ -43,6 +43,11 @@ class S3StorageProvider
   S3ApiClient? _client;
   int _generation = 0;
 
+  /// In-flight region-correction save, if any. [saveConfig] and [signOut]
+  /// await this so a background save cannot race past `_store.clear()` and
+  /// resurrect credentials, or cross-write a freshly-saved config.
+  Future<void>? _persistInFlight;
+
   @override
   String get providerName => 'S3-Compatible Storage';
 
@@ -67,6 +72,7 @@ class S3StorageProvider
   /// Persists [config] and drops the cached client so the next operation
   /// uses the new settings.
   Future<void> saveConfig(S3Config config) async {
+    await _persistInFlight;
     await _store.save(config);
     _invalidate();
   }
@@ -82,7 +88,7 @@ class S3StorageProvider
     }
     final client = _apiClientFactory(
       config,
-      onRegionCorrected: (region) => unawaited(_persistCorrectedRegion(region)),
+      onRegionCorrected: _schedulePersistCorrectedRegion,
     );
     try {
       await _probe(client, config);
@@ -127,6 +133,7 @@ class S3StorageProvider
 
   @override
   Future<void> signOut() async {
+    await _persistInFlight;
     await _store.clear();
     _invalidate();
   }
@@ -249,23 +256,40 @@ class S3StorageProvider
         config: config,
         client: _client ??= _apiClientFactory(
           config,
-          onRegionCorrected: (region) =>
-              unawaited(_persistCorrectedRegion(region)),
+          onRegionCorrected: _schedulePersistCorrectedRegion,
         ),
       );
     }
   }
 
+  /// Fire-and-forget wrapper that exposes the running save through
+  /// [_persistInFlight] so [saveConfig]/[signOut] can wait it out.
+  void _schedulePersistCorrectedRegion(String region) {
+    final future = _persistCorrectedRegion(region);
+    _persistInFlight = future.whenComplete(() {
+      if (identical(_persistInFlight, future)) _persistInFlight = null;
+    });
+  }
+
   /// Persists a server-corrected region without invalidating the live
   /// client, which already signs with the correction. A failed persist is
   /// harmless: the correction simply recurs on the next launch.
+  ///
+  /// Cancels itself if [_invalidate] fired between scheduling and the save
+  /// completing: signOut/saveConfig already await [_persistInFlight] to
+  /// avoid the obvious race, but a `_generation` bump that lands mid-call
+  /// (e.g. from a parallel save) must still leave the post-invalidate
+  /// state untouched.
   Future<void> _persistCorrectedRegion(String region) async {
+    final generation = _generation;
     final config = _cachedConfig;
     if (config == null || config.region == region) return;
+    if (generation != _generation) return;
     final updated = config.copyWith(region: region);
-    _cachedConfig = updated;
     try {
       await _store.save(updated);
+      if (generation != _generation) return;
+      _cachedConfig = updated;
       _log.info('Persisted server-corrected S3 region: $region');
     } catch (e) {
       _log.warning('Could not persist corrected S3 region: $e');
