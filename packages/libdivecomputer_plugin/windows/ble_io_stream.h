@@ -4,6 +4,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstdint>
+#include <deque>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -96,7 +97,10 @@ class BleIoStream {
 
   std::mutex read_mutex_;
   std::condition_variable read_cv_;
-  std::vector<uint8_t> read_buffer_;
+  // One entry per GATT notification. libdivecomputer's packet parsers
+  // require each read to return bytes from at most one notification;
+  // coalescing them into a flat buffer loses packet boundaries.
+  std::deque<std::vector<uint8_t>> read_chunks_;
 
   int timeout_ms_ = 10000;
   std::string device_name_;

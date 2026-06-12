@@ -3,6 +3,189 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.4.9+96 (2026-06-11)
+
+### Features
+
+- responsive two-column edit form on wide windows
+- rebuild site edit on shared form sections incl. merge mode
+- guard embedded cancel with discard confirmation
+- persistent fields for validated rows, decoration override
+- adopt EditFormScaffold, dirty guard and error auto-expand
+- rebuild Experience and rare groups, lock group order
+- rebuild Trip and Buddies groups
+- rebuild Conditions group with temperature hero
+- rebuild Gas & Gear group with tank cards and smart collapse
+- add TankCard with inline expanding tank editor
+- rebuild The Dive group on shared form primitives
+- add EditFormScaffold with discard guard and embedded header
+- add AddSectionRow for rare form sections
+- add UnitField numeric input with unit suffix
+- add FormRow label/value variants with inline text editing
+- add StatStrip hero stats with in-place editing and profile affordance
+- add collapsible FormSection with summary, invitation and error states
+- add FormStyle design tokens for shared form system
+- confirm first-contact library merges before syncing
+- detect twin device identities via per-upload nonces
+- surface the S3 provider tile and config route
+- add S3 configuration page with live connection test
+- add S3 sync settings strings in en and all 10 locales
+- register CloudProviderType.s3 and the S3 provider singleton
+- add S3StorageProvider implementing CloudStorageProvider
+- persist S3 config as a secure-storage blob
+- add minimal SigV4-signed S3 API client (put/get, retry)
+- complete SigV4 signing against AWS test vectors
+- add SigV4 hashing, key derivation, and encoding primitives
+- add S3Config entity for the S3 sync backend
+- detect same-device restores via a rotating instance token
+- auto-detect a database restore on launch and re-baseline
+- auto-refresh entity lists after sync via Drift table-change ticks
+- include state/province in dive center location
+- make diver-merge undo reachable from the UI
+- stamp HLCs on the three config tables that bypass the choke point
+- stamp HLCs on writes and use them in the merge decision
+- add nullable hlc column to conflict-capable tables (v77)
+- add Hybrid Logical Clock value type + SyncClock service
+- per-device sync files to remove the write-write race
+- undoable diver merge + localize the merge banner UI
+- detect and merge duplicate diver profiles from sync
+- surface Cloud Sync in Settings (route + iOS/macOS tile)
+- enlarge default heat-map cloud radius and opacity
+- load and cache heat-map fragment program
+- add density-heatmap helper functions with tests
+- warn on near-duplicate sites in the picker
+- autocomplete site name + warn on near-duplicates
+- autocomplete the region field, scoped by country
+- autocomplete the site country field
+- add SuggestionField autocomplete widget
+- add SimilarValueHint near-duplicate widget
+- add distinct-value suggestion helpers
+- add ISO 3166 country name constant
+- add Sorensen-Dice fuzzy matching utility
+
+### Bug Fixes
+
+- preserve GATT notification boundaries in BLE read streams
+- harden numeric stat input and guard save-time parsing
+- guard scaffold pop with context.mounted, enforce UnitField numerics
+- shrink tank card stats so the pressure range fits on phone
+- address PR review feedback
+- localize the first-sync merge dialog's Cancel button
+- keep the upload nonce when the upload times out
+- restore accents on the Hungarian Sync Now label
+- close the first-sync guard's reentrancy window
+- harden twin detection against false positives
+- reset keeps tombstones and retires the old device file
+- retire the legacy shared sync file after merging it
+- validate payload checksums over the writer's encoding
+- Reset Sync State adopts a fresh device identity
+- clear sync metadata on S3 sign-out while retaining credentials
+- surface keychain failures on the S3 page, harden fields
+- close probe clients, guard provider caches, sub-prefix folders
+- make S3 credentials load() total over malformed blobs
+- wrap S3 parse failures in CloudStorageException
+- collapse header whitespace per SigV4, document sign() contracts
+- harden S3Config per review - total displayHost, trimmed secret, path rejection
+- address PR review on restore detection
+- re-baseline sync after a database restore
+- address review — diver-stats tick, species + tag/buddy, DI consistency
+- address PR review — scope silent reloads + use diveRepositoryProvider
+- address PR #306 review round 2 (Copilot)
+- keep children of a parent revived in the same sync payload
+- cover all deletable-parent FKs + repair dangling refs at apply
+- stop deletions resurrecting from a peer's stale live copy
+- resolve PR #303 review -- change-bus on settings/preset writes, per-device launch check
+- check for null or empty
+- make diver-merge undo a true inverse of sync state
+- import-filter device-local keys, harden clock seed, deletion safety
+- HLC authoritative over conflict branch; stop dropping failed records
+- guard v77 index creation against partial-schema migration fixtures
+- add 77 to migrationVersions
+- address PR #302 review feedback
+- code-review polish on the sync-hardening batch
+- compute surface interval from timestamps when column is null
+- correct getTopDiveCenters SQL to use city/state/country columns
+- exclude built-in catalog rows from the sync payload
+- close cross-device deletion propagation gaps
+- include six previously-orphaned user-data tables in SyncData
+- defer FK checks, add courses, exclude device-local settings
+- surface apply failures as errors instead of masking as conflicts
+- export media and certifications via toJson() too
+- export all non-BLOB entities via toJson() for symmetric sync
+- export dives via toJson() so all fields survive sync
+- export isPlanned so dives apply on receiving devices
+- include dives logged on the last day of a trip
+- compute days-since-diving by calendar day not 24h period
+- use effectiveRuntime for longest dive in dive log summary
+- tune heat-map cloud defaults after visual review
+- prevent duplicate-key crash in the surface GPS map
+- use proper marine icons for species categories
+- add missing en l10n keys + picker hint import (#292)
+- rebase Swift exit-GPS patch onto upstream GNSS-status check
+- show updated dive number after renumbering Fixes #240
+
+### Refactoring
+
+- extract picker sheets from dive edit page
+- extract diveRepositoryProvider to break import cycles
+- replace fetchRecord hand-maintained maps with Drift's toJson()
+- render heat map via density-colorized shader
+
+### Performance
+
+- encode BLOBs as base64 instead of JSON byte arrays
+
+### Documentation
+
+- record implementation deviations in design spec
+- add edit form redesign implementation plan
+- add edit form redesign design spec and mockup
+- add upgrade-path hardening implementation plan
+- align S3 spec with review-driven implementation changes
+- correct two SigV4 test vectors (computationally verified)
+- add S3 sync backend implementation plan
+- add S3-compatible sync storage backend design spec
+- record device-local settings-key audit
+- record Phase 0 iCloud sync diagnosis (merge masks apply errors as conflicts)
+- add iCloud sync all-data spec + Phase 0 diagnostic plan
+- add heat-map redesign spec and implementation plan
+- implementation plan for site field autocomplete (#292)
+- design spec for dive site & location field autocomplete (#292)
+- release notes
+
+### Tests
+
+- raise PR patch coverage above 90%
+- pin legacy-file retirement safety invariants
+- cover the S3 tile states and sign-out credential retention
+- pin S3 store error propagation; clarify load() docs
+- pin S3 client behavior; fix retry wrapping and UTF-8 decode
+- rename error-path tests to match the path they exercise
+- cover auto-refresh tick/silent-reload paths (patch coverage ~35->94%)
+- cover conflict resolution; fix stale comments; harden blob/merge tests
+- cover the v77 hlc migration upgrade path
+- reproduce A->B no-op; receiving merge relabels apply error as conflict
+- add serializer symmetry round-trip test
+- add in-memory fake CloudStorageProvider for diagnostics
+- add runtime-only longest dive coverage to dive summary widget
+
+### CI/CD
+
+- bump codecov/codecov-action from 6 to 7
+
+### Chores
+
+- bump version to 1.4.9+96
+- translate first-sync merge strings into all locales
+- refresh Podfile.lock checksum for libdivecomputer_plugin
+- silence experimental/coroutine errors on windows
+
+### Other
+
+- add density-colorized heat-map fragment shader
+- i18n: add similar-site hint strings across all locales
+
+
 ## 1.4.9 (2026-05-29)
 
 ### Bug Fixes
