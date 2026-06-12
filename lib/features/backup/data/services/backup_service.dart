@@ -420,7 +420,9 @@ class BackupService {
     try {
       deviceId = await _syncRepository.getDeviceId();
     } catch (_) {
-      deviceId = '';
+      // Non-empty sentinel: the marker's origin is shown in peer banners
+      // and dialogs, so it must always be displayable.
+      deviceId = 'unknown';
     }
     String? deviceName;
     try {

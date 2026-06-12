@@ -31,6 +31,39 @@ void main() {
     expect(restored.appVersion, '1.5.0.1');
   });
 
+  test('displayName never renders blank', () {
+    const named = LibraryEpochMarker(
+      epochId: 'e',
+      replacedAt: 1,
+      deviceId: 'd1',
+      deviceName: 'Eric Mac',
+    );
+    expect(named.displayName, 'Eric Mac');
+
+    const idOnly = LibraryEpochMarker(
+      epochId: 'e',
+      replacedAt: 1,
+      deviceId: 'd1',
+    );
+    expect(idOnly.displayName, 'd1');
+
+    const blankName = LibraryEpochMarker(
+      epochId: 'e',
+      replacedAt: 1,
+      deviceId: 'd1',
+      deviceName: '   ',
+    );
+    expect(blankName.displayName, 'd1');
+
+    const allBlank = LibraryEpochMarker(
+      epochId: 'e',
+      replacedAt: 1,
+      deviceId: '',
+      deviceName: '',
+    );
+    expect(allBlank.displayName, '?');
+  });
+
   test('tolerates missing optional fields, rejects missing epochId', () {
     final restored = LibraryEpochMarker.fromJson({
       'epochId': 'e2',

@@ -32,6 +32,16 @@ class LibraryEpochMarker {
     this.appVersion,
   });
 
+  /// Human-readable origin for banners and dialogs: the device name when
+  /// present, else the device id, else '?'. Never blank -- [fromJson]
+  /// tolerates an empty deviceId, so display code must not render it raw.
+  String get displayName {
+    final name = deviceName?.trim() ?? '';
+    if (name.isNotEmpty) return name;
+    final id = deviceId.trim();
+    return id.isNotEmpty ? id : '?';
+  }
+
   Map<String, dynamic> toJson() => {
     'epochId': epochId,
     'replacedAt': replacedAt,

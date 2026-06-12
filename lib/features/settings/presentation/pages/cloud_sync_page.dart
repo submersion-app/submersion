@@ -594,9 +594,7 @@ class CloudSyncPage extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           context.l10n.settings_cloudSync_replace_banner(
-                            syncState.replaceMarker?.deviceName ??
-                                syncState.replaceMarker?.deviceId ??
-                                '?',
+                            syncState.replaceMarker?.displayName ?? '?',
                           ),
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
@@ -862,10 +860,7 @@ class CloudSyncPage extends ConsumerWidget {
       builder: (context) => AlertDialog(
         title: Text(l10n.settings_cloudSync_adopt_dialogTitle),
         content: Text(
-          l10n.settings_cloudSync_adopt_dialogContent(
-            marker.deviceName ?? marker.deviceId,
-            date,
-          ),
+          l10n.settings_cloudSync_adopt_dialogContent(marker.displayName, date),
         ),
         actions: [
           TextButton(
@@ -881,7 +876,9 @@ class CloudSyncPage extends ConsumerWidget {
     );
     if (confirmed != true) return;
     // Safety backup of this device's current data BEFORE it is overwritten.
-    await ref.read(backupServiceProvider).performBackup();
+    // Marked automatic: it is system-initiated, like the pre-migration
+    // safety backups, so the history list labels it accordingly.
+    await ref.read(backupServiceProvider).performBackup(isAutomatic: true);
     await ref.read(syncStateProvider.notifier).adoptReplacedLibrary();
   }
 
