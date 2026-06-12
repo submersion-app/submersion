@@ -43,9 +43,14 @@ Amended 2026-06-12 after manual review:
 
 - The Endpoint URL is REQUIRED — no blank-means-AWS assumption in the
   form. AWS users enter `https://s3.amazonaws.com` (or a regional
-  endpoint); the guidance is an in-field hint ("For Amazon S3, enter
-  `https://s3.amazonaws.com`") rather than helper text below the field,
-  which read as ambiguous between stacked fields.
+  endpoint); the guidance is an in-field hint rather than helper text
+  below the field, which read as ambiguous between stacked fields.
+- (Amended again, same day, for provider neutrality: no user-facing
+  string may name a provider — "Amazon", "MinIO", etc. The endpoint hint
+  is the generic "For example: `https://s3.example.com`", the path-style
+  subtitle is "Required by most self-hosted servers", and the provider
+  tile subtitle is "Works with any S3-compatible storage service".
+  Functional hostname matching and internal docs keep provider names.)
 - The blank-endpoint AWS mode remains supported in `S3Config` and the
   client for legacy stored configs; loading one prefills the form with
   `https://s3.{region}.amazonaws.com` so a re-save needs no retyping.

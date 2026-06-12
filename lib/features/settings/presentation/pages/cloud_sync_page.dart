@@ -927,19 +927,19 @@ class CloudSyncPage extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Sign Out?'),
+        title: Text(context.l10n.settings_cloudSync_signOutDialog_title),
         content: Text(
-          'This will disconnect from the cloud provider. '
-          'Your local data will remain intact.$backupWarning',
+          '${context.l10n.settings_cloudSync_signOutDialog_content}'
+          '$backupWarning',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.settings_cloudSync_signOutDialog_cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Sign Out'),
+            child: Text(context.l10n.settings_cloudSync_signOutDialog_signOut),
           ),
         ],
       ),

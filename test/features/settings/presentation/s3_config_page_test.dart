@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -75,11 +76,17 @@ class _FakeS3ApiClient implements S3ApiClient {
   /// correction, mirroring the real client's replay behavior.
   String? correctRegionTo;
 
+  /// When set, listObjects parks on this future first, keeping the probe
+  /// in flight so tests can dispose the page mid-operation.
+  Future<void>? listGate;
+
   @override
   Future<List<S3ObjectInfo>> listObjects({
     String prefix = '',
     int? maxKeys,
   }) async {
+    final gate = listGate;
+    if (gate != null) await gate;
     if (failListWith != null) throw failListWith!;
     final correction = correctRegionTo;
     if (correction != null) {
@@ -543,6 +550,27 @@ void main() {
     );
     await pumpPage(tester);
     expect(find.text('https://s3.eu-west-1.amazonaws.com'), findsOneWidget);
+  });
+
+  testWidgets('test connection finishing after disposal does not throw', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    apiClient.listGate = gate.future;
+    apiClient.correctRegionTo = 'eu-west-1';
+    await pumpPage(tester);
+    await fillValidForm(tester);
+    await tester.ensureVisible(find.byKey(const Key('s3-test')));
+    await tester.tap(find.byKey(const Key('s3-test')));
+    await tester.pump();
+
+    // Dispose the page while the probe is still in flight, then let it
+    // complete: the detected-region write must not touch dead controllers.
+    await tester.pumpWidget(const SizedBox());
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('existing config populates the region field on load', (

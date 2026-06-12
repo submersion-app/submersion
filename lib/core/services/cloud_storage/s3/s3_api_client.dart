@@ -179,10 +179,11 @@ class S3ApiClient {
           : '${_config.bucket}.s3.$_region.amazonaws.com';
     } else {
       final endpointUri = Uri.parse(_config.endpoint);
+      final endpointHost = _effectiveCustomHost(endpointUri.host);
       scheme = endpointUri.scheme;
       host = _config.pathStyle
-          ? endpointUri.host
-          : '${_config.bucket}.${endpointUri.host}';
+          ? endpointHost
+          : '${_config.bucket}.$endpointHost';
       if (endpointUri.hasPort) port = endpointUri.port;
     }
     final encodedKey = SigV4Signer.uriEncode(key, encodeSlash: false);
@@ -275,6 +276,23 @@ class S3ApiClient {
     if (replay.statusCode < 300) onRegionCorrected?.call(hint);
     return replay;
   }
+
+  /// AWS regional hosts are region-templated: a regional endpoint never
+  /// serves another region's buckets, so when a server hint moves the
+  /// effective region the request must move to the matching regional host.
+  /// Every other custom endpoint (and the global s3.amazonaws.com, which
+  /// routes cross-region via DNS) is opaque and passes through unchanged.
+  String _effectiveCustomHost(String endpointHost) {
+    final match = _awsRegionalHostPattern.firstMatch(
+      endpointHost.toLowerCase(),
+    );
+    if (match == null || match.group(1) == _region) return endpointHost;
+    return 's3.$_region.amazonaws.com';
+  }
+
+  static final _awsRegionalHostPattern = RegExp(
+    r'^s3[.-](?:dualstack\.)?([a-z0-9-]+)\.amazonaws\.com$',
+  );
 
   /// The region the server says it expects: the x-amz-bucket-region
   /// header (301 and most 403 responses), or the Region element of an

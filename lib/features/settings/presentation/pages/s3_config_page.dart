@@ -156,6 +156,9 @@ class _S3ConfigPageState extends ConsumerState<S3ConfigPage> {
             _buildConfig(),
             onRegionCorrected: (region) => detectedRegion = region,
           );
+      // The page may have been popped while the probe ran; the disposed
+      // region controller must not be touched.
+      if (!mounted) return;
       final detected = detectedRegion;
       if (detected != null) {
         _regionController.text = detected;

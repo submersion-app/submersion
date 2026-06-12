@@ -716,6 +716,75 @@ void main() {
       expect(corrected, isNull); // the replay itself did not succeed
     });
 
+    test('a wrong regional AWS endpoint moves to the corrected host', () async {
+      final urls = <String>[];
+      final mock = MockClient((request) async {
+        urls.add(request.url.toString());
+        if (urls.length == 1) {
+          return http.Response(
+            '',
+            301,
+            headers: {'x-amz-bucket-region': 'us-west-2'},
+          );
+        }
+        expect(
+          request.headers['authorization'],
+          contains('/us-west-2/s3/aws4_request'),
+        );
+        return http.Response('', 200);
+      });
+      String? corrected;
+      final config = S3Config(
+        endpoint: 'https://s3.eu-west-1.amazonaws.com',
+        region: 'eu-west-1',
+        bucket: 'dive-sync',
+        pathStyle: false,
+        accessKeyId: 'ak',
+        secretAccessKey: 'sk',
+      );
+      final client = S3ApiClient(
+        config,
+        httpClient: mock,
+        now: () => DateTime.utc(2026, 6, 12),
+        retryDelay: Duration.zero,
+        onRegionCorrected: (region) => corrected = region,
+      );
+
+      await client.putObject('k.json', Uint8List.fromList([1]));
+
+      expect(urls, hasLength(2));
+      expect(
+        urls[0],
+        startsWith('https://dive-sync.s3.eu-west-1.amazonaws.com/'),
+      );
+      expect(
+        urls[1],
+        startsWith('https://dive-sync.s3.us-west-2.amazonaws.com/'),
+      );
+      expect(corrected, 'us-west-2');
+    });
+
+    test('non-AWS custom endpoint hosts never get rewritten', () async {
+      var requests = 0;
+      final mock = MockClient((request) async {
+        requests++;
+        expect(request.url.host, 'nas.local');
+        if (requests == 1) {
+          return http.Response(malformedAuthBody('auto'), 400);
+        }
+        return http.Response('', 200);
+      });
+      final client = S3ApiClient(
+        minioConfig(),
+        httpClient: mock,
+        now: () => DateTime.utc(2026, 6, 12),
+        retryDelay: Duration.zero,
+      );
+
+      await client.putObject('k.json', Uint8List.fromList([1]));
+      expect(requests, 2);
+    });
+
     test('AuthorizationHeaderMalformed without a usable hint explains the '
         'region problem', () async {
       final mock = MockClient(
