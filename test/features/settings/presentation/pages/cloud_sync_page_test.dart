@@ -716,6 +716,12 @@ void main() {
   });
 
   group('CloudSyncPage - sync actions', () {
+    // The iCloud provider tile is only actionable on Apple platforms
+    // (isAvailable: Platform.isIOS || Platform.isMacOS), so tests that switch
+    // backends by tapping it cannot run on the Linux test runner, where its
+    // ListTile is disabled and tapping it never opens the switch dialog.
+    final tapUnavailable = !(Platform.isIOS || Platform.isMacOS);
+
     testWidgets('Sync Now is enabled with provider and triggers performSync', (
       tester,
     ) async {
@@ -914,7 +920,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(handles.sync.recordBackendDepartureCalls, 1);
-    });
+    }, skip: tapUnavailable);
 
     testWidgets('cancelling the backend-switch dialog records nothing', (
       tester,
@@ -931,7 +937,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(handles.sync.recordBackendDepartureCalls, 0);
-    });
+    }, skip: tapUnavailable);
 
     testWidgets(
       'Sync Now offers the adopt dialog; adopting backs up then adopts',
