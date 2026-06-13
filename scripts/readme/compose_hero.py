@@ -5,8 +5,10 @@ Run from the repo root:  python3 scripts/readme/compose_hero.py
 Outputs a transparent PNG so the banner works on GitHub light AND dark themes.
 Requires Pillow.  Source screenshots: screenshots/Screenshots/ (gitignored).
 macOS screenshot filenames contain a U+202F space, so match by timestamp glob.
+Example source filename: "Screenshot 2026-06-12 at 10.10.59 PM.png".
 """
 import glob
+import os
 import sys
 from PIL import Image, ImageDraw, ImageFilter
 
@@ -37,7 +39,7 @@ def with_shadow(img, blur=30, offset=(0, 18), opacity=130, pad=80):
     w, h = img.size
     layer = Image.new("RGBA", (w + pad * 2, h + pad * 2), (0, 0, 0, 0))
     shadow = Image.new("RGBA", layer.size, (0, 0, 0, 0))
-    sil = Image.new("RGBA", img.size, (0, 0, 0, opacity))
+    sil = Image.new("RGBA", img.size, (0, 0, 0, 255))
     sil.putalpha(img.split()[3].point(lambda a: int(a * opacity / 255)))
     shadow.paste(sil, (pad + offset[0], pad + offset[1]), sil)
     shadow = shadow.filter(ImageFilter.GaussianBlur(blur))
@@ -77,16 +79,23 @@ def place(ts, target_w, radius, angle, center, crop=None):
     canvas.alpha_composite(img, (int(cx - img.size[0] / 2), int(cy - img.size[1] / 2)))
 
 
-# Back: desktop technical view (dives + profile + deco + tissue loading)
-place("10.10.59", target_w=1000, radius=18, angle=-4, center=(540, 360))
-# Mid-right: desktop dives + map (dark)
-place("10.13.35", target_w=820, radius=18, angle=4, center=(1230, 360))
-# Front: iPhone home (dark), cropped to the device bezel, leaning +12.
-place("10.44.45", target_w=300, radius=32, angle=12, center=(1150, 400),
-      crop=(120, 222, 1016, 2028))
+def main():
+    global canvas
+    os.makedirs(os.path.dirname(OUT), exist_ok=True)
+    # Back: desktop technical view (dives + profile + deco + tissue loading)
+    place("10.10.59", target_w=1000, radius=18, angle=-4, center=(540, 360))
+    # Mid-right: desktop dives + map (dark)
+    place("10.13.35", target_w=820, radius=18, angle=4, center=(1230, 360))
+    # Front: iPhone home (dark), cropped to the device bezel, leaning +12.
+    place("10.44.45", target_w=300, radius=32, angle=12, center=(1150, 400),
+          crop=(120, 222, 1016, 2028))
 
-bbox = canvas.getbbox()
-if bbox:
-    canvas = canvas.crop(bbox)
-canvas.save(OUT)
-print(f"wrote {OUT} ({canvas.size[0]}x{canvas.size[1]})")
+    bbox = canvas.getbbox()
+    if bbox:
+        canvas = canvas.crop(bbox)
+    canvas.save(OUT)
+    print(f"wrote {OUT} ({canvas.size[0]}x{canvas.size[1]})")
+
+
+if __name__ == "__main__":
+    main()
