@@ -144,10 +144,14 @@ class StatisticsRepository {
           SELECT t2.id FROM dive_tanks t2
           WHERE t2.dive_id = d.id
             AND t2.start_pressure > t2.end_pressure
-          ORDER BY
-            CASE WHEN t2.tank_role = 'backGas' THEN 0 ELSE 1 END,
-            t2.tank_order,
-            t2.rowid
+            AND (
+              t2.tank_role = 'backGas'
+              OR NOT EXISTS (
+                SELECT 1 FROM dive_tanks t3
+                WHERE t3.dive_id = d.id AND t3.tank_role = 'backGas'
+              )
+            )
+          ORDER BY t2.tank_order, t2.rowid
           LIMIT 1
         )
         WHERE d.dive_date_time >= ? $diverFilter
@@ -309,10 +313,14 @@ class StatisticsRepository {
           SELECT t2.id FROM dive_tanks t2
           WHERE t2.dive_id = d.id
             AND t2.start_pressure > t2.end_pressure
-          ORDER BY
-            CASE WHEN t2.tank_role = 'backGas' THEN 0 ELSE 1 END,
-            t2.tank_order,
-            t2.rowid
+            AND (
+              t2.tank_role = 'backGas'
+              OR NOT EXISTS (
+                SELECT 1 FROM dive_tanks t3
+                WHERE t3.dive_id = d.id AND t3.tank_role = 'backGas'
+              )
+            )
+          ORDER BY t2.tank_order, t2.rowid
           LIMIT 1
         )
         LEFT JOIN dive_sites ds ON ds.id = d.site_id

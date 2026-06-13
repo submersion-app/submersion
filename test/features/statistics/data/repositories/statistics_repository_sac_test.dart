@@ -251,6 +251,36 @@ void main() {
       // 100 / 42 / 3.0 = 0.794 bar/min
       expect(results.first.value, closeTo(0.794, 0.05));
     });
+
+    test(
+      'excludes dive when back gas tank has no valid pressure drop',
+      () async {
+        // backGas: start=100, end=200 (invalid — no drop)
+        // stage: start=200, end=100 (valid — 100 bar drop)
+        // Must NOT fall back to stage; must exclude dive entirely,
+        // matching Dive.sacPressure which returns null in this case.
+        final diveId = await insertDiveWithTank(
+          id: 'dive-pres-trend-invalid-bg',
+          bottomTimeSeconds: 35 * 60,
+          runtimeSeconds: 42 * 60,
+          avgDepth: 20.0,
+          startPressure: 100,
+          endPressure: 200,
+          tankRole: 'backGas',
+        );
+        await insertTank(
+          diveId: diveId,
+          startPressure: 200,
+          endPressure: 100,
+          tankRole: 'stage',
+          tankOrder: 2,
+        );
+
+        final results = await repository.getSacPressureTrend();
+
+        expect(results, isEmpty);
+      },
+    );
   });
 
   // ---------------------------------------------------------------------------
@@ -408,6 +438,37 @@ void main() {
       // SAC must be back-gas-only: 100/42/3 ≈ 0.794 bar/min
       expect(records.best!.value!, closeTo(0.794, 0.05));
     });
+
+    test(
+      'excludes dive when back gas tank has no valid pressure drop',
+      () async {
+        // backGas: start=100, end=200 (invalid — no drop)
+        // stage: start=200, end=100 (valid — 100 bar drop)
+        // Must NOT fall back to stage; must exclude dive entirely,
+        // matching Dive.sacPressure which returns null in this case.
+        final diveId = await insertDiveWithTank(
+          id: 'dive-pres-rec-invalid-bg',
+          bottomTimeSeconds: 35 * 60,
+          runtimeSeconds: 42 * 60,
+          avgDepth: 20.0,
+          startPressure: 100,
+          endPressure: 200,
+          tankRole: 'backGas',
+        );
+        await insertTank(
+          diveId: diveId,
+          startPressure: 200,
+          endPressure: 100,
+          tankRole: 'stage',
+          tankOrder: 2,
+        );
+
+        final records = await repository.getSacPressureRecords();
+
+        expect(records.best, isNull);
+        expect(records.worst, isNull);
+      },
+    );
   });
 
   // ---------------------------------------------------------------------------
