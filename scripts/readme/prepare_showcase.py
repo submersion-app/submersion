@@ -21,7 +21,7 @@ def load(ts):
     matches = glob.glob(f"{SRC}/*{ts}*.png")
     if not matches:
         raise SystemExit(f"no screenshot matches '{ts}'")
-    return Image.open(matches[0]).convert("RGB")
+    return Image.open(matches[0]).convert("RGBA")
 
 
 def autotrim(img, threshold=80, step=4):
@@ -39,6 +39,7 @@ def save_jpg(img, name, target_w=TARGET_W):
     if img.size[0] > target_w:
         r = target_w / img.size[0]
         img = img.resize((target_w, int(img.size[1] * r)), Image.LANCZOS)
+    img = img.convert("RGB")
     img.save(f"{OUT}/{name}", quality=82)
     print(f"wrote {OUT}/{name} ({img.size[0]}x{img.size[1]})")
 
