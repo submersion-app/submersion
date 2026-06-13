@@ -1567,7 +1567,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 81;
+  static const int currentSchemaVersion = 82;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1652,6 +1652,37 @@ class AppDatabase extends _$AppDatabase {
     79,
     80,
     81,
+    82,
+  ];
+
+  /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
+  /// resolution (plus sync_metadata for the device clock). Shared between the
+  /// v77 backfill (original add) and the v82 backfill (recovery for databases
+  /// that landed at user_version = 77 via the schema-version collision with
+  /// PR #302's surface-interval index migration — see the v82 block below).
+  static const List<String> _hlcTables = [
+    'divers',
+    'diver_settings',
+    'buddies',
+    'dive_centers',
+    'trips',
+    'liveaboard_detail_records',
+    'trip_itinerary_days',
+    'equipment',
+    'equipment_sets',
+    'dive_types',
+    'tank_presets',
+    'dive_computers',
+    'tags',
+    'courses',
+    'dives',
+    'dive_sites',
+    'certifications',
+    'service_records',
+    'settings',
+    'csv_presets',
+    'view_configs',
+    'sync_metadata',
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -3783,31 +3814,7 @@ class AppDatabase extends _$AppDatabase {
           // Add nullable Hybrid Logical Clock column to every conflict-capable
           // syncable table (and sync_metadata for the device clock). Nullable
           // so existing rows fall back to updatedAt ordering until rewritten.
-          const hlcTables = [
-            'divers',
-            'diver_settings',
-            'buddies',
-            'dive_centers',
-            'trips',
-            'liveaboard_detail_records',
-            'trip_itinerary_days',
-            'equipment',
-            'equipment_sets',
-            'dive_types',
-            'tank_presets',
-            'dive_computers',
-            'tags',
-            'courses',
-            'dives',
-            'dive_sites',
-            'certifications',
-            'service_records',
-            'settings',
-            'csv_presets',
-            'view_configs',
-            'sync_metadata',
-          ];
-          for (final table in hlcTables) {
+          for (final table in _hlcTables) {
             final cols = await customSelect(
               "PRAGMA table_info('$table')",
             ).get();
@@ -3888,6 +3895,29 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 81) await reportProgress();
+        if (from < 82) {
+          // Recover databases stranded by the v77 schema-version collision:
+          // PR #302 (surface-interval index) shipped a v77 that only created
+          // an index, while the HLC backfill also claimed v77. Any database
+          // that upgraded under the index-only v77 sits at user_version >= 77
+          // with no hlc columns, so the v77 guard above (from < 77) is false
+          // and the backfill is skipped — leaving every sync UNION query
+          // (e.g. SELECT MAX(hlc) FROM "equipment") failing at prepare time.
+          //
+          // Re-run the same PRAGMA-guarded ALTER: healthy databases that
+          // already have hlc no-op on every table; affected databases get the
+          // missing columns added and sync starts working again.
+          for (final table in _hlcTables) {
+            final cols = await customSelect(
+              "PRAGMA table_info('$table')",
+            ).get();
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (cols.isNotEmpty && !existing.contains('hlc')) {
+              await customStatement('ALTER TABLE $table ADD COLUMN hlc TEXT');
+            }
+          }
+        }
+        if (from < 82) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
