@@ -113,7 +113,7 @@ For tide predictions:
 
 ## Cloud Sync
 
-Configure cloud synchronization:
+Configure cloud synchronization. For a complete guide to syncing across devices &mdash; including a free Cloudflare R2 setup &mdash; see [Multi-Device Sync](guide/multi-device-sync.md).
 
 ### Google Drive
 
@@ -133,6 +133,18 @@ Configure cloud synchronization:
 Submersion uses an app-managed JSON sync file stored in a **Submersion Sync** folder
 in your cloud provider. If you switch to a custom storage folder, app-managed cloud
 sync is disabled and your storage provider handles syncing instead.
+
+### S3-Compatible Storage
+
+Sync through any S3-compatible storage provider &mdash; Cloudflare R2, Amazon S3,
+Backblaze B2, MinIO, or a self-hosted server. Available on every platform.
+
+1. Go to **Settings** > **Cloud Sync**
+2. Tap **S3-Compatible Storage**
+3. Enter your **Endpoint URL**, **Bucket**, **Access Key ID**, and **Secret Access Key**
+4. Tap **Test Connection**, then **Save**
+
+See [Multi-Device Sync](guide/multi-device-sync.md) for a step-by-step Cloudflare R2 example.
 
 ### Sync Options
 
