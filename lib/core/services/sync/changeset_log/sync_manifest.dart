@@ -1,0 +1,76 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+/// The per-device manifest: the small, rewritten-each-publish "commit point"
+/// that names the current base and changeset range. The only mutable file in
+/// a device's namespace.
+class SyncManifest {
+  const SyncManifest({
+    required this.deviceId,
+    required this.provider,
+    required this.headSeq,
+    required this.updatedAt,
+    this.baseSeq,
+    this.basePartCount,
+    this.baseBytes,
+    this.baseChecksum,
+    this.basePartChecksums = const [],
+    this.publishedHlcHigh,
+    this.epochId,
+    this.uploadNonce,
+    this.formatVersion = 1,
+  });
+
+  final int formatVersion;
+  final String deviceId;
+  final String provider;
+  final int? baseSeq;
+  final int? basePartCount;
+  final int? baseBytes;
+  final String? baseChecksum;
+  final List<String> basePartChecksums;
+  final int headSeq;
+  final String? publishedHlcHigh;
+  final String? epochId;
+  final String? uploadNonce;
+  final int updatedAt;
+
+  Map<String, dynamic> toJson() => {
+    'formatVersion': formatVersion,
+    'deviceId': deviceId,
+    'provider': provider,
+    'baseSeq': baseSeq,
+    'basePartCount': basePartCount,
+    'baseBytes': baseBytes,
+    'baseChecksum': baseChecksum,
+    'basePartChecksums': basePartChecksums,
+    'headSeq': headSeq,
+    'publishedHlcHigh': publishedHlcHigh,
+    'epochId': epochId,
+    'uploadNonce': uploadNonce,
+    'updatedAt': updatedAt,
+  };
+
+  factory SyncManifest.fromJson(Map<String, dynamic> json) => SyncManifest(
+    formatVersion: (json['formatVersion'] as int?) ?? 1,
+    deviceId: json['deviceId'] as String,
+    provider: json['provider'] as String,
+    baseSeq: json['baseSeq'] as int?,
+    basePartCount: json['basePartCount'] as int?,
+    baseBytes: json['baseBytes'] as int?,
+    baseChecksum: json['baseChecksum'] as String?,
+    basePartChecksums: ((json['basePartChecksums'] as List?) ?? const [])
+        .cast<String>(),
+    headSeq: (json['headSeq'] as int?) ?? 0,
+    publishedHlcHigh: json['publishedHlcHigh'] as String?,
+    epochId: json['epochId'] as String?,
+    uploadNonce: json['uploadNonce'] as String?,
+    updatedAt: (json['updatedAt'] as int?) ?? 0,
+  );
+
+  Uint8List toBytes() => Uint8List.fromList(utf8.encode(jsonEncode(toJson())));
+
+  factory SyncManifest.fromBytes(Uint8List bytes) => SyncManifest.fromJson(
+    jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>,
+  );
+}
