@@ -449,6 +449,10 @@ class SyncRepository {
     return row?.read<String?>('m');
   }
 
+  /// Public accessor for [_maxRowHlc] -- the highest hlc across conflict-capable
+  /// tables. Used by stale-restore detection.
+  Future<String?> maxRowHlc() => _maxRowHlc();
+
   /// Pick the greater of [a]/[b] by (physicalTime, counter) and rebuild it with
   /// [nodeId] so the clock always issues under THIS device's identity.
   Hlc? _seedHlc(String nodeId, Hlc? a, Hlc? b) {
