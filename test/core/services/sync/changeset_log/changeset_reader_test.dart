@@ -29,7 +29,13 @@ void main() {
     final db = DatabaseService.instance.database;
     final serializer = SyncDataSerializer();
     final codec = ChangesetCodec(serializer);
-    writer = ChangesetWriter(serializer, codec, PublishStateStore(db));
+    writer = ChangesetWriter(
+      serializer,
+      codec,
+      PublishStateStore(db),
+      compactionByteRatio: 1000.0,
+      compactionMaxChangesets: 1 << 30,
+    );
     reader = ChangesetReader(codec, PeerCursorStore(db));
     provider = FakeCloudStorageProvider();
     folder = await provider.getOrCreateSyncFolder();

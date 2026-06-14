@@ -26,6 +26,8 @@ void main() {
       serializer,
       ChangesetCodec(serializer),
       PublishStateStore(db),
+      compactionByteRatio: 1000.0,
+      compactionMaxChangesets: 1 << 30,
     );
     provider = FakeCloudStorageProvider();
     folder = await provider.getOrCreateSyncFolder();

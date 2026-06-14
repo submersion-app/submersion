@@ -9,7 +9,7 @@ import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 
-enum ChangesetWriteKind { base, changeset, noop }
+enum ChangesetWriteKind { base, changeset, compacted, noop }
 
 class ChangesetWriteResult {
   const ChangesetWriteResult(this.kind, [this.seq]);
@@ -24,11 +24,19 @@ class ChangesetWriteResult {
 /// and a changeset reuses the manifest's existing base fields. The manifest is
 /// rewritten last, as the commit point, after the data files it references.
 class ChangesetWriter {
-  ChangesetWriter(this._serializer, this._codec, this._publishState);
+  ChangesetWriter(
+    this._serializer,
+    this._codec,
+    this._publishState, {
+    this.compactionByteRatio = 0.30,
+    this.compactionMaxChangesets = 200,
+  });
 
   final SyncDataSerializer _serializer;
   final ChangesetCodec _codec;
   final PublishStateStore _publishState;
+  final double compactionByteRatio;
+  final int compactionMaxChangesets;
 
   Future<ChangesetWriteResult> publish({
     required CloudStorageProvider provider,
@@ -140,6 +148,24 @@ class ChangesetWriter {
         updatedAt: Value(now),
       ),
     );
+
+    final bytesSinceBase = (state?.changesetBytesSinceBase ?? 0) + bytes.length;
+    final baseBytes = base.baseBytes ?? 0;
+    final tripped =
+        (newSeq - (base.baseSeq ?? newSeq)) >= compactionMaxChangesets ||
+        (baseBytes > 0 && bytesSinceBase >= compactionByteRatio * baseBytes);
+    if (tripped) {
+      final compSeq = await _compact(
+        provider: provider,
+        deviceId: deviceId,
+        folderId: folderId,
+        providerId: providerId,
+        afterSeq: newSeq,
+        epochId: epochId,
+        uploadNonce: uploadNonce,
+      );
+      return ChangesetWriteResult(ChangesetWriteKind.compacted, compSeq);
+    }
     return ChangesetWriteResult(ChangesetWriteKind.changeset, newSeq);
   }
 
@@ -186,4 +212,88 @@ class ChangesetWriter {
   }
 
   int _max(int a, int b) => a > b ? a : b;
+
+  /// Rewrite a fresh full base at [afterSeq] + 1, repoint the manifest, reset
+  /// publish state, and prune superseded files. Pruning is inline: the reader
+  /// cold-starts from the new base if it was mid-fetch, so this is correct
+  /// without a grace window (a time-based grace is a future optimization).
+  Future<int> _compact({
+    required CloudStorageProvider provider,
+    required String deviceId,
+    required String folderId,
+    required String providerId,
+    required int afterSeq,
+    String? epochId,
+    String? uploadNonce,
+  }) async {
+    final full = await _serializer.exportChangeset(
+      deviceId: deviceId,
+      hlcWatermark: null,
+      deletions: const [],
+      epochId: epochId,
+      uploadNonce: uploadNonce,
+    );
+    final fullBytes = _codec.encodeChangeset(full);
+    final parts = _codec.encodeBaseParts(full);
+    final compSeq = afterSeq + 1;
+    for (var i = 0; i < parts.length; i++) {
+      await provider.uploadFile(
+        parts[i],
+        ChangesetLogLayout.basePartName(deviceId, compSeq, i),
+        folderId: folderId,
+      );
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final manifest = SyncManifest(
+      deviceId: deviceId,
+      provider: providerId,
+      baseSeq: compSeq,
+      basePartCount: parts.length,
+      baseBytes: fullBytes.length,
+      baseChecksum: BaseChunker.checksum(fullBytes),
+      basePartChecksums: parts.map(BaseChunker.checksum).toList(),
+      headSeq: compSeq,
+      publishedHlcHigh: full.toHlc,
+      epochId: epochId,
+      uploadNonce: uploadNonce,
+      updatedAt: now,
+    );
+    await _writeManifest(provider, folderId, deviceId, manifest);
+    await _publishState.upsert(
+      LocalPublishStatesCompanion(
+        provider: Value(providerId),
+        baseSeq: Value(compSeq),
+        basePartCount: Value(parts.length),
+        baseBytes: Value(fullBytes.length),
+        headSeq: Value(compSeq),
+        publishedHlcHigh: Value(full.toHlc),
+        changesetBytesSinceBase: const Value(0),
+        updatedAt: Value(now),
+      ),
+    );
+    await _pruneSupersededBelow(provider, folderId, deviceId, compSeq);
+    return compSeq;
+  }
+
+  Future<void> _pruneSupersededBelow(
+    CloudStorageProvider provider,
+    String folderId,
+    String deviceId,
+    int keepBaseSeq,
+  ) async {
+    final files = await provider.listFiles(
+      folderId: folderId,
+      namePattern: ChangesetLogLayout.prefix,
+    );
+    for (final f in files) {
+      if (ChangesetLogLayout.deviceIdOf(f.name) != deviceId) continue;
+      final cs = ChangesetLogLayout.changesetSeqOf(f.name);
+      final bp = ChangesetLogLayout.basePartOf(f.name);
+      final supersededCs = cs != null && cs < keepBaseSeq;
+      final supersededBase = bp != null && bp.baseSeq != keepBaseSeq;
+      if (supersededCs || supersededBase) {
+        await provider.deleteFile(f.id);
+      }
+    }
+  }
 }
