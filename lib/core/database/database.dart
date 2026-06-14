@@ -488,6 +488,7 @@ class Species extends Table {
   TextColumn get description => text().nullable()();
   TextColumn get photoPath => text().nullable()();
   BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -561,6 +562,7 @@ class Media extends Table {
   // coverage:ignore-end
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1520,6 +1522,7 @@ class FieldPresets extends Table {
   TextColumn get configJson => text()();
   BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1603,7 +1606,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 84;
+  static const int currentSchemaVersion = 85;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1691,6 +1694,7 @@ class AppDatabase extends _$AppDatabase {
     82,
     83,
     84,
+    85,
   ];
 
   /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
@@ -1723,6 +1727,9 @@ class AppDatabase extends _$AppDatabase {
     'csv_presets',
     'view_configs',
     'sync_metadata',
+    'media',
+    'species',
+    'field_presets',
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -4038,6 +4045,20 @@ class AppDatabase extends _$AppDatabase {
           ''');
         }
         if (from < 84) await reportProgress();
+        if (from < 85) {
+          // media, species, field_presets become first-class HLC entities so
+          // they delta by their own hlc instead of being exported in full.
+          for (final table in const ['media', 'species', 'field_presets']) {
+            final cols = await customSelect(
+              "PRAGMA table_info('$table')",
+            ).get();
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (cols.isNotEmpty && !existing.contains('hlc')) {
+              await customStatement('ALTER TABLE $table ADD COLUMN hlc TEXT');
+            }
+          }
+        }
+        if (from < 85) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys

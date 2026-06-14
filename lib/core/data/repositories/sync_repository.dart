@@ -48,6 +48,9 @@ class SyncRepository {
     'settings': (table: 'settings', pk: 'key'),
     'csvPresets': (table: 'csv_presets', pk: 'id'),
     'viewConfigs': (table: 'view_configs', pk: 'id'),
+    'media': (table: 'media', pk: 'id'),
+    'species': (table: 'species', pk: 'id'),
+    'fieldPresets': (table: 'field_presets', pk: 'id'),
   };
 
   // ============================================================================
