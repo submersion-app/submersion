@@ -71,7 +71,9 @@ class ChangesetReader {
         final baseSeq = manifest.baseSeq;
         if (baseSeq != null && lastApplied < baseSeq) {
           final base = await _fetchBase(provider, peerId, manifest, byName);
-          if (base == null) continue; // missing part -> transient, retry later
+          if (base == null || !_codec.serializer.validateChecksum(base)) {
+            continue; // missing or corrupt base -> transient, retry next sync
+          }
           await apply(base);
           payloadsApplied++;
           appliedThrough = baseSeq;
@@ -85,6 +87,9 @@ class ChangesetReader {
           final cs = _codec.decodeChangeset(
             await provider.downloadFile(csFile.id),
           );
+          if (!_codec.serializer.validateChecksum(cs)) {
+            break; // corrupt changeset -> stop; a fixed sync retries from here
+          }
           await apply(cs);
           payloadsApplied++;
           appliedThrough = seq;
