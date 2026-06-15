@@ -365,17 +365,17 @@ class SyncNotifier extends StateNotifier<SyncState> {
   Future<void> _detectReplacedLibraryForSurfacing() async {
     final marker = await libraryReplaceInfo();
     if (marker == null || !mounted) return;
+    // Surface only -- never sync from here. Only devices that HOLD dives pause
+    // and need the unmissable prompt; an empty device has nothing to lose and
+    // auto-adopts through performSync's own awaiting-adoption path on its next
+    // sync. Syncing from a detection hook would also race other launch-time
+    // syncs (and test setups), so detection stays pure: read marker, set state.
     final diveCount = await _ref.read(diveRepositoryProvider).getDiveCount();
-    if (!mounted) return;
-    if (diveCount == 0) {
-      // Nothing local to lose: let performSync's empty-device path auto-adopt.
-      unawaited(performSync());
-    } else {
-      state = state.copyWith(
-        replaceAwaitingAdoption: true,
-        replaceMarker: marker,
-      );
-    }
+    if (!mounted || diveCount == 0) return;
+    state = state.copyWith(
+      replaceAwaitingAdoption: true,
+      replaceMarker: marker,
+    );
   }
 
   void _listenForChanges() {
