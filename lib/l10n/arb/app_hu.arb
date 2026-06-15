@@ -1,5 +1,5 @@
 {
-  "@@last_modified": "2026-04-17",
+  "@@last_modified": "2026-06-15",
   "@@locale": "hu",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -4852,5 +4852,19 @@
   "divers_edit_divingSinceNotSet": "Nincs beállítva",
   "divers_edit_priorInvalidNumber": "Adjon meg egy érvényes számot",
   "statistics_priorBreakdown": "{logged} naplózva + {prior} korábbi",
-  "statistics_divingSince": "{year} óta merül"
+  "statistics_divingSince": "{year} óta merül",
+  "settings_appearance_gasTimeline": "Gáz idővonal",
+  "settings_appearance_gasTimeline_subtitle": "Gázfogyasztási sáv megjelenítése a merülési profil alatt alapértelmezetten",
+  "diveDetailSection_surfaceGps_name": "Felszíni GPS",
+  "diveDetailSection_surfaceGps_description": "GPS be-/kiszállási pontok és felszíni sodródás",
+  "diveLog_detail_section_surfaceGps": "Felszíni GPS",
+  "diveLog_detail_surfaceGps_entry": "Beszállás",
+  "diveLog_detail_surfaceGps_exit": "Kiszállás",
+  "diveLog_detail_label_drift": "Sodródás",
+  "diveLog_detail_surfaceGps_entryOnly": "Beszállási pont rögzítve",
+  "diveLog_detail_surfaceGps_exitOnly": "Kiszállási pont rögzítve",
+  "diveLog_detail_surfaceGps_site": "Merülőhely",
+  "diveLog_detail_locationsMap_title": "Merülési helyszínek",
+  "diveLog_detail_coordinatesCopied": "Koordináták a vágólapra másolva",
+  "diveLog_detail_openInMaps": "Megnyitás a Térképekben"
 }

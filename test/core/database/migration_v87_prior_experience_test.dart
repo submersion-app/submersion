@@ -4,12 +4,12 @@ import 'package:submersion/core/database/database.dart';
 
 void main() {
   test(
-    'v84 adds prior-experience columns to divers, preserving rows',
+    'v87 adds prior-experience columns to divers, preserving rows',
     () async {
       final nativeDb = NativeDatabase.memory(
         setup: (rawDb) {
-          rawDb.execute('PRAGMA user_version = 83');
-          // Minimal v83 divers shape (pre prior-experience columns).
+          rawDb.execute('PRAGMA user_version = 86');
+          // Minimal pre-v87 divers shape (no prior-experience columns).
           rawDb.execute('''
           CREATE TABLE divers (
             id TEXT NOT NULL PRIMARY KEY,

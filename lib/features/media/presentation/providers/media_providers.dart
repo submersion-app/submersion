@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 
@@ -13,6 +14,11 @@ final mediaForDiveProvider = FutureProvider.family<List<MediaItem>, String>((
   diveId,
 ) async {
   final repository = ref.watch(mediaRepositoryProvider);
+  final sub = ref
+      .watch(diveRepositoryProvider)
+      .watchDiveDetailChanges()
+      .listen((_) => ref.invalidateSelf());
+  ref.onDispose(sub.cancel);
   return repository.getMediaForDive(diveId);
 });
 

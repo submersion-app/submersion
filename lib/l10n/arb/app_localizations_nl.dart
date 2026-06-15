@@ -9945,11 +9945,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Toon markeringen voor gaswisselingen';
 
   @override
-  String get settings_appearance_gasTimeline => 'Gas timeline';
+  String get settings_appearance_gasTimeline => 'Gastijdlijn';
 
   @override
   String get settings_appearance_gasTimeline_subtitle =>
-      'Show the gas-usage strip below the dive profile by default';
+      'Gasverbruiksstrook standaard onder het duikprofiel weergeven';
 
   @override
   String get settings_appearance_header_diveDetails => 'Duikdetails';
@@ -10030,42 +10030,42 @@ class AppLocalizationsNl extends AppLocalizations {
       'Getijdecyclusgrafiek en timing';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Surface GPS';
+  String get diveDetailSection_surfaceGps_name => 'Oppervlakte-GPS';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS entry/exit points and surface drift';
+      'GPS in-/uitstappunten en oppervlaktedrift';
 
   @override
-  String get diveLog_detail_section_surfaceGps => 'Surface GPS';
+  String get diveLog_detail_section_surfaceGps => 'Oppervlakte-GPS';
 
   @override
-  String get diveLog_detail_surfaceGps_entry => 'Entry';
+  String get diveLog_detail_surfaceGps_entry => 'Te water';
 
   @override
-  String get diveLog_detail_surfaceGps_exit => 'Exit';
+  String get diveLog_detail_surfaceGps_exit => 'Uit het water';
 
   @override
   String get diveLog_detail_label_drift => 'Drift';
 
   @override
-  String get diveLog_detail_surfaceGps_entryOnly => 'Entry point recorded';
+  String get diveLog_detail_surfaceGps_entryOnly => 'Instappunt geregistreerd';
 
   @override
-  String get diveLog_detail_surfaceGps_exitOnly => 'Exit point recorded';
+  String get diveLog_detail_surfaceGps_exitOnly => 'Uitstappunt geregistreerd';
 
   @override
-  String get diveLog_detail_surfaceGps_site => 'Site';
+  String get diveLog_detail_surfaceGps_site => 'Duikstek';
 
   @override
-  String get diveLog_detail_locationsMap_title => 'Dive Locations';
+  String get diveLog_detail_locationsMap_title => 'Duiklocaties';
 
   @override
   String get diveLog_detail_coordinatesCopied =>
-      'Coordinates copied to clipboard';
+      'Coördinaten gekopieerd naar klembord';
 
   @override
-  String get diveLog_detail_openInMaps => 'Open in Maps';
+  String get diveLog_detail_openInMaps => 'Openen in Kaarten';
 
   @override
   String get diveDetailSection_weights_name => 'Gewichten';

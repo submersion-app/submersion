@@ -10008,11 +10008,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Markierungen für Gaswechsel anzeigen';
 
   @override
-  String get settings_appearance_gasTimeline => 'Gas timeline';
+  String get settings_appearance_gasTimeline => 'Gas-Zeitleiste';
 
   @override
   String get settings_appearance_gasTimeline_subtitle =>
-      'Show the gas-usage strip below the dive profile by default';
+      'Gasverbrauchsleiste standardmäßig unter dem Tauchprofil anzeigen';
 
   @override
   String get settings_appearance_header_diveDetails => 'Tauchgang-Details';
@@ -10093,42 +10093,42 @@ class AppLocalizationsDe extends AppLocalizations {
       'Gezeitenzyklusdiagramm und Zeiten';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Surface GPS';
+  String get diveDetailSection_surfaceGps_name => 'Oberflächen-GPS';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS entry/exit points and surface drift';
+      'GPS-Ein-/Ausstiegspunkte und Oberflächendrift';
 
   @override
-  String get diveLog_detail_section_surfaceGps => 'Surface GPS';
+  String get diveLog_detail_section_surfaceGps => 'Oberflächen-GPS';
 
   @override
-  String get diveLog_detail_surfaceGps_entry => 'Entry';
+  String get diveLog_detail_surfaceGps_entry => 'Einstieg';
 
   @override
-  String get diveLog_detail_surfaceGps_exit => 'Exit';
+  String get diveLog_detail_surfaceGps_exit => 'Ausstieg';
 
   @override
   String get diveLog_detail_label_drift => 'Drift';
 
   @override
-  String get diveLog_detail_surfaceGps_entryOnly => 'Entry point recorded';
+  String get diveLog_detail_surfaceGps_entryOnly => 'Einstiegspunkt erfasst';
 
   @override
-  String get diveLog_detail_surfaceGps_exitOnly => 'Exit point recorded';
+  String get diveLog_detail_surfaceGps_exitOnly => 'Ausstiegspunkt erfasst';
 
   @override
-  String get diveLog_detail_surfaceGps_site => 'Site';
+  String get diveLog_detail_surfaceGps_site => 'Tauchplatz';
 
   @override
-  String get diveLog_detail_locationsMap_title => 'Dive Locations';
+  String get diveLog_detail_locationsMap_title => 'Tauchorte';
 
   @override
   String get diveLog_detail_coordinatesCopied =>
-      'Coordinates copied to clipboard';
+      'Koordinaten in die Zwischenablage kopiert';
 
   @override
-  String get diveLog_detail_openInMaps => 'Open in Maps';
+  String get diveLog_detail_openInMaps => 'In Karten öffnen';
 
   @override
   String get diveDetailSection_weights_name => 'Gewichte';

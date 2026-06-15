@@ -164,6 +164,17 @@ class ViewConfigRepository {
             ),
           ),
         );
+
+    // Mark pending so the edit is protected during merge and gets an HLC
+    // stamped onto the row. field_presets is an HLC-filtered changeset entity,
+    // so an unstamped preset (hlc == null) is silently dropped from every
+    // incremental sync once the base watermark is established.
+    await _syncRepository.markRecordPending(
+      entityType: 'fieldPresets',
+      recordId: preset.id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Deletes the preset with [presetId] only if it is not a built-in preset.

@@ -10057,11 +10057,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher les marqueurs de changement de gaz';
 
   @override
-  String get settings_appearance_gasTimeline => 'Gas timeline';
+  String get settings_appearance_gasTimeline => 'Chronologie du gaz';
 
   @override
   String get settings_appearance_gasTimeline_subtitle =>
-      'Show the gas-usage strip below the dive profile by default';
+      'Afficher la bande de consommation de gaz sous le profil de plongée par défaut';
 
   @override
   String get settings_appearance_header_diveDetails => 'Details de la plongee';
@@ -10143,42 +10143,43 @@ class AppLocalizationsFr extends AppLocalizations {
       'Graphique du cycle de maree et horaires';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Surface GPS';
+  String get diveDetailSection_surfaceGps_name => 'GPS de surface';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS entry/exit points and surface drift';
+      'Points GPS de mise à l\'eau/sortie et dérive en surface';
 
   @override
-  String get diveLog_detail_section_surfaceGps => 'Surface GPS';
+  String get diveLog_detail_section_surfaceGps => 'GPS de surface';
 
   @override
-  String get diveLog_detail_surfaceGps_entry => 'Entry';
+  String get diveLog_detail_surfaceGps_entry => 'Mise à l\'eau';
 
   @override
-  String get diveLog_detail_surfaceGps_exit => 'Exit';
+  String get diveLog_detail_surfaceGps_exit => 'Sortie';
 
   @override
-  String get diveLog_detail_label_drift => 'Drift';
+  String get diveLog_detail_label_drift => 'Dérive';
 
   @override
-  String get diveLog_detail_surfaceGps_entryOnly => 'Entry point recorded';
+  String get diveLog_detail_surfaceGps_entryOnly =>
+      'Point de mise à l\'eau enregistré';
 
   @override
-  String get diveLog_detail_surfaceGps_exitOnly => 'Exit point recorded';
+  String get diveLog_detail_surfaceGps_exitOnly => 'Point de sortie enregistré';
 
   @override
   String get diveLog_detail_surfaceGps_site => 'Site';
 
   @override
-  String get diveLog_detail_locationsMap_title => 'Dive Locations';
+  String get diveLog_detail_locationsMap_title => 'Lieux de plongée';
 
   @override
   String get diveLog_detail_coordinatesCopied =>
-      'Coordinates copied to clipboard';
+      'Coordonnées copiées dans le presse-papiers';
 
   @override
-  String get diveLog_detail_openInMaps => 'Open in Maps';
+  String get diveLog_detail_openInMaps => 'Ouvrir dans Plans';
 
   @override
   String get diveDetailSection_weights_name => 'Lestage';

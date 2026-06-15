@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 
 /// Repository provider for dive computers
 final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
@@ -58,6 +59,11 @@ final favoriteDiveComputerProvider = FutureProvider<DiveComputer?>((ref) async {
 final computersForDiveProvider =
     FutureProvider.family<List<DiveComputer>, String>((ref, diveId) async {
       final repository = ref.watch(diveComputerRepositoryProvider);
+      final sub = ref
+          .watch(diveRepositoryProvider)
+          .watchDiveDetailChanges()
+          .listen((_) => ref.invalidateSelf());
+      ref.onDispose(sub.cancel);
       return repository.getComputersForDive(diveId);
     });
 

@@ -127,12 +127,25 @@ final divesProvider = FutureProvider<List<domain.Dive>>((ref) async {
   return repository.getAllDives(diverId: currentDiverId);
 });
 
-/// Single dive provider
+/// Single dive provider.
+///
+/// Self-invalidates whenever any table feeding the dive detail page is written
+/// (see [DiveRepository.watchDiveDetailChanges]), so the detail refreshes when a
+/// sync applies a remote edit. Sync writes the DB directly, bypassing the
+/// notifier/edit paths that invalidate this provider on local edits -- without
+/// this the detail would keep showing the pre-sync value while the list (which
+/// self-invalidates on dives-table writes) already shows the new one. The
+/// hydrated [domain.Dive] embeds tanks, tank pressures, profile, and equipment,
+/// so this must watch more than just the `dives` table.
 final diveProvider = FutureProvider.family<domain.Dive?, String>((
   ref,
   id,
 ) async {
   final repository = ref.watch(diveRepositoryProvider);
+  final sub = repository.watchDiveDetailChanges().listen(
+    (_) => ref.invalidateSelf(),
+  );
+  ref.onDispose(sub.cancel);
   return repository.getDiveById(id);
 });
 
@@ -143,6 +156,10 @@ final diveProfileProvider =
       diveId,
     ) async {
       final repository = ref.watch(diveRepositoryProvider);
+      final sub = repository.watchDiveDetailChanges().listen(
+        (_) => ref.invalidateSelf(),
+      );
+      ref.onDispose(sub.cancel);
       return repository.getDiveProfile(diveId);
     });
 
@@ -154,6 +171,10 @@ final profilesBySourceProvider =
       diveId,
     ) async {
       final repository = ref.watch(diveRepositoryProvider);
+      final sub = repository.watchDiveDetailChanges().listen(
+        (_) => ref.invalidateSelf(),
+      );
+      ref.onDispose(sub.cancel);
       return repository.getProfilesBySource(diveId);
     });
 
@@ -878,6 +899,10 @@ final surfaceIntervalProvider = FutureProvider.family<Duration?, String>((
   diveId,
 ) async {
   final repository = ref.watch(diveRepositoryProvider);
+  final sub = repository.watchDiveDetailChanges().listen(
+    (_) => ref.invalidateSelf(),
+  );
+  ref.onDispose(sub.cancel);
   return repository.getSurfaceInterval(diveId);
 });
 
@@ -908,6 +933,11 @@ final tankPressuresProvider =
       diveId,
     ) async {
       final repository = ref.watch(tankPressureRepositoryProvider);
+      final sub = ref
+          .watch(diveRepositoryProvider)
+          .watchDiveDetailChanges()
+          .listen((_) => ref.invalidateSelf());
+      ref.onDispose(sub.cancel);
       return repository.getTankPressuresForDive(diveId);
     });
 
@@ -916,6 +946,10 @@ final tankPressuresProvider =
 final diveDataSourcesProvider =
     FutureProvider.family<List<DiveDataSource>, String>((ref, diveId) async {
       final repository = ref.watch(diveRepositoryProvider);
+      final sub = repository.watchDiveDetailChanges().listen(
+        (_) => ref.invalidateSelf(),
+      );
+      ref.onDispose(sub.cancel);
       return repository.getDataSources(diveId);
     });
 
@@ -925,5 +959,9 @@ final isMultiDataSourceDiveProvider = FutureProvider.family<bool, String>((
   diveId,
 ) async {
   final repository = ref.watch(diveRepositoryProvider);
+  final sub = repository.watchDiveDetailChanges().listen(
+    (_) => ref.invalidateSelf(),
+  );
+  ref.onDispose(sub.cancel);
   return repository.hasMultipleDataSources(diveId);
 });

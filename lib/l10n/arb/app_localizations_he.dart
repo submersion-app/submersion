@@ -9758,11 +9758,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצג סמנים להחלפות גז';
 
   @override
-  String get settings_appearance_gasTimeline => 'Gas timeline';
+  String get settings_appearance_gasTimeline => 'ציר זמן של הגז';
 
   @override
   String get settings_appearance_gasTimeline_subtitle =>
-      'Show the gas-usage strip below the dive profile by default';
+      'הצג את רצועת צריכת הגז מתחת לפרופיל הצלילה כברירת מחדל';
 
   @override
   String get settings_appearance_header_diveDetails => 'פרטי צלילה';
@@ -9840,42 +9840,41 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveDetailSection_tide_description => 'גרף מחזור גאות ושפל וזמן';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Surface GPS';
+  String get diveDetailSection_surfaceGps_name => 'GPS פני המים';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS entry/exit points and surface drift';
+      'נקודות כניסה/יציאה ב-GPS וסחף פני המים';
 
   @override
-  String get diveLog_detail_section_surfaceGps => 'Surface GPS';
+  String get diveLog_detail_section_surfaceGps => 'GPS פני המים';
 
   @override
-  String get diveLog_detail_surfaceGps_entry => 'Entry';
+  String get diveLog_detail_surfaceGps_entry => 'כניסה';
 
   @override
-  String get diveLog_detail_surfaceGps_exit => 'Exit';
+  String get diveLog_detail_surfaceGps_exit => 'יציאה';
 
   @override
-  String get diveLog_detail_label_drift => 'Drift';
+  String get diveLog_detail_label_drift => 'סחף';
 
   @override
-  String get diveLog_detail_surfaceGps_entryOnly => 'Entry point recorded';
+  String get diveLog_detail_surfaceGps_entryOnly => 'נקודת הכניסה נרשמה';
 
   @override
-  String get diveLog_detail_surfaceGps_exitOnly => 'Exit point recorded';
+  String get diveLog_detail_surfaceGps_exitOnly => 'נקודת היציאה נרשמה';
 
   @override
-  String get diveLog_detail_surfaceGps_site => 'Site';
+  String get diveLog_detail_surfaceGps_site => 'אתר';
 
   @override
-  String get diveLog_detail_locationsMap_title => 'Dive Locations';
+  String get diveLog_detail_locationsMap_title => 'מיקומי צלילה';
 
   @override
-  String get diveLog_detail_coordinatesCopied =>
-      'Coordinates copied to clipboard';
+  String get diveLog_detail_coordinatesCopied => 'הקואורדינטות הועתקו ללוח';
 
   @override
-  String get diveLog_detail_openInMaps => 'Open in Maps';
+  String get diveLog_detail_openInMaps => 'פתח במפות';
 
   @override
   String get diveDetailSection_weights_name => 'משקולות';

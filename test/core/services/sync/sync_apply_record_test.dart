@@ -31,7 +31,6 @@ void main() {
         final repo = SyncRepository();
         final payload = await serializer.exportData(
           deviceId: await repo.getDeviceId(),
-          since: null,
           lastSyncTimestamp: null,
           deletions: await repo.getAllDeletions(),
         );

@@ -1,5 +1,5 @@
 {
-  "@@last_modified": "2026-04-17",
+  "@@last_modified": "2026-06-15",
   "@@locale": "nl",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -4852,5 +4852,19 @@
   "divers_edit_divingSinceNotSet": "Niet ingesteld",
   "divers_edit_priorInvalidNumber": "Voer een geldig getal in",
   "statistics_priorBreakdown": "{logged} gelogd + {prior} eerder",
-  "statistics_divingSince": "Duikt sinds {year}"
+  "statistics_divingSince": "Duikt sinds {year}",
+  "settings_appearance_gasTimeline": "Gastijdlijn",
+  "settings_appearance_gasTimeline_subtitle": "Gasverbruiksstrook standaard onder het duikprofiel weergeven",
+  "diveDetailSection_surfaceGps_name": "Oppervlakte-GPS",
+  "diveDetailSection_surfaceGps_description": "GPS in-/uitstappunten en oppervlaktedrift",
+  "diveLog_detail_section_surfaceGps": "Oppervlakte-GPS",
+  "diveLog_detail_surfaceGps_entry": "Te water",
+  "diveLog_detail_surfaceGps_exit": "Uit het water",
+  "diveLog_detail_label_drift": "Drift",
+  "diveLog_detail_surfaceGps_entryOnly": "Instappunt geregistreerd",
+  "diveLog_detail_surfaceGps_exitOnly": "Uitstappunt geregistreerd",
+  "diveLog_detail_surfaceGps_site": "Duikstek",
+  "diveLog_detail_locationsMap_title": "Duiklocaties",
+  "diveLog_detail_coordinatesCopied": "Coördinaten gekopieerd naar klembord",
+  "diveLog_detail_openInMaps": "Openen in Kaarten"
 }

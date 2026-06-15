@@ -9826,11 +9826,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'عرض علامات لتبديل الغازات';
 
   @override
-  String get settings_appearance_gasTimeline => 'Gas timeline';
+  String get settings_appearance_gasTimeline => 'الجدول الزمني للغاز';
 
   @override
   String get settings_appearance_gasTimeline_subtitle =>
-      'Show the gas-usage strip below the dive profile by default';
+      'عرض شريط استهلاك الغاز أسفل ملف الغوصة بشكل افتراضي';
 
   @override
   String get settings_appearance_header_diveDetails => 'تفاصيل الغوصة';
@@ -9911,42 +9911,42 @@ class AppLocalizationsAr extends AppLocalizations {
       'رسم بياني لدورة المد والجزر والتوقيت';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Surface GPS';
+  String get diveDetailSection_surfaceGps_name => 'GPS السطح';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS entry/exit points and surface drift';
+      'نقاط الدخول/الخروج عبر GPS وانجراف السطح';
 
   @override
-  String get diveLog_detail_section_surfaceGps => 'Surface GPS';
+  String get diveLog_detail_section_surfaceGps => 'GPS السطح';
 
   @override
-  String get diveLog_detail_surfaceGps_entry => 'Entry';
+  String get diveLog_detail_surfaceGps_entry => 'الدخول';
 
   @override
-  String get diveLog_detail_surfaceGps_exit => 'Exit';
+  String get diveLog_detail_surfaceGps_exit => 'الخروج';
 
   @override
-  String get diveLog_detail_label_drift => 'Drift';
+  String get diveLog_detail_label_drift => 'انجراف';
 
   @override
-  String get diveLog_detail_surfaceGps_entryOnly => 'Entry point recorded';
+  String get diveLog_detail_surfaceGps_entryOnly => 'تم تسجيل نقطة الدخول';
 
   @override
-  String get diveLog_detail_surfaceGps_exitOnly => 'Exit point recorded';
+  String get diveLog_detail_surfaceGps_exitOnly => 'تم تسجيل نقطة الخروج';
 
   @override
-  String get diveLog_detail_surfaceGps_site => 'Site';
+  String get diveLog_detail_surfaceGps_site => 'الموقع';
 
   @override
-  String get diveLog_detail_locationsMap_title => 'Dive Locations';
+  String get diveLog_detail_locationsMap_title => 'مواقع الغوص';
 
   @override
   String get diveLog_detail_coordinatesCopied =>
-      'Coordinates copied to clipboard';
+      'تم نسخ الإحداثيات إلى الحافظة';
 
   @override
-  String get diveLog_detail_openInMaps => 'Open in Maps';
+  String get diveLog_detail_openInMaps => 'فتح في الخرائط';
 
   @override
   String get diveDetailSection_weights_name => 'الأوزان';

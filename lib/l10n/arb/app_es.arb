@@ -1,5 +1,5 @@
 {
-  "@@last_modified": "2026-04-17",
+  "@@last_modified": "2026-06-15",
   "@@locale": "es",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -4852,5 +4852,19 @@
   "divers_edit_divingSinceNotSet": "Sin definir",
   "divers_edit_priorInvalidNumber": "Introduce un número válido",
   "statistics_priorBreakdown": "{logged} registradas + {prior} previas",
-  "statistics_divingSince": "Buceando desde {year}"
+  "statistics_divingSince": "Buceando desde {year}",
+  "settings_appearance_gasTimeline": "Cronología del gas",
+  "settings_appearance_gasTimeline_subtitle": "Mostrar la franja de consumo de gas debajo del perfil de inmersión por defecto",
+  "diveDetailSection_surfaceGps_name": "GPS de superficie",
+  "diveDetailSection_surfaceGps_description": "Puntos de entrada/salida por GPS y deriva en superficie",
+  "diveLog_detail_section_surfaceGps": "GPS de superficie",
+  "diveLog_detail_surfaceGps_entry": "Entrada",
+  "diveLog_detail_surfaceGps_exit": "Salida",
+  "diveLog_detail_label_drift": "Deriva",
+  "diveLog_detail_surfaceGps_entryOnly": "Punto de entrada registrado",
+  "diveLog_detail_surfaceGps_exitOnly": "Punto de salida registrado",
+  "diveLog_detail_surfaceGps_site": "Punto de buceo",
+  "diveLog_detail_locationsMap_title": "Ubicaciones de buceo",
+  "diveLog_detail_coordinatesCopied": "Coordenadas copiadas al portapapeles",
+  "diveLog_detail_openInMaps": "Abrir en Mapas"
 }

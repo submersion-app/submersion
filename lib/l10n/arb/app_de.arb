@@ -1,5 +1,5 @@
 {
-  "@@last_modified": "2026-04-17",
+  "@@last_modified": "2026-06-15",
   "@@locale": "de",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -4852,5 +4852,19 @@
   "divers_edit_divingSinceNotSet": "Nicht festgelegt",
   "divers_edit_priorInvalidNumber": "Gib eine gültige Zahl ein",
   "statistics_priorBreakdown": "{logged} erfasst + {prior} früher",
-  "statistics_divingSince": "Taucht seit {year}"
+  "statistics_divingSince": "Taucht seit {year}",
+  "settings_appearance_gasTimeline": "Gas-Zeitleiste",
+  "settings_appearance_gasTimeline_subtitle": "Gasverbrauchsleiste standardmäßig unter dem Tauchprofil anzeigen",
+  "diveDetailSection_surfaceGps_name": "Oberflächen-GPS",
+  "diveDetailSection_surfaceGps_description": "GPS-Ein-/Ausstiegspunkte und Oberflächendrift",
+  "diveLog_detail_section_surfaceGps": "Oberflächen-GPS",
+  "diveLog_detail_surfaceGps_entry": "Einstieg",
+  "diveLog_detail_surfaceGps_exit": "Ausstieg",
+  "diveLog_detail_label_drift": "Drift",
+  "diveLog_detail_surfaceGps_entryOnly": "Einstiegspunkt erfasst",
+  "diveLog_detail_surfaceGps_exitOnly": "Ausstiegspunkt erfasst",
+  "diveLog_detail_surfaceGps_site": "Tauchplatz",
+  "diveLog_detail_locationsMap_title": "Tauchorte",
+  "diveLog_detail_coordinatesCopied": "Koordinaten in die Zwischenablage kopiert",
+  "diveLog_detail_openInMaps": "In Karten öffnen"
 }

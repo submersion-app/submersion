@@ -8,6 +8,7 @@ import 'package:submersion/features/courses/domain/constants/course_field.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
@@ -122,6 +123,11 @@ final courseForDiveProvider = FutureProvider.family<Course?, String>((
   diveId,
 ) async {
   final repository = ref.watch(courseRepositoryProvider);
+  final sub = ref
+      .watch(diveRepositoryProvider)
+      .watchDiveDetailChanges()
+      .listen((_) => ref.invalidateSelf());
+  ref.onDispose(sub.cancel);
   return repository.getCourseForDive(diveId);
 });
 

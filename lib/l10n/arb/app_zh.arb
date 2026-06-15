@@ -1,6 +1,6 @@
 {
   "@@locale": "zh",
-  "@@last_modified": "2026-04-17",
+  "@@last_modified": "2026-06-15",
   "@diveComputer_download_serialConnectFailedWithDetails": {
     "placeholders": {
       "details": {
@@ -4852,5 +4852,19 @@
   "divers_edit_divingSinceNotSet": "未设置",
   "divers_edit_priorInvalidNumber": "请输入有效数字",
   "statistics_priorBreakdown": "{logged} 已记录 + {prior} 既往",
-  "statistics_divingSince": "自 {year} 年起潜水"
+  "statistics_divingSince": "自 {year} 年起潜水",
+  "settings_appearance_gasTimeline": "气体时间线",
+  "settings_appearance_gasTimeline_subtitle": "默认在潜水剖面下方显示气体消耗条",
+  "diveDetailSection_surfaceGps_name": "水面 GPS",
+  "diveDetailSection_surfaceGps_description": "GPS 入水/出水点及水面漂移",
+  "diveLog_detail_section_surfaceGps": "水面 GPS",
+  "diveLog_detail_surfaceGps_entry": "入水",
+  "diveLog_detail_surfaceGps_exit": "出水",
+  "diveLog_detail_label_drift": "漂移",
+  "diveLog_detail_surfaceGps_entryOnly": "已记录入水点",
+  "diveLog_detail_surfaceGps_exitOnly": "已记录出水点",
+  "diveLog_detail_surfaceGps_site": "潜点",
+  "diveLog_detail_locationsMap_title": "潜水位置",
+  "diveLog_detail_coordinatesCopied": "坐标已复制到剪贴板",
+  "diveLog_detail_openInMaps": "在地图中打开"
 }

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +8,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
+import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/sync_test_helpers.dart';
 import '../../../helpers/test_database.dart';
@@ -40,6 +40,7 @@ void main() {
       await diveRepo.createDive(
         createTestDiveWithBottomTime(id: 'dive-xfer-1', diveNumber: 11),
       );
+      final deviceA = await SyncRepository().getDeviceId();
       final pushResult = await buildService().performSync();
       expect(
         pushResult.isSuccess,
@@ -49,18 +50,16 @@ void main() {
             '(${pushResult.message})',
       );
       expect(
-        cloud.syncFileBytes(),
-        isNotNull,
-        reason: 'this device\'s per-device sync file should exist after push',
+        await hasPublishedLog(cloud, deviceA),
+        isTrue,
+        reason: 'this device\'s changeset log should exist after push',
       );
-      // Export side is healthy: device A's upload must contain the dive.
-      final afterPush = SyncDataSerializer().deserializePayload(
-        utf8.decode(cloud.syncFileBytes()!),
-      );
+      // Export side is healthy: device A's published base must contain the dive.
+      final afterPush = await cloudBasePayload(cloud, deviceA);
       expect(
-        afterPush.data.dives.length,
+        afterPush?.data.dives.length,
         1,
-        reason: 'device A export uploaded the dive (export side is healthy)',
+        reason: 'device A export published the dive (export side is healthy)',
       );
 
       // Impersonate a FRESH device B sharing the same cloud: remove the dive
@@ -200,36 +199,33 @@ void main() {
         await diveRepo.createDive(
           createTestDiveWithBottomTime(id: 'dive-corrupt-1'),
         );
-        await buildService().performSync(); // push a valid payload
 
-        // Corrupt a dive field so Dive.fromJson throws on import, then recompute
-        // the checksum so the payload still passes validation.
-        final payload = serializer.deserializePayload(
-          utf8.decode(cloud.syncFileBytes()!),
+        // Export the dive as a peer payload, corrupt a non-nullable field, then
+        // recompute the checksum so it still passes transport validation -- the
+        // failure must surface at APPLY time, not be masked as a conflict.
+        final exported = await serializer.exportChangeset(
+          deviceId: 'peer-corrupt',
+          hlcWatermark: null,
+          deletions: const [],
         );
-        payload.data.dives.first['maxDepth'] = 'NOT_A_NUMBER';
-        final checksum = sha256
-            .convert(utf8.encode(jsonEncode(payload.data.toJson())))
-            .toString();
+        exported.data.dives.first['maxDepth'] = 'NOT_A_NUMBER';
         final corrupt = SyncPayload(
-          version: payload.version,
-          exportedAt: payload.exportedAt,
-          deviceId: payload.deviceId,
-          lastSyncTimestamp: payload.lastSyncTimestamp,
-          checksum: checksum,
-          data: payload.data,
-          deletions: payload.deletions,
-        );
-        // Overwrite device A's own per-device file with the corrupt content,
-        // so the fresh device B below downloads it as a foreign file.
-        await cloud.uploadFile(
-          Uint8List.fromList(utf8.encode(serializer.serializePayload(corrupt))),
-          'submersion_sync_${payload.deviceId}.json',
+          version: exported.version,
+          exportedAt: exported.exportedAt,
+          deviceId: exported.deviceId,
+          lastSyncTimestamp: exported.lastSyncTimestamp,
+          checksum: sha256
+              .convert(utf8.encode(jsonEncode(exported.data.toJson())))
+              .toString(),
+          data: exported.data,
+          deletions: exported.deletions,
+          toHlc: exported.toHlc,
         );
 
-        // Device B pulls the corrupt file.
+        // Fresh device B; seed the corrupt peer log; pull it.
         await diveRepo.deleteDive('dive-corrupt-1');
         await impersonateFreshDevice();
+        await seedPeerBaseFromPayload(cloud, 'peer-corrupt', corrupt);
         final result = await buildService().performSync();
 
         expect(

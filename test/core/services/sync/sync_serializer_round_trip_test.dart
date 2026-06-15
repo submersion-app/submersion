@@ -36,7 +36,6 @@ void main() {
 
         final payload = await serializer.exportData(
           deviceId: deviceId,
-          since: null,
           lastSyncTimestamp: null,
           deletions: deletions,
         );

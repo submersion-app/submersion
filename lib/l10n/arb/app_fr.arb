@@ -1,5 +1,5 @@
 {
-  "@@last_modified": "2026-04-17",
+  "@@last_modified": "2026-06-15",
   "@@locale": "fr",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -4852,5 +4852,19 @@
   "divers_edit_divingSinceNotSet": "Non défini",
   "divers_edit_priorInvalidNumber": "Saisissez un nombre valide",
   "statistics_priorBreakdown": "{logged} enregistrées + {prior} antérieures",
-  "statistics_divingSince": "Plonge depuis {year}"
+  "statistics_divingSince": "Plonge depuis {year}",
+  "settings_appearance_gasTimeline": "Chronologie du gaz",
+  "settings_appearance_gasTimeline_subtitle": "Afficher la bande de consommation de gaz sous le profil de plongée par défaut",
+  "diveDetailSection_surfaceGps_name": "GPS de surface",
+  "diveDetailSection_surfaceGps_description": "Points GPS de mise à l'eau/sortie et dérive en surface",
+  "diveLog_detail_section_surfaceGps": "GPS de surface",
+  "diveLog_detail_surfaceGps_entry": "Mise à l'eau",
+  "diveLog_detail_surfaceGps_exit": "Sortie",
+  "diveLog_detail_label_drift": "Dérive",
+  "diveLog_detail_surfaceGps_entryOnly": "Point de mise à l'eau enregistré",
+  "diveLog_detail_surfaceGps_exitOnly": "Point de sortie enregistré",
+  "diveLog_detail_surfaceGps_site": "Site",
+  "diveLog_detail_locationsMap_title": "Lieux de plongée",
+  "diveLog_detail_coordinatesCopied": "Coordonnées copiées dans le presse-papiers",
+  "diveLog_detail_openInMaps": "Ouvrir dans Plans"
 }
