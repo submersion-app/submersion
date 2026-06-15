@@ -715,6 +715,17 @@ class SyncNotifier extends StateNotifier<SyncState> {
             conflicts: result.conflictsFound,
             progress: 1.0,
           );
+          // Mark this provider established and consume any post-restore intent:
+          // a future restore that wipes the in-DB cursor must not make this
+          // device look like first-contact again, and the Merge restore's
+          // one-shot intent is now satisfied.
+          final syncedProvider = _ref.read(cloudStorageProviderProvider);
+          if (syncedProvider != null) {
+            await _ref
+                .read(establishedProviderStoreProvider)
+                .add(syncedProvider.providerId);
+          }
+          await _ref.read(postRestoreSyncStoreProvider).clear();
           await _surfaceOldBackendCleanupOffer();
           // A straggler syncing into a backend another device moved away from
           // learns of the move here -- the moment it is actively writing into
