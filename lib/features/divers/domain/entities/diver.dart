@@ -79,6 +79,9 @@ class Diver extends Equatable {
   final bool isDefault;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final int? priorDiveCount;
+  final int? priorDiveTimeSeconds;
+  final DateTime? divingSince;
 
   const Diver({
     required this.id,
@@ -98,6 +101,9 @@ class Diver extends Equatable {
     this.isDefault = false,
     required this.createdAt,
     required this.updatedAt,
+    this.priorDiveCount,
+    this.priorDiveTimeSeconds,
+    this.divingSince,
   });
 
   /// Get initials for avatar display
@@ -159,6 +165,9 @@ class Diver extends Equatable {
     bool? isDefault,
     DateTime? createdAt,
     DateTime? updatedAt,
+    int? priorDiveCount,
+    int? priorDiveTimeSeconds,
+    DateTime? divingSince,
   }) {
     return Diver(
       id: id ?? this.id,
@@ -179,6 +188,9 @@ class Diver extends Equatable {
       isDefault: isDefault ?? this.isDefault,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      priorDiveCount: priorDiveCount ?? this.priorDiveCount,
+      priorDiveTimeSeconds: priorDiveTimeSeconds ?? this.priorDiveTimeSeconds,
+      divingSince: divingSince ?? this.divingSince,
     );
   }
 
@@ -201,5 +213,8 @@ class Diver extends Equatable {
     isDefault,
     createdAt,
     updatedAt,
+    priorDiveCount,
+    priorDiveTimeSeconds,
+    divingSince,
   ];
 }
