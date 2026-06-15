@@ -121,8 +121,13 @@ import 'package:submersion/features/import_wizard/data/adapters/universal_adapte
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 
+/// Root navigator key, so app-wide modals (e.g. the replaced-library adopt
+/// dialog surfaced from the app root) can be shown above the shell.
+final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/dashboard',
     redirect: (context, state) async {
       // Skip redirect logic during database migration to prevent deadlock
