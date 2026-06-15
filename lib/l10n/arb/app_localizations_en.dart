@@ -9,6 +9,17 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get settings_cloudSync_postRestore_syncing =>
+      'Syncing your restored library with the cloud…';
+
+  @override
+  String get settings_cloudSync_postRestore_synced =>
+      'Restored library synced.';
+
+  @override
+  String get settings_cloudSync_replace_reviewAction => 'Review';
+
+  @override
   String get accessibility_dialog_keyboardShortcutsTitle =>
       'Keyboard Shortcuts';
 

@@ -9,6 +9,17 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get settings_cloudSync_postRestore_syncing =>
+      'تتم مزامنة مكتبتك المستعادة مع السحابة…';
+
+  @override
+  String get settings_cloudSync_postRestore_synced =>
+      'تمت مزامنة المكتبة المستعادة.';
+
+  @override
+  String get settings_cloudSync_replace_reviewAction => 'مراجعة';
+
+  @override
   String get accessibility_dialog_keyboardShortcutsTitle =>
       'اختصارات لوحة المفاتيح';
 

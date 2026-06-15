@@ -9,6 +9,17 @@ class AppLocalizationsIt extends AppLocalizations {
   AppLocalizationsIt([String locale = 'it']) : super(locale);
 
   @override
+  String get settings_cloudSync_postRestore_syncing =>
+      'Sincronizzazione della libreria ripristinata con il cloud…';
+
+  @override
+  String get settings_cloudSync_postRestore_synced =>
+      'Libreria ripristinata sincronizzata.';
+
+  @override
+  String get settings_cloudSync_replace_reviewAction => 'Rivedi';
+
+  @override
   String get accessibility_dialog_keyboardShortcutsTitle =>
       'Scorciatoie da tastiera';
 

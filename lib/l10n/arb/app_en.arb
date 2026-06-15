@@ -1,5 +1,8 @@
 {
   "@@locale": "en",
+  "settings_cloudSync_postRestore_syncing": "Syncing your restored library with the cloud…",
+  "settings_cloudSync_postRestore_synced": "Restored library synced.",
+  "settings_cloudSync_replace_reviewAction": "Review",
   "@@last_modified": "2026-02-10",
   "accessibility_dialog_keyboardShortcutsTitle": "Keyboard Shortcuts",
   "accessibility_keyLabel_backspace": "Backspace",

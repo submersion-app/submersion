@@ -1,6 +1,9 @@
 {
   "@@last_modified": "2026-06-15",
   "@@locale": "es",
+  "settings_cloudSync_postRestore_syncing": "Sincronizando tu biblioteca restaurada con la nube…",
+  "settings_cloudSync_postRestore_synced": "Biblioteca restaurada sincronizada.",
+  "settings_cloudSync_replace_reviewAction": "Revisar",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
       "dayNumber": {

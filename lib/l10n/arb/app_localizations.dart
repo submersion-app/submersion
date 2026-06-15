@@ -116,6 +116,24 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @settings_cloudSync_postRestore_syncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing your restored library with the cloud…'**
+  String get settings_cloudSync_postRestore_syncing;
+
+  /// No description provided for @settings_cloudSync_postRestore_synced.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored library synced.'**
+  String get settings_cloudSync_postRestore_synced;
+
+  /// No description provided for @settings_cloudSync_replace_reviewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get settings_cloudSync_replace_reviewAction;
+
   /// Title of the keyboard shortcuts help dialog
   ///
   /// In en, this message translates to:

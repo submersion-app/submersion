@@ -1,6 +1,9 @@
 {
   "@@last_modified": "2026-06-15",
   "@@locale": "ar",
+  "settings_cloudSync_postRestore_syncing": "تتم مزامنة مكتبتك المستعادة مع السحابة…",
+  "settings_cloudSync_postRestore_synced": "تمت مزامنة المكتبة المستعادة.",
+  "settings_cloudSync_replace_reviewAction": "مراجعة",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
       "dayNumber": {
