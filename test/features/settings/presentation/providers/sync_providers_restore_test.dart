@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/established_provider_store.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
@@ -16,6 +15,7 @@ import '../../../../helpers/changeset_test_helpers.dart';
 import '../../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/wait_until.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -30,8 +30,10 @@ void main() {
     cloud = FakeCloudStorageProvider();
   });
 
-  tearDown(() {
-    DatabaseService.instance.resetForTesting();
+  tearDown(() async {
+    // Close the Drift connection (not just null the reference) so open DBs
+    // don't leak across tests.
+    await tearDownTestDatabase();
   });
 
   Future<ProviderContainer> makeContainer() async {
@@ -125,12 +127,14 @@ void main() {
           createTestDiveWithBottomTime(id: 'd1'),
         );
 
-        // Construct the notifier (runs _initialize) and let it finish.
+        // Construct the notifier (runs _initialize, which forces the sync).
         container.read(syncStateProvider);
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-        // Allow the forced sync (and its internal post-success refresh delay) to
-        // complete.
-        await Future<void>.delayed(const Duration(seconds: 3));
+        // Wait on the concrete terminal condition (sync finished + intent
+        // consumed) instead of a fixed sleep, so the test isn't CI-flaky.
+        await waitUntil(() async {
+          final s = container.read(syncStateProvider);
+          return !s.postRestoreSyncing && !PostRestoreSyncStore(prefs).pending;
+        });
 
         final state = container.read(syncStateProvider);
         expect(
@@ -199,7 +203,9 @@ void main() {
       // Constructing the notifier runs _initialize, which proactively detects
       // the replaced library (no pending intent, provider configured).
       container.read(syncStateProvider);
-      await Future<void>.delayed(const Duration(milliseconds: 200));
+      await waitUntil(
+        () async => container.read(syncStateProvider).replaceAwaitingAdoption,
+      );
 
       final state = container.read(syncStateProvider);
       expect(

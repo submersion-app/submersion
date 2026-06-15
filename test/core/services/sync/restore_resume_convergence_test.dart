@@ -13,6 +13,7 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_database.dart';
+import '../../../helpers/wait_until.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -53,7 +54,14 @@ void main() {
 
       // Constructing the notifier runs _initialize, which consumes the intent.
       container.read(syncStateProvider);
-      await Future<void>.delayed(const Duration(seconds: 4));
+      // Poll for the pulled row instead of a fixed sleep (CI-robust).
+      await waitUntil(
+        () async =>
+            (await DatabaseService.instance.database
+                .customSelect("SELECT id FROM dives WHERE id = 'a1'")
+                .getSingleOrNull()) !=
+            null,
+      );
 
       final row = await DatabaseService.instance.database
           .customSelect("SELECT id FROM dives WHERE id = 'a1'")
