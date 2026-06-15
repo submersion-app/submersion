@@ -193,6 +193,10 @@ class SyncState {
   final bool isAuthenticated;
   final bool firstSyncAwaitingConfirmation;
 
+  /// True while the one forced post-restore sync is running. Drives the
+  /// app-root "Syncing your restored library..." notice; never persisted.
+  final bool postRestoreSyncing;
+
   /// True when the cloud library was replaced from a backup under an epoch
   /// this device has not accepted; sync is paused until the user adopts.
   final bool replaceAwaitingAdoption;
@@ -225,6 +229,7 @@ class SyncState {
     this.conflicts = 0,
     this.isAuthenticated = false,
     this.firstSyncAwaitingConfirmation = false,
+    this.postRestoreSyncing = false,
     this.replaceAwaitingAdoption = false,
     this.replaceMarker,
     this.movedMarker,
@@ -240,6 +245,7 @@ class SyncState {
     int? conflicts,
     bool? isAuthenticated,
     bool? firstSyncAwaitingConfirmation,
+    bool? postRestoreSyncing,
     bool? replaceAwaitingAdoption,
     Object? replaceMarker = _markerSentinel,
     Object? movedMarker = _movedSentinel,
@@ -257,6 +263,7 @@ class SyncState {
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       firstSyncAwaitingConfirmation:
           firstSyncAwaitingConfirmation ?? this.firstSyncAwaitingConfirmation,
+      postRestoreSyncing: postRestoreSyncing ?? this.postRestoreSyncing,
       replaceAwaitingAdoption:
           replaceAwaitingAdoption ?? this.replaceAwaitingAdoption,
       replaceMarker: identical(replaceMarker, _markerSentinel)
