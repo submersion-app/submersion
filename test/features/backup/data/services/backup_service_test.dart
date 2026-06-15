@@ -8,11 +8,14 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/sync/library_epoch_store.dart';
+import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
+import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
 // =============================================================================
 // Test Doubles
@@ -217,6 +220,64 @@ void main() {
       preferences = BackupPreferences(prefs);
       fakeCloud = FakeCloudStorageProvider();
       fakeDb = FakeBackupDatabaseAdapter();
+    });
+
+    group('post-restore sync intent', () {
+      test('Merge restore sets the post-restore sync intent', () async {
+        final intentStore = PostRestoreSyncStore(
+          await SharedPreferences.getInstance(),
+        );
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+          syncRepository: _SpySyncRepository(),
+          postRestoreSyncStore: intentStore,
+        );
+        final src = File(
+          '${Directory.systemTemp.path}/restore_merge_'
+          '${DateTime.now().microsecondsSinceEpoch}.db',
+        );
+        await src.writeAsString('db');
+        addTearDown(() async {
+          if (await src.exists()) await src.delete();
+        });
+
+        await service.restoreFromFile(src.path); // mode defaults to merge
+
+        expect(
+          intentStore.pending,
+          isTrue,
+          reason: 'a Merge restore must arm the post-restore sync intent',
+        );
+      });
+
+      test('Replace restore does NOT set the merge intent', () async {
+        final prefs = await SharedPreferences.getInstance();
+        final intentStore = PostRestoreSyncStore(prefs);
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+          syncRepository: _SpySyncRepository(),
+          epochStore: LibraryEpochStore(prefs),
+          postRestoreSyncStore: intentStore,
+        );
+        final src = File(
+          '${Directory.systemTemp.path}/restore_replace_'
+          '${DateTime.now().microsecondsSinceEpoch}.db',
+        );
+        await src.writeAsString('db');
+        addTearDown(() async {
+          if (await src.exists()) await src.delete();
+        });
+
+        await service.restoreFromFile(src.path, mode: RestoreMode.replace);
+
+        expect(
+          intentStore.pending,
+          isFalse,
+          reason: 'Replace uses pendingReplace, not the merge intent',
+        );
+      });
     });
 
     group('restore re-baselines sync', () {
