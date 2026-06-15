@@ -328,26 +328,29 @@ class Dive extends Equatable {
 
     final avgPressureAtm = (avgDepth! / 10) + 1; // Convert depth to ATM
 
-    // Sum pressure consumed across all tanks with data
-    double totalPressureUsed = 0;
-    int tanksWithData = 0;
-
-    for (final tank in tanks) {
-      if (tank.startPressure == null || tank.endPressure == null) {
-        continue;
-      }
-
-      final pressureUsed = tank.startPressure! - tank.endPressure!;
-      if (pressureUsed <= 0) continue;
-
-      totalPressureUsed += pressureUsed;
-      tanksWithData++;
+    // For multi-tank dives use back gas only; single-tank dives use that tank.
+    // If no tank has TankRole.backGas, fall back to the first tank.
+    final DiveTank referenceTank;
+    if (tanks.length == 1) {
+      referenceTank = tanks.first;
+    } else {
+      referenceTank = tanks.firstWhere(
+        (t) => t.role == TankRole.backGas,
+        orElse: () => tanks.first,
+      );
     }
 
-    if (tanksWithData == 0 || totalPressureUsed <= 0) return null;
+    if (referenceTank.startPressure == null ||
+        referenceTank.endPressure == null) {
+      return null;
+    }
 
-    // SAC in bar/min at surface (average across all tanks)
-    return (totalPressureUsed / tanksWithData) / minutes / avgPressureAtm;
+    final pressureUsed =
+        referenceTank.startPressure! - referenceTank.endPressure!;
+    if (pressureUsed <= 0) return null;
+
+    // SAC in bar/min at surface
+    return pressureUsed / minutes / avgPressureAtm;
   }
 
   /// Calculate bottom time from dive profile data.

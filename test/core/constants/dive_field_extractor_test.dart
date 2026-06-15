@@ -437,6 +437,60 @@ void main() {
       final dive = Dive(id: 'dive-z', dateTime: now, tanks: [zeroPressureTank]);
       expect(DiveField.gasConsumed.extractFromDive(dive), isNull);
     });
+
+    test('sacRate sums all tanks on multi-tank dive', () {
+      const tank1 = DiveTank(
+        id: 't1',
+        volume: 12.0,
+        startPressure: 200.0,
+        endPressure: 100.0,
+      );
+      const tank2 = DiveTank(
+        id: 't2',
+        volume: 7.0,
+        startPressure: 200.0,
+        endPressure: 150.0,
+      );
+      final dive = Dive(
+        id: 'dive-multi-sac',
+        dateTime: now,
+        runtime: const Duration(minutes: 52),
+        avgDepth: 18.2,
+        tanks: [tank1, tank2],
+      );
+      final result = DiveField.sacRate.extractFromDive(dive);
+      expect(result, isA<double>());
+      // Tank 1: 12.0 * (200 - 100) = 1200L
+      // Tank 2: 7.0  * (200 - 150) = 350L
+      // Total: 1550L / 52 / 2.82 ≈ 10.57
+      expect(result as double, closeTo(10.57, 0.1));
+    });
+
+    test('gasConsumed sums all tanks on multi-tank dive', () {
+      const tank1 = DiveTank(
+        id: 't1',
+        volume: 12.0,
+        startPressure: 200.0,
+        endPressure: 100.0,
+      );
+      const tank2 = DiveTank(
+        id: 't2',
+        volume: 7.0,
+        startPressure: 200.0,
+        endPressure: 150.0,
+      );
+      final dive = Dive(
+        id: 'dive-multi-gas',
+        dateTime: now,
+        tanks: [tank1, tank2],
+      );
+      final result = DiveField.gasConsumed.extractFromDive(dive);
+      expect(result, isA<double>());
+      // Tank 1: 12.0 * (200 - 100) = 1200L
+      // Tank 2: 7.0  * (200 - 150) = 350L
+      // Total: 1550L
+      expect(result, 1550.0);
+    });
   });
 
   group('DiveFieldExtractor - null / empty edge cases', () {

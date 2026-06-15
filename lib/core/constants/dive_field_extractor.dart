@@ -170,46 +170,23 @@ extension DiveFieldExtractor on DiveField {
 
 /// Compute the SAC rate (Surface Air Consumption) in L/min from a [Dive].
 ///
-/// Uses the first tank's gas consumption and effective runtime with average
-/// depth to calculate surface-equivalent consumption.
-double? _computeSacRate(Dive dive) {
-  if (dive.tanks.isEmpty) return null;
-  final runtime = dive.effectiveRuntime;
-  final avgDepth = dive.avgDepth;
-  if (runtime == null || avgDepth == null) return null;
+/// Delegates to [Dive.sac], which sums gas consumed across all tanks with
+/// valid data and divides by runtime and average pressure.
+double? _computeSacRate(Dive dive) => dive.sac;
 
-  final minutes = runtime.inSeconds / 60.0;
-  if (minutes <= 0) return null;
-
-  final tank = dive.tanks.first;
-  if (tank.startPressure == null ||
-      tank.endPressure == null ||
-      tank.volume == null) {
-    return null;
-  }
-
-  final pressureUsed = tank.startPressure! - tank.endPressure!;
-  if (pressureUsed <= 0) return null;
-
-  final gasLiters = tank.volume! * pressureUsed;
-  final avgPressureAtm = (avgDepth / 10.0) + 1.0;
-
-  return gasLiters / minutes / avgPressureAtm;
-}
-
-/// Compute the total gas consumed in liters from the first tank of a [Dive].
+/// Compute the total gas consumed in liters across all tanks of a [Dive].
 double? _computeGasConsumed(Dive dive) {
   if (dive.tanks.isEmpty) return null;
-
-  final tank = dive.tanks.first;
-  if (tank.startPressure == null ||
-      tank.endPressure == null ||
-      tank.volume == null) {
-    return null;
+  double total = 0;
+  for (final tank in dive.tanks) {
+    if (tank.startPressure == null ||
+        tank.endPressure == null ||
+        tank.volume == null) {
+      continue;
+    }
+    final used = tank.startPressure! - tank.endPressure!;
+    if (used <= 0) continue;
+    total += tank.volume! * used;
   }
-
-  final pressureUsed = tank.startPressure! - tank.endPressure!;
-  if (pressureUsed <= 0) return null;
-
-  return tank.volume! * pressureUsed;
+  return total > 0 ? total : null;
 }

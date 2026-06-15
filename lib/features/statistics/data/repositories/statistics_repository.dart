@@ -72,19 +72,30 @@ class StatisticsRepository {
       final params = diverId != null ? [cutoff, diverId] : [cutoff];
 
       final results = await _db.customSelect('''
+        WITH dive_sac AS (
+          SELECT
+            d.id,
+            d.dive_date_time,
+            SUM(
+              CASE
+                WHEN t.start_pressure > t.end_pressure AND t.volume > 0
+                  THEN (t.start_pressure - t.end_pressure) * t.volume
+                ELSE 0
+              END
+            ) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1) AS sac
+          FROM dives d
+          LEFT JOIN dive_tanks t ON t.dive_id = d.id
+          WHERE d.dive_date_time >= ? $diverFilter
+            AND COALESCE(d.runtime, d.bottom_time) > 0
+            AND d.avg_depth > 0
+          GROUP BY d.id, d.dive_date_time, d.runtime, d.bottom_time, d.avg_depth
+        )
         SELECT
-          strftime('%Y', d.dive_date_time / 1000, 'unixepoch') AS year,
-          strftime('%m', d.dive_date_time / 1000, 'unixepoch') AS month,
-          AVG(
-            CASE
-              WHEN COALESCE(d.runtime, d.bottom_time) > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure AND t.volume > 0 THEN
-                ((t.start_pressure - t.end_pressure) * t.volume) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1)
-              ELSE NULL
-            END
-          ) AS avg_sac
-        FROM dives d
-        LEFT JOIN dive_tanks t ON t.dive_id = d.id
-        WHERE d.dive_date_time >= ? $diverFilter
+          strftime('%Y', dive_date_time / 1000, 'unixepoch') AS year,
+          strftime('%m', dive_date_time / 1000, 'unixepoch') AS month,
+          AVG(sac) AS avg_sac
+        FROM dive_sac
+        WHERE sac > 0
         GROUP BY year, month
         HAVING avg_sac IS NOT NULL
         ORDER BY year, month
@@ -126,15 +137,26 @@ class StatisticsRepository {
           strftime('%Y', d.dive_date_time / 1000, 'unixepoch') AS year,
           strftime('%m', d.dive_date_time / 1000, 'unixepoch') AS month,
           AVG(
-            CASE
-              WHEN COALESCE(d.runtime, d.bottom_time) > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure THEN
-                (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1)
-              ELSE NULL
-            END
+            (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1)
           ) AS avg_sac
         FROM dives d
-        LEFT JOIN dive_tanks t ON t.dive_id = d.id
+        JOIN dive_tanks t ON t.id = (
+          SELECT t2.id FROM dive_tanks t2
+          WHERE t2.dive_id = d.id
+            AND t2.start_pressure > t2.end_pressure
+            AND (
+              t2.tank_role = 'backGas'
+              OR NOT EXISTS (
+                SELECT 1 FROM dive_tanks t3
+                WHERE t3.dive_id = d.id AND t3.tank_role = 'backGas'
+              )
+            )
+          ORDER BY t2.tank_order, t2.rowid
+          LIMIT 1
+        )
         WHERE d.dive_date_time >= ? $diverFilter
+          AND COALESCE(d.runtime, d.bottom_time) > 0
+          AND d.avg_depth > 0
         GROUP BY year, month
         HAVING avg_sac IS NOT NULL
         ORDER BY year, month
@@ -216,19 +238,30 @@ class StatisticsRepository {
       final params = diverId != null ? [diverId] : <dynamic>[];
 
       final results = await _db.customSelect('''
-        SELECT
-          d.id,
-          d.dive_number,
-          ds.name AS site_name,
-          d.dive_date_time,
-          ((t.start_pressure - t.end_pressure) * t.volume) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1) AS sac
-        FROM dives d
-        JOIN dive_tanks t ON t.dive_id = d.id
-        LEFT JOIN dive_sites ds ON ds.id = d.site_id
-        WHERE COALESCE(d.runtime, d.bottom_time) > 0 AND d.avg_depth > 0
-          AND t.start_pressure > t.end_pressure
-          AND t.volume > 0
-          $diverFilter
+        WITH dive_sac AS (
+          SELECT
+            d.id,
+            d.dive_number,
+            d.dive_date_time,
+            ds.name AS site_name,
+            SUM(
+              CASE
+                WHEN t.start_pressure > t.end_pressure AND t.volume > 0
+                  THEN (t.start_pressure - t.end_pressure) * t.volume
+                ELSE 0
+              END
+            ) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1) AS sac
+          FROM dives d
+          LEFT JOIN dive_tanks t ON t.dive_id = d.id
+          LEFT JOIN dive_sites ds ON ds.id = d.site_id
+          WHERE COALESCE(d.runtime, d.bottom_time) > 0
+            AND d.avg_depth > 0
+            $diverFilter
+          GROUP BY d.id, d.dive_number, d.dive_date_time, ds.name, d.runtime, d.bottom_time, d.avg_depth
+        )
+        SELECT id, dive_number, site_name, dive_date_time, sac
+        FROM dive_sac
+        WHERE sac > 0
         ORDER BY sac ASC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
@@ -276,10 +309,23 @@ class StatisticsRepository {
           d.dive_date_time,
           (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1) AS sac
         FROM dives d
-        JOIN dive_tanks t ON t.dive_id = d.id
+        JOIN dive_tanks t ON t.id = (
+          SELECT t2.id FROM dive_tanks t2
+          WHERE t2.dive_id = d.id
+            AND t2.start_pressure > t2.end_pressure
+            AND (
+              t2.tank_role = 'backGas'
+              OR NOT EXISTS (
+                SELECT 1 FROM dive_tanks t3
+                WHERE t3.dive_id = d.id AND t3.tank_role = 'backGas'
+              )
+            )
+          ORDER BY t2.tank_order, t2.rowid
+          LIMIT 1
+        )
         LEFT JOIN dive_sites ds ON ds.id = d.site_id
-        WHERE COALESCE(d.runtime, d.bottom_time) > 0 AND d.avg_depth > 0
-          AND t.start_pressure > t.end_pressure
+        WHERE COALESCE(d.runtime, d.bottom_time) > 0
+          AND d.avg_depth > 0
           $diverFilter
         ORDER BY sac ASC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
