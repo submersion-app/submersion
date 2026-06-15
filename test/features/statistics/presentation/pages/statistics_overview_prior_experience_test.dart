@@ -10,13 +10,13 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
-DiveStatistics _stats() => DiveStatistics(
-  totalDives: 312,
-  totalTimeSeconds: 43 * 3600,
-  maxDepth: 30,
-  avgMaxDepth: 18,
-  totalSites: 5,
-  firstDiveDate: DateTime(2020),
+DiveStatistics _stats({int totalDives = 312}) => DiveStatistics(
+  totalDives: totalDives,
+  totalTimeSeconds: totalDives == 0 ? 0 : 43 * 3600,
+  maxDepth: totalDives == 0 ? 0 : 30,
+  avgMaxDepth: totalDives == 0 ? 0 : 18,
+  totalSites: totalDives == 0 ? 0 : 5,
+  firstDiveDate: totalDives == 0 ? null : DateTime(2020),
 );
 
 Diver _diver({int? count, int? seconds, DateTime? since}) => Diver(
@@ -29,7 +29,11 @@ Diver _diver({int? count, int? seconds, DateTime? since}) => Diver(
   updatedAt: DateTime(2026),
 );
 
-Future<void> _pump(WidgetTester tester, Diver diver) async {
+Future<void> _pump(
+  WidgetTester tester,
+  Diver diver, {
+  DiveStatistics? stats,
+}) async {
   tester.view.physicalSize = const Size(800, 2000);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
@@ -39,7 +43,7 @@ Future<void> _pump(WidgetTester tester, Diver diver) async {
     ProviderScope(
       overrides: [
         ...overrides,
-        diveStatisticsProvider.overrideWith((ref) async => _stats()),
+        diveStatisticsProvider.overrideWith((ref) async => stats ?? _stats()),
         currentDiverProvider.overrideWith((ref) async => diver),
       ],
       child: const MaterialApp(
@@ -72,5 +76,18 @@ void main() {
     expect(find.text('312'), findsOneWidget);
     expect(find.textContaining('prior'), findsNothing);
     expect(find.textContaining('Diving since'), findsNothing);
+  });
+
+  testWidgets('prior experience with zero logged dives shows career total', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _diver(count: 1200, seconds: 1150 * 3600, since: DateTime(1990)),
+      stats: _stats(totalDives: 0),
+    );
+    // Not the empty state: the combined career total (0 logged + 1200) shows.
+    expect(find.text('1200'), findsOneWidget);
+    expect(find.textContaining('1990'), findsOneWidget);
   });
 }

@@ -22,9 +22,21 @@ void main() {
     expect(c.combinedTimeSeconds, (43 + 1150) * 3600);
     expect(c.hasPriorDives, isTrue);
     expect(c.hasPriorTime, isTrue);
-    expect(c.loggedHours, 43);
-    expect(c.priorHours, 1150);
+    expect(c.loggedTimeFormatted, '43h 0m');
+    expect(c.priorTimeFormatted, '1150h 0m');
     expect(c.combinedTimeFormatted, '1193h 0m');
+  });
+
+  test('time breakdown keeps minutes and reconciles with the total', () {
+    final c = CareerTotals.from(
+      loggedDives: 1,
+      loggedTimeSeconds: 90 * 60, // 1h 30m
+      priorTimeSeconds: 45 * 60, // 0h 45m
+    );
+    expect(c.loggedTimeFormatted, '1h 30m');
+    expect(c.priorTimeFormatted, '0h 45m'); // not a misleading "0h"
+    expect(c.combinedTimeFormatted, '2h 15m'); // 1h30m + 0h45m, reconciles
+    expect(c.hasPriorTime, isTrue);
   });
 
   test('partial: only prior dives', () {

@@ -143,7 +143,7 @@ class DiverRepository {
               updatedAt: Value(now.millisecondsSinceEpoch),
               priorDiveCount: Value(diver.priorDiveCount),
               priorDiveTimeSeconds: Value(diver.priorDiveTimeSeconds),
-              divingSince: Value(diver.divingSince?.millisecondsSinceEpoch),
+              divingSince: Value(diver.divingSince?.year),
             ),
           );
 
@@ -204,7 +204,7 @@ class DiverRepository {
           updatedAt: Value(now),
           priorDiveCount: Value(diver.priorDiveCount),
           priorDiveTimeSeconds: Value(diver.priorDiveTimeSeconds),
-          divingSince: Value(diver.divingSince?.millisecondsSinceEpoch),
+          divingSince: Value(diver.divingSince?.year),
         ),
       );
       await _syncRepository.markRecordPending(
@@ -666,9 +666,7 @@ class DiverRepository {
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
       priorDiveCount: row.priorDiveCount,
       priorDiveTimeSeconds: row.priorDiveTimeSeconds,
-      divingSince: row.divingSince != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.divingSince!)
-          : null,
+      divingSince: row.divingSince != null ? DateTime(row.divingSince!) : null,
     );
   }
 }

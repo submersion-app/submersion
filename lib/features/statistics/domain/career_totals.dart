@@ -58,12 +58,15 @@ class CareerTotals {
   bool get hasPriorExperience =>
       hasPriorDives || hasPriorTime || divingSinceResolved != null;
 
-  int get loggedHours => loggedTimeSeconds ~/ 3600;
-  int get priorHours => priorTimeSeconds ~/ 3600;
-
-  /// "Xh Ym" formatting of the combined time, matching DiveStatistics.
-  String get combinedTimeFormatted {
-    final d = Duration(seconds: combinedTimeSeconds);
+  /// "Xh Ym" formatting, matching DiveStatistics. Used for the headline total
+  /// AND the logged/prior breakdown so they always reconcile -- no dropped
+  /// minutes, and no misleading "0h" when prior time is under an hour.
+  static String _formatHm(int seconds) {
+    final d = Duration(seconds: seconds);
     return '${d.inHours}h ${d.inMinutes % 60}m';
   }
+
+  String get loggedTimeFormatted => _formatHm(loggedTimeSeconds);
+  String get priorTimeFormatted => _formatHm(priorTimeSeconds);
+  String get combinedTimeFormatted => _formatHm(combinedTimeSeconds);
 }

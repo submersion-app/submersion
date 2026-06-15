@@ -44,12 +44,6 @@ class _OverviewBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (stats.totalDives == 0) {
-      return const _EmptyState();
-    }
-
-    final settings = ref.watch(settingsProvider);
-    final fmt = UnitFormatter(settings);
     final diver = ref.watch(currentDiverProvider).valueOrNull;
     final career = CareerTotals.from(
       loggedDives: stats.totalDives,
@@ -59,6 +53,15 @@ class _OverviewBody extends ConsumerWidget {
       priorTimeSeconds: diver?.priorDiveTimeSeconds,
       divingSince: diver?.divingSince,
     );
+    // Show the career view when the diver has prior experience even if nothing
+    // is logged in-app yet -- otherwise the feature's target user (a long
+    // pre-app career, no logged dives) would only ever see the empty state.
+    if (stats.totalDives == 0 && !career.hasPriorExperience) {
+      return const _EmptyState();
+    }
+
+    final settings = ref.watch(settingsProvider);
+    final fmt = UnitFormatter(settings);
     final recordsAsync = ref.watch(diveRecordsProvider);
 
     return SingleChildScrollView(
@@ -166,8 +169,8 @@ class _AggregateGrid extends StatelessWidget {
         value: career.combinedTimeFormatted,
         subtitle: career.hasPriorTime
             ? context.l10n.statistics_priorBreakdown(
-                '${career.loggedHours}h',
-                '${career.priorHours}h',
+                career.loggedTimeFormatted,
+                career.priorTimeFormatted,
               )
             : null,
         color: Colors.teal,

@@ -48,7 +48,7 @@ class Divers extends Table {
   // logged before the diver started using Submersion. Null = none.
   IntColumn get priorDiveCount => integer().nullable()();
   IntColumn get priorDiveTimeSeconds => integer().nullable()();
-  IntColumn get divingSince => integer().nullable()(); // Unix ms timestamp
+  IntColumn get divingSince => integer().nullable()(); // year, e.g. 1990
 
   @override
   Set<Column> get primaryKey => {id};
