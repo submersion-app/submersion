@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
@@ -151,4 +152,74 @@ void main() {
     final result = await publish(); // only 1 changeset past base
     expect(result.kind, ChangesetWriteKind.changeset);
   });
+
+  test('compaction succeeds even when pruning superseded files fails', () async {
+    final failCloud = _DeleteFailCloud();
+    final db = DatabaseService.instance.database;
+    final serializer = SyncDataSerializer();
+    final failWriter = ChangesetWriter(
+      serializer,
+      ChangesetCodec(serializer),
+      PublishStateStore(db),
+      compactionByteRatio: 1000.0,
+      compactionMaxChangesets: 2,
+    );
+    final failFolder = await failCloud.getOrCreateSyncFolder();
+    final deviceId = await SyncRepository().getDeviceId();
+
+    Future<ChangesetWriteResult> pub() async => failWriter.publish(
+      provider: failCloud,
+      deviceId: deviceId,
+      folderId: failFolder,
+      deletions: await SyncRepository().getAllDeletions(),
+    );
+
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    await pub(); // base @1
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd2', diveNumber: 2),
+    );
+    await pub(); // cs @2
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd3', diveNumber: 3),
+    );
+
+    // The prune step now throws on every deleteFile; the fresh base + manifest
+    // are already committed, so the publish must still report success.
+    failCloud.failDeletes = true;
+    final result = await pub(); // cs @3 -> compaction (+ failing prune)
+    expect(
+      result.kind,
+      ChangesetWriteKind.compacted,
+      reason:
+          'a transient prune (deleteFile) failure must not fail the publish',
+    );
+
+    final manifest = SyncManifest.fromBytes(
+      await failCloud.downloadFile(
+        '$failFolder/${ChangesetLogLayout.manifestName(deviceId)}',
+      ),
+    );
+    expect(
+      manifest.headSeq,
+      manifest.baseSeq,
+      reason: 'the fresh base committed despite the prune failure',
+    );
+  });
+}
+
+/// A fake cloud whose deletes can be made to throw, to exercise the best-effort
+/// prune during compaction.
+class _DeleteFailCloud extends FakeCloudStorageProvider {
+  bool failDeletes = false;
+
+  @override
+  Future<void> deleteFile(String fileId) async {
+    if (failDeletes) {
+      throw const CloudStorageException('delete failed (test)');
+    }
+    return super.deleteFile(fileId);
+  }
 }

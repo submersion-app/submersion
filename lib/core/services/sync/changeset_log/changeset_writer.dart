@@ -296,25 +296,38 @@ class ChangesetWriter {
     return compSeq;
   }
 
+  /// Best-effort: pruning is a post-commit optimization -- the fresh base and
+  /// manifest are already durable, so a transient list/delete failure must
+  /// never fail the publish. Superseded files are harmless (the base is their
+  /// superset) and a later sync re-runs this idempotent sweep.
   Future<void> _pruneSupersededBelow(
     CloudStorageProvider provider,
     String folderId,
     String deviceId,
     int keepBaseSeq,
   ) async {
-    final files = await provider.listFiles(
-      folderId: folderId,
-      namePattern: ChangesetLogLayout.prefix,
-    );
-    for (final f in files) {
-      if (ChangesetLogLayout.deviceIdOf(f.name) != deviceId) continue;
-      final cs = ChangesetLogLayout.changesetSeqOf(f.name);
-      final bp = ChangesetLogLayout.basePartOf(f.name);
-      final supersededCs = cs != null && cs < keepBaseSeq;
-      final supersededBase = bp != null && bp.baseSeq != keepBaseSeq;
-      if (supersededCs || supersededBase) {
-        await provider.deleteFile(f.id);
+    try {
+      final files = await provider.listFiles(
+        folderId: folderId,
+        namePattern: ChangesetLogLayout.prefix,
+      );
+      for (final f in files) {
+        if (ChangesetLogLayout.deviceIdOf(f.name) != deviceId) continue;
+        final cs = ChangesetLogLayout.changesetSeqOf(f.name);
+        final bp = ChangesetLogLayout.basePartOf(f.name);
+        final supersededCs = cs != null && cs < keepBaseSeq;
+        final supersededBase = bp != null && bp.baseSeq != keepBaseSeq;
+        if (supersededCs || supersededBase) {
+          try {
+            await provider.deleteFile(f.id);
+          } catch (_) {
+            // Leave this file; the next compaction's sweep retries it.
+          }
+        }
       }
+    } catch (_) {
+      // Listing failed -- skip pruning this round. The new base/manifest are
+      // already committed; the next sync re-runs this idempotent sweep.
     }
   }
 }
