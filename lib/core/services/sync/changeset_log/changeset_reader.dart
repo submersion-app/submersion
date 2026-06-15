@@ -36,6 +36,7 @@ class ChangesetReader {
     required String selfDeviceId,
     required String folderId,
     required ApplyPayload apply,
+    String? currentEpochId,
   }) async {
     final providerId = provider.providerId;
     final files = await provider.listFiles(
@@ -58,6 +59,15 @@ class ChangesetReader {
         final manifest = SyncManifest.fromBytes(
           await provider.downloadFile(manifestFile.id),
         );
+
+        // Stale-epoch filter: once this device is on a library epoch, a peer
+        // stamped with a different epoch (or unstamped) is inert -- applying it
+        // would leak a replaced-away library back in. Mirrors performSync's
+        // per-file filter. Null currentEpochId is the pre-epoch world: no
+        // filtering, apply every peer.
+        if (currentEpochId != null && manifest.epochId != currentEpochId) {
+          continue;
+        }
         peersProcessed++;
 
         final cursor = await _peerCursors.get(peerId, providerId);
