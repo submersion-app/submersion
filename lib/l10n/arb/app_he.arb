@@ -1,5 +1,5 @@
 {
-  "@@last_modified": "2026-04-17",
+  "@@last_modified": "2026-06-15",
   "@@locale": "he",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -4842,5 +4842,19 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "מזג",
   "settings_cloudSync_duplicateDivers_successSnack": "מוזג אל {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "המיזוג נכשל: {error}",
-  "settings_cloudSync_duplicateDivers_undo": "בטל"
+  "settings_cloudSync_duplicateDivers_undo": "בטל",
+  "settings_appearance_gasTimeline": "ציר זמן של הגז",
+  "settings_appearance_gasTimeline_subtitle": "הצג את רצועת צריכת הגז מתחת לפרופיל הצלילה כברירת מחדל",
+  "diveDetailSection_surfaceGps_name": "GPS פני המים",
+  "diveDetailSection_surfaceGps_description": "נקודות כניסה/יציאה ב-GPS וסחף פני המים",
+  "diveLog_detail_section_surfaceGps": "GPS פני המים",
+  "diveLog_detail_surfaceGps_entry": "כניסה",
+  "diveLog_detail_surfaceGps_exit": "יציאה",
+  "diveLog_detail_label_drift": "סחף",
+  "diveLog_detail_surfaceGps_entryOnly": "נקודת הכניסה נרשמה",
+  "diveLog_detail_surfaceGps_exitOnly": "נקודת היציאה נרשמה",
+  "diveLog_detail_surfaceGps_site": "אתר",
+  "diveLog_detail_locationsMap_title": "מיקומי צלילה",
+  "diveLog_detail_coordinatesCopied": "הקואורדינטות הועתקו ללוח",
+  "diveLog_detail_openInMaps": "פתח במפות"
 }

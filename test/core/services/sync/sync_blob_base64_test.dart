@@ -8,6 +8,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
+import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_database.dart';
@@ -52,12 +53,11 @@ void main() {
           'rawFingerprint': fingerprint,
         });
 
+        final deviceId = await SyncRepository().getDeviceId();
         await buildService().performSync();
 
-        final payload = serializer.deserializePayload(
-          utf8.decode(cloud.syncFileBytes()!),
-        );
-        final row = payload.data.diveDataSources.firstWhere(
+        final payload = await cloudBasePayload(cloud, deviceId);
+        final row = payload!.data.diveDataSources.firstWhere(
           (r) => r['id'] == 'ds-b64-1',
         );
 
@@ -120,11 +120,10 @@ void main() {
         'rawFingerprint': null,
       });
 
+      final deviceId = await SyncRepository().getDeviceId();
       await buildService().performSync();
-      final payload = serializer.deserializePayload(
-        utf8.decode(cloud.syncFileBytes()!),
-      );
-      final row = payload.data.diveDataSources.firstWhere(
+      final payload = await cloudBasePayload(cloud, deviceId);
+      final row = payload!.data.diveDataSources.firstWhere(
         (r) => r['id'] == 'ds-null',
       );
       expect(

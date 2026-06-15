@@ -9571,11 +9571,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_gasSwitchMarkers_subtitle => '显示气体切换标记';
 
   @override
-  String get settings_appearance_gasTimeline => 'Gas timeline';
+  String get settings_appearance_gasTimeline => '气体时间线';
 
   @override
-  String get settings_appearance_gasTimeline_subtitle =>
-      'Show the gas-usage strip below the dive profile by default';
+  String get settings_appearance_gasTimeline_subtitle => '默认在潜水剖面下方显示气体消耗条';
 
   @override
   String get settings_appearance_header_diveDetails => '潜水详情';
@@ -9647,42 +9646,40 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_tide_description => '潮汐周期图和时间';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Surface GPS';
+  String get diveDetailSection_surfaceGps_name => '水面 GPS';
 
   @override
-  String get diveDetailSection_surfaceGps_description =>
-      'GPS entry/exit points and surface drift';
+  String get diveDetailSection_surfaceGps_description => 'GPS 入水/出水点及水面漂移';
 
   @override
-  String get diveLog_detail_section_surfaceGps => 'Surface GPS';
+  String get diveLog_detail_section_surfaceGps => '水面 GPS';
 
   @override
-  String get diveLog_detail_surfaceGps_entry => 'Entry';
+  String get diveLog_detail_surfaceGps_entry => '入水';
 
   @override
-  String get diveLog_detail_surfaceGps_exit => 'Exit';
+  String get diveLog_detail_surfaceGps_exit => '出水';
 
   @override
-  String get diveLog_detail_label_drift => 'Drift';
+  String get diveLog_detail_label_drift => '漂移';
 
   @override
-  String get diveLog_detail_surfaceGps_entryOnly => 'Entry point recorded';
+  String get diveLog_detail_surfaceGps_entryOnly => '已记录入水点';
 
   @override
-  String get diveLog_detail_surfaceGps_exitOnly => 'Exit point recorded';
+  String get diveLog_detail_surfaceGps_exitOnly => '已记录出水点';
 
   @override
-  String get diveLog_detail_surfaceGps_site => 'Site';
+  String get diveLog_detail_surfaceGps_site => '潜点';
 
   @override
-  String get diveLog_detail_locationsMap_title => 'Dive Locations';
+  String get diveLog_detail_locationsMap_title => '潜水位置';
 
   @override
-  String get diveLog_detail_coordinatesCopied =>
-      'Coordinates copied to clipboard';
+  String get diveLog_detail_coordinatesCopied => '坐标已复制到剪贴板';
 
   @override
-  String get diveLog_detail_openInMaps => 'Open in Maps';
+  String get diveLog_detail_openInMaps => '在地图中打开';
 
   @override
   String get diveDetailSection_weights_name => '重量';

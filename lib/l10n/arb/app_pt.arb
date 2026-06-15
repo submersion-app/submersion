@@ -1,5 +1,5 @@
 {
-  "@@last_modified": "2026-04-17",
+  "@@last_modified": "2026-06-15",
   "@@locale": "pt",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -4842,5 +4842,19 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "Mesclar",
   "settings_cloudSync_duplicateDivers_successSnack": "Mesclado em {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "Falha ao mesclar: {error}",
-  "settings_cloudSync_duplicateDivers_undo": "Desfazer"
+  "settings_cloudSync_duplicateDivers_undo": "Desfazer",
+  "settings_appearance_gasTimeline": "Linha do tempo do gás",
+  "settings_appearance_gasTimeline_subtitle": "Exibir a faixa de consumo de gás abaixo do perfil de mergulho por padrão",
+  "diveDetailSection_surfaceGps_name": "GPS de superfície",
+  "diveDetailSection_surfaceGps_description": "Pontos de entrada/saída por GPS e deriva na superfície",
+  "diveLog_detail_section_surfaceGps": "GPS de superfície",
+  "diveLog_detail_surfaceGps_entry": "Entrada",
+  "diveLog_detail_surfaceGps_exit": "Saída",
+  "diveLog_detail_label_drift": "Deriva",
+  "diveLog_detail_surfaceGps_entryOnly": "Ponto de entrada registrado",
+  "diveLog_detail_surfaceGps_exitOnly": "Ponto de saída registrado",
+  "diveLog_detail_surfaceGps_site": "Ponto de mergulho",
+  "diveLog_detail_locationsMap_title": "Locais de mergulho",
+  "diveLog_detail_coordinatesCopied": "Coordenadas copiadas para a área de transferência",
+  "diveLog_detail_openInMaps": "Abrir no Mapas"
 }

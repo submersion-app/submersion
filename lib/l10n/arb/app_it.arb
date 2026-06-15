@@ -1,5 +1,5 @@
 {
-  "@@last_modified": "2026-04-17",
+  "@@last_modified": "2026-06-15",
   "@@locale": "it",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -4842,5 +4842,19 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "Unisci",
   "settings_cloudSync_duplicateDivers_successSnack": "Unito in {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "Unione non riuscita: {error}",
-  "settings_cloudSync_duplicateDivers_undo": "Annulla"
+  "settings_cloudSync_duplicateDivers_undo": "Annulla",
+  "settings_appearance_gasTimeline": "Cronologia del gas",
+  "settings_appearance_gasTimeline_subtitle": "Visualizza la striscia di consumo del gas sotto il profilo di immersione per impostazione predefinita",
+  "diveDetailSection_surfaceGps_name": "GPS di superficie",
+  "diveDetailSection_surfaceGps_description": "Punti GPS di entrata/uscita e deriva in superficie",
+  "diveLog_detail_section_surfaceGps": "GPS di superficie",
+  "diveLog_detail_surfaceGps_entry": "Entrata",
+  "diveLog_detail_surfaceGps_exit": "Uscita",
+  "diveLog_detail_label_drift": "Deriva",
+  "diveLog_detail_surfaceGps_entryOnly": "Punto di entrata registrato",
+  "diveLog_detail_surfaceGps_exitOnly": "Punto di uscita registrato",
+  "diveLog_detail_surfaceGps_site": "Sito",
+  "diveLog_detail_locationsMap_title": "Posizioni dell'immersione",
+  "diveLog_detail_coordinatesCopied": "Coordinate copiate negli appunti",
+  "diveLog_detail_openInMaps": "Apri in Mappe"
 }

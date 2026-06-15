@@ -2,8 +2,11 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/view_field_config.dart'
+    as vfc;
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart'
     as domain;
@@ -63,6 +66,32 @@ void main() {
       db.viewConfigs,
     )..where((t) => t.diverId.equals('diver-x'))).getSingle();
     expect(row.hlc, isNotNull);
+  });
+
+  test('ViewConfigRepository.savePreset stamps an hlc', () async {
+    // field_presets is an HLC-filtered changeset entity, so a saved preset that
+    // never stamps hlc would be silently dropped from every incremental sync
+    // after the base watermark is established.
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'diver-x',
+            name: 'Test',
+            createdAt: 1000,
+            updatedAt: 1000,
+          ),
+        );
+    await ViewConfigRepository(db).savePreset(
+      'diver-x',
+      const vfc.FieldPreset(
+        id: 'fp-x',
+        name: 'My Preset',
+        viewMode: ListViewMode.table,
+        configJson: {'k': 1},
+      ),
+    );
+    expect(await hlcOf('field_presets', 'id', 'fp-x'), isNotNull);
   });
 
   test('AppSettingsRepository.setShareByDefault stamps an hlc', () async {

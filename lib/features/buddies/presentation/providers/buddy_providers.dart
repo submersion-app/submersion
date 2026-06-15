@@ -144,6 +144,11 @@ final buddyByIdProvider = FutureProvider.family<Buddy?, String>((
 final buddiesForDiveProvider =
     FutureProvider.family<List<BuddyWithRole>, String>((ref, diveId) async {
       final repository = ref.watch(buddyRepositoryProvider);
+      final sub = ref
+          .watch(diveRepositoryProvider)
+          .watchDiveDetailChanges()
+          .listen((_) => ref.invalidateSelf());
+      ref.onDispose(sub.cancel);
       return repository.getBuddiesForDive(diveId);
     });
 

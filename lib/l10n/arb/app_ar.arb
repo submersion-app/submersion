@@ -1,5 +1,5 @@
 {
-  "@@last_modified": "2026-04-17",
+  "@@last_modified": "2026-06-15",
   "@@locale": "ar",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -4842,5 +4842,19 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "دمج",
   "settings_cloudSync_duplicateDivers_successSnack": "تم الدمج في {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "فشل الدمج: {error}",
-  "settings_cloudSync_duplicateDivers_undo": "تراجع"
+  "settings_cloudSync_duplicateDivers_undo": "تراجع",
+  "settings_appearance_gasTimeline": "الجدول الزمني للغاز",
+  "settings_appearance_gasTimeline_subtitle": "عرض شريط استهلاك الغاز أسفل ملف الغوصة بشكل افتراضي",
+  "diveDetailSection_surfaceGps_name": "GPS السطح",
+  "diveDetailSection_surfaceGps_description": "نقاط الدخول/الخروج عبر GPS وانجراف السطح",
+  "diveLog_detail_section_surfaceGps": "GPS السطح",
+  "diveLog_detail_surfaceGps_entry": "الدخول",
+  "diveLog_detail_surfaceGps_exit": "الخروج",
+  "diveLog_detail_label_drift": "انجراف",
+  "diveLog_detail_surfaceGps_entryOnly": "تم تسجيل نقطة الدخول",
+  "diveLog_detail_surfaceGps_exitOnly": "تم تسجيل نقطة الخروج",
+  "diveLog_detail_surfaceGps_site": "الموقع",
+  "diveLog_detail_locationsMap_title": "مواقع الغوص",
+  "diveLog_detail_coordinatesCopied": "تم نسخ الإحداثيات إلى الحافظة",
+  "diveLog_detail_openInMaps": "فتح في الخرائط"
 }

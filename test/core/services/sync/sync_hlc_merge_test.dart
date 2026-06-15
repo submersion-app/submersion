@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +9,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
+import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/sync_test_helpers.dart';
@@ -69,12 +69,7 @@ void main() {
         data: data,
         deletions: const {},
       );
-      await cloud.uploadFile(
-        Uint8List.fromList(
-          utf8.encode(SyncDataSerializer().serializePayload(payload)),
-        ),
-        'submersion_sync_$deviceId.json',
-      );
+      await seedPeerBaseFromPayload(cloud, deviceId, payload);
     }
 
     // Hlc string with a given physical-time component (counter 0).

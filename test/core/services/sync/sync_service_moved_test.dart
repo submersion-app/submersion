@@ -104,7 +104,6 @@ void main() {
       final serializer = SyncDataSerializer();
       final payload = await serializer.exportData(
         deviceId: 'device-A',
-        since: null,
         lastSyncTimestamp: null,
         deletions: const [],
         uploadNonce: null,
