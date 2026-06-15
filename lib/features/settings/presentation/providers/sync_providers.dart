@@ -391,6 +391,14 @@ class SyncNotifier extends StateNotifier<SyncState> {
     try {
       final provider = _ref.read(cloudStorageProviderProvider);
       if (provider == null) return null;
+      // An established device is never first-contact: a restore wipes the
+      // in-DB cursor (lastSyncTime), but this anchor survives, so the gate
+      // must not re-fire for a device that already merged here.
+      if (_ref
+          .read(establishedProviderStoreProvider)
+          .contains(provider.providerId)) {
+        return null;
+      }
       // Scoped: first contact is per-backend. A cursor minted against a
       // backend the user switched away from must not mask the first,
       // library-combining sync against the new one.
