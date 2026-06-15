@@ -167,6 +167,12 @@ class SyncService {
   final _log = LoggerService.forClass(SyncService);
   final _uuid = const Uuid();
 
+  /// How long a library-epoch marker with no readable (ssv1) library may exist
+  /// before it is treated as orphaned (a replace that never landed) rather than
+  /// in flight. A backend carrying only old-format files is recovered
+  /// immediately, regardless of this.
+  static const _unreadableEpochGraceMs = 60 * 60 * 1000; // 1 hour
+
   // Changeset-log transport (Phases 1-6), lazily bound to the active database.
   late final ChangesetCodec _changesetCodec = ChangesetCodec(_serializer);
   late final ChangesetWriter _changesetWriter = ChangesetWriter(
@@ -504,6 +510,14 @@ class SyncService {
     if (marker.epochId == accepted) {
       return _EpochGate.proceed(accepted);
     }
+    // Before halting for adoption, make sure the marked library is actually
+    // readable. A marker with no current-format (ssv1) library is either a
+    // replace still in flight (wait) or orphaned / old-format (unrecoverable);
+    // for the latter, re-establish this backend from our own library instead
+    // of bricking sync in an un-adoptable awaiting-adoption loop.
+    if (await _recoverUnreadableEpoch(provider, marker)) {
+      return _EpochGate.proceed(marker.epochId);
+    }
     _log.info(
       'Cloud library was replaced (epoch ${marker.epochId}); '
       'halting sync until the user adopts',
@@ -515,6 +529,68 @@ class SyncService {
         replaceMarker: marker,
       ),
     );
+  }
+
+  /// When [marker]'s epoch has no readable (current-format) library, decide
+  /// whether to recover or to wait. Recovery -- re-establish this backend from
+  /// the local library (wipe stale files, cold-start the publish state, adopt
+  /// the epoch) -- happens when the backend holds only old-format files (a
+  /// pre-changeset app version) or the marker is older than the grace window (a
+  /// replace whose base never landed). Returns true when it recovered; false to
+  /// wait (a replace in flight) or when the library is adoptable. The caller
+  /// then publishes (in performSync, or the notifier's follow-up sync after
+  /// adopt), writing our library as the new base stamped with this epoch.
+  Future<bool> _recoverUnreadableEpoch(
+    CloudStorageProvider provider,
+    LibraryEpochMarker marker,
+  ) async {
+    final epochStore = _epochStore;
+    if (epochStore == null) return false;
+    final folderId = await provider.getOrCreateSyncFolder();
+    if (await _epochHasReadableLibrary(provider, folderId, marker.epochId)) {
+      return false; // adoptable -> caller halts for adoption
+    }
+    final legacy = await provider.listFiles(
+      namePattern: CloudStorageProviderMixin.syncFileStem,
+    );
+    final ageMs = DateTime.now().millisecondsSinceEpoch - marker.replacedAt;
+    if (legacy.isEmpty && ageMs <= _unreadableEpochGraceMs) {
+      return false; // possibly a replace in flight -> wait
+    }
+    _log.warning(
+      'Epoch ${marker.epochId} has no readable library; re-establishing this '
+      'backend from the local library',
+    );
+    await deleteAllSyncFiles(provider);
+    final db = DatabaseService.instance.database;
+    await PublishStateStore(db).resetForProvider(provider.providerId);
+    await PeerCursorStore(db).resetForProvider(provider.providerId);
+    await _syncRepository.setLastAcceptedEpochId(marker.epochId);
+    await epochStore.setLastAccepted(marker);
+    return true;
+  }
+
+  /// True if any device has published a current-format (ssv1) base for
+  /// [epochId] -- i.e. the marked library is actually adoptable.
+  Future<bool> _epochHasReadableLibrary(
+    CloudStorageProvider provider,
+    String folderId,
+    String epochId,
+  ) async {
+    final files = await provider.listFiles(
+      folderId: folderId,
+      namePattern: ChangesetLogLayout.prefix,
+    );
+    for (final f in files) {
+      if (!ChangesetLogLayout.isManifest(f.name)) continue;
+      try {
+        final m = SyncManifest.fromBytes(await provider.downloadFile(f.id));
+        if (m.epochId == epochId && m.baseSeq != null) return true;
+      } catch (_) {
+        continue;
+      }
+    }
+    return false;
   }
 
   /// Twin-identity split: if this device's own cloud manifest carries an
@@ -1470,8 +1546,19 @@ class SyncService {
         marker.epochId,
       );
       if (payloads.isEmpty) {
-        // Replace still in flight (marker written, stamped upload pending).
-        // Applying an empty set would wipe this library to zero -- abort.
+        // No current-format library for this epoch. If the marker is stale
+        // (old-format backend or an orphaned replace), re-establish from the
+        // local library rather than bricking; the notifier's follow-up sync
+        // then publishes our base. Otherwise it is a replace in flight --
+        // applying an empty set would wipe this library to zero, so wait.
+        if (await _recoverUnreadableEpoch(provider, marker)) {
+          return const SyncResult(
+            status: SyncResultStatus.success,
+            message:
+                'The previous library could not be read; re-established this '
+                'backend from this device\'s library.',
+          );
+        }
         return const SyncResult(
           status: SyncResultStatus.error,
           message:

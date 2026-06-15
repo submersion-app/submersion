@@ -268,15 +268,54 @@ void main() {
       deviceId: 'replacer',
     );
 
+    test('aborts when a current-epoch replace is still uploading', () async {
+      final service = buildService();
+      // FRESH marker, no base landed yet: a replace in flight. Adopt must
+      // wait, not wipe local to empty (and not mistake it for orphaned).
+      await service.writeLibraryEpochMarker(
+        cloud,
+        LibraryEpochMarker(
+          epochId: 'e1',
+          replacedAt: DateTime.now().millisecondsSinceEpoch,
+          deviceId: 'replacer',
+        ),
+      );
+      final result = await service.adoptReplacedLibrary();
+      expect(result.isSuccess, isFalse);
+      expect(await SyncRepository().getLastAcceptedEpochId(), isNull);
+    });
+
     test(
-      'aborts when the marker exists but no current-epoch log does',
+      'adopt re-establishes from local when the marked library is unreadable',
       () async {
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'mine-1'),
+        );
         final service = buildService();
-        await service.writeLibraryEpochMarker(cloud, marker);
-        // Replace still in flight: marker written, stamped base not landed.
+        await service.writeLibraryEpochMarker(
+          cloud,
+          const LibraryEpochMarker(
+            epochId: 'stale',
+            replacedAt: 1,
+            deviceId: 'old',
+          ),
+        );
+        // Only old-format data on the backend (a pre-changeset app version).
+        await cloud.uploadFile(
+          Uint8List.fromList(utf8.encode('{"version":1}')),
+          '${CloudStorageProviderMixin.syncFilePrefix}old-device'
+          '${CloudStorageProviderMixin.syncFileExtension}',
+        );
+
         final result = await service.adoptReplacedLibrary();
-        expect(result.isSuccess, isFalse);
-        expect(await SyncRepository().getLastAcceptedEpochId(), isNull);
+
+        expect(result.isSuccess, isTrue);
+        expect(await SyncRepository().getLastAcceptedEpochId(), 'stale');
+        // The local library is retained (not wiped to match a missing cloud).
+        expect(
+          await SyncDataSerializer().fetchRecord('dives', 'mine-1'),
+          isNotNull,
+        );
       },
     );
 
@@ -513,6 +552,9 @@ void main() {
           deviceId: 'other',
         ),
       );
+      // The other device actually published an e2 library, so this is a
+      // genuine adoptable conflict (not an orphaned marker).
+      await seedPeerManifest(newBackend, 'other-device', epochId: 'e2');
       newBackend.operationLog.clear();
 
       final result = await serviceFor(newBackend).performSync();
@@ -525,6 +567,104 @@ void main() {
         reason: 'no file may be uploaded into a not-yet-adopted epoch',
       );
     });
+  });
+
+  // Switching to a backend whose marked library cannot be read (an older
+  // pre-changeset app's full-file data, or a replace whose base never landed)
+  // must NOT brick sync in an un-adoptable awaiting-adoption loop. The device
+  // re-establishes the backend from its own library instead.
+  group('unreadable / orphaned epoch recovery', () {
+    test('a backend whose marked library is old-format (no ssv1) is '
+        're-established from the local library, not bricked', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'mine-1'),
+      );
+      final service = buildService();
+      await service.writeLibraryEpochMarker(
+        cloud,
+        const LibraryEpochMarker(
+          epochId: 'stale',
+          replacedAt: 1,
+          deviceId: 'old',
+        ),
+      );
+      // Only OLD full-file data on the backend (a pre-changeset app version).
+      await cloud.uploadFile(
+        Uint8List.fromList(utf8.encode('{"version":1}')),
+        '${CloudStorageProviderMixin.syncFilePrefix}old-device'
+        '${CloudStorageProviderMixin.syncFileExtension}',
+      );
+
+      final result = await service.performSync();
+
+      expect(
+        result.status,
+        isNot(SyncResultStatus.awaitingAdoption),
+        reason: 'an unreadable marked library must not brick sync',
+      );
+      expect(result.isSuccess, isTrue);
+      expect(await SyncRepository().getLastAcceptedEpochId(), 'stale');
+      final deviceId = await SyncRepository().getDeviceId();
+      final base = await cloudBasePayload(cloud, deviceId);
+      expect(base?.epochId, 'stale');
+      expect(base?.data.dives.map((d) => d['id']), contains('mine-1'));
+      // The old full-file data was discarded.
+      expect(
+        await cloud.listFiles(
+          namePattern: CloudStorageProviderMixin.syncFileStem,
+        ),
+        isEmpty,
+      );
+    });
+
+    test(
+      'an ancient orphaned marker with no library is re-established',
+      () async {
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'mine-1'),
+        );
+        final service = buildService();
+        // Marker written long ago, no ssv1 base ever landed (the replacer died
+        // mid-replace): orphaned, must recover rather than brick forever.
+        await service.writeLibraryEpochMarker(
+          cloud,
+          const LibraryEpochMarker(
+            epochId: 'orphan',
+            replacedAt: 1,
+            deviceId: 'dead',
+          ),
+        );
+
+        final result = await service.performSync();
+
+        expect(result.isSuccess, isTrue);
+        expect(await SyncRepository().getLastAcceptedEpochId(), 'orphan');
+      },
+    );
+
+    test(
+      'a fresh marker with no library yet still halts (replace in flight)',
+      () async {
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'mine-1'),
+        );
+        final service = buildService();
+        // Marker written just now, base upload still in progress: must wait for
+        // adoption, not clobber the in-flight replace.
+        await service.writeLibraryEpochMarker(
+          cloud,
+          LibraryEpochMarker(
+            epochId: 'inflight',
+            replacedAt: DateTime.now().millisecondsSinceEpoch,
+            deviceId: 'replacer',
+          ),
+        );
+
+        final result = await service.performSync();
+
+        expect(result.status, SyncResultStatus.awaitingAdoption);
+      },
+    );
   });
 }
 

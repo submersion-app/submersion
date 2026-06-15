@@ -143,6 +143,10 @@ void main() {
       final container = await makeContainer();
       await seedLocalDive('mine-1');
       seedMarker(marker);
+      // A genuine replace also published an e1 library, so the epoch is
+      // adoptable (an orphaned marker would instead auto-recover).
+      await seedPeerManifest(cloud, 'replacer-device', epochId: 'e1');
+      cloud.operationLog.clear();
 
       await container.read(syncStateProvider.notifier).performSync();
 
@@ -209,8 +213,16 @@ void main() {
       },
     );
 
-    test('surfaces an error when no current-epoch file exists yet', () async {
-      seedMarker(marker); // replace in flight: marker only, no stamped file
+    test('surfaces an error when a replace is still uploading', () async {
+      // FRESH marker, no stamped base yet: a replace in flight (an old/orphaned
+      // marker would instead auto-recover from the local library).
+      seedMarker(
+        LibraryEpochMarker(
+          epochId: 'e1',
+          replacedAt: DateTime.now().millisecondsSinceEpoch,
+          deviceId: 'replacer-device',
+        ),
+      );
       final container = await makeContainer();
       final notifier = container.read(syncStateProvider.notifier);
 
