@@ -17005,4 +17005,39 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_cloudSync_duplicateDivers_undo => 'Ongedaan maken';
+
+  @override
+  String get divers_edit_priorExperienceSection => 'Eerdere Ervaring';
+
+  @override
+  String get divers_edit_priorExperienceHelp =>
+      'Duiken en tijd van voordat je begon te loggen in Submersion.';
+
+  @override
+  String get divers_edit_priorDivesLabel => 'Eerdere duiken';
+
+  @override
+  String get divers_edit_priorHoursLabel => 'Eerdere uren';
+
+  @override
+  String get divers_edit_priorMinutesLabel => 'Minuten';
+
+  @override
+  String get divers_edit_divingSinceLabel => 'Duikt sinds';
+
+  @override
+  String get divers_edit_divingSinceNotSet => 'Niet ingesteld';
+
+  @override
+  String get divers_edit_priorInvalidNumber => 'Voer een geldig getal in';
+
+  @override
+  String statistics_priorBreakdown(String logged, String prior) {
+    return '$logged gelogd + $prior eerder';
+  }
+
+  @override
+  String statistics_divingSince(int year) {
+    return 'Duikt sinds $year';
+  }
 }

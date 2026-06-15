@@ -17150,4 +17150,39 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_cloudSync_duplicateDivers_undo => 'Deshacer';
+
+  @override
+  String get divers_edit_priorExperienceSection => 'Experiencia Previa';
+
+  @override
+  String get divers_edit_priorExperienceHelp =>
+      'Inmersiones y tiempo de antes de empezar a registrar en Submersion.';
+
+  @override
+  String get divers_edit_priorDivesLabel => 'Inmersiones previas';
+
+  @override
+  String get divers_edit_priorHoursLabel => 'Horas previas';
+
+  @override
+  String get divers_edit_priorMinutesLabel => 'Minutos';
+
+  @override
+  String get divers_edit_divingSinceLabel => 'Buceando desde';
+
+  @override
+  String get divers_edit_divingSinceNotSet => 'Sin definir';
+
+  @override
+  String get divers_edit_priorInvalidNumber => 'Introduce un número válido';
+
+  @override
+  String statistics_priorBreakdown(String logged, String prior) {
+    return '$logged registradas + $prior previas';
+  }
+
+  @override
+  String statistics_divingSince(int year) {
+    return 'Buceando desde $year';
+  }
 }

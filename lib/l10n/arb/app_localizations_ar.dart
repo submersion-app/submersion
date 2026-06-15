@@ -16816,4 +16816,39 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_cloudSync_duplicateDivers_undo => 'تراجع';
+
+  @override
+  String get divers_edit_priorExperienceSection => 'خبرة سابقة';
+
+  @override
+  String get divers_edit_priorExperienceHelp =>
+      'الغطسات والوقت من قبل أن تبدأ التسجيل في Submersion.';
+
+  @override
+  String get divers_edit_priorDivesLabel => 'غطسات سابقة';
+
+  @override
+  String get divers_edit_priorHoursLabel => 'ساعات سابقة';
+
+  @override
+  String get divers_edit_priorMinutesLabel => 'دقائق';
+
+  @override
+  String get divers_edit_divingSinceLabel => 'يغوص منذ';
+
+  @override
+  String get divers_edit_divingSinceNotSet => 'غير محدد';
+
+  @override
+  String get divers_edit_priorInvalidNumber => 'أدخل رقمًا صالحًا';
+
+  @override
+  String statistics_priorBreakdown(String logged, String prior) {
+    return '$logged مسجلة + $prior سابقة';
+  }
+
+  @override
+  String statistics_divingSince(int year) {
+    return 'يغوص منذ $year';
+  }
 }

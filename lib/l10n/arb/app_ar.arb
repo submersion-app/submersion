@@ -4842,5 +4842,15 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "دمج",
   "settings_cloudSync_duplicateDivers_successSnack": "تم الدمج في {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "فشل الدمج: {error}",
-  "settings_cloudSync_duplicateDivers_undo": "تراجع"
+  "settings_cloudSync_duplicateDivers_undo": "تراجع",
+  "divers_edit_priorExperienceSection": "خبرة سابقة",
+  "divers_edit_priorExperienceHelp": "الغطسات والوقت من قبل أن تبدأ التسجيل في Submersion.",
+  "divers_edit_priorDivesLabel": "غطسات سابقة",
+  "divers_edit_priorHoursLabel": "ساعات سابقة",
+  "divers_edit_priorMinutesLabel": "دقائق",
+  "divers_edit_divingSinceLabel": "يغوص منذ",
+  "divers_edit_divingSinceNotSet": "غير محدد",
+  "divers_edit_priorInvalidNumber": "أدخل رقمًا صالحًا",
+  "statistics_priorBreakdown": "{logged} مسجلة + {prior} سابقة",
+  "statistics_divingSince": "يغوص منذ {year}"
 }

@@ -4842,5 +4842,15 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "Összevon",
   "settings_cloudSync_duplicateDivers_successSnack": "Összevonva ide: {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "Összevonás sikertelen: {error}",
-  "settings_cloudSync_duplicateDivers_undo": "Visszavonás"
+  "settings_cloudSync_duplicateDivers_undo": "Visszavonás",
+  "divers_edit_priorExperienceSection": "Korábbi Tapasztalat",
+  "divers_edit_priorExperienceHelp": "Merülések és idő azelőttről, hogy elkezdted naplózni a Submersionben.",
+  "divers_edit_priorDivesLabel": "Korábbi merülések",
+  "divers_edit_priorHoursLabel": "Korábbi órák",
+  "divers_edit_priorMinutesLabel": "Perc",
+  "divers_edit_divingSinceLabel": "Merül azóta",
+  "divers_edit_divingSinceNotSet": "Nincs beállítva",
+  "divers_edit_priorInvalidNumber": "Adjon meg egy érvényes számot",
+  "statistics_priorBreakdown": "{logged} naplózva + {prior} korábbi",
+  "statistics_divingSince": "{year} óta merül"
 }

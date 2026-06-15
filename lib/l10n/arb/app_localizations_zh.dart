@@ -16311,4 +16311,39 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_cloudSync_duplicateDivers_undo => '撤销';
+
+  @override
+  String get divers_edit_priorExperienceSection => '既往经验';
+
+  @override
+  String get divers_edit_priorExperienceHelp =>
+      '在开始使用 Submersion 记录之前的潜水次数和时间。';
+
+  @override
+  String get divers_edit_priorDivesLabel => '既往潜水次数';
+
+  @override
+  String get divers_edit_priorHoursLabel => '既往小时数';
+
+  @override
+  String get divers_edit_priorMinutesLabel => '分钟';
+
+  @override
+  String get divers_edit_divingSinceLabel => '潜水始于';
+
+  @override
+  String get divers_edit_divingSinceNotSet => '未设置';
+
+  @override
+  String get divers_edit_priorInvalidNumber => '请输入有效数字';
+
+  @override
+  String statistics_priorBreakdown(String logged, String prior) {
+    return '$logged 已记录 + $prior 既往';
+  }
+
+  @override
+  String statistics_divingSince(int year) {
+    return '自 $year 年起潜水';
+  }
 }

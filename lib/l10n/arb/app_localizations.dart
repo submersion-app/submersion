@@ -28797,6 +28797,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Undo'**
   String get settings_cloudSync_duplicateDivers_undo;
+
+  /// No description provided for @divers_edit_priorExperienceSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Prior Experience'**
+  String get divers_edit_priorExperienceSection;
+
+  /// No description provided for @divers_edit_priorExperienceHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives and time from before you started logging in Submersion.'**
+  String get divers_edit_priorExperienceHelp;
+
+  /// No description provided for @divers_edit_priorDivesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Prior dives'**
+  String get divers_edit_priorDivesLabel;
+
+  /// No description provided for @divers_edit_priorHoursLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Prior hours'**
+  String get divers_edit_priorHoursLabel;
+
+  /// No description provided for @divers_edit_priorMinutesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get divers_edit_priorMinutesLabel;
+
+  /// No description provided for @divers_edit_divingSinceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Diving since'**
+  String get divers_edit_divingSinceLabel;
+
+  /// No description provided for @divers_edit_divingSinceNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get divers_edit_divingSinceNotSet;
+
+  /// No description provided for @divers_edit_priorInvalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number'**
+  String get divers_edit_priorInvalidNumber;
+
+  /// No description provided for @statistics_priorBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'{logged} logged + {prior} prior'**
+  String statistics_priorBreakdown(String logged, String prior);
+
+  /// No description provided for @statistics_divingSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Diving since {year}'**
+  String statistics_divingSince(int year);
 }
 
 class _AppLocalizationsDelegate

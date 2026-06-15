@@ -17093,4 +17093,39 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_cloudSync_duplicateDivers_undo => 'Visszavonás';
+
+  @override
+  String get divers_edit_priorExperienceSection => 'Korábbi Tapasztalat';
+
+  @override
+  String get divers_edit_priorExperienceHelp =>
+      'Merülések és idő azelőttről, hogy elkezdted naplózni a Submersionben.';
+
+  @override
+  String get divers_edit_priorDivesLabel => 'Korábbi merülések';
+
+  @override
+  String get divers_edit_priorHoursLabel => 'Korábbi órák';
+
+  @override
+  String get divers_edit_priorMinutesLabel => 'Perc';
+
+  @override
+  String get divers_edit_divingSinceLabel => 'Merül azóta';
+
+  @override
+  String get divers_edit_divingSinceNotSet => 'Nincs beállítva';
+
+  @override
+  String get divers_edit_priorInvalidNumber => 'Adjon meg egy érvényes számot';
+
+  @override
+  String statistics_priorBreakdown(String logged, String prior) {
+    return '$logged naplózva + $prior korábbi';
+  }
+
+  @override
+  String statistics_divingSince(int year) {
+    return '$year óta merül';
+  }
 }

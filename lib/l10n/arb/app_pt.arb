@@ -4842,5 +4842,15 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "Mesclar",
   "settings_cloudSync_duplicateDivers_successSnack": "Mesclado em {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "Falha ao mesclar: {error}",
-  "settings_cloudSync_duplicateDivers_undo": "Desfazer"
+  "settings_cloudSync_duplicateDivers_undo": "Desfazer",
+  "divers_edit_priorExperienceSection": "Experiência Anterior",
+  "divers_edit_priorExperienceHelp": "Mergulhos e tempo de antes de começar a registar no Submersion.",
+  "divers_edit_priorDivesLabel": "Mergulhos anteriores",
+  "divers_edit_priorHoursLabel": "Horas anteriores",
+  "divers_edit_priorMinutesLabel": "Minutos",
+  "divers_edit_divingSinceLabel": "Mergulha desde",
+  "divers_edit_divingSinceNotSet": "Não definido",
+  "divers_edit_priorInvalidNumber": "Introduza um número válido",
+  "statistics_priorBreakdown": "{logged} registados + {prior} anteriores",
+  "statistics_divingSince": "Mergulha desde {year}"
 }

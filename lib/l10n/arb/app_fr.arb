@@ -4842,5 +4842,15 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "Fusionner",
   "settings_cloudSync_duplicateDivers_successSnack": "Fusionné dans {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "Échec de la fusion : {error}",
-  "settings_cloudSync_duplicateDivers_undo": "Annuler"
+  "settings_cloudSync_duplicateDivers_undo": "Annuler",
+  "divers_edit_priorExperienceSection": "Expérience Antérieure",
+  "divers_edit_priorExperienceHelp": "Plongées et temps d'avant votre utilisation de Submersion.",
+  "divers_edit_priorDivesLabel": "Plongées antérieures",
+  "divers_edit_priorHoursLabel": "Heures antérieures",
+  "divers_edit_priorMinutesLabel": "Minutes",
+  "divers_edit_divingSinceLabel": "Plonge depuis",
+  "divers_edit_divingSinceNotSet": "Non défini",
+  "divers_edit_priorInvalidNumber": "Saisissez un nombre valide",
+  "statistics_priorBreakdown": "{logged} enregistrées + {prior} antérieures",
+  "statistics_divingSince": "Plonge depuis {year}"
 }

@@ -16696,4 +16696,39 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_cloudSync_duplicateDivers_undo => 'בטל';
+
+  @override
+  String get divers_edit_priorExperienceSection => 'ניסיון קודם';
+
+  @override
+  String get divers_edit_priorExperienceHelp =>
+      'צלילות וזמן מהתקופה שלפני שהתחלת לתעד ב-Submersion.';
+
+  @override
+  String get divers_edit_priorDivesLabel => 'צלילות קודמות';
+
+  @override
+  String get divers_edit_priorHoursLabel => 'שעות קודמות';
+
+  @override
+  String get divers_edit_priorMinutesLabel => 'דקות';
+
+  @override
+  String get divers_edit_divingSinceLabel => 'צולל מאז';
+
+  @override
+  String get divers_edit_divingSinceNotSet => 'לא הוגדר';
+
+  @override
+  String get divers_edit_priorInvalidNumber => 'הזן מספר תקין';
+
+  @override
+  String statistics_priorBreakdown(String logged, String prior) {
+    return '$logged מתועדות + $prior קודמות';
+  }
+
+  @override
+  String statistics_divingSince(int year) {
+    return 'צולל מאז $year';
+  }
 }

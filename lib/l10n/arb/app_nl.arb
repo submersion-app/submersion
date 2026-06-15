@@ -4842,5 +4842,15 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "Samenvoegen",
   "settings_cloudSync_duplicateDivers_successSnack": "Samengevoegd in {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "Samenvoegen mislukt: {error}",
-  "settings_cloudSync_duplicateDivers_undo": "Ongedaan maken"
+  "settings_cloudSync_duplicateDivers_undo": "Ongedaan maken",
+  "divers_edit_priorExperienceSection": "Eerdere Ervaring",
+  "divers_edit_priorExperienceHelp": "Duiken en tijd van voordat je begon te loggen in Submersion.",
+  "divers_edit_priorDivesLabel": "Eerdere duiken",
+  "divers_edit_priorHoursLabel": "Eerdere uren",
+  "divers_edit_priorMinutesLabel": "Minuten",
+  "divers_edit_divingSinceLabel": "Duikt sinds",
+  "divers_edit_divingSinceNotSet": "Niet ingesteld",
+  "divers_edit_priorInvalidNumber": "Voer een geldig getal in",
+  "statistics_priorBreakdown": "{logged} gelogd + {prior} eerder",
+  "statistics_divingSince": "Duikt sinds {year}"
 }

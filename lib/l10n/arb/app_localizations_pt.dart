@@ -17146,4 +17146,39 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_cloudSync_duplicateDivers_undo => 'Desfazer';
+
+  @override
+  String get divers_edit_priorExperienceSection => 'Experiência Anterior';
+
+  @override
+  String get divers_edit_priorExperienceHelp =>
+      'Mergulhos e tempo de antes de começar a registar no Submersion.';
+
+  @override
+  String get divers_edit_priorDivesLabel => 'Mergulhos anteriores';
+
+  @override
+  String get divers_edit_priorHoursLabel => 'Horas anteriores';
+
+  @override
+  String get divers_edit_priorMinutesLabel => 'Minutos';
+
+  @override
+  String get divers_edit_divingSinceLabel => 'Mergulha desde';
+
+  @override
+  String get divers_edit_divingSinceNotSet => 'Não definido';
+
+  @override
+  String get divers_edit_priorInvalidNumber => 'Introduza um número válido';
+
+  @override
+  String statistics_priorBreakdown(String logged, String prior) {
+    return '$logged registados + $prior anteriores';
+  }
+
+  @override
+  String statistics_divingSince(int year) {
+    return 'Mergulha desde $year';
+  }
 }

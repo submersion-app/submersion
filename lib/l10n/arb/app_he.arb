@@ -4842,5 +4842,15 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "מזג",
   "settings_cloudSync_duplicateDivers_successSnack": "מוזג אל {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "המיזוג נכשל: {error}",
-  "settings_cloudSync_duplicateDivers_undo": "בטל"
+  "settings_cloudSync_duplicateDivers_undo": "בטל",
+  "divers_edit_priorExperienceSection": "ניסיון קודם",
+  "divers_edit_priorExperienceHelp": "צלילות וזמן מהתקופה שלפני שהתחלת לתעד ב-Submersion.",
+  "divers_edit_priorDivesLabel": "צלילות קודמות",
+  "divers_edit_priorHoursLabel": "שעות קודמות",
+  "divers_edit_priorMinutesLabel": "דקות",
+  "divers_edit_divingSinceLabel": "צולל מאז",
+  "divers_edit_divingSinceNotSet": "לא הוגדר",
+  "divers_edit_priorInvalidNumber": "הזן מספר תקין",
+  "statistics_priorBreakdown": "{logged} מתועדות + {prior} קודמות",
+  "statistics_divingSince": "צולל מאז {year}"
 }

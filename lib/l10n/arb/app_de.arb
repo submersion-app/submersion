@@ -4842,5 +4842,15 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "Zusammenführen",
   "settings_cloudSync_duplicateDivers_successSnack": "Zusammengeführt in {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "Zusammenführung fehlgeschlagen: {error}",
-  "settings_cloudSync_duplicateDivers_undo": "Rückgängig"
+  "settings_cloudSync_duplicateDivers_undo": "Rückgängig",
+  "divers_edit_priorExperienceSection": "Frühere Erfahrung",
+  "divers_edit_priorExperienceHelp": "Tauchgänge und Zeit aus der Zeit vor deiner Nutzung von Submersion.",
+  "divers_edit_priorDivesLabel": "Frühere Tauchgänge",
+  "divers_edit_priorHoursLabel": "Frühere Stunden",
+  "divers_edit_priorMinutesLabel": "Minuten",
+  "divers_edit_divingSinceLabel": "Taucht seit",
+  "divers_edit_divingSinceNotSet": "Nicht festgelegt",
+  "divers_edit_priorInvalidNumber": "Gib eine gültige Zahl ein",
+  "statistics_priorBreakdown": "{logged} erfasst + {prior} früher",
+  "statistics_divingSince": "Taucht seit {year}"
 }
