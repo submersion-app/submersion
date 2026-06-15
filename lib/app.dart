@@ -11,11 +11,13 @@ import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_menu_channel.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/shared/services/file_share_handler.dart';
 import 'package:submersion/shared/services/incoming_file_handler.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/core/services/sync/library_epoch.dart';
 
 const Locale _defaultFallbackLocale = Locale('en');
 const Set<String> _invalidSystemLocaleLanguageCodes = {'c', 'posix'};
@@ -66,6 +68,7 @@ class SubmersionApp extends ConsumerStatefulWidget {
 class _SubmersionAppState extends ConsumerState<SubmersionApp>
     with WidgetsBindingObserver {
   final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+  bool _adoptDialogShownThisSession = false;
   late final FileShareHandler _fileShareHandler;
   late final AppLifecycleListener _lifecycleListener;
 
@@ -148,6 +151,88 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     ref.read(syncStateProvider.notifier).performSync(auto: true);
   }
 
+  void _onSyncStateChanged(SyncState? prev, SyncState next) {
+    final ctx = _scaffoldMessengerKey.currentContext;
+    final l10n = ctx != null ? AppLocalizations.of(ctx) : null;
+    final messenger = _scaffoldMessengerKey.currentState;
+
+    // Post-restore merge notice (start).
+    if (next.postRestoreSyncing && !(prev?.postRestoreSyncing ?? false)) {
+      messenger?.showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n?.settings_cloudSync_postRestore_syncing ??
+                'Syncing your restored library with the cloud…',
+          ),
+        ),
+      );
+    }
+    // Post-restore merge notice (done).
+    if ((prev?.postRestoreSyncing ?? false) &&
+        !next.postRestoreSyncing &&
+        (next.status == SyncStatus.success ||
+            next.status == SyncStatus.hasConflicts)) {
+      messenger?.showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n?.settings_cloudSync_postRestore_synced ??
+                'Restored library synced.',
+          ),
+        ),
+      );
+    }
+    // Replaced-library adopt: persistent banner + once-per-session modal.
+    if (next.replaceAwaitingAdoption &&
+        !(prev?.replaceAwaitingAdoption ?? false)) {
+      _surfaceReplaceAdoption(next.replaceMarker);
+    }
+    if (!next.replaceAwaitingAdoption &&
+        (prev?.replaceAwaitingAdoption ?? false)) {
+      messenger?.clearMaterialBanners();
+    }
+  }
+
+  void _surfaceReplaceAdoption(LibraryEpochMarker? marker) {
+    if (marker == null) return;
+    final ctx = _scaffoldMessengerKey.currentContext;
+    final l10n = ctx != null ? AppLocalizations.of(ctx) : null;
+    final messenger = _scaffoldMessengerKey.currentState;
+
+    // Persistent banner: rides across every screen until adopted.
+    messenger?.clearMaterialBanners();
+    messenger?.showMaterialBanner(
+      MaterialBanner(
+        content: Text(
+          l10n?.settings_cloudSync_replace_banner(marker.displayName) ??
+              'Sync paused: the library was replaced from a backup. Tap Review.',
+        ),
+        leading: const Icon(Icons.restore_page_outlined),
+        actions: [
+          TextButton(
+            onPressed: () => _openAdoptDialog(marker),
+            child: Text(
+              l10n?.settings_cloudSync_replace_reviewAction ?? 'Review',
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // Modal once per session; the banner persists if it is dismissed.
+    if (!_adoptDialogShownThisSession) {
+      _adoptDialogShownThisSession = true;
+      _openAdoptDialog(marker);
+    }
+  }
+
+  void _openAdoptDialog(LibraryEpochMarker marker) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final navContext = rootNavigatorKey.currentContext;
+      if (navContext == null) return;
+      showAdoptReplacedLibraryDialog(navContext, ref, marker);
+    });
+  }
+
   Future<void> _handleIncomingFile(Uint8List bytes, String fileName) async {
     final router = ref.read(appRouterProvider);
     final location = router.routeInformationProvider.value.uri.path;
@@ -186,6 +271,10 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     // Detect a database restore and re-baseline sync before anything reads
     // sync state, so a rewound baseline can't stall sync or resurrect deletes.
     ref.watch(reconcileDeviceIdentityProvider);
+
+    // Turn transient sync state into unmissable, screen-independent UI: the
+    // post-restore "syncing" notice, and the replaced-library adopt prompt.
+    ref.listen<SyncState>(syncStateProvider, _onSyncStateChanged);
 
     // Restore the last used cloud sync provider on app startup
     ref.watch(restoreLastProviderProvider);
