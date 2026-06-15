@@ -584,71 +584,6 @@ class SyncService {
     return '${error.toString()} ($cleaned)';
   }
 
-  String _decodePayloadBytes(Uint8List data) {
-    try {
-      return utf8.decode(data);
-    } catch (_) {
-      return String.fromCharCodes(data);
-    }
-  }
-
-  /// Download and parse one remote sync file. Returns null (after logging)
-  /// when the file cannot be fetched, fails checksum validation, or was
-  /// written by a NEWER format version than this build understands --
-  /// applying a future format would have undefined semantics, so it is
-  /// skipped until the app is updated.
-  Future<SyncPayload?> _downloadAndParsePayload(
-    CloudStorageProvider provider,
-    CloudFileInfo file,
-  ) async {
-    try {
-      final remoteData = await provider
-          .downloadFile(file.id)
-          .timeout(const Duration(seconds: 15));
-      final remoteJson = _decodePayloadBytes(remoteData);
-      final parsed = _serializer.deserializePayload(remoteJson);
-      if (parsed.version > syncFormatVersion) {
-        _log.warning(
-          'Remote sync file ${file.name} uses format v${parsed.version} '
-          '(this build understands v$syncFormatVersion); update the app on '
-          'this device to merge it',
-        );
-        return null;
-      }
-      if (!_serializer.validateChecksum(parsed)) {
-        _log.warning('Remote sync file ${file.name} has invalid checksum');
-        return null;
-      }
-      return parsed;
-    } on TimeoutException {
-      _log.warning('Timed out downloading ${file.name}');
-      return null;
-    } catch (e, stackTrace) {
-      _log.warning(
-        'Failed to download/parse ${file.name}: $e',
-        stackTrace: stackTrace,
-      );
-      return null;
-    }
-  }
-
-  /// This device's own per-device sync filename.
-  String _deviceSyncFileName(String deviceId) =>
-      '${CloudStorageProviderMixin.syncFilePrefix}$deviceId'
-      '${CloudStorageProviderMixin.syncFileExtension}';
-
-  /// List every sync file in the folder (excluding iCloud conflict copies).
-  /// Returns the full list including this device's own file so callers can
-  /// inspect it before deciding which files to merge.
-  Future<List<CloudFileInfo>> _listSyncFiles(
-    CloudStorageProvider provider,
-  ) async {
-    final files = await provider.listFiles(
-      namePattern: CloudStorageProviderMixin.syncFileStem,
-    );
-    return files.where((f) => !_isConflictCopy(f.name)).toList();
-  }
-
   Future<_MergeResult> _applyRemotePayload(
     SyncPayload remotePayload,
     DateTime? localLastSync,
@@ -1369,27 +1304,26 @@ class SyncService {
     _log.info('Sync state reset');
   }
 
-  /// Best-effort removal of [deviceId]'s per-device sync file from the
-  /// cloud. Used when this install retires an identity (Reset Sync State):
-  /// once the device id changes, its old file would otherwise be merged
-  /// back as a "peer" forever. Never throws; if the provider is offline the
-  /// file lingers indefinitely as a stale peer.
+  /// Best-effort removal of [deviceId]'s entire changeset log from the cloud
+  /// (manifest, base parts, changesets). Used when this install retires an
+  /// identity (Reset Sync State): once the device id changes, its old log would
+  /// otherwise be merged back as a stale "peer" forever. Never throws; if the
+  /// provider is offline the log lingers indefinitely as a stale peer.
   Future<void> deleteDeviceSyncFile(String deviceId) async {
     final provider = _cloudProvider;
     if (provider == null) return;
     try {
-      final filename = _deviceSyncFileName(deviceId);
       final files = await provider
-          .listFiles(namePattern: CloudStorageProviderMixin.syncFileStem)
+          .listFiles(namePattern: ChangesetLogLayout.prefix)
           .timeout(const Duration(seconds: 8));
       for (final f in files) {
-        if (f.name == filename) {
+        if (ChangesetLogLayout.deviceIdOf(f.name) == deviceId) {
           await provider.deleteFile(f.id).timeout(const Duration(seconds: 8));
-          _log.info('Retired per-device sync file $filename');
+          _log.info('Retired changeset log file ${f.name}');
         }
       }
     } catch (e) {
-      _log.warning('Could not retire sync file for $deviceId: $e');
+      _log.warning('Could not retire changeset log for $deviceId: $e');
     }
   }
 
@@ -1398,20 +1332,28 @@ class SyncService {
   /// Failures are logged and skipped -- files that survive carry a stale (or
   /// missing) epoch stamp and are inert to every current-epoch device.
   Future<void> deleteAllSyncFiles(CloudStorageProvider provider) async {
-    try {
-      final files = await provider
-          .listFiles(namePattern: CloudStorageProviderMixin.syncFileStem)
-          .timeout(const Duration(seconds: 8));
-      for (final f in files) {
-        try {
-          await provider.deleteFile(f.id).timeout(const Duration(seconds: 8));
-          _log.info('Deleted sync file ${f.name} for library replace');
-        } catch (e) {
-          _log.warning('Could not delete sync file ${f.name}: $e');
+    // Wipe both the changeset logs (ssv1.*) and any legacy full-file uploads.
+    // The epoch/moved markers (submersion_library_*) match neither pattern, so
+    // they survive -- a peer mid-replace still learns the new epoch.
+    for (final pattern in [
+      ChangesetLogLayout.prefix,
+      CloudStorageProviderMixin.syncFileStem,
+    ]) {
+      try {
+        final files = await provider
+            .listFiles(namePattern: pattern)
+            .timeout(const Duration(seconds: 8));
+        for (final f in files) {
+          try {
+            await provider.deleteFile(f.id).timeout(const Duration(seconds: 8));
+            _log.info('Deleted sync file ${f.name} for library replace');
+          } catch (e) {
+            _log.warning('Could not delete sync file ${f.name}: $e');
+          }
         }
+      } catch (e) {
+        _log.warning('Could not list sync files for replace wipe: $e');
       }
-    } catch (e) {
-      _log.warning('Could not list sync files for replace wipe: $e');
     }
   }
 
@@ -1443,39 +1385,37 @@ class SyncService {
       await writeLibraryEpochMarker(provider, marker);
       await deleteAllSyncFiles(provider);
 
+      final syncFolder = await provider.getOrCreateSyncFolder();
+      // Cold-start the changeset log under the new epoch: the wipe removed our
+      // cloud manifest, so the local publish position must be cleared too, or
+      // the writer would append a changeset against a base that no longer
+      // exists.
+      final db = DatabaseService.instance.database;
+      await PublishStateStore(db).resetForProvider(provider.providerId);
+      await PeerCursorStore(db).resetForProvider(provider.providerId);
+
       final deletions = await _syncRepository.getAllDeletions();
       final uploadNonce = _uuid.v4();
-      final localPayload = await _serializer.exportData(
-        deviceId: deviceId,
-        lastSyncTimestamp: null,
-        deletions: deletions,
-        uploadNonce: uploadNonce,
-        epochId: marker.epochId,
-      );
-      final localJson = _serializer.serializePayload(localPayload);
-      final localData = Uint8List.fromList(utf8.encode(localJson));
-      String? syncFolder;
-      try {
-        syncFolder = await provider.getOrCreateSyncFolder();
-      } catch (_) {
-        syncFolder = null;
-      }
       await _syncInitializer?.recordUploadNonce(
         uploadNonce,
         provider.providerId,
       );
-      final upload = await provider
-          .uploadFile(
-            localData,
-            _deviceSyncFileName(deviceId),
-            folderId: syncFolder,
-          )
-          .timeout(const Duration(seconds: 180));
+      // Publish the new library as a fresh epoch-stamped base. Peers on the old
+      // epoch halt for adoption; adopters rebuild from this base.
+      await _changesetWriter.publish(
+        provider: provider,
+        deviceId: deviceId,
+        folderId: syncFolder,
+        deletions: deletions,
+        epochId: marker.epochId,
+        uploadNonce: uploadNonce,
+      );
 
+      final now = DateTime.now();
       await _syncRepository.setLastAcceptedEpochId(marker.epochId);
       await store.setLastAccepted(marker);
       await _syncRepository.updateLastSyncTime(
-        upload.uploadTime,
+        now,
         providerId: provider.providerId,
       );
       await _syncRepository.persistSyncClock();
@@ -1484,7 +1424,7 @@ class SyncService {
       return SyncResult(
         status: SyncResultStatus.success,
         message: 'Library replaced',
-        lastSyncTime: upload.uploadTime,
+        lastSyncTime: now,
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -1523,16 +1463,12 @@ class SyncService {
         );
       }
 
-      final files = await _listSyncFiles(
+      final folderId = await provider.getOrCreateSyncFolder();
+      final payloads = await _collectEpochPayloads(
         provider,
-      ).timeout(const Duration(seconds: 8));
-      final payloads = <SyncPayload>[];
-      for (final file in files) {
-        final payload = await _downloadAndParsePayload(provider, file);
-        if (payload != null && payload.epochId == marker.epochId) {
-          payloads.add(payload);
-        }
-      }
+        folderId,
+        marker.epochId,
+      );
       if (payloads.isEmpty) {
         // Replace still in flight (marker written, stamped upload pending).
         // Applying an empty set would wipe this library to zero -- abort.
@@ -1615,6 +1551,64 @@ class SyncService {
         message: 'Failed to adopt the restored library: $e',
       );
     }
+  }
+
+  /// Collect every payload (base + changesets) from all changeset logs stamped
+  /// with [epochId]. Used by adoption to rebuild the authoritative library
+  /// after a Replace restore. Skips a log whose base parts are not all present
+  /// (a publish still in flight).
+  Future<List<SyncPayload>> _collectEpochPayloads(
+    CloudStorageProvider provider,
+    String folderId,
+    String epochId,
+  ) async {
+    final files = await provider.listFiles(
+      folderId: folderId,
+      namePattern: ChangesetLogLayout.prefix,
+    );
+    final byName = {for (final f in files) f.name: f};
+    final deviceIds = <String>{
+      for (final f in files)
+        if (ChangesetLogLayout.deviceIdOf(f.name) != null)
+          ChangesetLogLayout.deviceIdOf(f.name)!,
+    };
+    final payloads = <SyncPayload>[];
+    for (final deviceId in deviceIds) {
+      final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
+      if (manifestFile == null) continue;
+      SyncManifest manifest;
+      try {
+        manifest = SyncManifest.fromBytes(
+          await provider.downloadFile(manifestFile.id),
+        );
+      } catch (_) {
+        continue;
+      }
+      if (manifest.epochId != epochId) continue;
+      final baseSeq = manifest.baseSeq;
+      if (baseSeq == null) continue;
+      final parts = <Uint8List>[];
+      var complete = true;
+      for (var i = 0; i < (manifest.basePartCount ?? 0); i++) {
+        final pf =
+            byName[ChangesetLogLayout.basePartName(deviceId, baseSeq, i)];
+        if (pf == null) {
+          complete = false;
+          break;
+        }
+        parts.add(await provider.downloadFile(pf.id));
+      }
+      if (!complete || parts.isEmpty) continue;
+      payloads.add(_changesetCodec.decodeBaseParts(parts));
+      for (var seq = baseSeq + 1; seq <= manifest.headSeq; seq++) {
+        final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
+        if (cf == null) break;
+        payloads.add(
+          _changesetCodec.decodeChangeset(await provider.downloadFile(cf.id)),
+        );
+      }
+    }
+    return payloads;
   }
 
   /// Download and parse the cloud epoch marker. Returns null when absent.

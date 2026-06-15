@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
 
 import '../../../helpers/fake_cloud_storage_provider.dart';
@@ -36,7 +37,9 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  String peerFileName(String deviceId) => 'submersion_sync_$deviceId.json';
+  // A peer is discovered by its changeset-log manifest, one per device.
+  String peerFileName(String deviceId) =>
+      ChangesetLogLayout.manifestName(deviceId);
 
   group('checkSyncOnLaunch preconditions', () {
     test('returns notConfigured when no provider is given', () async {
@@ -95,9 +98,11 @@ void main() {
     });
 
     test('excludes iCloud "conflicted copy" duplicates', () async {
+      // A conflicted copy of a manifest does not end in the canonical
+      // `.manifest.json`, so peer discovery skips it.
       await provider.uploadFile(
         _payload,
-        'submersion_sync_deviceB (conflicted copy 2026).json',
+        'ssv1.deviceB.manifest (conflicted copy 2026).json',
       );
 
       final result = await initializer.checkSyncOnLaunch(provider);
