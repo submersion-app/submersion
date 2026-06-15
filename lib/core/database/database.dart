@@ -1366,8 +1366,9 @@ class DeletionLog extends Table {
   // Monotonic HLC stamped at deletion time (local filter metadata only, not on
   // the wire). Lets an incremental changeset carry only tombstones newer than
   // the published watermark instead of re-sending the whole log every sync.
-  // Nullable: legacy rows predate the column and a pre-clock-config delete can
-  // leave it null; both are handled as "always include in a base".
+  // Nullable as a safety net: the v86 migration backfills pre-existing rows to a
+  // minimal sentinel, so null only arises for a delete logged before the sync
+  // clock was configured; such a tombstone is always included in a base.
   TextColumn get hlc => text().nullable()();
 
   @override
