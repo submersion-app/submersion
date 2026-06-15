@@ -15,6 +15,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
+import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
@@ -64,6 +65,10 @@ class BackupService {
   /// Library epoch persistence for restore Replace mode. Nullable so existing
   /// constructions keep working; Replace mode is a no-op without it.
   final LibraryEpochStore? _epochStore;
+
+  /// Set on a Merge restore so the next launch forces one reconciling sync.
+  /// Nullable so existing constructions keep working.
+  final PostRestoreSyncStore? _postRestoreSyncStore;
   final _log = LoggerService.forClass(BackupService);
   final _uuid = const Uuid();
 
@@ -76,11 +81,13 @@ class BackupService {
     CloudStorageProvider? cloudProvider,
     SyncRepository? syncRepository,
     LibraryEpochStore? epochStore,
+    PostRestoreSyncStore? postRestoreSyncStore,
   }) : _dbAdapter = dbAdapter,
        _preferences = preferences,
        _cloudProvider = cloudProvider,
        _syncRepository = syncRepository ?? SyncRepository(),
-       _epochStore = epochStore;
+       _epochStore = epochStore,
+       _postRestoreSyncStore = postRestoreSyncStore;
 
   // ===========================================================================
   // Backup
@@ -311,6 +318,10 @@ class BackupService {
     await _replaceDatabaseAndRebaselineSync(sourcePath);
     if (mode == RestoreMode.replace) {
       await _mintPendingReplace();
+    } else {
+      // Merge: the restore dialog's choice is the consent. Arm a one-shot
+      // intent so the next launch forces a gate-bypassing reconciling sync.
+      await _postRestoreSyncStore?.setPending();
     }
 
     _log.info('Restore completed from: ${record.filename}');
@@ -343,6 +354,10 @@ class BackupService {
     await _replaceDatabaseAndRebaselineSync(filePath);
     if (mode == RestoreMode.replace) {
       await _mintPendingReplace();
+    } else {
+      // Merge: the restore dialog's choice is the consent. Arm a one-shot
+      // intent so the next launch forces a gate-bypassing reconciling sync.
+      await _postRestoreSyncStore?.setPending();
     }
 
     _log.info('Restore from file completed: ${p.basename(filePath)}');

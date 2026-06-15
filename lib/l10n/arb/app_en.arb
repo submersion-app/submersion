@@ -1,6 +1,11 @@
 {
   "@@locale": "en",
-  "@@last_modified": "2026-02-10",
+  "settings_cloudSync_replace_globalBanner": "Sync is paused — the library was replaced from a backup on \"{deviceName}\".",
+  "@settings_cloudSync_replace_globalBanner": {"placeholders": {"deviceName": {"type": "String"}}},
+  "settings_cloudSync_postRestore_syncing": "Syncing your restored library with the cloud…",
+  "settings_cloudSync_postRestore_synced": "Restored library synced.",
+  "settings_cloudSync_replace_reviewAction": "Review",
+  "@@last_modified": "2026-06-15",
   "accessibility_dialog_keyboardShortcutsTitle": "Keyboard Shortcuts",
   "accessibility_keyLabel_backspace": "Backspace",
   "accessibility_keyLabel_delete": "Delete",

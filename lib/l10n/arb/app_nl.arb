@@ -1,6 +1,10 @@
 {
   "@@last_modified": "2026-06-15",
   "@@locale": "nl",
+  "settings_cloudSync_replace_globalBanner": "Synchronisatie onderbroken — de bibliotheek is vervangen vanaf een back-up op \"{deviceName}\".",
+  "settings_cloudSync_postRestore_syncing": "Je herstelde bibliotheek wordt met de cloud gesynchroniseerd…",
+  "settings_cloudSync_postRestore_synced": "Herstelde bibliotheek gesynchroniseerd.",
+  "settings_cloudSync_replace_reviewAction": "Controleren",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
       "dayNumber": {

@@ -13,10 +13,12 @@ import 'package:submersion/core/services/cloud_storage/google_drive_storage_prov
 import 'package:submersion/core/services/cloud_storage/icloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
+import 'package:submersion/core/services/sync/established_provider_store.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/library_moved_store.dart';
+import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
@@ -52,6 +54,18 @@ final libraryEpochStoreProvider = Provider<LibraryEpochStore>((ref) {
 /// old-backend cleanup target) for backend switches.
 final libraryMovedStoreProvider = Provider<LibraryMovedStore>((ref) {
   return LibraryMovedStore(ref.watch(sharedPreferencesProvider));
+});
+
+/// Merge-restore "sync once on next launch" intent.
+final postRestoreSyncStoreProvider = Provider<PostRestoreSyncStore>((ref) {
+  return PostRestoreSyncStore(ref.watch(sharedPreferencesProvider));
+});
+
+/// Providers this install has successfully synced to (survives restore).
+final establishedProviderStoreProvider = Provider<EstablishedProviderStore>((
+  ref,
+) {
+  return EstablishedProviderStore(ref.watch(sharedPreferencesProvider));
 });
 
 /// Behavior settings for auto-sync
@@ -179,6 +193,10 @@ class SyncState {
   final bool isAuthenticated;
   final bool firstSyncAwaitingConfirmation;
 
+  /// True while the one forced post-restore sync is running. Drives the
+  /// app-root "Syncing your restored library..." notice; never persisted.
+  final bool postRestoreSyncing;
+
   /// True when the cloud library was replaced from a backup under an epoch
   /// this device has not accepted; sync is paused until the user adopts.
   final bool replaceAwaitingAdoption;
@@ -211,6 +229,7 @@ class SyncState {
     this.conflicts = 0,
     this.isAuthenticated = false,
     this.firstSyncAwaitingConfirmation = false,
+    this.postRestoreSyncing = false,
     this.replaceAwaitingAdoption = false,
     this.replaceMarker,
     this.movedMarker,
@@ -226,6 +245,7 @@ class SyncState {
     int? conflicts,
     bool? isAuthenticated,
     bool? firstSyncAwaitingConfirmation,
+    bool? postRestoreSyncing,
     bool? replaceAwaitingAdoption,
     Object? replaceMarker = _markerSentinel,
     Object? movedMarker = _movedSentinel,
@@ -243,6 +263,7 @@ class SyncState {
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       firstSyncAwaitingConfirmation:
           firstSyncAwaitingConfirmation ?? this.firstSyncAwaitingConfirmation,
+      postRestoreSyncing: postRestoreSyncing ?? this.postRestoreSyncing,
       replaceAwaitingAdoption:
           replaceAwaitingAdoption ?? this.replaceAwaitingAdoption,
       replaceMarker: identical(replaceMarker, _markerSentinel)
@@ -289,15 +310,77 @@ class SyncNotifier extends StateNotifier<SyncState> {
   SyncService get _syncService => _ref.read(syncServiceProvider);
 
   Future<void> _initialize() async {
-    // Load initial state
+    if (!mounted) return;
+    // Restore the saved provider before reading sync state: restoreLastProvider
+    // is async, so without awaiting it _initialize can race ahead and read a
+    // null provider, skipping the post-restore intent and replaced-library
+    // surfacing for the whole session. Mirrors _maybeSyncOnLaunch awaiting
+    // reconcileDeviceIdentityProvider.
+    try {
+      await _ref.read(restoreLastProviderProvider.future);
+    } catch (_) {
+      // Non-fatal: proceed with whatever provider state exists.
+    }
     if (!mounted) return;
     await refreshState();
+    if (!mounted) return;
+
+    // Every post-restore intent below needs a cloud provider. Without one, a
+    // persisted Replace intent would drive performSync() into a "no provider
+    // configured" error state on launch -- even for users who never enabled
+    // cloud sync. Keep the intent dormant until a provider exists; it survives
+    // in libraryEpochStore for a later launch that has one.
+    final provider = _ref.read(cloudStorageProviderProvider);
+    if (provider == null) return;
+
     // A Replace restore persists its cloud side as a pending intent; execute
     // it as soon as the app is back up, regardless of auto-sync settings.
-    if (mounted &&
-        _ref.read(libraryEpochStoreProvider).pendingReplace != null) {
+    if (_ref.read(libraryEpochStoreProvider).pendingReplace != null) {
       unawaited(performSync());
+      return;
     }
+
+    // A Merge restore persists a post-restore intent: the restore dialog's
+    // Merge choice is the consent, so force one sync that bypasses the
+    // first-contact gate (auto:false) regardless of the auto-sync toggles.
+    if (_ref.read(postRestoreSyncStoreProvider).pending) {
+      unawaited(_runPostRestoreSync());
+      return;
+    }
+
+    // On the other devices, surface a Replace-everywhere adoption proactively
+    // (even with auto-sync off) so a paused device is never hidden behind a
+    // manual Sync Now.
+    unawaited(_detectReplacedLibraryForSurfacing());
+  }
+
+  /// Force the one consented post-restore sync. `performSync(auto:false)` skips
+  /// the first-contact gate; the success path clears the intent.
+  Future<void> _runPostRestoreSync() async {
+    if (!mounted) return;
+    state = state.copyWith(postRestoreSyncing: true);
+    await performSync();
+    if (mounted) state = state.copyWith(postRestoreSyncing: false);
+  }
+
+  /// On a device that did NOT restore, surface a Replace-everywhere adoption
+  /// proactively -- even with auto-sync off -- so the pause is never hidden
+  /// behind a manual Sync Now. Detection only; the destructive adopt stays
+  /// behind the confirmation dialog.
+  Future<void> _detectReplacedLibraryForSurfacing() async {
+    final marker = await libraryReplaceInfo();
+    if (marker == null || !mounted) return;
+    // Surface only -- never sync from here. Only devices that HOLD dives pause
+    // and need the unmissable prompt; an empty device has nothing to lose and
+    // auto-adopts through performSync's own awaiting-adoption path on its next
+    // sync. Syncing from a detection hook would also race other launch-time
+    // syncs (and test setups), so detection stays pure: read marker, set state.
+    final diveCount = await _ref.read(diveRepositoryProvider).getDiveCount();
+    if (!mounted || diveCount == 0) return;
+    state = state.copyWith(
+      replaceAwaitingAdoption: true,
+      replaceMarker: marker,
+    );
   }
 
   void _listenForChanges() {
@@ -370,6 +453,14 @@ class SyncNotifier extends StateNotifier<SyncState> {
     try {
       final provider = _ref.read(cloudStorageProviderProvider);
       if (provider == null) return null;
+      // An established device is never first-contact: a restore wipes the
+      // in-DB cursor (lastSyncTime), but this anchor survives, so the gate
+      // must not re-fire for a device that already merged here.
+      if (_ref
+          .read(establishedProviderStoreProvider)
+          .contains(provider.providerId)) {
+        return null;
+      }
       // Scoped: first contact is per-backend. A cursor minted against a
       // backend the user switched away from must not mask the first,
       // library-combining sync against the new one.
@@ -686,6 +777,17 @@ class SyncNotifier extends StateNotifier<SyncState> {
             conflicts: result.conflictsFound,
             progress: 1.0,
           );
+          // Mark this provider established and consume any post-restore intent:
+          // a future restore that wipes the in-DB cursor must not make this
+          // device look like first-contact again, and the Merge restore's
+          // one-shot intent is now satisfied.
+          final syncedProvider = _ref.read(cloudStorageProviderProvider);
+          if (syncedProvider != null) {
+            await _ref
+                .read(establishedProviderStoreProvider)
+                .add(syncedProvider.providerId);
+          }
+          await _ref.read(postRestoreSyncStoreProvider).clear();
           await _surfaceOldBackendCleanupOffer();
           // A straggler syncing into a backend another device moved away from
           // learns of the move here -- the moment it is actively writing into
@@ -772,6 +874,8 @@ class SyncNotifier extends StateNotifier<SyncState> {
     // Reset is the manual escape hatch: drop any stuck replace intent and
     // un-pause an awaiting-adoption state.
     await _ref.read(libraryEpochStoreProvider).clearPendingReplace();
+    await _ref.read(postRestoreSyncStoreProvider).clear();
+    await _ref.read(establishedProviderStoreProvider).clear();
     state = state.copyWith(replaceAwaitingAdoption: false, replaceMarker: null);
     await refreshState();
   }

@@ -9,6 +9,22 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
+  String settings_cloudSync_replace_globalBanner(String deviceName) {
+    return 'Synchronisierung pausiert — die Bibliothek wurde aus einem Backup auf \"$deviceName\" ersetzt.';
+  }
+
+  @override
+  String get settings_cloudSync_postRestore_syncing =>
+      'Wiederhergestellte Bibliothek wird mit der Cloud synchronisiert…';
+
+  @override
+  String get settings_cloudSync_postRestore_synced =>
+      'Wiederhergestellte Bibliothek synchronisiert.';
+
+  @override
+  String get settings_cloudSync_replace_reviewAction => 'Überprüfen';
+
+  @override
   String get accessibility_dialog_keyboardShortcutsTitle =>
       'Tastenkombinationen';
 

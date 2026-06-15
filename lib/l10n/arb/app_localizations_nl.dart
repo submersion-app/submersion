@@ -9,6 +9,22 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
+  String settings_cloudSync_replace_globalBanner(String deviceName) {
+    return 'Synchronisatie onderbroken — de bibliotheek is vervangen vanaf een back-up op \"$deviceName\".';
+  }
+
+  @override
+  String get settings_cloudSync_postRestore_syncing =>
+      'Je herstelde bibliotheek wordt met de cloud gesynchroniseerd…';
+
+  @override
+  String get settings_cloudSync_postRestore_synced =>
+      'Herstelde bibliotheek gesynchroniseerd.';
+
+  @override
+  String get settings_cloudSync_replace_reviewAction => 'Controleren';
+
+  @override
   String get accessibility_dialog_keyboardShortcutsTitle => 'Sneltoetsen';
 
   @override

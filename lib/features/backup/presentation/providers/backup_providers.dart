@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
+import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
@@ -29,6 +30,9 @@ final backupServiceProvider = Provider<BackupService>((ref) {
     preferences: ref.watch(backupPreferencesProvider),
     cloudProvider: ref.watch(cloudStorageProviderProvider),
     epochStore: LibraryEpochStore(ref.watch(sharedPreferencesProvider)),
+    postRestoreSyncStore: PostRestoreSyncStore(
+      ref.watch(sharedPreferencesProvider),
+    ),
   );
 });
 

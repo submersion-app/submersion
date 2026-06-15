@@ -8,12 +8,12 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
-import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -1000,7 +1000,7 @@ class CloudSyncPage extends ConsumerWidget {
     final replaceInfo = await notifier.libraryReplaceInfo();
     if (replaceInfo != null) {
       if (!context.mounted) return;
-      await _showAdoptDialog(context, ref, replaceInfo);
+      await showAdoptReplacedLibraryDialog(context, ref, replaceInfo);
       return;
     }
     final info = await notifier.firstSyncMergeInfo();
@@ -1035,47 +1035,6 @@ class CloudSyncPage extends ConsumerWidget {
     if (confirmed == true) {
       await notifier.performSync();
     }
-  }
-
-  /// Confirm and run adoption of a replaced cloud library. The safety backup
-  /// runs here (not in SyncNotifier) because backup providers import sync
-  /// providers; the page is the layer that may import both.
-  Future<void> _showAdoptDialog(
-    BuildContext context,
-    WidgetRef ref,
-    LibraryEpochMarker marker,
-  ) async {
-    final l10n = context.l10n;
-    final date = marker.replacedAt > 0
-        ? DateFormat.yMMMd().add_jm().format(
-            DateTime.fromMillisecondsSinceEpoch(marker.replacedAt),
-          )
-        : '?';
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.settings_cloudSync_adopt_dialogTitle),
-        content: Text(
-          l10n.settings_cloudSync_adopt_dialogContent(marker.displayName, date),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.settings_cloudSync_adopt_notNow),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.settings_cloudSync_adopt_confirm),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    // Safety backup of this device's current data BEFORE it is overwritten.
-    // Marked automatic: it is system-initiated, like the pre-migration
-    // safety backups, so the history list labels it accordingly.
-    await ref.read(backupServiceProvider).performBackup(isAutomatic: true);
-    await ref.read(syncStateProvider.notifier).adoptReplacedLibrary();
   }
 
   Future<void> _confirmResetSyncState(

@@ -9,6 +9,22 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
+  String settings_cloudSync_replace_globalBanner(String deviceName) {
+    return 'Synchronisation en pause — la bibliothèque a été remplacée depuis une sauvegarde sur \"$deviceName\".';
+  }
+
+  @override
+  String get settings_cloudSync_postRestore_syncing =>
+      'Synchronisation de votre bibliothèque restaurée avec le cloud…';
+
+  @override
+  String get settings_cloudSync_postRestore_synced =>
+      'Bibliothèque restaurée synchronisée.';
+
+  @override
+  String get settings_cloudSync_replace_reviewAction => 'Examiner';
+
+  @override
   String get accessibility_dialog_keyboardShortcutsTitle =>
       'Raccourcis clavier';
 

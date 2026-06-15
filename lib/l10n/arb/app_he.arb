@@ -1,6 +1,10 @@
 {
   "@@last_modified": "2026-06-15",
   "@@locale": "he",
+  "settings_cloudSync_replace_globalBanner": "הסנכרון מושהה — הספרייה הוחלפה מגיבוי במכשיר \"{deviceName}\".",
+  "settings_cloudSync_postRestore_syncing": "מסנכרן את הספרייה המשוחזרת שלך עם הענן…",
+  "settings_cloudSync_postRestore_synced": "הספרייה המשוחזרת סונכרנה.",
+  "settings_cloudSync_replace_reviewAction": "סקירה",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
       "dayNumber": {

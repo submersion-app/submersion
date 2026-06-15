@@ -1,5 +1,9 @@
 {
   "@@locale": "zh",
+  "settings_cloudSync_replace_globalBanner": "同步已暂停 — 资料库已从 \"{deviceName}\" 上的备份替换。",
+  "settings_cloudSync_postRestore_syncing": "正在将恢复的资料库与云同步…",
+  "settings_cloudSync_postRestore_synced": "已同步恢复的资料库。",
+  "settings_cloudSync_replace_reviewAction": "查看",
   "@@last_modified": "2026-06-15",
   "@diveComputer_download_serialConnectFailedWithDetails": {
     "placeholders": {

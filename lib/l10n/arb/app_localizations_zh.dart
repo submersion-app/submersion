@@ -9,6 +9,20 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String settings_cloudSync_replace_globalBanner(String deviceName) {
+    return '同步已暂停 — 资料库已从 \"$deviceName\" 上的备份替换。';
+  }
+
+  @override
+  String get settings_cloudSync_postRestore_syncing => '正在将恢复的资料库与云同步…';
+
+  @override
+  String get settings_cloudSync_postRestore_synced => '已同步恢复的资料库。';
+
+  @override
+  String get settings_cloudSync_replace_reviewAction => '查看';
+
+  @override
   String get accessibility_dialog_keyboardShortcutsTitle => '键盘快捷键';
 
   @override
