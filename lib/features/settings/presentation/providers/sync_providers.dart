@@ -325,15 +325,20 @@ class SyncNotifier extends StateNotifier<SyncState> {
     await refreshState();
     if (!mounted) return;
 
+    // Every post-restore intent below needs a cloud provider. Without one, a
+    // persisted Replace intent would drive performSync() into a "no provider
+    // configured" error state on launch -- even for users who never enabled
+    // cloud sync. Keep the intent dormant until a provider exists; it survives
+    // in libraryEpochStore for a later launch that has one.
+    final provider = _ref.read(cloudStorageProviderProvider);
+    if (provider == null) return;
+
     // A Replace restore persists its cloud side as a pending intent; execute
     // it as soon as the app is back up, regardless of auto-sync settings.
     if (_ref.read(libraryEpochStoreProvider).pendingReplace != null) {
       unawaited(performSync());
       return;
     }
-
-    final provider = _ref.read(cloudStorageProviderProvider);
-    if (provider == null) return;
 
     // A Merge restore persists a post-restore intent: the restore dialog's
     // Merge choice is the consent, so force one sync that bypasses the

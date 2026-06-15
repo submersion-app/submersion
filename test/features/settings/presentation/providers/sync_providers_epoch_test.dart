@@ -254,6 +254,26 @@ void main() {
         reason: 'the replace wrote the marker',
       );
     });
+
+    test('stays dormant when no cloud provider is configured', () async {
+      // A persisted Replace intent must not fire performSync() without a
+      // provider, or launch would surface a "no provider configured" error
+      // even for users who never enabled cloud sync.
+      await LibraryEpochStore(prefs).setPendingReplace(marker);
+      await seedLocalDive('restored-dive');
+
+      final container = await makeContainer(cloudConfigured: false);
+
+      // Let _initialize run its async chain (restore + refresh + intent check).
+      for (var i = 0; i < 10; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+
+      // The intent survives for a later launch that has a provider...
+      expect(LibraryEpochStore(prefs).pendingReplace, isNotNull);
+      // ...and launch never drove the notifier into an error/syncing state.
+      expect(container.read(syncStateProvider).status, SyncStatus.idle);
+    });
   });
 
   group('resetSyncState escape hatch', () {

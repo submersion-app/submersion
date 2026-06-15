@@ -1,8 +1,8 @@
 # Smoother Restore: Resume Sync Without a Manual "Sync Now"
 
 - **Date:** 2026-06-15
-- **Status:** Approved (design); implementation pending
-- **Branch:** feat/incremental-sync
+- **Status:** Implemented
+- **Branch:** feat/smoother-restore-sync
 - **Related:** [restore-replace-mode](2026-06-11-restore-replace-mode-design.md), [incremental-sync-changeset-log](2026-06-14-incremental-sync-changeset-log-design.md)
 
 ## Problem
