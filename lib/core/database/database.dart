@@ -488,6 +488,7 @@ class Species extends Table {
   TextColumn get description => text().nullable()();
   TextColumn get photoPath => text().nullable()();
   BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -561,6 +562,7 @@ class Media extends Table {
   // coverage:ignore-end
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1366,6 +1368,40 @@ class DeletionLog extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Per-peer download cursor: how far this device has consumed each peer's
+/// changeset log. Scoped per provider so a backend switch starts fresh
+/// (mirrors the v81 per-provider cursor lesson).
+@DataClassName('SyncPeerCursor')
+class SyncPeerCursors extends Table {
+  TextColumn get peerDeviceId => text()();
+  TextColumn get provider => text()();
+  IntColumn get baseSeqApplied => integer().nullable()();
+  IntColumn get lastSeqApplied => integer().withDefault(const Constant(0))();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {peerDeviceId, provider};
+}
+
+/// This device's own published position in its changeset log, per provider.
+/// Splits the old conflated lastSyncTimestamp: this is the upload side
+/// (per-peer cursors are the download side).
+@DataClassName('LocalPublishState')
+class LocalPublishStates extends Table {
+  TextColumn get provider => text()();
+  IntColumn get baseSeq => integer().nullable()();
+  IntColumn get basePartCount => integer().nullable()();
+  IntColumn get baseBytes => integer().nullable()();
+  IntColumn get headSeq => integer().withDefault(const Constant(0))();
+  TextColumn get publishedHlcHigh => text().nullable()();
+  IntColumn get changesetBytesSinceBase =>
+      integer().withDefault(const Constant(0))();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {provider};
+}
+
 /// Cached map regions for offline use
 class CachedRegions extends Table {
   TextColumn get id => text()();
@@ -1486,6 +1522,7 @@ class FieldPresets extends Table {
   TextColumn get configJson => text()();
   BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1539,6 +1576,8 @@ class FieldPresets extends Table {
     SyncMetadata,
     SyncRecords,
     DeletionLog,
+    SyncPeerCursors,
+    LocalPublishStates,
     // Maps & Visualization
     CachedRegions,
     // Notifications
@@ -1567,7 +1606,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 83;
+  static const int currentSchemaVersion = 85;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1654,6 +1693,8 @@ class AppDatabase extends _$AppDatabase {
     81,
     82,
     83,
+    84,
+    85,
   ];
 
   /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
@@ -1686,6 +1727,9 @@ class AppDatabase extends _$AppDatabase {
     'csv_presets',
     'view_configs',
     'sync_metadata',
+    'media',
+    'species',
+    'field_presets',
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -3974,6 +4018,47 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 83) await reportProgress();
+        if (from < 84) {
+          // Incremental changeset-log sync: per-peer download cursors and this
+          // device's own per-provider publish position.
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS sync_peer_cursors (
+              peer_device_id TEXT NOT NULL,
+              provider TEXT NOT NULL,
+              base_seq_applied INTEGER,
+              last_seq_applied INTEGER NOT NULL DEFAULT 0,
+              updated_at INTEGER NOT NULL,
+              PRIMARY KEY (peer_device_id, provider)
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS local_publish_states (
+              provider TEXT NOT NULL PRIMARY KEY,
+              base_seq INTEGER,
+              base_part_count INTEGER,
+              base_bytes INTEGER,
+              head_seq INTEGER NOT NULL DEFAULT 0,
+              published_hlc_high TEXT,
+              changeset_bytes_since_base INTEGER NOT NULL DEFAULT 0,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+        }
+        if (from < 84) await reportProgress();
+        if (from < 85) {
+          // media, species, field_presets become first-class HLC entities so
+          // they delta by their own hlc instead of being exported in full.
+          for (final table in const ['media', 'species', 'field_presets']) {
+            final cols = await customSelect(
+              "PRAGMA table_info('$table')",
+            ).get();
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (cols.isNotEmpty && !existing.contains('hlc')) {
+              await customStatement('ALTER TABLE $table ADD COLUMN hlc TEXT');
+            }
+          }
+        }
+        if (from < 85) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys

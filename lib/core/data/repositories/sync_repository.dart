@@ -48,6 +48,9 @@ class SyncRepository {
     'settings': (table: 'settings', pk: 'key'),
     'csvPresets': (table: 'csv_presets', pk: 'id'),
     'viewConfigs': (table: 'view_configs', pk: 'id'),
+    'media': (table: 'media', pk: 'id'),
+    'species': (table: 'species', pk: 'id'),
+    'fieldPresets': (table: 'field_presets', pk: 'id'),
   };
 
   // ============================================================================
@@ -445,6 +448,10 @@ class SyncRepository {
         .getSingleOrNull();
     return row?.read<String?>('m');
   }
+
+  /// Public accessor for [_maxRowHlc] -- the highest hlc across conflict-capable
+  /// tables. Used by stale-restore detection.
+  Future<String?> maxRowHlc() => _maxRowHlc();
 
   /// Pick the greater of [a]/[b] by (physicalTime, counter) and rebuild it with
   /// [nodeId] so the clock always issues under THIS device's identity.
@@ -854,6 +861,14 @@ class SyncRepository {
       if (clearDeletionLog) {
         await clearAllDeletions();
       }
+
+      // Changeset transport position is not data history: a reset must
+      // cold-start the transport so the next sync re-pulls every peer from
+      // scratch and republishes a fresh base. Leaving a provider-keyed publish
+      // row behind would make the next publish append a changeset against a
+      // base whose own manifest no longer exists.
+      await _db.delete(_db.syncPeerCursors).go();
+      await _db.delete(_db.localPublishStates).go();
 
       final now = DateTime.now().millisecondsSinceEpoch;
       await (_db.update(

@@ -105,6 +105,18 @@ class SyncPayload {
   /// Null on legacy files, which become stale the moment any epoch exists.
   final String? epochId;
 
+  /// Changeset sequence number (null for a base/full payload).
+  final int? seq;
+
+  /// The base seq this changeset layers on (optional bookkeeping).
+  final int? baseSeq;
+
+  /// HLC watermark this delta starts after (null = full export).
+  final String? sinceHlc;
+
+  /// HLC watermark this delta advances to (== publishedHlcHigh after apply).
+  final String? toHlc;
+
   const SyncPayload({
     required this.version,
     required this.exportedAt,
@@ -116,6 +128,10 @@ class SyncPayload {
     this.rawDataJson,
     this.uploadNonce,
     this.epochId,
+    this.seq,
+    this.baseSeq,
+    this.sinceHlc,
+    this.toHlc,
   });
 
   Map<String, dynamic> toJson() => {
@@ -130,6 +146,10 @@ class SyncPayload {
     ),
     'uploadNonce': uploadNonce,
     'epochId': epochId,
+    'seq': seq,
+    'baseSeq': baseSeq,
+    'sinceHlc': sinceHlc,
+    'toHlc': toHlc,
   };
 
   factory SyncPayload.fromJson(Map<String, dynamic> json) {
@@ -145,6 +165,10 @@ class SyncPayload {
       rawDataJson: jsonEncode(json['data']),
       uploadNonce: json['uploadNonce'] as String?,
       epochId: json['epochId'] as String?,
+      seq: json['seq'] as int?,
+      baseSeq: json['baseSeq'] as int?,
+      sinceHlc: json['sinceHlc'] as String?,
+      toHlc: json['toHlc'] as String?,
       deletions: rawDeletions.map((key, value) {
         final list = value as List? ?? [];
         final deletions = list
@@ -364,166 +388,27 @@ class SyncDataSerializer {
   /// Export all data modified since the given timestamp
   ///
   /// If [since] is null, exports all data.
+  /// Full export of all data (the base snapshot). For an incremental delta use
+  /// [exportChangeset]. The base is always full: there is no partial `since`.
   Future<SyncPayload> exportData({
     required String deviceId,
-    DateTime? since,
     int? lastSyncTimestamp,
     required List<DeletionLogData> deletions,
     String? uploadNonce,
     String? epochId,
   }) async {
     try {
-      final sinceMs = since?.millisecondsSinceEpoch;
-      _log.info('Exporting data since: ${since ?? 'beginning'}');
-
-      // Export all tables
-      final data = SyncData(
-        divers: await _safeExport('divers', () => _exportDivers(sinceMs)),
-        diverSettings: await _safeExport(
-          'diverSettings',
-          () => _exportDiverSettings(sinceMs),
-        ),
-        dives: await _safeExport('dives', () => _exportDives(sinceMs)),
-        diveProfiles: await _safeExport(
-          'diveProfiles',
-          () => _exportDiveProfiles(sinceMs),
-        ),
-        diveTanks: await _safeExport(
-          'diveTanks',
-          () => _exportDiveTanks(sinceMs),
-        ),
-        diveEquipment: await _safeExport(
-          'diveEquipment',
-          () => _exportDiveEquipment(sinceMs),
-        ),
-        diveWeights: await _safeExport(
-          'diveWeights',
-          () => _exportDiveWeights(sinceMs),
-        ),
-        diveSites: await _safeExport(
-          'diveSites',
-          () => _exportDiveSites(sinceMs),
-        ),
-        equipment: await _safeExport(
-          'equipment',
-          () => _exportEquipment(sinceMs),
-        ),
-        equipmentSets: await _safeExport(
-          'equipmentSets',
-          () => _exportEquipmentSets(sinceMs),
-        ),
-        equipmentSetItems: await _safeExport(
-          'equipmentSetItems',
-          _exportEquipmentSetItems,
-        ),
-        media: await _safeExport('media', () => _exportMedia(sinceMs)),
-        buddies: await _safeExport('buddies', () => _exportBuddies(sinceMs)),
-        diveBuddies: await _safeExport(
-          'diveBuddies',
-          () => _exportDiveBuddies(sinceMs),
-        ),
-        certifications: await _safeExport(
-          'certifications',
-          () => _exportCertifications(sinceMs),
-        ),
-        courses: await _safeExport('courses', () => _exportCourses(sinceMs)),
-        serviceRecords: await _safeExport(
-          'serviceRecords',
-          () => _exportServiceRecords(sinceMs),
-        ),
-        diveCenters: await _safeExport(
-          'diveCenters',
-          () => _exportDiveCenters(sinceMs),
-        ),
-        trips: await _safeExport('trips', () => _exportTrips(sinceMs)),
-        liveaboardDetails: await _safeExport(
-          'liveaboardDetails',
-          () => _exportLiveaboardDetails(sinceMs),
-        ),
-        itineraryDays: await _safeExport(
-          'itineraryDays',
-          () => _exportItineraryDays(sinceMs),
-        ),
-        tags: await _safeExport('tags', () => _exportTags(sinceMs)),
-        diveTags: await _safeExport('diveTags', () => _exportDiveTags(sinceMs)),
-        diveTypes: await _safeExport(
-          'diveTypes',
-          () => _exportDiveTypes(sinceMs),
-        ),
-        tankPresets: await _safeExport(
-          'tankPresets',
-          () => _exportTankPresets(sinceMs),
-        ),
-        diveComputers: await _safeExport(
-          'diveComputers',
-          () => _exportDiveComputers(sinceMs),
-        ),
-        tankPressureProfiles: await _safeExport(
-          'tankPressureProfiles',
-          () => _exportTankPressureProfiles(sinceMs),
-        ),
-        tideRecords: await _safeExport(
-          'tideRecords',
-          () => _exportTideRecords(sinceMs),
-        ),
-        settings: await _safeExport('settings', () => _exportSettings(sinceMs)),
-        species: await _safeExport('species', _exportSpecies),
-        sightings: await _safeExport('sightings', _exportSightings),
-        diveProfileEvents: await _safeExport(
-          'diveProfileEvents',
-          () => _exportDiveProfileEvents(sinceMs),
-        ),
-        gasSwitches: await _safeExport(
-          'gasSwitches',
-          () => _exportGasSwitches(sinceMs),
-        ),
-        diveCustomFields: await _safeExport(
-          'diveCustomFields',
-          _exportDiveCustomFields,
-        ),
-        diveDataSources: await _safeExport(
-          'diveDataSources',
-          _exportDiveDataSources,
-        ),
-        siteSpecies: await _safeExport('siteSpecies', _exportSiteSpecies),
-        csvPresets: await _safeExport(
-          'csvPresets',
-          () => _exportCsvPresets(sinceMs),
-        ),
-        viewConfigs: await _safeExport(
-          'viewConfigs',
-          () => _exportViewConfigs(sinceMs),
-        ),
-        fieldPresets: await _safeExport('fieldPresets', _exportFieldPresets),
-      );
-
-      // Group deletions by entity type
-      final deletionMap = <String, List<SyncDeletion>>{};
-      for (final deletion in deletions) {
-        deletionMap
-            .putIfAbsent(deletion.entityType, () => [])
-            .add(
-              SyncDeletion(
-                id: deletion.recordId,
-                deletedAt: deletion.deletedAt,
-              ),
-            );
-      }
-
-      final exportedAt = DateTime.now().millisecondsSinceEpoch;
-
-      // Compute checksum of data
+      _log.info('Exporting full data snapshot');
+      final data = await _buildSyncData(null);
       final dataJson = jsonEncode(data.toJson());
-      final checksum = _computeChecksum(dataJson);
-
       return SyncPayload(
         version: syncFormatVersion,
-        exportedAt: exportedAt,
+        exportedAt: DateTime.now().millisecondsSinceEpoch,
         deviceId: deviceId,
         lastSyncTimestamp: lastSyncTimestamp,
-        checksum: checksum,
+        checksum: _computeChecksum(dataJson),
         data: data,
-        deletions: deletionMap,
+        deletions: _groupDeletions(deletions),
         uploadNonce: uploadNonce,
         epochId: epochId,
       );
@@ -535,6 +420,197 @@ class SyncDataSerializer {
       );
       rethrow;
     }
+  }
+
+  /// Incremental delta: only rows changed since [hlcWatermark]. Mutable
+  /// entities are filtered by their own hlc; write-once children are gathered
+  /// by their HLC parent. Pass null to export everything.
+  Future<SyncPayload> exportChangeset({
+    required String deviceId,
+    required String? hlcWatermark,
+    required List<DeletionLogData> deletions,
+    int? seq,
+    String? uploadNonce,
+    String? epochId,
+  }) async {
+    final data = await _buildSyncData(hlcWatermark);
+    final dataJson = jsonEncode(data.toJson());
+    return SyncPayload(
+      version: syncFormatVersion,
+      exportedAt: DateTime.now().millisecondsSinceEpoch,
+      deviceId: deviceId,
+      checksum: _computeChecksum(dataJson),
+      data: data,
+      deletions: _groupDeletions(deletions),
+      seq: seq,
+      sinceHlc: hlcWatermark,
+      toHlc: _maxHlcInData(data) ?? hlcWatermark,
+      uploadNonce: uploadNonce,
+      epochId: epochId,
+    );
+  }
+
+  /// Group a flat deletion list into the payload's entityType -> deletions map.
+  Map<String, List<SyncDeletion>> _groupDeletions(
+    List<DeletionLogData> deletions,
+  ) {
+    final deletionMap = <String, List<SyncDeletion>>{};
+    for (final deletion in deletions) {
+      deletionMap
+          .putIfAbsent(deletion.entityType, () => [])
+          .add(
+            SyncDeletion(id: deletion.recordId, deletedAt: deletion.deletedAt),
+          );
+    }
+    return deletionMap;
+  }
+
+  /// The highest hlc among the HLC-stamped rows in [data] -- the watermark a
+  /// changeset advances to. Null when the delta has no HLC-bearing rows.
+  String? _maxHlcInData(SyncData data) {
+    String? maxHlc;
+    for (final list in data.toJson().values) {
+      if (list is! List) continue;
+      for (final row in list) {
+        if (row is Map && row['hlc'] is String) {
+          final h = row['hlc'] as String;
+          if (maxHlc == null || h.compareTo(maxHlc) > 0) maxHlc = h;
+        }
+      }
+    }
+    return maxHlc;
+  }
+
+  /// Build the full SyncData, filtering by [hlcSince] (null = full export).
+  Future<SyncData> _buildSyncData(String? hlcSince) async {
+    return SyncData(
+      divers: await _safeExport('divers', () => _exportDivers(hlcSince)),
+      diverSettings: await _safeExport(
+        'diverSettings',
+        () => _exportDiverSettings(hlcSince),
+      ),
+      dives: await _safeExport('dives', () => _exportDives(hlcSince)),
+      diveProfiles: await _safeExport(
+        'diveProfiles',
+        () => _exportDiveProfiles(hlcSince),
+      ),
+      diveTanks: await _safeExport(
+        'diveTanks',
+        () => _exportDiveTanks(hlcSince),
+      ),
+      diveEquipment: await _safeExport(
+        'diveEquipment',
+        () => _exportDiveEquipment(hlcSince),
+      ),
+      diveWeights: await _safeExport(
+        'diveWeights',
+        () => _exportDiveWeights(hlcSince),
+      ),
+      diveSites: await _safeExport(
+        'diveSites',
+        () => _exportDiveSites(hlcSince),
+      ),
+      equipment: await _safeExport(
+        'equipment',
+        () => _exportEquipment(hlcSince),
+      ),
+      equipmentSets: await _safeExport(
+        'equipmentSets',
+        () => _exportEquipmentSets(hlcSince),
+      ),
+      equipmentSetItems: await _safeExport(
+        'equipmentSetItems',
+        () => _exportEquipmentSetItems(hlcSince),
+      ),
+      media: await _safeExport('media', () => _exportMedia(hlcSince)),
+      buddies: await _safeExport('buddies', () => _exportBuddies(hlcSince)),
+      diveBuddies: await _safeExport(
+        'diveBuddies',
+        () => _exportDiveBuddies(hlcSince),
+      ),
+      certifications: await _safeExport(
+        'certifications',
+        () => _exportCertifications(hlcSince),
+      ),
+      courses: await _safeExport('courses', () => _exportCourses(hlcSince)),
+      serviceRecords: await _safeExport(
+        'serviceRecords',
+        () => _exportServiceRecords(hlcSince),
+      ),
+      diveCenters: await _safeExport(
+        'diveCenters',
+        () => _exportDiveCenters(hlcSince),
+      ),
+      trips: await _safeExport('trips', () => _exportTrips(hlcSince)),
+      liveaboardDetails: await _safeExport(
+        'liveaboardDetails',
+        () => _exportLiveaboardDetails(hlcSince),
+      ),
+      itineraryDays: await _safeExport(
+        'itineraryDays',
+        () => _exportItineraryDays(hlcSince),
+      ),
+      tags: await _safeExport('tags', () => _exportTags(hlcSince)),
+      diveTags: await _safeExport('diveTags', () => _exportDiveTags(hlcSince)),
+      diveTypes: await _safeExport(
+        'diveTypes',
+        () => _exportDiveTypes(hlcSince),
+      ),
+      tankPresets: await _safeExport(
+        'tankPresets',
+        () => _exportTankPresets(hlcSince),
+      ),
+      diveComputers: await _safeExport(
+        'diveComputers',
+        () => _exportDiveComputers(hlcSince),
+      ),
+      tankPressureProfiles: await _safeExport(
+        'tankPressureProfiles',
+        () => _exportTankPressureProfiles(hlcSince),
+      ),
+      tideRecords: await _safeExport(
+        'tideRecords',
+        () => _exportTideRecords(hlcSince),
+      ),
+      settings: await _safeExport('settings', () => _exportSettings(hlcSince)),
+      species: await _safeExport('species', () => _exportSpecies(hlcSince)),
+      sightings: await _safeExport(
+        'sightings',
+        () => _exportSightings(hlcSince),
+      ),
+      diveProfileEvents: await _safeExport(
+        'diveProfileEvents',
+        () => _exportDiveProfileEvents(hlcSince),
+      ),
+      gasSwitches: await _safeExport(
+        'gasSwitches',
+        () => _exportGasSwitches(hlcSince),
+      ),
+      diveCustomFields: await _safeExport(
+        'diveCustomFields',
+        () => _exportDiveCustomFields(hlcSince),
+      ),
+      diveDataSources: await _safeExport(
+        'diveDataSources',
+        () => _exportDiveDataSources(hlcSince),
+      ),
+      siteSpecies: await _safeExport(
+        'siteSpecies',
+        () => _exportSiteSpecies(hlcSince),
+      ),
+      csvPresets: await _safeExport(
+        'csvPresets',
+        () => _exportCsvPresets(hlcSince),
+      ),
+      viewConfigs: await _safeExport(
+        'viewConfigs',
+        () => _exportViewConfigs(hlcSince),
+      ),
+      fieldPresets: await _safeExport(
+        'fieldPresets',
+        () => _exportFieldPresets(hlcSince),
+      ),
+    );
   }
 
   /// Convert payload to JSON string
@@ -1301,28 +1377,30 @@ class SyncDataSerializer {
   // Export Methods
   // ============================================================================
 
-  Future<List<Map<String, dynamic>>> _exportDivers(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportDivers(String? hlcSince) async {
     final query = _db.select(_db.divers);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportDiverSettings(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportDiverSettings(
+    String? hlcSince,
+  ) async {
     final query = _db.select(_db.diverSettings);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportDives(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportDives(String? hlcSince) async {
     final query = _db.select(_db.dives);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     // Export via the generated data-class toJson() so the keys are symmetric
@@ -1331,12 +1409,14 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportDiveProfiles(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportDiveProfiles(
+    String? hlcSince,
+  ) async {
     // Profile points don't have updatedAt, export all for modified dives
-    if (since != null) {
+    if (hlcSince != null) {
       final modifiedDives = await (_db.select(
         _db.dives,
-      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
@@ -1349,12 +1429,12 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportDiveTanks(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportDiveTanks(String? hlcSince) async {
     // Similar to profiles, export for modified dives
-    if (since != null) {
+    if (hlcSince != null) {
       final modifiedDives = await (_db.select(
         _db.dives,
-      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
@@ -1367,11 +1447,13 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportDiveEquipment(int? since) async {
-    if (since != null) {
+  Future<List<Map<String, dynamic>>> _exportDiveEquipment(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
       final modifiedDives = await (_db.select(
         _db.dives,
-      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
@@ -1384,11 +1466,13 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportDiveWeights(int? since) async {
-    if (since != null) {
+  Future<List<Map<String, dynamic>>> _exportDiveWeights(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
       final modifiedDives = await (_db.select(
         _db.dives,
-      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
@@ -1401,64 +1485,84 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportDiveSites(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportDiveSites(String? hlcSince) async {
     final query = _db.select(_db.diveSites);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportEquipment(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportEquipment(String? hlcSince) async {
     final query = _db.select(_db.equipment);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportEquipmentSets(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportEquipmentSets(
+    String? hlcSince,
+  ) async {
     final query = _db.select(_db.equipmentSets);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportEquipmentSetItems() async {
+  Future<List<Map<String, dynamic>>> _exportEquipmentSetItems(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final changedSets = await (_db.select(
+        _db.equipmentSets,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final setIds = changedSets.map((s) => s.id).toSet();
+      if (setIds.isEmpty) return [];
+
+      final rows = await (_db.select(
+        _db.equipmentSetItems,
+      )..where((t) => t.setId.isIn(setIds))).get();
+      return rows
+          .map((r) => {'setId': r.setId, 'equipmentId': r.equipmentId})
+          .toList();
+    }
     final rows = await _db.select(_db.equipmentSetItems).get();
     return rows
         .map((r) => {'setId': r.setId, 'equipmentId': r.equipmentId})
         .toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportMedia(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportMedia(String? hlcSince) async {
     final query = _db.select(_db.media);
-    if (since != null) {
-      query.where((t) => t.takenAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     // Media carries the imageData BLOB; encode it as base64, not a byte array.
     return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportBuddies(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportBuddies(String? hlcSince) async {
     final query = _db.select(_db.buddies);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportDiveBuddies(int? since) async {
-    if (since != null) {
+  Future<List<Map<String, dynamic>>> _exportDiveBuddies(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
       final modifiedDives = await (_db.select(
         _db.dives,
-      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
@@ -1471,86 +1575,94 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportCertifications(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportCertifications(
+    String? hlcSince,
+  ) async {
     final query = _db.select(_db.certifications);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     // Certifications carry photoFront/photoBack BLOBs; base64-encode them.
     return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportCourses(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportCourses(String? hlcSince) async {
     final query = _db.select(_db.courses);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportServiceRecords(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportServiceRecords(
+    String? hlcSince,
+  ) async {
     final query = _db.select(_db.serviceRecords);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportDiveCenters(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportDiveCenters(
+    String? hlcSince,
+  ) async {
     final query = _db.select(_db.diveCenters);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportTrips(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportTrips(String? hlcSince) async {
     final query = _db.select(_db.trips);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportLiveaboardDetails(
-    int? since,
+    String? hlcSince,
   ) async {
     final query = _db.select(_db.liveaboardDetailRecords);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportItineraryDays(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportItineraryDays(
+    String? hlcSince,
+  ) async {
     final query = _db.select(_db.tripItineraryDays);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportTags(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportTags(String? hlcSince) async {
     final query = _db.select(_db.tags);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportDiveTags(int? since) async {
-    if (since != null) {
+  Future<List<Map<String, dynamic>>> _exportDiveTags(String? hlcSince) async {
+    if (hlcSince != null) {
       final modifiedDives = await (_db.select(
         _db.dives,
-      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
@@ -1563,44 +1675,48 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportDiveTypes(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportDiveTypes(String? hlcSince) async {
     // Built-in dive types are re-seeded identically on every device at first
     // launch and cannot be edited, so syncing them only risks cross-device
     // ID collisions and payload bloat. Export custom types only.
     final query = _db.select(_db.diveTypes)
       ..where((t) => t.isBuiltIn.equals(false));
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportTankPresets(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportTankPresets(
+    String? hlcSince,
+  ) async {
     final query = _db.select(_db.tankPresets);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportDiveComputers(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportDiveComputers(
+    String? hlcSince,
+  ) async {
     final query = _db.select(_db.diveComputers);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportTankPressureProfiles(
-    int? since,
+    String? hlcSince,
   ) async {
-    if (since != null) {
+    if (hlcSince != null) {
       final modifiedDives = await (_db.select(
         _db.dives,
-      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
@@ -1613,11 +1729,13 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportTideRecords(int? since) async {
-    if (since != null) {
+  Future<List<Map<String, dynamic>>> _exportTideRecords(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
       final modifiedDives = await (_db.select(
         _db.dives,
-      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
@@ -1646,10 +1764,10 @@ class SyncDataSerializer {
   /// across all of one user's devices?" If no, add it here.
   static const Set<String> _deviceLocalSettingsKeys = {'active_diver_id'};
 
-  Future<List<Map<String, dynamic>>> _exportSettings(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportSettings(String? hlcSince) async {
     final query = _db.select(_db.settings);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows
@@ -1658,71 +1776,138 @@ class SyncDataSerializer {
         .toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportSpecies() async {
+  Future<List<Map<String, dynamic>>> _exportSpecies(String? hlcSince) async {
     // Built-in species come from a bundled asset re-seeded on every device;
     // only export user-created species. (Built-ins use stable bundled IDs so
     // they would not collide, but there is no value in shipping them.)
-    final rows = await (_db.select(
-      _db.species,
-    )..where((t) => t.isBuiltIn.equals(false))).get();
+    final query = _db.select(_db.species)
+      ..where((t) => t.isBuiltIn.equals(false));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportSightings() async {
+  Future<List<Map<String, dynamic>>> _exportSightings(String? hlcSince) async {
+    if (hlcSince != null) {
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final diveIds = modifiedDives.map((d) => d.id).toSet();
+      if (diveIds.isEmpty) return [];
+
+      final rows = await (_db.select(
+        _db.sightings,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
     final rows = await _db.select(_db.sightings).get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportDiveCustomFields() async {
+  Future<List<Map<String, dynamic>>> _exportDiveCustomFields(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final diveIds = modifiedDives.map((d) => d.id).toSet();
+      if (diveIds.isEmpty) return [];
+
+      final rows = await (_db.select(
+        _db.diveCustomFields,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
     final rows = await _db.select(_db.diveCustomFields).get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportDiveDataSources() async {
+  Future<List<Map<String, dynamic>>> _exportDiveDataSources(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final diveIds = modifiedDives.map((d) => d.id).toSet();
+      if (diveIds.isEmpty) return [];
+
+      final rows = await (_db.select(
+        _db.diveDataSources,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
+      // Carries rawData/rawFingerprint BLOBs; base64-encode them.
+      return rows
+          .map((r) => r.toJson(serializer: _syncBlobSerializer))
+          .toList();
+    }
     final rows = await _db.select(_db.diveDataSources).get();
     // Carries rawData/rawFingerprint BLOBs; base64-encode them.
     return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportSiteSpecies() async {
+  Future<List<Map<String, dynamic>>> _exportSiteSpecies(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final modifiedSites = await (_db.select(
+        _db.diveSites,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final siteIds = modifiedSites.map((s) => s.id).toSet();
+      if (siteIds.isEmpty) return [];
+
+      final rows = await (_db.select(
+        _db.siteSpecies,
+      )..where((t) => t.siteId.isIn(siteIds))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
     final rows = await _db.select(_db.siteSpecies).get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportCsvPresets(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportCsvPresets(String? hlcSince) async {
     final query = _db.select(_db.csvPresets);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportViewConfigs(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportViewConfigs(
+    String? hlcSince,
+  ) async {
     final query = _db.select(_db.viewConfigs);
-    if (since != null) {
-      query.where((t) => t.updatedAt.isBiggerOrEqualValue(since));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportFieldPresets() async {
+  Future<List<Map<String, dynamic>>> _exportFieldPresets(
+    String? hlcSince,
+  ) async {
     // Built-in field presets are re-seeded per diver on every device; export
     // only user-created presets.
-    final rows = await (_db.select(
-      _db.fieldPresets,
-    )..where((t) => t.isBuiltIn.equals(false))).get();
+    final query = _db.select(_db.fieldPresets)
+      ..where((t) => t.isBuiltIn.equals(false));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportDiveProfileEvents(
-    int? since,
+    String? hlcSince,
   ) async {
-    if (since != null) {
+    if (hlcSince != null) {
       final modifiedDives = await (_db.select(
         _db.dives,
-      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
@@ -1735,11 +1920,13 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportGasSwitches(int? since) async {
-    if (since != null) {
+  Future<List<Map<String, dynamic>>> _exportGasSwitches(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
       final modifiedDives = await (_db.select(
         _db.dives,
-      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 

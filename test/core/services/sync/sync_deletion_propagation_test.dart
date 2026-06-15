@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart' show Value;
@@ -13,6 +12,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/universal_import/data/repositories/csv_preset_repository.dart';
 
+import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/sync_test_helpers.dart';
@@ -74,8 +74,6 @@ void main() {
           'notes': 'often seen at depth',
           'createdAt': 1000,
         });
-
-        await buildService().performSync(); // push the seeded state
         expect(
           await serializer.fetchRecord('siteSpecies', 'ss-del-1'),
           isNotNull,
@@ -90,11 +88,31 @@ void main() {
           reason: 'local row removed immediately',
         );
 
-        await buildService().performSync(); // push the deletion
+        // Publish device A's state -- parents live, the link tombstoned -- as a
+        // peer, then reset to a fresh device. seedPeerLog carries A's deletion
+        // log into the peer base (its writer disables compaction, which would
+        // otherwise rebase the tiny test DB to a live-only snapshot and drop
+        // the tombstone before any peer could receive it).
+        await seedPeerLog(cloud, 'device-a');
 
-        // Now switch to "device B": re-insert the row locally to simulate a
-        // second device that hadn't yet received the delete, reset sync state
-        // so the next sync pulls A's deletion as a cross-device receive.
+        // Device B: re-create the parents and the link locally to simulate a
+        // second device that hadn't yet received the delete; the next sync
+        // pulls A's deletion as a cross-device receive.
+        await serializer.upsertRecord('diveSites', {
+          'id': 'site-del-1',
+          'name': 'Wall Site',
+          'description': '',
+          'notes': '',
+          'isShared': false,
+          'createdAt': 1000,
+          'updatedAt': 1000,
+        });
+        await serializer.upsertRecord('species', {
+          'id': 'sp-del-1',
+          'commonName': 'Manta',
+          'category': 'fish',
+          'isBuiltIn': false,
+        });
         await serializer.upsertRecord('siteSpecies', {
           'id': 'ss-del-1',
           'siteId': 'site-del-1',
@@ -102,7 +120,6 @@ void main() {
           'notes': 'often seen at depth',
           'createdAt': 1000,
         });
-        await impersonateFreshDevice();
         expect(
           await serializer.fetchRecord('siteSpecies', 'ss-del-1'),
           isNotNull,
@@ -129,8 +146,8 @@ void main() {
         final presetRepo = CsvPresetRepository();
 
         // Seed a preset directly (the upsert path is covered by
-        // sync_extra_entities_round_trip_test.dart) and push it, so this
-        // test focuses on the deletion-logging behaviour.
+        // sync_extra_entities_round_trip_test.dart), so this test focuses on
+        // the deletion-logging behaviour.
         await serializer.upsertRecord('csvPresets', {
           'id': 'csv-del-1',
           'name': 'Suunto Layout',
@@ -138,14 +155,19 @@ void main() {
           'createdAt': 1000,
           'updatedAt': 1000,
         });
-        await buildService().performSync();
         expect(
           await serializer.fetchRecord('csvPresets', 'csv-del-1'),
           isNotNull,
         );
 
         await presetRepo.deletePreset('csv-del-1');
-        await buildService().performSync(); // push deletion
+
+        // Publish device A's state -- the preset tombstoned -- as a peer, then
+        // reset to a fresh device. seedPeerLog carries A's deletion log into
+        // the peer base (its writer disables compaction, which would otherwise
+        // rebase the tiny test DB to a live-only snapshot and drop the
+        // tombstone before any peer could receive it).
+        await seedPeerLog(cloud, 'device-a');
 
         // Simulate device B that still has its own copy.
         await serializer.upsertRecord('csvPresets', {
@@ -155,7 +177,6 @@ void main() {
           'createdAt': 1000,
           'updatedAt': 1000,
         });
-        await impersonateFreshDevice();
         await buildService().performSync(); // pull
 
         expect(
@@ -211,10 +232,7 @@ void main() {
           'siteSpecies': [const SyncDeletion(id: 'ss-keep', deletedAt: 5000)],
         },
       );
-      await cloud.uploadFile(
-        Uint8List.fromList(utf8.encode(serializer.serializePayload(payload))),
-        'submersion_sync_remote-dev.json',
-      );
+      await seedPeerBaseFromPayload(cloud, 'remote-dev', payload);
 
       await impersonateFreshDevice();
       await setLastSync(DateTime.fromMillisecondsSinceEpoch(4000));
@@ -269,10 +287,7 @@ void main() {
         data: peerData,
         deletions: const {},
       );
-      await cloud.uploadFile(
-        Uint8List.fromList(utf8.encode(serializer.serializePayload(payload))),
-        'submersion_sync_peer-dev.json',
-      );
+      await seedPeerBaseFromPayload(cloud, 'peer-dev', payload);
     }
 
     test('a deleted dive is NOT resurrected by a peer copy older than the '
@@ -383,10 +398,7 @@ void main() {
         data: peerData,
         deletions: const {},
       );
-      await cloud.uploadFile(
-        Uint8List.fromList(utf8.encode(serializer.serializePayload(payload))),
-        'submersion_sync_peer-dev.json',
-      );
+      await seedPeerBaseFromPayload(cloud, 'peer-dev', payload);
 
       final result = await buildService().performSync();
 
@@ -462,10 +474,7 @@ void main() {
         data: peerData,
         deletions: const {},
       );
-      await cloud.uploadFile(
-        Uint8List.fromList(utf8.encode(serializer.serializePayload(payload))),
-        'submersion_sync_peer-dev.json',
-      );
+      await seedPeerBaseFromPayload(cloud, 'peer-dev', payload);
 
       final result = await buildService().performSync();
 
@@ -528,10 +537,7 @@ void main() {
             'diveSites': [const SyncDeletion(id: 'site-x', deletedAt: 8000)],
           },
         );
-        await cloud.uploadFile(
-          Uint8List.fromList(utf8.encode(serializer.serializePayload(payload))),
-          'submersion_sync_peer-dev.json',
-        );
+        await seedPeerBaseFromPayload(cloud, 'peer-dev', payload);
 
         final result = await buildService().performSync();
 
@@ -623,10 +629,7 @@ void main() {
         data: peerData,
         deletions: const {},
       );
-      await cloud.uploadFile(
-        Uint8List.fromList(utf8.encode(serializer.serializePayload(payload))),
-        'submersion_sync_peer-dev.json',
-      );
+      await seedPeerBaseFromPayload(cloud, 'peer-dev', payload);
 
       final result = await buildService().performSync();
 

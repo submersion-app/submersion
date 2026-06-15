@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show SyncRepository;
-import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
@@ -15,6 +14,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
+import '../../../../helpers/changeset_test_helpers.dart';
 import '../../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -67,22 +67,6 @@ void main() {
     cloud.seedFile(
       libraryEpochFileName,
       Uint8List.fromList(utf8.encode(jsonEncode(m.toJson()))),
-    );
-  }
-
-  /// Seed a current-epoch sync file from the replacer, snapshotting the
-  /// CURRENT local database content.
-  Future<void> seedReplacerFile({String? epochId = 'e1'}) async {
-    final serializer = SyncDataSerializer();
-    final payload = await serializer.exportData(
-      deviceId: 'replacer-device',
-      deletions: const [],
-      epochId: epochId,
-    );
-    cloud.seedFile(
-      '${CloudStorageProviderMixin.syncFilePrefix}replacer-device'
-      '${CloudStorageProviderMixin.syncFileExtension}',
-      Uint8List.fromList(utf8.encode(serializer.serializePayload(payload))),
     );
   }
 
@@ -159,6 +143,10 @@ void main() {
       final container = await makeContainer();
       await seedLocalDive('mine-1');
       seedMarker(marker);
+      // A genuine replace also published an e1 library, so the epoch is
+      // adoptable (an orphaned marker would instead auto-recover).
+      await seedPeerManifest(cloud, 'replacer-device', epochId: 'e1');
+      cloud.operationLog.clear();
 
       await container.read(syncStateProvider.notifier).performSync();
 
@@ -174,7 +162,10 @@ void main() {
     });
 
     test('adopts silently when the local library is empty', () async {
-      await seedReplacerFile(); // snapshot of the (empty) library, stamped e1
+      // The replacer's restored library (one dive), stamped e1. seedPeerLog
+      // resets the local DB to empty -- exactly the silent-adopt precondition.
+      await seedLocalDive('restored-dive');
+      await seedPeerLog(cloud, 'replacer-device', epochId: 'e1');
       seedMarker(marker);
       final container = await makeContainer();
 
@@ -183,12 +174,9 @@ void main() {
       final state = container.read(syncStateProvider);
       expect(state.replaceAwaitingAdoption, isFalse);
       expect(await SyncRepository().getLastAcceptedEpochId(), 'e1');
-      // The follow-up sync uploaded this device's stamped file.
+      // The follow-up sync published this device's stamped log.
       final deviceId = await SyncRepository().getDeviceId();
-      final ownName =
-          '${CloudStorageProviderMixin.syncFilePrefix}$deviceId'
-          '${CloudStorageProviderMixin.syncFileExtension}';
-      expect(cloud.bytesOf(ownName), isNotNull);
+      expect(await hasPublishedLog(cloud, deviceId), isTrue);
     });
   });
 
@@ -196,15 +184,14 @@ void main() {
     test(
       'adopts the restored library, clears the pause, and re-syncs',
       () async {
-        // Stage the restored library (dive A), snapshot it to the cloud,
-        // then diverge locally: drop A, add B.
+        // The replacer's restored library holds dive-a; seedPeerLog resets the
+        // DB, after which we diverge locally with dive-b.
         await seedLocalDive('dive-a');
-        await seedReplacerFile();
-        final serializer = SyncDataSerializer();
-        await serializer.deleteRecord('dives', 'dive-a');
+        await seedPeerLog(cloud, 'replacer-device', epochId: 'e1');
         await seedLocalDive('dive-b');
         seedMarker(marker);
 
+        final serializer = SyncDataSerializer();
         final container = await makeContainer();
         final notifier = container.read(syncStateProvider.notifier);
 
@@ -220,20 +207,22 @@ void main() {
         expect(await serializer.fetchRecord('dives', 'dive-a'), isNotNull);
         expect(await serializer.fetchRecord('dives', 'dive-b'), isNull);
         expect(await SyncRepository().getLastAcceptedEpochId(), 'e1');
-        // Follow-up sync uploaded our stamped file.
+        // Follow-up sync published our stamped base.
         final deviceId = await SyncRepository().getDeviceId();
-        final ownName =
-            '${CloudStorageProviderMixin.syncFilePrefix}$deviceId'
-            '${CloudStorageProviderMixin.syncFileExtension}';
-        final uploaded = serializer.deserializePayload(
-          utf8.decode(cloud.bytesOf(ownName)!),
-        );
-        expect(uploaded.epochId, 'e1');
+        expect((await cloudBasePayload(cloud, deviceId))?.epochId, 'e1');
       },
     );
 
-    test('surfaces an error when no current-epoch file exists yet', () async {
-      seedMarker(marker); // replace in flight: marker only, no stamped file
+    test('surfaces an error when a replace is still uploading', () async {
+      // FRESH marker, no stamped base yet: a replace in flight (an old/orphaned
+      // marker would instead auto-recover from the local library).
+      seedMarker(
+        LibraryEpochMarker(
+          epochId: 'e1',
+          replacedAt: DateTime.now().millisecondsSinceEpoch,
+          deviceId: 'replacer-device',
+        ),
+      );
       final container = await makeContainer();
       final notifier = container.read(syncStateProvider.notifier);
 

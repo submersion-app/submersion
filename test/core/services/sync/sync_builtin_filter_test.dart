@@ -1,11 +1,10 @@
-import 'dart:convert';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 
+import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/test_database.dart';
 
@@ -48,12 +47,11 @@ void main() {
         'isBuiltIn': false,
       });
 
+      final deviceId = await SyncRepository().getDeviceId();
       await buildService().performSync();
 
-      final payload = serializer.deserializePayload(
-        utf8.decode(cloud.syncFileBytes()!),
-      );
-      final ids = payload.data.species.map((s) => s['id']).toSet();
+      final payload = await cloudBasePayload(cloud, deviceId);
+      final ids = payload!.data.species.map((s) => s['id']).toSet();
 
       expect(ids, contains('sp_custom_1'));
       expect(
@@ -85,12 +83,11 @@ void main() {
           'updatedAt': 1000,
         });
 
+        final deviceId = await SyncRepository().getDeviceId();
         await buildService().performSync();
 
-        final payload = serializer.deserializePayload(
-          utf8.decode(cloud.syncFileBytes()!),
-        );
-        final ids = payload.data.diveTypes.map((t) => t['id']).toSet();
+        final payload = await cloudBasePayload(cloud, deviceId);
+        final ids = payload!.data.diveTypes.map((t) => t['id']).toSet();
 
         expect(ids, contains('dt_custom_1'));
         expect(
