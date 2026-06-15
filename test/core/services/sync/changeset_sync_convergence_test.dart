@@ -13,7 +13,7 @@ import '../../../support/fake_cloud_storage_provider.dart';
 /// through the real merge. One in-memory database stands in for each device in
 /// turn (the singleton is swapped), sharing one fake "cloud".
 void main() {
-  test('two devices converge via performChangesetSync', () async {
+  test('two devices converge via performSync', () async {
     final cloud = FakeCloudStorageProvider();
 
     // --- Device A: create a dive, then sync (publishes a base) ---
@@ -26,7 +26,7 @@ void main() {
     await DiveRepository().createDive(
       createTestDiveWithBottomTime(id: 'a1', diveNumber: 1),
     );
-    final ra = await svc.performChangesetSync();
+    final ra = await svc.performSync();
     expect(ra.status, SyncResultStatus.success);
     DatabaseService.instance.resetForTesting();
 
@@ -37,7 +37,7 @@ void main() {
       serializer: SyncDataSerializer(),
       cloudProvider: cloud,
     );
-    final rb = await svc.performChangesetSync();
+    final rb = await svc.performSync();
     expect(rb.status, SyncResultStatus.success);
 
     final row = await DatabaseService.instance.database

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,14 +8,16 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
+import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/sync_test_helpers.dart';
 import '../../../helpers/test_database.dart';
 
-/// Regression tests for the per-device-file flow's data-loss edges:
-/// C1 (failed apply must not advance lastSync), M1 (no unreliable mtime skip),
-/// M6 (own-device payloads are skipped by identity).
+/// Regression tests for the changeset-log flow's data-loss edges:
+/// C1 (failed apply must not advance lastSync), M1 (a foreign peer is applied
+/// regardless of cloud mtime), M6 (this device's own log is skipped by
+/// identity).
 void main() {
   group('Sync flow data-loss guards', () {
     late FakeCloudStorageProvider cloud;
@@ -34,62 +35,50 @@ void main() {
       cloudProvider: cloud,
     );
 
-    Future<Map<String, dynamic>> baseDiveMap(String id) async {
-      final diveRepo = DiveRepository();
-      await diveRepo.createDive(createTestDiveWithBottomTime(id: id));
-      final exported = await SyncDataSerializer().exportData(
-        deviceId: 'seed',
-        deletions: const [],
-      );
-      final map = Map<String, dynamic>.from(
-        exported.data.dives.firstWhere((d) => d['id'] == id),
-      );
-      await diveRepo.deleteDive(id);
-      await SyncRepository().resetSyncState();
-      return map;
-    }
-
-    Future<void> uploadFile(
-      String name,
-      String deviceId,
-      List<Map<String, dynamic>> dives,
-    ) async {
-      final data = SyncData(dives: dives);
-      final checksum = sha256
-          .convert(utf8.encode(jsonEncode(data.toJson())))
-          .toString();
-      final payload = SyncPayload(
-        version: syncFormatVersion,
-        exportedAt: 1700000000000,
-        deviceId: deviceId,
-        checksum: checksum,
-        data: data,
-        deletions: const {},
-      );
-      await cloud.uploadFile(
-        Uint8List.fromList(
-          utf8.encode(SyncDataSerializer().serializePayload(payload)),
-        ),
-        name,
-      );
-    }
-
     test(
       'C1: a failed apply does not advance lastSync (so it is retried)',
       () async {
-        final base = await baseDiveMap('dive-ok');
-        final goodDive = {...base, 'id': 'dive-ok'};
-        final corruptDive = {
-          ...base,
-          'id': 'dive-bad',
-          'maxDepth': 'NOT_A_NUMBER',
-        };
-        await uploadFile('submersion_sync_remote.json', 'remote-dev', [
-          goodDive,
-          corruptDive,
-        ]);
+        final serializer = SyncDataSerializer();
+        final diveRepo = DiveRepository();
 
+        // Two dives so the export carries a good record alongside the bad one:
+        // the good one applying must NOT let lastSync advance past the failure.
+        await diveRepo.createDive(
+          createTestDiveWithBottomTime(id: 'dive-ok', diveNumber: 1),
+        );
+        await diveRepo.createDive(
+          createTestDiveWithBottomTime(id: 'dive-bad', diveNumber: 2),
+        );
+
+        // Export as a peer payload, corrupt a non-nullable field on one dive,
+        // then recompute the checksum so it still passes transport validation:
+        // the failure must surface at APPLY time, not as a transport error.
+        final exported = await serializer.exportChangeset(
+          deviceId: 'peer-corrupt',
+          hlcWatermark: null,
+          deletions: const [],
+        );
+        exported.data.dives.firstWhere(
+          (d) => d['id'] == 'dive-bad',
+        )['maxDepth'] = 'NOT_A_NUMBER';
+        final corrupt = SyncPayload(
+          version: exported.version,
+          exportedAt: exported.exportedAt,
+          deviceId: exported.deviceId,
+          lastSyncTimestamp: exported.lastSyncTimestamp,
+          checksum: sha256
+              .convert(utf8.encode(jsonEncode(exported.data.toJson())))
+              .toString(),
+          data: exported.data,
+          deletions: exported.deletions,
+          toHlc: exported.toHlc,
+        );
+
+        // Fresh device B; seed the corrupt peer log; pull it.
+        await diveRepo.deleteDive('dive-ok');
+        await diveRepo.deleteDive('dive-bad');
         await impersonateFreshDevice();
+        await seedPeerBaseFromPayload(cloud, 'peer-corrupt', corrupt);
         final result = await buildService().performSync();
 
         expect(result.status, SyncResultStatus.error);
@@ -103,48 +92,52 @@ void main() {
       },
     );
 
-    test('M1: a foreign file is applied even if its mtime is older than '
-        'lastSync (mtime is unreliable on iCloud)', () async {
-      final base = await baseDiveMap('dive-mtime');
-      await uploadFile('submersion_sync_remote.json', 'remote-dev', [
-        {...base, 'id': 'dive-mtime'},
-      ]);
+    test('M1: a foreign peer is applied regardless of cloud mtime', () async {
+      // The changeset reader advances per-peer cursors and never consults
+      // mtime, so a foreign peer must be applied even when local lastSync is
+      // far newer than anything the cloud reports.
+      final diveRepo = DiveRepository();
+      await diveRepo.createDive(
+        createTestDiveWithBottomTime(id: 'dive-mtime', diveNumber: 3),
+      );
+      await seedPeerLog(cloud, 'remote-dev');
 
-      await impersonateFreshDevice();
-      // lastSync far in the future; the foreign file's mtime (now) is older.
+      // lastSync far in the future; an mtime-based skip would have dropped the
+      // peer. The changeset transport must apply it anyway.
       await setLastSync(DateTime.now().add(const Duration(days: 365)));
 
       await buildService().performSync();
 
       expect(
-        await DiveRepository().getDiveById('dive-mtime'),
+        await diveRepo.getDiveById('dive-mtime'),
         isNotNull,
         reason:
-            'the foreign file must still be applied; a mtime-based skip '
+            'the foreign peer must still be applied; a mtime-based skip '
             'would have dropped it',
       );
     });
 
-    test(
-      'M6: a payload authored by THIS device is skipped by identity',
-      () async {
-        final base = await baseDiveMap('dive-self');
-        final myDeviceId = await SyncRepository().getDeviceId();
+    test('M6: this device\'s own log is skipped by identity', () async {
+      final diveRepo = DiveRepository();
+      final myDeviceId = await SyncRepository().getDeviceId();
 
-        // A legacy-named file whose payload claims OUR device id.
-        await uploadFile('submersion_sync.json', myDeviceId, [
-          {...base, 'id': 'dive-self'},
-        ]);
+      // Publish a log under OUR OWN device id, then remove the dive locally.
+      // The reader excludes the self log, so the pull must not resurrect it.
+      await diveRepo.createDive(
+        createTestDiveWithBottomTime(id: 'dive-self', diveNumber: 4),
+      );
+      await publishOwnLog(cloud, myDeviceId);
+      await diveRepo.deleteDive('dive-self');
+      expect(await diveRepo.getDiveById('dive-self'), isNull);
 
-        final result = await buildService().performSync();
-        expect(result.status, isNot(SyncResultStatus.error));
+      final result = await buildService().performSync();
+      expect(result.status, isNot(SyncResultStatus.error));
 
-        expect(
-          await DiveRepository().getDiveById('dive-self'),
-          isNull,
-          reason: 'our own payload (any filename) must not be re-applied to us',
-        );
-      },
-    );
+      expect(
+        await diveRepo.getDiveById('dive-self'),
+        isNull,
+        reason: 'our own log must not be re-applied to us',
+      );
+    });
   });
 }

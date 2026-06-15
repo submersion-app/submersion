@@ -862,6 +862,14 @@ class SyncRepository {
         await clearAllDeletions();
       }
 
+      // Changeset transport position is not data history: a reset must
+      // cold-start the transport so the next sync re-pulls every peer from
+      // scratch and republishes a fresh base. Leaving a provider-keyed publish
+      // row behind would make the next publish append a changeset against a
+      // base whose own manifest no longer exists.
+      await _db.delete(_db.syncPeerCursors).go();
+      await _db.delete(_db.localPublishStates).go();
+
       final now = DateTime.now().millisecondsSinceEpoch;
       await (_db.update(
         _db.syncMetadata,

@@ -161,6 +161,7 @@ class ChangesetWriter {
         folderId: folderId,
         providerId: providerId,
         afterSeq: newSeq,
+        deletions: deletions,
         epochId: epochId,
         uploadNonce: uploadNonce,
       );
@@ -223,13 +224,18 @@ class ChangesetWriter {
     required String folderId,
     required String providerId,
     required int afterSeq,
+    required List<DeletionLogData> deletions,
     String? epochId,
     String? uploadNonce,
   }) async {
+    // The fresh base must carry the full deletion log: a peer that still holds
+    // a since-deleted record and cold-starts from this base (its prior
+    // changesets pruned) would otherwise never see the tombstone and resurrect
+    // the row. Mirrors the first base, which also exports with deletions.
     final full = await _serializer.exportChangeset(
       deviceId: deviceId,
       hlcWatermark: null,
-      deletions: const [],
+      deletions: deletions,
       epochId: epochId,
       uploadNonce: uploadNonce,
     );

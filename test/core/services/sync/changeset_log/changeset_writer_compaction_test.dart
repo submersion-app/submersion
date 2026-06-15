@@ -95,6 +95,51 @@ void main() {
     },
   );
 
+  test('a compacted base carries the deletion log (no resurrection)', () async {
+    final deviceId = await SyncRepository().getDeviceId();
+    final diveRepo = DiveRepository();
+    await diveRepo.createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    await publish(); // base @1 (d1)
+    await diveRepo.createDive(
+      createTestDiveWithBottomTime(id: 'd2', diveNumber: 2),
+    );
+    await publish(); // cs @2 (d2)
+
+    // Delete d1: a tombstone now lives in the deletion log.
+    await diveRepo.deleteDive('d1');
+    await diveRepo.createDive(
+      createTestDiveWithBottomTime(id: 'd3', diveNumber: 3),
+    );
+    final result = await publish(); // cs @3 -> compaction
+    expect(result.kind, ChangesetWriteKind.compacted);
+
+    // The compacted base must still carry the d1 tombstone; otherwise a peer
+    // that holds d1 and cold-starts from this base would resurrect it.
+    final manifest = SyncManifest.fromBytes(
+      await provider.downloadFile(
+        '$folder/${ChangesetLogLayout.manifestName(deviceId)}',
+      ),
+    );
+    final parts = [
+      for (var i = 0; i < (manifest.basePartCount ?? 0); i++)
+        await provider.downloadFile(
+          '$folder/${ChangesetLogLayout.basePartName(deviceId, manifest.baseSeq!, i)}',
+        ),
+    ];
+    final base = ChangesetCodec(SyncDataSerializer()).decodeBaseParts(parts);
+    final deletedIds = base.deletions.values
+        .expand((l) => l)
+        .map((d) => d.id)
+        .toList();
+    expect(
+      deletedIds,
+      contains('d1'),
+      reason: 'compaction must preserve tombstones or deletes resurrect',
+    );
+  });
+
   test('does not compact below the threshold', () async {
     await DiveRepository().createDive(
       createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),

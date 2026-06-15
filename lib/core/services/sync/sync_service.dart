@@ -9,11 +9,13 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
+import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/stale_restore_detector.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
@@ -139,6 +141,18 @@ enum ConflictResolution { keepLocal, keepRemote, keepBoth }
 /// child (NOT NULL -> the row cannot exist without the parent) from a set-null
 /// reference (nullable -> the row survives with the reference cleared).
 typedef ParentRef = ({String field, String parent, bool nullable});
+
+/// Outcome of the library-epoch gate: either a [terminal] result the caller
+/// must return immediately (a pending replace was executed, the marker was
+/// unreadable, or the cloud library was replaced and awaits adoption), or the
+/// resolved [currentEpochId] to stamp and filter by for the rest of the sync
+/// (null in the pre-epoch world).
+class _EpochGate {
+  const _EpochGate.proceed(this.currentEpochId) : terminal = null;
+  const _EpochGate.halt(this.terminal) : currentEpochId = null;
+  final String? currentEpochId;
+  final SyncResult? terminal;
+}
 
 /// Core sync service that orchestrates cloud sync operations
 class SyncService {
@@ -276,459 +290,15 @@ class SyncService {
     return null;
   }
 
-  /// Perform a full sync operation
+  /// Incremental changeset-log sync: the live sync path. Pulls peers' deltas
+  /// through the existing HLC/LWW merge, then publishes this device's own
+  /// delta, with the library-epoch gate and twin-identity split folded in.
   ///
-  /// This will:
-  /// 1. Export local changes to JSON
-  /// 2. Download remote sync file (if exists)
-  /// 3. Merge changes, detecting conflicts
-  /// 4. Upload merged result
-  /// 5. Update local sync state
+  /// Pipeline: auth -> epoch gate -> twin split -> stale-restore reset ->
+  /// pull peers (epoch-filtered) -> publish our delta (epoch-stamped) ->
+  /// advance state. Re-pulls are idempotent (upsert + HLC), so a partial apply
+  /// leaves state unadvanced and retries next sync rather than losing records.
   Future<SyncResult> performSync() async {
-    _log.debug('performSync() called');
-    final provider = _cloudProvider;
-    if (provider == null) {
-      _log.error('No cloud provider configured');
-      return const SyncResult(
-        status: SyncResultStatus.error,
-        message: 'No cloud provider configured',
-      );
-    }
-
-    _log.debug('Using provider: ${provider.providerName}');
-
-    try {
-      _reportProgress(SyncPhase.preparing, 0.0, 'Preparing sync...');
-
-      // Check authentication
-      final isAuth = await _withStep(
-        'auth check',
-        () => provider.isAuthenticated(),
-      );
-      _log.debug('isAuthenticated = $isAuth');
-      if (!isAuth) {
-        return const SyncResult(
-          status: SyncResultStatus.authError,
-          message: 'Not authenticated with cloud provider',
-        );
-      }
-
-      // Get device ID and last sync time
-      var deviceId = await _withStep(
-        'load device id',
-        () => _syncRepository.getDeviceId(),
-      );
-      // Scoped to this provider: a cursor minted against the backend we just
-      // switched away from must read as null here, so the first sync on the
-      // new backend does a full reconcile (mirrors rebaselineAfterRestore)
-      // rather than replaying a foreign baseline.
-      final lastSyncTime = await _withStep(
-        'load last sync time',
-        () => _syncRepository.getLastSyncTime(forProvider: provider.providerId),
-      );
-      // Make sure the HLC clock is live before merging so receiving remote
-      // payloads advances it (and any writes during the sync get stamped).
-      await _withStep(
-        'configure sync clock',
-        () => _syncRepository.ensureSyncClockConfigured(),
-      );
-
-      // ---- Library epoch gate (restore Replace mode) ----
-      // Order matters: a pending replace must run INSTEAD of a merge (merging
-      // would pull back the data the user just replaced away), and a marker
-      // from an unknown epoch must halt everything until the user adopts.
-      String? currentEpochId;
-      final epochStore = _epochStore;
-      if (epochStore != null) {
-        final pending = epochStore.pendingReplace;
-        if (pending != null) {
-          return await executeLibraryReplace(pending);
-        }
-        final accepted =
-            await _syncRepository.getLastAcceptedEpochId() ??
-            epochStore.lastAcceptedEpochId;
-        LibraryEpochMarker? marker;
-        try {
-          marker = await readLibraryEpochMarker(provider);
-        } catch (e) {
-          _log.warning('Library epoch marker unreadable; failing closed: $e');
-          return const SyncResult(
-            status: SyncResultStatus.error,
-            message: 'Could not read the library epoch marker',
-          );
-        }
-        if (marker == null) {
-          if (accepted != null) {
-            // We are on an epoch but the marker vanished: self-heal it from
-            // the mirrored copy and continue as current.
-            final stored = epochStore.lastAcceptedMarker;
-            if (stored != null) {
-              try {
-                await writeLibraryEpochMarker(provider, stored);
-              } catch (e) {
-                _log.warning('Could not self-heal epoch marker: $e');
-              }
-            }
-            currentEpochId = accepted;
-          }
-          // accepted == null: pre-epoch world, proceed exactly as today.
-        } else if (marker.epochId == accepted) {
-          currentEpochId = accepted;
-        } else {
-          _log.info(
-            'Cloud library was replaced (epoch ${marker.epochId}); '
-            'halting sync until the user adopts',
-          );
-          return SyncResult(
-            status: SyncResultStatus.awaitingAdoption,
-            message: 'The cloud library was replaced from a backup',
-            replaceMarker: marker,
-          );
-        }
-      }
-
-      // Try to download existing remote file
-      _reportProgress(
-        SyncPhase.downloading,
-        0.4,
-        'Checking for remote data...',
-      );
-
-      // List every sync file in the folder. We need the full list (not just
-      // peers) so we can inspect our OWN file for a twin-identity signal
-      // before deciding which files to merge.
-      List<CloudFileInfo> allFiles;
-      try {
-        allFiles = await _listSyncFiles(
-          provider,
-        ).timeout(const Duration(seconds: 8));
-      } on TimeoutException {
-        _log.warning('Timed out listing remote sync files');
-        allFiles = const [];
-      } catch (e, stackTrace) {
-        _log.warning(
-          'Failed to list remote sync files: $e',
-          stackTrace: stackTrace,
-        );
-        allFiles = const [];
-      }
-
-      var adoptedFreshIdentity = false;
-      var ownFileName = _deviceSyncFileName(deviceId);
-      final ownFile = allFiles.where((f) => f.name == ownFileName).firstOrNull;
-
-      // Twin-identity check: our own cloud file carrying a nonce we never
-      // minted means another install is syncing as this device (a clone from
-      // whole-container OS migration). The launch-time anchor reconcile is
-      // structurally blind to that (both installs' anchors match their own
-      // DBs), so this in-band signal is the only detection point. Recovery:
-      // adopt a fresh identity NOW and keep going -- the shared file then
-      // counts as a peer below and the twins converge in this same sync.
-      //
-      // Accepted trade-off: a SharedPreferences wipe with the database kept
-      // (rare outside dev machines) is indistinguishable from a DB clone and
-      // reads as a twin. The design errs toward detection -- an identity
-      // change is cheap and converges, silent twinning corrupts both sides.
-      final initializer = _syncInitializer;
-      if (ownFile != null && initializer != null) {
-        final ownIdentity = await _peekPayloadIdentity(provider, ownFile);
-        if (ownIdentity != null &&
-            ownIdentity.deviceId == deviceId &&
-            initializer.isForeignUploadNonce(
-              ownIdentity.uploadNonce,
-              provider.providerId,
-            )) {
-          _log.warning(
-            'Another install is uploading as this device id; adopting a '
-            'fresh sync identity to split the twins',
-          );
-          deviceId = await _withStep(
-            'adopt fresh identity',
-            () => initializer.adoptFreshIdentity(),
-          );
-          ownFileName = _deviceSyncFileName(deviceId);
-          adoptedFreshIdentity = true;
-          // Re-seed the HLC clock under the new node id now, so remote HLCs
-          // received while merging the converging files below advance it
-          // instead of no-opping against an unconfigured clock.
-          await _withStep(
-            'configure sync clock',
-            () => _syncRepository.ensureSyncClockConfigured(),
-          );
-        }
-      }
-
-      // Resolve every sync file we should apply: all OTHER devices'
-      // per-device files plus any legacy shared file. Our own per-device file
-      // is excluded (it is our data, already local). Listing all files (rather
-      // than a single canonical file) is what lets per-device files coexist
-      // without a write-write race.
-      final remoteFiles = allFiles.where((f) => f.name != ownFileName).toList();
-
-      _reportProgress(SyncPhase.importing, 0.6, 'Processing changes...');
-
-      var recordsSynced = 0;
-      var conflictsFound = 0;
-      var recordsFailed = 0;
-      CloudFileInfo? mergedLegacyFile;
-
-      for (final file in remoteFiles) {
-        // NOTE: we intentionally do NOT skip files by their cloud
-        // modifiedTime. iCloud Drive can fail to advance that metadata after a
-        // conflict-copy merge, which would silently skip a file containing new
-        // records; and skipping a file whose record failed to apply once would
-        // drop it forever. Re-applying is idempotent (upsert + HLC), so we
-        // always download and merge every foreign file.
-        final payload = await _downloadAndParsePayload(provider, file);
-        if (payload == null) {
-          continue;
-        }
-
-        // Stale-epoch filter: a file written under an older library epoch
-        // (or none, once an epoch exists) is inert -- merging it would leak
-        // the replaced-away library back in. Best-effort delete it.
-        if (currentEpochId != null && payload.epochId != currentEpochId) {
-          _log.info(
-            'Ignoring stale-epoch sync file ${file.name} '
-            '(${payload.epochId ?? 'unstamped'} != $currentEpochId)',
-          );
-          try {
-            await provider
-                .deleteFile(file.id)
-                .timeout(const Duration(seconds: 8));
-          } catch (e) {
-            _log.warning('Could not delete stale sync file ${file.name}: $e');
-          }
-          continue;
-        }
-
-        if (file.name == CloudStorageProviderMixin.canonicalSyncFileName) {
-          // Parsed fine: its content is either our own pre-upgrade upload or
-          // about to be merged below. Either way it is fully represented by
-          // the per-device file we upload at the end of this sync, so it can
-          // be retired afterwards.
-          mergedLegacyFile = file;
-        }
-
-        // Skip our own data by payload identity (covers a legacy shared file
-        // or an iCloud conflict-copy this device authored) -- applying it to
-        // ourselves is a no-op that only inflates counts.
-        if (payload.deviceId == deviceId) {
-          continue;
-        }
-
-        final mergeResult = await _withStep(
-          'apply remote data',
-          () => _applyRemotePayload(payload, lastSyncTime),
-        );
-        recordsSynced += mergeResult.recordsApplied;
-        conflictsFound += mergeResult.conflictsFound;
-        recordsFailed += mergeResult.recordsFailed;
-      }
-
-      _reportProgress(SyncPhase.exporting, 0.7, 'Exporting local data...');
-
-      final deletions = await _withStep(
-        'load deletions',
-        () => _syncRepository.getAllDeletions(),
-      );
-      final uploadNonce = _uuid.v4();
-      final localPayload = await _withStep(
-        'export local data',
-        () => _serializer.exportData(
-          deviceId: deviceId,
-          lastSyncTimestamp: lastSyncTime?.millisecondsSinceEpoch,
-          deletions: deletions,
-          uploadNonce: uploadNonce,
-          epochId: currentEpochId,
-        ),
-      );
-
-      _reportProgress(SyncPhase.exporting, 0.8, 'Serializing data...');
-
-      final localJson = _withStepSync(
-        'serialize local payload',
-        () => _serializer.serializePayload(localPayload),
-      );
-      final localData = Uint8List.fromList(utf8.encode(localJson));
-
-      _reportProgress(SyncPhase.uploading, 0.85, 'Uploading sync data...');
-
-      final syncFolder = await _withStep(
-        'resolve sync folder',
-        () => provider.getOrCreateSyncFolder().timeout(
-          const Duration(seconds: 10),
-        ),
-      );
-      // Write to this device's own file so two devices never contend for the
-      // same file (the iCloud "conflicted copy" race). Other devices pick this
-      // up by listing the folder on their next sync.
-      final filename = _deviceSyncFileName(deviceId);
-
-      _log.debug(
-        'Uploading ${localData.length} bytes to $syncFolder/$filename...',
-      );
-      // Record the nonce BEFORE uploading: if the upload succeeds but the
-      // response is lost (timeout, app death), the cloud file carries this
-      // nonce -- an unrecorded copy of it would read as a twin on the next
-      // sync and force a needless identity change. The failure branch removes
-      // the speculative entry so repeated failed uploads cannot evict the
-      // nonce of the last successful upload from the ring.
-      await _syncInitializer?.recordUploadNonce(
-        uploadNonce,
-        provider.providerId,
-      );
-      UploadResult result;
-      try {
-        result = await _withStep(
-          'upload sync file',
-          () => provider
-              .uploadFile(localData, filename, folderId: syncFolder)
-              .timeout(const Duration(seconds: 180)),
-        );
-      } catch (e) {
-        // A timed-out upload may still have landed server-side; keep the
-        // speculative nonce so our own file cannot read as a foreign twin
-        // on the next sync (the ring absorbs the extra entry). Remove it
-        // only on definite failures, so repeated hard failures cannot
-        // evict the nonce of the last successful upload.
-        final cause = e is SyncStepException ? e.error : e;
-        if (cause is! TimeoutException) {
-          await _syncInitializer?.removeUploadNonce(
-            uploadNonce,
-            provider.providerId,
-          );
-        }
-        rethrow;
-      }
-      _log.debug('Upload complete! fileId = ${result.fileId}');
-
-      // Deliberately do NOT persist result.fileId as "the remote file id":
-      // under per-device files it is *our own* file, and the only consumer
-      // (SyncInitializer.checkSyncOnLaunch) now inspects every peer file's
-      // mtime directly. Persisting our own id made the launch check compare our
-      // own upload time and miss other devices' changes.
-
-      // Only advance lastSyncTime when every record applied. A failed apply
-      // leaves no per-record retry marker, so advancing lastSync would let the
-      // conflict-detection window move past it and the record would never be
-      // retried -- permanent loss. Leaving lastSync unchanged means the next
-      // sync re-pulls and re-applies (idempotent) so the failure is retried.
-      if (recordsFailed == 0) {
-        await _withStep(
-          'store last sync time',
-          () => _syncRepository.updateLastSyncTime(
-            result.uploadTime,
-            providerId: provider.providerId,
-          ),
-        );
-      }
-      // Retire the legacy shared sync file once its content is merged and
-      // re-published in this device's per-device file. Only when every record
-      // applied: a failed apply relies on re-pulling the same file next sync.
-      // Best-effort -- a still-active pre-per-device build recreates the file
-      // on its next sync (uploads are full snapshots), so deletion never
-      // loses data.
-      if (recordsFailed == 0 && mergedLegacyFile != null) {
-        try {
-          await provider
-              .deleteFile(mergedLegacyFile.id)
-              .timeout(const Duration(seconds: 8));
-          _log.info('Retired legacy shared sync file after merging it');
-        } catch (e) {
-          _log.warning('Could not retire legacy sync file: $e');
-        }
-      }
-      // Persist the HLC so the logical counter survives an app restart (it
-      // was advanced by SyncClock.receive() while applying remote payloads).
-      await _withStep(
-        'persist sync clock',
-        () => _syncRepository.persistSyncClock(),
-      );
-
-      // Keep deletions for propagation, but prune old entries
-      await _withStep(
-        'clear old deletions',
-        () => _syncRepository.clearOldDeletions(),
-      );
-      await _withStep(
-        'clear pending records',
-        () => _syncRepository.clearPendingRecords(),
-      );
-      if (conflictsFound == 0) {
-        await _withStep(
-          'clear sync records',
-          () => _syncRepository.clearAllSyncRecords(),
-        );
-      }
-
-      _reportProgress(SyncPhase.complete, 1.0, 'Sync complete');
-
-      _log.info('Sync completed successfully');
-
-      if (recordsFailed > 0) {
-        _log.error('$recordsFailed record(s) failed to apply during sync');
-      }
-      return SyncResult(
-        status: recordsFailed > 0
-            ? SyncResultStatus.error
-            : (conflictsFound > 0
-                  ? SyncResultStatus.hasConflicts
-                  : SyncResultStatus.success),
-        message: recordsFailed > 0
-            ? '$recordsFailed record(s) failed to apply'
-            : (adoptedFreshIdentity
-                  ? 'Another device was syncing with this device\'s '
-                        'identity. This device adopted a new identity and '
-                        'merged the cloud data.'
-                  : null),
-        recordsSynced: recordsSynced,
-        conflictsFound: conflictsFound,
-        // Mirror the persistence decision above: only report an advanced
-        // lastSyncTime when every record applied (and we actually wrote it to
-        // the DB). On a partial-apply failure lastSync is intentionally left
-        // unchanged, so returning it here would make the result disagree with
-        // stored state.
-        lastSyncTime: recordsFailed == 0 ? result.uploadTime : null,
-        adoptedFreshIdentity: adoptedFreshIdentity,
-      );
-    } on TimeoutException {
-      _log.warning('Sync timed out while uploading');
-      return const SyncResult(
-        status: SyncResultStatus.networkError,
-        message: 'Sync timed out while uploading',
-      );
-    } on SyncStepException catch (e) {
-      return SyncResult(status: SyncResultStatus.error, message: e.toString());
-    } on CloudStorageException catch (e) {
-      _log.error(
-        'Cloud storage error during sync',
-        error: e,
-        stackTrace: e.stackTrace,
-      );
-      return SyncResult(
-        status: SyncResultStatus.networkError,
-        message: e.message,
-      );
-    } catch (e, stackTrace) {
-      _log.error('Sync failed', error: e, stackTrace: stackTrace);
-      return SyncResult(
-        status: SyncResultStatus.error,
-        message: _formatSyncError(e, stackTrace),
-      );
-    }
-  }
-
-  /// Incremental changeset-log sync (Phases 1-6 transport): pull peers' deltas
-  /// through the existing merge, then publish our own delta.
-  ///
-  /// This is the new sync path. The live [performSync] entry point is NOT yet
-  /// switched to it: the cutover requires migrating the legacy full-file
-  /// integration tests and real multi-device verification (see
-  /// docs/superpowers/plans/2026-06-14-incremental-sync-phase-6-restore-coexistence.md).
-  /// Epoch-gating and twin-detection (present in [performSync]) are folded in at
-  /// that cutover.
-  Future<SyncResult> performChangesetSync() async {
     final provider = _cloudProvider;
     if (provider == null) {
       return const SyncResult(
@@ -744,14 +314,34 @@ class SyncService {
           message: 'Not authenticated with cloud provider',
         );
       }
-      final deviceId = await _syncRepository.getDeviceId();
+      var deviceId = await _syncRepository.getDeviceId();
+      // Scoped to this provider: a cursor minted against a backend we switched
+      // away from reads as null here, forcing a full cold-start reconcile on
+      // the new backend rather than replaying a foreign baseline.
       final lastSyncTime = await _syncRepository.getLastSyncTime(
         forProvider: provider.providerId,
       );
       await _syncRepository.ensureSyncClockConfigured();
+
+      // ---- Library epoch gate (restore Replace mode) ----
+      // A pending replace runs INSTEAD of a merge, and a marker from an
+      // unaccepted epoch halts everything until the user adopts.
+      final gate = await _runEpochGate(provider);
+      if (gate.terminal != null) return gate.terminal!;
+      final currentEpochId = gate.currentEpochId;
+
       final folderId = await provider.getOrCreateSyncFolder();
 
-      // Stale-restore: re-pull the authoritative library by cold-starting.
+      // ---- Twin-identity split ----
+      // Our own cloud manifest carrying a nonce we never minted means another
+      // install is syncing as this device (a whole-container OS clone). Adopt a
+      // fresh identity now; the old id's files then read as a peer below and
+      // the twins converge in this same sync.
+      final twin = await _detectTwin(provider, deviceId, folderId);
+      deviceId = twin.deviceId;
+      final adoptedFreshIdentity = twin.adopted;
+
+      // ---- Stale-restore: cold-start to re-pull the authoritative library ----
       if (await _staleRestoreDetector.isStaleRestore(
         provider: provider,
         deviceId: deviceId,
@@ -763,7 +353,7 @@ class SyncService {
         await PublishStateStore(db).resetForProvider(provider.providerId);
       }
 
-      // Download: pull peers, applying through the existing merge.
+      // ---- Download: pull peers, applying through the existing merge ----
       _reportProgress(SyncPhase.downloading, 0.4, 'Pulling changes...');
       var recordsSynced = 0;
       var conflictsFound = 0;
@@ -772,6 +362,7 @@ class SyncService {
         provider: provider,
         selfDeviceId: deviceId,
         folderId: folderId,
+        currentEpochId: currentEpochId,
         apply: (payload) async {
           final r = await _applyRemotePayload(payload, lastSyncTime);
           recordsSynced += r.recordsApplied;
@@ -780,21 +371,39 @@ class SyncService {
         },
       );
 
-      // Upload: publish our delta.
+      // ---- Upload: publish our delta ----
       _reportProgress(SyncPhase.uploading, 0.8, 'Publishing changes...');
       final deletions = await _syncRepository.getAllDeletions();
       final uploadNonce = _uuid.v4();
+      // Record the nonce BEFORE publishing: a lost response (timeout, app
+      // death) still leaves our manifest carrying this nonce, and an
+      // unrecorded copy would read as a foreign twin on the next sync.
       await _syncInitializer?.recordUploadNonce(
         uploadNonce,
         provider.providerId,
       );
-      await _changesetWriter.publish(
-        provider: provider,
-        deviceId: deviceId,
-        folderId: folderId,
-        deletions: deletions,
-        uploadNonce: uploadNonce,
-      );
+      try {
+        await _changesetWriter.publish(
+          provider: provider,
+          deviceId: deviceId,
+          folderId: folderId,
+          deletions: deletions,
+          epochId: currentEpochId,
+          uploadNonce: uploadNonce,
+        );
+      } catch (e) {
+        // Keep the speculative nonce on a timeout (the publish may have
+        // landed); remove it only on definite failures, so repeated hard
+        // failures cannot evict the last good nonce from the ring.
+        final cause = e is SyncStepException ? e.error : e;
+        if (cause is! TimeoutException) {
+          await _syncInitializer?.removeUploadNonce(
+            uploadNonce,
+            provider.providerId,
+          );
+        }
+        rethrow;
+      }
 
       // Advance state only on a clean apply (idempotent re-pull otherwise).
       final now = DateTime.now();
@@ -818,9 +427,23 @@ class SyncService {
             : (conflictsFound > 0
                   ? SyncResultStatus.hasConflicts
                   : SyncResultStatus.success),
+        message: recordsFailed > 0
+            ? '$recordsFailed record(s) failed to apply'
+            : (adoptedFreshIdentity
+                  ? 'Another device was syncing with this device\'s '
+                        'identity. This device adopted a new identity and '
+                        'merged the cloud data.'
+                  : null),
         recordsSynced: recordsSynced,
         conflictsFound: conflictsFound,
         lastSyncTime: recordsFailed == 0 ? now : null,
+        adoptedFreshIdentity: adoptedFreshIdentity,
+      );
+    } on TimeoutException {
+      _log.warning('Sync timed out');
+      return const SyncResult(
+        status: SyncResultStatus.networkError,
+        message: 'Sync timed out',
       );
     } on CloudStorageException catch (e) {
       return SyncResult(
@@ -836,21 +459,115 @@ class SyncService {
     }
   }
 
-  Future<T> _withStep<T>(String step, Future<T> Function() action) async {
-    try {
-      return await action();
-    } catch (e, stackTrace) {
-      _log.error('Sync step failed: $step', error: e, stackTrace: stackTrace);
-      throw SyncStepException(step, e);
+  /// Run the library-epoch gate. Returns a terminal result the caller must
+  /// return immediately, or the resolved currentEpochId to proceed with.
+  /// Mirrors the inline gate the legacy full-file performSync used.
+  Future<_EpochGate> _runEpochGate(CloudStorageProvider provider) async {
+    final epochStore = _epochStore;
+    if (epochStore == null) return const _EpochGate.proceed(null);
+
+    final pending = epochStore.pendingReplace;
+    if (pending != null) {
+      return _EpochGate.halt(await executeLibraryReplace(pending));
     }
+    final accepted =
+        await _syncRepository.getLastAcceptedEpochId() ??
+        epochStore.lastAcceptedEpochId;
+    LibraryEpochMarker? marker;
+    try {
+      marker = await readLibraryEpochMarker(provider);
+    } catch (e) {
+      _log.warning('Library epoch marker unreadable; failing closed: $e');
+      return const _EpochGate.halt(
+        SyncResult(
+          status: SyncResultStatus.error,
+          message: 'Could not read the library epoch marker',
+        ),
+      );
+    }
+    if (marker == null) {
+      if (accepted != null) {
+        // On an epoch but the marker vanished: self-heal it from the mirror
+        // and continue as current.
+        final stored = epochStore.lastAcceptedMarker;
+        if (stored != null) {
+          try {
+            await writeLibraryEpochMarker(provider, stored);
+          } catch (e) {
+            _log.warning('Could not self-heal epoch marker: $e');
+          }
+        }
+        return _EpochGate.proceed(accepted);
+      }
+      return const _EpochGate.proceed(null); // pre-epoch world
+    }
+    if (marker.epochId == accepted) {
+      return _EpochGate.proceed(accepted);
+    }
+    _log.info(
+      'Cloud library was replaced (epoch ${marker.epochId}); '
+      'halting sync until the user adopts',
+    );
+    return _EpochGate.halt(
+      SyncResult(
+        status: SyncResultStatus.awaitingAdoption,
+        message: 'The cloud library was replaced from a backup',
+        replaceMarker: marker,
+      ),
+    );
   }
 
-  T _withStepSync<T>(String step, T Function() action) {
+  /// Twin-identity split: if this device's own cloud manifest carries an
+  /// upload nonce we never minted, another install is syncing as us. Adopt a
+  /// fresh identity and re-seed the clock; the returned id is used for the rest
+  /// of the sync so the old id's files merge as a peer and the twins converge.
+  Future<({String deviceId, bool adopted})> _detectTwin(
+    CloudStorageProvider provider,
+    String deviceId,
+    String folderId,
+  ) async {
+    final initializer = _syncInitializer;
+    if (initializer == null) return (deviceId: deviceId, adopted: false);
+    final manifest = await _readManifest(provider, folderId, deviceId);
+    final nonce = manifest?.uploadNonce;
+    // Require the manifest to actually claim our id: a manifest at our filename
+    // whose body names a different device is mislabeled, not evidence that
+    // another install is syncing as us.
+    if (manifest == null ||
+        manifest.deviceId != deviceId ||
+        nonce == null ||
+        !initializer.isForeignUploadNonce(nonce, provider.providerId)) {
+      return (deviceId: deviceId, adopted: false);
+    }
+    _log.warning(
+      'Another install is uploading as this device id; adopting a fresh '
+      'sync identity to split the twins',
+    );
+    final newId = await initializer.adoptFreshIdentity();
+    // Re-seed the HLC clock under the new node id so remote HLCs received while
+    // merging the converging files advance it instead of no-opping.
+    await _syncRepository.ensureSyncClockConfigured();
+    return (deviceId: newId, adopted: true);
+  }
+
+  /// Read a device's own changeset manifest from the cloud, or null if absent
+  /// or unparseable.
+  Future<SyncManifest?> _readManifest(
+    CloudStorageProvider provider,
+    String folderId,
+    String deviceId,
+  ) async {
+    final name = ChangesetLogLayout.manifestName(deviceId);
+    final files = await provider.listFiles(
+      folderId: folderId,
+      namePattern: ChangesetLogLayout.prefix,
+    );
+    final match = files.where((f) => f.name == name).firstOrNull;
+    if (match == null) return null;
     try {
-      return action();
-    } catch (e, stackTrace) {
-      _log.error('Sync step failed: $step', error: e, stackTrace: stackTrace);
-      throw SyncStepException(step, e);
+      return SyncManifest.fromBytes(await provider.downloadFile(match.id));
+    } catch (_) {
+      return null;
     }
   }
 
@@ -872,33 +589,6 @@ class SyncService {
       return utf8.decode(data);
     } catch (_) {
       return String.fromCharCodes(data);
-    }
-  }
-
-  /// Read just the envelope identity of a sync file: who wrote it and with
-  /// which upload nonce. Used by the twin check on our OWN file, where the
-  /// full parse (checksum over the whole data section, SyncData
-  /// construction) would be pure overhead -- integrity is irrelevant to the
-  /// question "did another install write this?", and after an adoption the
-  /// file is re-downloaded and fully validated as a peer anyway. Returns
-  /// null on any failure.
-  Future<({String deviceId, String? uploadNonce})?> _peekPayloadIdentity(
-    CloudStorageProvider provider,
-    CloudFileInfo file,
-  ) async {
-    try {
-      final bytes = await provider
-          .downloadFile(file.id)
-          .timeout(const Duration(seconds: 15));
-      final decoded = jsonDecode(_decodePayloadBytes(bytes));
-      if (decoded is! Map<String, dynamic>) return null;
-      final deviceId = decoded['deviceId'];
-      if (deviceId is! String) return null;
-      final nonce = decoded['uploadNonce'];
-      return (deviceId: deviceId, uploadNonce: nonce is String ? nonce : null);
-    } catch (e) {
-      _log.warning('Could not inspect own sync file ${file.name}: $e');
-      return null;
     }
   }
 
