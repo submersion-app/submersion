@@ -435,7 +435,10 @@ class ReparseService {
 
     await db.batch((batch) {
       for (final e in parsed.events) {
-        final eventType = _mapEventTypeString(e.type);
+        final eventType = _mapEventTypeString(
+          e.type,
+          flags: e.data != null ? int.tryParse(e.data!['flags'] ?? '') : null,
+        );
         if (eventType == null) continue;
 
         batch.insert(
@@ -696,7 +699,7 @@ class ReparseService {
   }
 
   /// Map libdivecomputer event type strings to ProfileEventType enum names.
-  static String? _mapEventTypeString(String type) {
+  static String? _mapEventTypeString(String type, {int? flags}) {
     switch (type) {
       case 'safetystop':
       case 'safetystop_voluntary':
@@ -704,6 +707,7 @@ class ReparseService {
         return 'safetyStopStart';
       case 'deco':
       case 'deepstop':
+        if (flags == 2) return 'decoStopEnd';
         return 'decoStopStart';
       case 'violation':
         return 'decoViolation';

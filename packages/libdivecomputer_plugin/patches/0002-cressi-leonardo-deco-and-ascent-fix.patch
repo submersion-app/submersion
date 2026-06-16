@@ -1,0 +1,59 @@
+diff --git a/src/cressi_leonardo_parser.c b/src/cressi_leonardo_parser.c
+index df382c5..9f65434 100644
+--- a/src/cressi_leonardo_parser.c
++++ b/src/cressi_leonardo_parser.c
+@@ -177,6 +177,8 @@ cressi_leonardo_parser_samples_foreach (dc_parser_t *abstract, dc_sample_callbac
+ 		gasmix = gasmix_previous;
+ 	}
+ 
++	unsigned int deco_previous = 0;
++
+ 	unsigned int offset = SZ_HEADER;
+ 	while (offset + 2 <= size) {
+ 		dc_sample_value_t sample = {0};
+@@ -199,6 +201,7 @@ cressi_leonardo_parser_samples_foreach (dc_parser_t *abstract, dc_sample_callbac
+ 		} else {
+ 			unsigned int value = array_uint16_le (data + offset);
+ 			unsigned int depth = value & 0x07FF;
++			unsigned int deco = (value & 0x0800) >> 11;
+ 			unsigned int ascent = (value & 0xC000) >> 14;
+ 
+ 			// Time (seconds).
+@@ -217,8 +220,35 @@ cressi_leonardo_parser_samples_foreach (dc_parser_t *abstract, dc_sample_callbac
+ 				gasmix_previous = gasmix;
+ 			}
+ 
+-			// Ascent rate
+-			if (ascent) {
++			// Deco obligation
++			if (deco) {
++				sample.deco.type = DC_DECO_DECOSTOP;
++			} else {
++				sample.deco.type = DC_DECO_NDL;
++			}
++			sample.deco.time = 0;
++			sample.deco.depth = 0.0;
++			sample.deco.tts = 0;
++			if (callback) callback (DC_SAMPLE_DECO, &sample, userdata);
++
++			// Deco obligation start/end event
++			if (deco && !deco_previous) {
++				sample.event.type = SAMPLE_EVENT_DECOSTOP;
++				sample.event.time = 0;
++				sample.event.flags = SAMPLE_FLAGS_BEGIN;
++				sample.event.value = 0;
++				if (callback) callback (DC_SAMPLE_EVENT, &sample, userdata);
++			} else if (!deco && deco_previous) {
++				sample.event.type = SAMPLE_EVENT_DECOSTOP;
++				sample.event.time = 0;
++				sample.event.flags = SAMPLE_FLAGS_END;
++				sample.event.value = 0;
++				if (callback) callback (DC_SAMPLE_EVENT, &sample, userdata);
++			}
++			deco_previous = deco;
++
++			// Ascent rate warning (only level 3 triggers audible alarm)
++			if (ascent == 3) {
+ 				sample.event.type = SAMPLE_EVENT_ASCENT;
+ 				sample.event.time = 0;
+ 				sample.event.flags = 0;

@@ -485,6 +485,8 @@ class DiveImportService {
       entryLongitude: dive.entryLongitude,
       exitLatitude: dive.exitLatitude,
       exitLongitude: dive.exitLongitude,
+      minTemperature: dive.minTemperature,
+      maxTemperature: dive.maxTemperature,
     );
 
     return diveId;
@@ -563,6 +565,8 @@ class DiveImportService {
       entryLongitude: dive.entryLongitude,
       exitLatitude: dive.exitLatitude,
       exitLongitude: dive.exitLongitude,
+      minTemperature: dive.minTemperature,
+      maxTemperature: dive.maxTemperature,
     );
   }
 
